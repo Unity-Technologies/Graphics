@@ -56,7 +56,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     InputData inputData;
-    BuildInputData(unpacked, surfaceDescription.Normal, inputData);
+    BuildInputData(unpacked, surfaceDescription.NormalTS, inputData);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
