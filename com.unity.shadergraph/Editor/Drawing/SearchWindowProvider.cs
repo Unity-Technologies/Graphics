@@ -70,6 +70,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Iterate all BlockFieldDescriptors currently cached on GraphData
                 foreach(var field in m_Graph.blockFieldDescriptors)
                 {
+                    if(field.isHidden)
+                        continue;
+
                     // Test stage
                     if(field.shaderStage != contextView.contextData.shaderStage)
                         continue;
