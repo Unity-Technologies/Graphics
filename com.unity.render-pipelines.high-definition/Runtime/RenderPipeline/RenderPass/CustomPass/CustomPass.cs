@@ -190,9 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 );
 
                 isExecuting = true;
-#pragma warning disable CS0618 // Member is obsolete
-                Execute(renderContext, cmd, hdCamera, cullingResult);
-#pragma warning restore CS0618
                 Execute(ctx);
                 isExecuting = false;
 
@@ -273,7 +270,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
         // TODO: move this function to abstract when we remove the method above
-        protected virtual void Execute(CustomPassContext ctx) {}
+        protected virtual void Execute(CustomPassContext ctx)
+        {
+#pragma warning disable CS0618 // Member is obsolete
+                Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
+#pragma warning restore CS0618
+        }
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
