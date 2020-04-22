@@ -4762,7 +4762,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Overrides the current camera, changing all the matrices and view parameters for the new one.
         /// It allows you to render objects from another camera, which can be useful in custom passes for example.
         /// </summary>
-        public struct OverrideCameraRendering : IDisposable
+        internal struct OverrideCameraRendering : IDisposable
         {
             CommandBuffer   cmd;
             Camera          overrideCamera;
@@ -4809,6 +4809,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Update HDCamera datas
                 overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
+                // Reset the reference size as it could have been changed by the override camera
+                hdrp.m_CurrentHDCamera.SetReferenceSize();
                 overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
 
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
@@ -4842,6 +4844,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideCamera.aspect = originalAspect;
 
                 var hdrp = HDRenderPipeline.currentPipeline;
+                // Reset the reference size as it could have been changed by the override camera
+                hdrp.m_CurrentHDCamera.SetReferenceSize();
                 hdrp.m_CurrentHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
                 ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }

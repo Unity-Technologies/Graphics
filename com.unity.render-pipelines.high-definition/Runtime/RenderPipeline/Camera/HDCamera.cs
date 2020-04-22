@@ -494,12 +494,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
+        /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
+        internal void SetReferenceSize()
+        {
+            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+        }
+        
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
         internal void BeginRender(CommandBuffer cmd)
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
-            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            SetReferenceSize();
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
@@ -1248,7 +1254,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_OverridePixelRect != null)
                 return m_OverridePixelRect.Value;
             else
-                return camera.pixelRect;
+                return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
         #endregion
     }
