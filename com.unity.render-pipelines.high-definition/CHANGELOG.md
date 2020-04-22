@@ -560,6 +560,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix spelling and grammatical errors in material samples
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed scalarization code for contact shadows.
+- Fixed volume debug in playmode
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
 
 ### Changed
