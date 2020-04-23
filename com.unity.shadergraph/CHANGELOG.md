@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
 - Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
+- Updated the dependent version of `Searcher` to 4.1.0. 
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
