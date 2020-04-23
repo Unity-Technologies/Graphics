@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
 - Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
+- Updated the functions in the `Normal From Height` node to avoid NaN outputs. 
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
