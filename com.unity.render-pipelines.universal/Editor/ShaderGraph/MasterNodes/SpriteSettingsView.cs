@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.Experimental.Rendering.Universal

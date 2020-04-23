@@ -259,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
-
+        
         [SerializeField]
         bool m_AlphaToMask = false;
 
