@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
@@ -112,6 +112,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Vector1;
                 case ConcreteSlotValueType.Boolean:
                     return PropertyType.Boolean;
+                case ConcreteSlotValueType.VirtualTexture:
+                    return PropertyType.VirtualTexture;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -180,7 +182,8 @@ namespace UnityEditor.ShaderGraph
             "typeFloat3",
             "typeFloat2",
             "typeFloat1",
-            "typeBoolean"
+            "typeBoolean",
+            "typeVirtualTexture"
         };
     }
 }

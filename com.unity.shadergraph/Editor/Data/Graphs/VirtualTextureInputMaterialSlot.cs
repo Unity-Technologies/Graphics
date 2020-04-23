@@ -70,11 +70,13 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            Debug.Log("Copy Values From");
-            // TODO
-//             var slot = foundSlot as Texture2DInputMaterialSlot;
-//             if (slot != null)
-//                 m_Texture = slot.m_Texture;
+            // not entirely sure why we need this function, but sure...
+
+            var slot = foundSlot as VirtualTextureInputMaterialSlot;
+            if (slot != null)
+            {
+                m_Default = slot.m_Default.Copy() as VirtualTextureShaderProperty;
+            }
         }
     }
 }
