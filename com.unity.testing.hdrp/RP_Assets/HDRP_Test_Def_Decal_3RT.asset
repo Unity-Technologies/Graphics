@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
-  m_Name: HDRP_Test_Def
+  m_Name: HDRP_Test_Def_Decal_3RT
   m_EditorClassIdentifier: 
   m_Version: 15
   m_ObsoleteFrameSettings:
@@ -297,7 +297,7 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 2048
       atlasHeight: 1024
-      perChannelMask: 1
+      perChannelMask: 0
     postProcessSettings:
       m_LutSize: 32
       lutFormat: 48

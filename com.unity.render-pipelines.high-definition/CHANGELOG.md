@@ -563,6 +563,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volume debug in playmode
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed shader warning in PCSS code when using Vulkan.
+- Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
