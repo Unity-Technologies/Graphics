@@ -428,7 +428,10 @@ namespace UnityEditor.Rendering
 
             if (selection == null)
             {
-                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                if (!Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                }
                 return;
             }
 
@@ -443,11 +446,14 @@ namespace UnityEditor.Rendering
             int selectedMaterialsCount = selectedMaterials.Count;
             if (selectedMaterialsCount == 0)
             {
-                EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                if (!Application.isBatchMode)
+                {
+                    EditorUtility.DisplayDialog(DialogText.title, DialogText.noSelectionMessage, DialogText.ok);
+                }
                 return;
             }
 
-            if (!EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
+            if (!Application.isBatchMode && !EditorUtility.DisplayDialog(DialogText.title, string.Format("The upgrade will overwrite {0} selected material{1}. ", selectedMaterialsCount, selectedMaterialsCount > 1 ? "s" : "") +
                     DialogText.projectBackMessage, DialogText.proceed, DialogText.cancel))
                 return;
 
