@@ -1634,10 +1634,11 @@ namespace UnityEditor.ShaderGraph
                             if(!(target is ILegacyTarget legacyTarget))
                                 continue;
                             
-                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
+                            if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
                                 continue;
                             
                             m_ActiveTargets.Add(target);
+                            blockMap = newBlockMap;
                         }
                     }
 
