@@ -24,6 +24,7 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
         if (XRSystem.testModeEnabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
             Assert.Ignore("Universal XR tests do not run on macOS.");
 
