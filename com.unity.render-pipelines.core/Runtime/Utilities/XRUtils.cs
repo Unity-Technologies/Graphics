@@ -1,11 +1,8 @@
-using System;
-
 namespace UnityEngine.Rendering
 {
     /// <summary>
     /// XR Utility class.
     /// </summary>
-    [Obsolete]
     public static class XRUtils
     {
         /// <summary>

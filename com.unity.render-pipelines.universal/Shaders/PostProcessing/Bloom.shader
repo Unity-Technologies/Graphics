@@ -58,7 +58,8 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            half3 color = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, input.uv).xyz;
+            float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
+            half3 color = SAMPLE_TEXTURE2D_X(_InputTex, sampler_LinearClamp, uv).xyz;
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);

@@ -11,12 +11,8 @@
     #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define USING_STEREO_MATRICES
-#endif
-
-#if defined(UNITY_SINGLE_PASS_STEREO)
-    #pragma message "Single-pass stereo (double-wide) is deprecated in URP. Use single-pass instancing, multiview or multipass instead."
 #endif
 
 #if defined(USING_STEREO_MATRICES)
@@ -134,6 +130,7 @@ float4x4 unity_StereoMatrixInvV[2];
 float4x4 unity_StereoMatrixVP[2];
 float4x4 unity_StereoMatrixIVP[2];
 float3   unity_StereoWorldSpaceCameraPos[2];
+float4   unity_StereoScaleOffset[2];
 CBUFFER_END
 #endif
 
@@ -157,6 +154,10 @@ CBUFFER_END
 UNITY_DECLARE_MULTIVIEW(2);
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 static uint unity_StereoEyeIndex;
+#elif defined(UNITY_SINGLE_PASS_STEREO)
+CBUFFER_START(UnityStereoEyeIndex)
+int unity_StereoEyeIndex;
+CBUFFER_END
 #endif
 
 float4x4 glstate_matrix_transpose_modelview0;

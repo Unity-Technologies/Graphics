@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// XRGraphics insulates SRP from API changes across platforms, Editor versions, and as XR transitions into XR SDK
     /// </summary>
-    [Obsolete]
     [Serializable]
     public class XRGraphics
     {
