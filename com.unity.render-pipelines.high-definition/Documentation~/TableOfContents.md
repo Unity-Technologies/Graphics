@@ -102,6 +102,7 @@
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
   * [Alpha Output](Alpha-Output)
+  * [Arbitrary Output Variables](AOVs)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
