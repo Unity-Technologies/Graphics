@@ -1,6 +1,6 @@
 ## Multiframe Rendering and Accumulation
 
-Some rendering techniques, such as path tracing and accumulation motion blur, create the final "converged" frame by combining information from multiple intermediate sub-frames. Each intermediate sub-frame can correspond to a slightly different point in time, effectively computing physically-based accumulation motion blur, which properly takes into account object rotations, deformations, material or lighting changes, etc.
+Some rendering techniques, such as [Path Tracing](Ray-Tracing-Path-Tracing) and accumulation motion blur, create the final "converged" frame by combining information from multiple intermediate sub-frames. Each intermediate sub-frame can correspond to a slightly different point in time, effectively computing physically-based accumulation motion blur, which properly takes into account object rotations, deformations, material or lighting changes, etc.
 
 HDRP provides a scripting API that allows you to control the creation of sub-frames and the convergence of multi-frame rendering effects. In particular, the API allows you to control the number of intermediate sub-frames (samples) and the points in time that correspond to each one of them. Furthermore, the weights of each sub-frame are controlled using shutter profiles that describe how fast was the opening and closing motion of the camera's shutter.
 
@@ -12,14 +12,22 @@ The following images shows a rotating object with path tracing and accumulation 
 
 ## API Overview
 The recording API is available in the HD Render Pipeline and has only three calls:
-- BeginRecording should be called when starting a multi-frame render. 
-- PrepareNewSubFrame should be called before rendering a new subframe.
-- EndRecording which should be called to stop the multi-frame rendering mode. 
+- **BeginRecording** should be called when starting a multi-frame render. 
+- **PrepareNewSubFrame** should be called before rendering a new subframe.
+- **EndRecording** which should be called to stop the multi-frame rendering mode. 
 
-The script below demonstrates how to use these calls.
+The only call that takes any parameters is **BeginRecording**. Here is an explenation of the parameters:
+
+| Parameter  | Description               |
+|-------------------|---------------------------|
+| Samples           | The number of sub-frames to accumumate. This parameter overrides the number of path tracing samples in the the volume.|
+| ShutterInterval   | The amount of time the shutter is open between two subsequent frames. Zero denotes instant shutter (no motion blur). One denotes there is no (time) gap between two subsequent frames.|
+| ShutterProfile  | An animation curve, denoting the shutter position during the shutter interval. Alternatively, the user can also provide the time the shutter was fully open; and when the shutter begins closing.
+
+The script below demonstrates how to use these API calls.
 
 ## Scripting Example
-The following example demonstrates how to use the multi-frame rendering API in your scripts to properly record converged animation sequences with path tracing and/or accumulation motion blur. To use it, attach the script to the camera of your scene and select the “Start recording” and “stop recording” actions from the context menu. Setting the Shutter Interval parameter to zero will disable motion blur completely.
+The following example demonstrates how to use the multi-frame rendering API in your scripts to properly record converged animation sequences with path tracing and/or accumulation motion blur. To use it, attach the script to the camera of your scene and select the “Start recording” and “stop recording” actions from the context menu. 
 
 ```
 using UnityEngine;
@@ -28,9 +36,17 @@ using UnityEngine.Rendering.HighDefinition;
 
 public class FrameManager : MonoBehaviour
 {
+    // The number of samples used for accumumation.
     public int samples = 128;
+    [Range(0.0f, 1.0f)]
     public float shutterInterval = 1.0f;
+
+    // The time during shutter interval when the shutter is fully open
+    [Range(0.0f, 1.0f)]
     public float shutterFullyOpen = 0.25f;
+
+    // The time during shutter interval when the shutter begins closing.
+    [Range(0.0f, 1.0f)]
     public float shutterBeginsClosing = 0.75f;
 
     bool m_Recording = false;
@@ -71,6 +87,12 @@ public class FrameManager : MonoBehaviour
             ScreenCapture.CaptureScreenshot($"frame_{m_RecordedFrames++}.png");
         }
     }
+    
+    void OnValidate()
+    {
+        // Make sure the shutter will begin closing sometime after it is fully open (and not before)
+        shutterBeginsClosing = Mathf.Max(shutterFullyOpen, shutterBeginsClosing);
+    }
 }
 ```
 
@@ -79,7 +101,13 @@ The BeginRecording call allows you to specify how fast the camera shutter is ope
 
 ![](Images/shutter_profiles.png)
 
-
 In all cases, the speed of the sphere is the same. The only change is the shutter profile. The horizontal axis of the profile diagram corresponds to time, and the vertical axis corresponds to the openning of the shutter. 
 
+The first three profiles cqn be eqsilly defined without using an animation vurve by setting the open, close parameters to (0,1), (1,1) and (0.25, 0.75). The last profile requires the use of an animation curve.
+
 In this example, we observe that the slow open profile creates a motion trail appearance for the motion blur, which might be more desired for the artists. On the other hand, the smooth open and close profile creates smoother animations than the slow open or uniform profiles.
+
+## Limitations
+The multi-frame rendering API internally changes the Time.timeScale of the scene. This means that:
+- You cannot have different accumulation motion blur parameters per camera.
+- Projects that already modify this parameter per frame will not be compatible with this technique. 
