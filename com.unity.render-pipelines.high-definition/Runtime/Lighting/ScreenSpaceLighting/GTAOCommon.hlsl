@@ -2,17 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-
-CBUFFER_START(GTAOUniformBuffer)
-float4 _AOBufferSize;
-float4 _AOParams0;
-float4 _AOParams1;
-float4 _AOParams2;
-float4 _AOParams3;
-float4 _AOParams4;
-float4 _FirstTwoDepthMipOffsets;
-float4 _AODepthToViewParams;
-CBUFFER_END
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesAmbientOcclusion.cs.hlsl"
 
 #define _AOBaseResMip  (int)_AOParams0.x
 #define _AOFOVCorrection _AOParams0.y
