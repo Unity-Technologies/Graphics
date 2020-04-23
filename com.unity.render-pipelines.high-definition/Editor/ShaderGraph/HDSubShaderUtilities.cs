@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Legacy;
 using ShaderPass = UnityEditor.ShaderGraph.PassDescriptor;
 
 // Include material common properties names
@@ -211,6 +212,35 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             return result;
+        }
+
+        public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)
+        {
+            var clipThresholdId = 8;
+            var node = masterNode as AbstractMaterialNode;
+            var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
+            if(clipThresholdSlot == null)
+                return false;
+
+            clipThresholdSlot.owner = node;
+            return (clipThresholdSlot.isConnected || clipThresholdSlot.value != clipThresholdSlot.defaultValue);
+        }
+
+        public static BlendMode UpgradeLegacyAlphaModeToBlendMode(int alphaMode)
+        {
+            switch (alphaMode)
+            {
+                case 0: //AlphaMode.Alpha:
+                    return BlendMode.Alpha;
+                case 1: //AlphaMode.Premultiply:
+                    return BlendMode.Premultiply;
+                case 2: //AlphaMode.Additive:
+                    return BlendMode.Additive;
+                case 3: //AlphaMode.Multiply: // In case of multiply we fall back to alpha
+                    return BlendMode.Alpha;
+                default:
+                    throw new System.Exception("Unknown AlphaMode at index: " + alphaMode + ": can't convert to BlendMode.");
+            }
         }
 
         public static DoubleSidedNormalMode ConvertDoubleSidedModeToDoubleSidedNormalMode(DoubleSidedMode shaderGraphMode)

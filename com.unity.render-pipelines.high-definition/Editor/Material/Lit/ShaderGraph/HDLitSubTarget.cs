@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDLitSubTarget : SubTarget<HDTarget>, IHasMetadata,
+    sealed class HDLitSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
         IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDLightingData>, IRequiresData<HDLitData>
     {
         const string kAssetGuid = "caab952c840878340810cca27417971c";
@@ -395,6 +397,80 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Lit;
             return hdMetadata;
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            switch(masterNode)
+            {
+                case PBRMasterNode1 pbrMasterNode:
+                    UpgradePBRMasterNode(pbrMasterNode, out blockMap);
+                    return true;
+                // case HDLitMasterNode1 hdLitMasterNode:
+                //     return true;
+                default:
+                    return false;
+            }
+        }
+
+        void UpgradePBRMasterNode(PBRMasterNode1 pbrMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            // Set data
+            systemData.surfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
+            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
+            systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
+            systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
+            systemData.dotsInstancing = pbrMasterNode.m_DOTSInstancing;
+            builtinData.addPrecomputedVelocity = false;
+            lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
+            litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
+            target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
+
+            // Handle mapping of Normal block specifically
+            BlockFieldDescriptor normalBlock;
+            switch(lightingData.normalDropOffSpace)
+            {
+                case NormalDropOffSpace.Object:
+                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
+                    break;
+                case NormalDropOffSpace.World:
+                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
+                    break;
+                default:
+                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
+                    break;
+            }
+
+            // PBRMasterNode adds/removes Metallic/Specular based on settings
+            BlockFieldDescriptor specularMetallicBlock;
+            int specularMetallicId;
+            if(litData.materialType == HDLitData.MaterialType.SpecularColor)
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
+                specularMetallicId = 3;
+            }
+            else
+            {
+                specularMetallicBlock = BlockFields.SurfaceDescription.Metallic;
+                specularMetallicId = 2;
+            }
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { normalBlock, 1 },
+                { specularMetallicBlock, specularMetallicId },
+                { BlockFields.SurfaceDescription.Emission, 4 },
+                { BlockFields.SurfaceDescription.Smoothness, 5 },
+                { BlockFields.SurfaceDescription.Occlusion, 6 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+            };
         }
 
 #region SubShaders

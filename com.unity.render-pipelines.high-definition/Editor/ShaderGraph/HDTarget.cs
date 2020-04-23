@@ -9,6 +9,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -45,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
     {
         // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
@@ -75,10 +76,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
 
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
-            ProcessSubTargetDatas();
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
+
+        public string customEditorGUI
+        {
+            get => m_CustomEditorGUI;
+            set => m_CustomEditorGUI = value;
+        }
 
         public override bool IsActive()
         {
@@ -100,7 +107,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return;
 
             // Setup the active SubTarget
-            ProcessSubTargetDatas();
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
 
@@ -152,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
 
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
-                ProcessSubTargetDatas();
+                ProcessSubTargetDatas(m_ActiveSubTarget.value);
                 onChange();
             });
 
@@ -206,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return null;
         }
 
-        void ProcessSubTargetDatas()
+        void ProcessSubTargetDatas(SubTarget subTarget)
         {
             var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
             foreach(var type in typeCollection)
@@ -215,7 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Therefore we need to use reflections to call the method
                 var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
                 var genericMethodInfo = methodInfo.MakeGenericMethod(type);
-                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value });
+                genericMethodInfo.Invoke(this, new object[] { subTarget });
             }
         }
 
@@ -262,6 +269,40 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void OnBeforeSerialize()
         {
             ClearUnusedData();
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+
+            // We need to guarantee any required data object exists
+            // as we fill out the datas in the same method as determining which SubTarget is valid
+            // When the graph is serialized any unused data is removed anyway
+            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            foreach(var type in typeCollection)
+            {
+                var data = Activator.CreateInstance(type) as HDTargetData;
+                m_Datas.Add(data);
+            }
+
+            // Process SubTargets
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(!(subTarget is ILegacyTarget legacySubTarget))
+                    continue;
+                
+                // Ensure all SubTargets have any required data to fill out during upgrade
+                ProcessSubTargetDatas(subTarget);
+                subTarget.target = this;
+                
+                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 

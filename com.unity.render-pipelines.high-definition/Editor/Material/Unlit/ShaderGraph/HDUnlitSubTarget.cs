@@ -1,15 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SubTarget<HDTarget>, IHasMetadata,
+    sealed class HDUnlitSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
         IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDUnlitData>
     {
         const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
@@ -225,6 +227,44 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
             hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Unlit;
             return hdMetadata;
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            switch(masterNode)
+            {
+                case UnlitMasterNode1 unlitMasterNode:
+                    UpgradeUnlitMasterNode(unlitMasterNode, out blockMap);
+                    return true;
+                // case HDUnlitMasterNode1 hdUnlitMasterNode:
+                //     return true;
+                default:
+                    return false;
+            }
+        }
+
+        void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            // Set data
+            systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
+            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);
+            systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
+            systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
+            systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
+            builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
+            target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+            };
         }
 
 #region SubShaders
