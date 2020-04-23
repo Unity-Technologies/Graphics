@@ -62,24 +62,24 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Convert the source buffer to an half resolution buffer and output it to the destination buffer.
         /// </summary>
-        /// <param name="ctx">Custom Pass Context</param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the downsample</param>
+        /// <param name="destination">Destination buffer of the downsample</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => DownSample(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
         /// <summary>
-        /// 
+        /// Convert the source buffer to an half resolution buffer and output it to the destination buffer.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the downsample</param>
+        /// <param name="destination">Destination buffer of the downsample</param>
         /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer</param>
         /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer. It's scale is relative to the destination buffer, so if you want an half res downsampling into a fullres buffer you need to specify a scale of 0.5;0,5. If your buffer is already half res Then 1;1 scale works.</param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void DownSample(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
             // Check if the texture provided is at least half of the size of source.
@@ -101,26 +101,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // Do we provide an upsample function ?
 
         /// <summary>
-        /// 
+        /// Copy an RTHandle content to another
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the copy</param>
+        /// <param name="destination">Destination buffer of the copy</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sourceMip = 0, int destMip = 0)
             => Copy(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sourceMip, destMip);
 
         /// <summary>
-        /// 
+        /// Copy a region of an RTHandle to another
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sourceScaleBias"></param>
-        /// <param name="destScaleBias"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the copy</param>
+        /// <param name="destination">Destination buffer of the copy</param>
+        /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void Copy(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -141,30 +141,30 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Vertical gaussian blur pass
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
             => VerticalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
         /// <summary>
-        /// 
+        /// Vertical gaussian blur pass
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sourceScaleBias"></param>
-        /// <param name="destScaleBias"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void VerticalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -186,30 +186,30 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Horizontal gaussian blur pass.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
             => HorizontalGaussianBlur(ctx, source, destination, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip);
 
         /// <summary>
-        /// 
+        /// Horizontal gaussian blur pass.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="sourceScaleBias"></param>
-        /// <param name="destScaleBias"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer.</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
         public static void HorizontalGaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 8, float radius = 5, int sourceMip = 0, int destMip = 0)
         {
             if (source == destination)
@@ -231,34 +231,34 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Gaussian Blur pass.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="tempTarget"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
-        /// <param name="downSample"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="tempTarget">Temporary render target to provide used internally to swap the result between blur passes. Can be half res if downsample is true.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
+        /// <param name="downSample">If true, will execute a downsample pass before the blur. It increases the performances of the blur.</param>
         public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
             => GaussianBlur(ctx, source, destination, tempTarget, fullScreenScaleBias, fullScreenScaleBias, sampleCount, radius, sourceMip, destMip, downSample);
 
         /// <summary>
-        /// 
+        /// Gaussian Blur pass.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="tempTarget"></param>
-        /// <param name="sourceScaleBias"></param>
-        /// <param name="destScaleBias"></param>
-        /// <param name="sampleCount"></param>
-        /// <param name="radius"></param>
-        /// <param name="sourceMip"></param>
-        /// <param name="destMip"></param>
-        /// <param name="downSample"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="source">Source to use for the gaussian blur.</param>
+        /// <param name="destination">Destination buffer of the gaussian blur.</param>
+        /// <param name="tempTarget">Temporary render target to provide used internally to swap the result between blur passes. Can be half res if downsample is true.</param>
+        /// <param name="sourceScaleBias">Scale and bias to apply when sampling the source buffer.</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer.</param>
+        /// <param name="sampleCount">Number of samples to use for the gaussian blur. A high number will impact performances.</param>
+        /// <param name="radius">Radius in pixel of the gaussian blur.</param>
+        /// <param name="sourceMip">Source mip level to sample from.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
+        /// <param name="downSample">If true, will execute a downsample pass before the blur. It increases the performances of the blur.</param>
         public static void GaussianBlur(in CustomPassContext ctx, RTHandle source, RTHandle destination, RTHandle tempTarget, Vector4 sourceScaleBias, Vector4 destScaleBias, int sampleCount = 9, float radius = 5, int sourceMip = 0, int destMip = 0, bool downSample = true)
         {
             if (source == tempTarget || destination == tempTarget)
@@ -299,12 +299,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Simpler version of ScriptableRenderContext.DrawRenderers to draw HDRP materials.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideMaterial"></param>
-        /// <param name="overrideMaterialIndex"></param>
-        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock renderStateBlock = default(RenderStateBlock))
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
+        /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
@@ -317,7 +318,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
                 layerMask = layerMask,
-                stateBlock = renderStateBlock,
+                stateBlock = overrideRenderState,
             };
 
             HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
@@ -390,16 +391,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Disable the multi pass rendering (use in XR)
         /// </summary>
         public struct DisableMultiPassRendering : IDisposable
         {
             CustomPassContext m_Context;
 
             /// <summary>
-            /// 
+            /// Disable the multi pass rendering (use in XR)
             /// </summary>
-            /// <param name="ctx"></param>
+            /// <param name="ctx">Custom Pass Context.</param>
             public DisableMultiPassRendering(in CustomPassContext ctx)
             {
                 m_Context = ctx;
@@ -408,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             /// <summary>
-            /// 
+            /// Re-enable the multi-pass rendering if it was enabled
             /// </summary>
             void IDisposable.Dispose()
             {
@@ -418,26 +419,31 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Render a list of objects from another camera point of view.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideMaterial"></param>
-        /// <param name="overrideMaterialIndex"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
+        /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
             => RenderFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideMaterial, overrideMaterialIndex, overrideRenderState);
 
         /// <summary>
-        /// 
+        /// Render a list of objects from another camera point of view.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="targetColor"></param>
-        /// <param name="targetDepth"></param>
-        /// <param name="clearFlag"></param>
-        /// <param name="layerMask"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetColor">The render target that will be bound to the color buffer before rendering</param>
+        /// <param name="targetDepth">The render target that will be bound to the depth buffer before rendering</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
+        /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             if (targetColor != null && targetDepth != null)
@@ -458,23 +464,27 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Render eye space depth of objects from the view point of a camera into the color buffer.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="layerMask"></param>
-        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask = default(LayerMask), CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
+        public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
             => RenderDepthFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
 
         /// <summary>
-        /// 
+        /// Render eye space depth of objects from the view point of a camera into the color and depth buffers.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="targetColor"></param>
-        /// <param name="targetDepth"></param>
-        /// <param name="clearFlag"></param>
-        /// <param name="layerMask"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetColor">The render target that will be bound to the color buffer before rendering</param>
+        /// <param name="targetDepth">The render target that will be bound to the depth buffer before rendering</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             using (new ProfilingScope(ctx.cmd, renderDepthFromCameraSampler))
@@ -487,27 +497,27 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Render world space normal of objects from the view point of a camera into the color buffer.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideRenderState"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderNormalFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
             => RenderNormalFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
 
         /// <summary>
-        /// 
+        /// Render world space normal of objects from the view point of a camera into the color buffer.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="targetColor"></param>
-        /// <param name="targetDepth"></param>
-        /// <param name="clearFlag"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideRenderState"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetColor">The render target that will be bound to the color buffer before rendering</param>
+        /// <param name="targetDepth">The render target that will be bound to the depth buffer before rendering</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderNormalFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             using (new ProfilingScope(ctx.cmd, renderNormalFromCameraSampler))
@@ -515,27 +525,27 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// 
+        /// Render world space tangent of objects from the view point of a camera into the color buffer.
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideRenderState"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
             => RenderTangentFromCamera(ctx, view, null, null, ClearFlag.None, layerMask, renderQueueFilter, overrideRenderState);
 
         /// <summary>
-        /// 
+        /// Render world space tangent of objects from the view point of a camera into the color buffer
         /// </summary>
-        /// <param name="ctx"></param>
-        /// <param name="view"></param>
-        /// <param name="targetColor"></param>
-        /// <param name="targetDepth"></param>
-        /// <param name="clearFlag"></param>
-        /// <param name="layerMask"></param>
-        /// <param name="renderQueueFilter"></param>
-        /// <param name="overrideRenderState"></param>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="view">The camera from where you want the objects to be rendered.</param>
+        /// <param name="targetColor">The render target that will be bound to the color buffer before rendering</param>
+        /// <param name="targetDepth">The render target that will be bound to the depth buffer before rendering</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="layerMask">LayerMask to filter the objects to render.</param>
+        /// <param name="renderQueueFilter">Render Queue to filter the type of objects you want to render.</param>
+        /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderTangentFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
             using (new ProfilingScope(ctx.cmd, renderTangentFromCameraSampler))
