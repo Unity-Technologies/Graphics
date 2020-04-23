@@ -94,6 +94,9 @@ Pass
             fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
             fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
             fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
+            fragInputs.positionRWS = posInput.positionWS;
+            fragInputs.tangentToWorld[2].xyz = TransformObjectToWorldDir(float3(0, 1, 0));
+            fragInputs.tangentToWorld[1].xyz = TransformObjectToWorldDir(float3(0, 0, 1));
         #else
             float fadeFactor = 1.0;
         #endif
