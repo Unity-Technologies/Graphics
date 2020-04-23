@@ -43,62 +43,74 @@ AOVs can also be used to output the contribution from a selected list of lights,
 Finally, AOVs can also be used to output the results of [custom passes](Custom-Pass). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that is computed in custom passes, such as the Object ID of the scene objects.
 
 ## Scripting API
-Here is a code snippet demonstrating how to setup a simple AOV request for the surface albedo on an HDRP camera.
+When the following example script is attached to an HDRP camera, it will request to output albedo AOVs and will save the resulting frames to disk as a sequence of .png images.
 ```
-// member variables:
-RenderTexture m_AovRT;  // Stores the final AOV output
-RTHandle m_TmpRT;       // The RTHandle used to render the AOV
-```
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 
-
-```
-// runtime code:
-
-var hdAdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-if (hdAdditionalCameraData != null )
+public class AovRecorder : MonoBehaviour
 {
-    // first allocate a render texture to store the resulting
-    if (m_AovRT == null)
-        m_AovRT = new RenderTexture(camera.pixelWidth, camera.pixelHeight, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Default);
+    RTHandle m_TmpRT;       // The RTHandle used to render the AOV
+    Texture2D m_ReadBackTexture;
 
-    // initialize a new AOV request
-    var aovRequest = AOVRequest.NewDefault();
+    int m_Frames = 0;
 
-    AOVBuffers[] aovBuffers = null;
-    CustomPassAOVBuffers[] customPassAovBuffers = null;
-    
-    // Request an AOV with the surface albedo
-    aovRequest.SetFullscreenOutput(MaterialSharedProperty.Albedo);
-    aovBuffers = new[] { AOVBuffers.Color };
-
-    // Allocate the RTHandle that will store the intermediate results
-    var buferAlloc = m_TmpRT ?? (m_TmpRT = RTHandles.Alloc(camera.pixelWidth, camera.pixelHeight));
-
-    // Add the reuesto to a new AOVRequestBuilder
-    var aovRequestBuilder = new AOVRequestBuilder();
-    aovRequestBuilder.Add(aovRequest,
-        bufferId => buferAlloc,
-        null,
-        aovBuffers,
-        customPassAovBuffers,
-        bufferId => buferAlloc,
-        (cmd, textures, customPassTextures, properties) =>
+    // Start is called before the first frame update
+    void Start()
+    {
+        var camera = gameObject.GetComponent<Camera>();
+        if (camera != null)
         {
-            // callback to blit the AOV from the intermediate RTHandle to the final render texture (m_AovRT). 
-            if (textures.Count > 0)
+            var hdAdditionalCameraData = gameObject.GetComponent<HDAdditionalCameraData>();
+            if (hdAdditionalCameraData != null)
             {
-                cmd.Blit(textures[0], m_AovRT);
-            }
-            else if (customPassTextures.Count > 0)
-            {
-                cmd.Blit(customPassTextures[0], m_AovRT);
-            }
-        });
+                // initialize a new AOV request
+                var aovRequest = AOVRequest.NewDefault();
 
-    // Now build the AOV request
-    var aovRequestDataCollection = aovRequestBuilder.Build(); 
+                AOVBuffers[] aovBuffers = null;
+                CustomPassAOVBuffers[] customPassAovBuffers = null;
 
-    // And finally set the request to the camera
-    hdAdditionalCameraData.SetAOVRequests(aovRequestDataCollection);
+                // Request an AOV with the surface albedo
+                aovRequest.SetFullscreenOutput(MaterialSharedProperty.Albedo);
+                aovBuffers = new[] { AOVBuffers.Color };
+
+                // Allocate the RTHandle that will store the intermediate results
+                m_TmpRT = RTHandles.Alloc(camera.pixelWidth, camera.pixelHeight);
+
+                // Add the reuesto to a new AOVRequestBuilder
+                var aovRequestBuilder = new AOVRequestBuilder();
+                aovRequestBuilder.Add(aovRequest,
+                    bufferId => m_TmpRT,
+                    null,
+                    aovBuffers,
+                    customPassAovBuffers,
+                    bufferId => m_TmpRT,
+                    (cmd, textures, customPassTextures, properties) =>
+                    {
+                        // callback to read back the AOV data and write them to disk 
+                        if (textures.Count > 0)
+                        {
+                            m_ReadBackTexture = m_ReadBackTexture ?? new Texture2D(camera.pixelWidth, camera.pixelHeight, TextureFormat.RGBAFloat, false);
+                            RenderTexture.active = textures[0].rt;
+                            m_ReadBackTexture.ReadPixels(new Rect(0, 0, camera.pixelWidth, camera.pixelHeight), 0, 0, false);
+                            m_ReadBackTexture.Apply();
+                            RenderTexture.active = null;
+                            byte[] bytes = m_ReadBackTexture.EncodeToPNG();
+                            System.IO.File.WriteAllBytes($"output_{m_Frames++}.png", bytes);
+                        }
+
+                    });
+
+                // Now build the AOV request
+                var aovRequestDataCollection = aovRequestBuilder.Build();
+
+                // And finally set the request to the camera
+                hdAdditionalCameraData.SetAOVRequests(aovRequestDataCollection);
+            }
+        }
+    }
 }
+
 ```
