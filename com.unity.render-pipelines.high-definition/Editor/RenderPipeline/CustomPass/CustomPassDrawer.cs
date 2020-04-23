@@ -99,8 +99,6 @@ namespace UnityEditor.Rendering.HighDefinition
 				if (prop != null)
 					m_CustomPassUserProperties.Add(prop);
 			}
-
-			
 		}
 
 	    void InitInternal(SerializedProperty customPass)
@@ -199,8 +197,9 @@ namespace UnityEditor.Rendering.HighDefinition
 		{
 			foreach (var prop in m_CustomPassUserProperties)
 			{
+				rect.height = EditorGUI.GetPropertyHeight(prop, true);
 				EditorGUI.PropertyField(rect, prop);
-				rect.y += Styles.defaultLineSpace;
+				rect.y += rect.height + EditorGUIUtility.standardVerticalSpacing;
 			}
 		}
 
