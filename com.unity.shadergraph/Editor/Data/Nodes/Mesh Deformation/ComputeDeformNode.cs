@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         protected override void CalculateNodeHasError()
         {
 #if !HYBRID_RENDERER_0_5_0_OR_NEWER
-            owner.AddSetupError(guid, "Could not find version 0.5.0 or newer of Hybrid Renderer installed in the project.");
+            owner.AddSetupError(guid, "Could not find version 0.5.0 or newer of the Hybrid Renderer package installed in the project.");
             hasError = true;
 #endif
 #if !ENABLE_COMPUTE_DEFORMATIONS
