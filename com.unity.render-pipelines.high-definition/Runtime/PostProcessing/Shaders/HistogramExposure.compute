@@ -1,5 +1,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
 
+#pragma enable_d3d11_debug_symbols
+
 // TODO List to investigate
 //  - Number of bins:
 //      - Worth considering multiple histograms per lane in the thread. (i.e. sharedHisto[BINS][NUMB_HIST] )
@@ -9,21 +11,21 @@
 
 // NOTE: fairly naive for now.
 
-// TODO: If we keep 128, we should have a group that is 128 threads. We can dispatch 128, 1, 1 and remap to get pixel. 
+// TODO: Do mapping to 0.18 instead of 1 ? 
 
-// TODO: IMPORTANT TODO_FCC [1] Do the bin calculations in ev100 instead of log2? Or work in luminance and convert later (As it is now)? 
 
 #pragma kernel KHistogramGen        GEN_PASS
 #pragma kernel KHistogramReduce     REDUCE_PASS
 
-#define _HistogramRangeScale _HistogramExposureParams.x
-#define _HistogramRangeBias  _HistogramExposureParams.y
+#define _HistogramRangeScale     _HistogramExposureParams.x
+#define _HistogramRangeBias      _HistogramExposureParams.y
 #define _HistogramMinPercentage  _HistogramExposureParams.z
 #define _HistogramMaxPercentage  _HistogramExposureParams.w
 
 
-#define HISTOGRAM_BINS 256          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
-#define GROUP_SIZE 16
+#define HISTOGRAM_BINS 128          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
+#define GROUP_SIZE_X 16
+#define GROUP_SIZE_Y 8
 
 #ifdef GEN_PASS
 RWStructuredBuffer<uint> _HistogramBuffer;
@@ -31,49 +33,47 @@ RWStructuredBuffer<uint> _HistogramBuffer;
 StructuredBuffer<uint> _HistogramBuffer;
 #endif
 
+// TODO_FCC: REMOVE THIS IS DEBUG.
+RW_TEXTURE2D_X(float4, _TODO_REMOVE_ME);
+
+
 // Because atomics are only on uint and we need a weighted value, we need to convert.
-// Note that using 9bit per weight (allowing [0 ... 2] for weights), we can store up to 8388608
-// values per bin which is a bit more than all pixels of a 4K input image.
+// If we multiply the weight by 2048, we get somewhat ok precision and we support up to
+// the equivalent of 1920x1080 image in one bin. (Note, we run this at half res, so equivalent of 4k image)
 uint PackWeight(float weight)
 {
-    const uint numBits = 9;
-
-    float processedWeight = clamp(weight, 0.0, 2.0) * 0.5f;
-    uint maxInt = (1u << numBits) - 1u;
-    return (uint)(processedWeight * maxInt + 0.5);
+    return uint(weight * 2048);
 }
 
 float UnpackWeight(uint val)
 {
-    const uint numBits = 9;
-    uint maxInt = (1u << numBits) - 1u;
-    return saturate(val * rcp(maxInt)) * 2.0f;
+    return val * rcp(2048.0f);
 }
 
 uint GetHistogramBinLocation(float value)
 {
-    float scaledLogLuma = log2(value) * _HistogramRangeScale + _HistogramRangeBias;
+    float scaledLogLuma = ComputeEV100FromAvgLuminance(value) * _HistogramRangeScale + _HistogramRangeBias;
     return uint(saturate(scaledLogLuma) * (HISTOGRAM_BINS - 1));
 }
 
 float BinLocationToLogLuma(uint binIdx)
 {
-    return (float(binIdx) - _HistogramRangeBias) / _HistogramRangeScale;
+    return (binIdx * rcp(float(HISTOGRAM_BINS - 1))  - _HistogramRangeBias) / _HistogramRangeScale;
 }
 
 groupshared uint gs_localHistogram[HISTOGRAM_BINS];
 
 
 // TODO_FCC: IMPORTANT TODO BEFORE PR:
-//      It is a bit awkward that we have more lanes than bins...
 //      If we keep this it is IMPERATIVE to have some guarantee on the coherency of the branch.
 
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void KHistogramGen(uint groupIndex : SV_GroupIndex,
                    uint3 dispatchThreadId : SV_DispatchThreadID)
 {
-    // Groupshared memory is not guaranteed to be 0 initialized. 
-    if (groupIndex < HISTOGRAM_BINS)
+    // Groupshared memory is not guaranteed to be 0 initialized.
+    // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
+    if (groupIndex < HISTOGRAM_BINS)    
     {
         gs_localHistogram[groupIndex] = 0u;
     }
@@ -87,12 +87,15 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
     {
         float2 uv = ClampAndScaleUVForBilinear((fullResCoords + 0.5) * _ScreenSize.zw);
         float luminance = SampleLuminance(uv);
-        float weight = WeightSample(uv);
+        float weight = WeightSample(fullResCoords, _ScreenSize.xy);
 
         uint  bin = GetHistogramBinLocation(luminance);
 
+        _TODO_REMOVE_ME[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4((float)bin, weight, luminance, (log2(luminance) * _HistogramRangeScale + _HistogramRangeBias) * (HISTOGRAM_BINS - 1));
+
         InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
     }
+
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -119,17 +122,18 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
 groupshared float gs_partialSums[SUM_SCRATCH_SIZE];
 groupshared float gs_values[HISTOGRAM_BINS];
 
+
 [numthreads(HISTOGRAM_BINS, 1, 1)]
 void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     uint threadID = dispatchThreadId.x;
-    uint sum = 0;
+    float sum = 0;
     float histogramVal = UnpackWeight(_HistogramBuffer[threadID]);
 
 #if USE_WAVE_INTRINSICS
 
     uint waveCount = (HISTOGRAM_BINS / WAVE_SIZE);
-    uint waveSum = WaveActiveSum(histogramVal);
+    float waveSum = WaveActiveSum(histogramVal);
 
     uint waveIDInGroup = threadID / WAVE_SIZE;
     if (WaveIsFirstLane())
@@ -156,12 +160,10 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
     GroupMemoryBarrierWithGroupSync();
 
     // Sum all values
-    for (uint i = (HISTOGRAM_BINS >> 1u); i > 0; i >>= 1u)
+    for (uint i = HISTOGRAM_BINS >> 1u; i > 0u; i >>= 1u)
     {
         if (threadID < i)
-        {
-            gs_partialSums[threadID] += gs_partialSums[threadID + i];
-        }
+            gs_partialSums[threadID] = (gs_partialSums[threadID] +  gs_partialSums[threadID + i]);
 
         GroupMemoryBarrierWithGroupSync();
     }
@@ -176,13 +178,18 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
     // actually skip this or if we need to enforce it somehow.
     if (threadID == 0)
     {
-        float logProcessedSum = 0;
+        float evProcessedSum = 0;
         float w = 0;
+        // Delete
+        float simpleSum = 0;
+        float simpleLumaSum = 0;
 
         for (int i = 0; i < HISTOGRAM_BINS; ++i)
         {
             float histVal = gs_values[i];
+            simpleSum += histVal;
             float binLogLuma = BinLocationToLogLuma(i);
+            simpleLumaSum += histVal * binLogLuma;
 
             float off = min(extremesSums.x, histVal);
             extremesSums -= off;
@@ -191,15 +198,20 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
             histVal = min(extremesSums.y, histVal);
             extremesSums.y -= histVal;
 
-            logProcessedSum += histVal * binLogLuma;
+            evProcessedSum += histVal * binLogLuma;
             w += histVal;
+
+            _TODO_REMOVE_ME[uint3(i+1, 0, 0)] = float4(evProcessedSum, histVal, binLogLuma, simpleLumaSum / simpleSum);
+
         }
 
         w = max(w, 1e-4f);
-        float avgLuminance = logProcessedSum * rcp(w);
-        avgLuminance = exp2(avgLuminance);
+        float avgEV = evProcessedSum * rcp(w);
 
-        // TODO
+        float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
+        exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
+        _TODO_REMOVE_ME[uint3(0, 0, 0)] = float4(evProcessedSum, w, avgEV, exposure);
+        _OutputTexture[uint2(0,0)] = float2(ConvertEV100ToExposure(exposure), exposure);
 
     }
 

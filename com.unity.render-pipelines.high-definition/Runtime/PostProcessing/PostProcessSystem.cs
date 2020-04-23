@@ -34,11 +34,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
+        const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
 
         Texture2D m_ExposureCurveTexture;
         RTHandle m_EmptyExposureTexture; // RGHalf
+        ComputeBuffer m_HistogramBuffer;
+        readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
 
         // Depth of field data
         ComputeBuffer m_BokehNearKernel;
@@ -242,6 +245,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
             CoreUtils.Destroy(m_ExposureCurveTexture);
+            CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
@@ -260,6 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TempTexture32             = null;
             m_AlphaTexture              = null;
             m_ExposureCurveTexture      = null;
+            m_HistogramBuffer           = null;
             m_InternalSpectralLut       = null;
             m_InternalLogLut            = null;
             m_FinalPassMaterial         = null;
@@ -453,7 +458,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
-                        DoDynamicExposure(cmd, camera, source);
+                        if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
+                        {
+                            DoHistogramBasedExposure(cmd, camera, source);
+                           // m_Exposure.mode.value = ExposureMode.Automatic;
+                        }
+                        else
+                            DoDynamicExposure(cmd, camera, source);
 
                         // On reset history we need to apply dynamic exposure immediately to avoid
                         // white or black screen flashes when the current exposure isn't anywhere
@@ -912,6 +923,82 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_TempTexture32);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+        }
+
+        void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        {
+            var cs = m_Resources.shaders.histogramExposureCS;
+            int kernel;
+
+            GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
+
+            var debug = m_Pool.Get(Vector2.one * 0.5f, GraphicsFormat.R32G32B32A32_SFloat);
+
+            // Setup variants
+            var adaptationMode = m_Exposure.adaptationMode.value;
+
+            if (!Application.isPlaying || camera.resetPostProcessingHistory)
+                adaptationMode = AdaptationMode.Fixed;
+
+            if (camera.resetPostProcessingHistory)
+            {
+                // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
+                // When we reset history we must setup neutral value
+                prevExposure = m_EmptyExposureTexture; // Use neutral texture
+            }
+
+            m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
+            m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
+            m_ExposureVariants[2] = (int)adaptationMode;
+            m_ExposureVariants[3] = 0;
+
+            // Parameters
+            Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
+            float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
+            float histScale = 1.0f / evRange;
+            float histBias = -m_Exposure.limitMin.value * histScale;
+            Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+
+            ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
+            m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram 
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._HistogramExposureParams, histogramParams);
+
+            // Generate histogram.
+            kernel = cs.FindKernel("KHistogramGen");
+            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
+            if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, m_Exposure.weightTextureMask.value);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
+            }
+
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TODO_REMOVE_ME, debug);
+
+            int threadGroupSizeX = 16;
+            int threadGroupSizeY = 8;
+            int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
+            int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
+            int totalPixels = camera.actualWidth * camera.actualHeight;
+            cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
+
+            // Now read the histogram 
+            kernel = cs.FindKernel("KHistogramReduce");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0f, 0f));
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TODO_REMOVE_ME, debug);
+
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+
+            m_Pool.Recycle(debug);
         }
 
         #endregion

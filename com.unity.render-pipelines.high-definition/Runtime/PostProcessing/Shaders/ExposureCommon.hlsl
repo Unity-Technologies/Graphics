@@ -6,6 +6,7 @@
 TEXTURE2D(_ExposureWeightMask);
 TEXTURE2D_X(_SourceTexture);
 TEXTURE2D(_PreviousExposureTexture);
+RW_TEXTURE2D(float2, _OutputTexture);
 
 CBUFFER_START(cb)
 float4 _ExposureParams;
@@ -33,8 +34,6 @@ CBUFFER_END
 // TODO_FCC: IMPORTANT! This function uses hard coded values for the texture that is output by the prepass.
 // Need to make the analytical metering texture size independent.
 // When that is done, these defines should be moved back to Exposure.compute
-#define PREPASS_TEX_SIZE 1024.0
-#define PREPASS_TEX_HALF_SIZE 512.0
 
 
 float GetPreviousExposureEV100()
@@ -42,7 +41,7 @@ float GetPreviousExposureEV100()
     return _PreviousExposureTexture[uint2(0u, 0u)].y;
 }
 
-float WeightSample(uint2 pixel)
+float WeightSample(uint2 pixel, float2 sourceSize)
 {
     UNITY_BRANCH
         switch (ParamMeteringMode)
@@ -50,21 +49,23 @@ float WeightSample(uint2 pixel)
         case 1u:
         {
             // Spot metering
-            const float kRadius = 0.075 * PREPASS_TEX_SIZE;
-            const float2 kCenter = (PREPASS_TEX_HALF_SIZE).xx;
+            float screenDiagonal = 0.5f * (sourceSize.x + sourceSize.y);
+            const float kRadius = 0.075 * screenDiagonal;
+            const float2 kCenter = sourceSize * 0.5f;
             float d = length(kCenter - pixel) - kRadius;
             return 1.0 - saturate(d);
         }
         case 2u:
         {
             // Center-weighted
-            const float2 kCenter = (PREPASS_TEX_HALF_SIZE).xx;
-            return 1.0 - saturate(pow(length(kCenter - pixel) / PREPASS_TEX_HALF_SIZE, 1.0));
+            float screenDiagonal = 0.5f * (sourceSize.x + sourceSize.y);
+            const float2 kCenter = sourceSize * 0.5f;
+            return 1.0 - saturate(pow(length(kCenter - pixel) / screenDiagonal, 1.0));
         }
         case 3u:
         {
             // Mask weigthing
-            return SAMPLE_TEXTURE2D_LOD(_ExposureWeightMask, s_linear_clamp_sampler, pixel * rcp(PREPASS_TEX_SIZE), 0.0).x;
+            return SAMPLE_TEXTURE2D_LOD(_ExposureWeightMask, s_linear_clamp_sampler, pixel * rcp(sourceSize), 0.0).x;
         }
 
         default:
