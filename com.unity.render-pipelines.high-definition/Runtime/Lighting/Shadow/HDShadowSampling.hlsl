@@ -291,11 +291,11 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     //1) Blocker Search
     float averageBlockerDepth = 0.0;
     float numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, sampleJitter, tex, samp, blockerSampleCount))
-        return 1.0;
+    bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, sampleJitter, tex, samp, blockerSampleCount);
 
     // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
-    if (isPerspective)
+    // Also, we don't bother if the blocker has not been found.
+    if (isPerspective && blockerFound)
     {
         float dist = 1.0f / (zParams.z * averageBlockerDepth + zParams.w);
         dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
@@ -310,13 +310,14 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     }
 
     //2) Penumbra Estimation
-    float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) : 
+    float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) :
                                                          PenumbraSizeDirectional(tcs.z, averageBlockerDepth, zParams.x));
     filterSize = max(filterSize, minFilterRadius);
     filterSize *= atlasResFactor;
 
     //3) Filter
-    return PCSS(tcs, filterSize, scale, offset, sampleJitter, tex, compSamp, filterSampleCount);
+    // Note: we can't early out of the function if blockers are not found since Vulkan triggers a warning otherwise. Hence, we check for blockerFound here.
+    return blockerFound ? PCSS(tcs, filterSize, scale, offset, sampleJitter, tex, compSamp, filterSampleCount) : 1.0f;
 }
 
 // Note this is currently not available as an option, but is left here to show what needs including if IMS is to be used.
