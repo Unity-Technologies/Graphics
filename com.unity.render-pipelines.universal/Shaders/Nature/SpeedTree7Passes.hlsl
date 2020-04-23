@@ -3,6 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "SpeedTree7CommonPasses.hlsl"
+#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
@@ -133,7 +134,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
