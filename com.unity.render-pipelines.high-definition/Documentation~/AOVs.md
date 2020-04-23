@@ -79,7 +79,7 @@ public class AovRecorder : MonoBehaviour
                 // Allocate the RTHandle that will store the intermediate results
                 m_TmpRT = RTHandles.Alloc(camera.pixelWidth, camera.pixelHeight);
 
-                // Add the reuesto to a new AOVRequestBuilder
+                // Add the request to a new AOVRequestBuilder
                 var aovRequestBuilder = new AOVRequestBuilder();
                 aovRequestBuilder.Add(aovRequest,
                     bufferId => m_TmpRT,
