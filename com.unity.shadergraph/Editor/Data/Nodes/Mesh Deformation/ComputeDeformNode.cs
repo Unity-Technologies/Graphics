@@ -31,12 +31,12 @@ namespace UnityEditor.ShaderGraph
 
         protected override void CalculateNodeHasError()
         {
-#if !ENABLE_COMPUTE_DEFORMATIONS
-            owner.AddSetupError(guid, "ENABLE_COMPUTE_DEFORMATIONS define needs to be enabled in Player Settings for Compute Deformation node to work");
+#if !HYBRID_RENDERER_0_5_0_OR_NEWER
+            owner.AddSetupError(guid, "Could not find version 0.5.0 or newer of Hybrid Renderer installed in the project.");
             hasError = true;
 #endif
-#if !HYBRID_RENDERER_0_5_0_OR_NEWER
-            owner.AddSetupError(guid, "Could not find 0.5.0 version or newer of Hybrid Renderer installed");
+#if !ENABLE_COMPUTE_DEFORMATIONS
+            owner.AddSetupError(guid, "For the Compute Deformation node to work, you must go to Project Settings>Player>Other Settings and add the ENABLE_COMPUTE_DEFORMATIONS define to Scripting Define Symbols.");
             hasError = true;
 #endif
         }
