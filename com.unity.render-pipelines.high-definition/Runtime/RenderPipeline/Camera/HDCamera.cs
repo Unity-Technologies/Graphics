@@ -186,7 +186,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Transform              volumeAnchor;
         internal Rect                   finalViewport; // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
         internal int                    colorPyramidHistoryMipCount = 0;
-        internal VBufferParameters[]    vBufferParams; // Double-buffered; needed even if reprojection is off
+        internal VBufferParameters[]    vBufferParams;            // Double-buffered; needed even if reprojection is off
+        internal RTHandle[]             volumetricHistoryBuffers; // Double-buffered; only used for reprojection
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
         internal uint                   cameraFrameCount = 0;
         internal bool                   animateMaterials;
@@ -410,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Have to do this every frame in case the settings have changed.
                 // The condition inside controls whether we perform init/deinit or not.
-                hdrp.ReinitializeVolumetricBufferParams(this);
+                HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
@@ -429,7 +430,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    volumetricHistoryIsValid = false;
+
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -442,7 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (numVolumetricBuffersRequired != 0)
                     {
-                        hdrp.AllocateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
                     }
 
                     // Mark as init.
@@ -486,7 +488,8 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = false;
             cameraFrameCount++;
 
-            hdrp.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
 
             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
