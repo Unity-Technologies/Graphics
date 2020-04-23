@@ -18,10 +18,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 return _instance;
             }
         }
+
+        private ProbeVolumePositioning positioning;
+
         private ProbeVolumeManager()
         {
             volumes = new List<ProbeVolume>();
             volumesSelected = new List<ProbeVolume>();
+
+            positioning = new ProbeVolumePositioning();
 
         #if UNITY_EDITOR
             SubscribeBakingAPI();
@@ -44,6 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             volumes.Add(volume);
+
+            positioning.BuildBrickStructure();
         }
         internal void DeRegisterVolume(ProbeVolume volume)
         {
@@ -57,6 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdrp != null)
                 hdrp.ReleaseProbeVolumeFromAtlas(volume);
 #endif
+
+            positioning.BuildBrickStructure();
         }
 
 #if UNITY_EDITOR
