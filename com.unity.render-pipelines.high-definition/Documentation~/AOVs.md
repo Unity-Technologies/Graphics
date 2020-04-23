@@ -66,15 +66,15 @@ if (hdAdditionalCameraData != null )
 
     AOVBuffers[] aovBuffers = null;
     CustomPassAOVBuffers[] customPassAovBuffers = null;
-
-    // Allocate the RTHandle that will store the intermediate results
-    var buferAlloc = m_TmpRT ?? (m_TmpRT = RTHandles.Alloc(camera.pixelWidth, camera.pixelHeight));
     
     // Request an AOV with the surface albedo
     aovRequest.SetFullscreenOutput(MaterialSharedProperty.Albedo);
     aovBuffers = new[] { AOVBuffers.Color };
 
-    // 
+    // Allocate the RTHandle that will store the intermediate results
+    var buferAlloc = m_TmpRT ?? (m_TmpRT = RTHandles.Alloc(camera.pixelWidth, camera.pixelHeight));
+
+    // Add the reuesto to a new AOVRequestBuilder
     var aovRequestBuilder = new AOVRequestBuilder();
     aovRequestBuilder.Add(aovRequest,
         bufferId => buferAlloc,
@@ -95,10 +95,10 @@ if (hdAdditionalCameraData != null )
             }
         });
 
-    // Build the AOV request
+    // Now build the AOV request
     var aovRequestDataCollection = aovRequestBuilder.Build(); 
 
-    // Set the request to the camera
+    // And finally set the request to the camera
     hdAdditionalCameraData.SetAOVRequests(aovRequestDataCollection);
 }
 ```
