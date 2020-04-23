@@ -179,6 +179,7 @@ namespace UnityEngine.Rendering.Universal
         internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
+        public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
 
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
@@ -188,8 +189,10 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = rendererData;
             else
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
+            
             // Initialize default Renderer
-            instance.m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
+            instance.m_EditorResourcesAsset = instance.editorResources;
+
             return instance;
         }
 
@@ -246,38 +249,15 @@ namespace UnityEngine.Rendering.Universal
             AssetDatabase.CreateAsset(instance, string.Format("Assets/{0}.asset", typeof(UniversalRenderPipelineEditorResources).Name));
         }
 
-        static T LoadResourceFile<T>() where T : ScriptableObject
-        {
-            T resourceAsset = null;
-            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] { "Assets" });
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
-                if (resourceAsset != null)
-                    break;
-            }
-
-            // There's currently an issue that prevents FindAssets from find resources withing the package folder.
-            if (resourceAsset == null)
-            {
-                string path = packagePath + "/Runtime/Data/" + typeof(T).Name + ".asset";
-                resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
-            }
-
-            // Validate the resource file
-            ResourceReloader.TryReloadAllNullIn(resourceAsset, packagePath);
-
-            return resourceAsset;
-        }
-
         UniversalRenderPipelineEditorResources editorResources
         {
             get
             {
-                if (m_EditorResourcesAsset == null)
-                    m_EditorResourcesAsset = LoadResourceFile<UniversalRenderPipelineEditorResources>();
+                if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
+                    return m_EditorResourcesAsset;
 
+                string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
+                m_EditorResourcesAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineEditorResources>(resourcePath);
                 return m_EditorResourcesAsset;
             }
         }
@@ -706,42 +686,42 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
         public override Shader autodeskInteractiveShader
         {
-            get { return editorResources.shaders.autodeskInteractivePS; }
+            get { return editorResources?.shaders.autodeskInteractivePS; }
         }
 
         public override Shader autodeskInteractiveTransparentShader
         {
-            get { return editorResources.shaders.autodeskInteractiveTransparentPS; }
+            get { return editorResources?.shaders.autodeskInteractiveTransparentPS; }
         }
 
         public override Shader autodeskInteractiveMaskedShader
         {
-            get { return editorResources.shaders.autodeskInteractiveMaskedPS; }
+            get { return editorResources?.shaders.autodeskInteractiveMaskedPS; }
         }
 
         public override Shader terrainDetailLitShader
         {
-            get { return editorResources.shaders.terrainDetailLitPS; }
+            get { return editorResources?.shaders.terrainDetailLitPS; }
         }
 
         public override Shader terrainDetailGrassShader
         {
-            get { return editorResources.shaders.terrainDetailGrassPS; }
+            get { return editorResources?.shaders.terrainDetailGrassPS; }
         }
 
         public override Shader terrainDetailGrassBillboardShader
         {
-            get { return editorResources.shaders.terrainDetailGrassBillboardPS; }
+            get { return editorResources?.shaders.terrainDetailGrassBillboardPS; }
         }
 
         public override Shader defaultSpeedTree7Shader
         {
-            get { return editorResources.shaders.defaultSpeedTree7PS; }
+            get { return editorResources?.shaders.defaultSpeedTree7PS; }
         }
 
         public override Shader defaultSpeedTree8Shader
         {
-            get { return editorResources.shaders.defaultSpeedTree8PS; }
+            get { return editorResources?.shaders.defaultSpeedTree8PS; }
         }
 #endif
 
