@@ -25,9 +25,6 @@ namespace UnityEditor.ShaderGraph
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {}
 
-        public override void CopyDefaultValue(MaterialSlot other)
-        {}
-
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {}
 

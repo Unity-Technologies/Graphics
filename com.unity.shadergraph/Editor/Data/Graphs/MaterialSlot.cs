@@ -305,6 +305,15 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public abstract void CopyDefaultValue(MaterialSlot other);
+        public virtual void CopyDefaultValue(MaterialSlot other)
+        {
+            m_Id = other.m_Id;
+            m_DisplayName = other.m_DisplayName;
+            m_SlotType = other.m_SlotType;
+            m_Priority = other.m_Priority;
+            m_Hidden = other.m_Hidden;
+            m_ShaderOutputName = other.m_ShaderOutputName;
+            m_StageCapability = other.m_StageCapability;
+        }
     }
 }

@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyDefaultValue(MaterialSlot other)
         {
+            base.CopyDefaultValue(other);
             if (other is IMaterialSlotHasValue<Vector3> ms)
             {
                 m_DefaultValue = ms.defaultValue;
