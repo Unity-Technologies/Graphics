@@ -25,6 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
+        public WindowDockingLayout inspectorLayout = new WindowDockingLayout();
         public Vector2 masterPreviewSize = new Vector2(400, 400);
     }
 
@@ -56,8 +57,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             get { return m_BlackboardProvider; }
         }
-
-        bool m_updateInspectorNextFrame { get; set; }
 
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
@@ -277,14 +276,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (AddGroupsMarker.Auto())
             {
-            foreach (var graphGroup in graph.groups)
-                AddGroup(graphGroup);
+                foreach (var graphGroup in graph.groups)
+                    AddGroup(graphGroup);
             }
 
             using (AddStickyNotesMarker.Auto())
             {
-            foreach (var stickyNote in graph.stickyNotes)
-                AddStickyNote(stickyNote);
+                foreach (var stickyNote in graph.stickyNotes)
+                    AddStickyNote(stickyNote);
             }
 
             AddNodes(graph.GetNodes<AbstractMaterialNode>());
@@ -353,7 +352,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void CreateInspector(Action previewUpdateDelegate)
         {
             m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
-            m_InspectorView.visible = m_UserViewSettings.isInspectorVisible;
             m_GraphView.Add(m_InspectorView);
             m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
@@ -794,7 +792,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (node is RedirectNodeData redirectNodeData)
             {
-                var redirectNodeView = new RedirectNodeView { userData = redirectNodeData };
+                var redirectNodeView = new RedirectNodeView {userData = redirectNodeData};
                 m_GraphView.AddElement(redirectNodeView);
                 redirectNodeView.ConnectToData(materialNode, m_EdgeConnectorListener);
                 nodeView = redirectNodeView;
@@ -811,12 +809,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             node.RegisterCallback(OnNodeChanged);
             nodeView.MarkDirtyRepaint();
 
-            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
+            if (m_SearchWindowProvider.nodeNeedsRepositioning &&
+                m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
                 foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
                 {
-                    var port = (ShaderPort)element;
+                    var port = (ShaderPort) element;
                     if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
                     {
                         port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
@@ -835,21 +834,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-            // This should also work for sticky notes
-            m_GraphElementsTemp.Clear();
-            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+                // This should also work for sticky notes
+                m_GraphElementsTemp.Clear();
+                m_GraphView.graphElements.ToList(m_GraphElementsTemp);
 
-            if (materialNode.groupGuid != Guid.Empty)
-            {
-                foreach (var element in m_GraphElementsTemp)
+                if (materialNode.groupGuid != Guid.Empty)
                 {
-                    if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                    foreach (var element in m_GraphElementsTemp)
                     {
-                        groupView.AddElement(nodeView);
+                        if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                        {
+                            groupView.AddElement(nodeView);
+                        }
                     }
                 }
             }
-        }
         }
 
         private static Dictionary<Guid, ShaderGroup> visualGroupMap = new Dictionary<Guid, ShaderGroup>();
@@ -1159,9 +1158,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSerializedWindowLayout()
         {
-            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_InspectorView.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
-
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 

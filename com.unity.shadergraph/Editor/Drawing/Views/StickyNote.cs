@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public readonly VisualElement resizedElement;
 
-    public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
+        public ElementResizer(VisualElement resizedElement, ResizableElement.Resizer direction)
         {
             this.direction = direction;
             this.resizedElement = resizedElement;
@@ -130,7 +130,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             if ((direction & ResizableElement.Resizer.Bottom) != 0)
             {
-                resizedTarget.style.height = Mathf.Min(m_MaxSize.y, Mathf.Max(m_MinSize.y, m_StartSize.y + mousePos.y - m_StartMouse.y));
+                var delta = mousePos.y - m_StartMouse.y;
+                resizedTarget.style.height = Mathf.Clamp(m_StartSize.y + delta, m_MinSize.y, m_MaxSize.y);
             }
             else if ((direction & ResizableElement.Resizer.Top) != 0)
             {

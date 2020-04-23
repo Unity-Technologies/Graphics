@@ -65,8 +65,12 @@ using Drawing.Views;
             {
                 ShowGraphSettings(propertySheet);
             }
-
-            if(selection.Count > 1)
+            else if(selection.Count == 1)
+            {
+                var inspectable = selection.First() as IInspectable;
+                subTitle = $"{inspectable?.inspectorTitle}.";
+            }
+            else if(selection.Count > 1)
             {
                 subTitle = $"{selection.Count} Objects.";
             }

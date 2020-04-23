@@ -29,17 +29,8 @@
     position: relative;
     padding-top: 0;
     flex: auto;
-    border-left-width: 0;
-    border-top-width: 0;
-    border-right-width: 0;
-    border-bottom-width: 0;
-    border-radius: 0;
     width: initial;
     height: initial;
-}
-
-.InspectorView.windowed > .resizer {
-    display: none;
 }
 
 .InspectorView:selected {
@@ -51,38 +42,12 @@
     align-items: stretch;
 }
 
-.InspectorView.scrollable > .mainContainer {
-    position: absolute;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-}
-
-.InspectorView > .mainContainer > #content {
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.InspectorView.scrollable > .mainContainer > #content {
-    position: absolute;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    flex-direction: column;
-    align-items: stretch;
-}
-
 .InspectorView > .mainContainer > #content > ScrollView {
     flex: 1 0 0;
 }
 
 .InspectorView > .mainContainer > #content > #contentContainer {
     min-height: auto;
-    padding-left: 0;
-    padding-top: 0;
-    padding-right: 0;
     padding-bottom: 6px;
     flex-direction: column;
     flex-grow: 1;
@@ -103,11 +68,6 @@
     padding-left: 1px;
     padding-top: 4px;
     padding-bottom: 2px;
-}
-
-.InspectorView.windowed > .mainContainer > #content > #header {
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
 }
 
 .InspectorView > .mainContainer > #content > #header > #labelContainer {

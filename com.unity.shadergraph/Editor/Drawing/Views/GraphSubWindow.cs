@@ -6,11 +6,12 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
+using IResizable = UnityEditor.ShaderGraph.Drawing.IResizable;
 using ResizableElement = UnityEditor.ShaderGraph.Drawing.ResizableElement;
 
 namespace Drawing.Views
 {
-    public class GraphSubWindow : GraphElement, ISelection
+    public class GraphSubWindow : GraphElement, ISelection, IResizable
     {
         protected VisualElement m_MainContainer;
         protected VisualElement m_Root;
@@ -26,10 +27,13 @@ namespace Drawing.Views
         protected GraphView m_GraphView;
 
         WindowDockingLayout m_Layout;
+        // This needs to be something that each subclass defines on its own
+        // if they all use the same they'll be stacked on top of each other at SG window creation
+
         WindowDockingLayout m_DefaultLayout = new WindowDockingLayout
         {
             dockingTop = true,
-            dockingLeft = true,
+            dockingLeft = false,
             verticalOffset = 16,
             horizontalOffset = 16,
             size = new Vector2(200, 400),
@@ -238,7 +242,7 @@ namespace Drawing.Views
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
-            // SerializeLayout();
+            SerializeLayout();
         }
 
         void SerializeLayout()
@@ -260,6 +264,15 @@ namespace Drawing.Views
 
             m_Layout.ApplyPosition(this);
             m_Layout.ApplySize(this);
+        }
+
+        public void OnStartResize()
+        {
+        }
+
+        public void OnResized()
+        {
+           // m_Layout. = new Rect(resolvedStyle.left, resolvedStyle.top, style.width.value.value, style.height.value.value);
         }
     }
 }
