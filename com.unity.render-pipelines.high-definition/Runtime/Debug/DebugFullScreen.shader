@@ -29,6 +29,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
             float _TransparencyOverdrawMaxPixelCost;
+            uint _DebugContactShadowLightIndex;
+            int _DebugDepthPyramidMip;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -304,14 +306,14 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);
                 }
-                
+
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
                 {
                     float4 color = (float4)0;
-    
+
                     float pixelCost = SAMPLE_TEXTURE2D_X(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
                     if ((pixelCost > 0.001))
-                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));// 
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _TransparencyOverdrawMaxPixelCost) * pixelCost), 1.0, 1.0));//
                     return color;
                 }
 
