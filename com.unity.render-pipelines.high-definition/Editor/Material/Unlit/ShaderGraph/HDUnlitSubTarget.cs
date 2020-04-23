@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -237,8 +238,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case UnlitMasterNode1 unlitMasterNode:
                     UpgradeUnlitMasterNode(unlitMasterNode, out blockMap);
                     return true;
-                // case HDUnlitMasterNode1 hdUnlitMasterNode:
-                //     return true;
+                case HDUnlitMasterNode1 hdUnlitMasterNode:
+                    UpgradeHDUnlitMasterNode(hdUnlitMasterNode, out blockMap);
+                    return true;
                 default:
                     return false;
             }
@@ -265,6 +267,56 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { BlockFields.SurfaceDescription.Alpha, 7 },
                 { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
             };
+        }
+
+        void UpgradeHDUnlitMasterNode(HDUnlitMasterNode1 hdUnlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            // Set data
+            systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
+            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
+            systemData.renderingPass = hdUnlitMasterNode.m_RenderingPass;
+            systemData.alphaTest = hdUnlitMasterNode.m_AlphaTest;
+            systemData.sortPriority = hdUnlitMasterNode.m_SortPriority;
+            systemData.doubleSidedMode = hdUnlitMasterNode.m_DoubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
+            systemData.zWrite = hdUnlitMasterNode.m_ZWrite;
+            systemData.transparentCullMode = hdUnlitMasterNode.m_transparentCullMode;
+            systemData.zTest = hdUnlitMasterNode.m_ZTest;
+            systemData.dotsInstancing = hdUnlitMasterNode.m_DOTSInstancing;
+
+            builtinData.transparencyFog = hdUnlitMasterNode.m_TransparencyFog;
+            builtinData.distortion = hdUnlitMasterNode.m_Distortion;
+            builtinData.distortionMode = hdUnlitMasterNode.m_DistortionMode;
+            builtinData.distortionDepthTest = hdUnlitMasterNode.m_DistortionDepthTest;
+            builtinData.alphaToMask = hdUnlitMasterNode.m_AlphaToMask;
+            builtinData.addPrecomputedVelocity = hdUnlitMasterNode.m_AddPrecomputedVelocity;
+
+            unlitData.enableShadowMatte = hdUnlitMasterNode.m_EnableShadowMatte;
+            target.customEditorGUI = hdUnlitMasterNode.m_OverrideEnabled ? hdUnlitMasterNode.m_ShaderGUIOverride : "";
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 13 },
+                { BlockFields.VertexDescription.Tangent, 14 },
+                { BlockFields.SurfaceDescription.BaseColor, 0 },
+                { BlockFields.SurfaceDescription.Alpha, 7 },
+                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
+                { BlockFields.SurfaceDescription.Emission, 12 },
+            };
+
+            // Distortion
+            if(systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion)
+            {
+                blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, 10);
+                blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, 11);
+            }
+
+            // Shadow Matte
+            if(unlitData.enableShadowMatte)
+            {
+                blockMap.Add(HDBlockFields.SurfaceDescription.ShadowTint, 15);
+            }
         }
 
 #region SubShaders
