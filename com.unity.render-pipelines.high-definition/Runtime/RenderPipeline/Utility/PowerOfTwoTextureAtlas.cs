@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             size |= (size >> 16);
             return size - (size >> 1);
         }
-        
+
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector2 GetPowerOfTwoTextureSize(Texture texture)
         {
             int width = texture.width, height = texture.height;
-            
+
             TextureSizeToPowerOfTwo(texture, ref width, ref height);
             return new Vector2(width, height);
         }
@@ -98,9 +98,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height);
         }
-        
+
         public void ResetRequestedTexture() => m_RequestedTextures.Clear();
-        
+
         public bool ReserveSpace(Texture texture)
         {
             m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
@@ -110,6 +110,20 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Vector4 scaleBias = Vector4.zero;
                 if (!AllocateTextureWithoutBlit(texture, texture.width, texture.height, ref scaleBias))
+                    return false;
+            }
+            return true;
+        }
+
+        public bool ReserveSpace(int id, int width, int height)
+        {
+            m_RequestedTextures[id] = new Vector2Int(width, height);
+
+            // new texture
+            if (!IsCached(out _, id))
+            {
+                Vector4 scaleBias = Vector4.zero;
+                if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))
                     return false;
             }
             return true;

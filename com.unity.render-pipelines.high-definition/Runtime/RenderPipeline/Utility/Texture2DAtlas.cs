@@ -289,7 +289,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
-            => m_AllocationCache.TryGetValue(texture.GetInstanceID(), out scaleOffset);
+            => IsCached(out scaleOffset, texture.GetInstanceID());
+
+        public bool IsCached(out Vector4 scaleOffset, int id)
+            => m_AllocationCache.TryGetValue(id, out scaleOffset);
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {

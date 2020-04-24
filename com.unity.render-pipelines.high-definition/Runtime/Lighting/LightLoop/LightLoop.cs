@@ -1257,7 +1257,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
-
             }
             //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f),2f)) - 0.11f);
@@ -1467,7 +1466,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.volumetricLightDimmer = processedData.lightDistanceFade * (additionalLightData.volumetricDimmer);
 
             lightData.cookieMode = CookieMode.None;
-            lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
@@ -1481,8 +1479,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
                         break;
                     case HDLightType.Point:
-                        lightData.cookieMode = CookieMode.Clamp;
-                        lightData.cookieIndex = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
+                        lightData.cookieMode = CookieMode.Repeat;
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
                         break;
                 }
             }
@@ -2718,6 +2716,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
+                case HDLightType.Point:
+                    m_TextureCaches.lightCookieManager.ReserveSpaceCube(light?.cookie ?? CoreUtils.whiteCubeTexture);
+                    break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie ?? Texture2D.whiteTexture);
@@ -3463,7 +3464,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
-            cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_TextureCaches.lightCookieManager.cubeCache);
+            //cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_TextureCaches.lightCookieManager.cubeCache);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
             cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
 
@@ -4032,20 +4033,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.cookieManager.atlasTexture);
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                     cmd.DrawProcedural(Matrix4x4.identity, parameters.debugBlitMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
-                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
-                }
-            }
-
-            if (lightingDebug.displayCookieCubeArray)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPointLightCookieArray)))
-                {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
-                    m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputCubemap, parameters.cookieManager.cubeCache);
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, 0);
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
-                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, m_LightLoopDebugMaterialProperties);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                 }
             }

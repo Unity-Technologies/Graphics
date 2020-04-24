@@ -57,6 +57,20 @@ namespace UnityEngine.Rendering.HighDefinition
         Repeat,
     }
 
+    /// <summary>
+    /// IES Mode
+    /// </summary>
+    [GenerateHLSL]
+    public enum IESMode
+    {
+        /// <summary>Square Equirectangular Projection.</summary>
+        Equirectangular,
+        /// <summary>Fast Octahedral Projection.</summary>
+        FastOctahedral,
+        /// <summary>Conformal Octahedral Quincuncial Projection.</summary>
+        ConformalOctahedralQuincuncial,
+    }
+
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL(PackingRules.Exact, false)]
     struct DirectionalLightData
@@ -142,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   rangeAttenuationBias;
 
         public CookieMode cookieMode;
-        public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
+
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas

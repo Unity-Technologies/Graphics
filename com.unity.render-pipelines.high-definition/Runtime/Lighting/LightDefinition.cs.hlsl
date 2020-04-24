@@ -30,6 +30,13 @@
 #define COOKIEMODE_REPEAT (2)
 
 //
+// UnityEngine.Rendering.HighDefinition.IESMode:  static fields
+//
+#define IESMODE_EQUIRECTANGULAR (0)
+#define IESMODE_OCTAHEDRAL (1)
+#define IESMODE_CONFORMAL_OCTAHEDRAL_QUINCUNCIAL (2)
+
+//
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
@@ -105,7 +112,6 @@ struct LightData
     float3 color;
     float rangeAttenuationBias;
     int cookieMode;
-    int cookieIndex;
     int shadowIndex;
     float4 cookieScaleOffset;
     int contactShadowMask;

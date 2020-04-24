@@ -113,8 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             cookieAtlasSize = CookieAtlasResolution.CookieResolution2048,
             cookieFormat = CookieAtlasGraphicsFormat.R11G11B10,
-            pointCookieSize = CubeCookieResolution.CubeCookieResolution128,
-            cubeCookieTexArraySize = 16,
 
             cookieAtlasLastValidMip = 0,
 
@@ -145,8 +143,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public CookieAtlasGraphicsFormat cookieFormat;
         /// <summary>Cookie atlas resolution for point lights.</summary>
         public CubeCookieResolution pointCookieSize;
-        /// <summary>Maximum number of cached cookies for point lights.</summary>
-        public int cubeCookieTexArraySize;
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
         // We keep this property for the migration code (we need to know how many cookies we could have before).

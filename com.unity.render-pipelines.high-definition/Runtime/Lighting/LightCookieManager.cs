@@ -30,14 +30,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly Material m_CubeToPanoMaterial;
 
+        readonly ComputeShader m_ProjectCubeTo2D;
+        readonly int m_KernalEquirectangular;
+        readonly int m_KernalFastOctahedral;
+        readonly int m_KernalOctahedralConformalQuincuncial;
+
         RenderTexture m_TempRenderTexture0 = null;
         RenderTexture m_TempRenderTexture1 = null;
 
         // Structure for cookies used by directional and spotlights
         PowerOfTwoTextureAtlas m_CookieAtlas;
 
-        // Structure for cookies used by point lights
-        TextureCacheCubemap m_CubeCookieTexArray;
+        int m_CookieCubeResolution;
+
         // During the light loop, when reserving space for the cookies (first part of the light loop) the atlas
         // can run out of space, in this case, we set to true this flag which will trigger a re-layouting of the
         // atlas (sort entries by size and insert them again).
@@ -58,7 +63,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // Also make sure to create the engine material that is used for the filtering
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(hdResources.shaders.filterAreaLightCookiesPS);
 
-            int cookieCubeSize = gLightLoopSettings.cubeCookieTexArraySize;
+            m_ProjectCubeTo2D = hdResources.shaders.projectCubeTo2DCS;
+
+            // SKCode
+            m_KernalEquirectangular                 = m_ProjectCubeTo2D.FindKernel("CSMainEquirectangular");
+            m_KernalFastOctahedral                  = m_ProjectCubeTo2D.FindKernel("CSMainFastOctahedral");
+            m_KernalOctahedralConformalQuincuncial  = m_ProjectCubeTo2D.FindKernel("CSMainOctahedralConformalQuincuncial");
+
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
             cookieAtlasLastValidMip = gLightLoopSettings.cookieAtlasLastValidMip;
@@ -70,18 +81,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(hdResources.shaders.cubeToPanoPS);
 
-            m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
-            int cookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
-            if (TextureCacheCubemap.GetApproxCacheSizeInByte(cookieCubeSize, cookieCubeResolution, 1) > HDRenderPipeline.k_MaxCacheSize)
-                cookieCubeSize = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, cookieCubeResolution, 1);
-
-            // For now the cubemap cookie array format is hardcoded to R8G8B8A8 SRGB.
-            m_CubeCookieTexArray.AllocTextureArray(cookieCubeSize, cookieCubeResolution, cookieFormat, true, m_CubeToPanoMaterial);
+            m_CookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;
         }
 
         public void NewFrame()
         {
-            m_CubeCookieTexArray.NewFrame();
             m_CookieAtlas.ResetRequestedTexture();
             m_2DCookieAtlasNeedsLayouting = false;
             m_NoMoreSpace = false;
@@ -107,11 +111,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CookieAtlas.Release();
                 m_CookieAtlas = null;
-            }
-            if (m_CubeCookieTexArray != null)
-            {
-                m_CubeCookieTexArray.Release();
-                m_CubeCookieTexArray = null;
             }
         }
 
@@ -231,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return Vector4.zero;
 
-            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie.GetInstanceID()) && !m_NoMoreSpace)
                 Debug.LogError($"2D Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, false))
@@ -271,17 +270,81 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
-        public int FetchCubeCookie(CommandBuffer cmd, Texture cookie) => m_CubeCookieTexArray.FetchSlice(cmd, cookie);
+        public void ReserveSpaceCube(Texture cookie)
+        {
+            if (cookie == null)
+                return;
+
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+
+            int projectionSize  = 2*cookie.width;
+
+            if (projectionSize < k_MinCookieSize)
+                return;
+
+            if (!m_CookieAtlas.ReserveSpace(cookie.GetInstanceID(), projectionSize, projectionSize))
+                m_2DCookieAtlasNeedsLayouting = true;
+        }
+
+        public Vector4 FetchCubeCookie(CommandBuffer cmd, Texture cookie)
+        {
+            Debug.Assert(cookie != null);
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+
+            int projectionSize = 2*(int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
+            if (projectionSize < k_MinCookieSize)
+                return Vector4.zero;
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
+                Debug.LogError($"Cube cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+
+            if (m_CookieAtlas.NeedsUpdate(cookie, false))
+            {
+                Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
+
+                RTHandle projected = RTHandles.Alloc(
+                                        projectionSize,
+                                        projectionSize,
+                                        colorFormat: cookieFormat,
+                                        enableRandomWrite: true);
+                {
+                    int usedKernel;
+
+                    //usedKernel = m_KernalEquirectangular;
+                    usedKernel = m_KernalFastOctahedral;
+                    //usedKernel = m_KernalOctahedralConformalQuincuncial;
+
+                    float invSize = 1.0f/((float)projectionSize);
+
+                    cmd.SetComputeTextureParam(m_ProjectCubeTo2D, usedKernel, HDShaderIDs._InputTexture,  cookie);
+                    cmd.SetComputeTextureParam(m_ProjectCubeTo2D, usedKernel, HDShaderIDs._OutputTexture, projected);
+                    cmd.SetComputeFloatParams (m_ProjectCubeTo2D,             HDShaderIDs._SrcScaleBias,
+                                                invSize, invSize, 0.5f*invSize, 0.5f*invSize);
+
+                    const int groupSizeX = 8;
+                    const int groupSizeY = 8;
+                    int threadGroupX = (projectionSize + (groupSizeX - 1))/groupSizeX;
+                    int threadGroupY = (projectionSize + (groupSizeY - 1))/groupSizeY;
+
+                    cmd.DispatchCompute(m_ProjectCubeTo2D, usedKernel, threadGroupX, threadGroupY, 1);
+                }
+                // Generate the mips
+                Texture filteredProjected = FilterAreaLightTexture(cmd, projected);
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
+
+                RTHandlesDeleter.ScheduleRelease(projected);
+            }
+
+            return scaleBias;
+        }
 
         public void ResetAllocator() => m_CookieAtlas.ResetAllocator();
 
         public void ClearAtlasTexture(CommandBuffer cmd) => m_CookieAtlas.ClearTarget(cmd);
 
         public RTHandle atlasTexture => m_CookieAtlas.AtlasTexture;
-        public Texture cubeCache => m_CubeCookieTexArray.GetTexCache();
 
         public PowerOfTwoTextureAtlas atlas => m_CookieAtlas;
-        public TextureCacheCubemap cubeCookieTexArray => m_CubeCookieTexArray;
 
         public Vector4 GetCookieAtlasSize()
         {
