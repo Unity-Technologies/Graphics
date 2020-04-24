@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class ProbeVolumePositioning
     {
         // Grid info
-        public const float MinCellSize = 0.5f;
+        public const float MinCellSize = 5f;
         public Vector3Int GridResolution { get; private set; }
         public Bounds ReferenceBounds { get; private set; }
 
@@ -32,10 +32,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Handles.color = Color.blue;
                     foreach (Brick b in Bricks)
                     {
-                        // Don't draw all bricks - without instanced rendering that would be way too many.
-                        if (b.size < 9)
-                            continue;
-
                         Vector3 scaledSize = new Vector3(b.size, b.size, b.size) * MinCellSize;
                         Vector3 scaledPos = GridToWorld(b.Position) + scaledSize / 2;
 
@@ -43,6 +39,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             };
+        }
+
+        public Vector3[] CalculateProbePositions()
+        {
+            Vector3[] result = new Vector3[Bricks.Count * 64];
+
+            for (int i = 0; i < Bricks.Count; i++)
+            {
+                Vector3Int origin = Bricks[i].Position;
+
+                for (int j = 0; j < 64; j++)
+                {
+                    Vector3 offset = (Vector3)Position3D(4, 4, j) / 3f * Bricks[i].size * MinCellSize;
+                    result[i * 64 + j] = GridToWorld(origin) + offset;
+                }
+            }
+
+            return result;
         }
 
         public void BuildBrickStructure(Bounds referenceBounds)
@@ -187,11 +201,29 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: This should probably go somewhere else
         private Bounds GetProbeVolumeBounds(ProbeVolume volume)
         {
+            var OBB = new OrientedBBox(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+
+            Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+            Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+            for (int i = 0; i < 8; i++)
+            {
+                Vector3 dir = (Position3D(2, 2, i) - new Vector3(0.5f, 0.5f, 0.5f)) * 2f;
+
+                Vector3 pt = OBB.center
+                    + OBB.right * OBB.extentX * dir.x
+                    + OBB.up * OBB.extentY * dir.y
+                    + OBB.forward * OBB.extentZ * dir.z;
+
+                min = Vector3.Min(min, pt);
+                max = Vector3.Max(max, pt);
+            }
+
             return new Bounds(
-                volume.transform.position,
-                volume.GetComponent<ProbeVolume>().parameters.size);
+                (min + max) / 2,
+                max - min);
         }
 
+        // TODO: Full OBB-OBB collision, perhaps using SAT
         private bool IntersectsProbeVolume(Brick brick)
         {
             Vector3 scaledSize = new Vector3(brick.size, brick.size, brick.size) * MinCellSize;
