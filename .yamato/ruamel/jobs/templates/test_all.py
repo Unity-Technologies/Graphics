@@ -6,7 +6,7 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 class Template_AllTemplateCiJob():
     
     def __init__(self, templates, agent, platforms, editor):
-        self.job_id = package_job_id_test_all(editor["version"])
+        self.job_id = template_job_id_test_all(editor["version"])
         self.yml = self.get_job_definition(templates, agent, platforms, editor).get_yml()
 
 

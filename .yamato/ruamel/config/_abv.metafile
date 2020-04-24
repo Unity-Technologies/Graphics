@@ -37,15 +37,21 @@ nightly_config:
     - trunk
   additional_jobs: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project_name: Universal
+      all: false
       platform_name: Android
       api_name: OpenGLES3
       test_platform_names:
         - Standalone
     - project_name: Universal
+      all: false
       platform_name: Android
       api_name: Vulkan
       test_platform_names:
         - Standalone
+    - project_name: HDRP_Hybrid
+      all: true
+    - project_name: Universal_Hybrid
+      all: true
 smoke_test: 
   folder: SRP_SmokeTest
   agent_win: # used for editmode

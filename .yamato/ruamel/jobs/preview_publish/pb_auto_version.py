@@ -11,7 +11,7 @@ class PreviewPublish_AutoVersionJob():
 
 
     def get_job_definition(self, agent, packages, integration_branch, auto_version):
-        bump_packages_args = "".join([f'--{package["type"]} -path {package["path"]}' for package in packages])
+        bump_packages_args = " ".join([f'--{package["type"]}-path {package["path"]}' for package in packages])
 
         # construct job
         job = YMLJob()

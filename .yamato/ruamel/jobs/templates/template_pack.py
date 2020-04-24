@@ -14,12 +14,13 @@ class Template_PackJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'Pack {template["id"]}')
+        job.set_name(f'Pack {template["name"]}')
         job.set_agent(agent)
         job.add_commands( [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci template pack --project-path {template["packagename"]}'])
-        job.add_artifacts_packages() # TODO add templates path
+        job.add_artifacts_packages() 
+        job.add_artifacts_templates()
         return job
     
     

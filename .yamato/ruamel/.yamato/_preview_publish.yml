@@ -9,7 +9,7 @@ auto-version:
         DISPLAY: ":0"
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci utils auto-version bump --package -path com.unity.render-pipelines.core--package -path com.unity.render-pipelines.universal--package -path com.unity.render-pipelines.high-definition--package -path com.unity.shadergraph--package -path com.unity.visualeffectgraph--package -path com.unity.render-pipelines.high-definition-config--package -path com.unity.render-pipelines.lightweight
+      -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
     artifacts:
         packages:
@@ -20,7 +20,7 @@ auto-version:
             only:
               -  master
 publish_core:
-    name: core Candidates Publish
+    name: '[core] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -41,7 +41,7 @@ publish_core:
           -  branch: master
              frequency: daily
 promote_core:
-    name: core Production Promote
+    name: '[core] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -58,7 +58,7 @@ promote_core:
             paths:
               -  "packages/**/*"
 publish_universal:
-    name: universal Candidates Publish
+    name: '[universal] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -79,7 +79,7 @@ publish_universal:
           -  branch: master
              frequency: daily
 promote_universal:
-    name: universal Production Promote
+    name: '[universal] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -96,7 +96,7 @@ promote_universal:
             paths:
               -  "packages/**/*"
 publish_hdrp:
-    name: hdrp Candidates Publish
+    name: '[hdrp] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -117,7 +117,7 @@ publish_hdrp:
           -  branch: master
              frequency: daily
 promote_hdrp:
-    name: hdrp Production Promote
+    name: '[hdrp] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -134,7 +134,7 @@ promote_hdrp:
             paths:
               -  "packages/**/*"
 publish_shadergraph:
-    name: shadergraph Candidates Publish
+    name: '[shadergraph] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -155,7 +155,7 @@ publish_shadergraph:
           -  branch: master
              frequency: daily
 promote_shadergraph:
-    name: shadergraph Production Promote
+    name: '[shadergraph] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -172,7 +172,7 @@ promote_shadergraph:
             paths:
               -  "packages/**/*"
 publish_vfx:
-    name: vfx Candidates Publish
+    name: '[vfx] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -193,7 +193,7 @@ publish_vfx:
           -  branch: master
              frequency: daily
 promote_vfx:
-    name: vfx Production Promote
+    name: '[vfx] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -210,7 +210,7 @@ promote_vfx:
             paths:
               -  "packages/**/*"
 publish_config:
-    name: config Candidates Publish
+    name: '[config] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -231,7 +231,7 @@ publish_config:
           -  branch: master
              frequency: daily
 promote_config:
-    name: config Production Promote
+    name: '[config] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -248,7 +248,7 @@ promote_config:
             paths:
               -  "packages/**/*"
 publish_lwrp:
-    name: lwrp Candidates Publish
+    name: '[lwrp] Candidates Publish'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -269,7 +269,7 @@ publish_lwrp:
           -  branch: master
              frequency: daily
 promote_lwrp:
-    name: lwrp Production Promote
+    name: '[lwrp] Production Promote'
     agent:
         type: Unity::VM
         image: package-ci/win10:stable

@@ -23,7 +23,7 @@ class PreviewPublish_PublishJob():
 
         # construct job
         job = YMLJob()
-        job.set_name(f'{package["name"]} Candidates Publish')
+        job.set_name(f'[{package["name"]}] Candidates Publish')
         job.set_agent(agent)
         job.add_dependencies(dependencies)
         job.add_commands([

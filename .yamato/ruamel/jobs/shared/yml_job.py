@@ -1,4 +1,4 @@
-from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS, PATH_PACKAGES, PATH_UNITY_REVISION
+from .constants import VAR_UPM_REGISTRY, PATH_TEST_RESULTS_padded, PATH_PLAYERS, PATH_PACKAGES, PATH_UNITY_REVISION, PATH_TEMPLATES
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as dss
 from collections import defaultdict
 import pickle
@@ -64,6 +64,9 @@ class YMLJob():
 
     def add_artifacts_packages(self):
         self.yml['artifacts']['packages']['paths'].append(dss(PATH_PACKAGES)) 
+
+    def add_artifacts_templates(self):
+        self.yml['artifacts']['packages']['paths'].append(dss(PATH_TEMPLATES)) 
 
     def add_artifacts_unity_revision(self): # used by editor
         self.yml['artifacts']['unity_revision.zip']['paths'].append(dss(PATH_UNITY_REVISION)) 
