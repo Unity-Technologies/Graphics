@@ -33,7 +33,7 @@
 // UnityEngine.Rendering.HighDefinition.IESMode:  static fields
 //
 #define IESMODE_EQUIRECTANGULAR (0)
-#define IESMODE_OCTAHEDRAL (1)
+#define IESMODE_FAST_OCTAHEDRAL (1)
 #define IESMODE_CONFORMAL_OCTAHEDRAL_QUINCUNCIAL (2)
 
 //
