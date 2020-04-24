@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
         public SerializedProperty backgroundColorHDR;
+        public SerializedProperty xrRendering;
         public SerializedProperty passThrough;
         public SerializedProperty customRenderingSettings;
         public SerializedProperty clearDepth;
@@ -84,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);
+            xrRendering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.xrRendering);
             passThrough = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.fullscreenPassthrough);
             customRenderingSettings = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.customRenderingSettings);
             clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
