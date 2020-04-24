@@ -151,6 +151,9 @@ namespace UnityEngine.Rendering.Universal
             }
             else if (xrEnabled && xrSupported)
             {
+                // Disable vsync on the main display when rendering to a XR device
+                QualitySettings.vSyncCount = 0;
+
                 // XRTODO: handle camera.stereoTargetEye here ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
