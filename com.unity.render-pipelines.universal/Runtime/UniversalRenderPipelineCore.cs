@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture. 
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
         /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
@@ -95,6 +95,7 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         public bool clearDepth;
         public bool isSceneViewCamera;
+        public bool isPreviewViewCamera;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
@@ -178,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined: 
+        // Undefined:
         // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 
