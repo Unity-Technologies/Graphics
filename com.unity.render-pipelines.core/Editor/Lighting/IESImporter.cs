@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
         [Range(32, 2048)]
-        public int   SpotCookieSize = 512;
+        public int   SpotCookieSize = 128;
         public bool  ApplyLightAttenuation  = true;
         public bool  UseIESMaximumIntensity = true;
 

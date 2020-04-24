@@ -324,22 +324,42 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     }
     else
     {
+#if 0
         // Perform orthographic or perspective projection.
         float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
-        float2 positionCS   = positionLS.xy / perspectiveZ;
+        float2 positionCS   = positionLS.xy/perspectiveZ;
 
         float z = positionLS.z;
         float r = light.range;
 
         // Box lights have no range attenuation, so we must clip manually.
-        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5*r) - 0.5*r + 1) <= light.boxLightSafeExtent;
 
+        const float bound = (1.0f/light.angleScale);
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        float2 positionNDC = positionCS * 0.5 + 0.5;
+        float2 positionNDC = clamp(positionCS, -bound.xx, bound.xx)*0.5 + 0.5;
 
         // Manually clamp to border (black).
         cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset);
         cookie.a   = isInBounds ? 1.0 : 0.0;
+#else
+        // Perform orthographic or perspective projection.
+        float  perspectiveZ = (lightType != GPULIGHTTYPE_PROJECTOR_BOX) ? positionLS.z : 1.0;
+        float2 positionCS   = positionLS.xy/perspectiveZ;
+
+        float z = positionLS.z;
+        float r = light.range;
+
+        // Box lights have no range attenuation, so we must clip manually.
+        bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5*r) - 0.5*r + 1) <= light.boxLightSafeExtent;
+
+        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+        float2 positionNDC = positionCS*0.5 + 0.5;
+
+        // Manually clamp to border (black).
+        cookie.rgb = SampleCookie2D(positionNDC, light.cookieScaleOffset);
+        cookie.a   = isInBounds ? 1.0 : 0.0;
+#endif
     }
 
 #else

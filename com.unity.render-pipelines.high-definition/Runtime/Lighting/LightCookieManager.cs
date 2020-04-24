@@ -65,7 +65,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ProjectCubeTo2D = hdResources.shaders.projectCubeTo2DCS;
 
-            // SKCode
             m_KernalEquirectangular                 = m_ProjectCubeTo2D.FindKernel("CSMainEquirectangular");
             m_KernalFastOctahedral                  = m_ProjectCubeTo2D.FindKernel("CSMainFastOctahedral");
             m_KernalOctahedralConformalQuincuncial  = m_ProjectCubeTo2D.FindKernel("CSMainOctahedralConformalQuincuncial");
