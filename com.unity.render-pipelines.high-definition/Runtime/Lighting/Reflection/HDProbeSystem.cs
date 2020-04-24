@@ -30,9 +30,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set => s_Instance.Parameters = value;
         }
 
-        public static IList<HDProbe> realtimeViewDependentProbes => s_Instance.realtimeViewDependentProbes;
-        public static IList<HDProbe> realtimeViewIndependentProbes => s_Instance.realtimeViewIndependentProbes;
-        public static IList<HDProbe> bakedProbes => s_Instance.bakedProbes;
+        public static IEnumerable<HDProbe> realtimeViewDependentProbes => s_Instance.realtimeViewDependentProbes;
+        public static IEnumerable<HDProbe> realtimeViewIndependentProbes => s_Instance.realtimeViewIndependentProbes;
+        public static IEnumerable<HDProbe> bakedProbes => s_Instance.bakedProbes;
+        public static int bakedProbeCount => s_Instance.bakedProbeCount;
 
         public static void RegisterProbe(HDProbe probe) => s_Instance.RegisterProbe(probe);
         public static void UnregisterProbe(HDProbe probe) => s_Instance.UnregisterProbe(probe);
@@ -157,6 +158,8 @@ namespace UnityEngine.Rendering.HighDefinition
         { get { RemoveDestroyedProbes(m_RealtimeViewDependentProbes); return m_RealtimeViewDependentProbes; } }
         public IList<HDProbe> realtimeViewIndependentProbes
         { get { RemoveDestroyedProbes(m_RealtimeViewIndependentProbes); return m_RealtimeViewIndependentProbes; } }
+
+        public int bakedProbeCount => m_BakedProbes.Count;
 
         public ReflectionSystemParameters Parameters;
 
