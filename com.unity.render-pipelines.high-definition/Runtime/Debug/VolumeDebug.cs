@@ -100,7 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (anchor == null) // means the hdcamera has not been initialized
                 {
                     // So we have to update the stack manually
-                    anchor = cam.GetComponent<HDAdditionalCameraData>().volumeAnchorOverride;
+                    if (cam.TryGetComponent<HDAdditionalCameraData>(out var data))
+                        anchor = data.volumeAnchorOverride;
                     if (anchor == null) anchor = cam.transform;
                     var stack = selectedCameraVolumeStack;
                     if (stack != null)
@@ -134,7 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>List of Volume component types.</summary>
+        /// <summary>Returns the name of a component from its VolumeComponentMenu.</summary>
+        /// <param name="component">A volume component.</param>
+        /// <returns>The component display name.</returns>
         static public string ComponentDisplayName(Type component)
         {
             Attribute attrib = component.GetCustomAttribute(typeof(VolumeComponentMenu), false);
@@ -254,9 +257,14 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumeParameter[,] states = new VolumeParameter[volumes.Length, fields.Length];
             for (int i = 0; i < volumes.Length; i++)
             {
+                var profile = volumes[i].HasInstantiatedProfile() ? volumes[i].profile : volumes[i].sharedProfile;
+                if (!profile.TryGet(selectedComponentType, out VolumeComponent component))
+                    continue;
+
                 for (int j = 0; j < fields.Length; j++)
                 {
-                    states[i, j] = GetParameter(volumes[i], fields[j]);
+                    var param = GetParameter(component, fields[j]);;
+                    states[i, j] = param.overrideState ? param : null;
                 }
             }
             return states;
@@ -294,7 +302,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var newStates = GetStates();
                 if (savedStates == null || ChangedStates(newStates))
                 {
-                    savedStates = (VolumeParameter[,])newStates.Clone();
+                    savedStates = newStates;
                     ret = true;
                 }
             }
@@ -306,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return ret;
         }
 
-        /// <summary>Get the weight of a volume computed form the <see cref="selectedCameraPosition"/></summary>
+        /// <summary>Get the weight of a volume computed from the <see cref="selectedCameraPosition"/></summary>
         /// <param name="volume">The volume to compute weight for.</param>
         /// <returns>The weight of the volume.</returns>
         public float GetVolumeWeight(Volume volume)
@@ -328,6 +336,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return 0f;
         }
 
+        /// <summary>Determines if a volume as an influence on the interpolated value</summary>
+        /// <param name="volume">The volume.</param>
+        /// <returns>True if the given volume as an influence.</returns>
         public bool VolumeHasInfluence(Volume volume)
         {
             if (weights == null)
