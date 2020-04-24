@@ -55,6 +55,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
+    /// Compute Buffer resource handle.
+    /// </summary>
+    [DebuggerDisplay("ComputeBuffer ({handle})")]
+    public struct ComputeBufferHandle
+    {
+        bool m_IsValid;
+        internal int handle { get; private set; }
+        internal ComputeBufferHandle(int handle) { this.handle = handle; m_IsValid = true; }
+        /// <summary>
+        /// Conversion to int.
+        /// </summary>
+        /// <param name="handle">Compute Buffer handle to convert.</param>
+        /// <returns>The integer representation of the handle.</returns>
+        public static implicit operator int(ComputeBufferHandle handle) { return handle.handle; }
+        /// <summary>
+        /// Return true if the handle is valid.
+        /// </summary>
+        /// <returns>True if the handle is valid.</returns>
+        public bool IsValid() => m_IsValid;
+    }
+
+    /// <summary>
     /// The mode that determines the size of a Texture.
     /// </summary>
     public enum TextureSizeMode
@@ -316,11 +338,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 this.rendererList = new RendererList(); // Invalid by default
             }
         }
+
+        internal struct ComputeBufferResource
+        {
+            public ComputeBuffer computeBuffer;
+
+            internal ComputeBufferResource(ComputeBuffer computeBuffer)
+            {
+                this.computeBuffer = computeBuffer;
+            }
+        }
         #endregion
 
         DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
         Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
+        DynamicArray<ComputeBufferResource> m_ComputeBufferResources = new DynamicArray<ComputeBufferResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
@@ -358,13 +391,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Returns the RendererList associated with the provided resource handle.
         /// </summary>
         /// <param name="handle">Handle to a Renderer List resource.</param>
-        /// <returns>The Renderer List associated with the provided resource handle or a null renderer list if the handle is invalid.</returns>
+        /// <returns>The Renderer List associated with the provided resource handle or an invalid renderer list if the handle is invalid.</returns>
         public RendererList GetRendererList(in RendererListHandle handle)
         {
             if (!handle.IsValid())
                 return RendererList.nullRendererList;
 
             return m_RendererListResources[handle].rendererList;
+        }
+
+        /// <summary>
+        /// Returns the Compute Buffer associated with the provided resource handle.
+        /// </summary>
+        /// <param name="handle">Handle to a Compute Buffer resource.</param>
+        /// <returns>The Compute Buffer associated with the provided resource handle or a null reference if the handle is invalid.</returns>
+        public ComputeBuffer GetComputeBuffer(in ComputeBufferHandle handle)
+        {
+            if (!handle.IsValid())
+                return null;
+
+            return m_ComputeBufferResources[handle].computeBuffer;
         }
         #endregion
 
@@ -454,6 +500,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             int newHandle = m_RendererListResources.Add(new RendererListResource(desc));
             return new RendererListHandle(newHandle);
+        }
+
+        internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
+        {
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer));
+            return new ComputeBufferHandle(newHandle);
         }
 
         internal void CreateAndClearTexturesForPass(RenderGraphContext rgContext, int passIndex, List<TextureHandle> textures)
@@ -704,6 +756,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             m_TextureResources.Clear();
             m_RendererListResources.Clear();
+            m_ComputeBufferResources.Clear();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (m_AllocatedTextures.Count != 0)

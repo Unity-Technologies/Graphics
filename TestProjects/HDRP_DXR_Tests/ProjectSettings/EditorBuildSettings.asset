@@ -161,4 +161,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5005_PathTracing_Fog.unity
     guid: 9f38d7cbc64ad534485db5107427e269
+  - enabled: 1
+    path: Assets/Scenes/5006_PathTracing_DoF.unity
+    guid: c163eeeb7af1c194590ab367fb84a376
   m_configObjects: {}

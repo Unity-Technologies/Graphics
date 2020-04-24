@@ -11,3 +11,5 @@ CBUFFER_END
 #define _ContactShadowFadeEnd               _ContactShadowParamsParameters.z
 #define _ContactShadowFadeOneOverRange      _ContactShadowParamsParameters.w
 #define _RenderTargetHeight                 _ContactShadowParamsParameters2.x
+#define _ContactShadowMinDistance           _ContactShadowParamsParameters2.y
+#define _ContactShadowFadeInEnd             _ContactShadowParamsParameters2.z
