@@ -90,8 +90,8 @@ namespace UnityEditor.VFX
                     paramInfo.path = paramInfo.name;
                     if (parameter.valueFilter == VFXValueFilter.Range)
                     {
-                        float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
-                        float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                        float min = (float)System.Convert.ChangeType(parameter.min, typeof(float));
+                        float max = (float)System.Convert.ChangeType(parameter.max, typeof(float));
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }

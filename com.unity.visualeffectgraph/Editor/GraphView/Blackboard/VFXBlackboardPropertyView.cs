@@ -237,7 +237,7 @@ namespace  UnityEditor.VFX.UI
 
                     if (m_ValueFilterProperty == null)
                     {
-                        m_ValueFilterProperty = new EnumPropertyRM(new ValueFilterEnumPropertyRMProvider("Value Filter", () => controller.valueFilter, t => controller.valueFilter = t, controller.portType != typeof(uint)), 55);
+                        m_ValueFilterProperty = new EnumPropertyRM(new ValueFilterEnumPropertyRMProvider("Mode", () => controller.valueFilter, t => controller.valueFilter = t, controller.portType != typeof(uint)), 55);
                     }
                     Insert(insertIndex++, m_ValueFilterProperty);
 

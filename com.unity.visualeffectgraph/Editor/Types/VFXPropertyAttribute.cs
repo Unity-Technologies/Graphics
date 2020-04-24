@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             Regex = 1 << 6,
             Delayed = 1 << 7,
             BitField = 1 << 8,
-            Enum = 1 << 9,
+            Enum = GraphAttribute | 1 << 9,
 
             // Tells whether this attribute modifies the expression graph
             GraphAttribute = 1 << 31,
@@ -151,7 +151,7 @@ namespace UnityEditor.VFX
                 else if(attribute is EnumAttribute)
                 {
                     var enumAttribute = (EnumAttribute)attribute;
-                    exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)enumAttribute.values.Length - 1));
+                    exp = new VFXExpressionMin(exp, VFXValue.Constant((uint)enumAttribute.values.Length - 1));
                 }
                 else
                     throw new NotImplementedException("Unrecognized expression attribute: " + attribute);

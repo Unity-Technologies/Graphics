@@ -598,63 +598,63 @@ namespace UnityEditor.VFX.UI
 
         public void CheckNameUnique(HashSet<string> allNames)
         {
-            string candidateName = MakeNameUnique(model.exposedName, allNames);
-            if (candidateName != model.exposedName)
+            string candidateName = MakeNameUnique(base.model.exposedName, allNames);
+            if (candidateName != base.model.exposedName)
             {
-                parameter.SetSettingValue("m_ExposedName", candidateName);
+                model.SetSettingValue("m_ExposedName", candidateName);
             }
         }
 
         public string exposedName
         {
-            get { return parameter.exposedName; }
+            get { return model.exposedName; }
 
             set
             {
                 string candidateName = MakeNameUnique(value);
-                if (candidateName != null && candidateName != parameter.exposedName)
+                if (candidateName != null && candidateName != model.exposedName)
                 {
-                    parameter.SetSettingValue("m_ExposedName", candidateName);
+                    model.SetSettingValue("m_ExposedName", candidateName);
                 }
             }
         }
         public bool exposed
         {
-            get { return parameter.exposed; }
+            get { return model.exposed; }
             set
             {
-                parameter.SetSettingValue("m_Exposed", value);
+                model.SetSettingValue("m_Exposed", value);
             }
         }
 
         public int order
         {
-            get { return parameter.order; }
+            get { return model.order; }
 
             set
             {
-                parameter.order = value;
+                model.order = value;
             }
         }
 
-        public VFXParameter parameter { get { return model as VFXParameter; } }
+        public new VFXParameter model { get { return base.model as VFXParameter; } }
 
 
         public bool canHaveValueFilter
         {
             get
             {
-                return parameter.canHaveValueFilter;
+                return model.canHaveValueFilter;
             }
         }
 
         public VFXValueFilter valueFilter
         {
-            get { return parameter.valueFilter; }
+            get { return model.valueFilter; }
 
             set
             {
-                parameter.valueFilter = value;
+                model.valueFilter = value;
                 NotifyChange(AnyThing);
             }
         }
@@ -681,45 +681,35 @@ namespace UnityEditor.VFX.UI
 
         public object minValue
         {
-            get { return parameter.m_Min != null ? parameter.m_Min.Get() : null; }
+            get { return model.min; }
             set
             {
                 if (value != null)
                 {
-                    if (parameter.m_Min == null || parameter.m_Min.type != portType)
-                        parameter.m_Min = new VFXSerializableObject(portType, value);
-                    else
-                        parameter.m_Min.Set(value);
+                    model.min = value;
                     if (RangeToFloat(this.value) < RangeToFloat(value))
                     {
                         this.value = value;
                     }
-                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
-                else
-                    parameter.m_Min = null;
             }
         }
         public object maxValue
         {
-            get { return parameter.m_Max != null ? parameter.m_Max.Get() : null; }
+            get { return model.max; }
             set
             {
                 if (value != null)
                 {
-                    if (parameter.m_Max == null || parameter.m_Max.type != portType)
-                        parameter.m_Max = new VFXSerializableObject(portType, value);
-                    else
-                        parameter.m_Max.Set(value);
+                    model.max = value;
                     if (RangeToFloat(this.value) > RangeToFloat(value))
                     {
                         this.value = value;
                     }
 
-                    parameter.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
-                else
-                    parameter.m_Max = null;
             }
         }
 
@@ -731,13 +721,13 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return parameter.GetOutputSlot(0).value;
+                return model.GetOutputSlot(0).value;
             }
             set
             {
-                Undo.RecordObject(parameter, "Change Value");
+                Undo.RecordObject(model, "Change Value");
 
-                VFXSlot slot = parameter.GetOutputSlot(0);
+                VFXSlot slot = model.GetOutputSlot(0);
 
                 if (valueFilter == VFXValueFilter.Range)
                 {
@@ -769,18 +759,18 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return model.isOutput;
+                return base.model.isOutput;
             }
 
             set
             {
-                if (model.isOutput != value)
+                if (base.model.isOutput != value)
                 {
-                    model.isOutput = value;
+                    base.model.isOutput = value;
 
-                    viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
-                    m_Slot = model.isOutput ? model.inputSlots[0] : model.outputSlots[0];
-                    viewController.RegisterNotification(m_Slot, OnSlotChanged);
+                    viewController.UnRegisterNotification(m_Slot, this.OnSlotChanged);
+                    m_Slot = base.model.isOutput ? base.model.inputSlots[0] : base.model.outputSlots[0];
+                    viewController.RegisterNotification(m_Slot, this.OnSlotChanged);
                 }
             }
         }
@@ -854,7 +844,7 @@ namespace UnityEditor.VFX.UI
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
-            model.ValidateNodes();
+            base.model.ValidateNodes();
             bool controllerListChanged = UpdateControllers();
             if (controllerListChanged)
                 viewController.NotifyParameterControllerChange();
@@ -870,7 +860,7 @@ namespace UnityEditor.VFX.UI
             {
                 removedController.Value.OnDisable();
                 m_Controllers.Remove(removedController.Key);
-                viewController.RemoveControllerFromModel(parameter, removedController.Value);
+                viewController.RemoveControllerFromModel(model, removedController.Value);
                 changed = true;
             }
 
@@ -879,7 +869,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController controller = new VFXParameterNodeController(this, addedController.Value, viewController);
 
                 m_Controllers[addedController.Key] = controller;
-                viewController.AddControllerToModel(parameter, controller);
+                viewController.AddControllerToModel(model, controller);
 
                 controller.ForceUpdate();
                 changed = true;
@@ -892,11 +882,11 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return !model.collapsed;
+                return !base.model.collapsed;
             }
             set
             {
-                model.collapsed = !value;
+                base.model.collapsed = !value;
             }
         }
         public bool editable
@@ -929,12 +919,12 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return parameter.GetOutputSlot(0).space;
+                return model.GetOutputSlot(0).space;
             }
 
             set
             {
-                parameter.GetOutputSlot(0).space = value;
+                model.GetOutputSlot(0).space = value;
             }
         }
 
@@ -942,13 +932,13 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return parameter.GetOutputSlot(0).spaceable;
+                return model.GetOutputSlot(0).spaceable;
             }
         }
 
         public bool IsSpaceInherited()
         {
-            return parameter.GetOutputSlot(0).IsSpaceInherited();
+            return model.GetOutputSlot(0).IsSpaceInherited();
         }
 
         public override void OnDisable()

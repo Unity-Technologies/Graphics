@@ -33,9 +33,9 @@ namespace UnityEditor.VFX
         [SerializeField]
         private string m_Category;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        public VFXSerializableObject m_Min;
+        protected VFXSerializableObject m_Min;
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
-        public VFXSerializableObject m_Max;
+        protected VFXSerializableObject m_Max;
 
         [SerializeField]
         private bool m_IsOutput;
@@ -49,6 +49,35 @@ namespace UnityEditor.VFX
             set
             {
                 m_EnumValues = value;
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+
+        public object min
+        {
+            get { if (m_Min != null) return m_Min.Get(); else return null; }
+
+            set
+            {
+                if (m_Min == null || m_Min.type != type)
+                    m_Min = new VFXSerializableObject(type, value);
+                else
+                    m_Min.Set(value);
+
+                Invalidate(InvalidationCause.kSettingChanged);
+            }
+        }
+        public object max
+        {
+            get { if (m_Max != null) return m_Max.Get(); else return null; }
+
+            set
+            {
+                if (m_Max == null || m_Max.type != type)
+                    m_Max = new VFXSerializableObject(type, value);
+                else
+                    m_Max.Set(value);
+                Invalidate(InvalidationCause.kSettingChanged);
             }
         }
 
@@ -83,6 +112,8 @@ namespace UnityEditor.VFX
                             m_Max = m_Min = null;
                             break;
                     }
+
+                    Invalidate(InvalidationCause.kSettingChanged);
                 }
             }
         }

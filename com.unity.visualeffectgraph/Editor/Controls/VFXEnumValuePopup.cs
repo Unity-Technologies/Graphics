@@ -87,7 +87,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
             if (!found)
-                m_ValueText.text = "-";
+                m_ValueText.text = enumValues[enumValues.Length-1];
         }
     }
 }

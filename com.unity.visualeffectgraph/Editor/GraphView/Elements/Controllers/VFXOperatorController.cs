@@ -29,11 +29,12 @@ namespace UnityEditor.VFX.UI
 
         public VFXOperatorController(VFXOperator model, VFXViewController viewController) : base(model, viewController)
         {
-            if (model is VFXSubgraphOperator)
+            if (model is VFXSubgraphOperator subgraphOperator)
             {
                 // Prevent breaking the editor opening.
                 try
                 {
+                    subgraphOperator.RecreateCopy();
                     model.ResyncSlots(false);
                     model.UpdateOutputExpressions();
                 }
