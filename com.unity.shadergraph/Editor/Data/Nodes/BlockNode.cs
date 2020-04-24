@@ -121,6 +121,9 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
+
+            if(m_Descriptor.control == null)
+                return NeededCoordinateSpace.None;
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresNormal;
@@ -132,6 +135,9 @@ namespace UnityEditor.ShaderGraph
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
+            if(m_Descriptor.control == null)
+                return NeededCoordinateSpace.None;
+
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresViewDir;
         }
@@ -140,6 +146,9 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return NeededCoordinateSpace.None;
+
+            if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
             
             var requirements = m_Descriptor.control.GetRequirements();
@@ -151,6 +160,9 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
+
+            if(m_Descriptor.control == null)
+                return NeededCoordinateSpace.None;
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresTangent;
@@ -160,6 +172,9 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return NeededCoordinateSpace.None;
+
+            if(m_Descriptor.control == null)
                 return NeededCoordinateSpace.None;
             
             var requirements = m_Descriptor.control.GetRequirements();
@@ -171,6 +186,9 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
+
+            if(m_Descriptor.control == null)
+                return false;
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresMeshUVs.Contains(channel);
@@ -181,6 +199,9 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
+
+            if(m_Descriptor.control == null)
+                return false;
             
             var requirements = m_Descriptor.control.GetRequirements();
             return requirements.requiresScreenPosition;
@@ -190,6 +211,9 @@ namespace UnityEditor.ShaderGraph
         {
             var slot = FindSlot<MaterialSlot>(0);
             if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+                return false;
+
+            if(m_Descriptor.control == null)
                 return false;
             
             var requirements = m_Descriptor.control.GetRequirements();
