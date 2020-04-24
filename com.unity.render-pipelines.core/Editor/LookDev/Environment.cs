@@ -155,8 +155,8 @@ namespace UnityEditor.Rendering.LookDev
         public sealed override void OnInspectorGUI() { }
 
         //but make preview in Project window
-        override public Texture2D RenderStaticPreview(string assetPath, UnityEngine.Object[] subAssets, int width, int height)
-            => EnvironmentElement.GetLatLongThumbnailTexture(target as Environment, width);
+    //    override public Texture2D RenderStaticPreview(string assetPath, UnityEngine.Object[] subAssets, int width, int height)
+     //       => EnvironmentElement.GetLatLongThumbnailTexture(target as Environment, width);
     }
 
     interface IBendable<T>

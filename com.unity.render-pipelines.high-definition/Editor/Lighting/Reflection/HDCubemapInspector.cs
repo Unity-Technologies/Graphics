@@ -202,48 +202,6 @@ namespace UnityEditor.Rendering.HighDefinition
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
         }
-        public override Texture2D RenderStaticPreview(string assetPath, Object[] subAssets, int width, int height)
-        {
-            m_CameraDistance = 1.25f;
-            m_CameraPhi = Mathf.PI * 0.33f;
-            m_CameraTheta = Mathf.PI;
-
-            InitPreview();
-
-            UpdateCamera();
-
-            // Force loading the needed preview shader
-            var previewShader = EditorGUIUtility.LoadRequired("Previews/PreviewCubemap.shader") as Shader;
-            var previewMaterial = new Material(previewShader)
-                {
-                    hideFlags = HideFlags.HideAndDontSave
-                };
-
-            // We need to force it to go through legacy
-            bool assetUsedFromQuality = false;
-            var currentPipelineAsset = HDUtils.SwitchToBuiltinRenderPipeline(out assetUsedFromQuality);
-
-            previewMaterial.SetVector("_CameraWorldPosition", m_PreviewUtility.camera.transform.position);
-            previewMaterial.SetFloat("_Mip", 0.0f);
-            previewMaterial.SetFloat("_Alpha", 0.0f);
-            previewMaterial.SetFloat("_Intensity", 1.0f);
-            previewMaterial.mainTexture = (target as Texture);
-
-            m_PreviewUtility.ambientColor = Color.black;
-            m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
-            m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, previewMaterial, 0);
-            m_PreviewUtility.camera.Render();
-
-            var outTexture = m_PreviewUtility.EndStaticPreview();
-
-            // Reset back to whatever asset was used before the rendering
-            HDUtils.RestoreRenderPipelineAsset(assetUsedFromQuality, currentPipelineAsset);
-
-            // Dummy empty render call to reset the pipeline in RenderPipelineManager
-            m_PreviewUtility.camera.Render();
-
-            return outTexture;
-
-        }
+      
     }
 }
