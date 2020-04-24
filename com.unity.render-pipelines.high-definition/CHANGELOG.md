@@ -686,6 +686,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Merged material samples and shader samples
 - Update material samples scene visuals
 - Use multi_compile API for deferred compute shader with shadow mask.
+- Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 
 ## [7.1.1] - 2019-09-05
 
