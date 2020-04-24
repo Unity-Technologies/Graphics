@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     graph.owner.RegisterCompleteObjectUndo("Change property value");
                     keyword.value = evt.newValue ? 1 : 0;
-                    DirtyNodes(ModificationScope.Graph);
+                    DirtyNodes(ModificationScope.Topological);
                 });
             AddRow("Default", field);
         }
