@@ -54,13 +54,14 @@ namespace UnityEditor.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, alphaTest);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Lit", new Toggle() { value = m_Lit }, (evt) =>
             {
                 if (Equals(m_Lit, evt.newValue))
                     return;
 
+                registerUndo("Change Lit");
                 m_Lit = evt.newValue;
                 onChange();
             });
@@ -70,6 +71,7 @@ namespace UnityEditor.ShaderGraph
                 if (Equals(m_AlphaTest, evt.newValue))
                     return;
 
+                registerUndo("Change Alpha Test");
                 m_AlphaTest = evt.newValue;
                 onChange();
             });

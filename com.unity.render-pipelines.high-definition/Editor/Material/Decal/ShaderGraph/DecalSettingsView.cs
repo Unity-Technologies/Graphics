@@ -18,15 +18,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalData = subTarget.decalData;
         }
 
-        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            // TODO: Register Undo actions...
-
             context.AddProperty("Affects BaseColor", 0, new Toggle() { value = decalData.affectsAlbedo }, (evt) =>
             {
                 if (Equals(decalData.affectsAlbedo, evt.newValue))
                     return;
 
+                registerUndo("Affects BaseColor");
                 decalData.affectsAlbedo = evt.newValue;
                 onChange();
             });
@@ -36,6 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(decalData.affectsNormal, evt.newValue))
                     return;
 
+                registerUndo("Affects Normal");
                 decalData.affectsNormal = evt.newValue;
                 onChange();
             });
@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(decalData.affectsMetal, evt.newValue))
                     return;
 
+                registerUndo("Affects Metal");
                 decalData.affectsMetal = evt.newValue;
                 onChange();
             });
@@ -53,7 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 if (Equals(decalData.affectsAO, evt.newValue))
                     return;
-
+                
+                registerUndo("Affects AO");
                 decalData.affectsAO = evt.newValue;
                 onChange();
             });
@@ -63,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(decalData.affectsSmoothness, evt.newValue))
                     return;
 
+                registerUndo("Affects Smoothness");
                 decalData.affectsSmoothness = evt.newValue;
                 onChange();
             });
@@ -72,6 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(decalData.affectsEmission, evt.newValue))
                     return;
 
+                registerUndo("Affects Emission");
                 decalData.affectsEmission = evt.newValue;
                 onChange();
             });

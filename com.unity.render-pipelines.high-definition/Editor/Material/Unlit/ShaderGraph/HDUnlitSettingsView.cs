@@ -20,12 +20,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             unlitData = subTarget.unlitData;
         }
 
-        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             // TODO: Register Undo actions...
 
             // Render State
-            DoRenderStateArea(ref context, systemData, 0, onChange);
+            DoRenderStateArea(ref context, systemData, 0, onChange, registerUndo);
             
             // Transparent
             context.AddProperty("Receive Fog", 1, new Toggle() { value = builtinData.transparencyFog }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
@@ -33,6 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.transparencyFog, evt.newValue))
                     return;
 
+                registerUndo("Receive Fog");
                 builtinData.transparencyFog = evt.newValue;
                 onChange();
             });
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Distortion
             if(systemData.surfaceType == SurfaceType.Transparent)
             {
-                DoDistortionArea(ref context, builtinData, 1, onChange);
+                DoDistortionArea(ref context, builtinData, 1, onChange, registerUndo);
             }
 
             // Alpha Test
@@ -50,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.alphaTest, evt.newValue))
                     return;
 
+                registerUndo("Alpha Clipping");
                 systemData.alphaTest = evt.newValue;
                 onChange();
             });
@@ -58,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.alphaToMask, evt.newValue))
                     return;
 
+                registerUndo("Alpha to Mask");
                 builtinData.alphaToMask = evt.newValue;
                 onChange();
             });
@@ -68,6 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.doubleSidedMode, evt.newValue))
                     return;
 
+                registerUndo("Double-Sided Mode");
                 systemData.doubleSidedMode = (DoubleSidedMode)evt.newValue;
                 onChange();
             });
@@ -76,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.addPrecomputedVelocity, evt.newValue))
                     return;
 
+                registerUndo("Add Precomputed Velocity");
                 builtinData.addPrecomputedVelocity = evt.newValue;
                 onChange();
             });
@@ -84,19 +89,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(unlitData.enableShadowMatte, evt.newValue))
                     return;
 
+                registerUndo("Shadow Matte");
                 unlitData.enableShadowMatte = evt.newValue;
                 onChange();
             });
         }
 
         // TODO: Can we make this static and use it for all SubTargets?
-        void DoRenderStateArea(ref TargetPropertyGUIContext context, HDSystemData systemData, int indentLevel, Action onChange)
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, HDSystemData systemData, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
             {
                 if (Equals(systemData.surfaceType, evt.newValue))
                     return;
 
+                registerUndo("Surface Type");
                 systemData.surfaceType = (SurfaceType)evt.newValue;
                 systemData.TryChangeRenderingPass(systemData.renderingPass);
                 onChange();
@@ -107,6 +114,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             context.AddProperty("Rendering Pass", indentLevel + 1, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
+                registerUndo("Rendering Pass");
                 if(systemData.TryChangeRenderingPass(evt.newValue))
                 {
                     onChange();
@@ -118,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.blendMode, evt.newValue))
                     return;
 
+                registerUndo("Blending Mode");
                 systemData.blendMode = (BlendMode)evt.newValue;
                 onChange();
             });
@@ -127,6 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.zTest, evt.newValue))
                     return;
 
+                registerUndo("Depth Test");
                 systemData.zTest = (CompareFunction)evt.newValue;
                 onChange();
             });
@@ -136,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.zWrite, evt.newValue))
                     return;
 
+                registerUndo("Depth Write");
                 systemData.zWrite = evt.newValue;
                 onChange();
             });
@@ -145,6 +156,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.transparentCullMode, evt.newValue))
                     return;
 
+                registerUndo("Cull Mode");
                 systemData.transparentCullMode = (TransparentCullMode)evt.newValue;
                 onChange();
             });
@@ -154,19 +166,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.sortPriority, evt.newValue))
                     return;
 
+                registerUndo("Sorting Priority");
                 systemData.sortPriority = evt.newValue;
                 onChange();
             });
         }
 
         // TODO: Can we make this static and use it for all SubTargets?
-        void DoDistortionArea(ref TargetPropertyGUIContext context, HDBuiltinData builtinData, int indentLevel, Action onChange)
+        void DoDistortionArea(ref TargetPropertyGUIContext context, HDBuiltinData builtinData, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Distortion", 1, new Toggle() { value = builtinData.distortion }, (evt) =>
             {
                 if (Equals(builtinData.distortion, evt.newValue))
                     return;
 
+                registerUndo("Distortion");
                 builtinData.distortion = evt.newValue;
                 onChange();
             });
@@ -176,6 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.distortionMode, evt.newValue))
                     return;
 
+                registerUndo("Distortion Blend Mode");
                 builtinData.distortionMode = (DistortionMode)evt.newValue;
                 onChange();
             });
@@ -187,6 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //     if (Equals(builtinData.distortionOnly, evt.newValue))
             //         return;
 
+            //     registerUndo("Distortion Only");
             //     builtinData.distortionOnly = evt.newValue;
             //     onChange();
             // });
@@ -196,6 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.distortionDepthTest, evt.newValue))
                     return;
 
+                registerUndo("Distortion Depth Test");
                 builtinData.distortionDepthTest = evt.newValue;
                 onChange();
             });

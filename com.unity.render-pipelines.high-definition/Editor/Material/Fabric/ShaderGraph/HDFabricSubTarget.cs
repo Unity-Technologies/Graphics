@@ -178,10 +178,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             var settingsView = new FabricSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange);
+            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             if(m_ActiveSubTarget.value == null)
                 return;
@@ -164,7 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             // SubTarget properties
-            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange);
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
 
             // Custom Editor GUI
             m_CustomGUIField = new TextField("") { value = m_CustomEditorGUI };

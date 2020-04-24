@@ -101,10 +101,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             var settingsView = new DecalSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange);
+            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

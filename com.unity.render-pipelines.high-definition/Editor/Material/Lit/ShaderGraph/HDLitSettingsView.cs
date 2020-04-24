@@ -24,31 +24,33 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             litData = subTarget.litData;
         }
 
-        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Ray Tracing (Preview)", 0, new Toggle() { value = litData.rayTracing }, (evt) =>
             {
                 if (Equals(litData.rayTracing, evt.newValue))
                     return;
 
+                registerUndo("Ray Tracing (Preview)");
                 litData.rayTracing = evt.newValue;
                 onChange();
             });
 
             // Render State
-            DoRenderStateArea(ref context, 0, onChange);
+            DoRenderStateArea(ref context, 0, onChange, registerUndo);
 
             context.AddProperty("Refraction Model", 1, new EnumField(ScreenSpaceRefraction.RefractionModel.None) { value = litData.refractionModel }, systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction, (evt) =>
             {
                 if (Equals(litData.refractionModel, evt.newValue))
                     return;
 
+                registerUndo("Refraction Model");
                 litData.refractionModel = (ScreenSpaceRefraction.RefractionModel)evt.newValue;
                 onChange();
             });
 
             // Distortion
-            DoDistortionArea(ref context, 1, onChange);
+            DoDistortionArea(ref context, 1, onChange, registerUndo);
 
             // Alpha Test
             // TODO: AlphaTest is in SystemData but Alpha to Mask is in BuiltinData?
@@ -57,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.alphaTest, evt.newValue))
                     return;
 
+                registerUndo("Alpha Clipping");
                 systemData.alphaTest = evt.newValue;
                 onChange();
             });
@@ -65,6 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.alphaTestShadow, evt.newValue))
                     return;
 
+                registerUndo("Use Shadow Threshold");
                 lightingData.alphaTestShadow = evt.newValue;
                 onChange();
             });
@@ -73,6 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.alphaToMask, evt.newValue))
                     return;
 
+                registerUndo("Alpha to Mask");
                 builtinData.alphaToMask = evt.newValue;
                 onChange();
             });
@@ -83,6 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.doubleSidedMode, evt.newValue))
                     return;
 
+                registerUndo("Double-Sided Mode");
                 systemData.doubleSidedMode = (DoubleSidedMode)evt.newValue;
                 onChange();
             });
@@ -91,6 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.normalDropOffSpace, evt.newValue))
                     return;
 
+                registerUndo("Fragment Normal Space");
                 lightingData.normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
                 onChange();
             });
@@ -101,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(litData.materialType, evt.newValue))
                     return;
 
+                registerUndo("Material Type");
                 litData.materialType = (HDLitData.MaterialType)evt.newValue;
                 onChange();
             });
@@ -109,6 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(litData.sssTransmission, evt.newValue))
                     return;
 
+                registerUndo("Transmission");
                 litData.sssTransmission = evt.newValue;
                 onChange();
             });
@@ -117,6 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.energyConservingSpecular, evt.newValue))
                     return;
 
+                registerUndo("Energy Conserving Specular");
                 lightingData.energyConservingSpecular = evt.newValue;
                 onChange();
             });
@@ -127,6 +137,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.receiveDecals, evt.newValue))
                     return;
 
+                registerUndo("Receive Decals");
                 lightingData.receiveDecals = evt.newValue;
                 onChange();
             });
@@ -135,6 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.receiveSSR, evt.newValue))
                     return;
 
+                registerUndo("Receive SSR");
                 lightingData.receiveSSR = evt.newValue;
                 onChange();
             });
@@ -143,6 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.addPrecomputedVelocity, evt.newValue))
                     return;
 
+                registerUndo("Add Precomputed Velocity");
                 builtinData.addPrecomputedVelocity = evt.newValue;
                 onChange();
             });
@@ -151,6 +164,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.specularAA, evt.newValue))
                     return;
 
+                registerUndo("Geometric Specular AA");
                 lightingData.specularAA = evt.newValue;
                 onChange();
             });
@@ -159,6 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.specularOcclusionMode, evt.newValue))
                     return;
 
+                registerUndo("Specular Occlusion Mode");
                 lightingData.specularOcclusionMode = (SpecularOcclusionMode)evt.newValue;
                 onChange();
             });
@@ -167,6 +182,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.overrideBakedGI, evt.newValue))
                     return;
 
+                registerUndo("Override Baked GI");
                 lightingData.overrideBakedGI = evt.newValue;
                 onChange();
             });
@@ -175,6 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.depthOffset, evt.newValue))
                     return;
 
+                registerUndo("Depth Offset");
                 builtinData.depthOffset = evt.newValue;
                 onChange();
             });
@@ -183,18 +200,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.supportLodCrossFade, evt.newValue))
                     return;
 
+                registerUndo("Support LOD CrossFade");
                 systemData.supportLodCrossFade = evt.newValue;
                 onChange();
             });
         }
 
-        void DoRenderStateArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange)
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
             {
                 if (Equals(systemData.surfaceType, evt.newValue))
                     return;
 
+                registerUndo("Surface Type");
                 systemData.surfaceType = (SurfaceType)evt.newValue;
                 systemData.TryChangeRenderingPass(systemData.renderingPass);
                 onChange();
@@ -205,6 +224,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             context.AddProperty("Rendering Pass", indentLevel + 1, new PopupField<HDRenderQueue.RenderQueueType>(renderingPassList, renderQueueType, HDSubShaderUtilities.RenderQueueName, HDSubShaderUtilities.RenderQueueName) { value = renderingPassValue }, (evt) =>
             {
+                registerUndo("Rendering Pass");
                 if(systemData.TryChangeRenderingPass(evt.newValue))
                 {
                     onChange();
@@ -216,6 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.blendMode, evt.newValue))
                     return;
 
+                registerUndo("Blending Mode");
                 systemData.blendMode = (BlendMode)evt.newValue;
                 onChange();
             });
@@ -225,6 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.blendPreserveSpecular, evt.newValue))
                     return;
 
+                registerUndo("Preserve Specular Lighting");
                 lightingData.blendPreserveSpecular = evt.newValue;
                 onChange();
             });
@@ -234,6 +256,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.transparencyFog, evt.newValue))
                     return;
 
+                registerUndo("Receive Fog");
                 builtinData.transparencyFog = evt.newValue;
                 onChange();
             });
@@ -243,6 +266,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.zTest, evt.newValue))
                     return;
 
+                registerUndo("Depth Test");
                 systemData.zTest = (CompareFunction)evt.newValue;
                 onChange();
             });
@@ -252,6 +276,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.zWrite, evt.newValue))
                     return;
 
+                registerUndo("Depth Write");
                 systemData.zWrite = evt.newValue;
                 onChange();
             });
@@ -261,6 +286,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.transparentCullMode, evt.newValue))
                     return;
 
+                registerUndo("Cull Mode");
                 systemData.transparentCullMode = (TransparentCullMode)evt.newValue;
                 onChange();
             });
@@ -272,6 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.sortPriority, newValue))
                     return;
                 
+                registerUndo("Sorting Priority");
                 m_SortPriorityField.value = newValue;
                 systemData.sortPriority = evt.newValue;
                 onChange();
@@ -283,6 +310,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(lightingData.backThenFrontRendering, evt.newValue))
                     return;
 
+                registerUndo("Back Then Front Rendering");
                 lightingData.backThenFrontRendering = evt.newValue;
                 onChange();
             });
@@ -292,6 +320,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.alphaTestDepthPrepass, evt.newValue))
                     return;
 
+                registerUndo("Transparent Depth Prepass");
                 systemData.alphaTestDepthPrepass = evt.newValue;
                 onChange();
             });
@@ -301,6 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(systemData.alphaTestDepthPostpass, evt.newValue))
                     return;
 
+                registerUndo("Transparent Depth Postpass");
                 systemData.alphaTestDepthPostpass = evt.newValue;
                 onChange();
             });
@@ -310,18 +340,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.transparentWritesMotionVec, evt.newValue))
                     return;
 
+                registerUndo("Transparent Writes Motion Vector");
                 builtinData.transparentWritesMotionVec = evt.newValue;
                 onChange();
             });
         }
 
-        void DoDistortionArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange)
+        void DoDistortionArea(ref TargetPropertyGUIContext context, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Distortion", indentLevel, new Toggle() { value = builtinData.distortion }, (evt) =>
             {
                 if (Equals(builtinData.distortion, evt.newValue))
                     return;
 
+                registerUndo("Distortion");
                 builtinData.distortion = evt.newValue;
                 onChange();
             });
@@ -331,6 +363,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.distortionMode, evt.newValue))
                     return;
 
+                registerUndo("Distortion Blend Mode");
                 builtinData.distortionMode = (DistortionMode)evt.newValue;
                 onChange();
             });
@@ -340,6 +373,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(builtinData.distortionDepthTest, evt.newValue))
                     return;
 
+                registerUndo("Distortion Depth Test");
                 builtinData.distortionDepthTest = evt.newValue;
                 onChange();
             });

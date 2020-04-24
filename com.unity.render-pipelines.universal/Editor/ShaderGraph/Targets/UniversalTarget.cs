@@ -201,7 +201,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
@@ -210,12 +210,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
+                registerUndo("Change Material");
                 m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
                 onChange();
             });
 
             // SubTarget properties
-            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange);
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
 
             // Custom Editor GUI
             // Requires FocusOutEvent
@@ -225,6 +226,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(customEditorGUI, m_CustomGUIField.value))
                     return;
 
+                registerUndo("Change Custom Editor GUI");
                 customEditorGUI = m_CustomGUIField.value;
                 onChange();
             });
