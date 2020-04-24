@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed warning about missing bound decal buffer
 - Fix black screen in XR when HDRP package is present but not used.
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 
 ### Changed
