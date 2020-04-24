@@ -353,8 +353,7 @@ namespace UnityEngine.Rendering.Universal
                     baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
                 }
 #endif
-
-            BeginCameraRendering(context, baseCamera);
+                BeginCameraRendering(context, baseCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                 //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
                 VFX.VFXManager.PrepareCamera(baseCamera);
