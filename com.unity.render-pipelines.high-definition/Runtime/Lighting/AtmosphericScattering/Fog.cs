@@ -9,11 +9,6 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Fog/Fog")]
     public class Fog : VolumeComponent
     {
-        // Fog Color
-        static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
-        static readonly int m_FogColorParam = Shader.PropertyToID("_FogColor");
-        static readonly int m_MipFogParam = Shader.PropertyToID("_MipFogParameters");
-
         /// <summary>Enable fog.</summary>
         [Tooltip("Enables the fog.")]
         public BoolParameter         enabled = new BoolParameter(false);
@@ -102,49 +97,51 @@ namespace UnityEngine.Rendering.HighDefinition
             return d * 0.144765f;
         }
 
-        internal static void PushNeutralShaderParameters(CommandBuffer cmd)
+        static void UpdateShaderVariablesGlobalCBNeutralParameters(ref ShaderVariablesGlobal cb)
         {
-            cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 0);
-            cmd.SetGlobalInt(HDShaderIDs._EnableVolumetricFog, 0);
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, Vector3.zero);
-            cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseExtinction, 0.0f);
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents, Vector2.one);
-            cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseHeight, 0.0f);
-            cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, 0.0f);
+            cb._FogEnabled = 0;
+            cb._EnableVolumetricFog = 0;
+            cb._HeightFogBaseScattering = Vector3.zero;
+            cb._HeightFogBaseExtinction = 0.0f;
+            cb._HeightFogExponents = Vector2.one;
+            cb._HeightFogBaseHeight = 0.0f;
+            cb._GlobalFogAnisotropy = 0.0f;
         }
 
-        internal static void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        internal static void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
             // TODO Handle user override
             var fogSettings = hdCamera.volumeStack.GetComponent<Fog>();
 
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.AtmosphericScattering) || !fogSettings.enabled.value)
             {
-                PushNeutralShaderParameters(cmd);
-                return;
+                UpdateShaderVariablesGlobalCBNeutralParameters(ref cb);
             }
-
-            fogSettings.PushShaderParameters(hdCamera, cmd);
-
-            cmd.SetGlobalInt(HDShaderIDs._PBRFogEnabled, IsPBRFogEnabled(hdCamera) ? 1 : 0);
+            else
+            {
+                fogSettings.UpdateShaderVariablesGlobalCBFogParameters(ref cb, hdCamera);
+            }
         }
 
-        internal virtual void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
+        void UpdateShaderVariablesGlobalCBFogParameters(ref ShaderVariablesGlobal cb, HDCamera hdCamera)
         {
-            cmd.SetGlobalInt(HDShaderIDs._FogEnabled, 1);
-            cmd.SetGlobalFloat(HDShaderIDs._MaxFogDistance, maxFogDistance.value);
+            bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
 
-            // Fog Color
+            cb._FogEnabled = 1;
+            cb._PBRFogEnabled = IsPBRFogEnabled(hdCamera) ? 1 : 0;
+            cb._EnableVolumetricFog = enableVolumetrics ? 1 : 0;
+            cb._MaxFogDistance = maxFogDistance.value;
+
             Color fogColor = (colorMode.value == FogColorMode.ConstantColor) ? color.value : tint.value;
-            cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
-            cmd.SetGlobalColor(m_FogColorParam, new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f));
-            cmd.SetGlobalVector(m_MipFogParam, new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f));
+            cb._FogColorMode = (float)colorMode.value;
+            cb._FogColor = new Color(fogColor.r, fogColor.g, fogColor.b, 0.0f);
+            cb._MipFogParameters  = new Vector4(mipFogNear.value, mipFogFar.value, mipFogMaxMip.value, 0.0f);
 
             DensityVolumeArtistParameters param = new DensityVolumeArtistParameters(albedo.value, meanFreePath.value, anisotropy.value);
             DensityVolumeEngineData data = param.ConvertToEngineData();
 
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogBaseScattering, data.scattering);
-            cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseExtinction, data.extinction);
+            cb._HeightFogBaseScattering = data.scattering;
+            cb._HeightFogBaseExtinction = data.extinction;
 
             float crBaseHeight = baseHeight.value;
 
@@ -155,12 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float layerDepth = Mathf.Max(0.01f, maximumHeight.value - baseHeight.value);
             float H = ScaleHeightFromLayerDepth(layerDepth);
-            cmd.SetGlobalVector(HDShaderIDs._HeightFogExponents, new Vector2(1.0f / H, H));
-            cmd.SetGlobalFloat(HDShaderIDs._HeightFogBaseHeight, crBaseHeight);
-
-            bool enableVolumetrics = enableVolumetricFog.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Volumetrics);
-            cmd.SetGlobalFloat(HDShaderIDs._GlobalFogAnisotropy, anisotropy.value);
-            cmd.SetGlobalInt(HDShaderIDs._EnableVolumetricFog, enableVolumetrics ? 1 : 0);
+            cb._HeightFogExponents = new Vector2(1.0f / H, H);
+            cb._HeightFogBaseHeight = crBaseHeight;
+            cb._GlobalFogAnisotropy = anisotropy.value;
         }
     }
 

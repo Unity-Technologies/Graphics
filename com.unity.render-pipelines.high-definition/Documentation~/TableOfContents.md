@@ -14,6 +14,7 @@
   * [Material Upgrade](Material-Upgrade)
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
   * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
+  * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -155,3 +156,4 @@
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
 * [HDRP Glossary](Glossary)
+* [Known Issues and How To Fix Them](Known-Issues)

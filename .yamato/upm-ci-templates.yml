@@ -54,7 +54,7 @@ pack_{{ template.id }}:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci template pack --project-path {{ template.packagename }}
   artifacts:
     packages:
@@ -73,8 +73,8 @@ test_{{ template.id }}_{{ platform.name }}_{{ editor.version }}:
     image: {{ platform.agent.image }}
     flavor: {{ platform.agent.flavor }}
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if template.hascodependencies %}
     - {{ platform.copycmd }}
@@ -104,8 +104,8 @@ test_{{ template.id }}_{{ platform.name }}_{{ editor.version }}_dependencies:
     image: {{ platform.agent.image }}
     flavor: {{ platform.agent.flavor }}
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - unity-downloader-cli --source-file unity_revision.txt -c editor --wait --published-only
     {% if template.hascodependencies %}
     - {{ platform.copycmd }}
@@ -133,7 +133,7 @@ all_template_ci_{{ editor.version }}:
     image: package-ci/win10:stable
     flavor: b1.large
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package izon -t
     - upm-ci package izon -d
   dependencies:
