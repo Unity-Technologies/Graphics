@@ -601,6 +601,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private static bool ShouldDrawGizmos(ProbeVolume probeVolume)
         {
+            if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.Disabled)
+                return false;
+
             UnityEditor.SceneView sceneView = UnityEditor.SceneView.currentDrawingSceneView;
 
             if (sceneView == null)
