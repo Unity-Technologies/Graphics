@@ -1,5 +1,5 @@
 editors:
-  - version: trunk
+  - version: truunk
     cmd: -u trunk
   - version: fast-trunk
     cmd: -u trunk --fast
