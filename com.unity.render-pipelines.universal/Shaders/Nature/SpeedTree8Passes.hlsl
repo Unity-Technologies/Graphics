@@ -146,7 +146,12 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             #if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
                 globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
             #endif
+
+            // Disabling "pow(f,e) will not work for negative f"; warnings.
+            #pragma warning (disable : 3571)
             windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
+            #pragma warning (enable : 3571)
+
             input.vertex.xyz = windyPosition;
         }
     #endif

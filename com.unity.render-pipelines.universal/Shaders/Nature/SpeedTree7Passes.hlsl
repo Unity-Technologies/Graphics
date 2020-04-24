@@ -1,8 +1,8 @@
 #ifndef UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7_PASSES_INCLUDED
 
-#include "SpeedTree7CommonPasses.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "SpeedTree7CommonPasses.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
@@ -87,10 +87,13 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             }
         #endif
 
+        // global wind
         if (windQuality > WIND_QUALITY_NONE)
         {
-            // global wind
+            // Disabling "pow(f,e) will not work for negative f"; warnings.
+            #pragma warning (disable : 3571)
             finalPosition = GlobalWind(finalPosition, treePos, true, rotatedWindVector, _ST_WindGlobal.x);
+            #pragma warning (enable : 3571)
         }
     #endif
 
