@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
@@ -261,17 +262,21 @@ struct BRDFData
     // them in the light loop. Take a look at DirectBRDF function for detailed explaination.
     half normalizationTerm;     // roughness * 4.0 + 2.0
     half roughness2MinusOne;    // roughness^2 - 1.0
-
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half clearCoatStrength;
-    half clearCoatPerceptualRoughness;
-    half clearCoatRoughness;
-    half clearCoatRoughness2;
-    half clearCoatGrazingTerm;
-    half clearCoatNormalizationTerm;
-    half clearCoatRoughness2MinusOne;
-#endif
 };
+
+BRDFData InitializeBRDFData()
+{
+    BRDFData r;
+    r.diffuse            = 0;
+    r.specular           = 0;
+    r.perceptualRoughness= 0;
+    r.roughness          = 0;
+    r.roughness2         = 0;
+    r.grazingTerm        = 0;
+    r.normalizationTerm  = 0;
+    r.roughness2MinusOne = 0;
+    return r;
+}
 
 half ReflectivitySpecular(half3 specular)
 {
@@ -293,27 +298,7 @@ half OneMinusReflectivityMetallic(half metallic)
     return oneMinusDielectricSpec - metallic * oneMinusDielectricSpec;
 }
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-
-// TODO: merge with BSDF.hlsl ???
-half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Half(half3 f0)
-{
-    // Approximation of iorTof0(f0ToIor(f0), 1.5)
-    // This assumes that the clear coat layer has an IOR of 1.5
-#if defined(SHADER_API_MOBILE)
-    return saturate(f0 * (f0 * 0.526868h + 0.529324h) - 0.0482256h);
-#else
-    return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
-#endif
-}
-
-#endif //_CLEARCOAT
-
-inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, half alpha,
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half clearCoatStrength,
-    half clearCoatSmoothness,
-#endif
+inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half smoothness, inout half alpha,
     out BRDFData outBRDFData)
 {
 #ifdef _SPECULAR_SETUP
@@ -342,72 +327,85 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
     outBRDFData.diffuse *= alpha;
     alpha = alpha * oneMinusReflectivity + reflectivity;
 #endif
+}
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+// Approximation of ConvertF0ForAirInterfaceToF0ForClearCoat15
+half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(half3 f0)
+{
+    // Approximation of iorTof0(f0ToIor(f0), 1.5)
+    // This assumes that the clear coat layer has an IOR of 1.5
+    return saturate(f0 * (f0 * 0.526868h + 0.529324h) - 0.0482256h);
+}
+
+half3 ConvertF0ForClearCoat15(half3 f0)
+{
+#if defined(SHADER_API_MOBILE)
+    return ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(f0);
+#else
+    return ConvertF0ForAirInterfaceToF0ForClearCoat15(f0);
+#endif
+}
+
+inline void InitializeBRDFDataClearCoat(half clearCoatStrength, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
+{
     // Calculate Roughness of Clear Coat layer
-    outBRDFData.clearCoatStrength            = clearCoatStrength;
-    outBRDFData.clearCoatPerceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
-    outBRDFData.clearCoatRoughness           = max(PerceptualRoughnessToRoughness(outBRDFData.clearCoatPerceptualRoughness), HALF_MIN_SQRT);
-    outBRDFData.clearCoatRoughness2          = max(outBRDFData.clearCoatRoughness * outBRDFData.clearCoatRoughness, HALF_MIN);
-    outBRDFData.clearCoatNormalizationTerm   = outBRDFData.clearCoatRoughness * 4.0h + 2.0h;
-    outBRDFData.clearCoatRoughness2MinusOne  = outBRDFData.clearCoatRoughness2 - 1.0h;
-    outBRDFData.clearCoatGrazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
+    outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
+    outBRDFData.specular            = kDielectricSpec.rgb;
+
+    outBRDFData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(clearCoatSmoothness);
+    outBRDFData.roughness           = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
+    outBRDFData.roughness2          = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
+    outBRDFData.normalizationTerm   = outBRDFData.roughness * 4.0h + 2.0h;
+    outBRDFData.roughness2MinusOne  = outBRDFData.roughness2 - 1.0h;
+    outBRDFData.grazingTerm         = saturate(clearCoatSmoothness + kDielectricSpec.x);
 
 // Relatively small effect, cut it for lower quality
 #if !defined(SHADER_API_MOBILE)
     // Modify Roughness of base layer using coat IOR
-    half ieta                       = lerp(1.0h, CLEAR_COAT_IETA, outBRDFData.clearCoatStrength);
-    half coatRoughnessScale         = Sq(ieta);
-    half sigma                      = RoughnessToVariance(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness));
-    outBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
+    half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatStrength);
+    half coatRoughnessScale          = Sq(ieta);
+    half sigma                       = RoughnessToVariance(PerceptualRoughnessToRoughness(baseBRDFData.perceptualRoughness));
 
-    // Recompute based on new roughness, previous computation should be eliminated by the compiler
-    outBRDFData.roughness          = max(PerceptualRoughnessToRoughness(outBRDFData.perceptualRoughness), HALF_MIN_SQRT);
-    outBRDFData.roughness2         = max(outBRDFData.roughness * outBRDFData.roughness, HALF_MIN);
-    outBRDFData.normalizationTerm  = outBRDFData.roughness * 4.0h + 2.0h;
-    outBRDFData.roughness2MinusOne = outBRDFData.roughness2 - 1.0h;
+    baseBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
+
+    // Recompute base material for new roughness, previous computation should be eliminated by the compiler (as it's unused)
+    baseBRDFData.roughness          = max(PerceptualRoughnessToRoughness(baseBRDFData.perceptualRoughness), HALF_MIN);
+    baseBRDFData.roughness2         = max(baseBRDFData.roughness * baseBRDFData.roughness, HALF_MIN);
+    baseBRDFData.normalizationTerm  = baseBRDFData.roughness * 4.0h + 2.0h;
+    baseBRDFData.roughness2MinusOne = baseBRDFData.roughness2 - 1.0h;
 #endif
 
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
-    outBRDFData.specular = lerp(outBRDFData.specular, ConvertF0ForAirInterfaceToF0ForClearCoat15Half(outBRDFData.specular), outBRDFData.clearCoatStrength);
+    baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatStrength);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
-#endif // _CLEARCOAT
 }
 
-
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-half ClearCoatBRDF(BRDFData brdfData, half3 halfDir, half NoH, half LoH, half LoH2)
+// Computes the specular term for EnvironmentBRDF
+half3 EnvironmentBRDFSpecular(BRDFData brdfData, half fresnelTerm)
 {
-    float d = NoH * NoH * brdfData.clearCoatRoughness2MinusOne + 1.00001f;
-    half specularTerm = brdfData.clearCoatRoughness2 / ((d * d) * max(0.1h, LoH2) * brdfData.clearCoatNormalizationTerm) * brdfData.clearCoatStrength;
-
-#if defined (SHADER_API_MOBILE) || defined (SHADER_API_SWITCH)
-    specularTerm = result - HALF_MIN;
-    specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
-#endif
-
-    // Multiply with dielectric reflectance to complete brdf. DielectricSpec is white so scalar multiply is ok.
-    return specularTerm * kDielectricSpec.x;
+    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
+    return surfaceReduction * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
 }
-#endif
 
 half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSpecular, half fresnelTerm)
 {
     half3 c = indirectDiffuse * brdfData.diffuse;
-    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
-    c += surfaceReduction * indirectSpecular * lerp(brdfData.specular, brdfData.grazingTerm, fresnelTerm);
+    c += indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm);
     return c;
 }
 
-// Based on Minimalist CookTorrance BRDF
-// Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
-//
-// * NDF [Modified] GGX
-// * Modified Kelemen and Szirmay-Kalos for Visibility term
-// * Fresnel approximated with 1/LdotH
-half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+// Environment BRDF without diffuse for clear coat
+half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatStrength, half3 indirectSpecular, half fresnelTerm)
 {
-#ifndef _SPECULARHIGHLIGHTS_OFF
+    float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
+    return indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm) * clearCoatStrength;
+}
+
+
+// Computes the scalar specular term for Minimalist CookTorrance BRDF
+// NOTE: needs to be multiplied with reflectance f0, i.e. specular color to complete
+half DirectBRDFSpecular(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+{
     float3 halfDir = SafeNormalize(float3(lightDirectionWS) + float3(viewDirectionWS));
 
     float NoH = saturate(dot(normalWS, halfDir));
@@ -436,21 +434,19 @@ half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half
     specularTerm = clamp(specularTerm, 0.0, 100.0); // Prevent FP16 overflow on mobiles
 #endif
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half CC = ClearCoatBRDF(brdfData, halfDir, NoH, LoH, LoH2);
+    return specularTerm;
+}
 
-    // Mix clear coat and base layer using khronos glTF recommended formula
-    // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
-    // NOTE: CC has clearCoatStrength baked in.
-    half NoV = saturate(dot(normalWS, viewDirectionWS));
-    // Match the GI/Env fresnelTerm (Pow4 vs Pow5) for consistent clear coat blend
-    // TODO: however, LoH (instead of NoV) might make more sense here.
-    half CCF = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
-
-    return (specularTerm * brdfData.specular + brdfData.diffuse) * (1.0 - brdfData.clearCoatStrength * CCF) + CC;
-#else
-    return specularTerm * brdfData.specular + brdfData.diffuse;
-#endif
+// Based on Minimalist CookTorrance BRDF
+// Implementation is slightly different from original derivation: http://www.thetenthplanet.de/archives/255
+//
+// * NDF [Modified] GGX
+// * Modified Kelemen and Szirmay-Kalos for Visibility term
+// * Fresnel approximated with 1/LdotH
+half3 DirectBRDF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS)
+{
+#ifndef _SPECULARHIGHLIGHTS_OFF
+    return brdfData.diffuse + DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * brdfData.specular;
 #else
     return brdfData.diffuse;
 #endif
@@ -605,17 +601,9 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return min(bakedGI, realtimeShadow);
 }
 
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-half3 ClearCoatGlobalIllumination(BRDFData brdfData, half3 reflectVector, half fresnelTerm, half occlusion)
-{
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.clearCoatPerceptualRoughness, occlusion);
-    float surfaceReduction = 1.0 / (brdfData.clearCoatRoughness2 + 1.0);
-    indirectSpecular = surfaceReduction * indirectSpecular * lerp(kDielectricSpec.x, brdfData.clearCoatGrazingTerm, fresnelTerm);
-    return indirectSpecular * brdfData.clearCoatStrength;
-}
-#endif
-
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatStrength,
+    half3 bakedGI, half occlusion,
+    half3 normalWS, half3 viewDirectionWS)
 {
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     half NoV = saturate(dot(normalWS, viewDirectionWS));
@@ -627,16 +615,24 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    // TODO: "grazing term" causes problems. full roughness -> dark 1px edge
-    half3 CC = ClearCoatGlobalIllumination(brdfData, reflectVector, fresnelTerm, occlusion);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
+    // TODO: "grazing term" causes problems on full roughness
+    half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatStrength, coatIndirectSpecular, fresnelTerm);
 
     // Blend with base layer using khronos glTF recommended way
     // NOTE: fresnelTerm is pow4 instead of pow5, but should be OKish to reuse (as it's only used as blend weight)
-    half CCF = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
-    return color * (1.0 - CCF * brdfData.clearCoatStrength) + CC;
+    half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
+    return color * (1.0 - coatFresnel * clearCoatStrength) + coatColor;
 #else
     return color;
 #endif
+}
+
+// Backwards compatiblity
+half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+{
+    const BRDFData noClearCoat = InitializeBRDFData();
+    return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
@@ -664,16 +660,50 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     return lightColor * specularReflection;
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatStrength, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
-    return DirectBRDF(brdfData, normalWS, lightDirectionWS, viewDirectionWS) * radiance;
+
+    half3 brdf = brdfData.diffuse;
+#ifndef _SPECULARHIGHLIGHTS_OFF
+    brdf += brdfData.specular * DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    // Clear coat evaluates the specular a second timw and has some common terms with the base specular.
+    // We rely on the compiler to merge these and compute them only once.
+    half brdfCoat = kDielectricSpec.r * DirectBRDFSpecular(brdfDataClearCoat, normalWS, lightDirectionWS, viewDirectionWS);
+
+    // Mix clear coat and base layer using khronos glTF recommended formula
+    // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
+    half NoV = saturate(dot(normalWS, viewDirectionWS));
+    // Match the GI/Env fresnelTerm (Pow4 vs Pow5) for consistent clear coat blend
+    half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
+
+    brdf = brdf * (1.0 - clearCoatStrength * coatFresnel) + brdfCoat * clearCoatStrength;
+#endif // _CLEARCOAT
+#endif // _SPECULARHIGHLIGHTS_OFF
+
+    return brdf * radiance;
 }
 
+// Backwards compatibility
+half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+{
+    const BRDFData noClearCoat = InitializeBRDFData();
+    return LightingPhysicallyBased(brdfData, noClearCoat, 0.0, lightColor, lightDirectionWS, lightAttenuation, normalWS, viewDirectionWS);
+}
+
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatStrength, Light light, half3 normalWS, half3 viewDirectionWS)
+{
+    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, clearCoatStrength, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
+}
+
+// Backwards compatibility
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return LightingPhysicallyBased(brdfData, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
+    const BRDFData noClearCoat = InitializeBRDFData();
+    return LightingPhysicallyBased(brdfData, noClearCoat, 0.0, light, normalWS, viewDirectionWS);
 }
 
 half3 VertexLighting(float3 positionWS, half3 normalWS)
@@ -702,17 +732,23 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     half clearCoatStrength, half clearCoatSmoothness)
 {
     BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha,
+    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+
+    BRDFData brdfDataClearCoat;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-        clearCoatStrength, clearCoatSmoothness,
+    // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
+    InitializeBRDFDataClearCoat(clearCoatStrength, clearCoatSmoothness, brdfData, brdfDataClearCoat);
 #endif
-        brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, clearCoatStrength,
+                                     inputData.bakedGI, occlusion,
+                                     inputData.normalWS, inputData.viewDirectionWS);
+    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, clearCoatStrength,
+                                     mainLight,
+                                     inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS
     uint pixelLightCount = GetAdditionalLightsCount();

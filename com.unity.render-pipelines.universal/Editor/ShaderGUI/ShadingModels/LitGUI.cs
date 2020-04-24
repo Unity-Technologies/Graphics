@@ -51,14 +51,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static readonly string[] specularSmoothnessChannelNames = {"Specular Alpha", "Albedo Alpha"};
 
             public static GUIContent clearCoatText   = new GUIContent("Clear Coat",
-                "Enable/disable clear coat." +
-                "\nA multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
+                "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
                 "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
 
             public static GUIContent clearCoatStrengthText   = new GUIContent("Strength",
                 "Specifies the strength of the coat blending." +
-                "\nIt acts as a multiplier of the clear coat map strength value or as a direct strength value if no map is specified. " +
-                "\nThe map specifies clear coat strength in the red channel and clear coat smoothness in the green channel. ");
+                "\nActs as a multiplier of the clear coat map strength value or as a direct strength value if no map is specified." +
+                "\nThe map specifies clear coat strength in the red channel and clear coat smoothness in the green channel.");
 
             public static GUIContent clearCoatSmoothnessText = new GUIContent("Smoothness",
                 "Specifies the smoothness of the coating." +
