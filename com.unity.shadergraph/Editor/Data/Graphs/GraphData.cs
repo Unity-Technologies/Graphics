@@ -1315,7 +1315,14 @@ namespace UnityEditor.ShaderGraph
             outputNode = other.outputNode;
 
             // Copy all targets
-            m_ActiveTargets = other.activeTargets;
+            m_ActiveTargets.Clear();
+            foreach(var target in other.activeTargets)
+            {
+                // Ensure target inits correctly
+                var context = new TargetSetupContext();
+                target.Setup(ref context);
+                m_ActiveTargets.Add(target);
+            }
             UpdateActiveBlocks();
 
             ValidateGraph();
