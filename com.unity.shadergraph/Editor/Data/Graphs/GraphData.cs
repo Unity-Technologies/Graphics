@@ -1250,7 +1250,7 @@ namespace UnityEditor.ShaderGraph
                     // Fix up missing reference names
                     // Properties on Sub Graphs in V0 never have reference names serialized
                     // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
-                    if ((string)defaultReferenceNameField.GetValue(property) == string.Empty)
+                    if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
                     {
                         // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
                         if(serializedProperty.typeInfo.fullName.Equals(typeof(ColorShaderProperty).FullName))
