@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData);
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
