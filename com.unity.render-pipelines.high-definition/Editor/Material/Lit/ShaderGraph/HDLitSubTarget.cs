@@ -539,9 +539,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Convert SlotMask to BlockMap entries
             var blockMapLookup = new Dictionary<HDLitMasterNode1.SlotMask, BlockFieldDescriptor>()
             {
-                { HDLitMasterNode1.SlotMask.Position, BlockFields.VertexDescription.Position },
-                { HDLitMasterNode1.SlotMask.VertexNormal, BlockFields.VertexDescription.Normal },
-                { HDLitMasterNode1.SlotMask.VertexTangent, BlockFields.VertexDescription.Tangent },
                 { HDLitMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { HDLitMasterNode1.SlotMask.Normal, normalBlock },
                 { HDLitMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
@@ -590,6 +587,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Set blockmap
             blockMap = new Dictionary<BlockFieldDescriptor, int>();
+
+            // First handle vertex blocks. We ran out of SlotMask bits for VertexNormal and VertexTangent
+            // so do all Vertex blocks here to maintain correct block order (Position is not in blockMapLookup)
+            blockMap.Add(BlockFields.VertexDescription.Position, HDLitMasterNode1.PositionSlotId);
+            blockMap.Add(BlockFields.VertexDescription.Normal, HDLitMasterNode1.VertexNormalSlotID);
+            blockMap.Add(BlockFields.VertexDescription.Tangent, HDLitMasterNode1.VertexTangentSlotID);
+
+            // Now handle the SlotMask cases
             foreach(HDLitMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HDLitMasterNode1.SlotMask)))
             {
                 if(hdLitMasterNode.MaterialTypeUsesSlotMask(slotMask))
@@ -603,7 +608,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     var slotId = Mathf.Log((int)slotMask, 2);
                     blockMap.Add(blockFieldDescriptor, (int)slotId);
                 }
-            }   
+            }
             
             // Specular AA
             if(lightingData.specularAA)
@@ -641,7 +646,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, HDLitMasterNode1.BackLightingSlotId);
             }
 
-            // Depth Offset
+            // Depth Offset (Removed from SlotMask because of missing bits)
             if(builtinData.depthOffset)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, HDLitMasterNode1.DepthOffsetSlotId);
