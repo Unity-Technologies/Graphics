@@ -1,7 +1,7 @@
 editors:
   - version: trunk
     cmd: -u trunk
-  - version: trunk
+  - version: fast-trunk
     cmd: -u trunk --fast
   - version: CUSTOM-REVISION
     cmdwin: -r %CUSTOM_REVISION%
