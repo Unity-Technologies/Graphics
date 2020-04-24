@@ -43,13 +43,14 @@ projects:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
   skip_checkout: true
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
@@ -71,13 +72,14 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
     flavor: b1.xlarge
     type: Unity::VM
     image: sdet/gamecode_win10:stable
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
@@ -105,13 +107,14 @@ Build_{{ project.name }}_Win_Player_{{ editor.version }}:
     {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor}}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     
