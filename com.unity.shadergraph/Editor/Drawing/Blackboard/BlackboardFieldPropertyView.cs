@@ -9,11 +9,16 @@ using UnityEngine.UIElements;
 using Toggle = UnityEngine.UIElements.Toggle;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditorInternal;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldPropertyView : BlackboardFieldView
     {
+        private ReorderableList m_VTReorderableList; //reorderable list data for the Virtual Texture property
+        private IMGUIContainer m_VTContainer;
+        private int m_VTSelectedIndex;
         public BlackboardFieldPropertyView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
         {
@@ -333,20 +338,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
             AddRow("Mode", defaultModeField, !graph.isSubGraph && property.generatePropertyBlock);
         }
-
-        void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
-        {
-            Toggle proceduralToggle = new Toggle { value = property.value.procedural };
-            proceduralToggle.OnToggleChanged(evt =>
-            {
-                graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
-                property.value.procedural = evt.newValue;
-                DirtyNodes(ModificationScope.Graph);
-            });
-            AddRow("Procedural", proceduralToggle);
-            // TODO: add layer names and texture assignments view here (could we re-use the TextureShaderProperty custom builder?)
-        }
-
         void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)
         {
             var field = new ObjectField { value = property.value.textureArray, objectType = typeof(Texture2DArray) };
@@ -705,6 +696,171 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             AddRow("Default", field);
         }
+
+        void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
+        {
+            Toggle proceduralToggle = new Toggle { value = property.value.procedural };
+            proceduralToggle.OnToggleChanged(evt =>
+            {
+                graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
+                property.value.procedural = evt.newValue;
+                DirtyNodes(ModificationScope.Graph);
+            });
+            AddRow("Procedural", proceduralToggle);
+            // TODO: add layer names and texture assignments view here (could we re-use the TextureShaderProperty custom builder?)
+            // Func<VisualElement> makeItem = () => new Label();
+            // Action<VisualElement, int> bindItem = (e, i) => (e as Label).text = property.value.layerNames.ElementAt(i);
+            // const int itemHeight = 16;
+
+            // var listView = new ListView(property.value.layerNames, itemHeight, makeItem, bindItem);
+            // listView.style.flexGrow = 1.0f;
+            // listView.style.height = property.value.layerNames.Count * itemHeight;
+            m_VTContainer = new IMGUIContainer(() => OnGUIHandler(property)) { name = "VTListContainer" };
+            AddRow("Entries", m_VTContainer);
+        }
+        private void OnGUIHandler(VirtualTextureShaderProperty property)
+        {
+            if(m_VTReorderableList == null)
+            {
+                RecreateList(property);
+                AddCallbacks(property);
+            }
+
+            m_VTReorderableList.index = m_VTSelectedIndex;
+            m_VTReorderableList.DoLayoutList();
+        }
+
+        internal void RecreateList(VirtualTextureShaderProperty property)
+        {
+            // Create reorderable list from entries
+            m_VTReorderableList = new ReorderableList(property.value.entries, typeof(VirtualTextureEntry), true, true, true, true);
+        }
+
+        private void AddCallbacks(VirtualTextureShaderProperty property)
+        {
+            // Draw Header
+            m_VTReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(displayRect, "Layer Name");
+                var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
+                EditorGUI.LabelField(referenceRect, "Texture Asset");
+            };
+
+            // Draw Element
+            m_VTReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                VirtualTextureEntry entry = ((VirtualTextureEntry)m_VTReorderableList.list[index]);
+                EditorGUI.BeginChangeCheck();
+
+                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
+                var selectedObject = EditorGUI.ObjectField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture));
+
+                SerializableTexture layerTexture = new SerializableTexture();
+                layerTexture.texture = (Texture)selectedObject;
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    property.value.entries[index] = new VirtualTextureEntry(layerName, layerTexture);
+
+                    DirtyNodes();
+                    Rebuild();
+                }
+            };
+
+            // Element height
+            m_VTReorderableList.elementHeightCallback = (int indexer) =>
+            {
+                return m_VTReorderableList.elementHeight;
+            };
+
+            // Can add
+            m_VTReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
+                return list.count < 4;
+            };
+
+            // Can remove
+            m_VTReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
+                return list.count > 1;
+            };
+
+            void AddEntryLamda(ReorderableList list) => AddEntry(list, property);
+            void RemoveEntryLamda(ReorderableList list) => RemoveEntry(list, property);
+            // Add callback delegates
+            m_VTReorderableList.onSelectCallback += SelectEntry;
+            m_VTReorderableList.onAddCallback += AddEntryLamda;
+            m_VTReorderableList.onRemoveCallback += RemoveEntryLamda;
+            m_VTReorderableList.onReorderCallback += ReorderEntries;
+        }
+
+        private void SelectEntry(ReorderableList list)
+        {
+            m_VTSelectedIndex = list.index;
+        }
+
+        private void AddEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Add Virtual Texture Entry");
+
+            int index = GetFirstUnusedID(property);
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
+            var layerName = "Layer" + index.ToString();
+            // Add new entry
+            property.value.entries.Add(new VirtualTextureEntry(layerName, new SerializableTexture()));
+
+            // Update Blackboard & Nodes
+            DirtyNodes();
+            Rebuild();
+            graph.OnKeywordChanged();
+            m_VTSelectedIndex = list.list.Count - 1;
+        }
+
+        // Allowed indicies are 1-MAX_ENUM_ENTRIES
+        private int GetFirstUnusedID(VirtualTextureShaderProperty property)
+        {
+            List<int> ususedIDs = new List<int>();
+
+            foreach (VirtualTextureEntry virtualTextureEntry in property.value.entries)
+            {
+                ususedIDs.Add(property.value.entries.IndexOf(virtualTextureEntry));
+            }
+
+            for (int x = 1; x <= 4; x++)
+            {
+                if (!ususedIDs.Contains(x))
+                    return x;
+            }
+
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
+        }
+
+        private void RemoveEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Remove Virtual Texture Entry");
+
+            // Remove entry
+            m_VTSelectedIndex = list.index;
+            var selectedEntry = (VirtualTextureEntry)m_VTReorderableList.list[list.index];
+            property.value.entries.Remove(selectedEntry);
+
+            // Update Blackboard & Nodes
+            DirtyNodes();
+            Rebuild();
+            graph.OnKeywordChanged();
+            m_VTSelectedIndex = m_VTSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_VTSelectedIndex;
+        }
+
+        private void ReorderEntries(ReorderableList list)
+        {
+            DirtyNodes();
+        }
+
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {

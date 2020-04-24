@@ -9,6 +9,17 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    public struct VirtualTextureEntry
+    {
+        public string layerName;
+        public SerializableTexture layerTexture;
+
+        public VirtualTextureEntry(string name, SerializableTexture texture)
+        {
+            this.layerName = name;
+            this.layerTexture = texture;
+        }
+    }
     [Serializable]
     class VirtualTextureShaderProperty : AbstractShaderProperty<SerializableVirtualTexture>
     {
@@ -18,8 +29,9 @@ namespace UnityEditor.ShaderGraph
             value = new SerializableVirtualTexture();
 
             // add at least one layer
-            value.layerNames.Add("Layer0");
-            value.layerTextures.Add(new SerializableTexture());
+            value.entries = new List<VirtualTextureEntry>();
+            value.entries.Add(new VirtualTextureEntry("Layer0", new SerializableTexture()));
+            value.entries.Add(new VirtualTextureEntry("Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -42,9 +54,9 @@ namespace UnityEditor.ShaderGraph
             // something along the lines of:
             // [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
             string result = "";
-            for (int layer= 0; layer < value.layerNames.Count; layer++)
+            for (int layer= 0; layer < value.entries.Count; layer++)
             {
-                string layerName = value.layerNames[layer];
+                string layerName = value.entries[layer].layerName;
                 result += $"[TextureStack.{referenceName}({layer})] [NoScaleOffset] {layerName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
             }
             return result;
@@ -52,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
         {
-            int numLayers = value.layerNames.Count;
+            int numLayers = value.entries.Count;
             if (numLayers > 0)
             {
                 builder.Append("DECLARE_STACK_CB(");
@@ -64,7 +76,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
         {
-            int numLayers = value.layerNames.Count;
+            int numLayers = value.entries.Count;
             if (numLayers > 0)
             {
                 builder.Append("DECLARE_STACK");
@@ -72,10 +84,10 @@ namespace UnityEditor.ShaderGraph
                 builder.Append("(");
                 builder.Append(referenceName);
                 builder.Append(",");
-                for (int i = 0; i < value.layerNames.Count; i++)
+                for (int i = 0; i < value.entries.Count; i++)
                 {
                     if (i != 0) builder.Append(",");
-                    builder.Append(value.layerNames[i]);
+                    builder.Append(value.entries[i].layerName);
                 }
                 builder.Append(")");
                 builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string

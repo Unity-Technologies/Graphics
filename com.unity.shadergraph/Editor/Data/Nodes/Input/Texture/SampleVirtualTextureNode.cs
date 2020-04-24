@@ -417,7 +417,7 @@ namespace UnityEditor.ShaderGraph
             if (IsSlotConnected(VirtualTextureInputId))
             {
                 var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-                int numSlots = vtProperty.value.layerNames.Count;
+                int numSlots = vtProperty.value.entries.Count;
                 string stackName = vtProperty.referenceName;        // I think the reference name is the stack name?
 
                 string localVariablePrefix = GetVariableNameForNode();
@@ -458,7 +458,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
-                        var layerName = vtProperty.value.layerNames[i];
+                        var layerName = vtProperty.value.entries[i].layerName;
                         sb.AppendLine(MakeVtSample(infoVariableName, layerName, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
                     }
                 }
