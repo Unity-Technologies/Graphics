@@ -29,7 +29,7 @@ The [Universal Render Pipeline Asset](universalrp-asset.md) controls the global 
 To create a Universal Render Pipeline Asset:
 
 1. In the Editor, go to the Project window.
-2. Right-click in the Project window, and select  __Create__ &gt; __Rendering__ &gt: __Universal Render Pipeline__&gt: __Pipeline Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets__ &gt: __Create__ &gt: __Rendering__ &gt: __Universal Render Pipeline__ &gt: __Pipeline Asset__.
+2. Right-click in the Project window, and select  __Create__ &gt; __Rendering__ &gt; __Universal Render Pipeline__&gt; __Pipeline Asset__. Alternatively, navigate to the menu bar at the top, and select __Assets__ &gt; __Create__ &gt; __Rendering__ &gt; __Universal Render Pipeline__ &gt; __Pipeline Asset__.
 
 You can either leave the default name for the new Universal Render Pipeline Asset, or type a new one.
 
