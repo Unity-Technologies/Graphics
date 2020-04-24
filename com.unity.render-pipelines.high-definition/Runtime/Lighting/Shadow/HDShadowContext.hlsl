@@ -4,6 +4,9 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowManager.cs.hlsl"
 
+// Say to LightloopDefs.hlsl that we have a sahdow context struct define
+#define HAVE_HD_SHADOW_CONTEXT
+
 struct HDShadowContext
 {
     StructuredBuffer<HDShadowData>  shadowDatas;

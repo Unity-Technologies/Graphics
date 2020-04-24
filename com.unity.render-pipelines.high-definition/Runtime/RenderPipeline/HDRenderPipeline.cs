@@ -2341,11 +2341,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_FrameCount);
 
                 // Run the contact shadows here as they need the light list
-                    HDUtils.CheckRTCreated(m_ContactShadowBuffer);
-                    RenderContactShadows(hdCamera, cmd);
-                    PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
+                HDUtils.CheckRTCreated(m_ContactShadowBuffer);
+                RenderContactShadows(hdCamera, cmd);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_ContactShadowBuffer, FullScreenDebugMode.ContactShadows);
 
-                    RenderScreenSpaceShadows(hdCamera, cmd);
+                RenderScreenSpaceShadows(hdCamera, cmd);
 
                 if (hdCamera.frameSettings.VolumeVoxelizationRunsAsync())
                 {
