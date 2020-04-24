@@ -31,6 +31,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public ShaderKeyword(ShaderKeyword other)
+        {
+            isBuiltIn = other.isBuiltIn;
+            displayName = other.displayName;
+            overrideReferenceName = other.overrideReferenceName;
+            keywordDefinition = other.keywordDefinition;
+            keywordScope = other.keywordScope;
+            value = other.value;
+            entries = new List<KeywordEntry>(other.entries);
+        }
+
         public static ShaderKeyword CreateBuiltInKeyword(KeywordDescriptor descriptor)
         {
             if(descriptor.entries != null)

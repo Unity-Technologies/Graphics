@@ -1208,10 +1208,11 @@ namespace UnityEditor.ShaderGraph
                         var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
                         if (pastedGraphMetaKeywords.Any())
                         {
-                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
+                            ShaderKeyword keyword = new ShaderKeyword(pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid));
                             SanitizeGraphInputName(keyword);
                             SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
                             AddGraphInput(keyword);
+                            keywordNode.keywordGuid = keyword.guid;
                         }
                     }
 
