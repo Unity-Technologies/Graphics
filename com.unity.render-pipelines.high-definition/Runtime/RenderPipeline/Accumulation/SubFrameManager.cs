@@ -174,7 +174,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float weight = isRecording ? ShutterProfile(time) : 1.0f;
 
-            m_AccumulatedWeight += weight;
+            if (m_CurrentIteration < m_AccumulationSamples)
+                m_AccumulatedWeight += weight;
+
             if (m_AccumulatedWeight > 0)
             {
                 return new Vector4(weight, totalWeight, 1.0f / m_AccumulatedWeight, 0.0f);
