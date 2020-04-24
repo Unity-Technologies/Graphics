@@ -148,7 +148,9 @@ namespace UnityEngine.Rendering.HighDefinition
         HashSet<HDProbe> m_RealtimeViewDependentProbes = new HashSet<HDProbe>();
         HashSet<HDProbe> m_RealtimeViewIndependentProbes = new HashSet<HDProbe>();
         int m_PlanarProbeCount = 0;
-        PlanarReflectionProbe[] m_PlanarProbes = new PlanarReflectionProbe[32];
+        bool m_RebuildPlanarProbeArray;
+        HashSet<HDProbe> m_PlanarProbes = new HashSet<HDProbe>();
+        PlanarReflectionProbe[] m_PlanarProbesArray = new PlanarReflectionProbe[32];
         BoundingSphere[] m_PlanarProbeBounds = new BoundingSphere[32];
         CullingGroup m_PlanarProbeCullingGroup = new CullingGroup();
 
@@ -196,22 +198,19 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
                 {
-                    // TODO: Remove the duplicate check
-                    // In theory, register/unregister are called by pair, never twice register in a row
-                    // So there should not any "duplicate" calls. still it happens and we must prevent
-                    // duplicate entries.
-                    if (Array.IndexOf(m_PlanarProbes, (PlanarReflectionProbe) probe) != -1)
-                        break;
-
-                    // Grow the arrays
-                    if (m_PlanarProbeCount == m_PlanarProbes.Length)
+                    if (m_PlanarProbes.Add((PlanarReflectionProbe)probe))
                     {
-                        Array.Resize(ref m_PlanarProbes, m_PlanarProbes.Length * 2);
-                        Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
+                        // Insert in the array
+                        // Grow the arrays
+                        if (m_PlanarProbeCount == m_PlanarProbes.Count)
+                        {
+                            Array.Resize(ref m_PlanarProbesArray, m_PlanarProbes.Count * 2);
+                            Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
+                        }
+                        m_PlanarProbesArray[m_PlanarProbeCount] = (PlanarReflectionProbe)probe;
+                        m_PlanarProbeBounds[m_PlanarProbeCount] = ((PlanarReflectionProbe)probe).boundingSphere;
+                        ++m_PlanarProbeCount;
                     }
-                    m_PlanarProbes[m_PlanarProbeCount] = (PlanarReflectionProbe)probe;
-                    m_PlanarProbeBounds[m_PlanarProbeCount] = ((PlanarReflectionProbe)probe).boundingSphere;
-                    ++m_PlanarProbeCount;
                     break;
                 }
             }
@@ -224,16 +223,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RealtimeViewIndependentProbes.Remove(probe);
 
             // Remove swap back
-            var index = Array.IndexOf(m_PlanarProbes, probe);
-            if (index != -1)
+            if (m_PlanarProbes.Remove(probe))
             {
-                if (index < m_PlanarProbeCount)
-                {
-                    m_PlanarProbes[index] = m_PlanarProbes[m_PlanarProbeCount - 1];
-                    m_PlanarProbeBounds[index] = m_PlanarProbeBounds[m_PlanarProbeCount - 1];
-                    m_PlanarProbes[m_PlanarProbeCount - 1] = null;
-                }
-                --m_PlanarProbeCount;
+                // It is best to rebuild the full array when we need it instead of doing it at each unregister.
+                // So we mark it as dirty.
+                m_RebuildPlanarProbeArray = true;
             }
         }
 
@@ -244,15 +238,31 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_PlanarProbeCullingGroup == null)
                 return default;
 
-            UpdateBoundsAndRemoveDestroyedProbes(m_PlanarProbes, m_PlanarProbeBounds, ref m_PlanarProbeCount);
+            RebuildPlanarProbeArrayIfRequired();
+
+            UpdateBoundsAndRemoveDestroyedProbes(m_PlanarProbesArray, m_PlanarProbeBounds, ref m_PlanarProbeCount);
 
             m_PlanarProbeCullingGroup.targetCamera = camera;
             m_PlanarProbeCullingGroup.SetBoundingSpheres(m_PlanarProbeBounds);
             m_PlanarProbeCullingGroup.SetBoundingSphereCount(m_PlanarProbeCount);
 
-            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbes, m_PlanarProbeCount);
+            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbesArray, m_PlanarProbeCount);
 
-            return new HDProbeCullState(m_PlanarProbeCullingGroup, m_PlanarProbes, stateHash);
+            return new HDProbeCullState(m_PlanarProbeCullingGroup, m_PlanarProbesArray, stateHash);
+        }
+
+        void RebuildPlanarProbeArrayIfRequired()
+        {
+            if (m_RebuildPlanarProbeArray)
+            {
+                m_RebuildPlanarProbeArray = false;
+                var i = 0;
+                foreach (var probe in m_PlanarProbes)
+                {
+                    m_PlanarProbesArray[i] = (PlanarReflectionProbe)probe;
+                    ++i;
+                }
+            }
         }
 
         int[] m_QueryCullResults_Indices;
@@ -260,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Assert.IsNotNull(state.cullingGroup, "Culling was not prepared, please prepare cull before performing it.");
             Assert.IsNotNull(state.hdProbes, "Culling was not prepared, please prepare cull before performing it.");
-            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbes, m_PlanarProbeCount);
+            var stateHash = ComputeStateHashDebug(m_PlanarProbeBounds, m_PlanarProbesArray, m_PlanarProbeCount);
             Assert.AreEqual(stateHash, state.stateHash, "HDProbes changes since culling was prepared, this will lead to incorrect results.");
 
             results.Reset();
