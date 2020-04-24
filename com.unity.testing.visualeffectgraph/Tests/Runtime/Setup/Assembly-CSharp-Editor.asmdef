@@ -2,7 +2,7 @@
     "name": "Assembly-CSharp-Editor-testable",
     "references": [
         "UnityEditor.TestTools.Graphics",
-        "Unit.Testing.VisualEffectGraph"
+        "Unity.Testing.VisualEffectGraph"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
