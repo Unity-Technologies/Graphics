@@ -144,19 +144,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
     class HDProbeSystemInternal : IDisposable
     {
-        List<HDProbe> m_BakedProbes = new List<HDProbe>();
-        List<HDProbe> m_RealtimeViewDependentProbes = new List<HDProbe>();
-        List<HDProbe> m_RealtimeViewIndependentProbes = new List<HDProbe>();
+        HashSet<HDProbe> m_BakedProbes = new HashSet<HDProbe>();
+        HashSet<HDProbe> m_RealtimeViewDependentProbes = new HashSet<HDProbe>();
+        HashSet<HDProbe> m_RealtimeViewIndependentProbes = new HashSet<HDProbe>();
         int m_PlanarProbeCount = 0;
         PlanarReflectionProbe[] m_PlanarProbes = new PlanarReflectionProbe[32];
         BoundingSphere[] m_PlanarProbeBounds = new BoundingSphere[32];
         CullingGroup m_PlanarProbeCullingGroup = new CullingGroup();
 
-        public IList<HDProbe> bakedProbes
+        public IEnumerable<HDProbe> bakedProbes
         { get { RemoveDestroyedProbes(m_BakedProbes); return m_BakedProbes; } }
-        public IList<HDProbe> realtimeViewDependentProbes
+        public IEnumerable<HDProbe> realtimeViewDependentProbes
         { get { RemoveDestroyedProbes(m_RealtimeViewDependentProbes); return m_RealtimeViewDependentProbes; } }
-        public IList<HDProbe> realtimeViewIndependentProbes
+        public IEnumerable<HDProbe> realtimeViewIndependentProbes
         { get { RemoveDestroyedProbes(m_RealtimeViewIndependentProbes); return m_RealtimeViewIndependentProbes; } }
 
         public int bakedProbeCount => m_BakedProbes.Count;
@@ -175,12 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (settings.mode)
             {
                 case ProbeSettings.Mode.Baked:
-                    // TODO: Remove the duplicate check
-                    // In theory, register/unregister are called by pair, never twice register in a row
-                    // So there should not any "duplicate" calls. still it happens and we must prevent
-                    // duplicate entries.
-                    if (!m_BakedProbes.Contains(probe))
-                        m_BakedProbes.Add(probe);
+                    m_BakedProbes.Add(probe);
                     break;
                 case ProbeSettings.Mode.Realtime:
                     switch (settings.type)
@@ -280,14 +275,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 probes.Add(state.hdProbes[m_QueryCullResults_Indices[i]]);
         }
 
-        static void RemoveDestroyedProbes(List<HDProbe> probes)
-        {
-            for (int i = probes.Count - 1; i >= 0; --i)
-            {
-                if (probes[i] == null || probes[i].Equals(null))
-                    probes.RemoveAt(i);
-            }
-        }
+        static void RemoveDestroyedProbes(HashSet<HDProbe> probes)
+            => probes.RemoveWhere(p => p == null || p.Equals(null));
 
         static void UpdateBoundsAndRemoveDestroyedProbes(PlanarReflectionProbe[] probes, BoundingSphere[] bounds, ref int count)
         {
