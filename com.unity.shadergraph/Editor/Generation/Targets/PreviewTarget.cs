@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
         }
 

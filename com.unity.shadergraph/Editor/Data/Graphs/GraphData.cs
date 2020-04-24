@@ -411,7 +411,7 @@ namespace UnityEditor.ShaderGraph
         // TODO: We should not have any View code here
         // TODO: However, for now we dont know how the InspectorView will work
         // TODO: So for now leave it here and dont spill the assemblies outside the method
-        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange)
+        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange, Action<string> registerUndo)
         {
             var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
 
@@ -424,9 +424,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
                         EditorGUI.BeginChangeCheck();
-                        m_ActiveTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
+                        var activeTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
                         if (EditorGUI.EndChangeCheck())
                         {
+                            registerUndo("Change active Targets");
+                            m_ActiveTargetBitmask = activeTargetBitmask;
                             UpdateActiveTargets();
                             onChange();
                         }
@@ -458,7 +460,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
-                    target.GetPropertiesGUI(ref context, onChange);
+                    target.GetPropertiesGUI(ref context, onChange, registerUndo);
 
                     foreach(var property in context.properties)
                     {
@@ -1326,8 +1328,22 @@ namespace UnityEditor.ShaderGraph
             foreach (var edge in other.edges)
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
 
+            // Copy all targets
+            m_ActiveTargets = other.activeTargets;
+            UpdateActiveBlocks();
+
             ValidateGraph();
+
+            // TODO: Internal inspector must repaint here
+            // TODO: Check with Sai that it does...
+            if(onUndoPerformed != null)
+                onUndoPerformed();
         }
+
+        // TODO: Temporary hack to repaint inspector on Undo
+        // TODO: Make sure this is handled properly by InspectorView then removed
+        public delegate void OnUndoPerformed();
+        public OnUndoPerformed onUndoPerformed;
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
             List<IEdge> remappedEdges)

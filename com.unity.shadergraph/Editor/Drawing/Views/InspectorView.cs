@@ -29,17 +29,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             style.flexDirection = FlexDirection.Column;
 
             Rebuild();
+
+            // TODO: Temporary hack to repaint inspector on Undo
+            // TODO: Make sure this is handled properly by InspectorView then removed
+            graphData.onUndoPerformed += Rebuild;
         }
 
         void Rebuild()
         {
-            m_Element = new VisualElement();
-
-            m_Element.Add(m_GraphData.GetSettings(() =>
-                {
-                    OnChange();
-                }));
+            if(m_Element != null)
+            {
+                Remove(m_Element);
+            }
             
+            m_Element = new VisualElement();
+            m_Element.Add(m_GraphData.GetSettings(() => { OnChange(); }, (s) => { RegisterUndo(s); } ));
             Add(m_Element);
         }
 
@@ -47,8 +51,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_GraphData.UpdateActiveBlocks();
             m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological);
-            Remove(m_Element);
             Rebuild();
+        }
+
+        void RegisterUndo(string identifier)
+        {
+            m_GraphData.owner.RegisterCompleteObjectUndo(identifier);
         }
     }
 }

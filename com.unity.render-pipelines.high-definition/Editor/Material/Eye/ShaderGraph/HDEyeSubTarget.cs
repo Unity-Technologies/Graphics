@@ -167,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,              builtinData.depthOffset);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             var settingsView = new EyeSettingsView(this);
             settingsView.GetPropertiesGUI(ref context, onChange);

@@ -55,13 +55,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange)
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
                 
+                registerUndo("Change Surface");
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
             });
@@ -71,6 +72,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(target.alphaMode, evt.newValue))
                     return;
 
+                registerUndo("Change Blend");
                 target.alphaMode = (AlphaMode)evt.newValue;
                 onChange();
             });
@@ -80,6 +82,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
                 
+                registerUndo("Change Alpha Clip");
                 target.alphaClip = evt.newValue;
                 onChange();
             });
@@ -89,6 +92,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (Equals(target.twoSided, evt.newValue))
                     return;
                 
+                registerUndo("Change Two Sided");
                 target.twoSided = evt.newValue;
                 onChange();
             });
