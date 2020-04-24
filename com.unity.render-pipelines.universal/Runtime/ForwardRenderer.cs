@@ -147,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
+            bool isPreviewCamera = cameraData.isPreviewViewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool isStereoEnabled = cameraData.isStereoEnabled;
 
@@ -155,10 +156,11 @@ namespace UnityEngine.Rendering.Universal
             bool transparentsNeedSettingsPass = m_TransparentSettingsPass.Setup(ref renderingData);
 
             // Depth prepass is generated in the following cases:
-            // - Scene view camera always requires a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
-            bool requiresDepthPrepass = isSceneViewCamera;
-            requiresDepthPrepass |= (requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData));
+            // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
+            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            requiresDepthPrepass |= isSceneViewCamera;
+            requiresDepthPrepass |= isPreviewCamera;
 
             // The copying of depth should normally happen after rendering opaques.
             // But if we only require it for post processing or the scene camera then we do it after rendering transparent objects
@@ -170,6 +172,7 @@ namespace UnityEngine.Rendering.Universal
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
+            createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;

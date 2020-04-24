@@ -433,6 +433,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.targetTexture = baseCamera.targetTexture;
             cameraData.isStereoEnabled = IsStereoEnabled(baseCamera);
             cameraData.isSceneViewCamera = baseCamera.cameraType == CameraType.SceneView;
+            cameraData.isPreviewViewCamera = baseCamera.cameraType == CameraType.Preview;
 
             cameraData.numberOfXRPasses = 1;
             cameraData.isXRMultipass = false;
