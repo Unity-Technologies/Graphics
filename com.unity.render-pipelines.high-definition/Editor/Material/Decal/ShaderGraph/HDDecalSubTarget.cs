@@ -84,6 +84,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            // Vertex
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            
             // Decal
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
