@@ -147,7 +147,7 @@ namespace UnityEngine.Rendering.Universal
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-            bool isPreviewCamera = cameraData.isPreviewViewCamera;
+            bool isPreviewCamera = cameraData.isPreviewCamera;
             bool requiresDepthTexture = cameraData.requiresDepthTexture;
             bool isStereoEnabled = cameraData.isStereoEnabled;
 
