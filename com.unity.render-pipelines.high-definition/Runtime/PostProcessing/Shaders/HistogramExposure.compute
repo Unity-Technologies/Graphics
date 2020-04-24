@@ -33,9 +33,6 @@ RWStructuredBuffer<uint> _HistogramBuffer;
 StructuredBuffer<uint> _HistogramBuffer;
 #endif
 
-// TODO_FCC: REMOVE THIS IS DEBUG.
-RW_TEXTURE2D_X(float4, _TODO_REMOVE_ME);
-
 
 // Because atomics are only on uint and we need a weighted value, we need to convert.
 // If we multiply the weight by 2048, we get somewhat ok precision and we support up to
@@ -56,16 +53,13 @@ uint GetHistogramBinLocation(float value)
     return uint(saturate(scaledLogLuma) * (HISTOGRAM_BINS - 1));
 }
 
-float BinLocationToLogLuma(uint binIdx)
+float BinLocationToEV(uint binIdx)
 {
     return (binIdx * rcp(float(HISTOGRAM_BINS - 1))  - _HistogramRangeBias) / _HistogramRangeScale;
 }
 
 groupshared uint gs_localHistogram[HISTOGRAM_BINS];
 
-
-// TODO_FCC: IMPORTANT TODO BEFORE PR:
-//      If we keep this it is IMPERATIVE to have some guarantee on the coherency of the branch.
 
 [numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void KHistogramGen(uint groupIndex : SV_GroupIndex,
@@ -80,7 +74,7 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
 
     GroupMemoryBarrierWithGroupSync();
 
-    // IMPORTANT TODO: This leads to poor cache behaviour, verify if we can use lower mip of the color pyramid.
+    // TODO: This leads to poor cache behaviour, verify if we can use lower mip of the color pyramid.
     uint2 fullResCoords = dispatchThreadId.xy << 1u;
 
     if (all(fullResCoords < uint2(_ScreenSize.xy)))
@@ -90,15 +84,13 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
         float weight = WeightSample(fullResCoords, _ScreenSize.xy);
 
         uint  bin = GetHistogramBinLocation(luminance);
-
-        _TODO_REMOVE_ME[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = float4((float)bin, weight, luminance, (log2(luminance) * _HistogramRangeScale + _HistogramRangeBias) * (HISTOGRAM_BINS - 1));
-
         InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
     }
 
 
     GroupMemoryBarrierWithGroupSync();
 
+    // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
     if (groupIndex < HISTOGRAM_BINS)
     {
         InterlockedAdd(_HistogramBuffer[groupIndex], gs_localHistogram[groupIndex]);
@@ -122,26 +114,20 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
 groupshared float gs_partialSums[SUM_SCRATCH_SIZE];
 groupshared float gs_values[HISTOGRAM_BINS];
 
-
-[numthreads(HISTOGRAM_BINS, 1, 1)]
-void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
+float ComputeTotalSum(uint threadID, float threadVal)
 {
-    uint threadID = dispatchThreadId.x;
     float sum = 0;
-    float histogramVal = UnpackWeight(_HistogramBuffer[threadID]);
 
 #if USE_WAVE_INTRINSICS
 
     uint waveCount = (HISTOGRAM_BINS / WAVE_SIZE);
-    float waveSum = WaveActiveSum(histogramVal);
+    float waveSum = WaveActiveSum(threadVal);
 
     uint waveIDInGroup = threadID / WAVE_SIZE;
     if (WaveIsFirstLane())
     {
         gs_partialSums[waveIDInGroup] = waveSum;
     }
-
-    gs_values[threadID] = histogramVal;
 
     // We have values for all the waves, let's sync. 
     GroupMemoryBarrierWithGroupSync();
@@ -154,8 +140,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
 #else // !USE_WAVE_INTRINSICS
 
-    gs_values[threadID] = histogramVal;
-    gs_partialSums[threadID] = histogramVal;
+    gs_partialSums[threadID] = threadVal;
 
     GroupMemoryBarrierWithGroupSync();
 
@@ -163,7 +148,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
     for (uint i = HISTOGRAM_BINS >> 1u; i > 0u; i >>= 1u)
     {
         if (threadID < i)
-            gs_partialSums[threadID] = (gs_partialSums[threadID] +  gs_partialSums[threadID + i]);
+            gs_partialSums[threadID] = (gs_partialSums[threadID] + gs_partialSums[threadID + i]);
 
         GroupMemoryBarrierWithGroupSync();
     }
@@ -171,6 +156,36 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
     sum = gs_partialSums[0];
 
 #endif
+
+    return sum;
+}
+
+void ProcessBin(uint binIndex, inout float2 extremesSums, inout float evSum, inout float totalWeight)
+{
+    float histVal = gs_values[binIndex];
+    float binEV = BinLocationToEV(binIndex);
+
+    // Low values
+    float off = min(extremesSums.x, histVal);
+    extremesSums -= off;
+    histVal -= off;
+    // High values
+    histVal = min(extremesSums.y, histVal);
+    extremesSums.y -= histVal;
+
+    evSum += histVal * binEV;
+    totalWeight += histVal;
+}
+
+[numthreads(HISTOGRAM_BINS, 1, 1)]
+void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadID = dispatchThreadId.x;
+    float histogramVal = UnpackWeight(_HistogramBuffer[threadID]);
+
+    gs_values[threadID] = histogramVal;
+
+    float sum = ComputeTotalSum(threadID, histogramVal);
 
     float2 extremesSums = float2(_HistogramMinPercentage, _HistogramMaxPercentage) * sum;
 
@@ -180,29 +195,10 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
     {
         float evProcessedSum = 0;
         float w = 0;
-        // Delete
-        float simpleSum = 0;
-        float simpleLumaSum = 0;
 
         for (int i = 0; i < HISTOGRAM_BINS; ++i)
         {
-            float histVal = gs_values[i];
-            simpleSum += histVal;
-            float binLogLuma = BinLocationToLogLuma(i);
-            simpleLumaSum += histVal * binLogLuma;
-
-            float off = min(extremesSums.x, histVal);
-            extremesSums -= off;
-            histVal -= off;
-
-            histVal = min(extremesSums.y, histVal);
-            extremesSums.y -= histVal;
-
-            evProcessedSum += histVal * binLogLuma;
-            w += histVal;
-
-            _TODO_REMOVE_ME[uint3(i+1, 0, 0)] = float4(evProcessedSum, histVal, binLogLuma, simpleLumaSum / simpleSum);
-
+            ProcessBin(i, extremesSums, evProcessedSum, w);
         }
 
         w = max(w, 1e-4f);
@@ -210,9 +206,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
         exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-        _TODO_REMOVE_ME[uint3(0, 0, 0)] = float4(evProcessedSum, w, avgEV, exposure);
-        _OutputTexture[uint2(0,0)] = float2(ConvertEV100ToExposure(exposure), exposure);
-
+        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure), exposure);
     }
 
     

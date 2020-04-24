@@ -932,8 +932,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
 
-            var debug = m_Pool.Get(Vector2.one * 0.5f, GraphicsFormat.R32G32B32A32_SFloat);
-
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
 
@@ -955,7 +953,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Parameters
             Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
             float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
-            float histScale = 1.0f / evRange;
+            float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
             float histBias = -m_Exposure.limitMin.value * histScale;
             Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
 
@@ -978,7 +976,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TODO_REMOVE_ME, debug);
 
             int threadGroupSizeX = 16;
             int threadGroupSizeY = 8;
@@ -994,11 +991,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TODO_REMOVE_ME, debug);
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
-
-            m_Pool.Recycle(debug);
         }
 
         #endregion
