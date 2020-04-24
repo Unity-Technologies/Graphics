@@ -19,10 +19,11 @@ platforms:
       - editor
       - il2cpp
 testplatforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
+  # XRTODO: re-enable when tests are compatible with XR SDK
+  # - name: Standalone
+  #   args: --suite=playmode --platform=Standalone
+  # - name: playmode
+  #   args: --suite=playmode
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:
