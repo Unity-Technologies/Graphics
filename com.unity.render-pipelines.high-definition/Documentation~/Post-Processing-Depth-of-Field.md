@@ -64,3 +64,13 @@ This example shows how the **Blade Count** and **Curvature** properties affect t
 * On the right side, there is a five blade iris that is wide open; producing a circular bokeh.
 
 ![](Images/Post-ProcessingDepthofField2.png)
+
+## Path-Traced Depth of Field
+
+When [Path Tracing](Ray-Tracing-Path-Tracing) is enabled and the Focus Mode in the Depth of Field volume is set to use the physical camera, then depth of field will be computed directly during path tracing and it will not be post processed. 
+
+Path-traced depth of field produces images without any artifacts, apart from noise when using insufficient path-tracing samples. To reduce the noise level you have to increase the number of samples from the [Path Tracing](Ray-Tracing-Path-Tracing) settings and/or de-noise the final frame.
+
+The path traced Depth of Field is always computed at full resolution and any quality settings from the volume will be ignored.
+
+![](Images/Path-traced-DoF.png)
