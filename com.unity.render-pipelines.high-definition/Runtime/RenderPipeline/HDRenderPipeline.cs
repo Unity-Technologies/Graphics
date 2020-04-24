@@ -880,12 +880,16 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             InitializeRenderTextures();
             m_ShadowManager.InitializeNonRenderGraphResources();
+            m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
+            m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
         }
 
         void CleanupNonRenderGraphResources()
         {
             DestroyRenderTextures();
             m_ShadowManager.CleanupNonRenderGraphResources();
+            m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
+            m_PostProcessSystem.CleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
