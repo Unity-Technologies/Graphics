@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Result of the culling either of the camera or the custom pass if AggregateCullingParameters is used.
         /// </summary>
-        public readonly CullingResults           cullingResults;
+        public CullingResults                    cullingResults;
 
         /// <summary>
         /// Camera color buffer.
@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Material Property Block, unique for each custom pass instance.
         /// </summary>
-        public readonly MaterialPropertyBlock    propertyBlock;
+        public MaterialPropertyBlock             propertyBlock;
 
         internal CustomPassContext(
             ScriptableRenderContext renderContext, CommandBuffer cmd,

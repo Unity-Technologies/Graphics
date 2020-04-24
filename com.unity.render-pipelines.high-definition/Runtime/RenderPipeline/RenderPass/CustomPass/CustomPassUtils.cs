@@ -391,6 +391,48 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Draw a fullscreen pass using the fullscreenMaterial and the CustomPassContext.propertyBlock.
+        /// Note than in the shader you can use GetViewportScaledUVs(positionCS) to get the right scaled UV that handles renderTexture scale and bias
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="fullscreenMaterial">fullscreen material, needs to be compatible with a custom passes fullscreen pass.</param>
+        /// <param name="destination">Destination buffer so use as current render target. Will be used to setup the scaling constants</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
+        public static void FullScreenPass(in CustomPassContext ctx, Material fullscreenMaterial, RTHandle destination, ClearFlag clearFlag = ClearFlag.None, int destMip = 0)
+             => FullScreenPass(ctx, fullscreenMaterial, 0, destination, clearFlag, destMip);
+
+        /// <summary>
+        /// Draw a fullscreen pass using the fullscreenMaterial and the CustomPassContext.propertyBlock.
+        /// Note than in the shader you can use GetViewportScaledUVs(positionCS) to get the right scaled UV that handles renderTexture scale and bias
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="fullscreenMaterial">fullscreen material, needs to be compatible with a custom passes fullscreen pass.</param>
+        /// <param name="fullscreenMaterialPassIndex">Pass index of the fullscreen material</param>
+        /// <param name="destination">Destination buffer so use as current render target. Will be used to setup the scaling constants</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
+        public static void FullScreenPass(in CustomPassContext ctx, Material fullscreenMaterial, int fullscreenMaterialPassIndex, RTHandle destination, ClearFlag clearFlag = ClearFlag.None, int destMip = 0)
+            => FullScreenPass(ctx, fullscreenMaterial, fullscreenMaterialPassIndex, destination, fullScreenScaleBias, clearFlag, destMip);
+
+        /// <summary>
+        /// Draw a fullscreen pass using the fullscreenMaterial and the CustomPassContext.propertyBlock.
+        /// Note than in the shader you can use GetViewportScaledUVs(positionCS) to get the right scaled UV that handles renderTexture scale and bias
+        /// </summary>
+        /// <param name="ctx">Custom Pass Context.</param>
+        /// <param name="fullscreenMaterial">fullscreen material, needs to be compatible with a custom passes fullscreen pass.</param>
+        /// <param name="fullscreenMaterialPassIndex">Pass index of the fullscreen material</param>
+        /// <param name="destination">Destination buffer so use as current render target. Will be used to setup the scaling constants</param>
+        /// <param name="destScaleBias">Scale and bias to apply when writing into the destination buffer.</param>
+        /// <param name="clearFlag">The type of clear to do before binding the render targets.</param>
+        /// <param name="destMip">Destination mip level to write to.</param>
+        public static void FullScreenPass(in CustomPassContext ctx, Material fullscreenMaterial, int fullscreenMaterialPassIndex, RTHandle destination, Vector4 destScaleBias, ClearFlag clearFlag = ClearFlag.None, int destMip = 0)
+        {
+            SetRenderTargetWithScaleBias(ctx, ctx.propertyBlock, destination, destScaleBias, clearFlag, destMip);
+            ctx.cmd.DrawProcedural(Matrix4x4.identity, fullscreenMaterial, fullscreenMaterialPassIndex, MeshTopology.Quads, 4, 1, ctx.propertyBlock);
+        }
+
+        /// <summary>
         /// Disable the multi pass rendering (use in XR)
         /// </summary>
         public struct DisableMultiPassRendering : IDisposable
@@ -487,6 +529,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
         public static void RenderDepthFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetColor, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
         {
+            // In case depth isn't overwritten, we force it to write
+            if ((overrideRenderState.mask & RenderStateMask.Depth) == 0)
+            {
+                overrideRenderState.depthState = new DepthState(true, CompareFunction.LessEqual);
+                overrideRenderState.mask |= RenderStateMask.Depth;
+            }
+
             using (new ProfilingScope(ctx.cmd, renderDepthFromCameraSampler))
             {
                 if (targetColor == null && targetDepth != null)
@@ -572,7 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(ctx.cmd, destination, clearFlag, Color.black, miplevel);
             ctx.cmd.SetViewport(viewport);
 
-            block.SetVector(HDShaderIDs._ViewPortSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
+            block.SetVector(HDShaderIDs._ViewportSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));
             block.SetVector(HDShaderIDs._ViewportScaleBias, new Vector4(1.0f / destScaleBias.x, 1.0f / destScaleBias.y, destScaleBias.z, destScaleBias.w));
         }
     }

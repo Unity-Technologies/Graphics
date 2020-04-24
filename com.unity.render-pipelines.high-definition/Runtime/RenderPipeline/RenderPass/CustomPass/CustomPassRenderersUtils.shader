@@ -40,7 +40,7 @@
             Tags { "LightMode" = "DepthToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back
@@ -99,7 +99,7 @@
             Tags { "LightMode" = "NormalToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back
@@ -127,7 +127,7 @@
             Tags { "LightMode" = "TangentToColorPass" }
 
             Blend Off
-            ZWrite Off
+            ZWrite On
             ZTest LEqual
 
             Cull Back

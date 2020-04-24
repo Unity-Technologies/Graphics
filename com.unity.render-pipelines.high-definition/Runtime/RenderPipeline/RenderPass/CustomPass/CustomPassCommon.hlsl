@@ -7,8 +7,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassInjectionPoint.cs.hlsl"
 
-float _CustomPassInjectionPoint;
-float _FadeValue;
+float       _CustomPassInjectionPoint;
+float       _FadeValue;
+float4      _ViewportSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
+float4      _ViewportScaleBias;
 
 float3 CustomPassSampleCameraColor(float2 uv, float lod, bool uvGuards = true)
 {
@@ -36,6 +38,13 @@ float3 CustomPassLoadCameraColor(uint2 pixelCoords, float lod)
         case CUSTOMPASSINJECTIONPOINT_BEFORE_PRE_REFRACTION: return LOAD_TEXTURE2D_X_LOD(_ColorPyramidTexture, pixelCoords, 0).rgb;
         default: return LoadCameraColor(pixelCoords, lod);
     }
+}
+
+// Use this function to get viewport scaled UVs when using CustomPassUtils.FullScreenPass()
+float2 GetViewportScaledUVs(float4 positionCS)
+{
+    // Remap UV from part of the screen (due to viewport scale / offset) to 0 - 1
+    return (positionCS.xy * _RTHandleScale.xy * _ViewportSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
 }
 
 struct Attributes

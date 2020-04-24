@@ -12,9 +12,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     TEXTURE2D_X(_Source);
     float       _SourceMip;
-    float4      _ViewPortSize; // We need the viewport size because we have a non fullscreen render target (blur buffers are downsampled in half res)
     float4      _SourceScaleBias;
-    float4      _ViewportScaleBias;
     float4      _SourceSize;
 
     float           _Radius;
@@ -23,17 +21,13 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float2 GetScaledUVs(Varyings varyings)
     {
-        // Remap UV from part of the screen (due to viewport scale / offset) to 0 - 1
-        float2 uv01 = (varyings.positionCS.xy * _RTHandleScale.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
-        float2 uv = uv01;
-
-        // Apply scale and bias
-        return uv * _SourceScaleBias.xy + _SourceScaleBias.zw;
+        // Apply source scale and bias
+        return GetViewportScaledUVs(varyings.positionCS) * _SourceScaleBias.xy + _SourceScaleBias.zw;
     }
 
     float4 Copy(Varyings varyings) : SV_Target
     {
-        float2 uv01 = (varyings.positionCS.xy * _ViewPortSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
+        float2 uv01 = (varyings.positionCS.xy * _ViewportSize.zw - _ViewportScaleBias.zw) * _ViewportScaleBias.xy;
         // Apply scale and bias
         float2 uv = uv01 * _SourceScaleBias.xy + _SourceScaleBias.zw;
 
@@ -45,7 +39,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
     {
         // Clamp UV to the current viewport:
         float2 offset = _ViewportScaleBias.zw * _RTHandleScale.xy;
-        float2 halfPixelSize = _ViewPortSize.zw / 2;
+        float2 halfPixelSize = _ViewportSize.zw / 2;
         uv = clamp(uv, offset + halfPixelSize, rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy + offset - halfPixelSize);
         return saturate(uv);
     }
