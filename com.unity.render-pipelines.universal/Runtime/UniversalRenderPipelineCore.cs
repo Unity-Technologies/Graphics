@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
         public float renderScale;
         public bool clearDepth;
         public bool isSceneViewCamera;
-        public bool isPreviewViewCamera;
+        public bool isPreviewCamera;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
