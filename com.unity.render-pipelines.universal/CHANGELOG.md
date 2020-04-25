@@ -169,6 +169,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with shadows not being correctly calculated in some shaders.
 - Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
 - Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
+- Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
