@@ -95,8 +95,8 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public bool clearDepth;
-        public bool isSceneViewCamera;
-        public bool isPreviewCamera;
+        [Obsolete("Please use cameraType instead.", true)] public bool isSceneViewCamera;
+        public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
