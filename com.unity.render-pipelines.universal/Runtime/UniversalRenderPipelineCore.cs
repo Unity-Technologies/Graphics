@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public bool clearDepth;
-        [Obsolete("Please use cameraType instead.", true)] public bool isSceneViewCamera;
+        [Obsolete("Please use cameraType instead.", false)] public bool isSceneViewCamera;
         public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
                 RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
-            
+
                 desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
