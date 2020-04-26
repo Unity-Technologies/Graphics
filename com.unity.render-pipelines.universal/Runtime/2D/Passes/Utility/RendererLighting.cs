@@ -106,7 +106,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
-            descriptor.msaaSamples = 1;
+            descriptor.msaaSamples = s_RenderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
