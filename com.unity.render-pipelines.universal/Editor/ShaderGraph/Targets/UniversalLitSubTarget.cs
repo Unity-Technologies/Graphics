@@ -242,6 +242,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
                 StructFields.Varyings.positionWS,
+                StructFields.Varyings.positionCS,
                 StructFields.Varyings.normalWS,
                 StructFields.Varyings.tangentWS,                        // needed for vertex lighting
                 StructFields.Varyings.viewDirectionWS,
