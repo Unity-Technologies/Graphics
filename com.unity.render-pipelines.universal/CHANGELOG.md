@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The virtual ScriptableRenderer.FrameCleanup() function has been marked obsolete and replaced by ScriptableRenderer.OnCameraCleanup() to better describe when the function gets invoked by the renderer.
 - DepthOnlyPass, CopyDepthPass and CopyColorPass now use OnCameraSetup() instead of Configure() to set up their passes before executing as they only need to get their rendertextures once per camera instead of once per eye.
 - Updated shaders to be compatible with Microsoft's DXC.
+- Mesh GPU Instancing option is now hidden from the particles system renderer as this feature is not supported by URP.
 - renderingData.cameraData.isSceneCamera is now marked as obsolete and replaced by renderingData.cameraData.cameraType.
 
 ### Fixed
