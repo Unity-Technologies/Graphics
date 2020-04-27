@@ -22,12 +22,12 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 | Property                         | Description                                                  |
 | -------------------------------- | ------------------------------------------------------------ |
 | **HDRI Sky**                     | Assign a HDRI Texture that HDRP uses to render the sky.      |
-| **Distortion*                    | Enable or disable UV distortion. |
-| - **Procedural*                  | Check the box to enable procedural distortion. |
-| -- **Flowmap*                    | Assign a flowmap that HDRP uses to distort uvs when rendering the sky. Only available if **Procedural is unchecked. |
-| - **Distortion Rotation**        | Use the slider to set the angle to rotate the distortion, in degrees. |
-| - **Loop Time**                  | Set the period of the distortion loop, in seconds. |
-| - **Amplitude**                  | Set the amplitude of the distortion. |
+| **Enable Distortion**            | Enable or disable UV distortion. |
+| - **Procedural distortion**      | Check the box to distort the sky using a uniform wind direction. |
+| -- **Flowmap**                   | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the sky. Only available if **Procedural is unchecked. |
+| -- **Upper Hemisphere Only**     | Check the box if the flowmap contains distortion for the sky above the horizon only. Only available if **Procedural is unchecked. |
+| - **Scroll direction**           | Use the slider to set the scrolling directio for the distortion, in degrees. |
+| - **Scroll speed**               | Modify the speed at which HDRP scrolls the distortion texture. |
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br />&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br />&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. <br />&#8226; **Lux**: HDRP calculates intensity in terms of a target Lux value. |
 | - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |
 | - **Multiplier**                 | Set the multiplier for HDRP to apply to the Scene as environmental light. HDRP multiplies the environment light in your Scene by this value.<br />This property only appears when you select **Multiplier** from the **Intensity Mode** drop-down. |

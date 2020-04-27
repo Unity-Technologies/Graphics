@@ -21,10 +21,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("If enabled, the sky will be distorted by a constant wind.")]
         public BoolParameter            procedural          = new BoolParameter(true);
         /// <summary>Texture used to distort the uv for the HDRI sky.</summary>
-        [Tooltip("Specify the flowmap HDRP uses for sky distortion (in Latlong format).")]
+        [Tooltip("Specify the flowmap HDRP uses for sky distortion (in LatLong layout).")]
         public TextureParameter         flowmap             = new TextureParameter(null);
         /// <summary>Enable to affect only the upper part of the sky.</summary>
-        [Tooltip("Enabled if the flowmap covers only the upper part of the sky.")]
+        [Tooltip("Check this box if the flowmap covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
         /// <summary>Direction of the wind.</summary>
         [Tooltip("Sets the rotation of the distortion (in degrees).")]

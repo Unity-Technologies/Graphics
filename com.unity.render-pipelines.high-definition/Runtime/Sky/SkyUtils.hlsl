@@ -18,7 +18,7 @@ float3 GetSkyViewDirWS(float2 positionCS)
 }
 
 // Returns latlong coords from view direction
-float2 GetLatLongCoords(float3 dir, int upperHemisphereOnly)
+float2 GetLatLongCoords(float3 dir, float upperHemisphereOnly)
 {
     float angle = atan2(dir.z, dir.x)/(2.0*PI) + 0.5;
     float height = lerp(dir.y * 0.5 + 0.5, dir.y, upperHemisphereOnly);
