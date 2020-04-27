@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
         public bool isSceneViewCamera
         {
             get => cameraType == CameraType.SceneView;
-            set { Debug.LogWarning("Setting isSceneViewCamera is obsolete. Please use cameraType instead."); }
+            set { Debug.LogWarning("Setting isSceneViewCamera is an invalid operation. Please use cameraType instead."); }
         }
 
         /// <summary>
