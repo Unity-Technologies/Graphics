@@ -5,6 +5,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl"
 
+// Note: the scaling _Material_SO.xy should already be in texuv, but NOT the bias.
+#define AXF_TRANSFORM_TEXUV(texuv, name) ((texuv.xy) * name##_SO.xy + name##_SO.zw + _Material_SO.zw)
+
 void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceData surfaceData)
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
@@ -55,7 +58,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     ApplyDoubleSidedFlipOrMirror(input, doubleSidedConstants); // Apply double sided flip on the vertex normal
 
-    float2 UV0 = input.texCoord0.xy * float2(_MaterialTilingU, _MaterialTilingV);
+    float2 UV0 = input.texCoord0.xy * _Material_SO.xy;
 
     //-----------------------------------------------------------------------------
     // _AXF_BRDF_TYPE_SVBRDF
@@ -85,28 +88,44 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
-    surfaceData.diffuseColor = SAMPLE_TEXTURE2D(_SVBRDF_DiffuseColorMap, sampler_SVBRDF_DiffuseColorMap, UV0).xyz;
-    surfaceData.specularColor = SAMPLE_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, UV0).xyz;
-    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * SAMPLE_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, UV0).xy;
+    surfaceData.diffuseColor = 
+        SAMPLE_TEXTURE2D(_SVBRDF_DiffuseColorMap, sampler_SVBRDF_DiffuseColorMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_DiffuseColorMap)).xyz;
+    surfaceData.specularColor = 
+        SAMPLE_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_SpecularColorMap)).xyz;
+    surfaceData.specularLobe.xy = 
+        _SVBRDF_SpecularLobeMapScale * SAMPLE_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_SpecularLobeMap)).xy;
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
-    surfaceData.fresnelF0 = SAMPLE_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, UV0).x;
-    surfaceData.height_mm = SAMPLE_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_HeightMap, UV0).x * _SVBRDF_HeightMapMaxMM;
+    surfaceData.fresnelF0 = SAMPLE_TEXTURE2D(_SVBRDF_FresnelMap, sampler_SVBRDF_FresnelMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_FresnelMap)).x;
+    surfaceData.height_mm = SAMPLE_TEXTURE2D(_SVBRDF_HeightMap, sampler_SVBRDF_HeightMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_HeightMap)).x * _SVBRDF_HeightMapMaxMM;
     // Our importer range remaps the [-HALF_PI, HALF_PI) range to [0,1). We map back here:
-    surfaceData.anisotropyAngle = HALF_PI * (2.0 * SAMPLE_TEXTURE2D(_SVBRDF_AnisoRotationMap, sampler_SVBRDF_AnisoRotationMap, UV0).x - 1.0);
-    surfaceData.clearcoatColor = SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatColorMap, sampler_SVBRDF_ClearcoatColorMap, UV0).xyz;
+    surfaceData.anisotropyAngle =
+        HALF_PI * (2.0 * SAMPLE_TEXTURE2D(_SVBRDF_AnisoRotationMap, sampler_SVBRDF_AnisoRotationMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_AnisoRotationMap)).x - 1.0);
+    surfaceData.clearcoatColor =
+        SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatColorMap, sampler_SVBRDF_ClearcoatColorMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_ClearcoatColorMap)).xyz;
+
     // The importer transforms the IOR to an f0, we map it back here as an IOR clamped under at 1.0
     // TODO: if we're reusing float textures anyway, we shouldn't need the normalization that transforming to an f0 provides.
-    float clearcoatF0 = SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatIORMap, sampler_SVBRDF_ClearcoatIORMap, UV0).x;
+    float clearcoatF0 = SAMPLE_TEXTURE2D(_SVBRDF_ClearcoatIORMap, sampler_SVBRDF_ClearcoatIORMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_ClearcoatIORMap)).x;
     float sqrtF0 = sqrt(clearcoatF0);
     surfaceData.clearcoatIOR = max(1.0, (1.0 + sqrtF0) / (1.00001 - sqrtF0));    // We make sure it's working for F0=1
 
     // TBN
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, UV0).xyz - 1.0, surfaceData.normalWS, doubleSidedConstants);
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+    GetNormalWS(
+        input,
+        2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_NormalMap)).xyz - 1.0,
+        surfaceData.normalWS, 
+        doubleSidedConstants
+    );
+    GetNormalWS(
+        input,
+        2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, AXF_TRANSFORM_TEXUV(UV0, _ClearcoatNormalMap)).xyz - 1.0,
+        surfaceData.clearcoatNormalWS,
+        doubleSidedConstants
+    );
 
-    alpha = SAMPLE_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, UV0).x;
+    alpha = SAMPLE_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, AXF_TRANSFORM_TEXUV(UV0, _SVBRDF_AlphaMap)).x;
 
     // Useless for SVBRDF
     surfaceData.flakesUV = input.texCoord0.xy;
@@ -124,13 +143,17 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularLobe = _CarPaint2_CTSpreads.xyz; // We may want to modify these (eg for Specular AA)
 
     surfaceData.normalWS = input.tangentToWorld[2].xyz;
-    GetNormalWS(input, 2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, UV0).xyz - 1.0, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+    GetNormalWS(
+        input,
+        2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, AXF_TRANSFORM_TEXUV(UV0, _ClearcoatNormalMap)).xyz - 1.0,
+        surfaceData.clearcoatNormalWS,
+        doubleSidedConstants
+    );
 
-    // Create mirrored UVs to hide flakes tiling
-    surfaceData.flakesUV = _CarPaint2_FlakeTiling * UV0;
-
+    surfaceData.flakesUV = AXF_TRANSFORM_TEXUV(UV0, _CarPaint2_BTFFlakeMap);
     surfaceData.flakesMipLevel = _CarPaint2_BTFFlakeMap.CalculateLevelOfDetail(sampler_CarPaint2_BTFFlakeMap, surfaceData.flakesUV);
 
+    // Create mirrored UVs to hide flakes tiling
     // TODO_FLAKES: this isn't really tiling
     if ((int(surfaceData.flakesUV.y) & 1) == 0)
         surfaceData.flakesUV.x += 0.5;
