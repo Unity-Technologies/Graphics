@@ -925,6 +925,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.InitializeNonRenderGraphResources();
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
+            VolumetricInitializeNonRenderGraphResource();
+            s_lightVolumes.InitializeNonRenderGraphResources();
         }
 
         void CleanupNonRenderGraphResources()
@@ -933,6 +935,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.CleanupNonRenderGraphResources();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
+            VolumetricCleanupNonRenderGraphResource();
+            s_lightVolumes.CleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
@@ -2196,7 +2200,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_EnableRenderGraph)
             {
-                //ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
+                ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
                 return;
             }
 
