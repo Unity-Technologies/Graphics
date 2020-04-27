@@ -565,6 +565,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warning in PCSS code when using Vulkan.
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
 - Fixed an error about procedural sky being logged by mistake.
+- Fixed shadowmask UI now correctly showing shadowmask disable
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -688,6 +689,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update material samples scene visuals
 - Use multi_compile API for deferred compute shader with shadow mask.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.1.1] - 2019-09-05
 
