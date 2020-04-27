@@ -50,6 +50,12 @@ namespace UnityEditor.ShaderGraph.Serialization
             return map;
         }
 
+        public static Type ParseType(string typeString)
+        {
+            k_TypeMap.TryGetValue(typeString, out var type);
+            return type;
+        }
+
         public static List<MultiJsonEntry> Parse(string str)
         {
             var result = new List<MultiJsonEntry>();

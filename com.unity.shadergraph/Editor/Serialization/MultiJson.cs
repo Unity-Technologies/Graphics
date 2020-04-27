@@ -19,5 +19,10 @@ namespace UnityEditor.ShaderGraph.Serialization
         {
             return MultiJsonInternal.Serialize(mainObject);
         }
+
+        public static Type ParseType(string typeString)
+        {
+            return MultiJsonInternal.ParseType(typeString);
+        }
     }
 }
