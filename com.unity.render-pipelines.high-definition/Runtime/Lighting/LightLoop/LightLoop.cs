@@ -1773,20 +1773,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (probe.mode == ProbeSettings.Mode.Realtime
                             && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                             break;
-
-                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, out int fetchIndex);
-                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
-                        envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
-
-                        // If the max number of planar on screen is reached
-                        if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
-                        {
-                            Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
-                            break;
-                        }
-
-                        atlasScaleOffset = scaleOffset;
-
                         var renderData = planarProbe.renderData;
                         var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
                         var projectionMatrix = renderData.projectionMatrix;
@@ -1799,6 +1785,35 @@ namespace UnityEngine.Rendering.HighDefinition
                         var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
                         var gpuView = worldToCameraRHSMatrix;
                         var vp = gpuProj * gpuView;
+
+                        // We need to collect the set of parameters required for the filtering
+                        IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
+                        planarTextureFilteringParameters.probeNormal = probe.gameObject.transform.up;
+                        planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
+                        planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
+                        planarTextureFilteringParameters.captureCameraScreenSize = new Vector4(probe.texture.width, probe.texture.height, 1.0f / probe.texture.width, 1.0f / probe.texture.height);
+                        planarTextureFilteringParameters.captureCameraVP = vp;
+                        planarTextureFilteringParameters.captureCameraIVP = vp.inverse;
+                        planarTextureFilteringParameters.captureCameraWorldToView = gpuView;
+                        planarTextureFilteringParameters.captureCameraPosition = renderData.capturePosition;
+                        planarTextureFilteringParameters.captureCameraUp = (renderData.captureRotation * Vector3.up).normalized;
+                        planarTextureFilteringParameters.captureCameraRight = (renderData.captureRotation * Vector3.right).normalized;
+                        planarTextureFilteringParameters.captureFOV = renderData.fieldOfView;
+
+                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, ref planarTextureFilteringParameters, out int fetchIndex);
+                        // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
+                        envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
+
+                        // If the max number of planar on screen is reached
+                        if (fetchIndex >= m_MaxPlanarReflectionOnScreen)
+                        {
+                            Debug.LogWarning("Maximum planar reflection probe on screen reached. To fix this error, increase the maximum number of planar reflections on screen in the HDRP asset.");
+                            break;
+                        }
+
+                        atlasScaleOffset = scaleOffset;
+
+                       
                         m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
                         m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
 

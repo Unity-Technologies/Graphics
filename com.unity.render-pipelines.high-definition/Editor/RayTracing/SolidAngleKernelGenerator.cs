@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Start is called before the first frame update
         void Start()
         {
+            GenerateTableExample();
         }
 
         // Update is called once per frame

@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Runtime Data
         RenderTexture m_RealtimeTexture;
+        RenderTexture m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 
@@ -189,6 +190,12 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_RealtimeTexture = value;
         }
 
+        public RenderTexture realtimeDepthTexture
+        {
+            get => m_RealtimeDepthBuffer;
+            set => m_RealtimeDepthBuffer = value;
+        }
+
         /// <summary>
         /// The texture used during lighting for this probe.
         /// </summary>
@@ -227,6 +234,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
                 case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
                 case ProbeSettings.Mode.Realtime: return m_RealtimeTexture = (RenderTexture)texture;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public Texture SetDepthTexture(ProbeSettings.Mode targetMode, Texture texture)
+        {
+            if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
+                throw new ArgumentException("'texture' must be a RenderTexture for the Realtime mode.");
+
+            switch (targetMode)
+            {
+                case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
+                case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
+                case ProbeSettings.Mode.Realtime: return m_RealtimeDepthBuffer = (RenderTexture)texture;
                 default: throw new ArgumentOutOfRangeException();
             }
         }

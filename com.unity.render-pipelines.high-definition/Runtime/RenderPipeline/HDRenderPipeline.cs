@@ -1182,6 +1182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public RenderTargetIdentifier id;
                 public CubemapFace face;
                 public RenderTexture copyToTarget;
+                public RenderTexture targetDepth;
             }
             public HDCamera hdCamera;
             public bool clearCameraSettings;
@@ -1580,6 +1581,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
                             }
+                            if (visibleProbe.realtimeDepthTexture == null || visibleProbe.realtimeDepthTexture.width != desiredPlanarProbeSize)
+                            {
+                                visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                            }
                             // Set the viewer's camera as the default camera anchor
                             for (var i = 0; i < cameraSettings.Count; ++i)
                             {
@@ -1700,6 +1705,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             request.target = new RenderRequest.Target
                             {
                                 id = visibleProbe.realtimeTexture,
+                                targetDepth = visibleProbe.realtimeDepthTexture,
                                 face = CubemapFace.Unknown
                             };
                         }
@@ -2514,11 +2520,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitToFinalRTDevBuildOnly)))
                 {
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                    {
-                        var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
-                        BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
-                    }
+                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                        {
+                            var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
+                            BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
+
+                            // If a depth target is specified, fill it
+                            if (target.targetDepth != null)
+                                BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_SharedRTManager.GetDepthTexture(), target.targetDepth, cmd);
+                        }
                 }
 
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);

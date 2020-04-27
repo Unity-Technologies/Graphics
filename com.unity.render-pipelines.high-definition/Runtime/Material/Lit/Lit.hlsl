@@ -1917,7 +1917,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidLodCount);
+        //iblMipLevel = 0;
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
     else
     {

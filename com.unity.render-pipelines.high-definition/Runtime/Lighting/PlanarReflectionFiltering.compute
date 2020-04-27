@@ -1,0 +1,170 @@
+#pragma kernel FilterPlanarReflection
+#pragma kernel DownScaleReflection
+
+#pragma only_renderers d3d11
+#pragma enable_d3d11_debug_symbols
+
+
+// HDRP generic includes
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+// Tile size of this compute
+#define PLANAR_REFLECTION_TILE_SIZE 8
+
+SAMPLER(s_linear_clamp);
+TEXTURE2D(_DepthTexture);
+TEXTURE2D(_ReflectionColorMipChain);
+TEXTURE2D(_ThetaValuesTexture);
+
+CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
+    int _FilterSizeRadius;
+    float4 _CaptureScreenSize;
+    float4 _CaptureScreenSize2;
+    float3 _ReflectionPlaneNormal;
+    float3 _ReflectionPlanePosition;
+    float3 _CaptureCameraPositon;
+    float _IntegrationRoughness;
+    float4x4 _CaptureCameraIVP;
+    float4x4 _CaptureCameraVP;
+    float4x4 _CaptureCameraWorldToView;
+    float3 _CaptureCameraUpVector;
+    float3 _CaptureCameraRightVector;
+    float _CaptureCameraFOV;
+CBUFFER_END
+
+RW_TEXTURE2D(float4, _FilteredPlanarReflectionBuffer);
+
+bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
+{
+    t = -1.0;
+    float denom = dot(normal, ray_dir); 
+    if (abs(denom) > 1e-6)
+    { 
+        float3 d = pos - ray_origin;
+        t = dot(d, normal) / denom;
+        return (t >= 0); 
+    }
+    return false; 
+}
+
+float sqr(float value)
+{
+    return value * value;
+}
+float gaussian(float radius, float sigma)
+{
+    return exp(-sqr(radius / sigma));
+}
+
+[numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
+void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
+
+    // Read the depth value of the tap coord
+    float centerDepthValue = LOAD_TEXTURE2D(_DepthTexture, currentCoord).r;
+
+    // Compute the world position of the tapped pixel
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureScreenSize2.zw, centerDepthValue, _CaptureCameraIVP, _CaptureCameraWorldToView, 0);
+    
+    // Compute the direction to the reflection pixel
+    float3 rayDirection = normalize(centralPosInput.positionWS - _CaptureCameraPositon);
+
+    // Compute the position on the plane we shall be integrating from
+    float t = -1.0;
+    if (!IntersectPlane(_CaptureCameraPositon, rayDirection, _ReflectionPlanePosition, _ReflectionPlaneNormal, t))
+    { 
+        // If there is no plane intersection, there is nothing to filter
+        _FilteredPlanarReflectionBuffer[currentCoord] = float4(0.0, 0.0, 0.0, 1.0);
+        return;
+    }
+
+    // Compute the integration position (position on the plane)
+    float3 integrationPositionRWS = _CaptureCameraPositon + rayDirection * t;
+
+    // Evaluate the cone halfangle for the filtering (it is the cone angle to grab 70% of the energy of the ggx lobe)
+    float halfAngle = SAMPLE_TEXTURE2D_LOD(_ThetaValuesTexture, s_linear_clamp, 
+                                        float2(dot(rayDirection,_ReflectionPlaneNormal), _IntegrationRoughness), 0).r 
+                                        * PI * 0.5f;
+
+    // Compute the distances we need for our filtering
+    float distanceCameraToPlane = length(integrationPositionRWS - _CaptureCameraPositon);
+    float distancePlaneToObject = length(centralPosInput.positionWS - integrationPositionRWS);
+
+    // Compute the cone footprint on the image reflection plane for this configuration
+    float brdfConeRadius = tan(halfAngle) * distancePlaneToObject;
+
+    // We need to compute the view cone
+    float viewConeRadius = brdfConeRadius * distanceCameraToPlane / (distancePlaneToObject + distanceCameraToPlane);
+
+
+    // Compute the 
+    float viewConeHalfAngle = atan(viewConeRadius / distanceCameraToPlane);
+    float pixelDistance = clamp(viewConeHalfAngle / _CaptureCameraFOV * _CaptureScreenSize2.x, 0, 32);
+    float miplevel = log2(pixelDistance / 2);
+    float3 integrationColor = LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, (currentCoord >> (int)miplevel), miplevel).xyz; 
+    /*
+    const float sigma = 0.5 * pixelDistance;
+
+    // value that holds the accumulation
+    float3 integrationColor = float3(0.0, 0.0, 0.0);
+    float w = 0.0;
+
+    // Loop through the neigborhood
+    for (int y = -pixelDistance; y < pixelDistance; ++y)
+    {
+        for (int x = -pixelDistance; x < pixelDistance; ++x)
+        {
+            float r = sqrt(x*x + y*y);
+
+            // Compute the tap coord
+            int2 tapCoord = currentCoord + int2(x, y);
+
+            // Compute the weight of this pixel based on the screen size
+            float weight = tapCoord.x > _CaptureScreenSize2.x ||  tapCoord.x < 0 
+                            || tapCoord.y > _CaptureScreenSize2.y ||  tapCoord.y < 0 ? 0.0 : gaussian(r, sigma);
+
+            // Read the depth value of the tap coord
+            float3 sampleColor = LOAD_TEXTURE2D(_ReflectionColor, tapCoord).xyz;
+            // Accumulate this sample
+            integrationColor += sampleColor * weight;
+            w += weight;
+        }
+    }
+
+    // Normalize the integration value
+    integrationColor = integrationColor / w;
+    */
+
+    // Write the output ray data
+    _FilteredPlanarReflectionBuffer[currentCoord] = float4(integrationColor, 1.0);
+    //_FilteredPlanarReflectionBuffer[currentCoord] = float4(pixelDistance,pixelDistance, 0.0, 1.0);
+}
+
+RW_TEXTURE2D(float4, _HalfResReflectionBuffer);
+RW_TEXTURE2D(float, _HalfResDepthBuffer);
+int _MipIndex;
+
+[numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
+void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
+
+    // Write the output ray data
+    _HalfResReflectionBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, currentCoord * 2, _MipIndex) 
+                                            + LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, currentCoord * 2 + uint2(1, 0), _MipIndex)
+                                            + LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, currentCoord * 2 + uint2(0, 1), _MipIndex)
+                                            + LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, currentCoord * 2 + uint2(1, 1), _MipIndex)) * 0.25f;
+    _HalfResDepthBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_DepthTexture, currentCoord * 2, _MipIndex) 
+                                            + LOAD_TEXTURE2D_LOD(_DepthTexture, currentCoord * 2 + uint2(1, 0), _MipIndex)
+                                            + LOAD_TEXTURE2D_LOD(_DepthTexture, currentCoord * 2 + uint2(0, 1), _MipIndex)
+                                            + LOAD_TEXTURE2D_LOD(_DepthTexture, currentCoord * 2 + uint2(1, 1), _MipIndex)) * 0.25f;
+}

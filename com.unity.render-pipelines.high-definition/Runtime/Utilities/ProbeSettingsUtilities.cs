@@ -87,10 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the clip plane
             if (useReferenceTransformAsNearClipPlane)
             {
+                /*
                 ApplyObliqueNearClipPlane(
                     ref settings, ref probePosition,
                     ref cameraSettings, ref cameraPosition
                 );
+                */
             }
 
             // Propagate the desired custom exposure

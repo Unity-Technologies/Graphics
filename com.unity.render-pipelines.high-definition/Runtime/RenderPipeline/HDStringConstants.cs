@@ -247,6 +247,20 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
+        // Planar reflection filtering
+        public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");
+        public static readonly int _FilterSizeRadius = Shader.PropertyToID("_FilterSizeRadius");
+        public static readonly int _ReflectionPlaneNormal = Shader.PropertyToID("_ReflectionPlaneNormal");
+        public static readonly int _ReflectionPlanePosition = Shader.PropertyToID("_ReflectionPlanePosition");
+        public static readonly int _IntegrationRoughness = Shader.PropertyToID("_IntegrationRoughness");
+        public static readonly int _FilteredPlanarReflectionBuffer = Shader.PropertyToID("_FilteredPlanarReflectionBuffer");
+        public static readonly int _HalfResReflectionBuffer = Shader.PropertyToID("_HalfResReflectionBuffer");
+        public static readonly int _CaptureScreenSize = Shader.PropertyToID("_CaptureScreenSize");
+        public static readonly int _CaptureCameraIVP = Shader.PropertyToID("_CaptureCameraIVP");
+        public static readonly int _CaptureCameraWorldToView = Shader.PropertyToID("_CaptureCameraWorldToView");
+        public static readonly int _CaptureCameraPositon = Shader.PropertyToID("_CaptureCameraPositon");
+        public static readonly int _HalfResDepthBuffer = Shader.PropertyToID("_HalfResDepthBuffer");
+        
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
         public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
