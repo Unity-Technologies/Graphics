@@ -464,6 +464,9 @@ namespace UnityEngine.Rendering.Universal
         void SetupBackbufferFormat(int msaaSamples, bool xrEnabled)
         {
 #if ENABLE_VR && ENABLE_VR_MODULE
+            if (!xrEnabled)
+                return;
+
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
