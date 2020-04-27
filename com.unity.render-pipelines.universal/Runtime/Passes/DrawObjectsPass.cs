@@ -54,7 +54,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 #if UNITY_EDITOR
                 // When rendering the preview camera, we want the layer mask to be forced to Everything
-                if (renderingData.cameraData.cameraType == CameraType.Preview)
+                if (renderingData.cameraData.isPreviewCamera)
                 {
                     filterSettings.layerMask = -1;
                 }

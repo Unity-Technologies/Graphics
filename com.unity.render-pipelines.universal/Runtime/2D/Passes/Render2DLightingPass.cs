@@ -51,11 +51,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            bool isSceneViewCamera = renderingData.cameraData.cameraType == CameraType.SceneView;
+
             bool isLitView = true;
 
 #if UNITY_EDITOR
-            if (isSceneViewCamera)
+            if (renderingData.cameraData.isSceneViewCamera)
                 isLitView = UnityEditor.SceneView.currentDrawingSceneView.sceneLighting;
 
             if (renderingData.cameraData.camera.cameraType == CameraType.Preview)

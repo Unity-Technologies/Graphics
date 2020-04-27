@@ -96,12 +96,25 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public bool clearDepth;
-        [Obsolete("Please use cameraType instead.", false)] public bool isSceneViewCamera;
         public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// True if the camera rendering is for the scene window in the editor
+        /// </summary>
+        public bool isSceneViewCamera
+        {
+            get => cameraType == CameraType.SceneView;
+            set { Debug.LogWarning("Setting isSceneViewCamera is an invalid operation. Please use cameraType instead."); }
+        }
+
+        /// <summary>
+        /// True if the camera rendering is for the preview window in the editor
+        /// </summary>
+        public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
