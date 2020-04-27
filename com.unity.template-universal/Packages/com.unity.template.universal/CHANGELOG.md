@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.2.0] - 2020-04-27
 
-- Updated version to HightDefinition RP version 8.2.0
+- Update version to Universal RP version 7.2.0
 
 ## [8.1.0] - 2020-03-25
 

@@ -6,12 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [8.2.0] - 2020-04-27
 
-- Updated version to HightDefinition RP version 8.2.0
+- Updated version to HighDefinition RP version 8.2.0
 
 ## [8.1.0] - 2020-03-25
 
 ### Changed
-- Updated version to HightDefinition RP version 8.1.0
+- Updated version to HighDefinition RP version 8.1.0
 
 ## [7.1.7] - 2019-12-3
 - Editor will force text serialization to occur on one line
