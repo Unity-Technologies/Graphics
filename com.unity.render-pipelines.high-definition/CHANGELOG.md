@@ -74,6 +74,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed shadowmask UI now correctly showing shadowmask disable
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -86,6 +87,7 @@ The version number for this package has increased due to a version update of a r
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Shadowmask and realtime reflection probe property are hide in Quality settings
 
 ## [8.0.1] - 2020-02-25
 
