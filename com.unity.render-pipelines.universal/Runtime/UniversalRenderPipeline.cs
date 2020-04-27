@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
 
             ScriptableRenderer.current = renderer;
-            bool isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name): _CameraProfilingSampler;
             CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
@@ -437,7 +437,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.numberOfXRPasses = 1;
             cameraData.isXRMultipass = false;
 
-            bool isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (cameraData.isStereoEnabled && !isSceneViewCamera && XR.XRSettings.stereoRenderingMode == XR.XRSettings.StereoRenderingMode.MultiPass)
@@ -529,7 +529,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = Mathf.Min(settings.shadowDistance, camera.farClipPlane);
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ? cameraData.maxShadowDistance : 0.0f;
 
-            bool isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
             if (isSceneViewCamera)
             {
                 cameraData.renderType = CameraRenderType.Base;

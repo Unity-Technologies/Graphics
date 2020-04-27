@@ -46,7 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
-            bool isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // For stereo case, eye texture always want color data in sRGB space.
             // If eye texture color format is linear, we do explicit sRGB convertion

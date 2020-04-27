@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Changed
-- renderingData.cameraData.isSceneCamera is now marked as obsolete and replaced by renderingData.cameraData.cameraType.
+- Setting the renderingData.cameraData.isSceneCamera is now marked as obsolete and replaced by renderingData.cameraData.cameraType.
 
 ### Fixed
 - Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)

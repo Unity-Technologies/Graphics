@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool tempTarget2Used = false;
             int source = m_Source.id;
             int destination = -1;
-            bool isSceneViewCamera = cameraData.cameraType == CameraType.SceneView;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // Utilities to simplify intermediate target management
             int GetSource() => source;
