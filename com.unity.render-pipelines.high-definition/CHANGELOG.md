@@ -567,6 +567,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error about procedural sky being logged by mistake.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
