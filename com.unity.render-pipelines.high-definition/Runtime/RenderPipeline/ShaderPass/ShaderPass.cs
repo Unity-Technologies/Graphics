@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
         LightTransport,
         Shadows,
         SubsurfaceScattering,
-        VolumeVoxelization,
         VolumetricLighting,
         DbufferProjector,
         DbufferMesh,

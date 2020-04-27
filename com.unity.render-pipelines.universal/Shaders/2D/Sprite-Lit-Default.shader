@@ -43,6 +43,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2  uv           : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -51,6 +52,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float4  color       : COLOR;
                 float2	uv          : TEXCOORD0;
                 float2	lightingUV  : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl"
@@ -83,6 +85,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             Varyings CombinedShapeLightVertex(Attributes v)
             {
                 Varyings o = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
@@ -118,6 +122,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float4 color		: COLOR;
                 float2 uv			: TEXCOORD0;
                 float4 tangent      : TANGENT;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -128,6 +133,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3  normalWS		: TEXCOORD1;
                 float3  tangentWS		: TEXCOORD2;
                 float3  bitangentWS		: TEXCOORD3;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             TEXTURE2D(_MainTex);
@@ -139,6 +145,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             Varyings NormalsRenderingVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(attributes);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _NormalMap);
@@ -174,6 +182,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float3 positionOS   : POSITION;
                 float4 color		: COLOR;
                 float2 uv			: TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
@@ -181,6 +190,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 float4  positionCS		: SV_POSITION;
                 float4  color			: COLOR;
                 float2	uv				: TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             TEXTURE2D(_MainTex);
@@ -190,6 +200,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             Varyings UnlitVertex(Attributes attributes)
             {
                 Varyings o = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(attributes);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(attributes.positionOS);
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
