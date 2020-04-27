@@ -304,11 +304,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class XRShaderIDs
         {
-            public static readonly int _BlitTexture       = Shader.PropertyToID("_BlitTexture");
-            public static readonly int _BlitScaleBias     = Shader.PropertyToID("_BlitScaleBias");
-            public static readonly int _BlitScaleBiasRt   = Shader.PropertyToID("_BlitScaleBiasRt");
-            public static readonly int _BlitTexArraySlice = Shader.PropertyToID("_BlitTexArraySlice");
-            public static readonly int _SRGBRead          = Shader.PropertyToID("_SRGBRead");
+            public static readonly int _SourceTexArraySlice = Shader.PropertyToID("_SourceTexArraySlice");
+            public static readonly int _SRGBRead            = Shader.PropertyToID("_SRGBRead");
         }
 
         internal void RenderMirrorView(CommandBuffer cmd, Camera camera)
@@ -339,13 +336,13 @@ namespace UnityEngine.Rendering.Universal
 
                             Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                            Vector4 scaleBiasRT = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+                            Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (!display.sRGB || blitParam.srcTex.sRGB) ? 0 : 1);
-                            mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, blitParam.srcTex);
-                            mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
-                            mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._BlitTexArraySlice, blitParam.srcTexArraySlice);
+                            mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
+                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
+                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                            mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
                             cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, shaderPass, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
@@ -396,10 +393,12 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt != null && rt.sRGB) ? 0 : 1);
-                    mirrorViewMaterialProperty.SetTexture(XRShaderIDs._BlitTexture, testRenderTexture);
-                    mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBias, scaleBias);
-                    mirrorViewMaterialProperty.SetVector(XRShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._BlitTexArraySlice, 1);
+                    mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
+
+                    // Copy result from the second slice
+                    mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);
 
                     cmd.DrawProcedural(Matrix4x4.identity, mirrorViewMaterial, 1, MeshTopology.Quads, 4, 1, mirrorViewMaterialProperty);
                 }

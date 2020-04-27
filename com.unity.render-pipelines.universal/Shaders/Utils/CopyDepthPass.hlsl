@@ -13,20 +13,19 @@
     #define MSAA_SAMPLES 1
 #endif
 
-half4 _ScaleBiasRT;
+half4 _ScaleBiasRt;
 
 struct Attributes
 {
-    float4 positionHCS   : POSITION;
+    float4 positionHCS  : POSITION;
     float2 uv           : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings
 {
-    float4 positionCS   : SV_POSITION;
-    float2 uv           : TEXCOORD0;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+    float4 positionCS : SV_POSITION;
+    float2 uv         : TEXCOORD0;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -34,7 +33,6 @@ Varyings vert(Attributes input)
 {
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
     output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
@@ -53,7 +51,7 @@ Varyings vert(Attributes input)
     // If URP is NOT rendering to RT neither rendering with OpenGL:
     //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
     output.positionCS = float4(input.positionHCS.xyz, 1.0);
-    output.positionCS.y *= _ScaleBiasRT.x;
+    output.positionCS.y *= _ScaleBiasRt.x;
     return output;
 }
 

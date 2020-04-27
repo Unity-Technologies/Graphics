@@ -47,7 +47,7 @@ struct VaryingsEdge
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsEdge VertEdge(Attributes input)
+VaryingsEdge VertEdge(FullscreenAttributes input)
 {
     VaryingsEdge output;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -80,7 +80,7 @@ struct VaryingsBlend
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsBlend VertBlend(Attributes input)
+VaryingsBlend VertBlend(FullscreenAttributes input)
 {
     VaryingsBlend output;
     UNITY_SETUP_INSTANCE_ID(input);
@@ -112,7 +112,7 @@ struct VaryingsNeighbor
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-VaryingsNeighbor VertNeighbor(Attributes input)
+VaryingsNeighbor VertNeighbor(FullscreenAttributes input)
 {
     VaryingsNeighbor output;
     UNITY_SETUP_INSTANCE_ID(input);

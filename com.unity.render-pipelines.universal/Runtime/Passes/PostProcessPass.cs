@@ -234,41 +234,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        private void Blit(CommandBuffer cmd,
-            RenderTargetIdentifier source,
-            RenderTargetIdentifier destination,
-            RenderBufferLoadAction colorLoadAction,
-            RenderBufferStoreAction colorStoreAction,
-            RenderBufferLoadAction depthLoadAction,
-            RenderBufferStoreAction depthStoreAction,
-            Material material,
-            MaterialPropertyBlock materialProperty,
-            int passIndex = 0)
-        {
-            cmd.SetGlobalTexture(ShaderConstants._InputTex, source);
-            if (m_UseDrawProcedural)
-            {
-                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
-                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                materialProperty.SetVector(ShaderConstants._InputTexScaleBias, scaleBias);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, materialProperty);
-            }
-            else
-            {
-                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
-            }
-        }
-
         // TODO: deprecate this version in favor of the above with load/store actions
         private new void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
         {
-            cmd.SetGlobalTexture(ShaderConstants._InputTex, source);
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
             if (m_UseDrawProcedural)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderConstants._InputTexScaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
@@ -285,7 +258,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (m_UseDrawProcedural)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderConstants._InputTexScaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
@@ -337,10 +310,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.StopNaNs)))
                 {
-                    Blit(cmd, GetSource(), GetDestination(),
+                    RenderingUtils.Blit(
+                        cmd, GetSource(), GetDestination(), m_Materials.stopNaN, 0, m_UseDrawProcedural,
                         RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare,
-                        m_Materials.stopNaN, m_Materials.stopNaNMaterialProperty);
+                        RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                     Swap();
                 }
@@ -420,7 +393,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
                 // Done with Uber, blit it
-                cmd.SetGlobalTexture(ShaderConstants._InputTex, GetSource());
+                cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
 
                 var colorLoadAction = RenderBufferLoadAction.DontCare;
                 if (m_Destination == RenderTargetHandle.CameraTarget && !cameraData.isDefaultViewport)
@@ -447,9 +420,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 2) renderTexture starts UV at top
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
                     Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    m_Materials.uberMaterialProperty.SetVector(ShaderConstants._InputTexScaleBias, scaleBias);
-
-                    cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, m_Materials.uberMaterialProperty);
+                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
 
                     // TODO: We need a proper camera texture swap chain in URP.
                     // For now, when render post-processing in the middle of the camera stack (not resolving to screen)
@@ -457,12 +429,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.blitTex, cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source.id, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
                         scaleBias = new Vector4(1, 1, 0, 0); ;
-                        cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
+                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                         cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
                     }
                 }
@@ -483,7 +455,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // in the pipeline to avoid this extra blit.
                     if (!finishPostProcessOnScreen)
                     {
-                        cmd.SetGlobalTexture(ShaderPropertyId.blitTex, cameraTarget);
+                        cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, cameraTarget);
                         cmd.SetRenderTarget(m_Source.id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
                         cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_BlitMaterial);
                     }
@@ -936,7 +908,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 int highMip = ShaderConstants._BloomMipDown[i];
                 int dst = ShaderConstants._BloomMipUp[i];
 
-                cmd.SetGlobalTexture(ShaderConstants._MainTexLowMip, lowMip);
+                cmd.SetGlobalTexture(ShaderConstants._SourceTexLowMip, lowMip);
                 Blit(cmd, highMip, BlitDstDiscardContent(cmd, dst), bloomMaterial, 3);
             }
 
@@ -1150,7 +1122,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            cmd.SetGlobalTexture(ShaderConstants._InputTex, m_Source.Identifier());
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -1172,7 +1144,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmd.SetGlobalVector(ShaderConstants._InputTexScaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
             else
@@ -1205,9 +1177,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material bloom;
             public readonly Material uber;
             public readonly Material finalPass;
-
-            public MaterialPropertyBlock stopNaNMaterialProperty = new MaterialPropertyBlock();
-            public MaterialPropertyBlock uberMaterialProperty = new MaterialPropertyBlock();
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1276,7 +1245,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             public static readonly int _ColorTexture       = Shader.PropertyToID("_ColorTexture");
             public static readonly int _Params             = Shader.PropertyToID("_Params");
-            public static readonly int _MainTexLowMip      = Shader.PropertyToID("_MainTexLowMip");
+            public static readonly int _SourceTexLowMip    = Shader.PropertyToID("_SourceTexLowMip");
             public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");
             public static readonly int _Bloom_RGBM         = Shader.PropertyToID("_Bloom_RGBM");
             public static readonly int _Bloom_Texture      = Shader.PropertyToID("_Bloom_Texture");
@@ -1294,8 +1263,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
-            public static readonly int _InputTex           = Shader.PropertyToID("_InputTex");
-            public static readonly int _InputTexScaleBias  = Shader.PropertyToID("_InputTexScaleBias");
 
             public static int[] _BloomMipUp;
             public static int[] _BloomMipDown;

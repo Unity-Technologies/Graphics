@@ -210,9 +210,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int worldToCameraMatrix = Shader.PropertyToID("unity_WorldToCamera");
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
-        public static readonly int blitTex = Shader.PropertyToID("_BlitTex");
-        public static readonly int blitScaleBias = Shader.PropertyToID("_BlitScaleBias");
-        public static readonly int blitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
+        public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
+        public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
+        public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
     }
 
     public struct PostProcessingData

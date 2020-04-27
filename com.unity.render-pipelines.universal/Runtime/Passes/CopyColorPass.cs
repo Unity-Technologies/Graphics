@@ -81,17 +81,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             switch (m_DownsamplingMethod)
             {
                 case Downsampling.None:
-                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, null, useDrawProceduleBlit);
+                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                     break;
                 case Downsampling._2xBilinear:
-                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0 , null, useDrawProceduleBlit);
+                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                     break;
                 case Downsampling._4xBox:
                     m_SamplingMaterial.SetFloat(m_SampleOffsetShaderHandle, 2);
-                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_SamplingMaterial, 0, null, useDrawProceduleBlit);
+                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_SamplingMaterial, 0, useDrawProceduleBlit);
                     break;
                 case Downsampling._4xBilinear:
-                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, null, useDrawProceduleBlit);
+                    RenderingUtils.Blit(cmd, source, opaqueColorRT, m_CopyColorMaterial, 0, useDrawProceduleBlit);
                     break;
             }
 

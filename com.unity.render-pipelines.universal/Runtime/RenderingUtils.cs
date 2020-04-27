@@ -185,23 +185,22 @@ namespace UnityEngine.Rendering.Universal
             RenderTargetIdentifier destination,
             Material material,
             int passIndex = 0,
-            MaterialPropertyBlock materialProperty = null,
-            bool useDrawProcedure = false,
+            bool useDrawProcedural = false,
             RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
             RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
             RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
             RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
         {
-            cmd.SetGlobalTexture(ShaderPropertyId.blitTex, source);
-            if (useDrawProcedure)
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            if (useDrawProcedural)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBias, scaleBias);
-                cmd.SetGlobalVector(ShaderPropertyId.blitScaleBiasRt, scaleBiasRT);
+                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
-                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, materialProperty);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
             {
@@ -210,7 +209,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // This is used to render materials that contain built-in shader passes not compatible with URP. 
+        // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
@@ -220,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
             // Proper fix is to add a fence on asset import.
             if (errorMaterial == null)
                 return;
-            
+
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
             {
