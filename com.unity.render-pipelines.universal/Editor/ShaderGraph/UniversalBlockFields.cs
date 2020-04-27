@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     static class UniversalBlockFields
     {
-        [GenerateBlocks]
+        [GenerateBlocks("Universal Render Pipeline")]
         public struct SurfaceDescription
         {
             public static string name = "SurfaceDescription";

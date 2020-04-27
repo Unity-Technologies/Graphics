@@ -373,12 +373,15 @@ namespace UnityEditor.ShaderGraph
                     if (attrs == null || attrs.Length <= 0)
                         continue;
 
+                    var attribute = attrs[0] as GenerateBlocksAttribute;
+
                     // Get all fields that are BlockFieldDescriptor
                     // If field and context stages match add to list
                     foreach (var fieldInfo in nestedType.GetFields())
                     {
                         if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
                         {
+                            blockFieldDescriptor.path = attribute.path;
                             m_BlockFieldDescriptors.Add(blockFieldDescriptor);
                         }
                     }

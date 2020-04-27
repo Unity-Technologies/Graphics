@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     internal static class HDBlockFields
     {
-        [GenerateBlocks]
+        [GenerateBlocks("High Definition Render Pipeline")]
         public struct SurfaceDescription
         {
             public static string name = "SurfaceDescription";

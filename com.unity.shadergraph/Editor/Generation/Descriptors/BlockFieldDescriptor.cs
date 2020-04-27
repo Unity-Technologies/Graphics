@@ -7,6 +7,8 @@
         public ShaderStage shaderStage { get; }
         public bool isHidden { get; }
 
+        internal string path { get; set; }
+
         public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false)
             : base (tag, referenceName, define)
         {
