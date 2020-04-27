@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
         public static FieldDescriptor TransparentWritesMotionVec = new FieldDescriptor(string.Empty, "TransparentWritesMotionVec", "_WRITE_TRANSPARENT_MOTION_VECTOR 1");
-        public static FieldDescriptor HairStrandDirection =     new FieldDescriptor(string.Empty, "DepthOffset", "_HAIR_STRAND_DIRECTION 1");
+        public static FieldDescriptor HairStrandDirection =     new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
         public static FieldDescriptor Transmittance =           new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
         public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
         public static FieldDescriptor UseLightFacingNormal =    new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
