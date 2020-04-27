@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    static class CreateDecalShaderGraph
+    static class CreateLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Decal Shader Graph", false, 208)]
-        public static void CreateDecalGraph()
+        [MenuItem("Assets/Create/Shader/HDRP/Lit Shader Graph", false, 208)]
+        public static void CreateLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDDecalSubTarget));
+            target.TrySetActiveSubTarget(typeof(HDLitSubTarget));
 
             var blockDescriptors = new [] 
             { 
@@ -17,14 +17,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.NormalAlpha,
+                HDBlockFields.SurfaceDescription.BentNormal,
+                HDBlockFields.SurfaceDescription.CoatMask,
                 BlockFields.SurfaceDescription.Metallic,
-                BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Smoothness,
-                HDBlockFields.SurfaceDescription.MAOSAlpha,
                 BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);

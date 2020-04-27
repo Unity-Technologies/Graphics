@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode == null)
             {
-                m_Targets = m_GraphData.validTargets.ToArray();
+                m_Targets = m_GraphData.activeTargets.ToArray();
             }
             else
             {

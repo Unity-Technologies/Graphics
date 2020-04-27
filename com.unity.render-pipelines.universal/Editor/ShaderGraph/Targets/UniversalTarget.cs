@@ -234,6 +234,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
         }
 
+        public bool TrySetActiveSubTarget(Type subTargetType)
+        {
+            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+                return false;
+            
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(subTarget.GetType().Equals(subTargetType))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // TODO: Remove this
 #region Serialization
         public void OnBeforeSerialize()

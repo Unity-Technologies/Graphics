@@ -212,6 +212,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return null;
         }
 
+        public bool TrySetActiveSubTarget(Type subTargetType)
+        {
+            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+                return false;
+            
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(subTarget.GetType().Equals(subTargetType))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    ProcessSubTargetDatas();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         void ProcessSubTargetDatas()
         {
             var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();

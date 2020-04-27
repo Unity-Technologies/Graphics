@@ -105,15 +105,23 @@ namespace UnityEditor.ShaderGraph
         Target[] m_Targets;
         public Target[] targets
         {
-            get { return m_Targets; }
-            set { m_Targets = value; }
+            get => m_Targets;
+            set => m_Targets = value;
+        }
+
+        BlockFieldDescriptor[] m_Blocks;
+        public BlockFieldDescriptor[] blocks
+        {
+            get => m_Blocks;
+            set => m_Blocks = value;
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
             graph.AddContexts();
-            graph.AddTargets(m_Targets);
+            graph.InitializeOutputs(m_Targets, m_Blocks);
+            
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -151,10 +159,11 @@ namespace UnityEditor.ShaderGraph
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
-        public static void CreateNewGraphWithTargets(Target[] targets)
+        public static void CreateNewGraphWithOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
             graphItem.targets = targets;
+            graphItem.blocks = blockDescriptors;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }

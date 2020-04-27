@@ -334,7 +334,7 @@ namespace UnityEditor.ShaderGraph
             GetTargets();
         }
 
-        public void AddTargets(Target[] targets)
+        public void InitializeOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
             if(targets == null)
                 return;
@@ -346,6 +346,20 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveTargets.Add(target);
                 }
             }
+
+            if(blockDescriptors != null)
+            {
+                foreach(var descriptor in blockDescriptors)
+                {
+                    var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                    var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    block.Init(descriptor);
+                    AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+                }
+            }
+
+            ValidateGraph();
+            UpdateActiveBlocks();
         }
 
         void GetBlockFieldDescriptors()

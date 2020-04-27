@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Unlit
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              systemData.surfaceType == SurfaceType.Transparent || systemData.alphaTest);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
             context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
 

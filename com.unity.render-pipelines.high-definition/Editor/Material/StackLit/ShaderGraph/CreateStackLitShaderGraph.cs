@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    static class CreateDecalShaderGraph
+    static class CreateStackLitShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Decal Shader Graph", false, 208)]
-        public static void CreateDecalGraph()
+        [MenuItem("Assets/Create/Shader/HDRP/StackLit Shader Graph", false, 208)]
+        public static void CreateStackLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDDecalSubTarget));
+            target.TrySetActiveSubTarget(typeof(HDStackLitSubTarget));
 
             var blockDescriptors = new [] 
             { 
@@ -17,14 +17,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.NormalAlpha,
+                HDBlockFields.SurfaceDescription.BentNormal,
+                HDBlockFields.SurfaceDescription.Tangent,
                 BlockFields.SurfaceDescription.Metallic,
-                BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Smoothness,
-                HDBlockFields.SurfaceDescription.MAOSAlpha,
+                HDBlockFields.SurfaceDescription.DielectricIor,
+                HDBlockFields.SurfaceDescription.SmoothnessA,
                 BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Occlusion,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);

@@ -1,15 +1,15 @@
-using System;
+﻿using System;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    static class CreateDecalShaderGraph
+    static class CreateEyeShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HDRP/Decal Shader Graph", false, 208)]
-        public static void CreateDecalGraph()
+        [MenuItem("Assets/Create/Shader/HDRP/Eye Shader Graph (Experimental)", false, 208)]
+        public static void CreateEyeGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDDecalSubTarget));
+            target.TrySetActiveSubTarget(typeof(HDEyeSubTarget));
 
             var blockDescriptors = new [] 
             { 
@@ -17,14 +17,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.NormalTS,
-                HDBlockFields.SurfaceDescription.NormalAlpha,
-                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.NormalTS, 
+                HDBlockFields.SurfaceDescription.IrisNormal, 
+                HDBlockFields.SurfaceDescription.BentNormal,
+                BlockFields.SurfaceDescription.Smoothness, 
+                HDBlockFields.SurfaceDescription.IOR,
                 BlockFields.SurfaceDescription.Occlusion,
-                BlockFields.SurfaceDescription.Smoothness,
-                HDBlockFields.SurfaceDescription.MAOSAlpha,
+                HDBlockFields.SurfaceDescription.Mask,
                 BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Alpha,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new [] {target}, blockDescriptors);
