@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = ppcOffscreenRTSize != Vector2Int.zero;
             bool postProcessEnabled = renderingData.cameraData.postProcessEnabled;
             bool useOffscreenColorTexture =
-                ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || renderingData.cameraData.isSceneViewCamera || !cameraData.isDefaultViewport || !m_UseDepthStencilBuffer;
+                ppcUsesOffscreenRT || postProcessEnabled || cameraData.isHdrEnabled || cameraData.isSceneViewCamera || !cameraData.isDefaultViewport || !m_UseDepthStencilBuffer;
 
             // Pixel Perfect Camera may request a different RT size than camera VP size.
             // In that case we need to modify cameraTargetDescriptor here so that all the passes would use the same size.
