@@ -382,10 +382,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.Tangent);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SmoothnessA);
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AnisotropyA,          stackLitData.anisotropy);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       lightingData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            lightingData.transmission);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || lightingData.transmission);
@@ -1008,12 +1008,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDBlockFields.SurfaceDescription.DielectricIor,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Emission,
-                HDBlockFields.SurfaceDescription.SmoothnessA,
+                BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.SmoothnessB,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
-                HDBlockFields.SurfaceDescription.AnisotropyA,
+                HDBlockFields.SurfaceDescription.Anisotropy,
                 HDBlockFields.SurfaceDescription.AnisotropyB,
                 HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
                 HDBlockFields.SurfaceDescription.SpecularAAThreshold,
@@ -1053,7 +1053,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.NormalTS,
                 BlockFields.SurfaceDescription.NormalWS,
                 HDBlockFields.SurfaceDescription.LobeMix,
-                HDBlockFields.SurfaceDescription.SmoothnessA,
+                BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.SmoothnessB,
                 // StackLitMasterNode.geometricSpecularAA
                 HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
@@ -1088,12 +1088,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDBlockFields.SurfaceDescription.DielectricIor,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Emission,
-                HDBlockFields.SurfaceDescription.SmoothnessA,
+                BlockFields.SurfaceDescription.Smoothness,
                 HDBlockFields.SurfaceDescription.SmoothnessB,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
-                HDBlockFields.SurfaceDescription.AnisotropyA,
+                HDBlockFields.SurfaceDescription.Anisotropy,
                 HDBlockFields.SurfaceDescription.AnisotropyB,
                 HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
                 HDBlockFields.SurfaceDescription.SpecularAAThreshold,

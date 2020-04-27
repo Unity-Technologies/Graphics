@@ -312,7 +312,7 @@ Pass
         $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;
         $SurfaceDescription.DielectricIor:             surfaceData.dielectricIor =            surfaceDescription.DielectricIor;
         $SurfaceDescription.Metallic:                  surfaceData.metallic =                 surfaceDescription.Metallic;
-        $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
+        $SurfaceDescription.Smoothness:                surfaceData.perceptualSmoothnessA =    surfaceDescription.Smoothness;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
         $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
         //TODO: if custom external values are wanted, we would ideally need one SO value per lobe.
@@ -321,7 +321,7 @@ Pass
         $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
         $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
 
-        $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
+        $SurfaceDescription.Anisotropy:                surfaceData.anisotropyA =              surfaceDescription.Anisotropy;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
         $SurfaceDescription.CoatMask:                  surfaceData.coatMask =                 surfaceDescription.CoatMask;

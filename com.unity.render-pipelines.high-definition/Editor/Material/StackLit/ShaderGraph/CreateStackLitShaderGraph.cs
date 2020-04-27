@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDBlockFields.SurfaceDescription.Tangent,
                 BlockFields.SurfaceDescription.Metallic,
                 HDBlockFields.SurfaceDescription.DielectricIor,
-                HDBlockFields.SurfaceDescription.SmoothnessA,
+                BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,

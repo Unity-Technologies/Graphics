@@ -112,14 +112,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
             public static BlockFieldDescriptor DielectricIor = new BlockFieldDescriptor(SurfaceDescription.name, "DielectricIor", "Dielectric IOR", "SURFACEDESCRIPTION_DIELECTRICIOR", 
                 new FloatControl(1.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor SmoothnessA = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessA", "Smoothness A", "SURFACEDESCRIPTION_SMOOTHNESSA", 
-                new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SmoothnessB = new BlockFieldDescriptor(SurfaceDescription.name, "SmoothnessB", "Smoothness B", "SURFACEDESCRIPTION_SMOOTHNESSB", 
                 new FloatControl(0.5f), ShaderStage.Fragment);
             public static BlockFieldDescriptor LobeMix = new BlockFieldDescriptor(SurfaceDescription.name, "LobeMix", "Lobe Mix", "SURFACEDESCRIPTION_LOBEMIX", 
                 new FloatControl(0.3f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor AnisotropyA = new BlockFieldDescriptor(SurfaceDescription.name, "AnisotropyA", "Anisotropy A", "SURFACEDESCRIPTION_ANISOTROPYA", 
-                new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor AnisotropyB = new BlockFieldDescriptor(SurfaceDescription.name, "AnisotropyB", "Anisotropy B", "SURFACEDESCRIPTION_ANISOTROPYB", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SOFixupVisibilityRatioThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "SOFixupVisibilityRatioThreshold", "SO Fixup Visibility Ratio Threshold", "SURFACEDESCRIPTION_SOFIXUPVISIBILITYRATIOTHRESHOLD", 
