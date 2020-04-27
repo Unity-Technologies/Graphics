@@ -185,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                // XRTODO: remove this XR special case once URP handles msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
+                // URP can't handle msaa/size mismatch between depth RT and color RT(for now we create intermediate depth to ensure they match)
                 createDepthTexture |= createColorTexture && cameraTargetDescriptor.msaaSamples != cameraData.xr.renderTargetDesc.msaaSamples;
             }
 #endif

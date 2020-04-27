@@ -338,17 +338,6 @@ namespace UnityEngine.Rendering.Universal
                     if (baseCameraData.isHdrEnabled)
                     {
                         baseCameraData.cameraTargetDescriptor.graphicsFormat = originalTargetDesc.graphicsFormat;
-
-                        // UWP platform has d3d debug layer bug around DiscardContent(runtime com error in debug). Release build works fine.
-                        // For some unkown reason, B10G11R11 triggered the bug, we added workaround here for UWPPlaer. 
-                        // See: https://fogbugz.unity3d.com/f/cases/898680/
-                        // See: https://fogbugz.unity3d.com/f/cases/900564/
-                        // See: https://issuetracker.unity3d.com/issues/wsa-unity-fails-to-create-a-shader-resource-when-linear-space-mode
-                        // XRTODO: previous issues all marked as resolved by telling users to use release build. Maybe we should remove this workaround and do the same??
-                        if (Application.platform == RuntimePlatform.WSAPlayerX86 ||
-                            Application.platform == RuntimePlatform.WSAPlayerX64 ||
-                            Application.platform == RuntimePlatform.WSAPlayerARM )
-                            baseCameraData.cameraTargetDescriptor.graphicsFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
                     }
                     baseCameraData.cameraTargetDescriptor.msaaSamples = originalTargetDesc.msaaSamples;
                 }
