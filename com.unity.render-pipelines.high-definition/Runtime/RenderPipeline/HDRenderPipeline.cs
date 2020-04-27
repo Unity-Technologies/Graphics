@@ -1059,6 +1059,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
                 }
+                else
+                {
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, 0);
+                }
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
         }
