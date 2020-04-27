@@ -53,7 +53,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
-    float4 _DistortionParam; // x time, y amplitude, zw rotation (cosPhi and sinPhi)
     float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
     float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
     float4 _BackplateParameters1; // x: BackplateType, y: BlendAmount, zw: backplate rotation (cosPhi_plate, sinPhi_plate)
@@ -61,7 +60,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 _BackplateShadowTint;  // xyz: ShadowTint
     uint   _BackplateShadowFilter;
 
-    float4 _FlowmapParam; // x upper hemisphere only, y scroll speed, zw scroll direction (cosPhi and sinPhi)
+    float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
     
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
