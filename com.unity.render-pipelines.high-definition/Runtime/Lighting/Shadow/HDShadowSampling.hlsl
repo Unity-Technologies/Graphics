@@ -68,7 +68,7 @@ real SampleShadow_PCF_Tent_5x5(float4 shadowAtlasSize, float3 coord, Texture2D t
 #else
     for (int i = 0; i < 9; i++)
     {
-        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, real3(fetchesUV[i].xy, coord.z), slice).x;
+        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, real3(fetchesUV[i].xy, coord.z)).x;
     }
 #endif
 
@@ -128,7 +128,7 @@ real SampleShadow_PCF_Tent_7x7(float4 shadowAtlasSize, float3 coord, Texture2D t
 #else
     for(int i = 0; i < 16; i++)
     {
-        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, real3(fetchesUV[i].xy, coord.z).x;
+        shadow += fetchesWeights[i] * SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, real3(fetchesUV[i].xy, coord.z)).x;
     }
 #endif
 
