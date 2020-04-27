@@ -61,3 +61,51 @@ HDRP_Linux_Vulkan_editmode_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
+HDRP_Linux_Vulkan_Standalone_2020.1:
+    name: HDRP on Linux_Vulkan_Standalone on version 2020.1
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
+         rerun: on-new-revision
+      -  path: .yamato/hdrp/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Player_2020.1
+         rerun: on-new-revision
+    commands:
+      -  sudo -H pip install --upgrade pip
+      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_HDRP_Linux_Vulkan_Player_2020.1:
+    name: Build HDRP on Linux_Vulkan_Player on version 2020.1
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
+         rerun: on-new-revision
+    commands:
+      -  sudo -H pip install --upgrade pip
+      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"

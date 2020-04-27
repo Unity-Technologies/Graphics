@@ -94,3 +94,62 @@ HDRP_OSX_Metal_editmode_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
+HDRP_OSX_Metal_Standalone_2020.1:
+    name: HDRP on OSX_Metal_Standalone on version 2020.1
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+      -  path: .yamato/hdrp/hdrp-osx-metal.yml#Build_HDRP_OSX_Metal_Player_2020.1
+         rerun: on-new-revision
+    commands:
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr
+      -  chmod +x ./utr
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r ../Graphics/ bokken@$BOKKEN_DEVICE_IP:~/Graphics
+      -  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
+      -  |5-
+
+                 export GIT_BRANCH=$GIT_BRANCH
+                 export GIT_REVISION=$GIT_REVISION
+                 export YAMATO_JOB_ID=$YAMATO_JOB_ID
+                 export YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME
+                 export YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID
+                 ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP -T "./utr --suite=playmode --platform=StandaloneOSX --player-load-path=~/Graphics/build/players --artifacts_path=~/Graphics/build/test-results --player-connection-ip=127.0.0.1"
+                 
+                 UTR_RESULT=$?
+                 mkdir -p build/test-results/
+                 scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:~/Graphics/build/test-results/ build/test-results/
+                 exit $UTR_RESULT
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_HDRP_OSX_Metal_Player_2020.1:
+    name: Build HDRP on OSX_Metal_Player on version 2020.1
+    agent:
+        type: Unity::metal::macmini
+        image: slough-ops/macos-10.14-xcode:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/HDRP_Tests && utr/utr --suite=playmode --platform=StandaloneOSX --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildOSXMetal" --testproject=. --editor-location=.Editor --artifacts_path=build-results --timeout=3600 --player-save-path=../../build/players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"

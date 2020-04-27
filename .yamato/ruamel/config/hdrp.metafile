@@ -19,6 +19,8 @@ test_platforms:
     args: --suite=playmode --extra-editor-arg="-xr-tests"
   - name: editmode
     args: --suite=editor --platform=editmode
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
 platforms:
   - name: Win
     os: windows
