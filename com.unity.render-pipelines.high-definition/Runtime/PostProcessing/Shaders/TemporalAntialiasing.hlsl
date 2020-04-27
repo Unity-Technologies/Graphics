@@ -526,7 +526,7 @@ void MinMaxNeighbourhood(inout NeighbourhoodSamples samples)
     samples.avgNeighbour *= rcp(NEIGHBOUR_COUNT);
 }
 
-void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
+void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams)
 {
     CTYPE moment1 = 0;
     CTYPE moment2 = 0;
@@ -554,19 +554,18 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
 #if ANTI_FLICKER
     stDevMultiplier = 1.4;
     float temporalContrast = saturate(abs(colorLuma - historyLuma) / Max3(0.2, colorLuma, historyLuma));
-    stDevMultiplier += lerp(0.0, antiFlicker, smoothstep(0.1, 0.7, temporalContrast));
+    stDevMultiplier += lerp(0.0, antiFlickerParams.x, smoothstep(0.05, antiFlickerParams.y, temporalContrast));
 #endif
-
-    samples.minNeighbour = moment1 - stDevMultiplier * stdDev;
-    samples.maxNeighbour = moment1 + stDevMultiplier * stdDev;
+    samples.minNeighbour = moment1 - stdDev * stDevMultiplier;
+    samples.maxNeighbour = moment1 + stdDev * stDevMultiplier;
 }
 
-void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float antiFlicker)
+void GetNeighbourhoodCorners(inout NeighbourhoodSamples samples, float historyLuma, float colorLuma, float2 antiFlickerParams)
 {
 #if NEIGHBOUROOD_CORNER_METHOD == MINMAX
     MinMaxNeighbourhood(samples);
 #else
-    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlicker);
+    VarianceNeighbourhood(samples, historyLuma, colorLuma, antiFlickerParams);
 #endif
 }
 

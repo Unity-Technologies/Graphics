@@ -326,10 +326,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Inject the ray-tracing sampling data
                         m_BlueNoise.BindDitheredRNGData8SPP(cmd);
 
-                        // Compute the current frame index
-                        int frameIndex = RayTracingFrameIndex(hdCamera);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
-
                         // Inject the ray generation data
                         RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                         cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
@@ -345,7 +341,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             // Bind the light & sampling data
                             cmd.SetComputeBufferParam(m_ScreenSpaceShadowsCS, m_RaytracingDirectionalShadowSample, HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-                            cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._DirectionalShadowIndex, m_CurrentShadowSortedSunLightIndex);
                             cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                             cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, m_CurrentSunLightAdditionalLightData.numRayTracingSamples);
 
@@ -414,7 +409,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         #endif
                                 // We need to check if something invalidated the history buffers
                                 historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
-                        
+
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
                             temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer0, shadowHistoryArray,
@@ -541,8 +536,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeMatrixParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingAreaWorldToLocal, m_WorldToLocalArea);
                 cmd.SetComputeIntParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingTargetAreaLight, lightIndex);
                 cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
-                int frameIndex = RayTracingFrameIndex(hdCamera);
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                 // Bind the input buffers
                 cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_AreaRaytracingAreaShadowPrepassKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
@@ -664,10 +657,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMask, m_ShadowChannelMask0);
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMaskSn, m_ShadowChannelMask1);
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMaskUn, m_ShadowChannelMask2);
-
-                    // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-                    var historyScale = new Vector2(hdCamera.actualWidth / (float)shadowHistoryArray.rt.width, hdCamera.actualHeight / (float)shadowHistoryArray.rt.height);
-                    cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._RTHandleScaleHistory, historyScale);
 
                     float historyValidity = 1.0f;
                 #if UNITY_HDRP_DXR_TESTS_DEFINE
@@ -796,8 +785,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIdx);
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, additionalLightData.numRayTracingSamples);
                     cmd.SetComputeFloatParam(m_ScreenSpaceShadowsCS, HDShaderIDs._RaytracingLightRadius, additionalLightData.shapeRadius);
-                    int frameIndex = RayTracingFrameIndex(hdCamera);
-                    cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, frameIndex);
 
                     // If this is a spot light, inject the spot angle in radians
                     if (lightData.lightType == GPULightType.Spot)
@@ -849,7 +836,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
                             ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);
 
-                    // We need to set the history as invalid if the light has moved (rotated or translated), 
+                    // We need to set the history as invalid if the light has moved (rotated or translated),
                     float historyValidity = 1.0f;
                     if (additionalLightData.previousTransform != additionalLightData.transform.localToWorldMatrix
                         || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))

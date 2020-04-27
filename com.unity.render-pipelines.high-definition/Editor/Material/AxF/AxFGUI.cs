@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveSSR),
             new AxfSurfaceInputsUIBlock(MaterialUIBlock.Expandable.Input),
-            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, AdvancedOptionsUIBlock.Features.Instancing | AdvancedOptionsUIBlock.Features.SpecularOcclusion | AdvancedOptionsUIBlock.Features.AddPrecomputedVelocity),
         };
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -46,7 +46,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // AxF material keywords
-        static string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
+        const string kAxF_BRDFType = "_AxF_BRDFType";
+        const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
+        const string kSpecularOcclusionMode = "_SpecularOcclusionMode"; // match AdvancedOptionsUIBlock.kSpecularOcclusionMode : TODO move both to HDStringConstants.
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
@@ -54,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             material.SetupBaseUnlitKeywords();
             material.SetupBaseUnlitPass();
 
-            AxfBrdfType   BRDFType = (AxfBrdfType)material.GetFloat(m_AxF_BRDFTypeText);
+            AxfBrdfType BRDFType = (AxfBrdfType)material.GetFloat(kAxF_BRDFType);
 
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_SVBRDF", BRDFType == AxfBrdfType.SVBRDF);
             CoreUtils.SetKeyword(material, "_AXF_BRDF_TYPE_CAR_PAINT", BRDFType == AxfBrdfType.CAR_PAINT);
@@ -65,6 +67,8 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_DISABLE_DECALS", decalsEnabled == false);
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) > 0.0f);
+            CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", material.HasProperty(kSpecularOcclusionMode) && material.GetFloat(kSpecularOcclusionMode) == 0.0f);
 
             BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);
 

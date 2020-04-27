@@ -59,25 +59,6 @@ TEXTURE3D(_VolumeMaskAtlas);
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
-// TODO: avoid creating another Constant Buffer...
-CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
-
-    float    _VBufferUnitDepthTexelSpacing;
-    uint     _NumVisibleDensityVolumes;
-    float    _CornetteShanksConstant;           // Not used by this shader
-    uint     _VBufferLightingHistoryIsValid;    // Not used by this shader
-
-    float4   _VBufferSampleOffset;              // Not used by this shader
-    float4   _VolumeMaskDimensions;             // x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
-
-    // BigTile...
-    uint _NumTileBigTileX;
-    uint _NumTileBigTileY;
-    uint _EnvLightIndexShift;
-    uint _DensityVolumeIndexShift;
-CBUFFER_END
-
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------

@@ -16,9 +16,9 @@ struct LightLoopContext
     int sampleReflection;
 
     HDShadowContext shadowContext;
-    
+
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
-    real contactShadowFade;    // combined fade factor of all contact shadows 
+    real contactShadowFade;    // combined fade factor of all contact shadows
     DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
 };
 
@@ -110,11 +110,7 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 #else
             color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
 #endif
-            float3 capturedForwardWS = float3(
-                _Env2DCaptureForward[index * 3 + 0],
-                _Env2DCaptureForward[index * 3 + 1],
-                _Env2DCaptureForward[index * 3 + 2]
-            );
+            float3 capturedForwardWS = _Env2DCaptureForward[index].xyz;
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
         }
@@ -266,7 +262,7 @@ bool IsFastPath(uint lightStart, out uint lightStartLane0)
 #if SCALARIZE_LIGHT_LOOP
     // Fast path is when we all pixels in a wave are accessing same tile or cluster.
     lightStartLane0 = WaveReadLaneFirst(lightStart);
-    return WaveActiveAllTrue(lightStart == lightStartLane0); 
+    return WaveActiveAllTrue(lightStart == lightStartLane0);
 #else
     lightStartLane0 = lightStart;
     return false;
@@ -282,7 +278,7 @@ uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
 #if SCALARIZE_LIGHT_LOOP
     if (!fastPath)
     {
-        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave. 
+        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
         s_elementIdx = WaveActiveMin(v_elementIdx);
         // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
         // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
@@ -338,7 +334,7 @@ EnvLightData FetchEnvLight(uint index)
 void UnpackContactShadowData(uint contactShadowData, out float fade, out uint mask)
 {
     fade = float(contactShadowData >> 24) / 255.0;
-    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent 
+    mask = contactShadowData & 0xFFFFFF; // store only the first 24 bits which represent
 }
 
 uint PackContactShadowData(float fade, uint mask)
@@ -382,5 +378,5 @@ float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
 float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
 {
     float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
-    return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx; 
+    return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx;
 }
