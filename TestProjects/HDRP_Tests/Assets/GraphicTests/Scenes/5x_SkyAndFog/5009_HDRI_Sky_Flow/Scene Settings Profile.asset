@@ -67,15 +67,27 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 5fb993a599e7e9b4b825e1a28e6d2c07, type: 3}
+  enableDistortion:
+    m_OverrideState: 1
+    m_Value: 1
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
   flowmap:
     m_OverrideState: 1
     m_Value: {fileID: 0}
-  flowCycle:
+  upperHemisphereOnly:
     m_OverrideState: 0
     m_Value: 1
-  flowStrength:
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  scrollSpeed:
     m_OverrideState: 1
     m_Value: 0
+    min: 0
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
