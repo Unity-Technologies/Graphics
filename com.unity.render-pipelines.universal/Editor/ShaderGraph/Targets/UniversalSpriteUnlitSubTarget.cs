@@ -33,7 +33,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 

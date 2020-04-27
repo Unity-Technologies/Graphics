@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.SpriteMask);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
@@ -156,7 +156,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.SpriteMask,
+                UniversalBlockFields.SurfaceDescription.SpriteMask,
             };
 
             public static BlockFieldDescriptor[] FragmentForwardNormal = new BlockFieldDescriptor[]

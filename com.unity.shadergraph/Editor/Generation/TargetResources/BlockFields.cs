@@ -43,8 +43,6 @@ namespace UnityEditor.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor AlphaClipThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "AlphaClipThreshold", "Alpha Clip Threshold", "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLD",
                 new FloatControl(0.5f), ShaderStage.Fragment);
-            public static BlockFieldDescriptor SpriteMask = new BlockFieldDescriptor(SurfaceDescription.name, "SpriteMask", "Sprite Mask", "SURFACEDESCRIPTION_SPRITEMASK",
-                new ColorRGBAControl(new Color(1, 1, 1, 1)), ShaderStage.Fragment);
         }
     }
 }

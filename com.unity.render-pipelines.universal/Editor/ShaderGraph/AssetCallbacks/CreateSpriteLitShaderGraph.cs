@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.VertexDescription.Normal,
                 BlockFields.VertexDescription.Tangent,
                 BlockFields.SurfaceDescription.BaseColor,
-                BlockFields.SurfaceDescription.SpriteMask, 
+                UniversalBlockFields.SurfaceDescription.SpriteMask, 
                 BlockFields.SurfaceDescription.NormalTS,
                 BlockFields.SurfaceDescription.Alpha,
             };
