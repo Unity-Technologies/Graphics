@@ -101,7 +101,14 @@ namespace UnityEngine.Rendering.Universal
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
 
+        /// <summary>
+        /// True if the camera rendering is for the scene window in the editor
+        /// </summary>
         public bool isSceneViewCamera => cameraType == CameraType.SceneView;
+
+        /// <summary>
+        /// True if the camera rendering is for the preview window in the editor
+        /// </summary>
         public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         /// <summary>
