@@ -13,24 +13,26 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Cubemap used to render the HDRI sky.</summary>
         [Tooltip("Specify the cubemap HDRP uses to render the sky.")]
         public CubemapParameter         hdriSky             = new CubemapParameter(null);
-        /// <summary>Enable Flowmap to have distorsion.</summary>
-        [Tooltip("Enable or disable UV distortion.")]
+
+        /// <summary>Enable to have sky distortion.</summary>
+        [Tooltip("Enable or disable sky distortion.")]
         public BoolParameter            enableDistortion    = new BoolParameter(false);
-        /// <summary>Enable Flowmap to have distorsion.</summary>
-        [Tooltip("Enable or disable procedural distorsion.")]
+        /// <summary>Enable to have a simple, procedural distorsion.</summary>
+        [Tooltip("If enabled, the sky will be distorted by a constant wind.")]
         public BoolParameter            procedural          = new BoolParameter(true);
-        /// <summary>Cubemap used to distort the uv for the HDRI sky.</summary>
-        [Tooltip("Specify the cubemap HDRP uses for UV distortion.")]
-        public CubemapParameter         flowmap             = new CubemapParameter(null);
-        /// <summary>Rotation of the distortion.</summary>
-        [Tooltip("Sets the rotation of the distortion.")]
-        public ClampedFloatParameter    rotationDistortion  = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-        /// <summary>Time to do a full loop.</summary>
-        [Tooltip("Time in seconds to loop animation.")]
-        public FloatParameter           loopTime            = new FloatParameter(1.0f);
-        /// <summary>Multiplier for HDRI sky uv distortion.</summary>
-        [Tooltip("Amplitude of the distorsion.")]
-        public FloatParameter           amplitude           = new FloatParameter(1.0f);
+        /// <summary>Texture used to distort the uv for the HDRI sky.</summary>
+        [Tooltip("Specify the flowmap HDRP uses for sky distortion (in Latlong format).")]
+        public TextureParameter         flowmap             = new TextureParameter(null);
+        /// <summary>Enable to affect only the upper part of the sky.</summary>
+        [Tooltip("Enabled if the flowmap covers only the upper part of the sky.")]
+        public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
+        /// <summary>Direction of the wind.</summary>
+        [Tooltip("Sets the rotation of the distortion (in degrees).")]
+        public ClampedFloatParameter    scrollDirection       = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        /// <summary>Force of the wind.</summary>
+        [Tooltip("Sets the cloud movement speed. The higher the value, the faster the clouds will move.")]
+        public MinFloatParameter        scrollSpeed           = new MinFloatParameter(2.0f, 0.0f);
+
         /// <summary>Enable Backplate to have it visible.</summary>
         [Tooltip("Enable or disable the backplate.")]
         public BoolParameter            enableBackplate     = new BoolParameter(false);
@@ -84,11 +86,12 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.value.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + enableDistortion.value.GetHashCode();
+                hash = hash * 23 + enableCloudMotion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
-                hash = hash * 23 + rotationDistortion.value.GetHashCode();
-                hash = hash * 23 + loopTime.value.GetHashCode();
-                hash = hash * 23 + amplitude.value.GetHashCode();
+                hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
+                hash = hash * 23 + windDirection.value.GetHashCode();
+                hash = hash * 23 + windForce.value.GetHashCode();
+
                 hash = hash * 23 + enableBackplate.value.GetHashCode();
                 hash = hash * 23 + backplateType.value.GetHashCode();
                 hash = hash * 23 + groundLevel.value.GetHashCode();
@@ -105,11 +108,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
+                hash = hash * 23 + enableCloudMotion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
-                hash = hash * 23 + rotationDistortion.overrideState.GetHashCode();
-                hash = hash * 23 + loopTime.overrideState.GetHashCode();
-                hash = hash * 23 + amplitude.overrideState.GetHashCode();
+                hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
+                hash = hash * 23 + windDirection.overrideState.GetHashCode();
+                hash = hash * 23 + windForce.overrideState.GetHashCode();
+
                 hash = hash * 23 + enableBackplate.overrideState.GetHashCode();
                 hash = hash * 23 + backplateType.overrideState.GetHashCode();
                 hash = hash * 23 + groundLevel.overrideState.GetHashCode();
@@ -128,9 +132,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
                 hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
-                hash = hash * 23 + rotationDistortion.GetHashCode();
-                hash = hash * 23 + loopTime.GetHashCode();
-                hash = hash * 23 + amplitude.GetHashCode();
+                hash = hash * 23 + upperHemisphereOnly.GetHashCode();
+                hash = hash * 23 + scrollDirection.GetHashCode();
+                hash = hash * 23 + scrollSpeed.GetHashCode();
+
                 hash = hash * 23 + enableBackplate.GetHashCode();
                 hash = hash * 23 + backplateType.GetHashCode();
                 hash = hash * 23 + groundLevel.GetHashCode();

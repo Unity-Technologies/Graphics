@@ -10,7 +10,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-    #pragma multi_compile_local NO_DISTORTION USE_FLOWMAP PROCEDURAL
+    #pragma multi_compile_local _ SKY_MOTION
+    #pragma multi_compile_local _ USE_FLOWMAP
 
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
@@ -49,7 +50,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
     
-    TEXTURECUBE(_Flowmap);
+    TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
     float4 _DistortionParam; // x time, y amplitude, zw rotation (cosPhi and sinPhi)
@@ -60,6 +61,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 _BackplateShadowTint;  // xyz: ShadowTint
     uint   _BackplateShadowFilter;
 
+    float4 _FlowmapParam; // x upper hemisphere only, y scroll speed, zw scroll direction (cosPhi and sinPhi)
+    
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -82,9 +85,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define _OffsetTex          _BackplateParameters2.zw
     #define _ShadowTint         _BackplateShadowTint.rgb
     #define _ShadowFilter       _BackplateShadowFilter
-    #define _FlowTime           _DistortionParam.x
-    #define _FlowAmplitude      _DistortionParam.y
-    #define _FlowCosSin         _DistortionParam.zw
+    #define _UpperHemisphere    _FlowmapParam.x
+    #define _ScrollFactor       _FlowmapParam.y
+    #define _ScrollDirection    _FlowmapParam.zw
 
     struct Attributes
     {
@@ -180,49 +183,45 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
-    float2 GetFlow(float3 dir)
+    float3 GetDistordedSkyColor(float3 dir)
     {
-        dir = RotationUp(dir, _FlowCosSin);
+#if SKY_MOTION
+        if (dir.y >= 0 || !_UpperHemisphere)
+        {
+            float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
+            float3 bitangent = cross(tangent, dir);
 
+            // Compute flow factor
+            float3 windDir = RotationUp(dir, _ScrollDirection);
 #ifdef USE_FLOWMAP
-        return SAMPLE_TEXTURECUBE_LOD(_Flowmap, sampler_Flowmap, dir, 0).rg * 2.0 - 1.0;
-#elif PROCEDURAL
-        // source: https://www.gdcvault.com/play/1020146/Moving-the-Heavens-An-Artistic
-        float3 d = float3(0, 1, 0) - dir;
-        return (dir.y > 0) * normalize(d - dot(d, dir) * dir).zx;
+            float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
 #else
-        return float2(0.0, 0.0);
+            float2 flow = GenerateFlow(windDir);
 #endif
+
+            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
+
+            float2 uv1 = alpha.x * flow;
+            float2 uv2 = alpha.y * flow;
+
+            float3 dd1 = uv1.x * tangent + uv1.y * bitangent; //dd1.y = abs(dd1.y);
+            float3 dd2 = uv2.x * tangent + uv2.y * bitangent; //dd2.y = abs(dd2.y);
+
+            // Sample twice
+            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + dd1, 0).rgb;
+            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + dd2, 0).rgb;
+
+            // Blend color samples
+            return lerp(color1, color2, abs(2.0 * alpha.x));
+        }
+#endif
+
+        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
     }
 
     float3 GetSkyColor(float3 dir)
     {
-#ifdef NO_DISTORTION
-        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
-#else
-        // Compute distortion directions on the cube
-        float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
-        float3 bitangent = cross(tangent, dir);
-
-        // Compute flow factor
-        float2 flow = GetFlow(dir);
-
-        float time = _Time.y * _FlowTime;
-        float2 alpha = frac(float2(time, time + 0.5)) - 0.5;
-        float2 uv1 = alpha.x * _FlowAmplitude * flow;
-        float2 uv2 = alpha.y * _FlowAmplitude * flow;
-
-        // Sample twice
-        float3 dir1 = dir + uv1.x * tangent + uv1.y * bitangent;
-        float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir1, 0).rgb;
-
-        float3 dir2 = dir + uv2.x * tangent + uv2.y * bitangent;
-        float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir2, 0).rgb;
-
-        // Blend color samples
-        //return float3(flow*0.5+0.5, 0);
-        return lerp(color1, color2, abs(2.0 * alpha.x));
-#endif
+        return GetDistordedSkyColor(dir);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)

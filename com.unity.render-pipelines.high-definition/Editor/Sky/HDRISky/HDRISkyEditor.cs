@@ -13,12 +13,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_hdriSky;
         SerializedDataParameter m_UpperHemisphereLuxValue;
         SerializedDataParameter m_UpperHemisphereLuxColor;
-        SerializedDataParameter m_EnableDistortion;
+
+        SerializedDataParameter m_EnableCloudMotion;
         SerializedDataParameter m_Procedural;
         SerializedDataParameter m_Flowmap;
-        SerializedDataParameter m_RotationDistortion;
-        SerializedDataParameter m_LoopTime;
-        SerializedDataParameter m_Amplitude;
+        SerializedDataParameter m_UpperHemisphereOnly;
+        SerializedDataParameter m_ScrollDirection;
+        SerializedDataParameter m_ScrollSpeed;
+
         SerializedDataParameter m_EnableBackplate;
         SerializedDataParameter m_BackplateType;
         SerializedDataParameter m_GroundLevel;
@@ -52,12 +54,12 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxValue   = Unpack(o.Find(x => x.upperHemisphereLuxValue));
             m_UpperHemisphereLuxColor   = Unpack(o.Find(x => x.upperHemisphereLuxColor));
 
-            m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
+            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
             m_Procedural                = Unpack(o.Find(x => x.procedural));
             m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
-            m_RotationDistortion        = Unpack(o.Find(x => x.rotationDistortion));
-            m_LoopTime                  = Unpack(o.Find(x => x.loopTime));
-            m_Amplitude                 = Unpack(o.Find(x => x.amplitude));
+            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
+            m_ScrollSpeed               = Unpack(o.Find(x => x.scrollSpeed));
 
             m_EnableBackplate           = Unpack(o.Find(x => x.enableBackplate));
             m_BackplateType             = Unpack(o.Find(x => x.backplateType));
@@ -129,20 +131,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 updateDefaultShadowTint = true;
             }
 
-            PropertyField(m_EnableDistortion, new GUIContent("Distortion"));
-            if (m_EnableDistortion.value.boolValue)
+            PropertyField(m_EnableCloudMotion);
+            if (m_EnableCloudMotion.value.boolValue)
             {
                 EditorGUI.indentLevel++;
-                PropertyField(m_Procedural, new GUIContent("Procedural"));
+
+                PropertyField(m_Procedural, new GUIContent("Procedural distortion"));
                 if (!m_Procedural.value.boolValue)
                 {
                     EditorGUI.indentLevel++;
                     PropertyField(m_Flowmap);
+                    PropertyField(m_UpperHemisphereOnly);
                     EditorGUI.indentLevel--;
                 }
-                PropertyField(m_RotationDistortion, new GUIContent("Distortion Rotation"));
-                PropertyField(m_LoopTime);
-                PropertyField(m_Amplitude);
+
+                PropertyField(m_ScrollDirection);
+                PropertyField(m_ScrollSpeed);
                 EditorGUI.indentLevel--;
             }
             base.CommonSkySettingsGUI();

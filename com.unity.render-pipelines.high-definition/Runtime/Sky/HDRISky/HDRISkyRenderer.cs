@@ -5,6 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_SkyHDRIMaterial; // Renders a cubemap into a render texture (can be cube or 2D)
         MaterialPropertyBlock m_PropertyBlock = new MaterialPropertyBlock();
 
+        float scrollFactor = 0.0f, lastTime = 0.0f;
+
         private static int m_RenderCubemapID                                = 0; // FragBaking
         private static int m_RenderFullscreenSkyID                          = 1; // FragRender
         private static int m_RenderCubemapWithBackplateID                   = 2; // FragBakingBackplate
@@ -131,24 +133,25 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (hdriSky.enableDistortion.value == true)
             {
-                m_SkyHDRIMaterial.DisableKeyword("NO_DISTORTION");
-                if (hdriSky.procedural.value == true)
+                m_SkyHDRIMaterial.EnableKeyword("SKY_MOTION");
+                if (hdriSky.procedural.value == false)
                 {
-                    m_SkyHDRIMaterial.EnableKeyword("PROCEDURAL");
-                    m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
-                }
-                else
-                {
-                    m_SkyHDRIMaterial.DisableKeyword("PROCEDURAL");
                     m_SkyHDRIMaterial.EnableKeyword("USE_FLOWMAP");
                     m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Flowmap, hdriSky.flowmap.value);
                 }
-                float rot = -Mathf.Deg2Rad*hdriSky.rotationDistortion.value;
-                Vector4 distortion = new Vector4(0.5f / hdriSky.loopTime.value, hdriSky.amplitude.value, Mathf.Cos(rot), Mathf.Sin(rot));
-                m_SkyHDRIMaterial.SetVector(HDShaderIDs._DistortionParam, distortion);
+                else
+                    m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
+
+                float rot = -Mathf.Deg2Rad*hdriSky.scrollDirection.value;
+                Vector4 flowmapParam = new Vector4(hdriSky.upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+
+                m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
+
+                scrollFactor += hdriSky.scrollSpeed.value * (Time.time - lastTime) * 0.01f;
+                lastTime = Time.time;
             }
             else
-                m_SkyHDRIMaterial.EnableKeyword("NO_DISTORTION");
+                m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
