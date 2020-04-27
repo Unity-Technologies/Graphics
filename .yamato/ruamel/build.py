@@ -186,7 +186,7 @@ def create_template_jobs(metafile_name):
 
     dump_yml(templates_filepath(), yml)
 
-# TODO clean up the code, make filenames more readable/reuse, split things appropriately (eg editor, files, etc), fix scrip arguments, fix testplatforms (xr), ...
+
 if __name__== "__main__":
 
     # configure yaml

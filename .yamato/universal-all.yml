@@ -1,0 +1,27 @@
+All_Universal_2020.1:
+    name: All Universal CI - 2020.1
+    dependencies:
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_2020.1
+         rerun: on-new-revision

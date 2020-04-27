@@ -1,0 +1,86 @@
+VFXMain_OSX_OpenGLCore_Standalone_2020.1:
+    name: VFXMain on OSX_OpenGLCore_Standalone on version 2020.1
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+      -  path: .yamato/vfxmain-osx-openglcore.yml#Build_VFXMain_OSX_OpenGLCore_Player_2020.1
+         rerun: on-new-revision
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph && utr/utr --suite=playmode --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_VFXMain_OSX_OpenGLCore_Player_2020.1:
+    name: Build VFXMain on OSX_OpenGLCore_Player on version 2020.1
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph && utr/utr --suite=playmode --platform=StandaloneOSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+VFXMain_OSX_OpenGLCore_playmode_2020.1:
+    name: VFXMain on OSX_OpenGLCore_playmode on version 2020.1
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+VFXMain_OSX_OpenGLCore_editmode_2020.1:
+    name: VFXMain on OSX_OpenGLCore_editmode on version 2020.1
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
+         rerun: on-new-revision
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/VisualEffectGraph && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/VisualEffectGraph && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"

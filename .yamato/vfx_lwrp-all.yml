@@ -1,0 +1,7 @@
+All_VFX_LWRP_2020.1:
+    name: All VFX_LWRP CI - 2020.1
+    dependencies:
+      -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_playmode_2020.1
+         rerun: on-new-revision

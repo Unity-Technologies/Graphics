@@ -1,0 +1,9 @@
+All_Universal_Stereo_2020.1:
+    name: All Universal_Stereo CI - 2020.1
+    dependencies:
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_2020.1
+         rerun: on-new-revision
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_playmode_2020.1
+         rerun: on-new-revision

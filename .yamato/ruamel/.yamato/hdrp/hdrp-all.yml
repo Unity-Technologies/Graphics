@@ -1,9 +1,0 @@
-All_HDRP_2020.1:
-    name: All HDRP CI - 2020.1
-    dependencies:
-      -  path: .yamato/hdrp/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/hdrp/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/hdrp/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode XR_2020.1
-         rerun: on-new-revision

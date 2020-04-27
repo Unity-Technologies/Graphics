@@ -1,9 +1,0 @@
-All_VFXMain_2020.1:
-    name: All VFXMain CI - 2020.1
-    dependencies:
-      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/vfxmain/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_2020.1
-         rerun: on-new-revision
