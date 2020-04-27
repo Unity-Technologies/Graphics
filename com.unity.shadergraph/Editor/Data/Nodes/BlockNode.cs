@@ -81,29 +81,29 @@ namespace UnityEditor.ShaderGraph
             switch(descriptor.control)
             {
                 case PositionControl positionControl:
-                    AddSlot(new PositionMaterialSlot(0, descriptor.name, descriptor.name, positionControl.space, stageCapability));
+                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability));
                     break;
                 case NormalControl normalControl:
-                    AddSlot(new NormalMaterialSlot(0, descriptor.name, descriptor.name, normalControl.space, stageCapability));
+                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability));
                     break;
                 case TangentControl tangentControl:
-                    AddSlot(new TangentMaterialSlot(0, descriptor.name, descriptor.name, tangentControl.space, stageCapability));
+                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability));
                     break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
-                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
+                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
                     break;
                 case ColorRGBAControl colorRGBAControl:
-                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
+                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
                     break;
                 case FloatControl floatControl:
-                    AddSlot(new Vector1MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
+                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
                     break;
                 case Vector2Control vector2Control:
-                    AddSlot(new Vector2MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
+                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
                     break;
                 case Vector3Control vector3Control:
-                    AddSlot(new Vector3MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
+                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});

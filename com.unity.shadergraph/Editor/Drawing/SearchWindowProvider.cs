@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Create and initialize BlockNode instance then add entry
                     var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     node.Init(field);
-                    AddEntries(node, new string[]{ field.name }, nodeEntries);
+                    AddEntries(node, new string[]{ field.displayName }, nodeEntries);
                 }
 
                 currentNodeEntries = nodeEntries;
