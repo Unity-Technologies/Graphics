@@ -9,11 +9,9 @@ def defaultdict_to_dict(d):
 class YMLJob():
     
     def __init__(self):
-        self.yml = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
-        #self.yml = defaultdict(dict)
+        self.yml = defaultdict(lambda: defaultdict(lambda: defaultdict(list))) #allows to automatically treat 3rd level as list
     
     def get_yml(self):
-        #return dict(self.yml)
         return defaultdict_to_dict(self.yml)
 
     def set_name(self, name):
@@ -28,19 +26,20 @@ class YMLJob():
     def set_trigger_on_expression(self, expression): 
         self.yml['triggers']['expression'] = expression
 
-    def set_trigger_recurrent(self, branch, frequency): # TODO make it appendable
-        self.yml['triggers']['recurring'] = [{
+    def add_trigger_recurrent(self, branch, frequency):
+        existing_triggers = list(self.yml['triggers']['recurring'])
+        existing_triggers.append({
                     'branch' : branch,
-                    'frequency' : frequency}]
+                    'frequency' : frequency})
+        self.yml['triggers']['recurring'] = existing_triggers
     
-    def set_trigger_integration_branch(self, integration_branch):
+    def add_trigger_integration_branch(self, integration_branch):
         self.yml['triggers']['branches']['only'].append(integration_branch)
     
-    def add_dependencies(self, dependencies): # TODO see if can be done with the defaultdict trick, also for commands
-        if 'dependencies' in self.yml.keys():
-            self.yml['dependencies'].extend(dependencies)
-        else:
-            self.yml['dependencies'] = dependencies
+    def add_dependencies(self, dependencies):
+        existing_dep = list(self.yml['dependencies'])
+        existing_dep.extend(dependencies)
+        self.yml['dependencies'] = existing_dep
     
     def add_commands(self, commands):
         self.yml['commands'] = commands

@@ -31,7 +31,7 @@ class PreviewPublish_PublishJob():
                 f'upm-ci {package["type"]} publish --{package["type"]}-path {package["path"]}'])
         job.add_artifacts_packages()
         if auto_publish is True:
-            job.set_trigger_recurrent(integration_branch, 'daily')
+            job.add_trigger_recurrent(integration_branch, 'daily')
         return job
     
     

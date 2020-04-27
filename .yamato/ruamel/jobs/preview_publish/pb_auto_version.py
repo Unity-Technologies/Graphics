@@ -25,6 +25,6 @@ class PreviewPublish_AutoVersionJob():
                 f'upm-ci utils auto-version commit --push'])
         job.add_artifacts_packages()
         if auto_version is True:
-            job.set_trigger_integration_branch(integration_branch)
+            job.add_trigger_integration_branch(integration_branch)
         return job
     
