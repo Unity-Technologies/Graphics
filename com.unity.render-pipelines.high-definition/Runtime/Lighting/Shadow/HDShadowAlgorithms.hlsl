@@ -1,32 +1,10 @@
-// Various shadow algorithms
-// There are two variants provided, one takes the texture and sampler explicitly so they can be statically passed in.
-// The variant without resource parameters dynamically accesses the texture when sampling.
-
-// WARNINGS:
-// Keep in sync with HDShadowManager::GetDirectionalShadowAlgorithm()
-// Be careful this require to update GetPunctualFilterWidthInTexels() in C# as well!
+// Configure which shadow algorithms to use per shadow level quality
 
 // Since we use slope-scale bias, the constant bias is for now set as a small fixed value
 #define FIXED_UNIFORM_BIAS (1.0f / 65536.0f)
 
-// We can't use multi_compile for compute shaders so we force the shadow algorithm
-#if SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || (defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT)
-
-    #if SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_LOW
-        #define SHADOW_LOW
-    #elif SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_MEDIUM
-        #define SHADOW_MEDIUM
-    #elif SHADEROPTIONS_DEFERRED_SHADOW_FILTERING == HDSHADOWFILTERINGQUALITY_HIGH
-        #define SHADOW_HIGH
-    #else
-        #define SHADOW_MEDIUM
-    #endif
-
-#endif
-
-#if (SHADERPASS == SHADERPASS_VOLUMETRIC_LIGHTING || SHADERPASS == SHADERPASS_VOLUME_VOXELIZATION)
-#define SHADOW_LOW
-#endif
+// WARNINGS:
+// Keep in sync with both HDShadowManager::GetDirectionalShadowAlgorithm() and GetPunctualFilterWidthInTexels() in C# as well!
 
 #ifdef SHADOW_LOW
 #define PUNCTUAL_FILTER_ALGORITHM(sd, posSS, posTC, tex, samp, bias) SampleShadow_PCF_Tent_3x3(_ShadowAtlasSize.zwxy, posTC, tex, samp, bias)

@@ -21,10 +21,15 @@ namespace UnityEditor.ShaderGraph.Drawing
         private IMGUIContainer m_Container;
         private int m_SelectedIndex;
         private ShaderKeyword m_Keyword;
+        private static GUIStyle greyLabel;
 
         public BlackboardFieldKeywordView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
         {
+            greyLabel = new GUIStyle(EditorStyles.label);
+            greyLabel.normal = new GUIStyleState { textColor = Color.grey };
+            greyLabel.focused = new GUIStyleState { textColor = Color.grey };
+            greyLabel.hover = new GUIStyleState { textColor = Color.grey };
         }
 
         public override void BuildCustomFields(ShaderInput input)
@@ -132,9 +137,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(displayRect, "Display Name");
+                EditorGUI.LabelField(displayRect, "Entry Name");
                 var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(referenceRect, "Reference Suffix");
+                EditorGUI.LabelField(referenceRect, "Reference Suffix", m_Keyword.isBuiltIn ? EditorStyles.label : greyLabel);
             };
 
             // Draw Element
@@ -144,10 +149,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 EditorGUI.BeginChangeCheck();
 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
-                var referenceName = EditorGUI.DelayedTextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName, EditorStyles.label);
+                var referenceName = EditorGUI.TextField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
+                    m_Keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
                 displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, referenceName.ToUpper());
+                referenceName = GetDuplicateSafeReferenceName(entry.id, displayName.ToUpper());
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -257,6 +263,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_\s])", "_");
             var entryList = m_ReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
         }

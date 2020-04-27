@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnPreviewChanged()
         {
             m_PreviewTextureView.image = m_PreviewRenderHandle?.texture ?? Texture2D.blackTexture;
-            if (m_PreviewRenderHandle != null && m_PreviewRenderHandle.shaderData.isCompiling)
+            if (m_PreviewRenderHandle != null && m_PreviewRenderHandle.shaderData.isOutOfDate)
                 m_PreviewTextureView.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
             else
                 m_PreviewTextureView.tintColor = Color.white;

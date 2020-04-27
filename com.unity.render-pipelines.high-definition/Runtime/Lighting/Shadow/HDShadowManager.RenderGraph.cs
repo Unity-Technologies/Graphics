@@ -26,16 +26,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return result;
         }
 
-        internal ShadowResult RenderShadows(RenderGraph renderGraph, HDCamera hdCamera, CullingResults cullResults)
+        internal ShadowResult RenderShadows(RenderGraph renderGraph, in ShaderVariablesGlobal globalCB, HDCamera hdCamera, CullingResults cullResults)
         {
             var result = new ShadowResult();
             // Avoid to do any commands if there is no shadow to draw
             if (m_ShadowRequestCount == 0)
                 return result;
 
-            result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, cullResults, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
-            result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, cullResults, hdCamera.frameSettings, "Directional Light Shadows rendering");
-            result.areaShadowResult = m_AreaLightShadowAtlas.RenderShadows(renderGraph, cullResults, hdCamera.frameSettings, "Area Light Shadows rendering");
+            result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
+            result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Directional Light Shadows rendering");
+            result.areaShadowResult = m_AreaLightShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Area Light Shadows rendering");
 
             return result;
         }
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R32G32_SFloat, useMipMap = true, autoGenerateMips = false, name = name, enableRandomWrite = true }, shaderID);
         }
 
-        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, FrameSettings frameSettings, string shadowPassName)
+        internal TextureHandle RenderShadows(RenderGraph renderGraph, CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, string shadowPassName)
         {
             TextureHandle result = new TextureHandle();
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<RenderShadowsPassData>(shadowPassName, out var passData, ProfilingSampler.Get(HDProfileId.RenderShadowMaps)))
             {
-                passData.parameters = PrepareRenderShadowsParameters();
+                passData.parameters = PrepareRenderShadowsParameters(globalCB);
                 // TODO: Get rid of this and refactor to use the same kind of API than RendererList
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
