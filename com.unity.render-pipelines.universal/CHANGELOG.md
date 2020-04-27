@@ -175,6 +175,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 - Fixed issues with performance when importing fbx files
 - Fixed issues with NullReferenceException happening with URP shaders
+- Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
