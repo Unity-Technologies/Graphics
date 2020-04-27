@@ -851,8 +851,19 @@ namespace UnityEditor.ShaderGraph
                 var slot = rootNode.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (slot != null)
                 {
-                    var slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
-                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id)} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
+                    string slotValue;
+                    string previewOutput;
+                    if(rootNode.isActive)
+                    {
+                        slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                        previewOutput = GenerationUtils.AdaptNodeOutputForPreview(rootNode, slot.id);
+                    }
+                    else
+                    {
+                        slotValue = rootNode.GetSlotValue(slot.id, mode, rootNode.concretePrecision);
+                        previewOutput = "float4(0.0f, 0.0f, 0.0f, 0.0f)";
+                    }
+                    surfaceDescriptionFunction.AppendLine($"surface.Out = all(isfinite({slotValue})) ? {previewOutput} : float4(1.0f, 0.0f, 1.0f, 1.0f);");
                 }
             }
         }

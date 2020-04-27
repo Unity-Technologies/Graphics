@@ -1549,6 +1549,13 @@ namespace UnityEditor.ShaderGraph
                     block.contextData = contextData;
                     block.index = i;
                 }
+                UpdateTargets();
+            }
+
+            ValidateGraph();
+            foreach(var node in m_Nodes)
+            {
+                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
             }
 
             // First deserialize the ContextDatas

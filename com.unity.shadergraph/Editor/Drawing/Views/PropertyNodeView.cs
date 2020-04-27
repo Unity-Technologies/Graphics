@@ -64,8 +64,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnModified(ModificationScope scope)
         {
-            SetActive(node.isActive);
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.isActive = true;
             
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
@@ -99,33 +103,6 @@ namespace UnityEditor.ShaderGraph
             {
                 // Remove elements from disabled class list
                 RemoveFromClassList(disabledString);
-            }
-        }
-
-        public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
-        {
-            ClearMessage();
-            IconBadge badge;
-            if (severity == ShaderCompilerMessageSeverity.Error)
-            {
-                badge = IconBadge.CreateError(errString);
-            }
-            else
-            {
-                badge = IconBadge.CreateComment(errString);
-            }
-
-            Add(badge);
-            badge.AttachTo(this, SpriteAlignment.RightCenter);
-        }
-
-        public void ClearMessage()
-        {
-            var badge = this.Q<IconBadge>();
-            if(badge != null)
-            {
-                badge.Detach();
-                badge.RemoveFromHierarchy();
             }
         }
 

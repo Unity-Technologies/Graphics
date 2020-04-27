@@ -776,6 +776,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var nodesToUpdate = m_NodeViewHashSet;
             nodesToUpdate.Clear();
+            PooledHashSet<AbstractMaterialNode> asmToUpdate = PooledHashSet<AbstractMaterialNode>.Get();
 
             foreach (var edge in m_Graph.removedEdges)
             {
@@ -787,9 +788,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (nodeView?.node != null)
                     {
                         nodesToUpdate.Add(nodeView);
-
+                        AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(nodeView?.node);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                    }
+                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
+                    if(nodeViewInput?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeViewInput);
+                        AbstractMaterialNode n = nodeViewInput.node;
+
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
                     }
 
                     edgeView.output.Disconnect(edgeView);
@@ -807,13 +816,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var edgeView = AddEdge(edge);
                 if (edgeView != null)
                 {
-                    var outputNodeView = (IShaderNodeView)edgeView.output.node;
-                    nodesToUpdate.Add(outputNodeView);
+                   var nodeView = (IShaderNodeView)edgeView.output.node;
+                    if (nodeView?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeView);
+                        AbstractMaterialNode n = nodeView.node;
+                        // Update active state for connected Nodes
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                    }
+                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
+                    if(nodeViewInput?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeViewInput);
+                        AbstractMaterialNode n = nodeViewInput.node;
 
-                    // Update active state for connected Nodes
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(outputNodeView?.node);
+                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                    }
                 }
             }
+
+            foreach(var asm in asmToUpdate)
+            {
+                if (graphView.GetNodeByGuid(asm.guid.ToString()) is MaterialNodeView nodeView)
+                {
+                    nodesToUpdate.Add(nodeView);
+                }
+            }
+            asmToUpdate.Dispose();
 
             foreach (var node in nodesToUpdate)
             {
@@ -1028,10 +1057,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     userData = edge,
                     output = sourceAnchor,
-                    input = targetAnchor
+                    input = targetAnchor,
                 };
 
-                edgeView.RegisterCallback<MouseDownEvent>(OnMouseDown);
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
@@ -1066,6 +1094,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             nodeStack.Clear();
             foreach (var nodeView in nodeViews)
                 nodeStack.Push((Node)nodeView);
+            PooledList<Edge> edgesToUpdate = PooledList<Edge>.Get();
             while (nodeStack.Any())
             {
                 var nodeView = nodeStack.Pop();
@@ -1078,6 +1107,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     foreach (var edgeView in anchorView.connections)
                     {
+                        //update edges based on the active state of any modified nodes
+                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        {
+                            //force redraw on update to prevent visual lag in the graph
+                            //Now has to be delayed a frame because setting port styles wont update colors till next frame
+                            edgesToUpdate.Add(edgeView);
+                        }
+                        //update edges based on dynamic vector length of any modified nodes
                         var targetSlot = edgeView.input.GetSlot();
                         if (targetSlot.valueType == SlotValueType.DynamicVector || targetSlot.valueType == SlotValueType.DynamicMatrix || targetSlot.valueType == SlotValueType.Dynamic)
                         {
@@ -1098,6 +1135,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     foreach (var edgeView in anchorView.connections)
                     {
+                        //update edges based on the active state of any modified nodes
+                        if(edgeView.input.node is MaterialNodeView inputNode && edgeView.output.node is MaterialNodeView outputNode)
+                        {
+                            //force redraw on update to prevent visual lag in the graph
+                            //Now has to be delayed a frame because setting port styles wont update colors till next frame
+                            edgesToUpdate.Add(edgeView);
+                        }
+                        //update edge color for upstream dynamic vector types
                         var connectedNodeView = edgeView.output.node;
                         if (connectedNodeView != null && !nodeViews.Contains((IShaderNodeView)connectedNodeView))
                         {
@@ -1107,6 +1152,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+            schedule.Execute(() =>
+            {
+                foreach (Edge e in edgesToUpdate)
+                {
+                    e.UpdateEdgeControl();
+                }
+                edgesToUpdate.Dispose();
+            }).StartingIn(0);
         }
 
         void OnPrimaryMasterChanged()
