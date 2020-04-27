@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         SkySettings         m_SkySettings;
         public SkyRenderer  skyRenderer { get; private set; }
+        public CloudLayer   cloudLayer = null;
         public int          cachedSkyRenderingContextId = -1;
 
         public int          skyParametersHash = -1;

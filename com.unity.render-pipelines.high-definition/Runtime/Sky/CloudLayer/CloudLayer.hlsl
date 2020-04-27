@@ -1,0 +1,81 @@
+#ifndef __CLOUDLAYER_H__
+#define __CLOUDLAYER_H__
+
+TEXTURE2D(_CloudMap);
+SAMPLER(sampler_CloudMap);
+    
+TEXTURE2D(_CloudFlowmap);
+SAMPLER(sampler_CloudFlowmap);
+
+float4 _CloudParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+
+#define _CloudUpperHemisphere   _CloudParam.x
+#define _CloudScrollFactor      _CloudParam.y
+#define _CloudScrollDirection   _CloudParam.zw
+
+#define USE_CLOUD_LAYER         defined(USE_CLOUD_MAP) || (!defined(USE_CLOUD_MAP) && defined(USE_CLOUD_MOTION))
+
+float3 sampleCloud(float3 dir, float3 sky)
+{
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, GetLatLongCoords(dir, _CloudUpperHemisphere), 0);
+    return lerp(sky, cloudLayerColor.rgb, cloudLayerColor.a);
+}
+
+float3 CloudRotationUp(float3 p, float2 cos_sin)
+{
+    float3 rotDirX = float3(cos_sin.x, 0, -cos_sin.y);
+    float3 rotDirY = float3(cos_sin.y, 0,  cos_sin.x);
+
+    return float3(dot(rotDirX, p), p.y, dot(rotDirY, p));
+}
+
+float3 GetDistordedCloudColor(float3 dir, float3 sky)
+{
+#if USE_CLOUD_MOTION
+    if (dir.y >= 0 || !_CloudUpperHemisphere)
+    {
+        float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
+        float3 bitangent = cross(tangent, dir);
+
+        // Compute flow factor
+        float3 windDir = CloudRotationUp(dir, _CloudScrollDirection);
+#ifdef USE_CLOUD_MAP
+        float2 flow = SAMPLE_TEXTURE2D_LOD(_CloudFlowmap, sampler_CloudFlowmap, GetLatLongCoords(windDir, _CloudUpperHemisphere), 0).rg * 2.0 - 1.0;
+#else
+        float2 flow = GenerateFlow(windDir);
+#endif
+
+        float2 alpha = frac(float2(_CloudScrollFactor, _CloudScrollFactor + 0.5)) - 0.5;
+
+        float2 uv1 = alpha.x * flow;
+        float2 uv2 = alpha.y * flow;
+
+        float3 dd1 = uv1.x * tangent + uv1.y * bitangent; //dd1.y = abs(dd1.y);
+        float3 dd2 = uv2.x * tangent + uv2.y * bitangent; //dd2.y = abs(dd2.y);
+
+        // Sample twice
+        float3 color1 = sampleCloud(dir + dd1, sky);
+        float3 color2 = sampleCloud(dir + dd2, sky);
+
+        // Blend color samples
+        sky = lerp(color1, color2, abs(2.0 * alpha.x));
+    }
+#else
+        float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, GetLatLongCoords(dir, _CloudUpperHemisphere), 0);
+        sky = lerp(sky, cloudLayerColor.rgb, cloudLayerColor.a);
+#endif
+
+        return sky;
+}
+
+float3 ApplyCloudLayer(float3 dir, float3 sky)
+{
+#if USE_CLOUD_LAYER
+    if (dir.y >= 0 || !_CloudUpperHemisphere)
+        sky = GetDistordedCloudColor(dir, sky);
+#endif
+
+    return sky;
+}
+
+#endif // __CLOUDLAYER_H__

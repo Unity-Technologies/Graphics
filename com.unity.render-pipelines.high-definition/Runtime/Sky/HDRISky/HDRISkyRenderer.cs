@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public HDRISkyRenderer()
         {
+            SupportDynamicSunLight = false;
         }
 
         public override void Build()
@@ -152,6 +153,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
+
+            if (builtinParams.cloudLayer != null)
+                builtinParams.cloudLayer.Render(m_SkyHDRIMaterial);
+            else
+            {
+                m_SkyHDRIMaterial.DisableKeyword("USE_CLOUD_MAP");
+                m_SkyHDRIMaterial.DisableKeyword("USE_CLOUD_MOTION");
+            }
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));

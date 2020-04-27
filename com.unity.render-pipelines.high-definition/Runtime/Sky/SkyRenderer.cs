@@ -7,6 +7,9 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         int m_LastFrameUpdate = -1;
 
+        public bool SupportDynamicSunLight = true;
+        public bool SupportCloudLayer = true;
+
         /// <summary>
         /// Called on startup. Create resources used by the renderer (shaders, materials, etc).
         /// </summary>

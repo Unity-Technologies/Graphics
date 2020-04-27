@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public int                      frameIndex;
         /// <summary>Current sky settings.</summary>
         public SkySettings              skySettings;
+        /// <summary>Current cloud layer.</summary>
+        public CloudLayer               cloudLayer;
         /// <summary>Current debug dsplay settings.</summary>
         public DebugDisplaySettings     debugSettings;
         /// <summary>Null color buffer render target identifier.</summary>
@@ -646,8 +648,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
         {
             int sunHash = 0;
-            if (sunLight != null)
+            if (sunLight != null && skyContext.skyRenderer.SupportDynamicSunLight)
                 sunHash = GetSunLightHashCode(sunLight);
+
+            int cloudHash = 0;
+            if (skyContext.cloudLayer != null && skyContext.skyRenderer.SupportCloudLayer)
+                cloudHash = skyContext.cloudLayer.GetHashCode();
 
             // For planar reflections we want to use the parent position for hash.
             Camera cameraForHash = camera.camera;
@@ -657,6 +663,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode(cameraForHash);
+            skyHash = skyHash * 23 + cloudHash;
             skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
@@ -708,6 +715,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
+                m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
 
                 int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;

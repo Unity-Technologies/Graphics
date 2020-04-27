@@ -757,6 +757,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
 
+                var cloudLayer = volumeStack.GetComponent<CloudLayer>();
+                visualSky.cloudLayer = (cloudLayer != null && cloudLayer.enabled.value) ? cloudLayer : null;
+
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
                 VolumeManager.instance.Update(skyManager.lightingOverrideVolumeStack, volumeAnchor, skyManager.lightingOverrideLayerMask);
