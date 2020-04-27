@@ -1,4 +1,15 @@
 #ifdef HAS_LIGHTLOOP
+IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
+                                                    BSDFData bsdfData,
+                                                    PreLightData preLightData,
+                                                    float3 reflection)
+{
+    IndirectLighting lighting;
+    ZERO_INITIALIZE(IndirectLighting, lighting);
+    lighting.specularReflected = reflection.rgb * preLightData.specularFGD;
+    return lighting;
+}
+
 IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopContext,
                                                     PreLightData preLightData,
                                                     float3 transmittedColor)

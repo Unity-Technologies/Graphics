@@ -22,7 +22,7 @@ uint GetSubsurfaceScatteringTexturingMode(int diffusionProfile)
 
     if (enableSss)
     {
-        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
+        bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, diffusionProfile);
 
         if (performPostScatterTexturing)
         {
@@ -190,10 +190,11 @@ float3 GetModifiedDiffuseColorForSSS(BSDFData bsdfData)
 // Assume that bsdfData.diffusionProfileIndex is init
 void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout BSDFData bsdfData)
 {
-    bsdfData.diffusionProfileIndex = diffusionProfileIndex;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfileIndex].a;
+    float2 remap = _WorldScalesAndFilterRadiiAndThicknessRemaps[diffusionProfileIndex].zw;
 
-    bsdfData.thickness = _ThicknessRemaps[diffusionProfileIndex].x + _ThicknessRemaps[diffusionProfileIndex].y * thickness;
+    bsdfData.diffusionProfileIndex = diffusionProfileIndex;
+    bsdfData.fresnel0              = _TransmissionTintsAndFresnel0[diffusionProfileIndex].a;
+    bsdfData.thickness             = remap.x + remap.y * thickness;
 
     // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
     // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
@@ -211,7 +212,7 @@ void FillMaterialTransmission(uint diffusionProfileIndex, float thickness, inout
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always used for indirect lighting).
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfileIndex].rgb,
+    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParamsAndMaxScatterDists[diffusionProfileIndex].rgb,
                                                         _TransmissionTintsAndFresnel0[diffusionProfileIndex].rgb,
                                                         bsdfData.thickness);
 }
@@ -224,14 +225,14 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
 {
     if (diffusionProfileHash == 0)
         return 0;
-    
+
     uint diffusionProfileIndex = 0;
     uint i = 0;
-    
+
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {
-        if (asuint(_DiffusionProfileHashTable[i]) == diffusionProfileHash)
+        if (_DiffusionProfileHashTable[i].x == diffusionProfileHash)
         {
             diffusionProfileIndex = i;
             break;

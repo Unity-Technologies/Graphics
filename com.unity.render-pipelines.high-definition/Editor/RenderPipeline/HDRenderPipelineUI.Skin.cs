@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportSSRTransparentContent = EditorGUIUtility.TrTextContent("Transparent Screen Space Reflection", "When enabled, HDRP executes additional steps to achieve screen space reflection (SSR) on transparent objects.");
             public static readonly GUIContent supportSSAOContent = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion", "When enabled, HDRP allocates memory for processing screen space ambient occlusion (SSAO). This allows you to use SSAO in your Unity Project.");
             public static readonly GUIContent supportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering", "When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
-            public static readonly GUIContent SSSSampleCountContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP processes higher quality subsurface scattering effects. Warning: There is a high performance cost, do not enable on consoles.");
+            public static readonly GUIContent sssSampleBudget = EditorGUIUtility.TrTextContent("Sample Budget", "Maximum number of samples the Subsurface Scattering algorithm is allowed to take.");
             public static readonly GUIContent supportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
             public static readonly GUIContent volumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
             public static readonly GUIContent supportLightLayerContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
@@ -112,6 +112,14 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
+            internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
+            internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
+            internal static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width (resolution in X) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height (resolution in Y) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasDepth = EditorGUIUtility.TrTextContent("Atlas Depth", "Depth (resolution in Z) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
+            internal static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
+
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -146,7 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
-            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
+            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Clustered Decals on Screen", "Sets the maximum number of decals that can affect transparent GameObjects on screen.");
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
             public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
@@ -221,7 +229,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportTransparentBackface         , shaderVariantDrawback },
                 { supportTransparentDepthPrepass     , shaderVariantDrawback },
                 { supportTransparentDepthPostpass    , shaderVariantDrawback },
-                { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) }
+                { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
+                { supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) },
+                { probeVolumeAtlasWidth              , memoryDrawback },
+                { probeVolumeAtlasHeight             , memoryDrawback },
+                { probeVolumeAtlasDepth              , memoryDrawback },
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>

@@ -17,6 +17,8 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
+using Unity.Profiling;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class MaterialGraphEditWindow : EditorWindow
@@ -456,8 +458,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             string sessionStateResult = SessionState.GetString(k_PrevSubGraphPathKey, k_PrevSubGraphPathDefaultValue);
             string pathToOriginSG = Path.GetDirectoryName(AssetDatabase.GUIDToAssetPath(selectedGuid));
 
-            
-
             if (!sessionStateResult.Equals(k_PrevSubGraphPathDefaultValue))
             {
                 path = sessionStateResult;
@@ -798,6 +798,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
+        private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
+        private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
         {
             try
@@ -837,21 +839,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 selectedGuid = assetGuid;
 
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                using (GraphLoadMarker.Auto())
                 {
-                    viewDataKey = selectedGuid,
-                    assetName = asset.name.Split('/').Last()
-                };
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                    graphObject.graph.assetGuid = assetGuid;
+                    graphObject.graph.isSubGraph = isSubGraph;
+                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
+                }
+
+                using (CreateGraphEditorViewMarker.Auto())
+                {
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
 
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 
@@ -884,12 +892,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            // this callback is only so we can run post-layout behaviors after the graph loads for the first time
+            // we immediately unregister it so it doesn't get called again
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             if (m_FrameAllAfterLayout)
                 graphEditorView.graphView.FrameAll();
             m_FrameAllAfterLayout = false;
-            foreach (var node in m_GraphObject.graph.GetNodes<AbstractMaterialNode>())
-                node.Dirty(ModificationScope.Node);
         }
     }
 }

@@ -21,6 +21,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Opacity", precision = FieldPrecision.Real)]
             public float opacity;
 
+            [SurfaceDataAttributes("AlphaClipTreshold", precision = FieldPrecision.Real)]
+            public float alphaClipTreshold;
+
             // These are lighting data.
             // We would prefer to split lighting and material information but for performance reasons,
             // those lighting information are fill

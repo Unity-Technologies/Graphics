@@ -14,12 +14,12 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.VertexPosition;
     #if defined(VARYINGS_NEED_NORMAL_WS)
         input.normalOS = vertexDescription.VertexNormal;
-    #endif //FEATURES_GRAPH_NORMAL  
+    #endif //FEATURES_GRAPH_NORMAL
     #if defined(VARYINGS_NEED_TANGENT_WS)
         input.tangentOS.xyz = vertexDescription.VertexTangent.xyz;
     #endif //FEATURES GRAPH TANGENT
@@ -51,7 +51,7 @@ Varyings BuildVaryings(Attributes input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
 #endif
-    
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
 #endif
@@ -110,7 +110,7 @@ Varyings BuildVaryings(Attributes input)
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 

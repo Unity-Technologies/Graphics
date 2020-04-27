@@ -29,5 +29,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RaytracingGBuffer,
         RaytracingSubSurface,
         PathTracing,
+        Constant
     }
 }

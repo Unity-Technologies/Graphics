@@ -229,6 +229,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
+        
+        [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         [SerializeField]
         bool m_AlphaTestDepthPrepass;
@@ -717,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Eye.MotionVectors)),
+                                                                                        !pass.Equals(HDEyeSubTarget.EyePasses.MotionVectors)),
 
                 // Material
                 new ConditionalField(HDFields.Eye,                                  materialType == MaterialType.Eye),
@@ -731,6 +746,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                            alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
@@ -867,6 +884,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,

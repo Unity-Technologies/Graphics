@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewContainer.Add(m_PreviewImage);
 
                 // Hook up preview image to preview manager
-                m_PreviewRenderData = previewManager.GetPreview(inNode);
+                m_PreviewRenderData = previewManager.GetPreviewRenderData(inNode);
                 m_PreviewRenderData.onPreviewChanged += UpdatePreviewTexture;
                 UpdatePreviewTexture();
 
@@ -159,7 +159,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 AddToClassList("master");
                 bool validTarget = false;
-                foreach(ITargetImplementation activeTarget in node.owner.validImplementations)
+                foreach(Target activeTarget in node.owner.validTargets)
                 {
                     //if we have a valid active target implementation and render pipeline, don't display the error
                     if (activeTarget.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
@@ -169,8 +169,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
                 //if no active target implementations are valid with the current pipeline, display the error
+                m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
                 if (!validTarget)
-                    AttachMessage("The active Master Node is not compatible with the current Render Pipeline. Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.", ShaderCompilerMessageSeverity.Error);
+                {
+                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.guid,
+                        new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
+                                          " or no Render Pipeline is assigned." +
+                                          " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",
+                            ShaderCompilerMessageSeverity.Error));
+                }
             }
 
             m_NodeSettingsView = new NodeSettingsView();
@@ -228,11 +235,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            if(badge != null)
-            {
-                badge.Detach();
-                badge.RemoveFromHierarchy();
-            }
+            badge?.Detach();
+            badge?.RemoveFromHierarchy();
         }
 
         public VisualElement colorElement
@@ -628,7 +632,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = (ShaderPort)evt.target;
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-            
+
             // Ensure PortInputViews are initialized correctly
             // Dynamic port lists require one update to validate before init
             if(inputViews.Count() != 0)
@@ -636,7 +640,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputView = inputViews.First();
                 SetPortInputPosition(port, inputView);
             }
-            
+
             port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
         }
 
@@ -737,7 +741,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     m_PreviewImage.MarkDirtyRepaint();
 
-                if (m_PreviewRenderData.shaderData.isCompiling)
+                if (m_PreviewRenderData.shaderData.isOutOfDate)
                     m_PreviewImage.tintColor = new Color(1.0f, 1.0f, 1.0f, 0.3f);
                 else
                     m_PreviewImage.tintColor = Color.white;

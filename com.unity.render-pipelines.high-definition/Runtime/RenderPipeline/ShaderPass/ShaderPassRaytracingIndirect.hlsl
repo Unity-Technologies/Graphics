@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
@@ -140,6 +141,9 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     // the unlit color is not impacted by that. Thus, we multiply it by the inverse of the current exposure multiplier.
     rayIntersection.color = bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor;
 #endif
+
+    // Apply fog attenuation
+    ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.t, rayIntersection.color, true);
 }
 
 // Generic function that handles the reflection code

@@ -700,9 +700,15 @@ namespace UnityEditor.ShaderGraph
                     if (isSubgraphOutput)
                     {
                         var firstSlot = slots.FirstOrDefault();
-                        var hlslName = $"{NodeUtils.GetHLSLSafeName(firstSlot.shaderOutputName)}_{firstSlot.id}";
-                        surfaceDescriptionStruct.AppendLine("{0} {1};", firstSlot.concreteValueType.ToShaderString(firstSlot.owner.concretePrecision), hlslName);
-                        surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
+                        if (firstSlot != null)
+                        {
+                            var hlslName = $"{NodeUtils.GetHLSLSafeName(firstSlot.shaderOutputName)}_{firstSlot.id}";
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", firstSlot.concreteValueType.ToShaderString(firstSlot.owner.concretePrecision), hlslName);
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(firstSlot.owner.concretePrecision), "Out");
+                        }
+                        else
+                            surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "Out");
+                        
                     }
                     else
                     {
@@ -946,11 +952,7 @@ namespace UnityEditor.ShaderGraph
         // Note that it's okay to add an "invalid" ShaderGUI (no class found) as Unity will simply take no action if that's the case, unless if its BaseShaderGUI.
         public static string FinalCustomEditorString(ICanChangeShaderGUI canChangeShaderGUI)
         {
-            if (!canChangeShaderGUI.OverrideEnabled)
-                return GraphUtil.CurrentPipelinePreferredShaderGUI(canChangeShaderGUI as IMasterNode);
-
             string finalOverrideName = canChangeShaderGUI.ShaderGUIOverride;
-
             if (string.IsNullOrEmpty(finalOverrideName))
                 return null;
 

@@ -51,11 +51,21 @@ namespace UnityEditor.Rendering.LookDev
 
             internal static readonly GUIContent k_WindowTitleAndIcon = EditorGUIUtility.TrTextContentWithIcon("Look Dev", CoreEditorUtils.LoadIcon(k_IconFolder, "LookDev", forceLowRes: true));
 
-            internal static readonly Texture2D k_Layout1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true);
-            internal static readonly Texture2D k_Layout2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutVerticalIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutHorizontalIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true);
-            internal static readonly Texture2D k_LayoutStackIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true);
+            internal static readonly (Texture2D icon, string tooltip) k_Layout1Icon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout1", forceLowRes: true),
+                "First view");
+            internal static readonly (Texture2D icon, string tooltip) k_Layout2Icon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Layout2", forceLowRes: true),
+                "Second view");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutVerticalIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutVertical", forceLowRes: true),
+                "Both views split vertically");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutHorizontalIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutHorizontal", forceLowRes: true),
+                "Both views split horizontally");
+            internal static readonly (Texture2D icon, string tooltip) k_LayoutStackIcon =
+                (CoreEditorUtils.LoadIcon(Style.k_IconFolder, "LayoutCustom", forceLowRes: true),
+                "Both views stacked");
 
             internal static readonly Texture2D k_Camera1Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera1", forceLowRes: true);
             internal static readonly Texture2D k_Camera2Icon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "Camera2", forceLowRes: true);
@@ -66,6 +76,7 @@ namespace UnityEditor.Rendering.LookDev
             internal static readonly Texture2D k_RenderdocIcon = CoreEditorUtils.LoadIcon(Style.k_IconFolder, "RenderDoc", forceLowRes: true);
             internal const string k_RenderDocLabel = " Content";
 
+            internal const string k_CameraSyncTooltip = "Synchronize camera movement amongst views";
             internal const string k_CameraMenuSync1On2 = "Align Camera 1 with Camera 2";
             internal const string k_CameraMenuSync2On1 = "Align Camera 2 with Camera 1";
             internal const string k_CameraMenuReset = "Reset Cameras";
@@ -269,6 +280,7 @@ namespace UnityEditor.Rendering.LookDev
             cameraMenu.variant = ToolbarMenu.Variant.Popup;
             var cameraToggle = new ToolbarToggle() { name = Style.k_CameraButtonName };
             cameraToggle.value = LookDev.currentContext.cameraSynced;
+            cameraToggle.tooltip = Style.k_CameraSyncTooltip;
 
             //Note: when having Image on top of the Toggle nested in the Menu, RegisterValueChangedCallback is not called
             //cameraToggle.RegisterValueChangedCallback(evt => LookDev.currentContext.cameraSynced = evt.newValue);
@@ -282,8 +294,8 @@ namespace UnityEditor.Rendering.LookDev
             cameraToggle.Add(new Image() { image = Style.k_Camera1Icon });
             cameraToggle.Add(new Image() { image = Style.k_LinkIcon });
             cameraToggle.Add(new Image() { image = Style.k_Camera2Icon });
-            cameraMenu.Add(cameraToggle);
             cameraMenu.Add(cameraSeparator);
+            cameraMenu.Add(cameraToggle);
             cameraMenu.menu.AppendAction(Style.k_CameraMenuSync1On2,
                 (DropdownMenuAction a) => LookDev.currentContext.SynchronizeCameraStates(ViewIndex.Second),
                 DropdownMenuAction.AlwaysEnabled);
@@ -386,9 +398,11 @@ namespace UnityEditor.Rendering.LookDev
             m_NoEnvironment1 = new Label(Style.k_DragAndDropEnvironment);
             m_NoEnvironment1.style.flexGrow = 1;
             m_NoEnvironment1.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_NoEnvironment1.style.whiteSpace = WhiteSpace.Normal;
             m_NoEnvironment2 = new Label(Style.k_DragAndDropEnvironment);
             m_NoEnvironment2.style.flexGrow = 1;
             m_NoEnvironment2.style.unityTextAlign = TextAnchor.MiddleCenter;
+            m_NoEnvironment2.style.whiteSpace = WhiteSpace.Normal;
             m_Views[(int)ViewIndex.First].Add(m_NoObject1);
             m_Views[(int)ViewIndex.First].Add(m_NoEnvironment1);
             m_Views[(int)ViewIndex.Second].Add(m_NoObject2);
@@ -656,6 +670,14 @@ namespace UnityEditor.Rendering.LookDev
                 //    if (styleSheetLight != null && !styleSheetLight.Equals(null))
                 //        rootVisualElement.styleSheets.Add(styleSheetLight);
                 //}
+            }
+            else
+            {
+                //deal with missing style when domain reload...
+                if (!rootVisualElement.styleSheets.Contains(styleSheet))
+                    rootVisualElement.styleSheets.Add(styleSheet);
+                if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
+                    rootVisualElement.styleSheets.Add(styleSheetLight);
             }
 
             OnUpdateRequestedInternal?.Invoke();

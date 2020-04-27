@@ -7,8 +7,13 @@
   * [Install URP into an existing Project](InstallURPIntoAProject.md)
   * [The Universal Render Pipeline Asset](universalrp-asset.md)
 * [Upgrade guides](upgrade-guides.md)
-  * [Upgrade to URP 7.2.0](upgrade-guide-7-2-0.md)
-  * [Upgrade from LWRP to URP](upgrade-lwrp-to-urp.md)
+  * [Upgrading to URP 9.0.x](upgrade-guide-9-0-x.md)
+  * [Upgrading to URP 8.1.0](upgrade-guide-8-1-0.md)
+  * [Upgrading to URP 8.0.0](upgrade-guide-8-0-0.md)
+  * [Upgrading to URP 7.4.0](upgrade-guide-7-4-0.md)
+  * [Upgrading to URP 7.3.0](upgrade-guide-7-3-0.md)
+  * [Upgrading to URP 7.2.0](upgrade-guide-7-2-0.md)
+  * [Upgrading from LWRP to URP](upgrade-lwrp-to-urp.md)
 * [Rendering](rendering-in-universalrp.md)
 * [Lighting](lighting.md)
   * [Light component reference](light-component)
@@ -65,12 +70,12 @@
   * [Lights 2D properties](2DLightProperties.md)
 
     * [Light types](LightTypes.md)
+  * [2D Shadows](2DShadows.md)
   * [Configuring the 2D Renderer Asset](2DRendererData_overview.md)
 
     * [HDR emulation scale](HDREmulationScale.md)
     * [Light Blend Styles](LightBlendStyles.md)
-
-    * [2D Shadows](2DShadows.md)
+    
   * [2D Renderer and Shader Graph](ShaderGraph.md)
   * [2D Pixel Perfect](2d-pixelperfect.md)
     * [Cinemachine Pixel Perfect extension](pixel-cinemachine.md)

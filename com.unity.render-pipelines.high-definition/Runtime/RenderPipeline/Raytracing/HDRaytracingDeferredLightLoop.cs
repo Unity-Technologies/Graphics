@@ -201,19 +201,19 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the acceleration structure for the pass
             cmd.SetRayTracingAccelerationStructure(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
 
-            // Set ray count tex
-            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
+            // Set ray count texture
+            cmd.SetGlobalInt(HDShaderIDs._RayCountEnabled, parameters.rayCountFlag);
             cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountType, parameters.rayCountType);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RayCountTexture, buffers.rayCountTexture);
 
             // Bind all input parameter
-            cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayBias, parameters.rayBias);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, parameters.rayBias);
             cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RayTracingLayerMask, parameters.layerMask);
-            cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingRayMaxLength, parameters.maxRayLength);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, parameters.maxRayLength);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._DepthTexture, buffers.depthStencilBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._NormalBufferTexture, buffers.normalBuffer);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDirectionBuffer, buffers.directionBuffer);
-            cmd.SetRayTracingFloatParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingPixelSpreadAngle, HDRenderPipeline.GetPixelSpreadAngle(parameters.fov, parameters.width, parameters.height));
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, HDRenderPipeline.GetPixelSpreadAngle(parameters.fov, parameters.width, parameters.height));
 
             // Bind the output textures
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._GBufferTextureRW[0], buffers.gbuffer0);
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             uint heightResolution = (uint)parameters.height;
 
             // Include the sky if required
-            cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingIncludeSky, parameters.includeSky ? 1 : 0);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingIncludeSky, parameters.includeSky ? 1 : 0);
             cmd.SetRayTracingTextureParam(parameters.gBufferRaytracingRT, HDShaderIDs._SkyTexture, buffers.skyTexture);
 
             // Only compute diffuse lighting if required
@@ -235,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
 
             // All rays are diffuse if we are evaluating diffuse lighting only
-            cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, HDShaderIDs._RaytracingDiffuseRay, parameters.diffuseLightingOnly ? 1 : 0);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingDiffuseRay, parameters.diffuseLightingOnly ? 1 : 0);
 
             if (parameters.rayBinning)
             {
@@ -274,8 +274,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._LightLayersTexture, TextureXR.GetWhiteTexture());
 
             // Inject the other parameters
-            cmd.SetComputeFloatParam(parameters.deferredRaytracingCS, HDShaderIDs._RaytracingIntensityClamp, parameters.clampValue);
-            cmd.SetComputeIntParam(parameters.deferredRaytracingCS, HDShaderIDs._RaytracingPreExposition, parameters.preExpose ? 1 : 0);
+            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, parameters.clampValue);
+            cmd.SetGlobalInt(HDShaderIDs._RaytracingPreExposition, parameters.preExpose ? 1 : 0);
 
             // Bind the output texture
             cmd.SetComputeTextureParam(parameters.deferredRaytracingCS, currentKernel, HDShaderIDs._RaytracingLitBufferRW, buffers.litBuffer);

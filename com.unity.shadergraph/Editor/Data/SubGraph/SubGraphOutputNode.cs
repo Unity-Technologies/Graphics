@@ -14,6 +14,18 @@ namespace UnityEditor.ShaderGraph
     class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
     {
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
+        static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
+        {
+            ConcreteSlotValueType.Vector1, 
+            ConcreteSlotValueType.Vector2,
+            ConcreteSlotValueType.Vector3,
+            ConcreteSlotValueType.Vector4,
+            ConcreteSlotValueType.Matrix2,
+            ConcreteSlotValueType.Matrix3,
+            ConcreteSlotValueType.Matrix4,
+            ConcreteSlotValueType.Boolean
+        };
+        public bool IsFirstSlotValid = true;
 
         public SubGraphOutputNode()
         {
@@ -62,15 +74,29 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        void ValidateSlotType()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
+
+            if (!slots.Any())
+            {
+                owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Error);
+            }
+            else if (!s_ValidSlotTypes.Contains(slots.FirstOrDefault().concreteValueType))
+            {
+                IsFirstSlotValid = false;
+                owner.AddValidationError(guid, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
+            }
+        }
+
         public override void ValidateNode()
         {
             base.ValidateNode();
-            ValidateShaderStage();
-
-            if (!this.GetInputSlots<MaterialSlot>().Any())
-            {
-                owner.AddValidationError(guid, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
+            IsFirstSlotValid = true;
+            ValidateSlotType();
+            if (IsFirstSlotValid)
+                ValidateShaderStage();
         }
 
         protected override void OnSlotsChanged()

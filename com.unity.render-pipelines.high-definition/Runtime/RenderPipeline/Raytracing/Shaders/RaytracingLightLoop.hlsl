@@ -75,10 +75,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Add the traced reflection
     if (reflectionHierarchyWeight == 1.0)
     {
-        IndirectLighting indirect;
-        ZERO_INITIALIZE(IndirectLighting, indirect);
-        indirect.specularReflected = reflection.rgb * preLightData.specularFGD;
-        AccumulateIndirectLighting(indirect, aggregateLighting);
+        IndirectLighting lighting = EvaluateBSDF_RaytracedReflection(context, bsdfData, preLightData, reflection);
+        AccumulateIndirectLighting(lighting, aggregateLighting);
     }
 #endif
 

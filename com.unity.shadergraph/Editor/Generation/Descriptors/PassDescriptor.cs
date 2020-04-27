@@ -9,6 +9,10 @@
         public string lightMode;
         public bool useInPreview;
 
+        // Templates
+        public string passTemplatePath;
+        public string sharedTemplateDirectory;
+
         // Port mask
         public int[] vertexPorts;
         public int[] pixelPorts;
@@ -22,10 +26,6 @@
         public DefineCollection defines;
         public KeywordCollection keywords;
         public IncludeCollection includes;
-
-        // Custom Template
-        public string passTemplatePath;
-        public string sharedTemplateDirectory;
 
         // Methods
         public bool Equals(PassDescriptor other)

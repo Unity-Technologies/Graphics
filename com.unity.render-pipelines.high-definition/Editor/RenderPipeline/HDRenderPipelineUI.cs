@@ -870,6 +870,52 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
+            {
+                ++EditorGUI.indentLevel;
+
+                if (serialized.renderPipelineSettings.supportProbeVolume.boolValue)
+                    EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth, Styles.probeVolumeAtlasDepth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue, 0);
+
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue, 0);
+
+                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue <= 0)
+                {
+                    // Detected legacy 2D probe volume atlas (degenerate Z axis resolution).
+                    // Initialize with default 3D atlas values.
+                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = GlobalProbeVolumeSettings.@default.atlasWidth;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = GlobalProbeVolumeSettings.@default.atlasHeight;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = GlobalProbeVolumeSettings.@default.atlasDepth;
+                }
+
+                --EditorGUI.indentLevel;
+            }
+
             EditorGUILayout.Space(); //to separate with following sub sections
         }
 
@@ -886,7 +932,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 || !serialized.renderPipelineSettings.supportSubsurfaceScattering.boolValue))
             {
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.increaseSssSampleCount, Styles.SSSSampleCountContent);
+                serialized.renderPipelineSettings.sssSampleBudget.ValueGUI<int>(Styles.sssSampleBudget);
                 --EditorGUI.indentLevel;
             }
 
@@ -964,6 +1010,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPrepass, Styles.supportTransparentDepthPrepass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-CBUFFER_START(UnityPerMaterial)
+CBUFFER_START(UnityPerMaterialFoo)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
 float4 _BaseMap_ST;

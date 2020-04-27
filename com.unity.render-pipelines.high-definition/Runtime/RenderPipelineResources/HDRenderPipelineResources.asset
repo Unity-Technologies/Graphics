@@ -62,6 +62,14 @@ MonoBehaviour:
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61,
       type: 3}
+    probeVolumeAtlasBlitCS: {fileID: 7200000, guid: 07f429bf534edb44eb5a0e4b2c65b108,
+      type: 3}
+    probeVolumeAtlasOctahedralDepthBlitCS: {fileID: 7200000, guid: f60c895d3a3061848844b36ccf9e44a9,
+      type: 3}
+    probeVolumeAtlasOctahedralDepthConvolveCS: {fileID: 7200000, guid: 7ef71ce05401a4c4081039b475d3b9ee,
+      type: 3}
+    debugDisplayProbeVolumePS: {fileID: 4800000, guid: e7c19cfee7a88394fbb53652b9644cc0,
+      type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1,
       type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
@@ -182,7 +190,7 @@ MonoBehaviour:
     finalPassPS: {fileID: 4800000, guid: 5ac9ef0c50282754b93c7692488e7ee7, type: 3}
     clearBlackPS: {fileID: 4800000, guid: 3330c1503ea8c6d4d9408df3f64227eb, type: 3}
     SMAAPS: {fileID: 4800000, guid: 9655f4aa89a469c49aceaceabf9bc77b, type: 3}
-    temporalAntialiasingPS: {fileID: 4800000, guid: d22a37b5c800a0040a87b2a58de74e13,
+    temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179,
       type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6,
       type: 3}

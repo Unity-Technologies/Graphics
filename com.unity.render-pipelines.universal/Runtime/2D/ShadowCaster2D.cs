@@ -167,5 +167,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowCasterGroup2DManager.RemoveGroup(this);
             }
         }
+
+#if UNITY_EDITOR
+        void Reset()
+        {
+            Awake();
+            OnEnable();
+        }
+#endif
     }
 }

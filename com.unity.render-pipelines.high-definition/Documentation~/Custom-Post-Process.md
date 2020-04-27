@@ -113,7 +113,7 @@ Now there are the **Setup**, **Render**, and **Cleanup** functions. These are he
 
 ### GrayScale Shader
 
-HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs. Note that there are a number of utility functions in [Common.hlsl](https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the Luminance() function to convert a linear RGB value to its luminance equivalent.
+HDRP gives you total control over the vertex and fragment Shader so you can edit both of them to suit your needs. Note that there are a number of utility functions in [Common.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl) and [Color.hlsl](https://github.com/Unity-Technologies/Graphics/blob/master/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl) that the Shader includes by default. This means that you have access to these utility functions in your effect. For example, the GrayScale Shader uses the Luminance() function to convert a linear RGB value to its luminance equivalent.
 ```
 Shader "Hidden/Shader/GrayScale"
 
@@ -123,7 +123,7 @@ Shader "Hidden/Shader/GrayScale"
     
     #pragma target 4.5
     
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
     
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     

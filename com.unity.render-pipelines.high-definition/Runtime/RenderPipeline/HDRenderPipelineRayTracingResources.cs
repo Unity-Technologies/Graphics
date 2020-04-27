@@ -26,8 +26,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Recursive tracing
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingRenderer.raytrace")]
         public RayTracingShader forwardRaytracing;
-        [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFlagMask.shader")]
-        public Shader raytracingFlagMask;
 
         // Light cluster
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightCluster.compute")]

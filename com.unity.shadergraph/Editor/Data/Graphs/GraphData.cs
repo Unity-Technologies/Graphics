@@ -314,12 +314,9 @@ namespace UnityEditor.ShaderGraph
 
         #region Targets
         [NonSerialized]
-        List<ITarget> m_ValidTargets = new List<ITarget>();
+        List<Target> m_ValidTargets = new List<Target>();
 
-        [NonSerialized]
-        List<ITargetImplementation> m_ValidImplementations = new List<ITargetImplementation>();
-
-        public List<ITargetImplementation> validImplementations => m_ValidImplementations;
+        public List<Target> validTargets => m_ValidTargets;
         #endregion
 
         public bool didActiveOutputNodeChange { get; set; }
@@ -615,6 +612,20 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var serializableNode in nodes)
             {
+                // Check if it is a Redirect Node
+                // Get the edges and then re-create all Edges
+                // This only works if it has all the edges.
+                // If one edge is already deleted then we can not re-create.
+                if (serializableNode is RedirectNodeData redirectNode)
+                {
+                    redirectNode.GetOutputAndInputSlots(out SlotReference outputSlotRef, out var inputSlotRefs);
+
+                    foreach (SlotReference slot in inputSlotRefs)
+                    {
+                        ConnectNoValidate(outputSlotRef, slot);
+                    }
+                }
+
                 RemoveNodeNoValidate(serializableNode);
             }
 
@@ -752,7 +763,7 @@ namespace UnityEditor.ShaderGraph
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
+
             m_AddedInputs.Add(input);
         }
 
@@ -1320,50 +1331,30 @@ namespace UnityEditor.ShaderGraph
             if(outputNode == null)
                 return;
 
-            // First get all valid TargetImplementations that are valid with the current graph
-            List<ITargetImplementation> foundImplementations = new List<ITargetImplementation>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            // Clear current Targets
+            m_ValidTargets.Clear();
+
+            // SubGraph Target is always PreviewTarget
+            if(outputNode is SubGraphOutputNode)
             {
-                foreach (var type in assembly.GetTypesOrNothing())
-                {
-                    var isImplementation = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITargetImplementation).IsAssignableFrom(type);
-                    //for subgraph output nodes, preview target is the only valid target
-                    if (outputNode is SubGraphOutputNode && isImplementation && typeof(DefaultPreviewTarget).IsAssignableFrom(type))
-                    {
-                        var implementation = (DefaultPreviewTarget)Activator.CreateInstance(type);
-                        foundImplementations.Add(implementation);
-                    }
-                    else if (isImplementation && !foundImplementations.Any(s => s.GetType() == type))
-                    {
-                        var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
-                        var implementation = (ITargetImplementation)Activator.CreateInstance(type);
-                        if(implementation.IsValid(masterNode))
-                        {
-                            foundImplementations.Add(implementation);
-                        }
-                    }
-                }
+                m_ValidTargets.Add(new PreviewTarget());
+                return;
             }
 
-            // Next we get all Targets that have valid TargetImplementations
-            List<ITarget> foundTargets = new List<ITarget>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            // Find all valid Targets
+            var typeCollection = TypeCache.GetTypesDerivedFrom<Target>();
+            foreach(var type in typeCollection)
             {
-                foreach (var type in assembly.GetTypesOrNothing())
+                if(type.IsAbstract || type.IsGenericType || !type.IsClass)
+                    continue;
+                
+                var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+                var target = (Target)Activator.CreateInstance(type);
+                if(!target.isHidden && target.IsValid(masterNode))
                 {
-                    var isTarget = !type.IsAbstract && !type.IsGenericType && type.IsClass && typeof(ITarget).IsAssignableFrom(type);
-                    if (isTarget && !foundTargets.Any(s => s.GetType() == type))
-                    {
-                        var target = (ITarget)Activator.CreateInstance(type);
-                        if(foundImplementations.Where(s => s.targetType == type).Any())
-                            foundTargets.Add(target);
-                    }
+                    m_ValidTargets.Add(target);
                 }
             }
-
-            m_ValidTargets = foundTargets;
-            m_ValidImplementations = foundImplementations.Where(s => s.targetType == foundTargets[0].GetType()).ToList();
-            
         }
     }
 

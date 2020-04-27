@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
     }
 
-    public static class ShaderPropertyId
+    internal static class ShaderPropertyId
     {
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -193,14 +193,6 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
-    }
-
-    class CameraDataComparer : IComparer<Camera>
-    {
-        public int Compare(Camera lhs, Camera rhs)
-        {
-            return (int)lhs.depth - (int)rhs.depth;
-        }
     }
 
     public static class ShaderKeywordStrings
@@ -303,11 +295,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
         void SortCameras(Camera[] cameras)
         {
-            if (cameras.Length <= 1)
-                return;
-            Array.Sort(cameras, new CameraDataComparer());
+            if (cameras.Length > 1)
+                Array.Sort(cameras, cameraComparison);
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
