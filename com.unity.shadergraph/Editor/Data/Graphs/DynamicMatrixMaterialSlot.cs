@@ -48,6 +48,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
+        public override bool isDefaultValue => value.Equals(defaultValue);
+
         public override SlotValueType valueType { get { return SlotValueType.DynamicMatrix; } }
 
         public override ConcreteSlotValueType concreteValueType

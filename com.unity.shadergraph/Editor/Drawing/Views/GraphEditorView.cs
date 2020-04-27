@@ -304,7 +304,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Active block lists need to be initialized on window start up
             // Do this here to as we cant do this inside GraphData
             // This is due to targets not being deserialized yet
-            m_Graph.UpdateActiveBlocks();
+            var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
+            m_Graph.UpdateActiveBlocks(activeBlocks);
         }
 
         void AddContexts()

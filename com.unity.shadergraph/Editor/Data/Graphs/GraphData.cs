@@ -359,7 +359,8 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateGraph();
-            UpdateActiveBlocks();
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
         }
 
         void GetBlockFieldDescriptors()
@@ -654,6 +655,9 @@ namespace UnityEditor.ShaderGraph
         {
             AddBlockNoValidate(blockNode, contextData, index);
             ValidateGraph();
+
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
         }
 
         void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
@@ -674,29 +678,80 @@ namespace UnityEditor.ShaderGraph
             {
                 contextData.blocks.Insert(index, blockNode);
             }
-
-            // Update support Blocks
-            UpdateActiveBlocks();
         }
 
-        public void UpdateActiveBlocks()
+        public List<BlockFieldDescriptor> GetActiveBlocksForAllActiveTargets()
         {
-            // Get list of active Block types
-            var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
             var context = new TargetActiveBlockContext();
             foreach(var target in activeTargets)
             {
                 target.GetActiveBlocks(ref context);
             }
 
+            return context.blocks;
+        }
+
+        public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.isActive = context.blocks.Contains(vertexBlock.descriptor);
+                vertexBlock.isActive = activeBlockDescriptors.Contains(vertexBlock.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.isActive = context.blocks.Contains(fragmentBlock.descriptor);
+                fragmentBlock.isActive = activeBlockDescriptors.Contains(fragmentBlock.descriptor);
+            }
+        }
+
+        public void AddRemoveBlocksFromActiveList(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
+            var blocksToRemove = ListPool<BlockNode>.Get();
+
+            void GetBlocksToRemoveForContext(ContextData contextData)
+            {
+                for(int i = 0; i < contextData.blocks.Count; i++)
+                {
+                    var block = contextData.blocks[i];
+                    if(!activeBlockDescriptors.Contains(block.descriptor))
+                    {
+                        var slot = block.FindSlot<MaterialSlot>(0);
+                        if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                        {
+                            blocksToRemove.Add(block);
+                        }
+                    }
+                }
+            }
+
+            void TryAddBlockToContext(BlockFieldDescriptor descriptor, ContextData contextData)
+            {
+                if(descriptor.shaderStage != contextData.shaderStage)
+                    return;
+                
+                if(contextData.blocks.Any(x => x.descriptor.Equals(descriptor)))
+                    return;
+
+                var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                node.Init(descriptor);
+                AddBlockNoValidate(node, contextData, contextData.blocks.Count);
+            }
+
+            // Get inactive Blocks to remove
+            GetBlocksToRemoveForContext(vertexContext);
+            GetBlocksToRemoveForContext(fragmentContext);
+
+            // Remove blocks
+            foreach(var block in blocksToRemove)
+            {
+                RemoveNodeNoValidate(block);
+            }
+
+            // Add active Blocks not currently in Contexts
+            foreach(var descriptor in activeBlockDescriptors)
+            {
+                TryAddBlockToContext(descriptor, vertexContext);
+                TryAddBlockToContext(descriptor, fragmentContext);
             }
         }
 
@@ -721,6 +776,13 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
+
+            if(node is BlockNode blockNode)
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+                blockNode.Dirty(ModificationScope.Graph);
+            }
         }
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
@@ -744,8 +806,6 @@ namespace UnityEditor.ShaderGraph
             {
                 // Remove from ContextData
                 blockNode.contextData.blocks.Remove(blockNode);
-                blockNode.Dirty(ModificationScope.Graph);
-                UpdateActiveBlocks();
             }
         }
 
@@ -867,6 +927,12 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateGraph();
+
+            if(nodes.Any(x => x is BlockNode))
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+            }
         }
 
         void RemoveEdgeNoValidate(IEdge e)
@@ -1347,8 +1413,8 @@ namespace UnityEditor.ShaderGraph
 
             // Copy all targets
             m_ActiveTargets = other.activeTargets;
-            UpdateActiveBlocks();
-
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
             ValidateGraph();
 
             // TODO: Internal inspector must repaint here

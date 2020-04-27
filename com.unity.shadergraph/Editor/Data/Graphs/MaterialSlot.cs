@@ -219,6 +219,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public abstract bool isDefaultValue { get; }
+
         public abstract SlotValueType valueType { get; }
 
         public abstract ConcreteSlotValueType concreteValueType { get; }

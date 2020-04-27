@@ -68,6 +68,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        public override bool isDefaultValue => diffusionProfile == null;
+
         public DiffusionProfileInputMaterialSlot()
         {
         }
