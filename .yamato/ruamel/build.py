@@ -1,4 +1,4 @@
-import sys, glob
+import sys, glob, os
 import ruamel
 from jobs.shared.namer import *
 from jobs.projects.project_standalone import Project_StandaloneJob
@@ -195,6 +195,11 @@ if __name__== "__main__":
     yaml.indent(offset=2, mapping=4, sequence=5)
 
 
+    # clear directory from existing yml files, not to have old duplicates etc
+    old_yml_files = glob.glob(f'.yamato/**/*.yml', recursive=True)
+    for f in old_yml_files:
+        os.remove(f)
+
     # create editor
     print(f'Running: editor')
     create_editor_job('config/_editor.metafile')
@@ -215,10 +220,8 @@ if __name__== "__main__":
     print(f'Running: templates')
     create_template_jobs('config/_templates.metafile')
 
-    # create yml jobs for each specified project (universal, shadergraph, vfx_lwrp, ...)
-    args = sys.argv
-    projects = glob.glob('config/[!_]*.metafile') if 'all' in args else [f'config/{project}.metafile' for project in args[1:]]   
-    for project_metafile in projects:
+    # create yml jobs for each specified project
+    for project_metafile in glob.glob('config/[!_]*.metafile'):
         print(f'Running: {project_metafile}')
         create_project_specific_jobs(project_metafile) # create jobs for testplatforms
         create_project_all_jobs(project_metafile) # create All_ job

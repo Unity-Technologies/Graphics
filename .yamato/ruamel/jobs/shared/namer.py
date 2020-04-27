@@ -53,8 +53,8 @@ def project_filepath_specific(project_name, platform_name, api_name):
     return f'{parent_dir}/{project_name}-{platform_name}-{api_name}.yml'.lower().replace('-.','.')
 
 def project_filepath_all(project_name):
-    # return f'{parent_dir}/{project_name}/{project_name}-all.yml'.lower()
-    return f'{parent_dir}/{project_name}-all.yml'.lower()
+    # return f'{parent_dir}/{project_name}/all-{project_name}.yml'.lower()
+    return f'{parent_dir}/all-{project_name}.yml'.lower()
 
 def project_job_id_test(project_name, platform_name, api_name, test_platform_name, editor_version):
     return f'{project_name}_{platform_name}_{api_name}_{test_platform_name}_{editor_version}'.replace('__','_')

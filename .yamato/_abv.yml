@@ -72,21 +72,21 @@ all_project_ci_2020.1:
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_2020.1
          rerun: always
-      -  path: .yamato/universal-all.yml#All_Universal_2020.1
+      -  path: .yamato/all-universal.yml#All_Universal_2020.1
          rerun: always
-      -  path: .yamato/universal_stereo-all.yml#All_Universal_Stereo_2020.1
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_2020.1
          rerun: always
-      -  path: .yamato/shadergraph-all.yml#All_ShaderGraph_2020.1
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_2020.1
          rerun: always
-      -  path: .yamato/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_2020.1
+      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_2020.1
          rerun: always
-      -  path: .yamato/hdrp-all.yml#All_HDRP_2020.1
+      -  path: .yamato/all-hdrp.yml#All_HDRP_2020.1
          rerun: always
-      -  path: .yamato/hdrp_standalone-all.yml#All_HDRP_Standalone_2020.1
+      -  path: .yamato/all-hdrp_standalone.yml#All_HDRP_Standalone_2020.1
          rerun: always
-      -  path: .yamato/vfxmain-all.yml#All_VFXMain_2020.1
+      -  path: .yamato/all-vfxmain.yml#All_VFXMain_2020.1
          rerun: always
-      -  path: .yamato/vfx_lwrp-all.yml#All_VFX_LWRP_2020.1
+      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_2020.1
          rerun: always
 all_project_ci_nightly_2020.1:
     name: _Nightly ABV against 2020.1
@@ -103,9 +103,9 @@ all_project_ci_nightly_2020.1:
          rerun: always
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2020.1
          rerun: always
-      -  path: .yamato/hdrp_hybrid-all.yml#All_HDRP_Hybrid_2020.1
+      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_2020.1
          rerun: always
-      -  path: .yamato/universal_hybrid-all.yml#All_Universal_Hybrid_2020.1
+      -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_2020.1
          rerun: always
     triggers:
         recurring:
@@ -206,21 +206,21 @@ all_project_ci_fast-2020.1:
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_fast-2020.1
          rerun: always
-      -  path: .yamato/universal-all.yml#All_Universal_fast-2020.1
+      -  path: .yamato/all-universal.yml#All_Universal_fast-2020.1
          rerun: always
-      -  path: .yamato/universal_stereo-all.yml#All_Universal_Stereo_fast-2020.1
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-2020.1
          rerun: always
-      -  path: .yamato/shadergraph-all.yml#All_ShaderGraph_fast-2020.1
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-2020.1
          rerun: always
-      -  path: .yamato/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_fast-2020.1
+      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_fast-2020.1
          rerun: always
-      -  path: .yamato/hdrp-all.yml#All_HDRP_fast-2020.1
+      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-2020.1
          rerun: always
-      -  path: .yamato/hdrp_standalone-all.yml#All_HDRP_Standalone_fast-2020.1
+      -  path: .yamato/all-hdrp_standalone.yml#All_HDRP_Standalone_fast-2020.1
          rerun: always
-      -  path: .yamato/vfxmain-all.yml#All_VFXMain_fast-2020.1
+      -  path: .yamato/all-vfxmain.yml#All_VFXMain_fast-2020.1
          rerun: always
-      -  path: .yamato/vfx_lwrp-all.yml#All_VFX_LWRP_fast-2020.1
+      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_fast-2020.1
          rerun: always
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
@@ -319,21 +319,21 @@ all_project_ci_trunk:
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_trunk
          rerun: always
-      -  path: .yamato/universal-all.yml#All_Universal_trunk
+      -  path: .yamato/all-universal.yml#All_Universal_trunk
          rerun: always
-      -  path: .yamato/universal_stereo-all.yml#All_Universal_Stereo_trunk
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_trunk
          rerun: always
-      -  path: .yamato/shadergraph-all.yml#All_ShaderGraph_trunk
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
          rerun: always
-      -  path: .yamato/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_trunk
+      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_trunk
          rerun: always
-      -  path: .yamato/hdrp-all.yml#All_HDRP_trunk
+      -  path: .yamato/all-hdrp.yml#All_HDRP_trunk
          rerun: always
-      -  path: .yamato/hdrp_standalone-all.yml#All_HDRP_Standalone_trunk
+      -  path: .yamato/all-hdrp_standalone.yml#All_HDRP_Standalone_trunk
          rerun: always
-      -  path: .yamato/vfxmain-all.yml#All_VFXMain_trunk
+      -  path: .yamato/all-vfxmain.yml#All_VFXMain_trunk
          rerun: always
-      -  path: .yamato/vfx_lwrp-all.yml#All_VFX_LWRP_trunk
+      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_trunk
          rerun: always
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
@@ -350,9 +350,9 @@ all_project_ci_nightly_trunk:
          rerun: always
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
          rerun: always
-      -  path: .yamato/hdrp_hybrid-all.yml#All_HDRP_Hybrid_trunk
+      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: always
-      -  path: .yamato/universal_hybrid-all.yml#All_Universal_Hybrid_trunk
+      -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
          rerun: always
     triggers:
         recurring:
@@ -453,21 +453,21 @@ all_project_ci_fast-trunk:
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_fast-trunk
          rerun: always
-      -  path: .yamato/universal-all.yml#All_Universal_fast-trunk
+      -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
          rerun: always
-      -  path: .yamato/universal_stereo-all.yml#All_Universal_Stereo_fast-trunk
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-trunk
          rerun: always
-      -  path: .yamato/shadergraph-all.yml#All_ShaderGraph_fast-trunk
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-trunk
          rerun: always
-      -  path: .yamato/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_fast-trunk
+      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_fast-trunk
          rerun: always
-      -  path: .yamato/hdrp-all.yml#All_HDRP_fast-trunk
+      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-trunk
          rerun: always
-      -  path: .yamato/hdrp_standalone-all.yml#All_HDRP_Standalone_fast-trunk
+      -  path: .yamato/all-hdrp_standalone.yml#All_HDRP_Standalone_fast-trunk
          rerun: always
-      -  path: .yamato/vfxmain-all.yml#All_VFXMain_fast-trunk
+      -  path: .yamato/all-vfxmain.yml#All_VFXMain_fast-trunk
          rerun: always
-      -  path: .yamato/vfx_lwrp-all.yml#All_VFX_LWRP_fast-trunk
+      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_fast-trunk
          rerun: always
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
@@ -569,21 +569,21 @@ all_project_ci_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-all.yml#All_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal_stereo-all.yml#All_Universal_Stereo_CUSTOM-REVISION
+      -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-all.yml#All_ShaderGraph_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph_stereo-all.yml#All_ShaderGraph_Stereo_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-all.yml#All_HDRP_CUSTOM-REVISION
+      -  path: .yamato/all-hdrp.yml#All_HDRP_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp_standalone-all.yml#All_HDRP_Standalone_CUSTOM-REVISION
+      -  path: .yamato/all-hdrp_standalone.yml#All_HDRP_Standalone_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfxmain-all.yml#All_VFXMain_CUSTOM-REVISION
+      -  path: .yamato/all-vfxmain.yml#All_VFXMain_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_lwrp-all.yml#All_VFX_LWRP_CUSTOM-REVISION
+      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
