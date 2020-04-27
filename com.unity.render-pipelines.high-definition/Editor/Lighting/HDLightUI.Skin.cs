@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent cookieTextureTypeError = new GUIContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";
+            public readonly string cookieBaking = "Light Baking for cookies disabled on the Project Settings.";
 
 
             // Additional light data
