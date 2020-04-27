@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed shadowmask UI now correctly showing shadowmask disable
+
+### Changed
+- Shadowmask and realtime reflection probe property are hide in Quality settings
 
 ## [8.1.0] - 2020-04-21
 
@@ -74,7 +77,6 @@ The version number for this package has increased due to a version update of a r
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
-- Fixed shadowmask UI now correctly showing shadowmask disable
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
