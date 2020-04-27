@@ -35,6 +35,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GradientSkyMaterial.SetFloat(_GradientDiffusion, gradientSky.gradientDiffusion.value);
             m_GradientSkyMaterial.SetFloat(HDShaderIDs._SkyIntensity, GetSkyIntensity(gradientSky, builtinParams.debugSettings));
 
+            if (builtinParams.cloudLayer != null)
+                builtinParams.cloudLayer.Render(m_GradientSkyMaterial);
+            else
+            {
+                m_GradientSkyMaterial.DisableKeyword("USE_CLOUD_MAP");
+                m_GradientSkyMaterial.DisableKeyword("USE_CLOUD_MOTION");
+            }
+
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 

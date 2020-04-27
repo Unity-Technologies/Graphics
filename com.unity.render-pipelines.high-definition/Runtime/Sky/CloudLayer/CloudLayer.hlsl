@@ -61,11 +61,10 @@ float3 GetDistordedCloudColor(float3 dir, float3 sky)
         sky = lerp(color1, color2, abs(2.0 * alpha.x));
     }
 #else
-        float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, GetLatLongCoords(dir, _CloudUpperHemisphere), 0);
-        sky = lerp(sky, cloudLayerColor.rgb, cloudLayerColor.a);
+    sky = sampleCloud(dir, sky);
 #endif
 
-        return sky;
+    return sky;
 }
 
 float3 ApplyCloudLayer(float3 dir, float3 sky)

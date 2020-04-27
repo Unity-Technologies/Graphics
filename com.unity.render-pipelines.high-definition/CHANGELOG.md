@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Min distance to contact shadows.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
 - Added a flow map parameter to HDRI Sky
+- Added a Cloud Layer volume override.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
