@@ -166,6 +166,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/Core/CoreResources/ProjectCubeTo2D.compute")]
             public ComputeShader projectCubeTo2DCS;
+            [Reload("Runtime/Core/CoreResources/GPUArithmetic.compute")]
+            public ComputeShader gpuArithmeticCS;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
