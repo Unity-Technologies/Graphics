@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue when Linear -> sRGB conversion would not happen on some Android devices. [case 1226208](https://issuetracker.unity3d.com/issues/no-srgb-conversion-on-some-android-devices-when-using-the-universal-render-pipeline)
 - Fixed issues with performance when importing fbx files
 - Fixed issues with NullReferenceException happening with URP shaders
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 
 ## [7.3.0] - 2020-03-11
 
