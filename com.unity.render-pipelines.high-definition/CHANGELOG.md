@@ -564,6 +564,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed shader warning in PCSS code when using Vulkan.
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
