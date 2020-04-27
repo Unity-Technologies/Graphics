@@ -167,21 +167,19 @@ namespace UnityEngine.Rendering.Universal
             passInfo.cullingPassId = xrRenderPass.cullingPassIndex;
             passInfo.cullingParams = cullingParameters;
             passInfo.views.Clear();
-            // XRTODO: here we are making assuption that XR always renders to all depth slices because URP is lacking regarding to depth slice handling.
-            // Relax this constrant after adding better depth slice support to URP(being able to tell if RenderTexture belongs to a slice of another RenderTargetArray). 
+
+            // XRTODO: handle multipass rendering to texture array
             passInfo.renderTarget = new RenderTargetIdentifier(xrRenderPass.renderTarget, 0, CubemapFace.Unknown, -1);
 
-            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(
-                    xrRenderPass.renderTargetDesc.width, xrRenderPass.renderTargetDesc.height, xrRenderPass.renderTargetDesc.colorFormat,
-                    xrRenderPass.renderTargetDesc.depthBufferBits, xrRenderPass.renderTargetDesc.mipCount);
-            rtDesc.dimension = xrRenderPass.renderTargetDesc.dimension;
+            RenderTextureDescriptor xrDesc = xrRenderPass.renderTargetDesc;
+            RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.colorFormat, xrDesc.depthBufferBits, xrDesc.mipCount);
+            rtDesc.dimension   = xrRenderPass.renderTargetDesc.dimension;
             rtDesc.volumeDepth = xrRenderPass.renderTargetDesc.volumeDepth;
-            rtDesc.vrUsage = xrRenderPass.renderTargetDesc.vrUsage;
-            rtDesc.sRGB = xrRenderPass.renderTargetDesc.sRGB;
+            rtDesc.vrUsage     = xrRenderPass.renderTargetDesc.vrUsage;
+            rtDesc.sRGB        = xrRenderPass.renderTargetDesc.sRGB;
 
-            // XRTODO: check other descriptor field
             // Can't use xr descriptor directly as its descriptor force off y-flip cap
-            //passInfo.renderTargetDesc = xrRenderPass.renderTargetDesc;
+            //passInfo.renderTargetDesc = xrDesc;
             passInfo.renderTargetDesc = rtDesc;
 
             // Eye textures are back buffer type internally (See c++ core XRTextureManager)
@@ -310,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // XRTODO: move to StereoConstants in RenderingUtils.cs ?
+        // Store array to avoid allocating every frame
         private Matrix4x4[] stereoProjectionMatrix = new Matrix4x4[2];
         private Matrix4x4[] stereoViewMatrix = new Matrix4x4[2];
 

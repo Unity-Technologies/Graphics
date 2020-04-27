@@ -135,7 +135,6 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         // Hold the stereo matrices in this class to avoid allocating arrays every frame
-        // XRTODO: revisit this code once everything is working
         class StereoConstants
         {
             public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
@@ -148,9 +147,9 @@ namespace UnityEngine.Rendering.Universal
         static readonly StereoConstants stereoConstants = new StereoConstants();
 
         /// <summary>
-        /// Helper function to set all view and projection related matricies
-        /// Should be called before draw call and after cmd.SetRenderTarget 
-        /// Interal usage only, function name and signature may be subject to change
+        /// Helper function to set all view and projection related matrices
+        /// Should be called before draw call and after cmd.SetRenderTarget
+        /// Internal usage only, function name and signature may be subject to change
         /// </summary>
         /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
         /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
@@ -181,22 +180,20 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        // XRTODO : same code as post process
         internal static void Blit(CommandBuffer cmd,
             RenderTargetIdentifier source,
             RenderTargetIdentifier destination,
             Material material,
             int passIndex = 0,
             MaterialPropertyBlock materialProperty = null,
-            bool useDrawProcedureBlit = false,
+            bool useDrawProcedure = false,
             RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
             RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
             RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
-            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store
-        )
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
         {
             cmd.SetGlobalTexture(ShaderPropertyId.blitTex, source);
-            if (useDrawProcedureBlit)
+            if (useDrawProcedure)
             {
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                 Vector4 scaleBiasRT = new Vector4(1, 1, 0, 0);

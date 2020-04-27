@@ -267,7 +267,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalTexture(ShaderConstants._InputTex, source);
             if (m_UseDrawProcedural)
             {
-                // XRTODO: connect to render viewport scale and/or dynamic resolution
                 Vector4 scaleBias = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderConstants._InputTexScaleBias, scaleBias);
 

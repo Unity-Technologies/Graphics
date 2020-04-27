@@ -210,11 +210,7 @@ namespace UnityEngine.Rendering.Universal
                 bool intermediateRenderTexture = createColorTexture || createDepthTexture;
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
-                bool createTextures = intermediateRenderTexture;
-
-                // XRTODO: intermediate texture dimension could be different from camera target texture dimension.
-                // Upgrade the logic here to handle multipass render to texture array case and spi render to N texture 2d case
-                if (createTextures)
+                if (intermediateRenderTexture)
                     CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
 
                 // if rendering to intermediate render texture we don't have to create msaa backbuffer
@@ -229,7 +225,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            // XRTODO: ConfigureCameraTarget Should also support depthslice. In XR, camera target could be texture2DArray type and multipass rendering need to be able to render to depthslide 0/1 separately
+            // Assign camera targets (color and depth)
             {
                 var activeColorRenderTargetId = m_ActiveCameraColorAttachment.Identifier();
                 var activeDepthRenderTargetId = m_ActiveCameraDepthAttachment.Identifier();

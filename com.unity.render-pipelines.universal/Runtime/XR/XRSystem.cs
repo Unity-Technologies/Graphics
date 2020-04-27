@@ -43,7 +43,6 @@ namespace UnityEngine.Rendering.Universal
         {
             RefreshXrSdk();
 
-            // XRTODO: replace by dynamic render graph
             TextureXR.maxViews = Math.Max(TextureXR.slices, GetMaxViews());
         }
 
@@ -154,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
                 // Disable vsync on the main display when rendering to a XR device
                 QualitySettings.vSyncCount = 0;
 
-                // XRTODO: handle camera.stereoTargetEye here ?
+                // XRTODO: handle camera.stereoTargetEye here ? or just add xrRendering on the camera ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
             }
             else
@@ -204,7 +203,7 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        // XRTODO: rework and merge code with CreateLayoutFromXrSdk()
+        // Used for camera stacking where we need to update the parameters per camera
         internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
         {
             if (xrPass.enabled)
