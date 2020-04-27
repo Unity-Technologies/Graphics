@@ -67,27 +67,27 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capure
   - FilteredScene: {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capure
   - FilteredScene: {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capure
   - FilteredScene: {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
     ColorSpace: -1
     BuildPlatform: 2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capure
