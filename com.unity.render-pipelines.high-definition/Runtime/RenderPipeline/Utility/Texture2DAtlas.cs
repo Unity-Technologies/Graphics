@@ -288,6 +288,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
+            => IsCached(out scaleOffset, textureA.GetInstanceID().GetHashCode() + 23*textureB.GetInstanceID().GetHashCode());
+
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
             => IsCached(out scaleOffset, texture.GetInstanceID());
 
@@ -319,6 +322,26 @@ namespace UnityEngine.Rendering.HighDefinition
             // are valid for the texture if we need them
             else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
                 return value == 0 || (needMips && value == 1);
+
+            return false;
+        }
+
+        public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
+        {
+            int  key  = textureA.GetInstanceID().GetHashCode() + 23*textureB.GetInstanceID().GetHashCode();
+            uint uKey = (uint)key;
+
+            uint currentKey;
+            if (m_IsGPUTextureUpToDate.TryGetValue(key, out currentKey))
+            {
+                m_IsGPUTextureUpToDate[key] = uKey;
+                if (uKey != currentKey)
+                    return true;
+            }
+            else
+            {
+                m_IsGPUTextureUpToDate[key] = uKey;
+            }
 
             return false;
         }

@@ -357,6 +357,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private RTHandle ProjectCubeTo2D(CommandBuffer cmd, Texture cookie, int projectionSize)
         {
+            Debug.Assert(cookie.dimension == TextureDimension.Cube);
+
             RTHandle projected = RTHandles.Alloc(
                                         projectionSize,
                                         projectionSize,
