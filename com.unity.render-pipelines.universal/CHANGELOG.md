@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed issues with performance when importing fbx files
 - Fixed issues with NullReferenceException happening with URP shaders
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 
 ## [8.1.0] - 2020-04-21
 
