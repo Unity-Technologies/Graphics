@@ -22,6 +22,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceReflection.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
 
@@ -51,24 +52,6 @@
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
     StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
     StructuredBuffer<uint>  _CoarseStencilBuffer;
-
-CBUFFER_START(UnityScreenSpaceReflections)
-    int   _SsrStencilBit;
-    int   _SsrIterLimit;
-    float _SsrThicknessScale;
-    float _SsrThicknessBias;
-
-    float _SsrRoughnessFadeEnd;
-    float _SsrRoughnessFadeRcpLength;
-    float _SsrRoughnessFadeEndTimesRcpLength;
-    float _SsrEdgeFadeRcpLength;
-
-    float4 _ColorPyramidUvScaleAndLimitPrevFrame;
-
-    int    _SsrDepthPyramidMaxMip;
-    int    _SsrColorPyramidMaxMip;
-    int    _SsrReflectsSky;         // bool...
-CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation

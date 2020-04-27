@@ -18,6 +18,47 @@ namespace UnityEngine.Rendering.HighDefinition
             InScatteredRadianceTableSizeW = 64,  // <N, L>,
         }
 
+        [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.PBRSky)]
+        unsafe struct ShaderVariablesPhysicallyBasedSky
+        {
+            // All the distance-related entries use SI units (meter, 1/meter, etc).
+            public float _PlanetaryRadius;
+            public float _RcpPlanetaryRadius;
+            public float _AtmosphericDepth;
+            public float _RcpAtmosphericDepth;
+
+            public float _AtmosphericRadius;
+            public float _AerosolAnisotropy;
+            public float _AerosolPhasePartConstant;
+            public float _Unused;
+
+            public float _AirDensityFalloff;
+            public float _AirScaleHeight;
+            public float _AerosolDensityFalloff;
+            public float _AerosolScaleHeight;
+
+            public Vector3 _AirSeaLevelExtinction;
+            public float _AerosolSeaLevelExtinction;
+
+            public Vector3 _AirSeaLevelScattering;
+            public float _IntensityMultiplier;
+
+            public Vector3 _AerosolSeaLevelScattering;
+            public float _ColorSaturation;
+
+            public Vector3 _GroundAlbedo;
+            public float _AlphaSaturation;
+
+            public Vector3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+            public float _AlphaMultiplier;
+
+            public Vector3 _HorizonTint;
+            public float _HorizonZenithShiftPower;
+
+            public Vector3 _ZenithTint;
+            public float _HorizonZenithShiftScale;
+        }
+
         // Store the hash of the parameters each time precomputation is done.
         // If the hash does not match, we must recompute our data.
         int m_LastPrecomputationParamHash;
@@ -34,6 +75,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeShader         s_InScatteredRadiancePrecomputationCS;
         static Material              s_PbrSkyMaterial;
         static MaterialPropertyBlock s_PbrSkyMaterialProperties;
+
+        ShaderVariablesPhysicallyBasedSky m_ConstantBuffer;
+        int m_ShaderVariablesPhysicallyBasedSkyID = Shader.PropertyToID("ShaderVariablesPhysicallyBasedSky");
 
         static GraphicsFormat s_ColorFormat = GraphicsFormat.R16G16B16A16_SFloat;
 
@@ -160,40 +204,46 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2 expParams = ComputeExponentialInterpolationParams(pbrSky.horizonZenithShift.value);
 
-            cmd.SetGlobalFloat( HDShaderIDs._PlanetaryRadius,           R);
-            cmd.SetGlobalFloat( HDShaderIDs._RcpPlanetaryRadius,        1.0f / R);
-            cmd.SetGlobalFloat( HDShaderIDs._AtmosphericDepth,          D);
-            cmd.SetGlobalFloat( HDShaderIDs._RcpAtmosphericDepth,       1.0f / D);
+            m_ConstantBuffer._PlanetaryRadius           = R;
+            m_ConstantBuffer._RcpPlanetaryRadius        = 1.0f / R;
+            m_ConstantBuffer._AtmosphericDepth          = D;
+            m_ConstantBuffer._RcpAtmosphericDepth       = 1.0f / D;
 
-            cmd.SetGlobalFloat( HDShaderIDs._AtmosphericRadius,         R + D);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolAnisotropy,         pbrSky.aerosolAnisotropy.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolPhasePartConstant,  CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value));
+            m_ConstantBuffer._AtmosphericRadius         = R + D;
+            m_ConstantBuffer._AerosolAnisotropy         = pbrSky.aerosolAnisotropy.value;
+            m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value);
+            m_ConstantBuffer._Unused                    = 0.0f; // Warning fix
 
-            cmd.SetGlobalFloat( HDShaderIDs._AirDensityFalloff,         1.0f / airH);
-            cmd.SetGlobalFloat( HDShaderIDs._AirScaleHeight,            airH);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolDensityFalloff,     1.0f / aerH);
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolScaleHeight,        aerH);
+            m_ConstantBuffer._AirDensityFalloff         = 1.0f / airH;
+            m_ConstantBuffer._AirScaleHeight            = airH;
+            m_ConstantBuffer._AerosolDensityFalloff     = 1.0f / aerH;
+            m_ConstantBuffer._AerosolScaleHeight        = aerH;
 
-            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelExtinction,     pbrSky.GetAirExtinctionCoefficient());
-            cmd.SetGlobalFloat( HDShaderIDs._AerosolSeaLevelExtinction, pbrSky.GetAerosolExtinctionCoefficient());
+            m_ConstantBuffer._AirSeaLevelExtinction     = pbrSky.GetAirExtinctionCoefficient();
+            m_ConstantBuffer._AerosolSeaLevelExtinction = pbrSky.GetAerosolExtinctionCoefficient();
 
-            cmd.SetGlobalVector(HDShaderIDs._AirSeaLevelScattering,     pbrSky.GetAirScatteringCoefficient());
-            cmd.SetGlobalFloat( HDShaderIDs._IntensityMultiplier,       iMul);
+            m_ConstantBuffer._AirSeaLevelScattering     = pbrSky.GetAirScatteringCoefficient();
+            m_ConstantBuffer._IntensityMultiplier       = iMul;
 
-            cmd.SetGlobalVector(HDShaderIDs._AerosolSeaLevelScattering, pbrSky.GetAerosolScatteringCoefficient());
-            cmd.SetGlobalFloat( HDShaderIDs._ColorSaturation,           pbrSky.colorSaturation.value);
+            m_ConstantBuffer._AerosolSeaLevelScattering = pbrSky.GetAerosolScatteringCoefficient();
+            m_ConstantBuffer._ColorSaturation           = pbrSky.colorSaturation.value;
 
-            cmd.SetGlobalVector(HDShaderIDs._GroundAlbedo,              pbrSky.groundTint.value);
-            cmd.SetGlobalFloat( HDShaderIDs._AlphaSaturation,           pbrSky.alphaSaturation.value);
+            Vector3 groundAlbedo = new Vector3(pbrSky.groundTint.value.r, pbrSky.groundTint.value.g, pbrSky.groundTint.value.b);
+            m_ConstantBuffer._GroundAlbedo              = groundAlbedo;
+            m_ConstantBuffer._AlphaSaturation           = pbrSky.alphaSaturation.value;
 
-            cmd.SetGlobalVector(HDShaderIDs._PlanetCenterPosition,      pbrSky.GetPlanetCenterPosition(builtinParams.worldSpaceCameraPos));
-            cmd.SetGlobalFloat( HDShaderIDs._AlphaMultiplier,           pbrSky.alphaMultiplier.value);
+            m_ConstantBuffer._PlanetCenterPosition      = pbrSky.GetPlanetCenterPosition(builtinParams.worldSpaceCameraPos);
+            m_ConstantBuffer._AlphaMultiplier           = pbrSky.alphaMultiplier.value;
 
-            cmd.SetGlobalVector(HDShaderIDs._HorizonTint,               pbrSky.horizonTint.value);
-            cmd.SetGlobalFloat( HDShaderIDs._HorizonZenithShiftPower,   expParams.x);
+            Vector3 horizonTint = new Vector3(pbrSky.horizonTint.value.r, pbrSky.horizonTint.value.g, pbrSky.horizonTint.value.b);
+            m_ConstantBuffer._HorizonTint               = horizonTint;
+            m_ConstantBuffer._HorizonZenithShiftPower   = expParams.x;
 
-            cmd.SetGlobalVector(HDShaderIDs._ZenithTint,                pbrSky.zenithTint.value);
-            cmd.SetGlobalFloat( HDShaderIDs._HorizonZenithShiftScale,   expParams.y);
+            Vector3 zenithTint = new Vector3(pbrSky.zenithTint.value.r, pbrSky.zenithTint.value.g, pbrSky.zenithTint.value.b);
+            m_ConstantBuffer._ZenithTint                = zenithTint;
+            m_ConstantBuffer._HorizonZenithShiftScale   = expParams.y;
+
+            ConstantBuffer.PushGlobal(cmd, m_ConstantBuffer, m_ShaderVariablesPhysicallyBasedSkyID);
         }
 
         void PrecomputeTables(CommandBuffer cmd)
