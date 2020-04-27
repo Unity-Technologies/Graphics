@@ -156,7 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition
             // Update material editor with the new material
             UnityEngine.Object[] materials = new UnityEngine.Object[validMaterialsCount];
             validMaterialsCount = 0;
-            DecalProjector decalProjector = (target as DecalProjector);
 
             if ((decalProjector != null) && (decalProjector.material != null))
                 materials[validMaterialsCount++] = (target as DecalProjector).material;
