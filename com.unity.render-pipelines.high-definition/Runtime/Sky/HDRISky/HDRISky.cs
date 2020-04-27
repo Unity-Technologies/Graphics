@@ -26,11 +26,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to affect only the upper part of the sky.</summary>
         [Tooltip("Check this box if the flowmap covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
-        /// <summary>Direction of the wind.</summary>
+        /// <summary>Direction of the distortion.</summary>
         [Tooltip("Sets the rotation of the distortion (in degrees).")]
         public ClampedFloatParameter    scrollDirection       = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
-        /// <summary>Force of the wind.</summary>
-        [Tooltip("Sets the cloud movement speed. The higher the value, the faster the clouds will move.")]
+        /// <summary>Speed of the distortion.</summary>
+        [Tooltip("Sets the scrolling speed of the distortion.")]
         public MinFloatParameter        scrollSpeed           = new MinFloatParameter(2.0f, 0.0f);
 
         /// <summary>Enable Backplate to have it visible.</summary>

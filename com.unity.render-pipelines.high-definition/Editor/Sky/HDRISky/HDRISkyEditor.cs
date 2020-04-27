@@ -118,6 +118,16 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereLuxColor.value.vector3Value *= 0.5f; // Arbitrary 25% to not have too dark or too bright shadow
         }
 
+        bool IsFlowmapFormatInvalid(SerializedDataParameter map)
+        {
+            if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
+                return false;
+            var tex = map.value.objectReferenceValue;
+            if (tex.GetType() == typeof(RenderTexture))
+                return (tex as RenderTexture).dimension != TextureDimension.Tex2D;
+            return tex.GetType() != typeof(Texture2D);
+        }
+
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -141,6 +151,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUI.indentLevel++;
                     PropertyField(m_Flowmap);
+                    if (IsFlowmapFormatInvalid(m_Flowmap))
+                        EditorGUILayout.HelpBox("The flowmap needs to be a 2D Texture in LatLong layout.", MessageType.Info);
                     PropertyField(m_UpperHemisphereOnly);
                     EditorGUI.indentLevel--;
                 }
