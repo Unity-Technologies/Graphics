@@ -1,4 +1,4 @@
-integration_branch: master
+integration_branch: master # specifies the integration branch for auto_version job, and the recurrect trigger branch for publish job
 editors:
   - version: trunk
 publishing:

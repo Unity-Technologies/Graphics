@@ -28,11 +28,11 @@ test_platforms:
     args: --suite=playmode
   - name: editmode
     args: --suite=editor --platform=editmode
-abv_config:
-  trigger_editor:
-    fast-2020.1
+abv_config: # specify the editor versions for which to create the expression trigger for all_project_ci job
+  trigger_editors:
+    - fast-2020.1
 nightly_config:
-  allowed_editors:
+  allowed_editors: # specify the editor versions for which to create nightly jobs
     - 2020.1
     - trunk
   additional_jobs: # additional project jobs to run nightly (in addition to ABV and smoke tests)
@@ -52,7 +52,7 @@ nightly_config:
       all: true
     - project_name: Universal_Hybrid
       all: true
-smoke_test: 
+smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent_win: # used for editmode
     type: Unity::VM

@@ -134,7 +134,7 @@ def create_abv_jobs(metafile_name):
         job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editor"])
+        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editors"])
         yml[job.job_id] = job.yml
 
         if editor["version"] in metafile["nightly_config"]["allowed_editors"]:
