@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     public struct VirtualTextureEntry
     {
         public string layerName;
@@ -20,6 +21,7 @@ namespace UnityEditor.ShaderGraph
             this.layerTexture = texture;
         }
     }
+
     [Serializable]
     class VirtualTextureShaderProperty : AbstractShaderProperty<SerializableVirtualTexture>
     {
