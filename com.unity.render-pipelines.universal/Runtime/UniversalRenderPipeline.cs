@@ -386,7 +386,8 @@ namespace UnityEngine.Rendering.Universal
                 lightProbeProxyVolumes = false,
                 motionVectors = false,
                 receiveShadows = false,
-                reflectionProbes = true
+                reflectionProbes = true,
+                particleSystemInstancing = false
             };
             SceneViewDrawMode.SetupDrawMode();
 #endif
