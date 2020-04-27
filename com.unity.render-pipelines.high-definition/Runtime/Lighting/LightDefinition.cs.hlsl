@@ -103,6 +103,7 @@ struct LightData
     float volumetricLightDimmer;
     real angleScale;
     real angleOffset;
+    float iesCut;
     float3 forward;
     int lightType;
     float3 right;

@@ -195,11 +195,35 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float innerSpotPercent01 => innerSpotPercent / 100f;
 
+
+        [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
+        [SerializeField]
+        float m_SpotIESCutoffPercent = 100.0f; // To display this field in the UI this need to be public
+        /// <summary>
+        /// Get/Set the spot ies cutoff.
+        /// </summary>
+        public float spotIESCutoffPercent
+        {
+            get => m_SpotIESCutoffPercent;
+            set
+            {
+                if (m_SpotIESCutoffPercent == value)
+                    return;
+
+                m_SpotIESCutoffPercent = Mathf.Clamp(value, k_MinSpotInnerPercent, k_MaxSpotInnerPercent);
+            }
+        }
+
+        /// <summary>
+        /// Get the inner spot radius between 0 and 1.
+        /// </summary>
+        public float spotIESCutoffPercent01 => spotIESCutoffPercent/100f;
+
         [Range(0.0f, 16.0f)]
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
+        /// Get/Set the light dimmer / multiplier, between 0 and 16.
         /// </summary>
         public float lightDimmer
         {
@@ -541,6 +565,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AreaLightCookie = value;
                 UpdateAllLightValues();
+            }
+        }
+
+        // Optional IES (Cubemap for PointLight, 2D Square texture for Spot)
+        [SerializeField, FormerlySerializedAs("ies")]
+        Texture m_IES = null;
+        /// <summary>
+        /// Get/Set IES texture for Point & Spot.
+        /// </summary>
+        public Texture IES
+        {
+            get => m_IES;
+            set
+            {
+                if (m_IES == value)
+                    return;
+
+                SetIES(value);
             }
         }
 
@@ -1371,7 +1413,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// True if the light affects volumetric fog, false otherwise 
+        /// True if the light affects volumetric fog, false otherwise
         /// </summary>
         public bool affectsVolumetric
         {
@@ -1520,7 +1562,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ChildEmissiveMeshViewer);
             m_ChildEmissiveMeshViewer = null;
         }
-        
+
         [SerializeField]
         ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
         [SerializeField]
@@ -1559,7 +1601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
+
         private void DisableCachedShadowSlot()
         {
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
@@ -2177,7 +2219,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
         }
-        
+
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues(fromTimeLine: true);
@@ -2391,7 +2433,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
 #endif
         }
-        
+
         void Awake()
         {
             Migrate();
@@ -2729,6 +2771,36 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
+
+        /// <summary>
+        /// Set light IES. Note that the texture must have a power of two size.
+        /// </summary>
+        /// <param name="IES">IES texture, must be 2D for Spot, and Cubemap for Point lights</param>
+        public void SetIES(Texture ies)
+        {
+            HDLightType lightType = type;
+            if (lightType == HDLightType.Point)
+            {
+                if (ies.dimension != TextureDimension.Cube)
+                {
+                    Debug.LogError("Texture dimension " + ies.dimension + " is not supported for point lights.");
+                    return;
+                }
+
+                m_IES = ies;
+            }
+            // Only 2D IES are supported for Spot lights
+            else if (lightType == HDLightType.Spot)
+            {
+                if (ies.dimension != TextureDimension.Tex2D)
+                {
+                    Debug.LogError("Texture dimension " + ies.dimension + " is not supported for Spot lights.");
+                    return;
+                }
+
+                m_IES = ies;
+            }
+        }
 
         /// <summary>
         /// Set the spot light angle and inner spot percent. We don't use Light.innerSpotAngle.

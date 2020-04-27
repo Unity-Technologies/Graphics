@@ -141,6 +141,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   angleScale;              // Spot light
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   angleOffset;             // Spot light
+        public float   iesCut;                  // Spot light
 
         public Vector3 forward;
         public GPULightType lightType;          // TODO: move this up?

@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering
         public IESEngine    engine      = new IESEngine();
         public IESMetaData  iesMetaData = new IESMetaData();
 
-        public delegate void SetupRenderPipelinePrefabLight(IESEngine engine, Light light);
+        public delegate void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies);
 
         public void CommonOnImportAsset(AssetImportContext ctx, SetupRenderPipelinePrefabLight setupRenderPipelinePrefabLight)
         {
@@ -106,9 +106,9 @@ namespace UnityEditor.Rendering
             light.intensity = 1f;  // would need a better intensity value formula
             light.range     = 10f; // would need a better range value formula
             light.spotAngle = iesMetaData.SpotAngle;
-            light.cookie    = (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D;
+            //light.cookie    = (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D;
 
-            setupRenderPipelinePrefabLight(engine, light);
+            setupRenderPipelinePrefabLight(engine, light, (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D);
 
             // The light object will be automatically converted into a prefab.
             ctx.AddObjectToAsset(iesFileName, lightObject);

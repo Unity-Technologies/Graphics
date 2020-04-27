@@ -1,0 +1,128 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMainAdd            Add                     KerName=CSMainAdd
+#pragma kernel CSMainSub            Sub                     KerName=CSMainSub
+#pragma kernel CSMainMult           Mult                    KerName=CSMainMult
+#pragma kernel CSMainDiv            Div                     KerName=CSMainDiv
+#pragma kernel CSMainMAD            MAD                     KerName=CSMainMAD
+#pragma kernel CSMainMAD_RG         MAD_RG                  KerName=CSMainMAD_RG
+#pragma kernel CSMainMean           Mean                    KerName=CSMainMean
+#pragma kernel CSMainSelfAdd        READ_WRITE  Add         KerName=CSMainSelfAdd
+#pragma kernel CSMainSelfSub        READ_WRITE  Sub         KerName=CSMainSelfSub
+#pragma kernel CSMainSelfMult       READ_WRITE  Mult        KerName=CSMainSelfMult
+#pragma kernel CSMainSelfDiv        READ_WRITE  Div         KerName=CSMainSelfDiv
+#pragma kernel CSMainSelfMAD        READ_WRITE  MAD         KerName=CSMainSelfMAD
+#pragma kernel CSMainSelfMAD_RG     READ_WRITE  MAD_RG      KerName=CSMainSelfMAD_RG
+#pragma kernel CSMainSelfMean       READ_WRITE  Mean        KerName=CSMainSelfMean
+
+#pragma kernel CSMainAddFull        Full Add                KerName=CSMainAddFull
+#pragma kernel CSMainSubFull        Full Sub                KerName=CSMainSubFull
+#pragma kernel CSMainMultFull       Full Mult               KerName=CSMainMultFull
+#pragma kernel CSMainDivFull        Full Div                KerName=CSMainDivFull
+#pragma kernel CSMainMADFull        Full MAD                KerName=CSMainMADFull
+#pragma kernel CSMainMAD_RGFull     Full MAD_RG             KerName=CSMainMAD_RGFull
+#pragma kernel CSMainMeanFull       Full Mean               KerName=CSMainMeanFull
+
+#pragma kernel CSMainAddVal         Val Add                 KerName=CSMainAddVal
+#pragma kernel CSMainSubVal         Val Sub                 KerName=CSMainSubVal
+#pragma kernel CSMainMultVal        Val Mult                KerName=CSMainMultVal
+#pragma kernel CSMainDivVal         Val Div                 KerName=CSMainDivVal
+#pragma kernel CSMainMADVal         Val MAD                 KerName=CSMainMADVal
+#pragma kernel CSMainMAD_RGVal      Val MAD_RG              KerName=CSMainMAD_RGVal
+#pragma kernel CSMainMeanVal        Val Mean                KerName=CSMainMeanVal
+#pragma kernel CSMainSelfAddVal     Val READ_WRITE  Add     KerName=CSMainSelfAddVal
+#pragma kernel CSMainSelfSubVal     Val READ_WRITE  Sub     KerName=CSMainSelfSubVal
+#pragma kernel CSMainSelfMultVal    Val READ_WRITE  Mult    KerName=CSMainSelfMultVal
+#pragma kernel CSMainSelfDivVal     Val READ_WRITE  Div     KerName=CSMainSelfDivVal
+#pragma kernel CSMainSelfMADVal     Val READ_WRITE  MAD     KerName=CSMainSelfMADVal
+#pragma kernel CSMainSelfMAD_RGVal  Val READ_WRITE  MAD_RG  KerName=CSMainSelfMAD_RGVal
+#pragma kernel CSMainSelfMeanVal    Val READ_WRITE  Mean    KerName=CSMainSelfMeanVal
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+
+#ifdef Val
+          float4  _InputVal;
+#elif !defined(Full)
+Texture2D<float4> _InputVal;
+#endif
+
+#ifdef READ_WRITE
+    RWTexture2D<float4> _Output;
+    #define _Input      _Output
+#else
+      Texture2D<float4> _Input;
+    RWTexture2D<float4> _Output;
+#endif
+
+#ifdef Full
+    float4 _ScaleBias;
+SAMPLER(sampler_Input);
+#endif
+
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
+
+[numthreads(8, 8, 1)]
+void KerName(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < _Sizes.xy))
+    {
+#ifdef Full
+        float4 v = _Output[id.xy];
+#else
+        float4 v = _Input[id.xy];
+#endif
+
+#ifdef Val
+    #if defined(MAD)
+            float4 param0 = _InputVal.r;
+            float4 param1 = _InputVal.g;
+    #elif defined(MAD_RG)
+            float4 param = float4(_InputVal.r, _InputVal.g, 0.0f, 0.0f);
+    #else
+            float4 param = _InputVal;
+    #endif
+#elif defined(Full)
+    float2 uv = float2(id.xy)*_ScaleBias.xy + _ScaleBias.zw;
+
+    #if defined(MAD) // .
+            float4 param0 = SAMPLE_TEXTURECUBE_LOD(_Input, sampler_Input, uv, 0);
+            float4 param1 = param0;
+    #elif defined(MAD_RG)
+            float2 rg    = SAMPLE_TEXTURECUBE_LOD(_Input, sampler_Input, uv, 0).xy;
+            float4 param = float4(rg.r, rg.g, 0.0f, 0.0f);
+    #else
+            float4 param = SAMPLE_TEXTURECUBE_LOD(_Input, sampler_Input, uv, 0);
+    #endif
+#else
+    #if defined(MAD)
+            float4 param0 = _InputVal[uint2(0, 0)];
+            float4 param1 = _InputVal[uint2(1, 0)];
+    #elif defined(MAD_RG)
+            float4 param = float4(_InputVal[uint2(0, 0)].r, _InputVal[uint2(0, 0)].g, 0.0f, 0.0f);
+    #else
+            float4 param = _InputVal[uint2(0, 0)];
+    #endif
+#endif
+
+#ifdef Add
+        _Output[id.xy] = v + param;
+#elif defined(Sub)
+        _Output[id.xy] = v - param;
+#elif defined(Mult)
+        _Output[id.xy] = v*param;
+#elif defined(Div)
+        float4 a = param;
+        _Output[id.xy] = sign(a)*v/max(abs(a), 1e-4f);
+#elif defined(MAD)
+        _Output[id.xy] = v*param0 + param1;
+#elif defined(MAD_RG)
+        _Output[id.xy] = v*param.r + param.g;
+#elif defined(Mean)
+        float mean = dot(v.xyz, float3((1.0f/3.0f).xxx));
+        _Output[id.xy] = mean.xxxx;
+#endif
+    }
+}

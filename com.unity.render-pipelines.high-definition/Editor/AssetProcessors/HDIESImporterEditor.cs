@@ -12,12 +12,12 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public UnityEditor.Rendering.IESImporterEditor iesImporterEditor = new UnityEditor.Rendering.IESImporterEditor();
 
-        internal void LayoutRenderPipelineUseIesMaximumIntensity()
-        {
-            // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
-
-            // EditorGUILayout.PropertyField(m_UseIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
-        }
+        //internal void LayoutRenderPipelineUseIesMaximumIntensity(SerializedProperty useIESMaximumIntensityProp)
+        //{
+        //    // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
+        //
+        //    EditorGUILayout.PropertyField(useIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
+        //}
 
         internal void SetupRenderPipelinePreviewCamera(Camera camera)
         {
@@ -52,21 +52,21 @@ namespace UnityEditor.Rendering.HighDefinition
             floorRenderer.material = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDMaterial.mat");
         }
 
-        internal void SetupRenderPipelinePreviewLightIntensity(Light light)
+        internal void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
         {
             // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
 
-            // HDAdditionalLightData hdLight = light.GetComponent<HDAdditionalLightData>();
-            //
-            // if (m_UseIesMaximumIntensityProp.boolValue)
-            // {
-            //     LightUnit lightUnit = (m_IesMaximumIntensityUnitProp.stringValue == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
-            //     hdLight.SetIntensity(m_IesMaximumIntensityProp.floatValue, lightUnit);
-            // }
-            // else
-            // {
-            //     hdLight.SetIntensity(20000f, LightUnit.Lumen);
-            // }
+            HDAdditionalLightData hdLight = light.GetComponent<HDAdditionalLightData>();
+
+            if (useIESMaximumIntensityProp.boolValue)
+            {
+                LightUnit lightUnit = (iesMaximumIntensityUnitProp.stringValue == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
+                hdLight.SetIntensity(iesMaximumIntensityProp.floatValue, lightUnit);
+            }
+            else
+            {
+                hdLight.SetIntensity(20000f, LightUnit.Lumen);
+            }
         }
 
         public override void OnEnable()
@@ -83,11 +83,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor,
-                delegate ()
-                {
-                    LayoutRenderPipelineUseIesMaximumIntensity();
-                });
+            iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor);//,
+                //delegate ()
+                //{
+                //    LayoutRenderPipelineUseIesMaximumIntensity();
+                //});
 
             base.ApplyRevertGUI();
         }
@@ -129,9 +129,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             iesImporterEditor.CommonOnPreviewGUI(r, background, target as HDIESImporter,
-                                    delegate (Light light)
+                                    delegate (Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
                                     {
-                                        SetupRenderPipelinePreviewLightIntensity(light);
+                                        SetupRenderPipelinePreviewLightIntensity(light, useIESMaximumIntensityProp, iesMaximumIntensityUnitProp, iesMaximumIntensityProp);
                                     });
         }
 

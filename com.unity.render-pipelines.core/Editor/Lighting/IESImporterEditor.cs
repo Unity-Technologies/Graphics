@@ -28,8 +28,6 @@ namespace UnityEditor.Rendering
         SerializedProperty m_UseIESMaximumIntensityProp;
         SerializedProperty m_CookieCompressionProp;
 
-        //IESMetaData iesMetaData;
-
         protected SerializedProperty m_LightAimAxisRotationProp;
 
         bool m_ShowLuminaireProductInformation = true;
@@ -42,7 +40,7 @@ namespace UnityEditor.Rendering
         public delegate void SetupRenderPipelinePreviewLight(Light light);
         public delegate void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer);
         public delegate void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
-        public delegate void SetupRenderPipelinePreviewLightIntensity(Light light);
+        public delegate void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp);
 
         public void CommonOnEnable(SerializedProperty serializedObject)
         {
@@ -68,7 +66,7 @@ namespace UnityEditor.Rendering
             m_LightAimAxisRotationProp    = serializedObject.FindPropertyRelative("LightAimAxisRotation");
         }
 
-        public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter, LayoutRenderPipelineUseIesMaximumIntensity layoutRenderPipelineUseIesMaximumIntensity)
+        public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter)
         {
             scriptedImporter.serializedObject.Update();
 
@@ -95,7 +93,10 @@ namespace UnityEditor.Rendering
 
                 EditorGUILayout.PropertyField(m_CookieCompressionProp);
 
-                layoutRenderPipelineUseIesMaximumIntensity();
+                //layoutRenderPipelineUseIesMaximumIntensity(SerializedProperty useIESMaximumIntensityProp);
+
+                // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
+                EditorGUILayout.PropertyField(m_UseIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -224,7 +225,7 @@ namespace UnityEditor.Rendering
                 if (cookieTexture != null)
                 {
                     m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(90f, 0f, m_LightAimAxisRotationProp.floatValue);
-                    setupRenderPipelinePreviewLightIntensity(m_PreviewRenderUtility.lights[0]);
+                    setupRenderPipelinePreviewLightIntensity(m_PreviewRenderUtility.lights[0], m_UseIESMaximumIntensityProp, m_IESMaximumIntensityUnitProp, m_IESMaximumIntensityProp);
                     m_PreviewRenderUtility.lights[0].cookie = cookieTexture;
                     m_PreviewRenderUtility.lights[0].type = m_PrefabLightTypeProp.enumValueIndex == (int)IESLightType.Point ? LightType.Point : LightType.Spot;
 

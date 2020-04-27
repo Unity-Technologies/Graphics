@@ -622,7 +622,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
-            
+
             EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
@@ -726,8 +726,18 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
-                EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
+                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+            }
+
+            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot)
+            {
+                EditorGUILayout.PropertyField(serialized.ies, s_Styles.iesTexture);
+            }
+
+            if (serialized.type == HDLightType.Spot && serialized.ies.objectReferenceValue != null)
+            {
+                EditorGUILayout.PropertyField(serialized.spotIESCutoffPercent, s_Styles.spotIESCutoffPercent);
             }
 
             if (EditorGUI.EndChangeCheck())

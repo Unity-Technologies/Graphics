@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
 
-        internal void SetupRenderPipelinePrefabLight(IESEngine engine, Light light)
+        internal void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
 
@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 LightUnit lightUnit = (commonIESImporter.iesMetaData.IESMaximumIntensityUnit == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
                 hdLight.SetIntensity(commonIESImporter.iesMetaData.IESMaximumIntensity, lightUnit);
+                hdLight.SetIES(ies);
             }
         }
 
@@ -29,9 +30,9 @@ namespace UnityEditor.Rendering.HighDefinition
             commonIESImporter.engine.TextureGenerationType = TextureImporterType.Default;
 
             commonIESImporter.CommonOnImportAsset(ctx,
-                delegate (IESEngine engine, Light light)
+                delegate (IESEngine engine, Light light, Texture ies)
                 {
-                    SetupRenderPipelinePrefabLight(engine, light);
+                    SetupRenderPipelinePrefabLight(engine, light, ies);
                 } );
         }
     }
