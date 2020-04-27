@@ -159,7 +159,7 @@ This table provides an overview of the current features supported in the Univers
 | World Space                                                  | Yes                                                          | Yes                                                          |
 | Text Mesh Pro                                                | Yes                                                          | Yes                                                          |
 | ***VR***                                                     |                                                              |                                                              |
-| Mutipass                                                     | Yes                                                          | In research                                                  |
+| Multipass                                                    | Yes                                                          | In research                                                  |
 | Single Pass                                                  | Yes                                                          | Yes                                                          |
 | Single Pass Instanced                                        | Yes                                                          | Yes                                                          |
 | *Post-processing*<br>Oculus Rift<br/>Oculus Quest</br>Oculus Go<br/>Gear VR<br/>PSVR</br>HoloLens<br/>WMR<br/>Magic Leap One<br/>OpenVR| <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes | <br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>Yes<br/>No |
