@@ -150,22 +150,16 @@ namespace UnityEditor.Rendering.HighDefinition
         public void UpdateMaterialEditor()
         {
             int validMaterialsCount = 0;
-            for (int index = 0; index < targets.Length; ++index)
-            {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
-                if((decalProjector != null) && (decalProjector.material != null))
-                    validMaterialsCount++;
-            }
+            DecalProjector decalProjector = (target as DecalProjector);
+            if ((decalProjector != null) && (decalProjector.material != null))
+                validMaterialsCount++;
             // Update material editor with the new material
             UnityEngine.Object[] materials = new UnityEngine.Object[validMaterialsCount];
             validMaterialsCount = 0;
-            for (int index = 0; index < targets.Length; ++index)
-            {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
+            DecalProjector decalProjector = (target as DecalProjector);
 
-                if((decalProjector != null) && (decalProjector.material != null))
-                    materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
-            }
+            if ((decalProjector != null) && (decalProjector.material != null))
+                materials[validMaterialsCount++] = (target as DecalProjector).material;
             m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
         }
 
