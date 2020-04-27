@@ -4,7 +4,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    class HDBuiltinData : HDTargetData
+    class BuiltinData : HDTargetData
     {
         [SerializeField]
         bool m_Distortion = false;

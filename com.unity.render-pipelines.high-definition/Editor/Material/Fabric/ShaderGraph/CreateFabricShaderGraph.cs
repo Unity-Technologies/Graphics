@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static void CreateFabricGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDFabricSubTarget));
+            target.TrySetActiveSubTarget(typeof(FabricSubTarget));
 
             var blockDescriptors = new [] 
             { 

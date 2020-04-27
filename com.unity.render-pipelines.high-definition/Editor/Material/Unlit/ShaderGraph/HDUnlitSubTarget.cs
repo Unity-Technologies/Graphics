@@ -10,7 +10,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed class HDUnlitSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDUnlitData>
+        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<HDUnlitData>
     {
         const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
 
@@ -30,17 +30,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
 
         // Material Data
-        HDSystemData m_SystemData;
-        HDBuiltinData m_BuiltinData;
+        SystemData m_SystemData;
+        BuiltinData m_BuiltinData;
         HDUnlitData m_UnlitData;
 
         // Interface Properties
-        HDSystemData IRequiresData<HDSystemData>.data
+        SystemData IRequiresData<SystemData>.data
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        HDBuiltinData IRequiresData<HDBuiltinData>.data
+        BuiltinData IRequiresData<BuiltinData>.data
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;
@@ -52,12 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public HDSystemData systemData
+        public SystemData systemData
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        public HDBuiltinData builtinData
+        public BuiltinData builtinData
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;

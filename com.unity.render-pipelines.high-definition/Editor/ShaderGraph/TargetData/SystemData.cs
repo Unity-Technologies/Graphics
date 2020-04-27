@@ -7,7 +7,7 @@ using RenderQueueType = UnityEngine.Rendering.HighDefinition.HDRenderQueue.Rende
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    class HDSystemData : HDTargetData
+    class SystemData : HDTargetData
     {
         [SerializeField]
         int m_MaterialNeedsUpdateHash;
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
     static class HDSystemDataExtensions
     {
-        public static bool TryChangeRenderingPass(this HDSystemData systemData, HDRenderQueue.RenderQueueType value)
+        public static bool TryChangeRenderingPass(this SystemData systemData, HDRenderQueue.RenderQueueType value)
         {
             // Catch invalid rendering pass
             switch (value)

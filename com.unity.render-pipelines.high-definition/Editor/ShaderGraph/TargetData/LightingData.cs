@@ -5,7 +5,7 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    class HDLightingData : HDTargetData
+    class LightingData : HDTargetData
     {
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace;

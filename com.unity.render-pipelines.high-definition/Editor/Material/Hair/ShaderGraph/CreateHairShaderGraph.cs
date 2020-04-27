@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static void CreateHairGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDHairSubTarget));
+            target.TrySetActiveSubTarget(typeof(HairSubTarget));
 
             var blockDescriptors = new [] 
             { 

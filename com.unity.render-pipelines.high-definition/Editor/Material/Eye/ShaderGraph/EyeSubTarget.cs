@@ -9,13 +9,13 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDEyeSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDLightingData>, IRequiresData<EyeData>
+    sealed class EyeSubTarget : SubTarget<HDTarget>, IHasMetadata,
+        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<EyeData>
     {
         const string kAssetGuid = "864e4e09d6293cf4d98457f740bb3301";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
 
-        public HDEyeSubTarget()
+        public EyeSubTarget()
         {
             displayName = "Eye";
         }
@@ -33,23 +33,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Material Data
-        HDSystemData m_SystemData;
-        HDBuiltinData m_BuiltinData;
-        HDLightingData m_LightingData;
+        SystemData m_SystemData;
+        BuiltinData m_BuiltinData;
+        LightingData m_LightingData;
         EyeData m_EyeData;
 
         // Interface Properties
-        HDSystemData IRequiresData<HDSystemData>.data
+        SystemData IRequiresData<SystemData>.data
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        HDBuiltinData IRequiresData<HDBuiltinData>.data
+        BuiltinData IRequiresData<BuiltinData>.data
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;
         }
-        HDLightingData IRequiresData<HDLightingData>.data
+        LightingData IRequiresData<LightingData>.data
         {
             get => m_LightingData;
             set => m_LightingData = value;
@@ -61,17 +61,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public HDSystemData systemData
+        public SystemData systemData
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        public HDBuiltinData builtinData
+        public BuiltinData builtinData
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;
         }
-        public HDLightingData lightingData
+        public LightingData lightingData
         {
             get => m_LightingData;
             set => m_LightingData = value;
@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.SurfaceTransparent,                     systemData.surfaceType != SurfaceType.Opaque);
 
             // Structs
-            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDEyeSubTarget.EyePasses.MotionVectors));
+            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(EyeSubTarget.EyePasses.MotionVectors));
 
             // Material
             context.AddField(HDFields.Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);

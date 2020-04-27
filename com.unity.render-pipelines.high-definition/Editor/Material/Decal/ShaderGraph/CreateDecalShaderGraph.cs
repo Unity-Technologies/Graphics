@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static void CreateDecalGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDDecalSubTarget));
+            target.TrySetActiveSubTarget(typeof(DecalSubTarget));
 
             var blockDescriptors = new [] 
             { 

@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static void CreateEyeGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDEyeSubTarget));
+            target.TrySetActiveSubTarget(typeof(EyeSubTarget));
 
             var blockDescriptors = new [] 
             { 

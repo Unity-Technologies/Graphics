@@ -11,16 +11,6 @@ using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    [Serializable]
-    abstract class HDTargetData
-    {
-    }
-
-    interface IRequiresData<T> where T : HDTargetData
-    {
-        T data { get; set; }
-    }
-
     enum DistortionMode
     {
         Add,
@@ -150,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
-                var systemData = m_Datas.FirstOrDefault(x => x is HDSystemData) as HDSystemData;
+                var systemData = m_Datas.FirstOrDefault(x => x is SystemData) as SystemData;
                 if(systemData != null)
                 {
                     // Force material update hash

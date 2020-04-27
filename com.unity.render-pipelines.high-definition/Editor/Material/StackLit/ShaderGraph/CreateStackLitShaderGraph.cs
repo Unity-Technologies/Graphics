@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static void CreateStackLitGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
-            target.TrySetActiveSubTarget(typeof(HDStackLitSubTarget));
+            target.TrySetActiveSubTarget(typeof(StackLitSubTarget));
 
             var blockDescriptors = new [] 
             { 

@@ -9,13 +9,13 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDDecalSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<HDSystemData>, IRequiresData<DecalData>
+    sealed class DecalSubTarget : SubTarget<HDTarget>, IHasMetadata,
+        IRequiresData<SystemData>, IRequiresData<DecalData>
     {
         const string kAssetGuid = "3ec927dfcb5d60e4883b2c224857b6c2";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
 
-        public HDDecalSubTarget()
+        public DecalSubTarget()
         {
             displayName = "Decal";
         }
@@ -25,11 +25,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
 
         // Material Data
-        HDSystemData m_SystemData;
+        SystemData m_SystemData;
         DecalData m_DecalData;
 
         // Interface Properties
-        HDSystemData IRequiresData<HDSystemData>.data
+        SystemData IRequiresData<SystemData>.data
         {
             get => m_SystemData;
             set => m_SystemData = value;
@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public HDSystemData systemData
+        public SystemData systemData
         {
             get => m_SystemData;
             set => m_SystemData = value;

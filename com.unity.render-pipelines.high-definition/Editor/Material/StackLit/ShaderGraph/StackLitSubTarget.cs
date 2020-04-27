@@ -12,13 +12,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     //TODO:
     // clamp in shader code the ranged() properties
     // or let inputs (eg mask?) follow invalid values ? Lit does that (let them free running).
-    sealed class HDStackLitSubTarget : SubTarget<HDTarget>, IHasMetadata,
-        IRequiresData<HDSystemData>, IRequiresData<HDBuiltinData>, IRequiresData<HDLightingData>, IRequiresData<StackLitData>
+    sealed class StackLitSubTarget : SubTarget<HDTarget>, IHasMetadata,
+        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<StackLitData>
     {
         const string kAssetGuid = "5f7ba34a143e67647b202a662748dae3";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
 
-        public HDStackLitSubTarget()
+        public StackLitSubTarget()
         {
             displayName = "StackLit";
         }
@@ -36,23 +36,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Material Data
-        HDSystemData m_SystemData;
-        HDBuiltinData m_BuiltinData;
-        HDLightingData m_LightingData;
+        SystemData m_SystemData;
+        BuiltinData m_BuiltinData;
+        LightingData m_LightingData;
         StackLitData m_StackLitData;
 
         // Interface Properties
-        HDSystemData IRequiresData<HDSystemData>.data
+        SystemData IRequiresData<SystemData>.data
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        HDBuiltinData IRequiresData<HDBuiltinData>.data
+        BuiltinData IRequiresData<BuiltinData>.data
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;
         }
-        HDLightingData IRequiresData<HDLightingData>.data
+        LightingData IRequiresData<LightingData>.data
         {
             get => m_LightingData;
             set => m_LightingData = value;
@@ -64,17 +64,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public HDSystemData systemData
+        public SystemData systemData
         {
             get => m_SystemData;
             set => m_SystemData = value;
         }
-        public HDBuiltinData builtinData
+        public BuiltinData builtinData
         {
             get => m_BuiltinData;
             set => m_BuiltinData = value;
         }
-        public HDLightingData lightingData
+        public LightingData lightingData
         {
             get => m_LightingData;
             set => m_LightingData = value;
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.SurfaceTransparent,             systemData.surfaceType != SurfaceType.Opaque);
 
             // Structs
-            context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDStackLitSubTarget.StackLitPasses.MotionVectors));
+            context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(StackLitSubTarget.StackLitPasses.MotionVectors));
 
             // Material
             context.AddField(HDFields.Anisotropy,                   stackLitData.anisotropy);
