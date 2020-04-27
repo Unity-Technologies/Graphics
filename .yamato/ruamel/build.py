@@ -25,12 +25,15 @@ from jobs.templates.template_test import Template_TestJob
 from jobs.templates.template_test_dependencies import Template_TestDependenciesJob
 from jobs.templates.test_all import Template_AllTemplateCiJob
 
+save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+
 def load_yml(filepath):
     with open(filepath) as f:
         return yaml.load(f)
 
 def dump_yml(filepath, yml_dict):
-    with open(filepath, 'w') as f:
+    
+    with open(os.path.join(save_dir,filepath), 'w') as f:
         yaml.dump(yml_dict, f)
 
 def create_project_specific_jobs(metafile_name):
@@ -196,7 +199,8 @@ if __name__== "__main__":
 
 
     # clear directory from existing yml files, not to have old duplicates etc
-    old_yml_files = glob.glob(f'.yamato/**/*.yml', recursive=True)
+    print(save_dir)
+    old_yml_files = glob.glob(f'{save_dir}/.yamato/**/*.yml', recursive=True)
     for f in old_yml_files:
         os.remove(f)
 
