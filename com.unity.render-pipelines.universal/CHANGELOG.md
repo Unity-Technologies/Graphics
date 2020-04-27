@@ -172,6 +172,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
 - Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
 - Fixed an issue where multi edit camera properties didn't work. [case 1230080](https://issuetracker.unity3d.com/issues/urp-certain-settings-are-not-applied-to-all-cameras-when-multi-editing-in-the-inspector)
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
