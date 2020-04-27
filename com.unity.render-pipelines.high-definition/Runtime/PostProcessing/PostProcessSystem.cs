@@ -775,6 +775,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return rt ?? m_EmptyExposureTexture;
         }
 
+        public ComputeBuffer GetHistogramBuffer()
+        {
+            return m_HistogramBuffer;
+        }
+
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;

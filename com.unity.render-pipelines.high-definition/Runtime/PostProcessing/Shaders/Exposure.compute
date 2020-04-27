@@ -11,10 +11,9 @@
 TEXTURE2D(_ExposureCurveTexture);
 TEXTURE2D(_InputTexture);
 
-#pragma enable_d3d11_debug_symbols
-
 #define PREPASS_TEX_SIZE 1024.0
 #define PREPASS_TEX_HALF_SIZE 512.0
+#pragma enable_d3d11_debug_symbols
 
 //
 // Fixed exposure
@@ -41,12 +40,13 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 }
 
 
+// TODO_FCC: REMOVE THIS.
 uint GetHistogramBinLocation(float value)
 {
     float scaledLogLuma = ComputeEV100FromAvgLuminance(value) * 0.0333333333f + 0.33333333333;
     return uint(saturate(scaledLogLuma) * (128 - 1));
 }
-
+// TODO_FCC: REMOVE THIS.
 float BinLocationToLogLuma(uint binIdx)
 {
     return (binIdx * rcp(float(128 - 1)) - 0.33333333333) / 0.0333333333f;
@@ -66,30 +66,13 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), rcp(PREPASS_TEX_SIZE), uint2(8u, 8u));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
-    float luma;
-
-    UNITY_BRANCH
-    switch (ParamSourceBuffer)
-    {
-        case 1u:
-        {
-            // Color buffer
-            float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
-            float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-            luma = Luminance(color / prevExposure);
-            break;
-        }
-        default:
-        {
-            // Lighting buffer
-            luma = 1.0;
-            break;
-        }
-    }
+    float luma = SampleLuminance(uv);
 
     float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx);
+
     uint bin = GetHistogramBinLocation(luma);
     float value = BinLocationToLogLuma(bin);
+
     float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4));
     _OutputTexture[posInputs.positionSS] = float2(value, weight);
 }

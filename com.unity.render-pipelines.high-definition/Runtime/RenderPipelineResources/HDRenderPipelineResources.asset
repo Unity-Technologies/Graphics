@@ -20,6 +20,7 @@ MonoBehaviour:
     debugViewTilesPS: {fileID: 4800000, guid: c7c2bd17b06ceb4468e14081aaf1b96f, type: 3}
     debugFullScreenPS: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf, type: 3}
     debugColorPickerPS: {fileID: 4800000, guid: 8137b807709e178498f22ed710864bb0, type: 3}
+    debugExposurePS: {fileID: 4800000, guid: 0ef322534f047a34c96d29419d56d17a, type: 3}
     debugLightVolumePS: {fileID: 4800000, guid: 8e706c0e71fcec34a8f5c9713e5e2943, type: 3}
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184, type: 3}
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}

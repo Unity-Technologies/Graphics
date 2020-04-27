@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugFullScreenPS;
             [Reload("Runtime/Debug/DebugColorPicker.Shader")]
             public Shader debugColorPickerPS;
+            [Reload("Runtime/Debug/DebugExposure.Shader")]
+            public Shader debugExposurePS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]

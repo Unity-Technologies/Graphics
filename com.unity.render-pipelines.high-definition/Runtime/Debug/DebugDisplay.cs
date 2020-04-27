@@ -181,6 +181,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
             /// <summary>Current color picker debug settings.</summary>
             public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
+            /// <summary>Current exposure debug settings.</summary>
+            public ExposureDebugSettings exposureDebugSettings = new ExposureDebugSettings();       // TODO_FCC: TODO Check where to put this.
             /// <summary>Current false color debug settings.</summary>
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             /// <summary>Current decals debug settings.</summary>
@@ -218,6 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int renderingFulscreenDebugModeEnumIndex;
             internal int terrainTextureEnumIndex;
             internal int colorPickerDebugModeEnumIndex;
+            internal int exposureDebugModeEnumIndex;
             internal int msaaSampleDebugModeEnumIndex;
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
@@ -407,7 +410,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
-            return data.materialDebugSettings.IsDebugDisplayEnabled();
+            return data.materialDebugSettings.IsDebugDisplayEnabled(); 
         }
 
         /// <summary>
@@ -417,6 +420,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugFullScreenEnabled()
         {
             return data.fullScreenDebugMode != FullScreenDebugMode.None;
+        }
+
+        /// <summary>
+        /// Returns true if any full screen exposure debug display is enabled.
+        /// </summary>
+        /// <returns>True if any full screen exposure debug display is enabled.</returns>
+        public bool IsDebugExposureModeEnabled()
+        {
+            return data.exposureDebugSettings.debugMode != ExposureDebugMode.None;
         }
 
         /// <summary>
@@ -1387,6 +1399,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             });
+
+            widgetList.AddRange(new[]
+{
+                new DebugUI.Container
+                {
+                    displayName = "Exposure",
+                    children =
+                    {
+                        new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)data.exposureDebugSettings.debugMode, setter = value => data.exposureDebugSettings.debugMode = (ExposureDebugMode)value, autoEnum = typeof(ExposureDebugMode), getIndex = () => data.exposureDebugModeEnumIndex, setIndex = value => data.exposureDebugModeEnumIndex = value },
+                    }
+                }
+            });
+
 
             widgetList.Add(new DebugUI.BoolField  { displayName = "False Color Mode", getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
             if (data.falseColorDebugSettings.falseColor)

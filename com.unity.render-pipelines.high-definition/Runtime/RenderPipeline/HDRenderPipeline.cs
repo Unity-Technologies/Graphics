@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_DebugFullScreen;
         MaterialPropertyBlock m_DebugFullScreenPropertyBlock = new MaterialPropertyBlock();
         Material m_DebugColorPicker;
+        Material m_DebugExposure;
         Material m_ErrorMaterial;
 
         Material m_Blit;
@@ -811,6 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplayLatlong = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugDisplayLatlongPS);
             m_DebugFullScreen = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugFullScreenPS);
             m_DebugColorPicker = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugColorPickerPS);
+            m_DebugExposure = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugExposurePS);
             m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
@@ -895,6 +897,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_DebugDisplayLatlong);
             CoreUtils.Destroy(m_DebugFullScreen);
             CoreUtils.Destroy(m_DebugColorPicker);
+            CoreUtils.Destroy(m_DebugExposure);
             CoreUtils.Destroy(m_Blit);
             CoreUtils.Destroy(m_BlitTexArray);
             CoreUtils.Destroy(m_BlitTexArraySingleSlice);
@@ -4171,7 +4174,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
             if (debugDisplayEnabledOrSceneLightingDisabled ||
-                m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
+                m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None ||
+                m_CurrentDebugDisplaySettings.IsDebugExposureModeEnabled())
             {
                 // This is for texture streaming
                 m_CurrentDebugDisplaySettings.UpdateMaterials();
@@ -4260,6 +4264,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        bool NeedExposureDebugMode(DebugDisplaySettings debugSettings)
+        {
+            return debugSettings.data.exposureDebugSettings.debugMode != ExposureDebugMode.None;
+        }
+
         bool NeedsFullScreenDebugMode()
         {
             bool fullScreenDebugEnabled = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.None;
@@ -4323,6 +4332,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Color picker
             public bool     colorPickerEnabled;
             public Material colorPickerMaterial;
+
+            // Exposure
+            public bool     exposureDebugEnabled;
+            public Material debugExposureMaterial;
         }
 
         DebugParameters PrepareDebugParameters(HDCamera hdCamera, HDUtils.PackedMipChainInfo depthMipInfo)
@@ -4346,6 +4359,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.colorPickerEnabled = NeedColorPickerDebug(parameters.debugDisplaySettings);
             parameters.colorPickerMaterial = m_DebugColorPicker;
+
+            parameters.exposureDebugEnabled = NeedExposureDebugMode(parameters.debugDisplaySettings);
+            parameters.debugExposureMaterial = m_DebugExposure;
 
             return parameters;
         }
@@ -4394,6 +4410,29 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.DrawFullScreen(cmd, parameters.colorPickerMaterial, output);
         }
 
+        static void RenderExposureDebug(in DebugParameters parameters,
+                                            RTHandle inputColorBuffer,
+                                            RTHandle prevExposure,
+                                            RTHandle output,
+                                            ComputeBuffer histogramBuffer,
+                                            CommandBuffer cmd)
+        {
+
+            //parameters.exposureMaterial.set
+            // Grab exposure parameters
+            var exposureSettings = parameters.hdCamera.volumeStack.GetComponent<Exposure>();
+
+            Vector4 exposureParams = new Vector4(exposureSettings.compensation.value + parameters.debugDisplaySettings.data.lightingDebugSettings.debugExposure, exposureSettings.limitMin.value,
+                                                exposureSettings.limitMax.value, 0f);
+
+            parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureParams, exposureParams);
+            parameters.debugExposureMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(parameters.hdCamera));
+            parameters.debugExposureMaterial.SetTexture(HDShaderIDs._SourceTexture, inputColorBuffer);
+            parameters.debugExposureMaterial.SetTexture(HDShaderIDs._PreviousExposureTexture, prevExposure);
+
+            HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, 0);
+        }
+
         static void RenderSkyReflectionOverlay(in DebugParameters debugParameters, CommandBuffer cmd, MaterialPropertyBlock mpb, ref float x, ref float y, float overlaySize)
         {
             var lightingDebug = debugParameters.debugDisplaySettings.data.lightingDebugSettings;
@@ -4434,6 +4473,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_FullScreenDebugPushed = false;
                     ResolveFullScreenDebug(debugParams, m_DebugFullScreenPropertyBlock, m_DebugFullScreenTempBuffer, m_SharedRTManager.GetDepthTexture(), m_IntermediateAfterPostProcessBuffer, cmd);
                     PushColorPickerDebugTexture(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+                }
+
+                // TODO_FCC: Should this be inside the fullscreen debug ? Probably...
+                if (debugParams.exposureDebugEnabled)
+                {
+                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);
                 }
 
                 // First resolve color picker
