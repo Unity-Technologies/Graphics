@@ -4,13 +4,6 @@ namespace UnityEditor.ShaderGraph
 {
     internal static class NodeTypes
     {
-        public static NodeTypeCollection Master = new NodeTypeCollection()
-        {
-            typeof(PBRMasterNode),
-            typeof(UnlitMasterNode),
-            typeof(VfxMasterNode)
-        };
-
         public static class Artistic
         {
             public static NodeTypeCollection Adjustment = new NodeTypeCollection()
@@ -366,7 +359,6 @@ namespace UnityEditor.ShaderGraph
 
         public static NodeTypeCollection AllBuiltin = new NodeTypeCollection()
         {
-            Master,
             Artistic.All,
             Channel,
             Input.All,

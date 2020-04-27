@@ -29,12 +29,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             if (m_Graph != null)
             {
-                var allNodes = m_Graph.GetNodes<AbstractMaterialNode>().ToArray();
-                foreach (var node in allNodes)
-                {
-                    if(m_Graph.activeOutputNodeGuid != node.guid)
-                        m_Graph.RemoveNode(node);
-                }
+                // var allNodes = m_Graph.GetNodes<AbstractMaterialNode>().ToArray();
+                // foreach (var node in allNodes)
+                // {
+                //     if(m_Graph.activeOutputNodeGuid != node.guid)
+                //         m_Graph.RemoveNode(node);
+                // }
             }
         }
 

@@ -318,17 +318,19 @@ namespace UnityEditor.ShaderGraph
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
-                if (slot == null)
-                    return string.Empty;
-
-                if (fromNode.isActive)
-                    return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, inputSlot.concreteValueType);
-                else
-                    return inputSlot.GetDefaultValue(generationMode);
+                return fromNode.GetOutputForSlot(fromSocketRef, inputSlot.concreteValueType, generationMode);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        protected virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
+        {
+            var slot = FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
+            if (slot == null)
+                return string.Empty;
+
+            return GenerationUtils.AdaptNodeOutput(this, slot.id, valueType);
         }
 
         public AbstractMaterialNode GetInputNodeFromSlot(int inputSlotId)

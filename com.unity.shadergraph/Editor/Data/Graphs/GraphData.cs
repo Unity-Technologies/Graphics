@@ -1549,7 +1549,6 @@ namespace UnityEditor.ShaderGraph
                     block.contextData = contextData;
                     block.index = i;
                 }
-                UpdateTargets();
             }
 
             ValidateGraph();

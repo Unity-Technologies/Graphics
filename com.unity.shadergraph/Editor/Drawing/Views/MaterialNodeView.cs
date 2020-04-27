@@ -268,29 +268,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             }
         }
-
-        public void ClearMessage()
-        {
-            // Setup
-            var disabledString = "disabled";
-            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>();
-
-            if (!state)
-            {
-                // Add elements to disabled class list
-                AddToClassList(disabledString);
-                foreach(var inputView in inputViews)
-                    inputView.AddToClassList(disabledString);
-            }
-            else
-            {
-                // Remove elements from disabled class list
-                RemoveFromClassList(disabledString);
-                foreach(var inputView in inputViews)
-                    inputView.RemoveFromClassList(disabledString);
-            }
-        }
-
+        
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();

@@ -14,14 +14,14 @@ namespace UnityEditor.ShaderGraph
             {
                 Type t = node.GetType();
                 node.ValidateNode();
-                foreach(var targetImpl in node.owner.m_ValidImplementations)
-                {
-                    if(!targetImpl.allowedNodes.Contains(t))
-                    {
-                        node.isValid = false;
-                        node.owner.AddValidationError(node.guid, $"{node.name} Node is not allowed by {targetImpl.displayName + targetImpl.targetType.Name} implementation", Rendering.ShaderCompilerMessageSeverity.Warning);
-                    }
-                }
+                // foreach(var targetImpl in node.owner.m_ValidImplementations)
+                // {
+                //     if(!targetImpl.allowedNodes.Contains(t))
+                //     {
+                //         node.isValid = false;
+                //         node.owner.AddValidationError(node.guid, $"{node.name} Node is not allowed by {targetImpl.displayName + targetImpl.targetType.Name} implementation", Rendering.ShaderCompilerMessageSeverity.Warning);
+                //     }
+                // }
             }
 
             public static void ValidateGraph(GraphData graph)
