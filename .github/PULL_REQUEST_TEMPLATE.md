@@ -1,7 +1,7 @@
 # Please read
 ## PR workflow guidelines
 - Consider making use of **draft PRs** if you are not 100% sure that your PR is ready for review
-- Adding [skip ci] (case insensitive) to the title of PRs will stop any jobs being trigger automatically - you will need to open Yamato and find your branch to run ABV
+- Adding [skip ci] (case insensitive) to the title of PRs will stop any jobs being triggered automatically - you will need to open Yamato and find your branch to run ABV
 - You can also add [skip ci] to commit messages to prevent CI from running on that push
 - Add [cancel old ci] to your commit message if you've made changes you want to test and no longer need the previous jobs
 
