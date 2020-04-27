@@ -267,9 +267,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=test-results
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }}OSX --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     {% else %}
-    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && utr/utr {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=test-results
     {% endif %}
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}

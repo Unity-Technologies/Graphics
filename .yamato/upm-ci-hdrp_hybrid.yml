@@ -155,9 +155,9 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     {% else %}
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     {% endif %}
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
@@ -249,9 +249,9 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
     
     {% if testplatform.name == "Standalone" %}
-    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr {{ testplatform.args }}Linux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinux{{ linux_api.name }}Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     {% else %}
-    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{{ linux_api.cmd }}"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    - cd TestProjects/{{ project.folder }} && DISPLAY=:0.0 utr/utr --extra-editor-arg="{{ linux_api.cmd }}"  {{ testplatform.args }} --testproject=. --editor-location=.Editor --artifacts_path=test-results
     {% endif %}
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
