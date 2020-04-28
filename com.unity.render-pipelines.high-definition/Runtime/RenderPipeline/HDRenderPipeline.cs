@@ -1731,8 +1731,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         }
 
-
-
                         renderRequests.Add(request);
 
 
