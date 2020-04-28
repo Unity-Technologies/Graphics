@@ -414,6 +414,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_NodesToDraw)
             {
+                if(node is BlockNode)
+                {
+                    m_DrawMasterPreview = true;
+                    continue;
+                }
+
                 if(!node.hasPreview || !node.previewExpanded)
                     continue;
 
@@ -581,14 +587,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
             ShaderUtil.allowAsyncCompilation = true;
 
-            if(m_UpdateMasterPreview)
-            {
-                m_UpdateMasterPreview = false;
-                UpdateMasterNodeShader();
-            }
-
             foreach (var node in m_NodesToUpdate)
             {
+                if(node is BlockNode)
+                {
+                    m_UpdateMasterPreview = true;
+                    continue;
+                }
+
                 if (!node.hasPreview && !(node is SubGraphOutputNode))
                     continue;
 
@@ -615,6 +621,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         break;
                     }
                 }
+            }
+
+            if(m_UpdateMasterPreview)
+            {
+                m_UpdateMasterPreview = false;
+                UpdateMasterNodeShader();
             }
 
             ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
