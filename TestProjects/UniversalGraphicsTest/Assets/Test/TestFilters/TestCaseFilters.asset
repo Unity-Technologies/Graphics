@@ -91,10 +91,3 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capure
-  - FilteredScene: {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 2
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: Dynamic resolution will not work on osx standalone on yamato
