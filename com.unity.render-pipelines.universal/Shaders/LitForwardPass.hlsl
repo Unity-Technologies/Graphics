@@ -48,7 +48,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
     half3 viewDirWS = SafeNormalize(input.viewDirWS);
-#ifdef _NORMALMAP 
+#ifdef _NORMALMAP
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
     inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
@@ -86,7 +86,7 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    
+
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex lighting and SH evaluation
@@ -135,13 +135,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-    half4 color = UniversalFragmentPBR(inputData, surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.occlusion, surfaceData.emission, surfaceData.alpha
-#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-        , surfaceData.clearCoatStrength
-        , surfaceData.clearCoatSmoothness
-#endif
-    );
-
+    half4 color = UniversalFragmentPBR(inputData, surfaceData);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);

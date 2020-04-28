@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             DoClearCoat(properties, materialEditor, material);
         }
 
-        public static bool ClearCoatEnabled(Material material)
+        private static bool ClearCoatEnabled(Material material)
         {
             return material.HasProperty("_ClearCoat") && material.GetFloat("_ClearCoat") > 0.0;
         }

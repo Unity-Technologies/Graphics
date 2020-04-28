@@ -8,6 +8,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
 // 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after x^2 (e.g. roughness computation)
@@ -727,26 +728,26 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha,
-    half clearCoatStrength, half clearCoatSmoothness)
+half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
     BRDFData brdfData;
-    InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
+
+    // NOTE: can modify alpha
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
     BRDFData brdfDataClearCoat;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
-    InitializeBRDFDataClearCoat(clearCoatStrength, clearCoatSmoothness, brdfData, brdfDataClearCoat);
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatStrength, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
 #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, clearCoatStrength,
-                                     inputData.bakedGI, occlusion,
+    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatStrength,
+                                     inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, clearCoatStrength,
+    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, surfaceData.clearCoatStrength,
                                      mainLight,
                                      inputData.normalWS, inputData.viewDirectionWS);
 
@@ -763,15 +764,25 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     color += inputData.vertexLighting * brdfData.diffuse;
 #endif
 
-    color += emission;
+    color += surfaceData.emission;
 
-    return half4(color, alpha);
+    return half4(color, surfaceData.alpha);
 }
 
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha, 0.0, 1.0);
+    SurfaceData s;
+    s.albedo              = albedo;
+    s.metallic            = metallic;
+    s.specular            = specular;
+    s.smoothness          = smoothness;
+    s.occlusion           = occlusion;
+    s.emission            = emission;
+    s.alpha               = alpha;
+    s.clearCoatStrength   = 0.0;
+    s.clearCoatSmoothness = 1.0;
+    return UniversalFragmentPBR(inputData, s);
 }
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
