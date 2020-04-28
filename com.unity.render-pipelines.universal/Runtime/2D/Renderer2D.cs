@@ -150,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(m_FinalBlitPass);
             }
         }
-        
+
         public override void SetupCullingParameters(ref ScriptableCullingParameters cullingParameters, ref CameraData cameraData)
         {
             cullingParameters.cullingOptions = CullingOptions.None;
