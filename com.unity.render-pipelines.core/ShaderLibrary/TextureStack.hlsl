@@ -137,9 +137,10 @@ StackInfo PrepareVT_##stackName(VtInputParameters par)\
 	return info;\
 }
 
-GraniteTilesetConstantBuffer GetConstantBuffer(VTPropertyParameters props)
+// TODO: we could replace all uses of GetConstantBuffer_*() with this one:
+GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBuffer textureParamBlock)
 {
-    int idx = (int)props.grCB.streamingTextureBuffer.data[1].w;
+    int idx = (int)textureParamBlock.data[1].w;
     GraniteTilesetConstantBuffer graniteParamBlock;
     graniteParamBlock = _VTTilesetBuffer[idx];
 
@@ -194,9 +195,7 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
         textureParamBlock.data[0] = stackName##_atlasparams[0]; \
         textureParamBlock.data[1] = stackName##_atlasparams[1]; \
         \
-        GraniteTilesetConstantBuffer graniteParamBlock = GetConstantBuffer_##stackName(); \
-        \
-        props.grCB.tilesetBuffer = graniteParamBlock; \
+        props.grCB.tilesetBuffer = GetConstantBuffer(textureParamBlock); \
         props.grCB.streamingTextureBuffer = textureParamBlock; \
         \
         props.translationTable.Texture = stackName##_transtab; \
@@ -246,7 +245,6 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
 #define GetResolveOutput(info) info.resolveOutput
 #define PackResolveOutput(output) Granite_PackTileId(output)
-#define BuildProperties(stackName) BuildVTProperties_##stackName()
 
 float4 GetPackedVTFeedback(float4 feedback)
 {

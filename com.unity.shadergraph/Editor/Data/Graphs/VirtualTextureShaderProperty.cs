@@ -87,8 +87,8 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            // TODO: ???
-            throw new NotImplementedException();
+            // this should not be called, as it is replaced by the Append*PropertyDeclarations functions above
+            throw new NotSupportedException();
         }
 
         // argument string used to pass this property to a subgraph
@@ -101,14 +101,15 @@ namespace UnityEditor.ShaderGraph
         internal override AbstractMaterialNode ToConcreteNode()
         {
             // TODO:
-            return null; // new GradientNode { };
+            return null;
         }
 
         internal override PreviewProperty GetPreviewMaterialProperty()
         {
             return new PreviewProperty(propertyType)
             {
-                name = referenceName
+                name = referenceName,
+                vtValues = value
             };
         }
 

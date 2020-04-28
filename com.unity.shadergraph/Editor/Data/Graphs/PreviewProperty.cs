@@ -24,6 +24,8 @@ namespace UnityEditor.ShaderGraph
             public Cubemap cubemapValue;
             [FieldOffset(0)]
             public Gradient gradientValue;
+            [FieldOffset(0)]
+            public SerializableVirtualTexture vtValues;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -106,6 +108,22 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Gradient)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
                 m_ClassData.gradientValue = value;
+            }
+        }
+
+        public SerializableVirtualTexture vtValues
+        {
+            get
+            {
+                if (propType != PropertyType.VirtualTexture)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
+                return m_ClassData.vtValues;
+            }
+            set
+            {
+                if (propType != PropertyType.VirtualTexture)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
+                m_ClassData.vtValues = value;
             }
         }
 
@@ -202,6 +220,14 @@ namespace UnityEditor.ShaderGraph
                     mat.SetVector(string.Format("{0}_ColorKey{1}", name, i), i < m_ClassData.gradientValue.colorKeys.Length ? GradientUtil.ColorKeyToVector(m_ClassData.gradientValue.colorKeys[i]) : Vector4.zero);
                 for (int i = 0; i < 8; i++)
                     mat.SetVector(string.Format("{0}_AlphaKey{1}", name, i), i < m_ClassData.gradientValue.alphaKeys.Length ? GradientUtil.AlphaKeyToVector(m_ClassData.gradientValue.alphaKeys[i]) : Vector2.zero);
+            }
+            else if (propType == PropertyType.VirtualTexture)
+            {
+                var vt = vtValues;
+                for (int layer= 0; layer < vt.entries.Count; layer++)
+                {
+                    mat.SetTexture(vt.entries[layer].layerName, vt.entries[layer].layerTexture.texture);
+                }
             }
         }
     }
