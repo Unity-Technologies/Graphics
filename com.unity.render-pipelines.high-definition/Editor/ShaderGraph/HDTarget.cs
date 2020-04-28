@@ -122,9 +122,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            if(m_ActiveSubTarget.value == null)
-                return;
-
             // SubTarget
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }

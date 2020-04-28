@@ -83,6 +83,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             displayName = "Universal";
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
         }
 
         public string renderType
