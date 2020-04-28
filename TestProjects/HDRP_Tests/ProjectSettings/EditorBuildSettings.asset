@@ -281,7 +281,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2314_Shadow_CustonAngle.unity
     guid: ae006c49aeea80940bd9fc1a623060aa
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2315_Shadow_Cascades.unity
     guid: 5246b0356ec7dbf4aa0a3afc6b27b122
   - enabled: 1
