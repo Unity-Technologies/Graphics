@@ -295,47 +295,6 @@ namespace UnityEditor.Graphing.UnitTests
         }
 
         [Test]
-        public void TestCanUpdateSlotPriority()
-        {
-            var graph = new GraphData();
-            var node = new TestNode();
-            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
-            node.name = "Test Node";
-            graph.AddNode(node);
-
-            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
-            Assert.AreEqual(0, found.GetInputSlots<MaterialSlot>().Count());
-            Assert.AreEqual(1, found.GetOutputSlots<MaterialSlot>().Count());
-            Assert.AreEqual(1, found.GetSlots<MaterialSlot>().Count());
-
-            var slot = found.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-            Assert.AreEqual(0, slot.priority);
-            slot.priority = 2;
-            Assert.AreEqual(2, slot.priority);
-        }
-
-        [Test]
-        public void TestCanUpdateSlotPriorityByReaddingSlotToTestNode()
-        {
-            var graph = new GraphData();
-            var node = new TestNode();
-            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 0));
-            node.AddSlot(new TestSlot(0, "output", SlotType.Output, 5));
-            node.name = "Test Node";
-            graph.AddNode(node);
-
-            Assert.AreEqual(1, graph.GetNodes<AbstractMaterialNode>().Count());
-            var found = graph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
-            Assert.AreEqual(0, found.GetInputSlots<MaterialSlot>().Count());
-            Assert.AreEqual(1, found.GetOutputSlots<MaterialSlot>().Count());
-            Assert.AreEqual(1, found.GetSlots<MaterialSlot>().Count());
-
-            var slot = found.GetOutputSlots<MaterialSlot>().FirstOrDefault();
-            Assert.AreEqual(5, slot.priority);
-        }
-
-        [Test]
         public void TestCanUpdateSlotDisplayName()
         {
             var node = new TestNode();

@@ -504,7 +504,7 @@ namespace UnityEditor.ShaderGraph
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
                     subGraphNode.asset != null &&
-                    subGraphNode.asset.keywords.Count > 0)
+                    subGraphNode.asset.keywords.Any())
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -1460,6 +1460,7 @@ namespace UnityEditor.ShaderGraph
                 m_PastedStickyNotes.Add(pastedStickyNote);
             }
 
+            var edges = graphToPaste.edges.ToList();
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
@@ -1475,14 +1476,28 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!m_Properties.SelectValue().Contains(propertyNode.property))
+                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
+                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (property != null)
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
-                        if (graphToPaste.metaProperties.Contains(propertyNode.property))
+                        propertyNode.property = property;
+                    }
+                    else
+                    {
+                        pastedNode = propertyNode.property.ToConcreteNode();
+                        pastedNode.drawState = node.drawState;
+                        for (var i = 0; i < edges.Count; i++)
                         {
-                            pastedNode = propertyNode.property.ToConcreteNode();
-                            pastedNode.drawState = node.drawState;
-                            // TODO: Potentially some patching up of edges here??
+                            var edge = edges[i];
+                            if (edge.outputSlot.node == node)
+                            {
+                                edges[i] = new Edge(new SlotReference(pastedNode, edge.outputSlot.slotId), edge.inputSlot);
+                            }
+                            else if (edge.inputSlot.node == node)
+                            {
+                                edges[i] = new Edge(edge.outputSlot, new SlotReference(pastedNode, edge.inputSlot.slotId));
+                            }
                         }
                     }
                 }
@@ -1512,15 +1527,18 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Contains(keywordNode.keyword))
+                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
+                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (keyword != null)
                     {
-                        if (graphToPaste.metaKeywords.Contains(keywordNode.keyword))
-                        {
-                            SanitizeGraphInputName(keywordNode.keyword);
-                            SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
-                            AddGraphInput(keywordNode.keyword);
-                        }
+                        keywordNode.keyword = keyword;
+                    }
+                    else
+                    {
+                        SanitizeGraphInputName(keywordNode.keyword);
+                        SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
+                        AddGraphInput(keywordNode.keyword);
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
@@ -1528,7 +1546,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var edge in graphToPaste.edges)
+            foreach (var edge in edges)
             {
                 var newEdge = (Edge)Connect(edge.outputSlot, edge.inputSlot);
                 if (newEdge != null)
@@ -1573,6 +1591,7 @@ namespace UnityEditor.ShaderGraph
                 var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                 var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
                 var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 m_GroupDatas.Clear();
                 m_StickyNoteDatas.Clear();
@@ -1603,6 +1622,22 @@ namespace UnityEditor.ShaderGraph
 
                     var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
                     propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
+
+                    // Fix up missing reference names
+                    // Properties on Sub Graphs in V0 never have reference names serialized
+                    // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
+                    if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
+                    {
+                        // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
+                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                        {
+                            defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                        else
+                        {
+                            defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                    }
                 }
 
                 foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
@@ -1840,12 +1875,26 @@ namespace UnityEditor.ShaderGraph
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
                 m_NodeDictionary.Add(node.objectId, node);
-                m_GroupItems[node.group].Add(node);
+                if (m_GroupItems.TryGetValue(node.group, out var groupItems))
+                {
+                    groupItems.Add(node);
+                }
+                else
+                {
+                    node.group = null;
+                }
             }
 
             foreach (var stickyNote in m_StickyNoteDatas.SelectValue())
             {
-                m_GroupItems[stickyNote.group].Add(stickyNote);
+                if (m_GroupItems.TryGetValue(stickyNote.group, out var groupItems))
+                {
+                    groupItems.Add(stickyNote);
+                }
+                else
+                {
+                    stickyNote.group = null;
+                }
             }
 
             foreach (var edge in m_Edges)

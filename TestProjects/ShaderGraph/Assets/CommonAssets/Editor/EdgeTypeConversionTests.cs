@@ -18,9 +18,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             hideFlags = HideFlags.HideAndDontSave;
 
             var textGraph = File.ReadAllText(graphPath, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph = new GraphData();
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(graphPath);
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
         }
@@ -109,7 +110,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, JsonObject.emptyObjectId);
+                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
 

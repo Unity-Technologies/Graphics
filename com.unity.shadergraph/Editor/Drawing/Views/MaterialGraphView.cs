@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If they are in the same group we also add in the Redirect Node
             // var groupGuidOutputNode = graph.GetNodeFromGuid(outputSlot.slotReference.nodeGuid).groupGuid;
             // var groupGuidInputNode = graph.GetNodeFromGuid(inputSlot.slotReference.nodeGuid).groupGuid;
-            GroupData group = null; 
+            GroupData group = null;
             if (outputSlot.owner.group == inputSlot.owner.group)
             {
                 group = inputSlot.owner.group;
@@ -664,7 +664,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Sort so that the ShaderInputs are in the correct order
             selectedProperties.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            CopyPasteGraph copiedProperties = new CopyPasteGraph("", null, null, null, selectedProperties,
+            CopyPasteGraph copiedProperties = new CopyPasteGraph(null, null, null, selectedProperties,
                 null, null, null);
 
             GraphViewExtensions.InsertCopyPasteGraph(this, copiedProperties);
@@ -690,17 +690,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var notes = elements.OfType<StickyNote>().Select(x => x.userData);
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeValues = nodes.OfType<PropertyNode>().Select(x => x.property);
-            var metaProperties = this.graph.properties.Where(x => propertyNodeValues.Contains(x));
+            var metaProperties = new HashSet<AbstractShaderProperty>(nodes.OfType<PropertyNode>().Select(x => x.property).Concat(inputs.OfType<AbstractShaderProperty>()));
 
             // Collect the keyword nodes and get the corresponding keywords
-            var keywordNodeValues = nodes.OfType<KeywordNode>().Select(x => x.keyword);
-            var metaKeywords = this.graph.keywords.Where(x => keywordNodeValues.Contains(x));
+            var metaKeywords = new HashSet<ShaderKeyword>(nodes.OfType<KeywordNode>().Select(x => x.keyword).Concat(inputs.OfType<ShaderKeyword>()));
 
             // Sort so that the ShaderInputs are in the correct order
             inputs.Sort((x, y) => graph.GetGraphInputIndex(x) > graph.GetGraphInputIndex(y) ? 1 : -1);
 
-            var copyPasteGraph = new CopyPasteGraph(this.graph.assetGuid, groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
+            var copyPasteGraph = new CopyPasteGraph(groups, nodes, edges, inputs, metaProperties, metaKeywords, notes);
             return MultiJson.Serialize(copyPasteGraph);
         }
 
@@ -768,7 +766,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     continue;
                 }
-                if(subGraphNode.asset.keywords.Count > 0)
+                if(subGraphNode.asset.keywords.Any())
                 {
                     keywordsDirty = true;
                 }
@@ -1164,7 +1162,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Pasting a Sub Graph node that contains Keywords so need to test against variant limit
             foreach(SubGraphNode subGraphNode in copyGraph.GetNodes<SubGraphNode>())
             {
-                if(subGraphNode.asset.keywords.Count > 0)
+                if(subGraphNode.asset.keywords.Any())
                 {
                     keywordsDirty = true;
                 }

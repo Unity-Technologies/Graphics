@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             Assert.AreNotEqual(0, previewNodes.Count, $"No PreviewNode found in {kGraphName}.");
             foreach(PreviewNode node in previewNodes)
             {
-                GroupData group = m_Graph.groups.Where(x => x.objectId == node.groupId).FirstOrDefault();
+                GroupData group = m_Graph.groups.Where(x => x == node.group).FirstOrDefault();
                 Assert.NotNull(m_Graph, $"Invalid group data found for PreviewNode with guid {node.objectId}");
                 m_TestNodes.Add(group.title, node);
             }

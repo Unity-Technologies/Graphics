@@ -39,7 +39,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                 }
                 catch (Exception e)
                 {
-                    // TODO: Allow custom logging function
                     Debug.LogException(e);
                 }
             }

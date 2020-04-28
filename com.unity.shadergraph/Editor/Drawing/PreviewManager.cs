@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
 
-        Dictionary<Guid, PreviewRenderData> m_RenderDatas = new Dictionary<Guid, PreviewRenderData>();      // stores all of the PreviewRendererData, mapped by node GUID
+        Dictionary<string, PreviewRenderData> m_RenderDatas = new Dictionary<string, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node object ID
         PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
 
         int m_MaxNodesCompiling = 2;                                                                        // max preview shaders we want to async compile at once
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();                  // nodes to rebuild the texture for
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
         HashSet<BlockNode> m_Blocks = new HashSet<BlockNode>();                                             // all blocks used for previous generation. this includes temporary blocks.
-        bool m_RefreshTimedNodes;
+        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
@@ -89,9 +89,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             PreviewRenderData result = null;
             if (node != null)
-                m_RenderDatas.TryGetValue(node.guid, out result);
+            {
+                m_RenderDatas.TryGetValue(node.objectId, out result);
+            }
             else
+            {
                 result = m_MasterRenderData;
+            }
+            
             return result;
         }
 
@@ -178,7 +183,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_RefreshTimedNodes = true;
             }
-
+            
             m_NodesNeedsRecompile.Add(node);
         }
 
@@ -187,7 +192,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-
                 m_NodesShaderChanged.Add(node);
                 m_RefreshTimedNodes = true;
             }
@@ -196,7 +200,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
                 m_NodesToDraw.Add(node);
             }
-            m_NodesToDraw.Remove(node);
         }
 
         // temp structures that are kept around statically to avoid GC churn
@@ -274,8 +277,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         // We look at each node we feed into.
                         var connectedSlot = (dir == PropagationDirection.Downstream) ? edge.inputSlot : edge.outputSlot;
-                        var connectedNodeGuid = connectedSlot.nodeGuid;
-                        var connectedNode = m_Graph.GetNodeFromGuid(connectedNodeGuid);
+                        var connectedNode = connectedSlot.node;
 
                         action(connectedNode);
                     }
@@ -294,7 +296,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
                 }
 
-                DestroyPreview(node.guid);
+                DestroyPreview(node.objectId);
                 m_RefreshTimedNodes = true;
             }
 
@@ -412,45 +414,47 @@ namespace UnityEditor.ShaderGraph.Drawing
                 bool renderMasterPreview = false;
 
                 using (PrepareNodesMarker.Auto())
-                foreach (var node in m_NodesToDraw)
                 {
-                    if (node == null || node is BlockNode)
+                    foreach (var node in m_NodesToDraw)
                     {
-                        renderMasterPreview = true;
-                        continue;
-                    }
-
-                    if (!node.hasPreview || !node.previewExpanded)
-                        continue;
-
-                    var renderData = GetPreviewRenderData(node);
-                    if (renderData == null) // non-active output nodes can have NULL render data (no preview)
-                        continue;
-
-                    if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
-                    {
-                        // avoid calling NotifyPreviewChanged repeatedly
-                        if (renderData.texture != null)
+                        if (node == null || node is BlockNode)
                         {
-                            renderData.texture = null;
-                            renderData.NotifyPreviewChanged();
+                            renderMasterPreview = true;
+                            continue;
                         }
-                        continue;
+
+                        if (!node.hasPreview || !node.previewExpanded)
+                            continue;
+
+                        var renderData = GetPreviewRenderData(node);
+                        if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                            continue;
+
+                        if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
+                        {
+                            // avoid calling NotifyPreviewChanged repeatedly
+                            if (renderData.texture != null)
+                            {
+                                renderData.texture = null;
+                                renderData.NotifyPreviewChanged();
+                            }
+                            continue;
+                        }
+
+                        renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
+
+                        if (renderData.shaderData.hasError)
+                        {
+                            renderData.texture = m_ErrorTexture;
+                            renderData.NotifyPreviewChanged();
+                            continue;
+                        }
+
+                        if (renderData.previewMode == PreviewMode.Preview2D)
+                            renderList2D.Add(renderData);
+                        else
+                            renderList3D.Add(renderData);
                     }
-
-                    renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
-
-                    if (renderData.shaderData.hasError)
-                    {
-                        renderData.texture = m_ErrorTexture;
-                        renderData.NotifyPreviewChanged();
-                        continue;
-                    }
-
-                    if (renderData.previewMode == PreviewMode.Preview2D)
-                        renderList2D.Add(renderData);
-                    else
-                        renderList3D.Add(renderData);
                 }
 
                 EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
@@ -490,7 +494,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         masterRenderData.texture = masterRenderData.renderTexture;
                         m_NewMasterPreviewSize = null;
                     }
-                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
+                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
                     var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
                     var scale = m_Graph.previewData.scale;
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);

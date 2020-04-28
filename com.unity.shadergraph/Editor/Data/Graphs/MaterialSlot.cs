@@ -185,12 +185,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_Id; }
         }
 
-        public int priority
-        {
-            get { return m_Priority; }
-            set { m_Priority = value; }
-        }
-
         public bool isInputSlot
         {
             get { return m_SlotType == SlotType.Input; }
@@ -311,6 +305,17 @@ namespace UnityEditor.ShaderGraph
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
+        }
+
+        public virtual void CopyDefaultValue(MaterialSlot other)
+        {
+            m_Id = other.m_Id;
+            m_DisplayName = other.m_DisplayName;
+            m_SlotType = other.m_SlotType;
+            m_Priority = other.m_Priority;
+            m_Hidden = other.m_Hidden;
+            m_ShaderOutputName = other.m_ShaderOutputName;
+            m_StageCapability = other.m_StageCapability;
         }
     }
 }

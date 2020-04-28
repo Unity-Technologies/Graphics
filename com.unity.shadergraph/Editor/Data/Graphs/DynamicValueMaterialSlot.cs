@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph
         public override VisualElement InstantiateControl()
         {
             var labels = k_Labels.Take(concreteValueType.GetChannelCount()).ToArray();
-            return new MultiFloatSlotControlView(owner, labels, () => value.GetRow(0), (newValue) => 
+            return new MultiFloatSlotControlView(owner, labels, () => value.GetRow(0), (newValue) =>
                 value = new Matrix4x4()
                 {
                     m00 = newValue.x, m01 = newValue.y, m02 = newValue.z, m03 = newValue.w,
@@ -144,6 +144,15 @@ namespace UnityEditor.ShaderGraph
             var slot = foundSlot as DynamicValueMaterialSlot;
             if (slot != null)
                 value = slot.value;
+        }
+
+        public override void CopyDefaultValue(MaterialSlot other)
+        {
+            base.CopyDefaultValue(other);
+            if (other is IMaterialSlotHasValue<Matrix4x4> ms)
+            {
+                m_DefaultValue = ms.defaultValue;
+            }
         }
     }
 }

@@ -154,89 +154,89 @@ namespace UnityEditor.ShaderGraph.Drawing
             previewManager.RenderPreviews(false);
             var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
+            {
+                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
                 {
-                    GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                    if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
-                    {
-                        if (saveRequested != null)
-                            saveRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
-                    {
-                        saveAsRequested();
-                    }
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                    {
-                        if (showInProjectRequested != null)
-                            showInProjectRequested();
-                    }
+                    if (saveRequested != null)
+                        saveRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                {
+                    saveAsRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                {
+                    if (showInProjectRequested != null)
+                        showInProjectRequested();
+                }
 
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    if (EditorGUI.EndChangeCheck())
+                EditorGUI.BeginChangeCheck();
+                GUILayout.Label("Precision");
+                graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                    m_ColorManager.SetNodesDirty(nodeList);
+                    graph.ValidateGraph();
+                    m_ColorManager.UpdateNodeViews(nodeList);
+                    foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                     {
-                        var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                        m_ColorManager.SetNodesDirty(nodeList);
-                        graph.ValidateGraph();
-                        m_ColorManager.UpdateNodeViews(nodeList);
-                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                        node.Dirty(ModificationScope.Graph);
+                    }
+                }
+
+                if (isCheckedOut != null)
+                {
+                    if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                    {
+                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
                         {
-                            node.Dirty(ModificationScope.Graph);
+                            if (checkOut != null)
+                                checkOut();
                         }
                     }
-
-                    if (isCheckedOut != null)
+                    else
                     {
-                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
-                        {
-                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
-                            {
-                                if (checkOut != null)
-                                    checkOut();
-                            }
-                        }
-                        else
-                        {
-                            EditorGUI.BeginDisabledGroup(true);
-                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
-                            EditorGUI.EndDisabledGroup();
-                        }
+                        EditorGUI.BeginDisabledGroup(true);
+                        GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                        EditorGUI.EndDisabledGroup();
+                    }
+                }
+
+                GUILayout.FlexibleSpace();
+
+                EditorGUI.BeginChangeCheck();
+                GUILayout.Label("Color Mode");
+                var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                GUILayout.Space(4);
+
+                // TODO: Temporary Inspector
+                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+                GUILayout.Space(6);
+
+                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);=
+
+                GUILayout.Space(6);
+
+                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if(newColorIdx != m_ColorManager.activeIndex)
+                    {
+                        m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
+                        m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
                     }
 
-                    GUILayout.FlexibleSpace();
+                    UpdateSubWindowsVisibility();
 
-                    EditorGUI.BeginChangeCheck();
-                    GUILayout.Label("Color Mode");
-                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
-                    GUILayout.Space(4);
-
-                    // TODO: Temporary Inspector
-                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
-                    GUILayout.Space(6);
-
-                    m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
-
-                    GUILayout.Space(6);
-
-                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        if(newColorIdx != m_ColorManager.activeIndex)
-                        {
-                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
-                        }
-
-                        UpdateSubWindowsVisibility();
-
-                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
-                    }
-                    GUILayout.EndHorizontal();
-                });
+                    var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+                    EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                }
+                GUILayout.EndHorizontal();
+            });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
@@ -679,7 +679,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         m_GraphView.RemoveElement((Node)nodeView);
                     }
-
+                    
                     if (node.group != null)
                     {
                         var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
@@ -918,25 +918,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            if (usePrebuiltVisualGroupMap)
+            if (materialNode.group != null)
             {
-                // cheaper way to add the node to groups it is in
-                ShaderGroup groupView;
-                visualGroupMap.TryGetValue(materialNode.groupGuid, out groupView);
-                if (groupView != null)
-                    groupView.AddElement(nodeView);
-            }
-            else
-            {
-                // This should also work for sticky notes
-                m_GraphElementsTemp.Clear();
-                m_GraphView.graphElements.ToList(m_GraphElementsTemp);
-
-                if (materialNode.groupGuid != Guid.Empty)
+                if (usePrebuiltVisualGroupMap)
                 {
+                    // cheaper way to add the node to groups it is in
+                    ShaderGroup groupView;
+                    visualGroupMap.TryGetValue(materialNode.group, out groupView);
+                    if (groupView != null)
+                        groupView.AddElement(nodeView);
+                }
+                else
+                {
+                    // This should also work for sticky notes
+                    m_GraphElementsTemp.Clear();
+                    m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
                     foreach (var element in m_GraphElementsTemp)
                     {
-                        if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                        if (element is ShaderGroup groupView && groupView.userData == materialNode.group)
                         {
                             groupView.AddElement(nodeView);
                         }
@@ -945,12 +945,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static Dictionary<Guid, ShaderGroup> visualGroupMap = new Dictionary<Guid, ShaderGroup>();
+        private static Dictionary<GroupData, ShaderGroup> visualGroupMap = new Dictionary<GroupData, ShaderGroup>();
         private static void AddToVisualGroupMap(GraphElement e)
         {
-            ShaderGroup sg = e as ShaderGroup;
-            if (sg != null)
-                visualGroupMap.Add(sg.userData.guid, sg);
+            if (e is ShaderGroup sg)
+            {
+                visualGroupMap.Add(sg.userData, sg);
+            }
         }
         private static Action<GraphElement> AddToVisualGroupMapAction = AddToVisualGroupMap;
         void BuildVisualGroupMap()
