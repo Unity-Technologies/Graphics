@@ -1,18 +1,16 @@
 using System;
 using System.Linq;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using Data.Interfaces;
 using Drawing.Inspector;
+using Drawing.Inspector.PropertyDrawers;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditorInternal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -36,8 +34,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch(m_Input)
             {
                 case AbstractShaderProperty property:
-                    var colorManager = GetFirstAncestorOfType<GraphEditorView>().colorManager;
-                    var nodes = GetFirstAncestorOfType<GraphEditorView>().graphView.Query<MaterialNodeView>().ToList();
+                    var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+                    if(graphEditorView == null)
+                        return;
+                    var colorManager = graphEditorView.colorManager;
+                    var nodes = graphEditorView.graphView.Query<MaterialNodeView>().ToList();
 
                     colorManager.SetNodesDirty(nodes);
                     colorManager.UpdateNodeViews(nodes);
@@ -116,7 +117,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.menu.AppendAction("Reset Reference", e =>
                 {
                     m_Input.overrideReferenceName = null;
-                    this.m_resetReferenceNameTrigger(shaderInput.referenceName);
+                    m_resetReferenceNameTrigger(shaderInput.referenceName);
                     DirtyNodes(ModificationScope.Graph);
                 }, DropdownMenuAction.AlwaysEnabled);
         }
@@ -127,22 +128,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
                 shaderInputPropertyDrawer.GetPropertyData(m_Graph.isSubGraph,
-                    this.ChangeExposedField,
-                    this.ChangeReferenceNameField,
+                    ChangeExposedField,
+                    ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
-                    this.ChangePropertyValue,
-                    this.RegisterPropertyChangeUndo,
-                    this.MarkNodesAsDirty);
+                    ChangePropertyValue,
+                    RegisterPropertyChangeUndo,
+                    MarkNodesAsDirty);
 
-                this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
-                this.m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
+                m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
             }
         }
 
         public PropertyInfo[] GetPropertyInfo()
         {
-            return this.GetType().GetProperties();
+            return GetType().GetProperties();
         }
 
         void ChangeExposedField(bool newValue)
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             DirtyNodes(modificationScope);
             if(triggerPropertyViewUpdate)
-                this.m_propertyViewUpdateTrigger();
+                m_propertyViewUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)
@@ -228,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
 
-            this.MarkDirtyRepaint();
+            MarkDirtyRepaint();
         }
 #endregion
     }

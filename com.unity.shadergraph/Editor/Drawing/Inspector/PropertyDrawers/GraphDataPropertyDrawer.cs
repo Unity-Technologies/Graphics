@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using Data.Interfaces;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector
+namespace Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer

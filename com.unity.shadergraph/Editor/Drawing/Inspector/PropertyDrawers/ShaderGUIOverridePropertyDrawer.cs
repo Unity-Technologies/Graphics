@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Drawing.Inspector;
+using Data.Interfaces;
 using UnityEditor;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
@@ -10,7 +10,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector
+namespace Drawing.Inspector.PropertyDrawers
 {
     public struct ShaderGUIOverrideInfo
     {

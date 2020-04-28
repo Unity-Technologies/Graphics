@@ -8,7 +8,8 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
-
+using Data.Interfaces;
+using Drawing.Inspector.PropertyDrawers;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;

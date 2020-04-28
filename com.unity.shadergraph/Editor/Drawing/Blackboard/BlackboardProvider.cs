@@ -267,16 +267,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // This tries to maintain the selection the user had before the undo/redo was performed,
+            // if the user hasn't added or removed any inputs
+            if (wasUndoRedoPerformed)
+            {
+                oldSelectionPersistenceData.Clear();
+                foreach (var item in selection)
+                {
+                    if (item is BlackboardFieldView blackboardFieldView)
+                    {
+                        var guid = blackboardFieldView.shaderInput.referenceName;
+                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
+                    }
+                }
+            }
+
             foreach (var input in m_Graph.addedInputs)
             {
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
-            }
-
-            // This tries to maintain the selection the user had before the undo/redo was performed,
-            // if the user hasn't added or removed any inputs
-            if (wasUndoRedoPerformed && m_Graph.addedInputs.Count() == m_Graph.removedInputs.Count())
-            {
-                oldSelection = selection;
             }
 
             if (m_Graph.movedInputs.Any())
@@ -292,7 +300,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private List<ISelectable> oldSelection { get; set; } = new List<ISelectable>();
+        // A map from shaderInput reference names to the viewDataKey of the blackboardFieldView that used to represent them
+        // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
+        private Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
@@ -382,13 +392,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
         {
-            foreach (var selection in oldSelection)
+            foreach (var data in oldSelectionPersistenceData)
             {
                 var newFieldView = evt.target as BlackboardFieldView;
-                var oldFieldView = selection as BlackboardFieldView;
-                if (newFieldView?.shaderInput.referenceName == oldFieldView?.shaderInput.referenceName)
+                // If this field view represents a value that was previously selected
+                if (newFieldView?.shaderInput.referenceName == data.Key)
                 {
-                    newFieldView.viewDataKey = oldFieldView.viewDataKey;
+                    // ViewDataKey is how UIElements handles UI state persistence,
+                    // This selects the newly added field view
+                    newFieldView.viewDataKey = data.Value;
                 }
             }
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Data.Interfaces;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -16,9 +17,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 
-namespace Drawing.Inspector
+namespace Drawing.Inspector.PropertyDrawers
 {
-   // #TODO - This does a lot of things a controller would, think about splitting stuff up to be more MVC
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {

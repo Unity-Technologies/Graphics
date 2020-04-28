@@ -228,7 +228,7 @@ namespace Drawing.Views
         void BuildManipulators()
         {
             m_Dragger = new Dragger { clampToParentEdges = true };
-            this.RegisterCallback<MouseUpEvent>(OnMoved);
+            RegisterCallback<MouseUpEvent>(OnMoved);
             this.AddManipulator(m_Dragger);
 
             var resizeElement = this.Q<ResizableElement>();
@@ -238,7 +238,7 @@ namespace Drawing.Views
 
         void OnMoved(MouseUpEvent upEvent)
         {
-            windowDockingLayout.CalculateDockingCornerAndOffset(this.layout, graphView.layout);
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
             windowDockingLayout.ClampToParentWindow();
 
             SerializeLayout();
@@ -272,7 +272,7 @@ namespace Drawing.Views
 
         public void OnResized()
         {
-            windowDockingLayout.size = this.layout.size;
+            windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
     }

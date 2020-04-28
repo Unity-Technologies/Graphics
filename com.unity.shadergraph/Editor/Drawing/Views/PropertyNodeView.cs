@@ -11,6 +11,8 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Data.Interfaces;
+using Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph
 {

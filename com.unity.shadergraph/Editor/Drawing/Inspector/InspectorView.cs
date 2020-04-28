@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Drawing.Views;
- using ICSharpCode.NRefactory.Ast;
+ using Data.Interfaces;
+ using Drawing.Inspector.PropertyDrawers;
+ using Drawing.Views;
  using UnityEditor;
  using UnityEditor.Experimental.GraphView;
- using UnityEditor.Graphing;
  using UnityEditor.ShaderGraph.Drawing;
  using UnityEngine;
  using UnityEngine.UIElements;
@@ -31,7 +31,7 @@ using Drawing.Views;
             if(typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
                 Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
 
-            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
+            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
             if(customAttribute != null)
                 m_PropertyDrawerList.Add(propertyDrawerType);
             else
@@ -40,7 +40,7 @@ using Drawing.Views;
 
         public InspectorView(GraphView graphView, Action updatePreviewDelegate) : base(graphView)
         {
-            this.m_previewUpdateDelegate = updatePreviewDelegate;
+            m_previewUpdateDelegate = updatePreviewDelegate;
 
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
@@ -53,12 +53,7 @@ using Drawing.Views;
 #region Selection
         public void Update()
         {
-            // Remove current properties
-            for (int i = 0; i < m_ContentContainer.childCount; ++i)
-            {
-                var child = m_ContentContainer.Children().ElementAt(i);
-                m_ContentContainer.Remove(child);
-            }
+            m_ContentContainer.Clear();
 
             if(selection.Count == 0)
             {
@@ -103,13 +98,13 @@ using Drawing.Views;
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, this.TriggerInspectorAndPreviewUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorAndPreviewUpdate, propertyDrawerToUse);
         }
 
         void TriggerInspectorAndPreviewUpdate()
         {
-            this.m_previewUpdateDelegate();
-            this.Update();
+            m_previewUpdateDelegate();
+            Update();
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
@@ -175,7 +170,7 @@ using Drawing.Views;
             // Check to see if a property drawer has been registered that handles this type
             foreach (var propertyDrawerType in propertyDrawerList)
             {
-                var typeHandledByPropertyDrawer = propertyDrawerType.GetCustomAttribute<SGPropertyDrawer>();
+                var typeHandledByPropertyDrawer = propertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
                 // Numeric types and boolean wrapper types like ToggleData handled here
                 if (typeHandledByPropertyDrawer.propertyType == typeOfProperty)
                 {

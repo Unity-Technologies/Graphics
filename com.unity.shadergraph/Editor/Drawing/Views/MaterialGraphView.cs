@@ -1,23 +1,19 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
 using Drawing.Inspector;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
-using UnityEditor.Graphs;
-
+using Data.Interfaces;
+using Drawing.Inspector.PropertyDrawers;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using SlotType = UnityEditor.Graphing.SlotType;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
