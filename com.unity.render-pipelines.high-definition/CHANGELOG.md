@@ -564,6 +564,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed shader warning in PCSS code when using Vulkan.
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
