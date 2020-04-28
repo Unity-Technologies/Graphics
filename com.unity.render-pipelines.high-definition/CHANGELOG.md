@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed shadowmask UI now correctly showing shadowmask disable
+- Fixed an error about procedural sky being logged by mistake.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
