@@ -1,4 +1,5 @@
-﻿using UnityEngine.UIElements;
+﻿using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Drawing.Inspector
 {
@@ -11,7 +12,10 @@ namespace Drawing.Inspector
             {
                 label += "    ";
             }
-            return new Label(label + text);
+
+            var labelVisualElement = new Label(label + text);
+            //labelVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/InspectorLabel"));
+            return labelVisualElement;
         }
     }
 

@@ -25,8 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
-        public WindowDockingLayout inspectorLayout = new WindowDockingLayout();
-        public Vector2 masterPreviewSize = new Vector2(400, 400);
+        public Vector2 masterPreviewSize = new Vector2(200, 200);
     }
 
     [Serializable]
@@ -137,8 +136,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         dockingTop = true,
                         dockingLeft = true,
-                        verticalOffset = 16,
-                        horizontalOffset = 16,
+                        verticalOffset = 8,
+                        horizontalOffset = 8,
                         size = new Vector2(200, 400)
                     }
                 };
@@ -259,7 +258,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
-                RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
+                RegisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
                 if (m_Graph.isSubGraph)
                 {
                     m_GraphView.AddToClassList("subgraph");
@@ -592,6 +591,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+            if(wasUndoRedoPerformed)
+                m_InspectorView.Update();
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)
@@ -1110,22 +1111,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateSubWindowsVisibility();
         }
 
-        void HandleEditorViewChanged(GeometryChangedEvent evt)
+        void ApplySerializedWindowLayouts(GeometryChangedEvent evt)
         {
-            m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
+            UnregisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
+
+            ApplyMasterPreviewLayout();
+
+            ApplyBlackboardLayout();
+
+            m_InspectorView.DeserializeLayout();
         }
 
-        void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
+        void ApplyMasterPreviewLayout()
+        {
+            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
+
+            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+
+            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            m_MasterPreviewView.RegisterCallback<GeometryChangedEvent>(SerializeMasterPreviewLayout);
+        }
+
+        void SerializeMasterPreviewLayout(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
         }
 
-        void ApplySerializewindowLayouts(GeometryChangedEvent evt)
+        void ApplyBlackboardLayout()
         {
-            UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
-
-            ApplyMasterPreviewLayout();
-
             // Restore blackboard layout, and make sure that it remains in the view.
             Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
@@ -1134,26 +1148,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
             // Make sure that the positioning is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
+            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f,
+                Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
+            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f,
+                Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
 
             // Set the processed blackboard layout.
             m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
 
-            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
-
             // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
-            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(StoreBlackboardLayoutOnGeometryChanged);
-
-            // After the layout is restored, track changes in layout and make the blackboard have the same behavior as the preview w.r.t. docking.
-            RegisterCallback<GeometryChangedEvent>(HandleEditorViewChanged);
+            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(SerializeBlackboardLayout);
         }
 
-        void ApplyMasterPreviewLayout()
+        void SerializeBlackboardLayout(GeometryChangedEvent evt)
         {
-            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
-            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            UpdateSerializedWindowLayout();
         }
 
         void UpdateSerializedWindowLayout()

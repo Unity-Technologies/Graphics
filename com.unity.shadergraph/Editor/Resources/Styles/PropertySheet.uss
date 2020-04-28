@@ -7,12 +7,14 @@ PropertySheet > #content > #header{
 }
 
 PropertySheet > #content > #error {
-    margin-left: 4px;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    font-size: 15px;
     -unity-font-style: bold;
-    background-color: red;
+    max-height: 10px;
+    margin-bottom: 15px;
+}
+
+PropertySheet > #content > #error > Label{
+    -unity-font-style: bold;
+    color: yellow;
 }
 
 PropertySheet > #content > #header > Label{

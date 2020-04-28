@@ -11,6 +11,7 @@
 
 .InspectorView {
     position:absolute;
+    justify-content: flex-start;
     border-left-width: 1px;
     border-top-width: 1px;
     border-right-width: 1px;
@@ -21,20 +22,8 @@
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
-    width: 200px;
-    height: 400px;
-}
-
-.InspectorView.windowed {
-    position: relative;
-    padding-top: 0;
-    flex: auto;
-    width: initial;
-    height: initial;
-}
-
-.InspectorView:selected {
-    border-color: #44C0FF;
+    width: 300px;
+    height: 300px;
 }
 
 .InspectorView > .mainContainer {

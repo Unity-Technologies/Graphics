@@ -21,8 +21,8 @@
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
-    width: 200px;
-    height: 400px;
+    width: 300px;
+    height: 300px;
 }
 
 .GraphSubWindow.windowed {

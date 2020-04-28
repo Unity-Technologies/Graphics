@@ -229,7 +229,6 @@ namespace Drawing.Inspector
 
         private void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
-            propertySheet.errorContainer.Clear();
             // Handle vector 1 mode parameters
             switch (vector1ShaderProperty.floatType)
             {
@@ -237,21 +236,40 @@ namespace Drawing.Inspector
                     var floatPropertyDrawer = new FloatPropertyDrawer();
                     // Default field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
-                        newValue => _changeValueCallback(newValue),
+                        newValue =>
+                        {
+                            _preChangeValueCallback("Change Property Value");
+                            _changeValueCallback(newValue);
+                            _postChangeValueCallback();
+                        },
                         vector1ShaderProperty.value,
                         "Default",
                         out var propertyFloatField));
 
                     // Min field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
-                        null,
+                        newValue =>
+                        {
+                            if (newValue > vector1ShaderProperty.rangeValues.y)
+                                propertySheet.warningContainer.Q<Label>().text = "Min cannot be greater than Max.";
+                            _preChangeValueCallback("Change Range Property Minimum");
+                            vector1ShaderProperty.rangeValues = new Vector2(newValue, vector1ShaderProperty.rangeValues.y);
+                            _postChangeValueCallback();
+                        },
                         vector1ShaderProperty.rangeValues.x,
                         "Min",
                         out var minFloatField));
 
                     // Max field
                     propertySheet.Add(floatPropertyDrawer.CreateGUI(
-                        null,
+                        newValue =>
+                        {
+                            if (newValue < vector1ShaderProperty.rangeValues.x)
+                                propertySheet.warningContainer.Q<Label>().text = "Max cannot be lesser than Min.";
+                            this._preChangeValueCallback("Change Range Property Maximum");
+                            vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.x, newValue);
+                            this._postChangeValueCallback();
+                        },
                         vector1ShaderProperty.rangeValues.y,
                         "Max",
                         out var maxFloatField));
@@ -260,59 +278,17 @@ namespace Drawing.Inspector
                     var minField = (FloatField) minFloatField;
                     var maxField = (FloatField) maxFloatField;
 
-                    defaultField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
-                    {
-                        propertySheet.errorContainer.Clear();
-                        _preChangeValueCallback("Change Property Value");
-                        float minValue = 0.0f, maxValue = 0.0f;
-                        // Only clamp the min and max values if they
-                        minValue = Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.x);
-                        maxValue = Mathf.Max(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y);
-                        vector1ShaderProperty.rangeValues = new Vector2(minValue, maxValue);
-                        minField.value = minValue;
-                        maxField.value = maxValue;
-                        _postChangeValueCallback();
-                    });
-
-                    minField.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue > vector1ShaderProperty.rangeValues.y)
-                        {
-                            minField.value = vector1ShaderProperty.rangeValues.x;
-                            propertySheet.errorContainer.Clear();
-                            propertySheet.errorContainer.Add(new Label("Min cannot be greater than Max!"));
-                            return;
-                        }
-                        _preChangeValueCallback("Change Range Property Minimum");
-                        vector1ShaderProperty.rangeValues = new Vector2((float)evt.newValue, vector1ShaderProperty.rangeValues.y);
-                        _postChangeValueCallback();
-                    });
-
                     minField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        propertySheet.errorContainer.Clear();
+                        propertySheet.warningContainer.Q<Label>().text = "";
                         vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();
                     });
 
-                    maxField.RegisterValueChangedCallback(evt =>
-                    {
-                        if (evt.newValue < vector1ShaderProperty.rangeValues.x)
-                        {
-                            maxField.value = vector1ShaderProperty.rangeValues.y;
-                            propertySheet.errorContainer.Clear();
-                            propertySheet.errorContainer.Add(new Label("Max cannot be lesser than Min!"));
-                            return;
-                        }
-                        this._preChangeValueCallback("Change Range Property Maximum");
-                        vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.x, (float)evt.newValue);
-                        this._postChangeValueCallback();
-                    });
-
                     maxField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(evt =>
                     {
-                        propertySheet.errorContainer.Clear();
+                        propertySheet.warningContainer.Q<Label>().text = "";
                         vector1ShaderProperty.value = Mathf.Max(Mathf.Min(vector1ShaderProperty.value, vector1ShaderProperty.rangeValues.y), vector1ShaderProperty.rangeValues.x);
                         defaultField.value = vector1ShaderProperty.value;
                         _postChangeValueCallback();

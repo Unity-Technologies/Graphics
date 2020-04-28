@@ -17,19 +17,26 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
-    width: 200px;
-    margin-right: 30px;
-    height: 24px;
+    width: 92px;
+    font-size: 12px;
+    margin-right: 4px;
     justify-content: center;
 }
 
 PropertyRow > #container > #label > Label {
     margin-bottom: 3px;
+    flex-wrap: wrap;
+    text-overflow: ellipsis; /* Possible values: clip | ellipsis */
+    -unity-text-overflow-position: end; /* Possible values: start | middle | end */
+    /* Conditions */
+    overflow: hidden;
+    white-space: wrap;
 }
 
 PropertyRow > #container > #content{
     flex-grow: 1;
     height: auto;
+    -unity-font-style: bold;
     width: 100px;
     justify-content: center;
 }

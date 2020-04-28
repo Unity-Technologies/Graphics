@@ -60,10 +60,9 @@ using Drawing.Views;
                 m_ContentContainer.Remove(child);
             }
 
-            var propertySheet = new PropertySheet();
             if(selection.Count == 0)
             {
-                ShowGraphSettings(propertySheet);
+                ShowGraphSettings(m_ContentContainer);
             }
             else if(selection.Count == 1)
             {
@@ -79,7 +78,7 @@ using Drawing.Views;
             {
                 foreach (var selectable in selection)
                 {
-                    DrawSelection(selectable, propertySheet);
+                    DrawSelection(selectable, m_ContentContainer);
                 }
             }
             catch (Exception e)
@@ -88,21 +87,23 @@ using Drawing.Views;
                 throw;
             }
 
-            m_ContentContainer.Add(propertySheet);
             m_ContentContainer.MarkDirtyRepaint();
         }
 
-        private void DrawSelection(ISelectable selectable, PropertySheet propertySheet)
+        private void DrawSelection(ISelectable selectable, VisualElement outputVisualElement)
         {
             if(selectable is IInspectable inspectable)
             {
-                DrawInspectable(propertySheet, inspectable);
+                DrawInspectable(outputVisualElement, inspectable);
             }
         }
 
-        private void DrawInspectable(PropertySheet propertySheet, IInspectable inspectable, IPropertyDrawer propertyDrawerToUse = null)
+        private void DrawInspectable(
+            VisualElement outputVisualElement,
+            IInspectable inspectable,
+            IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, propertySheet, inspectable, this.TriggerInspectorAndPreviewUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, this.TriggerInspectorAndPreviewUpdate, propertyDrawerToUse);
         }
 
         void TriggerInspectorAndPreviewUpdate()
@@ -113,7 +114,7 @@ using Drawing.Views;
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
         // which for SG, is a representation of the settings in GraphData
-        protected virtual void ShowGraphSettings(PropertySheet propertySheet)
+        protected virtual void ShowGraphSettings(VisualElement contentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
@@ -121,7 +122,7 @@ using Drawing.Views;
 
             subTitle = $"{graphEditorView.assetName} (Graph)";
 
-            DrawInspectable(propertySheet, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
         }
 #endregion
     }
@@ -131,7 +132,7 @@ using Drawing.Views;
     {
         internal static void GatherInspectorContent(
             List<Type> propertyDrawerList,
-            VisualElement propertySheet,
+            VisualElement outputVisualElement,
             IInspectable inspectable,
             Action propertyChangeCallback,
             IPropertyDrawer propertyDrawerToUse = null)
@@ -161,7 +162,7 @@ using Drawing.Views;
                     // Supply any required data to this particular kind of property drawer
                     inspectable.SupplyDataToPropertyDrawer(propertyDrawerInstance, propertyChangeCallback);
                     var propertyGUI = propertyDrawerInstance.DrawProperty(propertyInfo, dataObject, attribute);
-                    propertySheet.Add(propertyGUI);
+                    outputVisualElement.Add(propertyGUI);
                 }
             }
         }

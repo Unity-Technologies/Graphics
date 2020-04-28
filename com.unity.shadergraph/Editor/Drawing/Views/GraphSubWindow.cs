@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using IResizable = UnityEditor.ShaderGraph.Drawing.IResizable;
@@ -26,17 +27,17 @@ namespace Drawing.Views
         private Dragger m_Dragger;
         protected GraphView m_GraphView;
 
-        WindowDockingLayout m_Layout;
+        public WindowDockingLayout windowDockingLayout { get; private set; }
+
         // This needs to be something that each subclass defines on its own
         // if they all use the same they'll be stacked on top of each other at SG window creation
-
-        WindowDockingLayout m_DefaultLayout = new WindowDockingLayout
+        WindowDockingLayout m_DefaultLayout =new WindowDockingLayout
         {
             dockingTop = true,
             dockingLeft = false,
-            verticalOffset = 16,
-            horizontalOffset = 16,
-            size = new Vector2(200, 400),
+            verticalOffset = 8,
+            horizontalOffset = 8,
+            size = new Vector2(300, 300),
         };
 
         private const string UxmlName = "GraphSubWindow";
@@ -178,7 +179,7 @@ namespace Drawing.Views
 
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
             style.overflow = Overflow.Hidden;
-            focusable = true;
+            focusable = false;
             scrollable = true;
             name = elementName;
             title = windowTitle;
@@ -207,8 +208,6 @@ namespace Drawing.Views
                 // prevent ContentDragger manipulator
                 e.StopPropagation();
             });
-
-            DeserializeLayout();
         }
 
         public virtual void AddToSelection(ISelectable selectable)
@@ -228,42 +227,43 @@ namespace Drawing.Views
 
         void BuildManipulators()
         {
-            this.AddManipulator(m_Dragger);
             m_Dragger = new Dragger { clampToParentEdges = true };
+            this.RegisterCallback<MouseUpEvent>(OnMoved);
+            this.AddManipulator(m_Dragger);
 
             var resizeElement = this.Q<ResizableElement>();
             resizeElement.BindOnResizeCallback(OnWindowResize);
             hierarchy.Add(resizeElement);
+        }
 
-            var windowDraggable = new WindowDraggable(null, m_GraphView);
-            windowDraggable.OnDragFinished += SerializeLayout;
-            this.AddManipulator(windowDraggable);
+        void OnMoved(MouseUpEvent upEvent)
+        {
+            windowDockingLayout.CalculateDockingCornerAndOffset(this.layout, graphView.layout);
+            windowDockingLayout.ClampToParentWindow();
+
+            SerializeLayout();
         }
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
-            SerializeLayout();
         }
 
         void SerializeLayout()
         {
-            m_Layout.CalculateDockingCornerAndOffset(layout, m_GraphView.layout);
-            m_Layout.ClampToParentWindow();
-
-            var serializedLayout = JsonUtility.ToJson(m_Layout);
+            var serializedLayout = JsonUtility.ToJson(windowDockingLayout);
             EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
         }
 
-        void DeserializeLayout()
+        public void DeserializeLayout()
         {
             var serializedLayout = EditorUserSettings.GetConfigValue(layoutKey);
             if (!string.IsNullOrEmpty(serializedLayout))
-                m_Layout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
+                windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
             else
-                m_Layout = m_DefaultLayout;
+                windowDockingLayout = m_DefaultLayout;
 
-            m_Layout.ApplyPosition(this);
-            m_Layout.ApplySize(this);
+            windowDockingLayout.ApplySize(this);
+            windowDockingLayout.ApplyPosition(this);
         }
 
         public void OnStartResize()
@@ -272,7 +272,8 @@ namespace Drawing.Views
 
         public void OnResized()
         {
-           // m_Layout. = new Rect(resolvedStyle.left, resolvedStyle.top, style.width.value.value, style.height.value.value);
+            windowDockingLayout.size = this.layout.size;
+            SerializeLayout();
         }
     }
 }
