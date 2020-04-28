@@ -1761,6 +1761,64 @@ namespace UnityEditor.ShaderGraph
             {
                 if(m_Version < 2)
                 {
+                    var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
+
+                    void UpgradeFromBlockMap(Dictionary<BlockFieldDescriptor, int> blockMap)
+                    {
+                        // Map master node ports to blocks
+                        if(blockMap != null)
+                        {
+                            foreach(var blockMapping in blockMap)
+                            {
+                                // Create a new BlockNode for each unique map entry
+                                var descriptor = blockMapping.Key;
+                                if(addedBlocks.Contains(descriptor))
+                                    continue;
+                                
+                                addedBlocks.Add(descriptor);
+
+                                var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                                var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                                block.Init(descriptor);
+                                AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+
+                                // To avoid having to go around the following deserialization code
+                                // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
+                                block.OnBeforeSerialize();
+
+                                // Now remap the incoming edges to blocks
+                                var slotId = blockMapping.Value;
+                                var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
+                                var newSlot = block.FindSlot<MaterialSlot>(0);
+                                if(oldSlot == null)
+                                    continue;
+                                
+                                var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
+                                var newInputSlotRef = block.GetSlotReference(0);
+
+                                // Always copy the value over for convenience
+                                newSlot.CopyValuesFrom(oldSlot);
+
+                                for(int i = 0; i < m_Edges.Count; i++)
+                                {
+                                    // Find all edges connected to the master node using slot ID from the block map
+                                    // Remove them and replace them with new edges connected to the block nodes
+                                    var edge = m_Edges[i];
+                                    if(edge.inputSlot.Equals(oldInputSlotRef))
+                                    {
+                                        var outputSlot = edge.outputSlot;
+                                        m_Edges.Remove(edge);
+                                        m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
+                                    }
+                                }
+                            }
+
+                            // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
+                            // Therefore we need to clear this list before the view is created
+                            m_AddedNodes.Clear();
+                        }
+                    }
+
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
                     // This is required for edge lookup during Target upgrade
@@ -1770,9 +1828,16 @@ namespace UnityEditor.ShaderGraph
                         AddEdgeToNodeEdges(edge);
                     }
 
+                    // Ensure correct initialization of Contexts
+                    AddContexts();
+
+                    // Position Contexts to the match master node
+                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    m_VertexContext.position = oldPosition;
+                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
+
                     // Try to upgrade all valid targets from master node
                     // On ShaderGraph side we dont know what Targets exist so make no assumptions
-                    Dictionary<BlockFieldDescriptor, int> blockMap = null;
                     if(masterNode != null)
                     {
                         foreach(var target in m_ValidTargets)
@@ -1784,64 +1849,8 @@ namespace UnityEditor.ShaderGraph
                                 continue;
                             
                             m_ActiveTargets.Add(target);
-                            blockMap = newBlockMap;
+                            UpgradeFromBlockMap(newBlockMap);
                         }
-                    }
-
-                    // Ensure correct initialization of Contexts
-                    AddContexts();
-
-                    // Position Contexts to the match master node
-                    var oldPosition = m_OutputNode.value.drawState.position.position;
-                    m_VertexContext.position = oldPosition;
-                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
-
-                    // Map master node ports to blocks
-                    if(blockMap != null)
-                    {
-                        foreach(var blockMapping in blockMap)
-                        {
-                            // Create a new BlockNode for each map entry
-                            var descriptor = blockMapping.Key;
-                            var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
-                            var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
-                            block.Init(descriptor);
-                            AddBlockNoValidate(block, contextData, contextData.blocks.Count);
-
-                            // To avoid having to go around the following deserialization code
-                            // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
-                            block.OnBeforeSerialize();
-
-                            // Now remap the incoming edges to blocks
-                            var slotId = blockMapping.Value;
-                            var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
-                            var newSlot = block.FindSlot<MaterialSlot>(0);
-                            if(oldSlot == null)
-                                continue;
-                            
-                            var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
-                            var newInputSlotRef = block.GetSlotReference(0);
-
-                            // Always copy the value over for convenience
-                            newSlot.CopyValuesFrom(oldSlot);
-
-                            for(int i = 0; i < m_Edges.Count; i++)
-                            {
-                                // Find all edges connected to the master node using slot ID from the block map
-                                // Remove them and replace them with new edges connected to the block nodes
-                                var edge = m_Edges[i];
-                                if(edge.inputSlot.Equals(oldInputSlotRef))
-                                {
-                                    var outputSlot = edge.outputSlot;
-                                    m_Edges.Remove(edge);
-                                    m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
-                                }
-                            }
-                        }
-
-                        // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
-                        // Therefore we need to clear this list before the view is created
-                        m_AddedNodes.Clear();
                     }
 
                     // Clean up after upgrade
