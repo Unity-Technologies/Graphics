@@ -207,8 +207,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             float2 uv1 = alpha.x * flow;
             float2 uv2 = alpha.y * flow;
 
-            float3 dd1 = uv1.x * tangent + uv1.y * bitangent; //dd1.y = abs(dd1.y);
-            float3 dd2 = uv2.x * tangent + uv2.y * bitangent; //dd2.y = abs(dd2.y);
+            float3 dd1 = uv1.x * tangent + uv1.y * bitangent;
+            float3 dd2 = uv2.x * tangent + uv2.y * bitangent;
 
             // Sample twice
             float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + dd1, 0).rgb;

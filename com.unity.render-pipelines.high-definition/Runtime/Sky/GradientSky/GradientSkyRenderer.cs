@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GradientSkyMaterial.SetFloat(HDShaderIDs._SkyIntensity, GetSkyIntensity(gradientSky, builtinParams.debugSettings));
 
             if (builtinParams.cloudLayer != null)
-                builtinParams.cloudLayer.Render(m_GradientSkyMaterial);
+                builtinParams.cloudLayer.Apply(m_GradientSkyMaterial);
             else
             {
                 m_GradientSkyMaterial.DisableKeyword("USE_CLOUD_MAP");

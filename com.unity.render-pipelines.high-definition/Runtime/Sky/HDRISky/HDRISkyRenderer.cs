@@ -155,7 +155,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
 
             if (builtinParams.cloudLayer != null)
-                builtinParams.cloudLayer.Render(m_SkyHDRIMaterial);
+                builtinParams.cloudLayer.Apply(m_SkyHDRIMaterial);
             else
             {
                 m_SkyHDRIMaterial.DisableKeyword("USE_CLOUD_MAP");

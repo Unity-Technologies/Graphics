@@ -52,7 +52,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 return new Vector4(upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
         }
 
-        public void Render(Material skyMaterial)
+        /// <summary>
+        /// Sets keywords and parameters on a sky material to render the cloud layer.
+        /// </summary>
+        public void Apply(Material skyMaterial)
         {
             Vector4 cloudParam = GetParameters();
 

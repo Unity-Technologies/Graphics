@@ -468,6 +468,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int pass = (renderForCubemap ? 0 : 2) + (isPbrSkyActive ? 0 : 1);
 
+            if (builtinParams.cloudLayer != null)
+                builtinParams.cloudLayer.Apply(s_PbrSkyMaterial);
+            else
+            {
+                s_PbrSkyMaterial.DisableKeyword("USE_CLOUD_MAP");
+                s_PbrSkyMaterial.DisableKeyword("USE_CLOUD_MOTION");
+            }
+
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, s_PbrSkyMaterial, s_PbrSkyMaterialProperties, pass);
         }
     }
