@@ -87,12 +87,12 @@ namespace UnityEditor.ShaderGraph
                         FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                     using (s.BlockScope())
                     {
-                        s.AppendLine("$precision3 worldDirivativeX = ddx(Position);");
-                        s.AppendLine("$precision3 worldDirivativeY = ddy(Position);");
+                        s.AppendLine("$precision3 worldDerivativeX = ddx(Position);");
+                        s.AppendLine("$precision3 worldDerivativeY = ddy(Position);");
                         s.AppendNewLine();
-                        s.AppendLine("$precision3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);");
-                        s.AppendLine("$precision3 crossY = cross(worldDirivativeY, TangentMatrix[2].xyz);");
-                        s.AppendLine("$precision d = dot(worldDirivativeX, crossY);");
+                        s.AppendLine("$precision3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);");
+                        s.AppendLine("$precision3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);");
+                        s.AppendLine("$precision d = dot(worldDerivativeX, crossY);");
                         s.AppendLine("$precision sgn = d < 0.0 ? (-1.0f) : 1.0f;");
                         s.AppendLine("$precision surface = sgn / max(0.000000000000001192093f, abs(d));");
                         s.AppendNewLine();
