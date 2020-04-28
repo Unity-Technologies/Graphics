@@ -207,23 +207,24 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (UVEmissive != null) // Unlit does not have UVEmissive
                 {
                     materialEditor.ShaderProperty(UVEmissive, Styles.UVEmissiveMappingText);
-                    UVBaseMapping uvEmissiveMapping = (UVBaseMapping)UVEmissive.floatValue;
+                    UVEmissiveMapping uvEmissiveMapping = (UVEmissiveMapping)UVEmissive.floatValue;
 
                     float X, Y, Z, W;
-                    X = (uvEmissiveMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-                    Y = (uvEmissiveMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-                    Z = (uvEmissiveMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-                    W = (uvEmissiveMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
+                    X = (uvEmissiveMapping == UVEmissiveMapping.UV0) ? 1.0f : 0.0f;
+                    Y = (uvEmissiveMapping == UVEmissiveMapping.UV1) ? 1.0f : 0.0f;
+                    Z = (uvEmissiveMapping == UVEmissiveMapping.UV2) ? 1.0f : 0.0f;
+                    W = (uvEmissiveMapping == UVEmissiveMapping.UV3) ? 1.0f : 0.0f;
 
                     UVMappingMaskEmissive.colorValue = new Color(X, Y, Z, W);
 
-                    if ((uvEmissiveMapping == UVBaseMapping.Planar) || (uvEmissiveMapping == UVBaseMapping.Triplanar))
+                    if ((uvEmissiveMapping == UVEmissiveMapping.Planar) || (uvEmissiveMapping == UVEmissiveMapping.Triplanar))
                     {
                         materialEditor.ShaderProperty(TexWorldScaleEmissive, Styles.texWorldScaleText);
                     }
                 }
 
-                materialEditor.TextureScaleOffsetProperty(emissiveColorMap);
+                if (UVEmissive == null || (UVEmissiveMapping)UVEmissive.floatValue != UVEmissiveMapping.SameAsBase)
+                    materialEditor.TextureScaleOffsetProperty(emissiveColorMap);
                 EditorGUI.indentLevel--;
             }
         }

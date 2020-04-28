@@ -544,19 +544,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo) =>
                 {
-                    // installed is not used because this one will be always installed
+                    // With recent introduction of preview srp version, our HDRP wizard don't work with Version() call
+                    // patch it for now until this is solve.
+                    bool compatibleWithVersionCall = version.ToString().Contains("preview") ? false : true;
 
+                    // installed is not used because this one will be always installed
                     if (packageInfo.source == PackageManager.PackageSource.Local)
                     {
                         helpBox.kind = HelpBox.Kind.Info;
                         helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
                     }
-                    else if(new Version(packageInfo.version) < new Version(version))
+                    else if(compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
                     {
                         helpBox.kind = HelpBox.Kind.Warning;
                         helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
                     }
-                    else if (new Version(packageInfo.version) == new Version(version))
+                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) == new Version(version)))
                     {
                         helpBox.kind = HelpBox.Kind.Info;
                         helpBox.text = String.Format(Style.hdrpVersionLast, version);
