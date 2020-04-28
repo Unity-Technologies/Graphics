@@ -65,11 +65,12 @@ namespace Drawing.Inspector.PropertyDrawers
         {
             var vector2Field = new Vector2Field {value = fieldToDraw};
 
-            vector2Field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
-            vector2Field.Q("unity-x-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
-            vector2Field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
-            vector2Field.Q("unity-y-input").Q("unity-text-input").RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
-
+            var inputFields = vector2Field.Query("unity-text-input").ToList();
+            foreach (var inputField in inputFields)
+            {
+                inputField.RegisterCallback<KeyDownEvent>(m_KeyDownCallback);
+                inputField.RegisterCallback<FocusOutEvent>(m_FocusOutCallback);
+            }
             // Bind value changed event to callback to handle dragger behavior before actually settings the value
             vector2Field.RegisterValueChangedCallback(evt =>
             {
