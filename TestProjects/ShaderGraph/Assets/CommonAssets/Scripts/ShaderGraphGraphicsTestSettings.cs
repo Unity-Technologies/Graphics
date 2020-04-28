@@ -10,6 +10,5 @@ public class ShaderGraphGraphicsTestSettings : GraphicsTestSettings
         ImageComparisonSettings.TargetHeight = 512;
         ImageComparisonSettings.AverageCorrectnessThreshold = 0.005f;
         ImageComparisonSettings.PerPixelCorrectnessThreshold = 0.005f;
-        ImageComparisonSettings.UseBackBuffer = false;
     }
 }

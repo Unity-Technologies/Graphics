@@ -20,14 +20,9 @@ public class ShaderGraphGraphicsTests
         var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         var settings = Object.FindObjectOfType<ShaderGraphGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find ShaderGraphGraphicsTestSettings");
-        int waitFrames = settings.WaitFrames;
 
-        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
-        {
-            waitFrames = 1;
-        }
-        for (int i = 0; i < waitFrames; i++)
-            yield return new WaitForEndOfFrame();
+        for (int i = 0; i < settings.WaitFrames; i++)
+            yield return null;
 
         ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings.ImageComparisonSettings);
     }
