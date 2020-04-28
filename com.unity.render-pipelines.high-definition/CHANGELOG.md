@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed shadowmask UI now correctly showing shadowmask disable
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
