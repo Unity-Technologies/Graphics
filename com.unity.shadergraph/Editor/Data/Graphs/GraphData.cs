@@ -682,7 +682,7 @@ namespace UnityEditor.ShaderGraph
                 target.GetActiveBlocks(ref context);
             }
 
-            return context.blocks;
+            return context.activeBlocks;
         }
 
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
@@ -707,9 +707,9 @@ namespace UnityEditor.ShaderGraph
                 for(int i = 0; i < contextData.blocks.Count; i++)
                 {
                     var block = contextData.blocks[i];
-                    if(!activeBlockDescriptors.Contains(block.descriptor))
+                    if(!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
-                        var slot = block.FindSlot<MaterialSlot>(0);
+                        var slot = block.value.FindSlot<MaterialSlot>(0);
                         if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
@@ -723,7 +723,7 @@ namespace UnityEditor.ShaderGraph
                 if(descriptor.shaderStage != contextData.shaderStage)
                     return;
                 
-                if(contextData.blocks.Any(x => x.descriptor.Equals(descriptor)))
+                if(contextData.blocks.Any(x => x.value.descriptor.Equals(descriptor)))
                     return;
 
                 var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
@@ -1543,6 +1543,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
+            m_Version = k_CurrentVersion;
         }
 
         static JsonObject DeserializeLegacy(string typeString, string json)

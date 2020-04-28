@@ -213,7 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if(subTarget.GetType().Equals(subTargetType))
                 {
                     m_ActiveSubTarget = subTarget;
-                    ProcessSubTargetDatas();
+                    ProcessSubTargetDatas(m_ActiveSubTarget);
                     return true;
                 }
             }

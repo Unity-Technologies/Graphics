@@ -722,11 +722,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 blockMap.Add(BlockFields.SurfaceDescription.Specular, StackLitMasterNode1.SpecularColorSlotId);
             }
 
-            blockMap.Add(HDBlockFields.SurfaceDescription.SmoothnessA, StackLitMasterNode1.SmoothnessASlotId);
+            blockMap.Add(BlockFields.SurfaceDescription.Smoothness, StackLitMasterNode1.SmoothnessASlotId);
 
             if (stackLitData.anisotropy)
             {
-                blockMap.Add(HDBlockFields.SurfaceDescription.AnisotropyA, StackLitMasterNode1.AnisotropyASlotId);
+                blockMap.Add(HDBlockFields.SurfaceDescription.Anisotropy, StackLitMasterNode1.AnisotropyASlotId);
             }
 
             blockMap.Add(BlockFields.SurfaceDescription.Occlusion, StackLitMasterNode1.AmbientOcclusionSlotId);
