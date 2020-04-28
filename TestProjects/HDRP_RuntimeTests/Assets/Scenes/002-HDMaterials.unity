@@ -591,6 +591,7 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -4041,6 +4042,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9459100e7946cb84eb53a26a14473032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ImageComparisonSettings:
+    TargetWidth: 1920
+    TargetHeight: 1080
+    PerPixelCorrectnessThreshold: 0.0015
+    AverageCorrectnessThreshold: 0.0015
+    UseHDR: 0
+  doBeforeTest:
+    m_PersistentCalls:
+      m_Calls: []
+  captureFramerate: 60
+  waitFrames: 8
+  xrCompatible: 1
+  xrThresholdMultiplier: 1
+  checkMemoryAllocation: 0
+  renderPipelineAsset: {fileID: 11400000, guid: a2b3940bdd38ca54880a3ae1fe6be80f,
+    type: 2}
 --- !u!114 &1229154921
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4110,7 +4127,7 @@ MonoBehaviour:
   antialiasing: 0
   SMAAQuality: 2
   dithering: 0
-  stopNaNs: 1
+  stopNaNs: 0
   taaSharpenStrength: 0.6
   TAAQuality: 1
   taaHistorySharpening: 0.35
@@ -5217,7 +5234,7 @@ MonoBehaviour:
   antialiasing: 0
   SMAAQuality: 2
   dithering: 0
-  stopNaNs: 1
+  stopNaNs: 0
   taaSharpenStrength: 0.6
   TAAQuality: 1
   taaHistorySharpening: 0.35
@@ -5856,7 +5873,7 @@ LightingSettings:
   m_MixedBakeMode: 2
   m_LightmapsBakeMode: 1
   m_FilterMode: 1
-  m_LightmapParameters: {fileID: 0}
+  m_LightmapParameters: {fileID: 15204, guid: 0000000000000000f000000000000000, type: 0}
   m_ExportTrainingData: 0
   m_TrainingDataDestination: TrainingData
   m_RealtimeResolution: 2
@@ -6240,6 +6257,7 @@ MonoBehaviour:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -7171,7 +7189,7 @@ MonoBehaviour:
   antialiasing: 0
   SMAAQuality: 2
   dithering: 0
-  stopNaNs: 1
+  stopNaNs: 0
   taaSharpenStrength: 0.6
   TAAQuality: 1
   taaHistorySharpening: 0.35
