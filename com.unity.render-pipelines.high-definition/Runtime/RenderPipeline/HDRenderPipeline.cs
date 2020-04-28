@@ -323,6 +323,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
+        Material m_MotionVectorResolve = null;
 
         // Flag that defines if ray tracing is supported by the current asset and platform
         bool m_RayTracingSupported = false;
@@ -512,6 +513,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
+            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.resolveMotionVecPS);
 
             InitializeProbeVolumes();
         }
@@ -960,6 +962,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderGraph.UnRegisterDebug();
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
+            CoreUtils.Destroy(m_MotionVectorResolve);
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
