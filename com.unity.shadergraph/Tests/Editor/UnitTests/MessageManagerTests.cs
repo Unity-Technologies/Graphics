@@ -304,8 +304,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ReportAnyErrors_EmptyManager_OnlyWarnings()
         {
-            m_EmptyMgr.AddOrAppendError(p0, node0.guid, w0);
-            m_EmptyMgr.AddOrAppendError(p1, node1.guid, w1);
+            m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
+            m_EmptyMgr.AddOrAppendError(p1, node1.objectId, w1);
 
             var ret = m_EmptyMgr.AnyError();
             Assert.IsFalse(ret);
@@ -314,8 +314,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void ReportAnyErrors_EmptyManager_ErrorOneProvider()
         {
-            m_EmptyMgr.AddOrAppendError(p0, node0.guid, w0);
-            m_EmptyMgr.AddOrAppendError(p1, node1.guid, e1);
+            m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
+            m_EmptyMgr.AddOrAppendError(p1, node1.objectId, e1);
 
             var ret = m_EmptyMgr.AnyError();
             Assert.IsTrue(ret);
