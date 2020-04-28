@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/ResolveTransparentMotionVec"
+Shader "Hidden/HDRP/MotionVecResolve"
 {
     HLSLINCLUDE
         #pragma target 4.5
