@@ -250,6 +250,8 @@ namespace UnityEditor.ShaderGraph
         /// </returns>
         internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
+            //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
+            name = name.Replace("\"", "_");
             if (!existingNames.Contains(name))
                 return name;
 
