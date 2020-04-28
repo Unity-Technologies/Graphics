@@ -49,9 +49,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Varyings
             {
                 float4  positionCS  : SV_POSITION;
-                float4  color       : COLOR;
-                float2	uv          : TEXCOORD0;
-                float2	lightingUV  : TEXCOORD1;
+                half4   color       : COLOR;
+                half2	uv          : TEXCOORD0;
+                half2	lightingUV  : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -128,11 +128,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             struct Varyings
             {
                 float4  positionCS		: SV_POSITION;
-                float4  color			: COLOR;
-                float2	uv				: TEXCOORD0;
-                float3  normalWS		: TEXCOORD1;
-                float3  tangentWS		: TEXCOORD2;
-                float3  bitangentWS		: TEXCOORD3;
+                half4   color			: COLOR;
+                half2	uv				: TEXCOORD0;
+                half3   normalWS		: TEXCOORD1;
+                half3   tangentWS		: TEXCOORD2;
+                half3   bitangentWS		: TEXCOORD3;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -140,7 +140,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
-            float4 _NormalMap_ST;  // Is this the right way to do this?
+            half4 _NormalMap_ST;  // Is this the right way to do this?
 
             Varyings NormalsRenderingVertex(Attributes attributes)
             {
@@ -160,10 +160,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl"
 
-            float4 NormalsRenderingFragment(Varyings i) : SV_Target
+            half4 NormalsRenderingFragment(Varyings i) : SV_Target
             {
-                float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                float3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+                half4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
                 return NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
             }
             ENDHLSL
