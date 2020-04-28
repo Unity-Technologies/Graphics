@@ -161,6 +161,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
             public float maxQuadCost = 10.0f;
+            /// <summary>Max quad cost for quad overdraw display.</summary>
+            public float maxVertexDensity = 10.0f;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
 
@@ -1336,6 +1338,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.FloatField {displayName = "Max Quad Cost", getter = () => data.maxQuadCost, setter = value => data.maxQuadCost = value, min = () => 0.25f, max = () => 2048.0f}
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.FloatField {displayName = "Max Vertex Density", getter = () => data.maxVertexDensity, setter = value => data.maxVertexDensity = value, min = () => 0.25f, max = () => 2048.0f}
                     }
                 });
             }

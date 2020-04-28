@@ -149,7 +149,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
         output.tangentWS = tangentWS;
 #endif
-#else
+#else // TESSELLATION_ON
 #ifdef VARYINGS_NEED_POSITION_WS
         output.positionRWS = positionRWS;
 #endif
@@ -158,7 +158,10 @@ VaryingsMeshType VertMesh(AttributesMesh input)
         output.normalWS = normalWS;
         output.tangentWS = tangentWS;
 #endif
+#ifdef DEBUG_DISPLAY
+        IncrementVertexDensityCounter(output.positionCS);
 #endif
+#endif // TESSELLATION_ON
 
 #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
         output.texCoord0 = input.uv0;
@@ -193,6 +196,10 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     output.positionCS = TransformWorldToHClip(input.positionRWS);
+
+#ifdef DEBUG_DISPLAY
+    IncrementVertexDensityCounter(output.positionCS);
+#endif
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS = input.positionRWS;

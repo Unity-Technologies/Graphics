@@ -30,6 +30,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
             float _FullScreenDebugMode;
             float _TransparencyOverdrawMaxPixelCost;
             float _QuadOverdrawMaxQuadCost;
+            float _VertexDensityMaxPixelCost;
             CBUFFER_END
 
             TEXTURE2D_X(_DebugFullScreenTexture);
@@ -326,6 +327,18 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
+                    return color;
+                }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+                {
+                    uint2 quad = (uint2)input.positionCS;
+                    float4 color = (float4)0;
+
+                    float density = (float)_DebugVertexDensityUAV[quad];
+                    _DebugVertexDensityUAV[quad] = 0;
+
+                    if ((density > 0.001))
+                        color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
                     return color;
                 }
 

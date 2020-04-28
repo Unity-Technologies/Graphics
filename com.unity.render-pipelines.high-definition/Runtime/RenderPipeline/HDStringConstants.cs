@@ -384,6 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
         public static readonly int _TransparencyOverdrawMaxPixelCost = Shader.PropertyToID("_TransparencyOverdrawMaxPixelCost");
         public static readonly int _QuadOverdrawMaxQuadCost = Shader.PropertyToID("_QuadOverdrawMaxQuadCost");
+        public static readonly int _VertexDensityMaxPixelCost = Shader.PropertyToID("_VertexDensityMaxPixelCost");
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");

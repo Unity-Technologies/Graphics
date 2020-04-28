@@ -51,6 +51,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
 RWTexture2D<uint> _DebugQuadLockUAV :register(u1);
 RWTexture2D<uint> _DebugQuadOverdrawUAV :register(u2);
+RWTexture2D<uint> _DebugVertexDensityUAV :register(u3);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
@@ -277,6 +278,17 @@ bool ShouldFlipDebugTexture()
     #else
         return (_ProjectionParams.x < 0);
     #endif
+}
+
+void IncrementVertexDensityCounter(float4 positionCS)
+{
+    float2 ndc = positionCS.xy / positionCS.w * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    // If vertex is in viewport
+    if (all(ndc > 0.0) && positionCS.w > 0.0)
+    {
+        uint2 pixel = (uint2)(ndc * _ScreenSize.xy);
+        InterlockedAdd(_DebugVertexDensityUAV[pixel], 1);
+    }
 }
 
 #endif
