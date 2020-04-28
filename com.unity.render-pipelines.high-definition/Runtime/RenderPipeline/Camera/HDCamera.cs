@@ -569,6 +569,20 @@ namespace UnityEngine.Rendering.HighDefinition
             s_Cleanup.Clear();
         }
 
+        internal static void ResetAllHistoryRTHandleSystems(int width, int height)
+        {
+            foreach (var kvp in s_Cameras)
+            {
+                var hdCamera = kvp.Value;
+                var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
+                // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                {
+                    hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+                }
+            }
+        }
+
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
