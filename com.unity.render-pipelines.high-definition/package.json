@@ -25,11 +25,6 @@
       "path": "Samples~/PostProcessingData"
     },
     {
-      "displayName": "Shader Graph Samples",
-      "description": "Adds Shader Graph samples to your project. Open the SampleScene to see typical use cases for the Hair, Fabric, and Decal Master Nodes for Shader Graph.",
-      "path": "Samples~/ShaderGraphSamples"
-    },
-    {
       "displayName": "Procedural Sky",
       "description": "Adds the deprecated procedural sky of HDRP.",
       "path": "Samples~/ProceduralSky"

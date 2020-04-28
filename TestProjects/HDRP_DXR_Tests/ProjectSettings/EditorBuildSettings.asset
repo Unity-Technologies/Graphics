@@ -120,8 +120,20 @@ EditorBuildSettings:
     path: Assets/Scenes/901_Materials_HDRP_Variants.unity
     guid: 38deab1a2d6be0241b8c263d055b4ff4
   - enabled: 1
-    path: Assets/Scenes/902_Materials_SG_Variants.unity
-    guid: 46d6d51683da656489a6e012fc3c5944
+    path: Assets/Scenes/902_Materials_SG_Variants_Fabric.unity
+    guid: 8b9cd2af11aea234c97ee5cdee88a7d6
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Hair.unity
+    guid: 034219978a2f81049b231504161409e5
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Lit.unity
+    guid: 144910001ec5a1f499c7dddc124aeed4
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_StackLit.unity
+    guid: b30ee4049c0d7354c9be3dd0a32d7958
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
+    guid: 5b672860fdf88f84fa93bf94214514f1
   - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
@@ -149,4 +161,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5005_PathTracing_Fog.unity
     guid: 9f38d7cbc64ad534485db5107427e269
+  - enabled: 1
+    path: Assets/Scenes/5006_PathTracing_DoF.unity
+    guid: c163eeeb7af1c194590ab367fb84a376
   m_configObjects: {}
