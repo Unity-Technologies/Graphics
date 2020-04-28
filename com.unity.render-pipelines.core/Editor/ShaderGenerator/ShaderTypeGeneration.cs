@@ -408,16 +408,17 @@ namespace UnityEditor.Rendering
             shaderText += "// Generated from " + type.FullName + "\n";
             shaderText += "// PackingRules = " + attr.packingRules.ToString() + "\n";
 
+            var name = string.IsNullOrEmpty(attr.typeOverrideName) ? type.Name : attr.typeOverrideName;
             if (attr.generateCBuffer)
             {
                 if (attr.constantRegister != -1)
-                    shaderText += "GLOBAL_CBUFFER_START(" + type.Name + ", b" + attr.constantRegister + ")\n";
+                    shaderText += "GLOBAL_CBUFFER_START(" + name + ", b" + attr.constantRegister + ")\n";
                 else
-                    shaderText += "CBUFFER_START(" + type.Name + ")\n";
+                    shaderText += "CBUFFER_START(" + name + ")\n";
             }
             else if (!attr.omitStructDeclaration)
             {
-                shaderText += "struct " + type.Name + "\n";
+                shaderText += "struct " +name + "\n";
                 shaderText += "{\n";
             }
 

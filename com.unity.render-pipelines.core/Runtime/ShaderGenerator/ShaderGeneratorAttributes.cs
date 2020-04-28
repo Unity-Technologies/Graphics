@@ -104,6 +104,11 @@ namespace UnityEngine.Rendering
         public int constantRegister;
 
         /// <summary>
+        /// If specified, when generating a type, use this explicit name.
+        /// </summary>
+        public string typeOverrideName;
+
+        /// <summary>
         /// GenerateHLSL attribute constructor.
         /// </summary>
         /// <param name="rules">Packing rules.</param>
@@ -115,8 +120,9 @@ namespace UnityEngine.Rendering
         /// <param name="containsPackedFields">Contains packed fields.</param>
         /// <param name="generateCBuffer">Generate a constant buffer.</param>
         /// <param name="constantRegister">When generating a constant buffer, specify the optional constant register.</param>
+        /// <param name="typeOverrideName">When generating a constant buffer, specify the overide name, otherwise use class name.</param>
         public GenerateHLSL(PackingRules rules = PackingRules.Exact, bool needAccessors = true, bool needSetters = false, bool needParamDebug = false, int paramDefinesStart = 1,
-                                bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1)
+                                bool omitStructDeclaration = false, bool containsPackedFields = false, bool generateCBuffer = false, int constantRegister = -1, string typeOverrideName = null)
         {
             packingRules = rules;
             this.needAccessors = needAccessors;
@@ -127,6 +133,7 @@ namespace UnityEngine.Rendering
             this.containsPackedFields = containsPackedFields;
             this.generateCBuffer = generateCBuffer;
             this.constantRegister = constantRegister;
+            this.typeOverrideName = typeOverrideName;
         }
     }
 

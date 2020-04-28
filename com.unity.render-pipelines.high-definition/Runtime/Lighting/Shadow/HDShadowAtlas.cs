@@ -533,7 +533,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 globalCB._ViewProjMatrix = viewProjection;
                 globalCB._InvViewProjMatrix = viewProjection.inverse;
 
+                #if USE_NEW_CBUFFER
                 ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+                #else
+                globalCB.SetGlobals(cmd);
+                #endif
 
                 cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 

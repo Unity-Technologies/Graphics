@@ -23,7 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
     // - Base element size for array should be 4 components of 4 bytes (Vector4 or Vector4Int basically) otherwise the array will be interlaced with padding on shader side.
     // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
     // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
+
+#if USE_NEW_CBUFFER
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
+#else
+    [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global, typeOverrideName = "UnityGlobals")]
+#endif
     unsafe struct ShaderVariablesGlobal
     {
         public const int defaultLightLayers = 0xFF;
@@ -244,5 +249,163 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
+
+        public void SetGlobals(CommandBuffer cmd)
+        {
+           cmd.SetGlobalMatrix(nameof(_ViewMatrix), _ViewMatrix);
+           cmd.SetGlobalMatrix(nameof(_InvViewMatrix), _InvViewMatrix);
+           cmd.SetGlobalMatrix(nameof(_InvProjMatrix), _InvProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_ViewProjMatrix), _ViewProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_CameraViewProjMatrix), _InvViewProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_InvViewProjMatrix), _InvViewProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_NonJitteredViewProjMatrix), _NonJitteredViewProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_PrevViewProjMatrix), _PrevViewProjMatrix);
+           cmd.SetGlobalMatrix(nameof(_PrevInvViewProjMatrix), _PrevInvViewProjMatrix);
+
+
+#if !USING_STEREO_MATRICES
+           cmd.SetGlobalVector(nameof(_WorldSpaceCameraPos_Internal), _WorldSpaceCameraPos_Internal);
+           cmd.SetGlobalVector(nameof(_PrevCamPosRWS_Internal), _PrevCamPosRWS_Internal);
+#endif
+
+           cmd.SetGlobalVector(nameof(_ScreenSize), _ScreenSize);
+           cmd.SetGlobalVector(nameof(_RTHandleScale), _RTHandleScale);
+           cmd.SetGlobalVector(nameof(_RTHandleScaleHistory), _RTHandleScaleHistory);
+           cmd.SetGlobalVector(nameof(_ZBufferParams), _ZBufferParams);
+           cmd.SetGlobalVector(nameof(_ProjectionParams), _ProjectionParams);
+           cmd.SetGlobalVector(nameof(unity_OrthoParams), unity_OrthoParams);
+           cmd.SetGlobalVector(nameof(_ScreenParams), _ScreenParams);
+
+/*             cmd.SetGlobalFloatArray(nameof(_FrustumPlanes), _FrustumPlanes);
+              cmd.SetGlobalFloatArray(nameof(_ShadowFrustumPlanes), _ShadowFrustumPlanes);*/
+
+           cmd.SetGlobalVector(nameof(_TaaFrameInfo), _TaaFrameInfo);
+           cmd.SetGlobalVector(nameof(_TaaJitterStrength), _TaaJitterStrength);
+
+
+           cmd.SetGlobalVector(nameof(_Time), _Time);
+           cmd.SetGlobalVector(nameof(_SinTime), _SinTime);
+           cmd.SetGlobalVector(nameof(_CosTime), _CosTime);
+           cmd.SetGlobalVector(nameof(unity_DeltaTime), unity_DeltaTime);
+           cmd.SetGlobalVector(nameof(_TimeParameters), _TimeParameters);
+           cmd.SetGlobalVector(nameof(_LastTimeParameters), _LastTimeParameters);
+
+
+           cmd.SetGlobalInt(nameof(_FogEnabled), _FogEnabled);
+           cmd.SetGlobalInt(nameof(_PBRFogEnabled), _PBRFogEnabled);
+           cmd.SetGlobalInt(nameof(_EnableVolumetricFog), _EnableVolumetricFog);
+           cmd.SetGlobalFloat(nameof(_MaxFogDistance), _MaxFogDistance);
+           cmd.SetGlobalVector(nameof(_FogColor), _FogColor);
+           cmd.SetGlobalFloat(nameof(_FogColorMode), _FogColorMode);
+           cmd.SetGlobalVector(nameof(_MipFogParameters), _MipFogParameters);
+           cmd.SetGlobalVector(nameof(_HeightFogBaseScattering), _HeightFogBaseScattering);
+           cmd.SetGlobalFloat(nameof(_HeightFogBaseExtinction), _HeightFogBaseExtinction);
+           cmd.SetGlobalVector(nameof(_HeightFogExponents), _HeightFogExponents);
+           cmd.SetGlobalFloat(nameof(_HeightFogBaseHeight), _HeightFogBaseHeight);
+           cmd.SetGlobalFloat(nameof(_GlobalFogAnisotropy), _GlobalFogAnisotropy);
+
+           cmd.SetGlobalVector(nameof(_VBufferViewportSize), _VBufferViewportSize);
+           cmd.SetGlobalVector(nameof(_VBufferSharedUvScaleAndLimit), _VBufferSharedUvScaleAndLimit);
+           cmd.SetGlobalVector(nameof(_VBufferDistanceEncodingParams), _VBufferDistanceEncodingParams);
+           cmd.SetGlobalVector(nameof(_VBufferDistanceDecodingParams), _VBufferDistanceDecodingParams);
+           cmd.SetGlobalInt(nameof(_VBufferSliceCount), (int) _VBufferSliceCount);
+           cmd.SetGlobalFloat(nameof(_VBufferRcpSliceCount), _VBufferRcpSliceCount);
+           cmd.SetGlobalFloat(nameof(_VBufferRcpInstancedViewCount), _VBufferRcpInstancedViewCount);
+           cmd.SetGlobalFloat(nameof(_VBufferLastSliceDist), _VBufferLastSliceDist);
+
+           cmd.SetGlobalVector(nameof(_ShadowAtlasSize), _ShadowAtlasSize);
+           cmd.SetGlobalVector(nameof(_CascadeShadowAtlasSize), _CascadeShadowAtlasSize);
+           cmd.SetGlobalVector(nameof(_AreaShadowAtlasSize), _AreaShadowAtlasSize);
+
+            /* cmd.SetGlobalMatrixArray(nameof(_Env2DCaptureVP), _Env2DCaptureVP);
+             cmd.SetGlobalMatrixArray(nameof(_Env2DCaptureForward), _Env2DCaptureForward);
+             cmd.SetGlobalMatrixArray(nameof(_Env2DAtlasScaleOffset), _Env2DAtlasScaleOffset);*/
+
+           cmd.SetGlobalInt(nameof(_DirectionalLightCount), (int) _DirectionalLightCount);
+           cmd.SetGlobalInt(nameof(_PunctualLightCount), (int) _PunctualLightCount);
+           cmd.SetGlobalInt(nameof(_AreaLightCount), (int) _AreaLightCount);
+           cmd.SetGlobalInt(nameof(_EnvLightCount), (int) _EnvLightCount);
+
+
+           cmd.SetGlobalInt(nameof(_EnvLightSkyEnabled), (int) _EnvLightSkyEnabled);
+           cmd.SetGlobalInt(nameof(_CascadeShadowCount), (int) _CascadeShadowCount);
+           cmd.SetGlobalInt(nameof(_DirectionalShadowIndex), (int) _DirectionalShadowIndex);
+           cmd.SetGlobalInt(nameof(_EnableLightLayers), (int) _EnableLightLayers);
+
+           cmd.SetGlobalInt(nameof(_EnableSkyReflection), (int) _EnableSkyReflection);
+           cmd.SetGlobalInt(nameof(_EnableSSRefraction), (int) _EnableSSRefraction);
+           cmd.SetGlobalFloat(nameof(_SSRefractionInvScreenWeightDistance), _SSRefractionInvScreenWeightDistance);
+           cmd.SetGlobalFloat(nameof(_ColorPyramidLodCount), _ColorPyramidLodCount);
+
+
+           cmd.SetGlobalFloat(nameof(_DirectionalTransmissionMultiplier), _DirectionalTransmissionMultiplier);
+           cmd.SetGlobalFloat(nameof(_ProbeExposureScale), _ProbeExposureScale);
+           cmd.SetGlobalFloat(nameof(_ContactShadowOpacity), _ContactShadowOpacity);
+           cmd.SetGlobalFloat(nameof(_ReplaceDiffuseForIndirect), _ReplaceDiffuseForIndirect);
+
+           cmd.SetGlobalVector(nameof(_AmbientOcclusionParam), _AmbientOcclusionParam);
+           cmd.SetGlobalVector(nameof(_IndirectLightingMultiplier), _IndirectLightingMultiplier);
+
+           cmd.SetGlobalFloat(nameof(_MicroShadowOpacity), _MicroShadowOpacity);
+           cmd.SetGlobalInt(nameof(_EnableProbeVolumes), (int) _EnableProbeVolumes);
+           cmd.SetGlobalInt(nameof(_ProbeVolumeCount), (int) _ProbeVolumeCount);
+
+           cmd.SetGlobalVector(nameof(_CookieAtlasSize), _CookieAtlasSize);
+           cmd.SetGlobalVector(nameof(_CookieAtlasData), _CookieAtlasData);
+           cmd.SetGlobalVector(nameof(_PlanarAtlasData), _PlanarAtlasData);
+
+
+           cmd.SetGlobalInt(nameof(_NumTileFtplX), (int) _NumTileFtplX);
+           cmd.SetGlobalInt(nameof(_NumTileFtplY), (int) _NumTileFtplY);
+           cmd.SetGlobalFloat(nameof(g_fClustScale), g_fClustScale);
+           cmd.SetGlobalFloat(nameof(g_fClustBase), g_fClustBase);
+
+           cmd.SetGlobalFloat(nameof(g_fNearPlane), g_fNearPlane);
+           cmd.SetGlobalFloat(nameof(g_fNearPlane), g_fNearPlane);
+           cmd.SetGlobalInt(nameof(g_iLog2NumClusters), (int) g_iLog2NumClusters);
+           cmd.SetGlobalInt(nameof(g_isLogBaseBufferEnabled), (int) g_isLogBaseBufferEnabled);
+
+
+           cmd.SetGlobalInt(nameof(_NumTileClusteredX), (int) _NumTileClusteredX);
+           cmd.SetGlobalInt(nameof(_NumTileClusteredY), (int) _NumTileClusteredY);
+           cmd.SetGlobalInt(nameof(_EnvSliceSize), (int) _EnvSliceSize);
+
+/*           cmd.SetGlobalVectorArray(nameof(_ShapeParamsAndMaxScatterDists), _ShapeParamsAndMaxScatterDists);
+           cmd.SetGlobalVectorArray(nameof(_TransmissionTintsAndFresnel0), _TransmissionTintsAndFresnel0);
+           cmd.SetGlobalVectorArray(nameof(_WorldScalesAndFilterRadiiAndThicknessRemaps), _WorldScalesAndFilterRadiiAndThicknessRemaps);
+           cmd.SetGlobalVectorArray(nameof(_DiffusionProfileHashTable), _DiffusionProfileHashTable);*/
+
+           cmd.SetGlobalInt(nameof(_EnableSubsurfaceScattering), (int) _EnableSubsurfaceScattering);
+           cmd.SetGlobalInt(nameof(_TexturingModeFlags), (int) _TexturingModeFlags);
+           cmd.SetGlobalInt(nameof(_TransmissionFlags), (int) _TransmissionFlags);
+           cmd.SetGlobalInt(nameof(_DiffusionProfileCount), (int) _DiffusionProfileCount);
+
+           cmd.SetGlobalVector(nameof(_DecalAtlasResolution), _DecalAtlasResolution);
+           cmd.SetGlobalInt(nameof(_EnableDecals), (int) _EnableDecals);
+            cmd.SetGlobalInt(nameof(_DecalCount), (int) _DecalCount);
+
+            cmd.SetGlobalInt(nameof(_OffScreenRendering), (int) _OffScreenRendering);
+            cmd.SetGlobalInt(nameof(_OffScreenDownsampleFactor), (int) _OffScreenDownsampleFactor);
+            cmd.SetGlobalInt(nameof(_XRViewCount), (int) _XRViewCount);
+            cmd.SetGlobalInt(nameof(_FrameCount), (int) _FrameCount);
+
+            cmd.SetGlobalVector(nameof(_CoarseStencilBufferSize), _CoarseStencilBufferSize);
+
+            cmd.SetGlobalInt(nameof(_RaytracedIndirectDiffuse), (int) _RaytracedIndirectDiffuse);
+            cmd.SetGlobalInt(nameof(_UseRayTracedReflections), (int) _UseRayTracedReflections);
+            cmd.SetGlobalInt(nameof(_RaytracingFrameIndex), (int) _RaytracingFrameIndex);
+            cmd.SetGlobalInt(nameof(_EnableRecursiveRayTracing), (int) _EnableRecursiveRayTracing);
+
+            cmd.SetGlobalVector(nameof(_ProbeVolumeAtlasResolutionAndSliceCount), _ProbeVolumeAtlasResolutionAndSliceCount);
+            cmd.SetGlobalVector(nameof(_ProbeVolumeAtlasResolutionAndSliceCountInverse), _ProbeVolumeAtlasResolutionAndSliceCountInverse);
+            cmd.SetGlobalVector(nameof(_ProbeVolumeAtlasOctahedralDepthResolutionAndInverse), _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse);
+
+            cmd.SetGlobalInt(nameof(_ProbeVolumeLeakMitigationMode), (int) _ProbeVolumeLeakMitigationMode);
+            cmd.SetGlobalFloat(nameof(_ProbeVolumeNormalBiasWS), _ProbeVolumeNormalBiasWS);
+            cmd.SetGlobalFloat(nameof(_ProbeVolumeBilateralFilterWeightMin), _ProbeVolumeBilateralFilterWeightMin);
+            cmd.SetGlobalFloat(nameof(_ProbeVolumeBilateralFilterWeight), _ProbeVolumeBilateralFilterWeight);
+
+            //cmd.SetGlobalVectorArray(nameof(_ProbeVolumeAmbientProbeFallbackPackedCoeffs), _ProbeVolumeAmbientProbeFallbackPackedCoeffs);
+        }
     }
 }
