@@ -72,6 +72,17 @@ struct StackInfo
 	float4 resolveOutput;
 };
 
+struct VTPropertyParameters
+{
+    GraniteConstantBuffers grCB;
+    GraniteTranslationTexture translationTable;
+    int layerCount;
+    GraniteCacheTexture cacheLayer0;
+    GraniteCacheTexture cacheLayer1;
+    GraniteCacheTexture cacheLayer2;
+    GraniteCacheTexture cacheLayer3;
+};
+
 #ifdef TEXTURESTACK_CLAMP
     #define GR_LOOKUP Granite_Lookup_Clamp_Linear
     #define GR_LOOKUP_LOD Granite_Lookup_Clamp
@@ -126,6 +137,26 @@ StackInfo PrepareVT_##stackName(VtInputParameters par)\
 	return info;\
 }
 
+GraniteTilesetConstantBuffer GetConstantBuffer(VTPropertyParameters props)
+{
+    int idx = (int)props.grCB.streamingTextureBuffer.data[1].w;
+    GraniteTilesetConstantBuffer graniteParamBlock;
+    graniteParamBlock = _VTTilesetBuffer[idx];
+
+    graniteParamBlock.data[0][2][0] *= RESOLVE_SCALE_OVERRIDE.x;
+    graniteParamBlock.data[0][3][0] *= RESOLVE_SCALE_OVERRIDE.y;
+
+    return graniteParamBlock;
+}
+
+// TODO: replace PrepareVT with direct call to  VirtualTexturingLookup?
+StackInfo PrepareVT(VtInputParameters par, VTPropertyParameters props)
+{
+	StackInfo info;
+    VirtualTexturingLookup(props.grCB, props.translationTable, par, info.lookupData, info.resolveOutput);
+	return info;
+}
+
 #define jj2(a, b) a##b
 #define jj(a, b) jj2(a, b)
 
@@ -154,32 +185,68 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 	return output;\
 }
 
+#define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
+    VTPropertyParameters BuildVTProperties_##stackName()\
+    {\
+        VTPropertyParameters props; \
+        \
+        GraniteStreamingTextureConstantBuffer textureParamBlock; \
+        textureParamBlock.data[0] = stackName##_atlasparams[0]; \
+        textureParamBlock.data[1] = stackName##_atlasparams[1]; \
+        \
+        GraniteTilesetConstantBuffer graniteParamBlock = GetConstantBuffer_##stackName(); \
+        \
+        props.grCB.tilesetBuffer = graniteParamBlock; \
+        props.grCB.streamingTextureBuffer = textureParamBlock; \
+        \
+        props.translationTable.Texture = stackName##_transtab; \
+        props.translationTable.Sampler = sampler##stackName##_transtab; \
+        \
+        props.layerCount = layers; \
+        \
+        props.cacheLayer0.TextureArray = stackName##_c##layer0Index; \
+        props.cacheLayer0.Sampler = sampler##stackName##_c##layer0Index;\
+        props.cacheLayer1.TextureArray = stackName##_c##layer1Index; \
+        props.cacheLayer1.Sampler = sampler##stackName##_c##layer1Index;\
+        props.cacheLayer2.TextureArray = stackName##_c##layer2Index; \
+        props.cacheLayer2.Sampler = sampler##stackName##_c##layer2Index;\
+        props.cacheLayer3.TextureArray = stackName##_c##layer3Index; \
+        props.cacheLayer3.Sampler = sampler##stackName##_c##layer3Index;\
+        \
+        return props; \
+    }
+
 #define DECLARE_STACK(stackName, layer0SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)
+	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
+	DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
 
 #define DECLARE_STACK2(stackName, layer0SamplerName, layer1SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)
+	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
+	DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
 
 #define DECLARE_STACK3(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
 	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)
+	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)\
+	DECLARE_BUILD_PROPERTIES(stackName,3,0,1,2,2)
 
 #define DECLARE_STACK4(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName, layer3SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
 	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
 	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
 	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)\
-	DECLARE_STACK_LAYER(stackName, layer3SamplerName,3)
+	DECLARE_STACK_LAYER(stackName, layer3SamplerName,3)\
+	DECLARE_BUILD_PROPERTIES(stackName,4,0,1,2,3)
 
 #define PrepareStack(inputParams, stackName) PrepareVT_##stackName(inputParams)
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
 #define GetResolveOutput(info) info.resolveOutput
 #define PackResolveOutput(output) Granite_PackTileId(output)
+#define BuildProperties(stackName) BuildVTProperties_##stackName()
 
 float4 GetPackedVTFeedback(float4 feedback)
 {

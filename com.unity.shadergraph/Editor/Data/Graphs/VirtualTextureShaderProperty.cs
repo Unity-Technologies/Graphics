@@ -10,19 +10,6 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public struct VirtualTextureEntry
-    {
-        public string layerName;
-        public SerializableTexture layerTexture;
-
-        public VirtualTextureEntry(string name, SerializableTexture texture)
-        {
-            this.layerName = name;
-            this.layerTexture = texture;
-        }
-    }
-
-    [Serializable]
     class VirtualTextureShaderProperty : AbstractShaderProperty<SerializableVirtualTexture>
     {
         public VirtualTextureShaderProperty()
@@ -31,9 +18,9 @@ namespace UnityEditor.ShaderGraph
             value = new SerializableVirtualTexture();
 
             // add at least one layer
-            value.entries = new List<VirtualTextureEntry>();
-            value.entries.Add(new VirtualTextureEntry("Layer0", new SerializableTexture()));
-            value.entries.Add(new VirtualTextureEntry("Layer1", new SerializableTexture()));
+            value.entries = new List<SerializableVirtualTextureLayer>();
+            value.entries.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
+            value.entries.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -93,6 +80,9 @@ namespace UnityEditor.ShaderGraph
                 }
                 builder.Append(")");
                 builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
+
+                // declare the actual property "variable" as a macro define to the BuildVTProperties function
+                builder.AppendLine("#define " + referenceName + " BuildVTProperties_" + referenceName + "()");
             }
         }
 
@@ -104,8 +94,7 @@ namespace UnityEditor.ShaderGraph
         // argument string used to pass this property to a subgraph
         internal override string GetPropertyAsArgumentString()
         {
-            // throw new NotImplementedException();
-            return "VirtualTexturePropertyArgumentStringGoesHere " + referenceName;
+            return "VTPropertyParameters " + referenceName;
         }
 
         // if a blackboard property is deleted, all node instances of it are replaced with this:

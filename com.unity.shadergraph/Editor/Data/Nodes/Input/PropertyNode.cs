@@ -172,11 +172,13 @@ namespace UnityEditor.ShaderGraph
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
                 if (property == null)
                 throw new NullReferenceException();
-            
+
+            // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
-                !(property is CubemapShaderProperty))
+                !(property is CubemapShaderProperty) &&
+                !(property is VirtualTextureShaderProperty))
                 return base.GetVariableNameForSlot(slotId);
 
             return property.referenceName;

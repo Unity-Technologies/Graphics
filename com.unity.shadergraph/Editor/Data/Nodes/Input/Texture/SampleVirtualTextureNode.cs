@@ -7,6 +7,7 @@ using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
@@ -364,26 +365,26 @@ namespace UnityEditor.ShaderGraph
         string MakeVtParameters(string variableName, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddresMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality)
         {
             const string VTParametersInputTemplate = @"
-                        VtInputParameters {0};
-                        {0}.uv = {1};
-                        {0}.lodOrOffset = {2};
-                        {0}.dx = {3};
-                        {0}.dy = {4};
-                        {0}.addressMode = {5};
-                        {0}.filterMode = {6};
-                        {0}.levelMode = {7};
-                        {0}.uvMode = {8};
-                        {0}.sampleQuality = {9};
-#if defined(SHADER_STAGE_RAY_TRACING)
-                        if ({0}.levelMode == VtLevel_Automatic || {0}.levelMode == VtLevel_Bias)
-                        {{
-                            {0}.levelMode = VtLevel_Lod;
-                            {0}.lodOrOffset = 0.0f;
-                        }}
-#endif
-            ";
-
-            return string.Format(VTParametersInputTemplate,
+    VtInputParameters {0};
+    {0}.uv = {1};
+    {0}.lodOrOffset = {2};
+    {0}.dx = {3};
+    {0}.dy = {4};
+    {0}.addressMode = {5};
+    {0}.filterMode = {6};
+    {0}.levelMode = {7};
+    {0}.uvMode = {8};
+    {0}.sampleQuality = {9};
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    if ({0}.levelMode == VtLevel_Automatic || {0}.levelMode == VtLevel_Bias)
+    {{
+        {0}.levelMode = VtLevel_Lod;
+        {0}.lodOrOffset = 0.0f;
+    }}
+    #endif
+";
+            return string.Format(
+                VTParametersInputTemplate,
                 variableName,
                 uvExpr,
                 (string.IsNullOrEmpty(lodExpr)) ? "0.0f" : lodExpr,
@@ -396,16 +397,19 @@ namespace UnityEditor.ShaderGraph
                 quality.ToString());
         }
 
-        string MakeVtSample(string infoVariable, string layerName, string outputVariableName, LodCalculation lod, QualityMode quality)
+        string MakeVtSample(string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
         {
-            const string SampleTemplate = @"$precision4 {0} = SampleStack({1}, {2}, {3}, {4});";
+            const string SampleTemplate =
+                @"$precision4 {0}; VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {3}, {4}, {5}, {0});";
 
-            return string.Format(SampleTemplate,
-                outputVariableName,
-                infoVariable,
-                lod.ToString(),
-                quality.ToString(),
-                layerName);
+            return string.Format(
+                SampleTemplate,
+                outputVariableName,  // 0
+                propertiesName,      // 1
+                infoVariable,        // 2
+                layerIndex,          // 3
+                lod.ToString(),      // 4
+                quality.ToString()); // 5
         }
 
         // Node generations
@@ -418,10 +422,14 @@ namespace UnityEditor.ShaderGraph
             {
                 var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
                 int numSlots = vtProperty.value.entries.Count;
-                string stackName = vtProperty.referenceName;        // I think the reference name is the stack name?
+
+                // TODO: this should be equivalent...
+                string VTPropertiesName2 = GetSlotValue(VirtualTextureInputId, generationMode);
+                string VTPropertiesName = vtProperty.referenceName;
+                Assert.AreEqual(VTPropertiesName, VTPropertiesName2);
 
                 string localVariablePrefix = GetVariableNameForNode();
-                string parametersVariableNme = localVariablePrefix + "_pars";
+                string parametersVariableName = localVariablePrefix + "_params";
                 string infoVariableName = localVariablePrefix + "_info";
 
                 bool anyConnected = false;
@@ -436,22 +444,20 @@ namespace UnityEditor.ShaderGraph
 
                 if (anyConnected)
                 {
-                    sb.Append(MakeVtParameters(
-                        parametersVariableNme,
-                        GetSlotValue(UVInputId, generationMode),
-                        (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
-                        GetSlotValue(DxInputId, generationMode),
-                        GetSlotValue(DyInputId, generationMode),
-                        AddresMode.VtAddressMode_Wrap,
-                        FilterMode.VtFilter_Anisotropic,
-                        m_LodCalculation,
-                        UvSpace.VtUvSpace_Regular,
-                        m_SampleQuality));
+                    sb.AppendLine(
+                        MakeVtParameters(
+                            parametersVariableName,
+                            GetSlotValue(UVInputId, generationMode),
+                            (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
+                            GetSlotValue(DxInputId, generationMode),
+                            GetSlotValue(DyInputId, generationMode),
+                            AddresMode.VtAddressMode_Wrap,
+                            FilterMode.VtFilter_Anisotropic,
+                            m_LodCalculation,
+                            UvSpace.VtUvSpace_Regular,
+                            m_SampleQuality));
 
-                    sb.AppendLine(string.Format("StackInfo {0} = PrepareStack({1}, {2});"
-                                            , infoVariableName
-                                            , parametersVariableNme
-                                            , stackName));
+                    sb.AppendLine("StackInfo " + infoVariableName + " = PrepareVT(" + parametersVariableName + ", " + VTPropertiesName + ");");
                 }
 
                 for (int i = 0; i < numSlots; i++)
@@ -459,7 +465,8 @@ namespace UnityEditor.ShaderGraph
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
                         var layerName = vtProperty.value.entries[i].layerName;
-                        sb.AppendLine(MakeVtSample(infoVariableName, layerName, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
+                        sb.AppendLine(
+                            MakeVtSample(infoVariableName, vtProperty.referenceName, i, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
                     }
                 }
 

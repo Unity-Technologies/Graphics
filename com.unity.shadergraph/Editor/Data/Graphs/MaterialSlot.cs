@@ -97,6 +97,8 @@ namespace UnityEditor.ShaderGraph
                     return "(C)";
                 case ConcreteSlotValueType.Gradient:
                     return "(G)";
+                case ConcreteSlotValueType.VirtualTexture:
+                    return "(VT)";
                 default:
                     return "(E)";
             }

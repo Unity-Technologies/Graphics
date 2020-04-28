@@ -787,7 +787,8 @@ namespace UnityEditor.ShaderGraph
 
                 if (virtualTextureFeedback)
                 {
-                    VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(nodes,
+                    VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(
+                        nodes,
                         keywordPermutationsPerNode,
                         surfaceDescriptionFunction,
                         shaderKeywords);

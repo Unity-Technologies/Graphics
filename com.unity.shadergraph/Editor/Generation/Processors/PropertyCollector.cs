@@ -150,10 +150,10 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("// START Non-batchable properties:");
             foreach (var prop in properties.Where(n => n.hasNonBatchableProperties || !n.generatePropertyBlock))
             {
-                prop.AppendNonBatchablePropertyDeclarations(builder);
-
                 if (prop.hasBatchableProperties && !prop.generatePropertyBlock) // batchable properties that don't generate property block can't be instanced, get put here
                     prop.AppendBatchablePropertyDeclarations(builder);
+
+                prop.AppendNonBatchablePropertyDeclarations(builder);
             }
             builder.AppendLine("// END Non-batchable properties:");
         }

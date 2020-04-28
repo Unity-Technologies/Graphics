@@ -684,6 +684,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Gradient:
                         prop = new GradientShaderProperty();
                         break;
+                    case ConcreteSlotValueType.VirtualTexture:
+                        prop = new VirtualTextureShaderProperty();
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -769,8 +772,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraphNode.groupGuid = groupGuids[0];
             }
 
-            graphObject.graph.AddNode(subGraphNode);
             subGraphNode.asset = loadedSubGraph;
+            graphObject.graph.AddNode(subGraphNode);
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {
