@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -64,15 +65,22 @@ namespace UnityEditor.Graphing
 
         public static JSONSerializedElement Serialize<T>(T item)
         {
+            if(item is UnknownTypeNode node)
+            {
+                return node.serializedData;
+            }
+
             if (item == null)
                 throw new ArgumentNullException("item", "Can not serialize null element");
 
+            //check if unknownnode type - if so, return saved metadata
+            //unknown node type will need onbeforeserialize to set guid and edges and all the things
             var typeInfo = GetTypeSerializableAsString(item.GetType());
             var data = JsonUtility.ToJson(item, true);
 
             if (string.IsNullOrEmpty(data))
                 throw new ArgumentException(string.Format("Can not serialize {0}", item));
-            ;
+            
 
             return new JSONSerializedElement
             {
@@ -101,8 +109,20 @@ namespace UnityEditor.Graphing
                 info = DoTypeRemap(info, remapper);
 
             var type = GetTypeFromSerializedString(info);
+            //if type is null but T is an abstract material node, instead we create an unknowntype node
             if (type == null)
-                throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
+            {
+                if (typeof(T) == typeof(AbstractMaterialNode))
+                {
+                    UnknownTypeNode node = new UnknownTypeNode(item);
+                    JsonUtility.FromJsonOverwrite(item.JSONnodeData, node);
+                    return (T)(object)node;
+                }
+                else
+                {
+                    throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
+                }
+            }
 
             T instance;
             try

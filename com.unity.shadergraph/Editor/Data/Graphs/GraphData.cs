@@ -1620,6 +1620,12 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            ValidateGraph();
+            foreach(var node in m_Nodes)
+            {
+                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
+            }
+
             // In V2 we need to defer version set to in OnAfterMultiDeserialize
             // This is because we need access to m_OutputNode to convert it to Targets and Stacks
             // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize

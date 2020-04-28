@@ -28,6 +28,9 @@ namespace UnityEditor.ShaderGraph
         bool m_HasError;
 
         [NonSerialized]
+        bool m_IsValid = true;
+
+        [NonSerialized]
         bool m_IsActive = true;
         
         [SerializeField]
@@ -164,7 +167,6 @@ namespace UnityEditor.ShaderGraph
             {
                 if(m_IsActive == value)
                     return;
-
                 // Update this node
                 m_IsActive = value;
                 Dirty(ModificationScope.Node);
@@ -178,6 +180,24 @@ namespace UnityEditor.ShaderGraph
                 }
             }
         }
+
+
+        public virtual bool isValid
+        {
+            get { return m_IsValid; }
+            set 
+            {
+                if(m_IsValid == value)
+                    return;
+                
+                if(value == false)
+                    isActive = false;
+                
+                m_IsValid = value;
+            }
+        }
+
+
 
         string m_DefaultVariableName;
         string m_NameForDefaultVariableName;
@@ -259,7 +279,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var inputSlot in this.GetInputSlots<MaterialSlot>())
             {
                 var edges = owner.GetEdges(inputSlot.slotReference);
-                if (edges.Any())
+                if (edges.Any(e => e.outputSlot.node.isActive))
                     continue;
 
                 inputSlot.AddDefaultProperty(properties, generationMode);
@@ -296,7 +316,22 @@ namespace UnityEditor.ShaderGraph
             if (slot == null)
                 return string.Empty;
 
+                if (fromSocketRef.node.isActive)
             return GenerationUtils.AdaptNodeOutput(this, slot.id, valueType);
+                else
+                    return slot.GetDefaultValue(generationMode);
+        }
+
+        public AbstractMaterialNode GetInputNodeFromSlot(int inputSlotId)
+        {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return null;
+
+            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
+            var fromSocketRef = edges[0].outputSlot;
+            var fromNode = fromSocketRef.node;
+            return fromNode;
         }
 
         public static ConcreteSlotValueType ConvertDynamicVectorInputTypeToConcrete(IEnumerable<ConcreteSlotValueType> inputTypes)

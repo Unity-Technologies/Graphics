@@ -64,8 +64,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnModified(ModificationScope scope)
         {
-            SetActive(node.isActive);
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.isActive = true;
             
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
