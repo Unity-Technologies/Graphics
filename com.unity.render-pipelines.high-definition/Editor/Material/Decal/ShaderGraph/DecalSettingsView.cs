@@ -9,10 +9,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class DecalSettingsView
     {
-        HDSystemData systemData;
+        SystemData systemData;
         DecalData decalData;
 
-        public DecalSettingsView(HDDecalSubTarget subTarget)
+        public DecalSettingsView(DecalSubTarget subTarget)
         {
             systemData = subTarget.systemData;
             decalData = subTarget.decalData;

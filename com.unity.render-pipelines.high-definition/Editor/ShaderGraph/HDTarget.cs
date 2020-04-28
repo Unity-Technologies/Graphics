@@ -13,16 +13,6 @@ using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    [Serializable]
-    abstract class HDTargetData : JsonObject
-    {
-    }
-
-    interface IRequiresData<T> where T : HDTargetData
-    {
-        T data { get; set; }
-    }
-
     enum DistortionMode
     {
         Add,
@@ -151,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (Equals(activeSubTargetIndex, m_SubTargetField.index))
                     return;
 
-                var systemData = m_Datas.SelectValue().FirstOrDefault(x => x is HDSystemData) as HDSystemData;
+                var systemData = m_Datas.SelectValue().FirstOrDefault(x => x is SystemData) as SystemData;
                 if(systemData != null)
                 {
                     // Force material update hash
@@ -211,6 +201,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return subTargetHasMetaData.GetMetadataObject();
 
             return null;
+        }
+
+        public bool TrySetActiveSubTarget(Type subTargetType)
+        {
+            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+                return false;
+            
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(subTarget.GetType().Equals(subTargetType))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    ProcessSubTargetDatas();
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         void ProcessSubTargetDatas(SubTarget subTarget)

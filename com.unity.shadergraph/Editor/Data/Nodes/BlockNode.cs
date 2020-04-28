@@ -81,29 +81,29 @@ namespace UnityEditor.ShaderGraph
             switch(descriptor.control)
             {
                 case PositionControl positionControl:
-                    AddSlot(new PositionMaterialSlot(0, descriptor.name, descriptor.name, positionControl.space, stageCapability));
+                    AddSlot(new PositionMaterialSlot(0, descriptor.displayName, descriptor.name, positionControl.space, stageCapability));
                     break;
                 case NormalControl normalControl:
-                    AddSlot(new NormalMaterialSlot(0, descriptor.name, descriptor.name, normalControl.space, stageCapability));
+                    AddSlot(new NormalMaterialSlot(0, descriptor.displayName, descriptor.name, normalControl.space, stageCapability));
                     break;
                 case TangentControl tangentControl:
-                    AddSlot(new TangentMaterialSlot(0, descriptor.name, descriptor.name, tangentControl.space, stageCapability));
+                    AddSlot(new TangentMaterialSlot(0, descriptor.displayName, descriptor.name, tangentControl.space, stageCapability));
                     break;
                 case ColorControl colorControl:
                     var colorMode = colorControl.hdr ? ColorMode.HDR : ColorMode.Default;
-                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
+                    AddSlot(new ColorRGBMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorControl.value, colorMode, stageCapability));
                     break;
                 case ColorRGBAControl colorRGBAControl:
-                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
+                    AddSlot(new ColorRGBAMaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, colorRGBAControl.value, stageCapability));
                     break;
                 case FloatControl floatControl:
-                    AddSlot(new Vector1MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
+                    AddSlot(new Vector1MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, floatControl.value, stageCapability));
                     break;
                 case Vector2Control vector2Control:
-                    AddSlot(new Vector2MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
+                    AddSlot(new Vector2MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector2Control.value, stageCapability));
                     break;
                 case Vector3Control vector3Control:
-                    AddSlot(new Vector3MaterialSlot(0, descriptor.name, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
+                    AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -132,7 +132,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -171,7 +171,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)
@@ -210,7 +210,7 @@ namespace UnityEditor.ShaderGraph
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
             var slot = FindSlot<MaterialSlot>(0);
-            if(m_Descriptor == null || slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)
@@ -223,12 +223,6 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-
-            // TODO: Currently m_Descriptor is null on assembly reload. Why?
-            // TODO: We should fix this and then clear m_SerializedDescriptor at OnAfterDeserialize
-            if(m_Descriptor == null)
-                return;
-
             m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
         }
     }

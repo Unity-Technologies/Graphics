@@ -41,8 +41,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
             bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
-
-            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
+            
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
 
