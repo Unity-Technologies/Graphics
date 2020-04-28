@@ -408,7 +408,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var inputSlot in tempSlots)
                 {
                     // If input port doesnt have an edge use the Graph's precision for that input
-                    var edges = owner.GetEdges(inputSlot.slotReference).ToList();
+                    var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
                     if (!edges.Any())
                     {
                         precisionsToCompare.Add((int)owner.concretePrecision);
@@ -562,7 +562,7 @@ namespace UnityEditor.ShaderGraph
         public virtual void Concretize()
         {
             hasError = false;
-            owner.ClearErrorsForNode(this);
+            owner?.ClearErrorsForNode(this);
             EvaluateConcretePrecision();
             EvaluateDynamicMaterialSlots();
             if(!hasError)
@@ -753,10 +753,15 @@ namespace UnityEditor.ShaderGraph
                 m_NodeVersion = GetCompiledNodeVersion();
             }
 
-            foreach (var s in m_Slots.SelectValue())
-                s.owner = this;
+
 
             // UpdateNodeAfterDeserialization();
+        }
+
+        public void SetupSlots()
+        {
+            foreach (var s in m_Slots.SelectValue())
+                s.owner = this;
         }
 
         public virtual void UpdateNodeAfterDeserialization()

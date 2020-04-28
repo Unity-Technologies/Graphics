@@ -1620,11 +1620,6 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            ValidateGraph();
-            foreach(var node in m_Nodes)
-            {
-                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
-            }
 
             // In V2 we need to defer version set to in OnAfterMultiDeserialize
             // This is because we need access to m_OutputNode to convert it to Targets and Stacks
@@ -1756,6 +1751,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.owner = this;
                 node.UpdateNodeAfterDeserialization();
+                node.SetupSlots();
                 m_NodeDictionary.Add(node.objectId, node);
                 m_GroupItems[node.group].Add(node);
             }
@@ -1809,6 +1805,12 @@ namespace UnityEditor.ShaderGraph
             }
 
             UpdateActiveTargets();
+
+            ValidateGraph();
+            foreach (var node in m_Nodes)
+            {
+                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
+            }
         }
 
         public void OnEnable()
