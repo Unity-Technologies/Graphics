@@ -78,4 +78,10 @@ float3 ApplyCloudLayer(float3 dir, float3 sky)
     return sky;
 }
 
+#undef _CloudUpperHemisphere
+#undef _CloudScrollFactor
+#undef _CloudScrollDirection
+
+#undef USE_CLOUD_LAYER
+
 #endif // __CLOUDLAYER_H__

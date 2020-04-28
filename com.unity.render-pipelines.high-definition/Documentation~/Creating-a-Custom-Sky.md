@@ -153,6 +153,8 @@ class NewSkyRenderer : SkyRenderer
             m_PropertyBlock.SetVector(_SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
             m_PropertyBlock.SetMatrix(_PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
 
+            CloudLayer.Apply(builtinParams.cloudLayer, m_NewSkyMaterial);
+
             CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_NewSkyMaterial, m_PropertyBlock, passID);
         }
     }
@@ -177,10 +179,13 @@ Shader "Hidden/HDRP/Sky/NewSky"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+    #pragma multi_compile_local _ USE_CLOUD_MAP
+    #pragma multi_compile_local _ USE_CLOUD_MOTION
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
@@ -225,6 +230,7 @@ Shader "Hidden/HDRP/Sky/NewSky"
     {
         dir = RotationUp(dir, cos_sin);
         float3 skyColor = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * _Intensity * exposure;
+        skyColor = ApplyCloudLayer(dir, skyColor);
         skyColor = ClampToFloat16Max(skyColor);
 
         return float4(skyColor, 1.0);

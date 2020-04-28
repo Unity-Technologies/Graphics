@@ -154,14 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
             else
                 m_SkyHDRIMaterial.DisableKeyword("SKY_MOTION");
 
-            if (builtinParams.cloudLayer != null)
-                builtinParams.cloudLayer.Apply(m_SkyHDRIMaterial);
-            else
-            {
-                m_SkyHDRIMaterial.DisableKeyword("USE_CLOUD_MAP");
-                m_SkyHDRIMaterial.DisableKeyword("USE_CLOUD_MOTION");
-            }
-
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, hdriSky.hdriSky.value);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(intensity, 0.0f, Mathf.Cos(phi), Mathf.Sin(phi)));
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._BackplateParameters0, GetBackplateParameters0(hdriSky));
@@ -176,6 +168,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdriSky.rectLightShadow.value)
                 shadowFilter |= unchecked((uint)LightFeatureFlags.Area);
             m_SkyHDRIMaterial.SetInt(HDShaderIDs._BackplateShadowFilter, unchecked((int)shadowFilter));
+
+            CloudLayer.Apply(builtinParams.cloudLayer, m_SkyHDRIMaterial);
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

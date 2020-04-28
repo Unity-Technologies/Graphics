@@ -55,24 +55,32 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets keywords and parameters on a sky material to render the cloud layer.
         /// </summary>
-        public void Apply(Material skyMaterial)
+        public static void Apply(CloudLayer layer, Material skyMaterial)
         {
-            Vector4 cloudParam = GetParameters();
-
-            skyMaterial.EnableKeyword("USE_CLOUD_MAP");
-            skyMaterial.SetTexture(HDShaderIDs._CloudMap, cloudMap.value);
-            skyMaterial.SetVector(HDShaderIDs._CloudParam, cloudParam);
-
-            if (enableCloudMotion.value == true)
+            if (layer != null)
             {
-                skyMaterial.EnableKeyword("USE_CLOUD_MOTION");
-                if (procedural.value == true)
-                    skyMaterial.DisableKeyword("USE_CLOUD_MAP");
+                Vector4 cloudParam = layer.GetParameters();
+
+                skyMaterial.EnableKeyword("USE_CLOUD_MAP");
+                skyMaterial.SetTexture(HDShaderIDs._CloudMap, layer.cloudMap.value);
+                skyMaterial.SetVector(HDShaderIDs._CloudParam, cloudParam);
+
+                if (layer.enableCloudMotion.value == true)
+                {
+                    skyMaterial.EnableKeyword("USE_CLOUD_MOTION");
+                    if (layer.procedural.value == true)
+                        skyMaterial.DisableKeyword("USE_CLOUD_MAP");
+                    else
+                        skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap, layer.flowmap.value);
+                }
                 else
-                    skyMaterial.SetTexture(HDShaderIDs._CloudFlowmap, flowmap.value);
+                    skyMaterial.DisableKeyword("USE_CLOUD_MOTION");
             }
             else
+            {
+                skyMaterial.DisableKeyword("USE_CLOUD_MAP");
                 skyMaterial.DisableKeyword("USE_CLOUD_MOTION");
+            }
         }
 
         /// <summary>
