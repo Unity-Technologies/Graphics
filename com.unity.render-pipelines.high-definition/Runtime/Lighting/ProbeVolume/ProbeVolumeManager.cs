@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -19,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private ProbeVolumePositioning positioning;
+        public ProbeVolumePositioning positioning;
 
         private ProbeVolumeManager()
         {
@@ -48,9 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (volumes.Contains(volume))
                 return;
 
-            volumes.Add(volume);
-
-            positioning.BuildBrickStructure();
+            volumes.Add(volume);      
         }
         internal void DeRegisterVolume(ProbeVolume volume)
         {
@@ -64,8 +63,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (hdrp != null)
                 hdrp.ReleaseProbeVolumeFromAtlas(volume);
 #endif
-
-            positioning.BuildBrickStructure();
         }
 
 #if UNITY_EDITOR

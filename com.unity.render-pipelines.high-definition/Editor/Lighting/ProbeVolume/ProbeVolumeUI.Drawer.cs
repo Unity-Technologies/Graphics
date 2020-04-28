@@ -87,6 +87,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
 
             GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Build Bricks"))
+            {
+                ProbeVolumeManager.manager.positioning.BuildBrickStructure();
+            }
             if (GUILayout.Button("Bake Selected"))
             {
                 ProbeVolumeManager.BakeSelected();

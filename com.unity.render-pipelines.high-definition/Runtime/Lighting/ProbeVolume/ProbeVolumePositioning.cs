@@ -6,58 +6,17 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class ProbeVolumePositioning
     {
         // Grid info
-        public const float MinCellSize = 5f;
+        public float MinCellSize { get; set; } = 5f;
         public Vector3Int GridResolution { get; private set; }
         public Bounds ReferenceBounds { get; private set; }
 
         // Current subdivision level
-        private List<Brick> level;
+        private List<ProbeVolumeBrick> level;
 
-        // Output: Bricks in grid space, and an index buffer
-        public List<Brick> Bricks { get; private set; }
+        // Output: Bricks in grid space, an index buffer and probe positions in world space
+        public List<ProbeVolumeBrick> Bricks { get; private set; }
         public int[] IndexBuffer { get; private set; }
-
-        public bool DebugDraw { get; set; } = false;
-
-        internal ProbeVolumePositioning()
-        {
-            //TODO: Debug elements should probably be rendered elsewhere
-            SceneView.duringSceneGui += delegate
-            {
-                if (ReferenceBounds != null && Bricks != null && DebugDraw)
-                {
-                    Handles.color = Color.red;
-                    Handles.DrawWireCube(ReferenceBounds.center, ReferenceBounds.size);
-
-                    Handles.color = Color.blue;
-                    foreach (Brick b in Bricks)
-                    {
-                        Vector3 scaledSize = new Vector3(b.size, b.size, b.size) * MinCellSize;
-                        Vector3 scaledPos = GridToWorld(b.Position) + scaledSize / 2;
-
-                        Handles.DrawWireCube(scaledPos, scaledSize);
-                    }
-                }
-            };
-        }
-
-        public Vector3[] CalculateProbePositions()
-        {
-            Vector3[] result = new Vector3[Bricks.Count * 64];
-
-            for (int i = 0; i < Bricks.Count; i++)
-            {
-                Vector3Int origin = Bricks[i].Position;
-
-                for (int j = 0; j < 64; j++)
-                {
-                    Vector3 offset = (Vector3)Position3D(4, 4, j) / 3f * Bricks[i].size * MinCellSize;
-                    result[i * 64 + j] = GridToWorld(origin) + offset;
-                }
-            }
-
-            return result;
-        }
+        public Vector3[] ProbePositions { get; private set; }
 
         public void BuildBrickStructure(Bounds referenceBounds)
         {
@@ -71,11 +30,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 Mathf.CeilToInt(resolutionFloat.z));
 
             // Set up output
-            this.Bricks = new List<Brick>();
+            this.Bricks = new List<ProbeVolumeBrick>();
             this.IndexBuffer = new int[GridResolution.x * GridResolution.y * GridResolution.z];
 
             // Build indirection
             SubDivideGrid();
+            CalculateProbePositions();
+
+            // Dirty debug drawing to force redraw
+            ProbeVolumeDebugDrawing.drawing.Dirty();
         }
 
         public void BuildBrickStructure()
@@ -97,9 +60,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        private void CalculateProbePositions()
+        {
+            ProbePositions = new Vector3[Bricks.Count * 64];
+
+            for (int i = 0; i < Bricks.Count; i++)
+            {
+                Vector3Int origin = Bricks[i].Position;
+
+                for (int j = 0; j < 64; j++)
+                {
+                    Vector3 offset = (Vector3)Position3D(4, 4, j) / 3f * Bricks[i].size * MinCellSize;
+                    ProbePositions[i * 64 + j] = GridToWorld(origin) + offset;
+                }
+            }
+        }
+
         private void SubDivideGrid()
         {
-            level = new List<Brick>();
+            level = new List<ProbeVolumeBrick>();
 
             int minSize = Mathf.Min(GridResolution.x, Mathf.Min(GridResolution.y, GridResolution.z));
             int size = (int)Mathf.Pow(3, Mathf.Ceil(Mathf.Log(minSize, 3)));
@@ -115,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     
                         if (!OutOfBounds(pos))
                         {
-                            level.Add(new Brick(pos, size));
+                            level.Add(new ProbeVolumeBrick(pos, size));
                         }
                     }
                 }
@@ -132,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void UpdateIndexBuffer()
         {
-            foreach (Brick brick in level)
+            foreach (ProbeVolumeBrick brick in level)
             {
                 if (OutOfBounds(brick.Position)) continue;
 
@@ -157,12 +136,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void SubDivideLevel()
         {
-            List<Brick> result = new List<Brick>();
+            List<ProbeVolumeBrick> result = new List<ProbeVolumeBrick>();
 
             // Subdivide into new level
             for (int i = 0; i < level.Count; i++)
             {
-                Brick brick = level[i];
+                ProbeVolumeBrick brick = level[i];
                 if (brick.size >= 3)
                 {
                     int thirdSize = brick.size / 3;
@@ -171,19 +150,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector3Int offset = Position3D(3, 3, b) * thirdSize;
 
-                        result.Add(new Brick(brick.Position + offset, thirdSize));
+                        result.Add(new ProbeVolumeBrick(brick.Position + offset, thirdSize));
                     }
                 }
             }
-
+            
             // Only keep some bricks
             if (result.Count > 0)
             {
                 for (int i = result.Count-1; i >= 0; i--)
                 {
-                    // TODO: Add subdivision criteria here,
-                    // just keeps subdividing inside probe volumes
-                    if (!IntersectsProbeVolume(result[i]))
+                    if (!ShouldKeepBrick(result[i]))
                     {
                         result.RemoveAt(i);
                     }
@@ -191,6 +168,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             level = result;
+        }
+
+        // TODO: Add subdivision criteria here,
+        // currently just keeps subdividing inside probe volumes
+        private bool ShouldKeepBrick(ProbeVolumeBrick brick)
+        {
+            return IntersectsProbeVolume(brick);
         }
 
         private bool IsDoneSubDividing()
@@ -224,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: Full OBB-OBB collision, perhaps using SAT
-        private bool IntersectsProbeVolume(Brick brick)
+        private bool IntersectsProbeVolume(ProbeVolumeBrick brick)
         {
             Vector3 scaledSize = new Vector3(brick.size, brick.size, brick.size) * MinCellSize;
             Vector3 scaledPos = GridToWorld(brick.Position) + scaledSize / 2;
@@ -269,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     // Brick struct - currently 8 bytes
     // Bricks are defined by a corner position and a size
-    public struct Brick
+    public struct ProbeVolumeBrick
     {
         public ushort x;
         public ushort y;
@@ -281,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return new Vector3Int(x, y, z); }
         }
 
-        public Brick(Vector3Int pos, int size)
+        public ProbeVolumeBrick(Vector3Int pos, int size)
         {
             this.x = (ushort)pos.x;
             this.y = (ushort)pos.y;
