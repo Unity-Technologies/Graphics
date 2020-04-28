@@ -90,6 +90,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             PreviewRenderData result = null;
             if (node != null)
                 m_RenderDatas.TryGetValue(node.guid, out result);
+            else
+                result = m_MasterRenderData;
             return result;
         }
 
@@ -112,15 +114,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             var shaderData = new PreviewShaderData
             {
                 node = null,
-                isCompiling = false,
+                passesCompiling = 0,
+                isOutOfDate = true,
                 hasError = false,
-                shader = ShaderUtil.CreateShaderAsset(k_EmptyShader, false),
             };
-            shaderData.shader.hideFlags = HideFlags.HideAndDontSave;
-            shaderData.mat = new Material(shaderData.shader) {hideFlags = HideFlags.HideAndDontSave};
             renderData.shaderData = shaderData;
 
-            m_NodesToUpdate.Add(null);
+            m_NodesNeedsRecompile.Add(null);
             m_RefreshTimedNodes = true;
         }
 
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesToUpdate.Add(null);
+                m_NodesNeedsRecompile.Add(null);
                 m_RefreshTimedNodes = true;
             }
             else if (scope == ModificationScope.Node)
@@ -380,6 +380,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // but that's not something we currently track...
                 PropagateNodes(m_NodesToDraw, PropagationDirection.Upstream, tempCollectNodes);
 
+                if(m_NodesToDraw.Contains(null))
+                {
+                    foreach(var block in m_Blocks)
+                    {
+                        tempCollectNodes.Add(block);
+                    }
+                }
+
                 foreach (var propNode in tempCollectNodes)
                     propNode.CollectPreviewMaterialProperties(tempPreviewProps);
 
@@ -410,15 +418,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_NodesToDraw.Count <= 0)
                     return;
 
-                CollectPreviewProperties()
+                CollectPreviewProperties();
 
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+                bool renderMasterPreview = false;
 
                 using (PrepareNodesMarker.Auto())
                 foreach (var node in m_NodesToDraw)
                 {
-                    if (node == null || !node.hasPreview || !node.previewExpanded)
+                    if (node == null || node is BlockNode)
+                    {
+                        renderMasterPreview = true;
+                        continue;
+                    }
+
+                    if (!node.hasPreview || !node.previewExpanded)
                         continue;
 
                     var renderData = GetPreviewRenderData(node);
@@ -477,8 +492,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var renderData in renderList3D)
                     RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
-                var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
-                if (renderMasterPreview && masterRenderData.shaderData.mat != null)
+                if (renderMasterPreview && masterRenderData != null && masterRenderData.shaderData.mat != null)
                 {
                     if (m_NewMasterPreviewSize.HasValue)
                     {
@@ -510,16 +524,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_NodesToDraw.Clear();
             }
-        }
-
-        public void ForceShaderUpdate()
-        {
-            foreach (var data in m_RenderDatas.Values)
-            {
-                m_NodesNeedsRecompile.Add(data.shaderData.node);
-            }
-
-            m_NodesToUpdate.Add(null);
         }
 
         private static readonly ProfilerMarker ProcessCompletedShaderCompilationsMarker = new ProfilerMarker("ProcessCompletedShaderCompilations");
@@ -604,19 +608,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
-                    m_NodesNeedsRecompile.Contains(m_MasterRenderData.shaderData.node) &&
-                    !m_NodesCompiling.Contains(m_MasterRenderData.shaderData.node) &&
+                    m_NodesNeedsRecompile.Contains(null) &&
+                    !m_NodesCompiling.Contains(null) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
                     var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
                     Assert.IsTrue(renderData != null);
-                    nodesToCompile.Add(m_MasterRenderData.shaderData.node);
+                    nodesToCompile.Add(null);
                 }
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
                 foreach (var node in m_NodesNeedsRecompile)
                 {
+                    if(node == null)
+                        continue;
+
                     if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
                         break;
 
@@ -643,13 +650,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // kick async compiles for all nodes in m_NodeToCompile
                 foreach (var node in nodesToCompile)
                 {
-                    if (node is IMasterNode && node == masterRenderData.shaderData.node && !(node is VfxMasterNode))
+                    if (node is BlockNode || node == null)
                     {
                         UpdateMasterNodeShader();
                         continue;
                     }
 
-                    Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode || node is VfxMasterNode));
+                    Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode));
 
                     var renderData = GetPreviewRenderData(node);
 
@@ -797,7 +804,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = renderData.shaderData.node is IMasterNode;
+                Unsupported.useScriptableRenderPipeline = renderData == m_MasterRenderData;
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
