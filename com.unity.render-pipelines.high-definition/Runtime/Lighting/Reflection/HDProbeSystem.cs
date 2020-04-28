@@ -202,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Insert in the array
                         // Grow the arrays
-                        if (m_PlanarProbeCount == m_PlanarProbes.Count)
+                        if (m_PlanarProbeCount == m_PlanarProbesArray.Length)
                         {
                             Array.Resize(ref m_PlanarProbesArray, m_PlanarProbes.Count * 2);
                             Array.Resize(ref m_PlanarProbeBounds, m_PlanarProbeBounds.Length * 2);
