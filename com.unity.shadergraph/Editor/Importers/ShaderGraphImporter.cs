@@ -183,7 +183,7 @@ Shader ""Hidden/GraphErrorShader2""
                 configuredTextures = generator.configuredTextures;
                 sourceAssetDependencyPaths = generator.assetDependencyPaths;
 
-                if (graph.messageManager.nodeMessagesChanged)
+                if (graph.messageManager.AnyError())
                 {
                     shaderString = null;
                 }

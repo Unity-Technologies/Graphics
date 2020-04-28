@@ -155,5 +155,23 @@ namespace UnityEditor.Graphing.Util
                 Debug.LogWarning(errString, context);
             }
         }
+
+        public bool AnyError()
+        {
+            foreach(var messages in m_Messages.Values)
+            {
+                foreach(List<ShaderMessage> messageList in messages.Values)
+                {
+                    foreach(var message in messageList)
+                    {
+                        if(message.severity == ShaderCompilerMessageSeverity.Error)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
     }
 }

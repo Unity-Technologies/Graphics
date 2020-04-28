@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             }
             finally
             {
-                if (messageManager.nodeMessagesChanged)
+                if (messageManager.AnyError())
                 {
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
