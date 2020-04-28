@@ -45,14 +45,19 @@ bool IsPerspectiveProjection()
 }
 
 // Computes the world space view direction (pointing towards the viewer).
-float3 GetWorldSpaceViewDir(float3 positionWS)
-{
-    return IsPerspectiveProjection() ? GetPrimaryCameraPosition() - positionWS : -GetViewForwardDir();
-}
-
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
-    return IsPerspectiveProjection() ? normalize(GetPrimaryCameraPosition() - positionWS) : -GetViewForwardDir();
+    if (IsPerspectiveProjection())
+    {
+        // Perspective
+        float3 V = GetCurrentViewPosition() - positionWS;
+        return normalize(V);
+    }
+    else
+    {
+        // Orthographic
+        return -GetViewForwardDir();
+    }
 }
 
 // UNITY_MATRIX_V defines a right-handed view space with the Z axis pointing towards the viewer.

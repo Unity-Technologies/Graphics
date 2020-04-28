@@ -3,7 +3,6 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "SpeedTree7CommonPasses.hlsl"
-#include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
 
 void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half outHueVariation)
 {
