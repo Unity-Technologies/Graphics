@@ -27,12 +27,12 @@ The following example code represents one possible outcome of this node per **Ou
 ```
 void Unity_NormalFromHeight_Tangent_float(float In, float Strength, float3 Position, float3x3 TangentMatrix, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position);
-    float3 worldDirivativeY = ddy(Position);
+    float3 worldDerivativeX = ddx(Position);
+    float3 worldDerivativeY = ddy(Position);
 
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(worldDirivativeY, TangentMatrix[2].xyz);
-    float d = dot(worldDirivativeX, crossY);
+    float3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);
+    float3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);
+    float d = dot(worldDerivativeX, crossY);
     float sgn = d < 0.0 ? (-1.0f) : 1.0f;
     float surface = sgn / max(0.000000000000001192093f, abs(d));
 
@@ -49,12 +49,12 @@ void Unity_NormalFromHeight_Tangent_float(float In, float Strength, float3 Posit
 ```
 void Unity_NormalFromHeight_World_float(float In, float Strength, float3 Position, float3x3 TangentMatrix, out float3 Out)
 {
-    float3 worldDirivativeX = ddx(Position);
-    float3 worldDirivativeY = ddy(Position);
+    float3 worldDerivativeX = ddx(Position);
+    float3 worldDerivativeY = ddy(Position);
 
-    float3 crossX = cross(TangentMatrix[2].xyz, worldDirivativeX);
-    float3 crossY = cross(worldDirivativeY, TangentMatrix[2].xyz);
-    float d = dot(worldDirivativeX, crossY);
+    float3 crossX = cross(TangentMatrix[2].xyz, worldDerivativeX);
+    float3 crossY = cross(worldDerivativeY, TangentMatrix[2].xyz);
+    float d = dot(worldDerivativeX, crossY);
     float sgn = d < 0.0 ? (-1.0f) : 1.0f;
     float surface = sgn / max(0.000000000000001192093f, abs(d));
 
