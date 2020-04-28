@@ -149,6 +149,11 @@ MonoBehaviour:
   dithering: 0
   stopNaNs: 0
   taaSharpenStrength: 0.6
+  TAAQuality: 1
+  taaHistorySharpening: 0.35
+  taaAntiFlicker: 0.5
+  taaMotionVectorRejection: 0
+  taaAntiHistoryRinging: 0
   physicalParameters:
     m_Iso: 200
     m_ShutterSpeed: 0.005
@@ -158,6 +163,7 @@ MonoBehaviour:
     m_BarrelClipping: 0.25
     m_Anamorphism: 0
   flipYMode: 0
+  xrRendering: 1
   fullscreenPassthrough: 0
   allowDynamicResolution: 0
   customRenderingSettings: 0
@@ -176,6 +182,9 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   renderingPathCustomFrameSettingsOverrideMask:
     mask:
@@ -269,7 +278,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6002938546587368868}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -337,12 +346,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca2f6272d55211f4eb843d4ae99aaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platformApis:
-  - platform: 0
-    graphicsDeviceType: 16
-  - platform: 7
-    graphicsDeviceType: 18
-  - platform: 7
-    graphicsDeviceType: 21
-  - platform: 16
-    graphicsDeviceType: 21
+  D3D11: 0
+  D3D12: 0
+  VukanWindows: 0

@@ -1,14 +1,30 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[ExecuteInEditMode]
 public class DisplayOnPlatformAPI : MonoBehaviour
 {
-    [SerializeField] List<PlatformAPI> platformApis = new List<PlatformAPI>();
+    public bool D3D11;
+    public bool D3D12;
+    public bool VukanWindows;
 
-    void Start()
+    List<PlatformAPI> platformApis = new List<PlatformAPI>();
+
+    void OnValidate()
     {
+        platformApis.Clear();
+
+        if (D3D11)
+            platformApis.Add(new PlatformAPI(RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D11));
+
+        if (D3D12)
+            platformApis.Add(new PlatformAPI(RuntimePlatform.WindowsEditor, GraphicsDeviceType.Direct3D12));
+
+        if (VukanWindows)
+            platformApis.Add(new PlatformAPI(RuntimePlatform.WindowsEditor, GraphicsDeviceType.Vulkan));
+
         bool display = false;
 
         foreach (var platformApi in platformApis)
@@ -20,12 +36,18 @@ public class DisplayOnPlatformAPI : MonoBehaviour
             }
         }
 
-        gameObject.SetActive(display);
+        var textMeshRenderer = gameObject.GetComponent<MeshRenderer>();
+        textMeshRenderer.enabled = display;
     }
 
-    [System.Serializable]
     public struct PlatformAPI
     {
+        public PlatformAPI(RuntimePlatform inPlatform, GraphicsDeviceType inGraphicsDeviceType)
+        {
+            platform = inPlatform;
+            graphicsDeviceType = inGraphicsDeviceType;
+        }
+
         public RuntimePlatform platform;
         public GraphicsDeviceType graphicsDeviceType;
     }
