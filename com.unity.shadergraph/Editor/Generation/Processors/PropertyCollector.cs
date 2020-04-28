@@ -208,6 +208,8 @@ namespace UnityEditor.ShaderGraph
         {
             var result = new List<TextureInfo>();
 
+            // TODO: this should be interface based instead of looking for hard codeded tyhpes
+
             foreach (var prop in properties.OfType<Texture2DShaderProperty>())
             {
                 if (prop.referenceName != null)
@@ -263,6 +265,12 @@ namespace UnityEditor.ShaderGraph
                     result.Add(textureInfo);
                 }
             }
+
+            foreach (var prop in properties.OfType<VirtualTextureShaderProperty>().Where(p => p.referenceName != null))
+            {
+                prop.AddTextureInfo(result);
+            }
+
             return result;
         }
     }

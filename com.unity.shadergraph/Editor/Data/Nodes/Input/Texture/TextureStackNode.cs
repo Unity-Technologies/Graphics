@@ -501,6 +501,7 @@ namespace UnityEditor.ShaderGraph
             name = String.IsNullOrEmpty(m_StackName) ? DefaultNodeTitle : m_StackName;
         }
 
+        // TODO: remove unnecessary
         public static bool SubGraphHasStacks(SubGraphNode node)
         {
             var asset = node.asset;
@@ -515,6 +516,7 @@ namespace UnityEditor.ShaderGraph
             return false;
         }
 
+        // TODO: remove unnecessary
         public static List<string> GetSubGraphInputStacks(SubGraphNode node)
         {
             // There could be more stacks in the subgraph but as they are not part of inputs they don't
@@ -832,9 +834,10 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
+            // this adds default properties for all of our unconnected inputs
             base.CollectShaderProperties(properties, generationMode);
 
-            // Get names of connected textures
+            // this gets the texture variable names for each of our texture inputs
             List<string> slotNames = new List<string>();
             for (int i = 0; i < numSlots; i++)
             {
@@ -844,7 +847,8 @@ namespace UnityEditor.ShaderGraph
 
             string stackName = GetStackName();
 
-            // Add texture stack attributes to any connected textures
+            // search all properties to find any that match the texture variable names.. and flag those with the texture stack that uses them
+            // this should only ever find properties that were collected above
             if (!isProcedural)
             {
                 int found = 0;
@@ -868,6 +872,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            // TODO: remove these, replace with the VirtualTextureShaderProperty
             properties.AddShaderProperty(new StackShaderProperty()
             {
                 overrideReferenceName = stackName + "_cb",
@@ -933,6 +938,8 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             KeywordCollector shaderKeywords)
         {
+            surfaceDescriptionFunction.AppendLine("// Collect VT feedback");
+
             // A note on how we handle vt feedback in combination with keywords:
             // We essentially generate a fully separate feedback path for each permutation of keywords
             // so per permutation we gather variables contribution to feedback and we generate
@@ -970,6 +977,23 @@ namespace UnityEditor.ShaderGraph
                             foreach (int perm in keywordPermutationsPerNode[index])
                             {
                                 feedbackVariablesPerPermutation[perm].Add(stNode.GetFeedbackVariableName());
+                            }
+                        }
+                    }
+
+                    if (node is SampleVirtualTextureNode vtNode)
+                    {
+                        if (vtNode.noFeedback) continue;
+                        if (keywordPermutationsPerNode[index] == null)
+                        {
+                            Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null.");
+                            feedbackVariablesPerPermutation[0].Add(vtNode.GetFeedbackVariableName());
+                        }
+                        else
+                        {
+                            foreach (int perm in keywordPermutationsPerNode[index])
+                            {
+                                feedbackVariablesPerPermutation[perm].Add(vtNode.GetFeedbackVariableName());
                             }
                         }
                     }
@@ -1053,20 +1077,24 @@ namespace UnityEditor.ShaderGraph
                     list.Dispose();
                 }
                 feedbackVariablesPerPermutation.Dispose();
+                surfaceDescriptionFunction.AppendLine("// END Collect VT feedback");
             }
         }
 
         // Automatically add a  streaming feedback node and correctly connect it to stack samples are connected to it and it is connected to the master node output
         public static List<string> GetFeedbackVariables(SubGraphOutputNode masterNode)
         {
+            // TODO: make use a generic interface instead of hard-coding the node types that we need to look at here
             var stackNodes = GraphUtil.FindDownStreamNodesOfType<SampleTextureStackNode>(masterNode);
+            var VTNodes = GraphUtil.FindDownStreamNodesOfType<SampleVirtualTextureNode>(masterNode);
             var subGraphNodes = GraphUtil.FindDownStreamNodesOfType<SubGraphNode>(masterNode);
+
             List<string> result = new List<string>();
 
-            // Early out if there are no VT nodes in the graph
-            if (stackNodes.Count <= 0 && subGraphNodes.Count <= 0)
+            // Early out if there are no nodes we care about in the graph
+            // Debug.Log("StackNodes: " + stackNodes.Count + " VTNodes: " + VTNodes.Count + " SubGraphs: " + subGraphNodes.Count);
+            if (stackNodes.Count <= 0 && subGraphNodes.Count <= 0 && VTNodes.Count <= 0)
             {
-                Debug.Log("No vt in subgr");
                 return result;
             }
 
@@ -1077,9 +1105,16 @@ namespace UnityEditor.ShaderGraph
                 result.Add(node.GetFeedbackVariableName());
             }
 
+            foreach (var node in VTNodes)
+            {
+                if (node.noFeedback) continue;
+                result.Add(node.GetFeedbackVariableName());
+            }
+
             foreach (var node in subGraphNodes)
             {
                 if (node.asset == null) continue;
+                // TODO: subgraph.GetFeedbackVariableNames(...)
                 foreach (var feedbackSlot in node.asset.vtFeedbackVariables)
                 {
                     result.Add(node.GetVariableNameForNode() + "_" + feedbackSlot);

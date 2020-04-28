@@ -40,13 +40,12 @@ namespace UnityEditor.ShaderGraph
         // this is used for properties exposed to the Material in the shaderlab Properties{} block
         internal override string GetPropertyBlockString()
         {
-            // something along the lines of:
-            // [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
+            // adds a properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
             string result = "";
             for (int layer= 0; layer < value.entries.Count; layer++)
             {
                 string layerName = value.entries[layer].layerName;
-                result += $"[TextureStack.{referenceName}({layer})] [NoScaleOffset] {layerName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
+                result += $"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
             }
             return result;
         }
@@ -88,6 +87,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
         {
+            // TODO: ???
             throw new NotImplementedException();
         }
 
@@ -121,6 +121,23 @@ namespace UnityEditor.ShaderGraph
                 value = value,
                 precision = precision
             };
+        }
+
+        internal void AddTextureInfo(List<PropertyCollector.TextureInfo> infos)
+        {
+            for (int layer = 0; layer < value.entries.Count; layer++)
+            {
+                string layerName = value.entries[layer].layerName;
+                var layerTexture = value.entries[layer].layerTexture;
+
+                var textureInfo = new PropertyCollector.TextureInfo
+                {
+                    name = layerName,
+                    textureId = layerTexture != null ? layerTexture.texture.GetInstanceID() : 0,
+                    modifiable = true
+                };
+                infos.Add(textureInfo);
+            }
         }
     }
 }
