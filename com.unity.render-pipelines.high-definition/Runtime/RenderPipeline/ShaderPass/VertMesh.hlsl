@@ -98,7 +98,7 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #define PackVaryingsType PackVaryingsToPS
 #endif
 
-#define TEST_RECURSIVE_RENDERING (SHADEROPTIONS_RAYTRACING && defined(HAVE_RECURSIVE_RENDERING) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY)))
+#define TEST_RECURSIVE_RENDERING (SHADEROPTIONS_RAYTRACING && defined(HAVE_RECURSIVE_RENDERING) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD || (SHADERPASS == SHADERPASS_DEPTH_ONLY && !defined(SCENESELECTIONPASS))))
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that MotionVectorPass can get the modified input values later.
 VaryingsMeshType VertMesh(AttributesMesh input)

@@ -63,7 +63,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 hidden = hidden,
                 value = value,
-                colorMode = colorMode
+                colorMode = colorMode,
+                precision = precision,
+                gpuInstanced = gpuInstanced,
             };
         }
     }

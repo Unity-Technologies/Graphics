@@ -85,6 +85,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
 - Remove some shader warnings
+- Fixed Sample Flipbook Texture File Names
+- Don't lose SRP output specific data when SRP package is not present
 
 ## [7.1.1] - 2019-09-05
 ### Added

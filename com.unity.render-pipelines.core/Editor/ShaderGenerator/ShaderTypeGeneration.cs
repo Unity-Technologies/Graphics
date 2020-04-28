@@ -407,7 +407,15 @@ namespace UnityEditor.Rendering
 
             shaderText += "// Generated from " + type.FullName + "\n";
             shaderText += "// PackingRules = " + attr.packingRules.ToString() + "\n";
-            if (!attr.omitStructDeclaration)
+
+            if (attr.generateCBuffer)
+            {
+                if (attr.constantRegister != -1)
+                    shaderText += "GLOBAL_CBUFFER_START(" + type.Name + ", b" + attr.constantRegister + ")\n";
+                else
+                    shaderText += "CBUFFER_START(" + type.Name + ")\n";
+            }
+            else if (!attr.omitStructDeclaration)
             {
                 shaderText += "struct " + type.Name + "\n";
                 shaderText += "{\n";
@@ -418,7 +426,11 @@ namespace UnityEditor.Rendering
                 shaderText += "    " + shaderFieldInfo.ToString() + "\n";
             }
 
-            if (!attr.omitStructDeclaration)
+            if (attr.generateCBuffer)
+            {
+                shaderText += "CBUFFER_END\n";
+            }
+            else if (!attr.omitStructDeclaration)
             {
                 shaderText += "};\n";
             }
@@ -764,6 +776,10 @@ namespace UnityEditor.Rendering
                         {
                             funcSignature = "float4 " + funcSignature;
                         }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature = "int2 " + funcSignature;
+                        }
                         funcBody += "return (" + sourceName + "." + packedInfo.fieldName + ");";
                         break;
                     default:
@@ -849,6 +865,10 @@ namespace UnityEditor.Rendering
                         else if (packedInfo.fieldType == typeof(Vector4))
                         {
                             funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature += "int2 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
                         funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
@@ -939,6 +959,10 @@ namespace UnityEditor.Rendering
                         {
                             funcSignature += "float4 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
                         }
+                        else if (packedInfo.fieldType == typeof(Vector2Int))
+                        {
+                            funcSignature += "int2 " + newParamName + ", inout " + type.Name + " " + sourceName + ")";
+                        }
                         funcBody += sourceName + "." + packedInfo.fieldName + " = " + newParamName + ";";
                         break;
                     default:
@@ -1015,6 +1039,16 @@ namespace UnityEditor.Rendering
                     var arrayInfos = (field.GetCustomAttributes(typeof(HLSLArray), false) as HLSLArray[]);
                     if (arrayInfos.Length != 0)
                     {
+                        // For constant buffers, every element of the array needs to be aligned to a Vector4
+                        if (attr.generateCBuffer &&
+                            arrayInfos[0].elementType != typeof(Vector4) &&
+                            arrayInfos[0].elementType != typeof(ShaderGenUInt4) &&
+                            arrayInfos[0].elementType != typeof(Matrix4x4))
+                        {
+                            Error("Invalid HLSLArray target: '" + field.FieldType + "'" + ", only Vector4, Matrix4x4 and ShaderGenUInt4 are supported for arrays in constant buffers.");
+                            return false;
+                        }
+
                         arraySize = arrayInfos[0].arraySize;
                         fieldType = arrayInfos[0].elementType;
                     }
@@ -1171,6 +1205,10 @@ namespace UnityEditor.Rendering
                         EmitPrimitiveType(floatPrecision, 3, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Vector4))
                         EmitPrimitiveType(floatPrecision, 4, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(Vector2Int))
+                        EmitPrimitiveType(PrimitiveType.Int, 2, arraySize, field.Name, "", m_ShaderFields);
+                    else if (fieldType == typeof(ShaderGenUInt4))
+                        EmitPrimitiveType(PrimitiveType.UInt, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (fieldType == typeof(Matrix4x4))
                         EmitMatrixType(floatPrecision, 4, 4, arraySize, field.Name, "", m_ShaderFields);
                     else if (!ExtractComplex(field, m_ShaderFields))
