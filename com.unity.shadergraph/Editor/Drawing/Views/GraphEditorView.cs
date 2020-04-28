@@ -15,6 +15,7 @@ using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
+using Unity.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -106,6 +107,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
+        private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
@@ -148,7 +151,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(false);
             var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
                 {
@@ -278,27 +281,21 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             AddContexts();
 
-            foreach (var graphGroup in graph.groups)
+            using (AddGroupsMarker.Auto())
             {
-                AddGroup(graphGroup);
+                foreach (var graphGroup in graph.groups)
+                    AddGroup(graphGroup);
             }
 
-            foreach (var stickyNote in graph.stickyNotes)
+            using (AddStickyNotesMarker.Auto())
             {
-                AddStickyNote(stickyNote);
+                foreach (var stickyNote in graph.stickyNotes)
+                    AddStickyNote(stickyNote);
             }
 
-            foreach (var node in graph.GetNodes<AbstractMaterialNode>().Where(x => !(x is BlockNode)))
-                AddNode(node);
-
-            // As they can be reordered, we cannot be sure BlockNodes are deserialized in the same order as their stack position
-            // To handle this we reorder the BlockNodes here to avoid having to reorder them on the fly as they are added
-            foreach (var node in graph.GetNodes<BlockNode>().OrderBy(s => s.index))
-                AddNode(node);
-
-            foreach (var edge in graph.edges)
-                AddEdge(edge);
-
+            AddNodes(graph.GetNodes<AbstractMaterialNode>());
+            AddBlocks(graph.GetNodes<BlockNode>());
+            AddEdges(graph.edges);
             Add(content);
 
             // Active block lists need to be initialized on window start up
@@ -649,15 +646,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             UnregisterGraphViewCallbacks();
 
-            if(previewManager.HandleGraphChanges())
+            previewManager.HandleGraphChanges();
+
+            if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-
                 m_ColorManager.SetNodesDirty(nodeList);
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(true);
             if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
                 m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
@@ -867,7 +865,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         List<GraphElement> m_GraphElementsTemp = new List<GraphElement>();
 
-        void AddNode(AbstractMaterialNode node)
+        void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false)
         {
             var materialNode = node;
             Node nodeView;
@@ -920,19 +918,76 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            // This should also work for sticky notes
-            m_GraphElementsTemp.Clear();
-            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
-
-            if (materialNode.group != null)
+            if (usePrebuiltVisualGroupMap)
             {
-                foreach (var element in m_GraphElementsTemp)
+                // cheaper way to add the node to groups it is in
+                ShaderGroup groupView;
+                visualGroupMap.TryGetValue(materialNode.groupGuid, out groupView);
+                if (groupView != null)
+                    groupView.AddElement(nodeView);
+            }
+            else
+            {
+                // This should also work for sticky notes
+                m_GraphElementsTemp.Clear();
+                m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
+                if (materialNode.groupGuid != Guid.Empty)
                 {
-                    if (element is ShaderGroup groupView && groupView.userData == materialNode.group)
+                    foreach (var element in m_GraphElementsTemp)
                     {
-                        groupView.AddElement(nodeView);
+                        if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                        {
+                            groupView.AddElement(nodeView);
+                        }
                     }
                 }
+            }
+        }
+
+        private static Dictionary<Guid, ShaderGroup> visualGroupMap = new Dictionary<Guid, ShaderGroup>();
+        private static void AddToVisualGroupMap(GraphElement e)
+        {
+            ShaderGroup sg = e as ShaderGroup;
+            if (sg != null)
+                visualGroupMap.Add(sg.userData.guid, sg);
+        }
+        private static Action<GraphElement> AddToVisualGroupMapAction = AddToVisualGroupMap;
+        void BuildVisualGroupMap()
+        {
+            visualGroupMap.Clear();
+            m_GraphView.graphElements.ForEach(AddToVisualGroupMapAction);
+        }
+
+        private static readonly ProfilerMarker AddNodesMarker = new ProfilerMarker("AddNodes");
+        void AddNodes(IEnumerable<AbstractMaterialNode> nodes)
+        {
+            using (AddNodesMarker.Auto())
+            {
+                BuildVisualGroupMap();
+                foreach (var node in nodes)
+                {
+                    // Skip BlockNodes as we need to order them
+                    if(node is BlockNode)
+                        continue;
+                    
+                    AddNode(node, true);
+                } 
+                visualGroupMap.Clear();
+            }
+        }
+
+        private static readonly ProfilerMarker AddBlocksMarker = new ProfilerMarker("AddBlocks");
+        void AddBlocks(IEnumerable<BlockNode> blocks)
+        {
+            using (AddBlocksMarker.Auto())
+            {
+                // As they can be reordered, we cannot be sure BlockNodes are deserialized in the same order as their stack position
+                // To handle this we reorder the BlockNodes here to avoid having to reorder them on the fly as they are added
+                foreach (var node in blocks.OrderBy(s => s.index))
+                {
+                    AddNode(node);
+                } 
             }
         }
 
@@ -998,7 +1053,45 @@ namespace UnityEditor.ShaderGraph.Drawing
             port.MarkDirtyRepaint();
         }
 
-        Edge AddEdge(IEdge edge)
+        private static Dictionary<AbstractMaterialNode, IShaderNodeView> visualNodeMap = new Dictionary<AbstractMaterialNode, IShaderNodeView>();
+        private static void AddToVisualNodeMap(Node n)
+        {
+            IShaderNodeView snv = n as IShaderNodeView;
+            if (snv != null)
+                visualNodeMap.Add(snv.node, snv);
+        }
+        private static Action<Node> AddToVisualNodeMapAction = AddToVisualNodeMap;
+        void BuildVisualNodeMap()
+        {
+            visualNodeMap.Clear();
+            m_GraphView.nodes.ForEach(AddToVisualNodeMapAction);
+        }
+
+        private static readonly ProfilerMarker AddEdgesMarker = new ProfilerMarker("AddEdges");
+        void AddEdges(IEnumerable<IEdge> edges)
+        {
+            using (AddEdgesMarker.Auto())
+            {
+                // fast way
+                BuildVisualNodeMap();
+                foreach (IEdge edge in edges)
+                {
+                    AddEdge(edge, true, false);
+                }
+
+                // apply the port update on every node
+                foreach (IShaderNodeView nodeView in visualNodeMap.Values)
+                {
+                    nodeView.gvNode.RefreshPorts();
+                    nodeView.UpdatePortInputTypes();
+                }
+
+                // cleanup temp data
+                visualNodeMap.Clear();
+            }
+        }
+
+        Edge AddEdge(IEdge edge, bool useVisualNodeMap = false, bool updateNodePorts = true)
         {
             var sourceNode = edge.outputSlot.node;
             if (sourceNode == null)
@@ -1016,12 +1109,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
-            var sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
+            IShaderNodeView sourceNodeView;
+            if (useVisualNodeMap)
+                visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
+            else
+                sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
+
             if (sourceNodeView != null)
             {
                 var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
 
-                var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
+                IShaderNodeView targetNodeView;
+                if (useVisualNodeMap)
+                    visualNodeMap.TryGetValue(targetNode, out targetNodeView);
+                else
+                    targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
+
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
                 var edgeView = new Edge
@@ -1035,10 +1138,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
-                sourceNodeView.gvNode.RefreshPorts();
-                targetNodeView.gvNode.RefreshPorts();
-                sourceNodeView.UpdatePortInputTypes();
-                targetNodeView.UpdatePortInputTypes();
+
+                if (updateNodePorts)
+                {
+                    sourceNodeView.gvNode.RefreshPorts();
+                    targetNodeView.gvNode.RefreshPorts();
+                    sourceNodeView.UpdatePortInputTypes();
+                    targetNodeView.UpdatePortInputTypes();
+                }
 
                 return edgeView;
             }

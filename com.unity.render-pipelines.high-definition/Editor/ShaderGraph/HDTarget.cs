@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -799,6 +799,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
 
+        public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.SurfaceTypeTransparent },
+            { CoreKeywordDescriptors.BlendMode },
+            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
+            { CoreKeywordDescriptors.FogOnTransparent },
+            { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
+        };
+
         public static KeywordCollection Lightmaps = new KeywordCollection
         {
             { CoreKeywordDescriptors.Lightmap },
@@ -836,14 +845,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
         {
-            { HDBase },
-            { CoreKeywordDescriptors.DiffuseLightingOnly },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
 
         public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
         {
-            { HDBase },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
     }
@@ -924,7 +932,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Public Pregraph Function
         public const string kCommonLighting = "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl";
-        public const string kShadowContext = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl";
         public const string kHDShadow = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl";
         public const string kLightLoopDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl";
         public const string kPunctualLightCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl";
@@ -1124,15 +1131,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Shadows Shadowmask",
             referenceName = "SHADOWS_SHADOWMASK",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        public static KeywordDescriptor DiffuseLightingOnly = new KeywordDescriptor()
-        {
-            displayName = "Diffuse Lighting Only",
-            referenceName = "DIFFUSE_LIGHTING_ONLY",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
