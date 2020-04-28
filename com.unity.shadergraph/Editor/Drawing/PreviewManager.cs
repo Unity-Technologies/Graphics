@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (scope == ModificationScope.Node)
             {
-                m_DrawMasterPreview = true;
+                m_NodesToDraw.Add(null);
             }
         }
 
@@ -574,8 +574,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if(renderData == m_MasterRenderData)
                     {
-                        m_DrawMasterPreview = true;
-
                         // Process preview materials
                         foreach(var target in m_Graph.activeTargets)
                         {
@@ -584,10 +582,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 target.ProcessPreviewMaterial(renderData.shaderData.mat);
                             }
                         }
-                    }
-                    else
-                    {
-                        MarkNodeDraw(renderData.shaderData.node);
                     }
                 }
 
