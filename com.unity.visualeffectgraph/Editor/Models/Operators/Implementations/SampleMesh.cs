@@ -37,7 +37,6 @@ namespace UnityEditor.VFX.Operator
             Uniform,
             //<= Experiment
             LowDistorsionMapping,
-            BarycentricBis,
         }
 
         public class InputPropertiesPlacementSurfaceBarycentricCoordinates
@@ -56,15 +55,6 @@ namespace UnityEditor.VFX.Operator
 
             [Tooltip("Sampler.")] //Not sure it's intuitive neither.
             public Vector2 sampler;
-        }
-
-        public class InputPropertiesPlacementSurfaceBarycentricCoordinatesBis
-        {
-            [Tooltip("The triangle index to read from.")]
-            public uint triangle = 0u;
-
-            [Tooltip("Barycentric coordinates (condition = 1 is implicitly resolved ?).")]
-            public Vector3 barycentric;
         }
 
         public class InputPropertiesPlacementSurfaceLowDistorsionMapping
@@ -202,8 +192,6 @@ namespace UnityEditor.VFX.Operator
                 {
                     if (surfaceCoordinates == SurfaceCoordinates.Barycentric)
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinates"));
-                    else if (surfaceCoordinates == SurfaceCoordinates.BarycentricBis)
-                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinatesBis"));
                     else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceLowDistorsionMapping"));
                     else
@@ -266,21 +254,6 @@ namespace UnityEditor.VFX.Operator
 #endif
                 sampledValues.Add(sampled);
             }
-        }
-
-        private VFXExpression WIP_Function_Compute_TriangleLow(VFXExpression input)
-        {
-            var half2 = VFXOperatorUtility.HalfExpression[UnityEngine.VFX.VFXValueType.Float2];
-            var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
-            var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
-
-            var t = input * half2;
-            var offset = t.y - t.x;
-            var pred = new VFXExpressionCondition(VFXCondition.Greater, offset, zero);
-            var t2 = new VFXExpressionBranch(pred, t.y + offset, t.y);
-            var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
-            var t3 = one - t2 - t1;
-            return new VFXExpressionCombine(t1, t2, t3);
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -360,48 +333,6 @@ namespace UnityEditor.VFX.Operator
                     {
                         var barycentricCoordinateInput = inputExpression[2];
                         barycentricCoordinates = new VFXExpressionCombine(barycentricCoordinateInput.x, barycentricCoordinateInput.y, one - barycentricCoordinateInput.x - barycentricCoordinateInput.y);
-                    }
-                    else if (surfaceCoordinates == SurfaceCoordinates.BarycentricBis)
-                    {
-                        //*not optimal at all will be removed*
-                        var inputBarycentric = inputExpression[2];
-
-                        //Compute P
-                        var P = sampleValue_A + sampleValue_B + sampleValue_C;
-                        P = P / VFXOperatorUtility.ThreeExpression[outputValueType];
-
-                        var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
-
-                        var baryABP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.x, inputBarycentric.y));
-                        var baryACP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.x, inputBarycentric.z));
-                        var baryCBP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.y, inputBarycentric.z));
-
-                        var x = VFXOperatorUtility.CastFloat(baryABP.x, outputValueType);
-                        var y = VFXOperatorUtility.CastFloat(baryABP.y, outputValueType);
-                        var z = VFXOperatorUtility.CastFloat(baryABP.z, outputValueType);
-                        var rABP = sampleValue_A * x + sampleValue_B * y + P * z;
-
-                        x = VFXOperatorUtility.CastFloat(baryACP.x, outputValueType);
-                        y = VFXOperatorUtility.CastFloat(baryACP.y, outputValueType);
-                        z = VFXOperatorUtility.CastFloat(baryACP.z, outputValueType);
-                        var rACP = sampleValue_A * x + sampleValue_C * y + P * z;
-
-                        x = VFXOperatorUtility.CastFloat(baryCBP.x, outputValueType);
-                        y = VFXOperatorUtility.CastFloat(baryCBP.y, outputValueType);
-                        z = VFXOperatorUtility.CastFloat(baryCBP.z, outputValueType);
-                        var rCBP = sampleValue_C * x + sampleValue_B * y + P * z;
-
-                        //Use min from input to take which triangle fits
-                        var min = new VFXExpressionMin(inputBarycentric.x, inputBarycentric.y);
-                        min = new VFXExpressionMin(min, inputBarycentric.z);
-
-                        var predMinX = new VFXExpressionCondition(VFXCondition.Equal, inputBarycentric.x, min);
-                        var predMinY = new VFXExpressionCondition(VFXCondition.Equal, inputBarycentric.y, min);
-
-                        //r = predMinX ? rCBP : predMinY ? rACP : rABP
-                        var result = new VFXExpressionBranch(predMinX, rCBP, new VFXExpressionBranch(predMinY, rACP, rABP));
-                        outputExpressions.Add(result);
-                        continue;
                     }
                     else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
                     {
