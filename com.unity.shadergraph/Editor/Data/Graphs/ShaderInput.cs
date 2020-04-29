@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get
             {
                 if (string.IsNullOrEmpty(m_Name))
-                    return $"{concreteShaderValueType}_{GuidEncoder.Encode(guid)}";
+                    return $"{concreteShaderValueType}_{objectId}";
                 return m_Name;
             }
             set => m_Name = value;
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Internal
         // ColorShaderProperty is the only case where PropertyType doesnt match ConcreteSlotValueType
         public virtual string GetDefaultReferenceName()
         {
-            return $"{concreteShaderValueType.ToString()}_{GuidEncoder.Encode(guid)}";
+            return $"{concreteShaderValueType.ToString()}_{objectId}";
         }
 
         [SerializeField]

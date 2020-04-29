@@ -18,9 +18,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             hideFlags = HideFlags.HideAndDontSave;
 
             var textGraph = File.ReadAllText(graphPath, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph = new GraphData();
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(graphPath);
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
         }

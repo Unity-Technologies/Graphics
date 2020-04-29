@@ -9,8 +9,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDUnlitSettingsView
     {
-        HDSystemData systemData;
-        HDBuiltinData builtinData;
+        SystemData systemData;
+        BuiltinData builtinData;
         HDUnlitData unlitData;
 
         public HDUnlitSettingsView(HDUnlitSubTarget subTarget)
@@ -96,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // TODO: Can we make this static and use it for all SubTargets?
-        void DoRenderStateArea(ref TargetPropertyGUIContext context, HDSystemData systemData, int indentLevel, Action onChange, Action<string> registerUndo)
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, SystemData systemData, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
             {
@@ -173,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // TODO: Can we make this static and use it for all SubTargets?
-        void DoDistortionArea(ref TargetPropertyGUIContext context, HDBuiltinData builtinData, int indentLevel, Action onChange, Action<string> registerUndo)
+        void DoDistortionArea(ref TargetPropertyGUIContext context, BuiltinData builtinData, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Distortion", 1, new Toggle() { value = builtinData.distortion }, (evt) =>
             {

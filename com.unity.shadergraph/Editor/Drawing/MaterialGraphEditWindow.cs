@@ -18,6 +18,8 @@ using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
+using Unity.Profiling;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class MaterialGraphEditWindow : EditorWindow
@@ -125,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool shouldClose = true; // Close unless if the same file was replaced
 
             if (EditorUtility.DisplayDialog("\"" + assetName + "\" Graph Asset Missing", AssetDatabase.GUIDToAssetPath(selectedGuid)
-                    + " has been deleted or moved outside of Unity.\n\nWould you like to save your Graph Asset?", "Save As", "Close Window"))
+                + " has been deleted or moved outside of Unity.\n\nWould you like to save your Graph Asset?", "Save As", "Close Window"))
             {
                 shouldClose = !SaveAsImplementation();
             }
@@ -483,10 +485,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var center = node.drawState.position.center;
                 bounds = Rect.MinMaxRect(
-                        Mathf.Min(bounds.xMin, center.x),
-                        Mathf.Min(bounds.yMin, center.y),
-                        Mathf.Max(bounds.xMax, center.x),
-                        Mathf.Max(bounds.yMax, center.y));
+                    Mathf.Min(bounds.xMin, center.x),
+                    Mathf.Min(bounds.yMin, center.y),
+                    Mathf.Max(bounds.xMax, center.x),
+                    Mathf.Max(bounds.yMax, center.y));
             }
             var middle = bounds.center;
             bounds.center = Vector2.zero;
@@ -502,23 +504,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
             var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
-            var copyPasteGraph = new CopyPasteGraph(
-                    graphView.graph.assetGuid,
-                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
-                    graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
-                    graphInputs,
-                    metaProperties,
-                    metaKeywords,
-                    graphView.selection.OfType<StickyNote>().Select(x => x.userData),
-                    true);
+            var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
+                graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
+                graphInputs,
+                metaProperties,
+                metaKeywords,
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData),
+                true);
 
             var deserialized = CopyPasteGraph.FromJson(MultiJson.Serialize(copyPasteGraph), graphView.graph);
             if (deserialized == null)
                 return;
 
-            var subGraph = new GraphData { isSubGraph = true };
-            subGraph.path = "Sub Graphs";
+            var subGraph = new GraphData {isSubGraph = true, path = "Sub Graphs"};
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -558,22 +557,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Checking if the group guid is also being copied.
                 // If not then nullify that guid
-                // TODO: Fix up after nodes store their group as JsonRef
-                // if (node.groupGuid != Guid.Empty)
-                // {
-                //     node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
-                // }
+                if (node.group != null && !subGraph.groups.Contains(node.group))
+                {
+                    node.group = null;
+                }
 
                 subGraph.AddNode(node);
             }
 
             foreach (var note in deserialized.stickyNotes)
             {
-                // TODO: Fix up after sticky notes store their group as JsonRef
-                // if (note.groupGuid != Guid.Empty)
-                // {
-                //     note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
-                // }
+                if (note.group != null && !subGraph.groups.Contains(note.group))
+                {
+                    note.group = null;
+                }
 
                 subGraph.AddStickyNote(note);
             }
@@ -607,9 +604,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Find the unique edges coming INTO the graph
             var uniqueIncomingEdges = externalOutputSlots.GroupBy(
-                    edge => edge.outputSlot,
-                    edge => edge,
-                    (key, edges) => new { slotRef = key, edges = edges.ToList() });
+                edge => edge.outputSlot,
+                edge => edge,
+                (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
 
@@ -705,9 +702,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
-                    edge => edge.outputSlot,
-                    edge => edge,
-                    (key, edges) => new { slot = key, edges = edges.ToList() });
+                edge => edge.outputSlot,
+                edge => edge,
+                (key, edges) => new { slot = key, edges = edges.ToList() });
 
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
@@ -784,6 +781,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
+        private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
+        private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
         {
             try
@@ -823,22 +822,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 selectedGuid = assetGuid;
 
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = new GraphData
+                using (GraphLoadMarker.Auto())
                 {
-                    assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
-                };
-                MultiJson.Deserialize(graphObject.graph, textGraph);
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = new GraphData
+                    {
+                        assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
+                    };
+                    MultiJson.Deserialize(graphObject.graph, textGraph);
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
+                }
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                using (CreateGraphEditorViewMarker.Auto())
                 {
-                    viewDataKey = selectedGuid,
-                    assetName = asset.name.Split('/').Last()
-                };
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
 
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 

@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_AssetDependencyPaths = new List<string>();
 
-            m_Blocks = graphData.GetBlocks();
+            m_Blocks = graphData.GetNodes<BlockNode>().ToList();
             GetTargetImplementations();
             BuildShader();
         }
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode == null)
             {
-                m_Targets = m_GraphData.validTargets.ToArray();
+                m_Targets = m_GraphData.activeTargets.ToArray();
             }
             else
             {

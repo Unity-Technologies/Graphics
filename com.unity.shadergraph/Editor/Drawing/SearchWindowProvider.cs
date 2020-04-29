@@ -77,12 +77,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if(field.shaderStage != contextView.contextData.shaderStage)
                         continue;
 
+                    // Create title
+                    List<string> title = ListPool<string>.Get();
+                    if(!string.IsNullOrEmpty(field.path))
+                    {
+                        var path = field.path.Split('/').ToList();
+                        title.AddRange(path);
+                    }
+                    title.Add(field.displayName);
+
                     // Create and initialize BlockNode instance then add entry
                     var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
                     node.Init(field);
-                    AddEntries(node, new string[]{ field.name }, nodeEntries);
+                    AddEntries(node, title.ToArray(), nodeEntries);
                 }
 
+                SortEntries(nodeEntries);
                 currentNodeEntries = nodeEntries;
                 return;
             }
@@ -138,6 +148,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
+            SortEntries(nodeEntries);
+            currentNodeEntries = nodeEntries;
+        }
+
+        void SortEntries(List<NodeEntry> nodeEntries)
+        {
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
             // Example result:
             // - Art/BlendMode
@@ -166,9 +182,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     return 0;
                 });
-
-
-            currentNodeEntries = nodeEntries;
         }
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)

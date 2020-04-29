@@ -37,6 +37,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
             {
                 throw new NotImplementedException();
             }
+
+            public override void CopyDefaultValue(MaterialSlot other)
+            {
+            }
+
             public override SlotValueType valueType { get; }
             public override ConcreteSlotValueType concreteValueType { get; }
         }
@@ -59,12 +64,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void GetVariableNameForSlotThrowsWhenInvalid()
         {
             Assert.Throws<ArgumentException>(() => m_NodeA.GetVariableNameForSlot(666));
-        }
-
-        [Test]
-        public void AddingNonMaterialSlotToNodeThrows()
-        {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new NotAMaterialSlot()));
         }
 
         [Test]

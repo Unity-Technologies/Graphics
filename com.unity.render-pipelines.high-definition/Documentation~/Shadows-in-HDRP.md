@@ -53,10 +53,8 @@ Using high shadow bias values may result in light "leaking" through Meshes. This
 
 After HDRP captures a shadow map, it processes filtering on the map in order to decrease the aliasing effect that occurs on low resolution shadow maps. Different filters affect the perceived sharpness of shadows.
 
-To change which filter HDRP uses, the method depends on which filter quality you want to use and whether your HDRP Project uses [forward or deferred rendering](Forward-And-Deferred-Rendering.md).
-
-* **Forward rendering**: Change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). This method works for every filter quality. There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
-* **Deferred rendering**: For **Low** and **Medium** filter qualities, use the same method as forward rendering. If you want to use **High** quality (PCSS) filtering, you need to enable it in the [HDRP Config package](HDRP-Config-Package.html). For information on how to do this, see the [Example section](HDRP-Config-Package.html#Example) of the Config package documentation.
+To change which shadow filter quality to use, change the **Filtering Quality** property in your Unity Project’s [HDRP Asset](HDRP-Asset.html). Higher quality have impact on GPU performance.
+There are currently three filter quality presets for directional and punctual lights. For information on the available filter qualities, see the [Filtering Qualities table](HDRP-Asset.html#FilteringQualities).
 
 ## Shadowmasks
 

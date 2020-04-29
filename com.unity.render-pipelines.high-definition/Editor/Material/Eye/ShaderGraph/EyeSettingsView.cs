@@ -9,14 +9,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class EyeSettingsView
     {
-        HDSystemData systemData;
-        HDBuiltinData builtinData;
-        HDLightingData lightingData;
+        SystemData systemData;
+        BuiltinData builtinData;
+        LightingData lightingData;
         EyeData eyeData;
 
         IntegerField m_SortPriorityField;
 
-        public EyeSettingsView(HDEyeSubTarget subTarget)
+        public EyeSettingsView(EyeSubTarget subTarget)
         {
             systemData = subTarget.systemData;
             builtinData = subTarget.builtinData;
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
         }
 
-        void DoRenderStateArea(ref TargetPropertyGUIContext context, HDSystemData systemData, int indentLevel, Action onChange, Action<string> registerUndo)
+        void DoRenderStateArea(ref TargetPropertyGUIContext context, SystemData systemData, int indentLevel, Action onChange, Action<string> registerUndo)
         {
             context.AddProperty("Surface Type", indentLevel, new EnumField(SurfaceType.Opaque) { value = systemData.surfaceType }, (evt) =>
             {

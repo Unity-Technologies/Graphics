@@ -50,6 +50,12 @@ namespace UnityEditor.ShaderGraph.Serialization
             return map;
         }
 
+        public static Type ParseType(string typeString)
+        {
+            k_TypeMap.TryGetValue(typeString, out var type);
+            return type;
+        }
+
         public static List<MultiJsonEntry> Parse(string str)
         {
             var result = new List<MultiJsonEntry>();
@@ -154,7 +160,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                     {
                         // External code could throw exceptions, but we don't want that to fail the whole thing.
                         // Potentially, the fallback type should also be used here.
-                        // TODO: Allow custom logging function
                         Debug.LogException(e);
                     }
                 }

@@ -9,14 +9,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class StackLitSettingsView
     {
-        HDSystemData systemData;
-        HDBuiltinData builtinData;
-        HDLightingData lightingData;
+        SystemData systemData;
+        BuiltinData builtinData;
+        LightingData lightingData;
         StackLitData stackLitData;
 
         IntegerField m_SortPriorityField;
 
-        public StackLitSettingsView(HDStackLitSubTarget subTarget)
+        public StackLitSettingsView(StackLitSubTarget subTarget)
         {
             systemData = subTarget.systemData;
             builtinData = subTarget.builtinData;
@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 stackLitData.screenSpaceSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)evt.newValue;
                 onChange();
             });
-            var specularOcclusionSSUsesVisibilityCone = stackLitData.devMode && HDStackLitSubTarget.SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode);
+            var specularOcclusionSSUsesVisibilityCone = stackLitData.devMode && StackLitSubTarget.SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode);
             context.AddProperty("Specular Occlusion (SS) AO Cone Weight", 1, new EnumField(StackLitData.SpecularOcclusionAOConeSize.CosWeightedAO) { value = stackLitData.screenSpaceSpecularOcclusionAOConeSize }, specularOcclusionSSUsesVisibilityCone, (evt) =>
             {
                 if (Equals(stackLitData.screenSpaceSpecularOcclusionAOConeSize, evt.newValue))
@@ -297,7 +297,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 stackLitData.dataBasedSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)evt.newValue;
                 onChange();
             });
-            var specularOcclusionUsesVisibilityCone = HDStackLitSubTarget.SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode);
+            var specularOcclusionUsesVisibilityCone = StackLitSubTarget.SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode);
             context.AddProperty("Specular Occlusion AO Cone Weight", 1, new EnumField(StackLitData.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO) { value = stackLitData.dataBasedSpecularOcclusionAOConeSize }, specularOcclusionUsesVisibilityCone, (evt) =>
             {
                 if (Equals(stackLitData.dataBasedSpecularOcclusionAOConeSize, evt.newValue))
@@ -309,7 +309,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             // Specular Occlusion Bent Normal
-            var useBentConeFixup = HDStackLitSubTarget.SpecularOcclusionUsesBentNormal(stackLitData);
+            var useBentConeFixup = StackLitSubTarget.SpecularOcclusionUsesBentNormal(stackLitData);
             context.AddProperty("Specular Occlusion Bent Cone Fixup", 0, new EnumField(StackLitData.SpecularOcclusionConeFixupMethod.Off) { value = stackLitData.specularOcclusionConeFixupMethod }, useBentConeFixup && stackLitData.devMode, (evt) =>
             {
                 if (Equals(stackLitData.specularOcclusionConeFixupMethod, evt.newValue))

@@ -42,7 +42,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
 
-            context.AddBlock(BlockFields.SurfaceDescription.SpriteMask);
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.SpriteMask);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);
         }
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { BlockFields.VertexDescription.Normal, 10 },
                 { BlockFields.VertexDescription.Tangent, 11 },
                 { BlockFields.SurfaceDescriptionLegacy.SpriteColor, 0 },
-                { BlockFields.SurfaceDescription.SpriteMask, 1 },
+                { UniversalBlockFields.SurfaceDescription.SpriteMask, 1 },
                 { BlockFields.SurfaceDescription.NormalTS, 2 },
             };
 
@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescriptionLegacy.SpriteColor,
                 BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.SpriteMask,
+                UniversalBlockFields.SurfaceDescription.SpriteMask,
             };
 
             public static BlockFieldDescriptor[] FragmentForwardNormal = new BlockFieldDescriptor[]

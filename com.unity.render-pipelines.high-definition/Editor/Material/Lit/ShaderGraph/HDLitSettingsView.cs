@@ -9,9 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     class HDLitSettingsView
     {
-        HDSystemData systemData;
-        HDBuiltinData builtinData;
-        HDLightingData lightingData;
+        SystemData systemData;
+        BuiltinData builtinData;
+        LightingData lightingData;
         HDLitData litData;
 
         IntegerField m_SortPriorityField;

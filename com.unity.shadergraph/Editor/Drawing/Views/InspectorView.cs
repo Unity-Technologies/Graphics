@@ -49,7 +49,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnChange()
         {
-            m_GraphData.UpdateActiveBlocks();
+            var activeBlocks = m_GraphData.GetActiveBlocksForAllActiveTargets();
+            if(ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                m_GraphData.AddRemoveBlocksFromActiveList(activeBlocks);
+            }
+            
+            m_GraphData.UpdateActiveBlocks(activeBlocks);
             m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological);
             Rebuild();
         }

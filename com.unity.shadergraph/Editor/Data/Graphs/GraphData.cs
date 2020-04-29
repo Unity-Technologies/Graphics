@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
         public GraphData()
@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph
             GetTargets();
         }
 
-        public void AddTargets(Target[] targets)
+        public void InitializeOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
             if(targets == null)
                 return;
@@ -324,6 +324,21 @@ namespace UnityEditor.ShaderGraph
                     m_ActiveTargets.Add(target);
                 }
             }
+
+            if(blockDescriptors != null)
+            {
+                foreach(var descriptor in blockDescriptors)
+                {
+                    var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                    var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                    block.Init(descriptor);
+                    AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+                }
+            }
+
+            ValidateGraph();
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
         }
 
         void GetBlockFieldDescriptors()
@@ -337,12 +352,15 @@ namespace UnityEditor.ShaderGraph
                     if (attrs == null || attrs.Length <= 0)
                         continue;
 
+                    var attribute = attrs[0] as GenerateBlocksAttribute;
+
                     // Get all fields that are BlockFieldDescriptor
                     // If field and context stages match add to list
                     foreach (var fieldInfo in nestedType.GetFields())
                     {
                         if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
                         {
+                            blockFieldDescriptor.path = attribute.path;
                             m_BlockFieldDescriptors.Add(blockFieldDescriptor);
                         }
                     }
@@ -392,6 +410,9 @@ namespace UnityEditor.ShaderGraph
         public UnityEngine.UIElements.VisualElement GetSettings(Action onChange, Action<string> registerUndo)
         {
             var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
+
+            if(isSubGraph)
+                return element;
 
             // Add Label
             var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
@@ -486,7 +507,7 @@ namespace UnityEditor.ShaderGraph
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
                     subGraphNode.asset != null &&
-                    subGraphNode.asset.keywords.Count > 0)
+                    subGraphNode.asset.keywords.Any())
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -615,7 +636,9 @@ namespace UnityEditor.ShaderGraph
         {
             AddBlockNoValidate(blockNode, contextData, index);
             ValidateGraph();
-            UpdateActiveBlocks();
+
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
         }
 
         void AddBlockNoValidate(BlockNode blockNode, ContextData contextData, int index)
@@ -624,7 +647,6 @@ namespace UnityEditor.ShaderGraph
             AddNodeNoValidate(blockNode);
 
             // Set BlockNode properties
-            blockNode.index = index;
             blockNode.contextData = contextData;
             
             // Add to ContextData
@@ -638,39 +660,80 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public List<BlockNode> GetBlocks()
-        {
-            var blocks = Graphing.ListPool<BlockNode>.Get();
-            foreach(var vertexBlock in vertexContext.blocks)
-            {
-                blocks.Add(vertexBlock);
-            }
-            foreach(var fragmentBlock in fragmentContext.blocks)
-            {
-                blocks.Add(fragmentBlock);
-            }
-            return blocks;
-        }
-
-        public void UpdateActiveBlocks()
+        public List<BlockFieldDescriptor> GetActiveBlocksForAllActiveTargets()
         {
             // Get list of active Block types
-            var currentBlocks = GetBlocks();
-            var activeBlocks = ListPool<BlockFieldDescriptor>.Get();
+            var currentBlocks = GetNodes<BlockNode>();
             var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList());
             foreach(var target in activeTargets)
             {
                 target.GetActiveBlocks(ref context);
             }
 
+            return context.activeBlocks;
+        }
+
+        public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.value.isActive = context.activeBlocks.Contains(vertexBlock.value.descriptor);
+                vertexBlock.value.isActive = activeBlockDescriptors.Contains(vertexBlock.value.descriptor);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.value.isActive = context.activeBlocks.Contains(fragmentBlock.value.descriptor);
+                fragmentBlock.value.isActive = activeBlockDescriptors.Contains(fragmentBlock.value.descriptor);
+            } 
+        }
+
+        public void AddRemoveBlocksFromActiveList(List<BlockFieldDescriptor> activeBlockDescriptors)
+        {
+            var blocksToRemove = ListPool<BlockNode>.Get();
+
+            void GetBlocksToRemoveForContext(ContextData contextData)
+            {
+                for(int i = 0; i < contextData.blocks.Count; i++)
+                {
+                    var block = contextData.blocks[i];
+                    if(!activeBlockDescriptors.Contains(block.value.descriptor))
+                    {
+                        var slot = block.value.FindSlot<MaterialSlot>(0);
+                        if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                        {
+                            blocksToRemove.Add(block);
+                        }
+                    }
+                }
+            }
+
+            void TryAddBlockToContext(BlockFieldDescriptor descriptor, ContextData contextData)
+            {
+                if(descriptor.shaderStage != contextData.shaderStage)
+                    return;
+                
+                if(contextData.blocks.Any(x => x.value.descriptor.Equals(descriptor)))
+                    return;
+
+                var node = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                node.Init(descriptor);
+                AddBlockNoValidate(node, contextData, contextData.blocks.Count);
+            }
+
+            // Get inactive Blocks to remove
+            GetBlocksToRemoveForContext(vertexContext);
+            GetBlocksToRemoveForContext(fragmentContext);
+
+            // Remove blocks
+            foreach(var block in blocksToRemove)
+            {
+                RemoveNodeNoValidate(block);
+            }
+
+            // Add active Blocks not currently in Contexts
+            foreach(var descriptor in activeBlockDescriptors)
+            {
+                TryAddBlockToContext(descriptor, vertexContext);
+                TryAddBlockToContext(descriptor, fragmentContext);
             }
         }
 
@@ -695,6 +758,13 @@ namespace UnityEditor.ShaderGraph
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
+
+            if(node is BlockNode blockNode)
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+                blockNode.Dirty(ModificationScope.Graph);
+            }
         }
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
@@ -718,8 +788,6 @@ namespace UnityEditor.ShaderGraph
             {
                 // Remove from ContextData
                 blockNode.contextData.blocks.Remove(blockNode);
-                blockNode.Dirty(ModificationScope.Graph);
-                UpdateActiveBlocks();
             }
         }
 
@@ -841,6 +909,12 @@ namespace UnityEditor.ShaderGraph
             }
 
             ValidateGraph();
+
+            if(nodes.Any(x => x is BlockNode))
+            {
+                var activeBlocks = GetActiveBlocksForAllActiveTargets();
+                UpdateActiveBlocks(activeBlocks);
+            }
         }
 
         void RemoveEdgeNoValidate(IEdge e)
@@ -1323,8 +1397,10 @@ namespace UnityEditor.ShaderGraph
                 target.Setup(ref context);
                 m_ActiveTargets.Add(target);
             }
-            UpdateActiveBlocks();
-
+            
+            // Active blocks
+            var activeBlocks = GetActiveBlocksForAllActiveTargets();
+            UpdateActiveBlocks(activeBlocks);
             ValidateGraph();
 
             // TODO: Internal inspector must repaint here
@@ -1372,6 +1448,7 @@ namespace UnityEditor.ShaderGraph
                 m_PastedStickyNotes.Add(pastedStickyNote);
             }
 
+            var edges = graphToPaste.edges.ToList();
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
@@ -1387,14 +1464,28 @@ namespace UnityEditor.ShaderGraph
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!m_Properties.SelectValue().Contains(propertyNode.property))
+                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
+                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (property != null)
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
-                        if (graphToPaste.metaProperties.Contains(propertyNode.property))
+                        propertyNode.property = property;
+                    }
+                    else
+                    {
+                        pastedNode = propertyNode.property.ToConcreteNode();
+                        pastedNode.drawState = node.drawState;
+                        for (var i = 0; i < edges.Count; i++)
                         {
-                            pastedNode = propertyNode.property.ToConcreteNode();
-                            pastedNode.drawState = node.drawState;
-                            // TODO: Potentially some patching up of edges here??
+                            var edge = edges[i];
+                            if (edge.outputSlot.node == node)
+                            {
+                                edges[i] = new Edge(new SlotReference(pastedNode, edge.outputSlot.slotId), edge.inputSlot);
+                            }
+                            else if (edge.inputSlot.node == node)
+                            {
+                                edges[i] = new Edge(edge.outputSlot, new SlotReference(pastedNode, edge.inputSlot.slotId));
+                            }
                         }
                     }
                 }
@@ -1424,15 +1515,18 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Contains(keywordNode.keyword))
+                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
+                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (keyword != null)
                     {
-                        if (graphToPaste.metaKeywords.Contains(keywordNode.keyword))
-                        {
-                            SanitizeGraphInputName(keywordNode.keyword);
-                            SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
-                            AddGraphInput(keywordNode.keyword);
-                        }
+                        keywordNode.keyword = keyword;
+                    }
+                    else
+                    {
+                        SanitizeGraphInputName(keywordNode.keyword);
+                        SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
+                        AddGraphInput(keywordNode.keyword);
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
@@ -1440,7 +1534,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            foreach (var edge in graphToPaste.edges)
+            foreach (var edge in edges)
             {
                 var newEdge = (Edge)Connect(edge.outputSlot, edge.inputSlot);
                 if (newEdge != null)
@@ -1455,6 +1549,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             m_Edges.Sort();
+            m_Version = k_CurrentVersion;
         }
 
         static JsonObject DeserializeLegacy(string typeString, string json)
@@ -1484,6 +1579,7 @@ namespace UnityEditor.ShaderGraph
                 var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
                 var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
                 var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 m_GroupDatas.Clear();
                 m_StickyNoteDatas.Clear();
@@ -1514,6 +1610,22 @@ namespace UnityEditor.ShaderGraph
 
                     var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
                     propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
+
+                    // Fix up missing reference names
+                    // Properties on Sub Graphs in V0 never have reference names serialized
+                    // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
+                    if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
+                    {
+                        // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
+                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                        {
+                            defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                        else
+                        {
+                            defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                    }
                 }
 
                 foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
@@ -1638,6 +1750,64 @@ namespace UnityEditor.ShaderGraph
             {
                 if(m_Version < 2)
                 {
+                    var addedBlocks = ListPool<BlockFieldDescriptor>.Get();
+
+                    void UpgradeFromBlockMap(Dictionary<BlockFieldDescriptor, int> blockMap)
+                    {
+                        // Map master node ports to blocks
+                        if(blockMap != null)
+                        {
+                            foreach(var blockMapping in blockMap)
+                            {
+                                // Create a new BlockNode for each unique map entry
+                                var descriptor = blockMapping.Key;
+                                if(addedBlocks.Contains(descriptor))
+                                    continue;
+                                
+                                addedBlocks.Add(descriptor);
+
+                                var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
+                                var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
+                                block.Init(descriptor);
+                                AddBlockNoValidate(block, contextData, contextData.blocks.Count);
+
+                                // To avoid having to go around the following deserialization code
+                                // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
+                                block.OnBeforeSerialize();
+
+                                // Now remap the incoming edges to blocks
+                                var slotId = blockMapping.Value;
+                                var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
+                                var newSlot = block.FindSlot<MaterialSlot>(0);
+                                if(oldSlot == null)
+                                    continue;
+                                
+                                var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
+                                var newInputSlotRef = block.GetSlotReference(0);
+
+                                // Always copy the value over for convenience
+                                newSlot.CopyValuesFrom(oldSlot);
+
+                                for(int i = 0; i < m_Edges.Count; i++)
+                                {
+                                    // Find all edges connected to the master node using slot ID from the block map
+                                    // Remove them and replace them with new edges connected to the block nodes
+                                    var edge = m_Edges[i];
+                                    if(edge.inputSlot.Equals(oldInputSlotRef))
+                                    {
+                                        var outputSlot = edge.outputSlot;
+                                        m_Edges.Remove(edge);
+                                        m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
+                                    }
+                                }
+                            }
+
+                            // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
+                            // Therefore we need to clear this list before the view is created
+                            m_AddedNodes.Clear();
+                        }
+                    }
+
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
                     // This is required for edge lookup during Target upgrade
@@ -1647,9 +1817,16 @@ namespace UnityEditor.ShaderGraph
                         AddEdgeToNodeEdges(edge);
                     }
 
+                    // Ensure correct initialization of Contexts
+                    AddContexts();
+
+                    // Position Contexts to the match master node
+                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    m_VertexContext.position = oldPosition;
+                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
+
                     // Try to upgrade all valid targets from master node
                     // On ShaderGraph side we dont know what Targets exist so make no assumptions
-                    Dictionary<BlockFieldDescriptor, int> blockMap = null;
                     if(masterNode != null)
                     {
                         foreach(var target in m_ValidTargets)
@@ -1661,64 +1838,8 @@ namespace UnityEditor.ShaderGraph
                                 continue;
                             
                             m_ActiveTargets.Add(target);
-                            blockMap = newBlockMap;
+                            UpgradeFromBlockMap(newBlockMap);
                         }
-                    }
-
-                    // Ensure correct initialization of Contexts
-                    AddContexts();
-
-                    // Position Contexts to the match master node
-                    var oldPosition = m_OutputNode.value.drawState.position.position;
-                    m_VertexContext.position = oldPosition;
-                    m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
-
-                    // Map master node ports to blocks
-                    if(blockMap != null)
-                    {
-                        foreach(var blockMapping in blockMap)
-                        {
-                            // Create a new BlockNode for each map entry
-                            var descriptor = blockMapping.Key;
-                            var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
-                            var block = (BlockNode)Activator.CreateInstance(typeof(BlockNode));
-                            block.Init(descriptor);
-                            AddBlockNoValidate(block, contextData, contextData.blocks.Count);
-
-                            // To avoid having to go around the following deserialization code
-                            // We simply run OnBeforeSerialization here to ensure m_SerializedDescriptor is set
-                            block.OnBeforeSerialize();
-
-                            // Now remap the incoming edges to blocks
-                            var slotId = blockMapping.Value;
-                            var oldSlot = m_OutputNode.value.FindSlot<MaterialSlot>(slotId);
-                            var newSlot = block.FindSlot<MaterialSlot>(0);
-                            if(oldSlot == null)
-                                continue;
-                            
-                            var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
-                            var newInputSlotRef = block.GetSlotReference(0);
-
-                            // Always copy the value over for convenience
-                            newSlot.CopyValuesFrom(oldSlot);
-
-                            for(int i = 0; i < m_Edges.Count; i++)
-                            {
-                                // Find all edges connected to the master node using slot ID from the block map
-                                // Remove them and replace them with new edges connected to the block nodes
-                                var edge = m_Edges[i];
-                                if(edge.inputSlot.Equals(oldInputSlotRef))
-                                {
-                                    var outputSlot = edge.outputSlot;
-                                    m_Edges.Remove(edge);
-                                    m_Edges.Add(new Edge(outputSlot, newInputSlotRef));
-                                }
-                            }
-                        }
-
-                        // We need to call AddBlockNoValidate but this adds to m_AddedNodes resulting in duplicates
-                        // Therefore we need to clear this list before the view is created
-                        m_AddedNodes.Clear();
                     }
 
                     // Clean up after upgrade
@@ -1753,12 +1874,26 @@ namespace UnityEditor.ShaderGraph
                 node.UpdateNodeAfterDeserialization();
                 node.SetupSlots();
                 m_NodeDictionary.Add(node.objectId, node);
-                m_GroupItems[node.group].Add(node);
+                if (m_GroupItems.TryGetValue(node.group, out var groupItems))
+                {
+                    groupItems.Add(node);
+                }
+                else
+                {
+                    node.group = null;
+                }
             }
 
             foreach (var stickyNote in m_StickyNoteDatas.SelectValue())
             {
-                m_GroupItems[stickyNote.group].Add(stickyNote);
+                if (m_GroupItems.TryGetValue(stickyNote.group, out var groupItems))
+                {
+                    groupItems.Add(stickyNote);
+                }
+                else
+                {
+                    stickyNote.group = null;
+                }
             }
 
             foreach (var edge in m_Edges)
@@ -1781,27 +1916,19 @@ namespace UnityEditor.ShaderGraph
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
                     block.contextData = contextData;
-                    block.index = i;
                 }
             }
 
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
-
-            // TODO: Improve this?
-            var deserializedTargets = new Target[m_ActiveTargets.Count];
-            for(int i = 0; i < deserializedTargets.Length; i++)
+          
+            foreach(var target in m_ActiveTargets.SelectValue())
             {
-                deserializedTargets[i] = m_ActiveTargets[i].value;
-            }
-            
-            foreach(var deserializedTarget in deserializedTargets)
-            {
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
                 var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
                 m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = deserializedTarget;
+                m_ValidTargets[targetIndex] = target;
             }
 
             UpdateActiveTargets();
