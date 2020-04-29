@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
