@@ -1,33 +1,13 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
-using UnityEditor;
+﻿using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using IResizable = UnityEditor.ShaderGraph.Drawing.IResizable;
-using ResizableElement = UnityEditor.ShaderGraph.Drawing.ResizableElement;
 
-namespace Drawing.Views
+namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    public class GraphSubWindow : GraphElement, ISelection, IResizable
+    class GraphSubWindow : GraphElement, ISelection, IResizable
     {
-        protected VisualElement m_MainContainer;
-        protected VisualElement m_Root;
-        protected Label m_TitleLabel;
-        protected Label m_SubTitleLabel;
-        protected ScrollView m_ScrollView;
-        protected VisualElement m_ContentContainer;
-        protected VisualElement m_HeaderItem;
-
-        private bool m_Scrollable = false;
-
-        private Dragger m_Dragger;
-        protected GraphView m_GraphView;
-
-        public WindowDockingLayout windowDockingLayout { get; private set; }
+        Dragger m_Dragger;
 
         // This needs to be something that each subclass defines on its own
         // if they all use the same they'll be stacked on top of each other at SG window creation
@@ -39,13 +19,23 @@ namespace Drawing.Views
             horizontalOffset = 8,
             size = new Vector2(300, 300),
         };
+        WindowDockingLayout windowDockingLayout { get; set; }
 
-        private const string UxmlName = "GraphSubWindow";
+
+        protected VisualElement m_MainContainer;
+        protected VisualElement m_Root;
+        protected Label m_TitleLabel;
+        protected Label m_SubTitleLabel;
+        protected ScrollView m_ScrollView;
+        protected VisualElement m_ContentContainer;
+        protected VisualElement m_HeaderItem;
+        protected GraphView m_GraphView;
 
         // These are used as default values for styling and layout purposes
         // They can be overriden if a child class wants to roll its own style and layout behavior
         protected virtual string layoutKey => "ShaderGraph.SubWindow";
         protected virtual string styleName => "GraphSubWindow";
+        protected virtual string UxmlName => "GraphSubWindow";
 
         // Each sub-window will override these if they need to
         protected virtual string elementName => "";
@@ -115,44 +105,35 @@ namespace Drawing.Views
 
         public override VisualElement contentContainer => m_ContentContainer;
 
-        public bool scrollable
+        readonly bool m_Scrollable = false;
+
+        void HandleScrollingBehavior(bool scrollable)
         {
-            get
+            if (scrollable)
             {
-                return m_Scrollable;
+                if (m_ScrollView == null)
+                {
+                    m_ScrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
+                }
+
+                // Remove the sections container from the content item and add it to the scrollview
+                m_ContentContainer.RemoveFromHierarchy();
+                m_Root.Add(m_ScrollView);
+                m_ScrollView.Add(m_ContentContainer);
+
+                AddToClassList("scrollable");
             }
-            set
+            else
             {
-                if (m_Scrollable == value)
-                    return;
-
-                m_Scrollable = value;
-
-                if (m_Scrollable)
+                if (m_ScrollView != null)
                 {
-                    if (m_ScrollView == null)
-                    {
-                        m_ScrollView = new ScrollView(ScrollViewMode.VerticalAndHorizontal);
-                    }
-
-                    // Remove the sections container from the content item and add it to the scrollview
+                    // Remove the sections container from the scrollview and add it to the content item
+                    m_ScrollView.RemoveFromHierarchy();
                     m_ContentContainer.RemoveFromHierarchy();
-                    m_Root.Add(m_ScrollView);
-                    m_ScrollView.Add(m_ContentContainer);
+                    m_Root.Add(m_ContentContainer);
+                }
 
-                    AddToClassList("scrollable");
-                }
-                else
-                {
-                    if (m_ScrollView != null)
-                    {
-                        // Remove the sections container from the scrollview and add it to the content item
-                        m_ScrollView.RemoveFromHierarchy();
-                        m_ContentContainer.RemoveFromHierarchy();
-                        m_Root.Add(m_ContentContainer);
-                    }
-                    RemoveFromClassList("scrollable");
-                }
+                RemoveFromClassList("scrollable");
             }
         }
 
@@ -180,7 +161,10 @@ namespace Drawing.Views
             capabilities |= Capabilities.Movable | Capabilities.Resizable;
             style.overflow = Overflow.Hidden;
             focusable = false;
-            scrollable = true;
+
+            m_Scrollable = true;
+            HandleScrollingBehavior(m_Scrollable);
+
             name = elementName;
             title = windowTitle;
 

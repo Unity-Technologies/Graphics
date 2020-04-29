@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Data.Interfaces;
+using Drawing.Inspector.PropertyDrawers;
 using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -17,7 +18,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
@@ -30,23 +31,23 @@ namespace Drawing.Inspector.PropertyDrawers
         internal delegate void MessageManagerCallback(string message);
 
         // Keyword
-        private ReorderableList m_ReorderableList;
-        private int m_SelectedIndex;
+        ReorderableList m_ReorderableList;
+        int m_SelectedIndex;
 
         // Reference Name
-        private TextField m_ReferenceNameField;
+        TextField m_ReferenceNameField;
         public ChangeReferenceNameCallback _resetReferenceNameCallback;
 
-        private ShaderInput shaderInput;
+        ShaderInput shaderInput;
 
-        private bool isSubGraph { get ; set;  }
-        private ChangeExposedFieldCallback _exposedFieldChangedCallback;
-        private ChangeReferenceNameCallback _referenceNameChangedCallback;
-        private Action _precisionChangedCallback;
-        private Action _keywordChangedCallback;
-        private ChangeValueCallback _changeValueCallback;
-        private PreChangeValueCallback _preChangeValueCallback;
-        private PostChangeValueCallback _postChangeValueCallback;
+        bool isSubGraph { get ; set;  }
+        ChangeExposedFieldCallback _exposedFieldChangedCallback;
+        ChangeReferenceNameCallback _referenceNameChangedCallback;
+        Action _precisionChangedCallback;
+        Action _keywordChangedCallback;
+        ChangeValueCallback _changeValueCallback;
+        PreChangeValueCallback _preChangeValueCallback;
+        PostChangeValueCallback _postChangeValueCallback;
         public void GetPropertyData(bool isSubGraph,
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
@@ -200,7 +201,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 BuildGpuInstancingField(propertySheet, property);
         }
 
-        private void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
+        void BuildPrecisionField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
             var enumPropertyDrawer = new EnumPropertyDrawer();
             propertySheet.Add(enumPropertyDrawer.CreateGUI(newValue =>
@@ -214,7 +215,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 }, property.precision, "Precision", Precision.Inherit, out var precisionField));
         }
 
-        private void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
+        void BuildGpuInstancingField(PropertySheet propertySheet, AbstractShaderProperty property)
         {
             var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(toggleDataPropertyDrawer.CreateGUI( newValue =>
@@ -227,7 +228,7 @@ namespace Drawing.Inspector.PropertyDrawers
             gpuInstancedToggle.SetEnabled(property.isGpuInstanceable);
         }
 
-        private void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
+        void HandleVector1ShaderProperty(PropertySheet propertySheet, Vector1ShaderProperty vector1ShaderProperty)
         {
             // Handle vector 1 mode parameters
             switch (vector1ShaderProperty.floatType)
@@ -338,7 +339,7 @@ namespace Drawing.Inspector.PropertyDrawers
             }
         }
 
-        private void HandleVector2ShaderProperty(PropertySheet propertySheet, Vector2ShaderProperty vector2ShaderProperty)
+        void HandleVector2ShaderProperty(PropertySheet propertySheet, Vector2ShaderProperty vector2ShaderProperty)
         {
             var vector2PropertyDrawer = new Vector2PropertyDrawer();
             vector2PropertyDrawer.preValueChangeCallback = () => this._preChangeValueCallback("Change property value");
@@ -351,7 +352,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyVec2Field));
         }
 
-        private void HandleVector3ShaderProperty(PropertySheet propertySheet, Vector3ShaderProperty vector3ShaderProperty)
+        void HandleVector3ShaderProperty(PropertySheet propertySheet, Vector3ShaderProperty vector3ShaderProperty)
         {
             var vector3PropertyDrawer = new Vector3PropertyDrawer();
             vector3PropertyDrawer.preValueChangeCallback = () => this._preChangeValueCallback("Change property value");
@@ -364,7 +365,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyVec3Field));
         }
 
-        private void HandleVector4ShaderProperty(PropertySheet propertySheet, Vector4ShaderProperty vector4Property)
+        void HandleVector4ShaderProperty(PropertySheet propertySheet, Vector4ShaderProperty vector4Property)
         {
             var vector4PropertyDrawer = new Vector4PropertyDrawer();
             vector4PropertyDrawer.preValueChangeCallback = () => this._preChangeValueCallback("Change property value");
@@ -377,7 +378,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyVec4Field));
         }
 
-        private void HandleColorProperty(PropertySheet propertySheet, ColorShaderProperty colorProperty)
+        void HandleColorProperty(PropertySheet propertySheet, ColorShaderProperty colorProperty)
         {
             var colorPropertyDrawer = new ColorPropertyDrawer();
 
@@ -413,7 +414,7 @@ namespace Drawing.Inspector.PropertyDrawers
             }
         }
 
-        private void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
+        void HandleTexture2DProperty(PropertySheet propertySheet, Texture2DShaderProperty texture2DProperty)
         {
             var texture2DPropertyDrawer = new Texture2DPropertyDrawer();
             propertySheet.Add(texture2DPropertyDrawer.CreateGUI(
@@ -449,7 +450,7 @@ namespace Drawing.Inspector.PropertyDrawers
             }
         }
 
-        private void HandleTexture2DArrayProperty(PropertySheet propertySheet, Texture2DArrayShaderProperty texture2DArrayProperty)
+        void HandleTexture2DArrayProperty(PropertySheet propertySheet, Texture2DArrayShaderProperty texture2DArrayProperty)
         {
             var texture2DArrayPropertyDrawer = new Texture2DArrayPropertyDrawer();
             propertySheet.Add(texture2DArrayPropertyDrawer.CreateGUI(
@@ -465,7 +466,7 @@ namespace Drawing.Inspector.PropertyDrawers
             ));
         }
 
-        private void HandleTexture3DProperty(PropertySheet propertySheet, Texture3DShaderProperty texture3DShaderProperty)
+        void HandleTexture3DProperty(PropertySheet propertySheet, Texture3DShaderProperty texture3DShaderProperty)
         {
             var texture3DPropertyDrawer = new Texture3DPropertyDrawer();
             propertySheet.Add(texture3DPropertyDrawer.CreateGUI(
@@ -481,7 +482,7 @@ namespace Drawing.Inspector.PropertyDrawers
             ));
         }
 
-        private void HandleCubemapProperty(PropertySheet propertySheet, CubemapShaderProperty cubemapProperty)
+        void HandleCubemapProperty(PropertySheet propertySheet, CubemapShaderProperty cubemapProperty)
         {
             var cubemapPropertyDrawer = new CubemapPropertyDrawer();
             propertySheet.Add(cubemapPropertyDrawer.CreateGUI(
@@ -497,7 +498,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 ));
         }
 
-        private void HandleBooleanProperty(PropertySheet propertySheet, BooleanShaderProperty booleanProperty)
+        void HandleBooleanProperty(PropertySheet propertySheet, BooleanShaderProperty booleanProperty)
         {
             var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
@@ -512,7 +513,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyToggle));
         }
 
-        private void HandleMatrix2PropertyField(PropertySheet propertySheet, Matrix2ShaderProperty matrix2Property)
+        void HandleMatrix2PropertyField(PropertySheet propertySheet, Matrix2ShaderProperty matrix2Property)
         {
             var matrixPropertyDrawer = new MatrixPropertyDrawer
             {
@@ -529,7 +530,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyMatrixField));
         }
 
-        private void HandleMatrix3PropertyField(PropertySheet propertySheet, Matrix3ShaderProperty matrix3Property)
+        void HandleMatrix3PropertyField(PropertySheet propertySheet, Matrix3ShaderProperty matrix3Property)
         {
             var matrixPropertyDrawer = new MatrixPropertyDrawer
             {
@@ -546,7 +547,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyMatrixField));
         }
 
-        private void HandleMatrix4PropertyField(PropertySheet propertySheet, Matrix4ShaderProperty matrix4Property)
+        void HandleMatrix4PropertyField(PropertySheet propertySheet, Matrix4ShaderProperty matrix4Property)
         {
             var matrixPropertyDrawer = new MatrixPropertyDrawer
             {
@@ -563,7 +564,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyMatrixField));
         }
 
-        private void HandleSamplerStatePropertyField(PropertySheet propertySheet, SamplerStateShaderProperty samplerStateShaderProperty)
+        void HandleSamplerStatePropertyField(PropertySheet propertySheet, SamplerStateShaderProperty samplerStateShaderProperty)
         {
             var enumPropertyDrawer = new EnumPropertyDrawer();
 
@@ -598,7 +599,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var wrapVisualElement));
         }
 
-        private void HandleGradientPropertyField(PropertySheet propertySheet, GradientShaderProperty gradientShaderProperty)
+        void HandleGradientPropertyField(PropertySheet propertySheet, GradientShaderProperty gradientShaderProperty)
         {
             var gradientPropertyDrawer = new GradientPropertyDrawer();
             propertySheet.Add(gradientPropertyDrawer.CreateGUI(
@@ -613,7 +614,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var propertyGradientField));
         }
 
-        private void BuildKeywordFields(PropertySheet propertySheet, ShaderInput shaderInput)
+        void BuildKeywordFields(PropertySheet propertySheet, ShaderInput shaderInput)
         {
             var keyword = shaderInput as ShaderKeyword;
             if(keyword == null)
@@ -664,7 +665,7 @@ namespace Drawing.Inspector.PropertyDrawers
             }
         }
 
-        private void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
+        void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
         {
             var toggleDataPropertyDrawer = new ToggleDataPropertyDrawer();
             propertySheet.Add(toggleDataPropertyDrawer.CreateGUI(
@@ -679,7 +680,7 @@ namespace Drawing.Inspector.PropertyDrawers
                 out var boolKeywordField));
         }
 
-        private void BuildEnumKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
+        void BuildEnumKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
         {
             // Clamp value between entry list
             int value = Mathf.Clamp(keyword.value, 0, keyword.entries.Count - 1);
@@ -701,7 +702,7 @@ namespace Drawing.Inspector.PropertyDrawers
             container.SetEnabled(!keyword.isBuiltIn);
         }
 
-        private static void AddPropertyRowToSheet(PropertySheet propertySheet, VisualElement control, string labelName)
+        static void AddPropertyRowToSheet(PropertySheet propertySheet, VisualElement control, string labelName)
         {
             propertySheet.Add(new PropertyRow(new Label(labelName)), (row) =>
             {
@@ -710,7 +711,7 @@ namespace Drawing.Inspector.PropertyDrawers
             });
         }
 
-        private void OnGUIHandler()
+        void OnGUIHandler()
         {
             if(m_ReorderableList == null)
             {
@@ -731,7 +732,7 @@ namespace Drawing.Inspector.PropertyDrawers
             m_ReorderableList = new ReorderableList(keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
-        private void AddCallbacks()
+        void AddCallbacks()
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
@@ -792,13 +793,13 @@ namespace Drawing.Inspector.PropertyDrawers
             m_ReorderableList.onReorderCallback += ReorderEntries;
         }
 
-        private void SelectEntry(ReorderableList list)
+        void SelectEntry(ReorderableList list)
         {
             m_SelectedIndex = list.index;
         }
 
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
-        private int GetFirstUnusedID()
+        int GetFirstUnusedID()
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return 0;
@@ -820,7 +821,7 @@ namespace Drawing.Inspector.PropertyDrawers
             return -1;
         }
 
-        private void AddEntry(ReorderableList list)
+        void AddEntry(ReorderableList list)
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
@@ -843,7 +844,7 @@ namespace Drawing.Inspector.PropertyDrawers
             m_SelectedIndex = list.list.Count - 1;
         }
 
-        private void RemoveEntry(ReorderableList list)
+        void RemoveEntry(ReorderableList list)
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
@@ -865,7 +866,7 @@ namespace Drawing.Inspector.PropertyDrawers
             m_SelectedIndex = m_SelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_SelectedIndex;
         }
 
-        private void ReorderEntries(ReorderableList list)
+        void ReorderEntries(ReorderableList list)
         {
             this._postChangeValueCallback(true);
         }

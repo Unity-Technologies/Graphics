@@ -6,7 +6,7 @@ using UnityEngine.UIElements.StyleSheets;
 namespace UnityEditor.ShaderGraph.Drawing
 {
     [Serializable]
-    public class WindowDockingLayout
+    internal class WindowDockingLayout
     {
         [SerializeField]
         bool m_DockingLeft;

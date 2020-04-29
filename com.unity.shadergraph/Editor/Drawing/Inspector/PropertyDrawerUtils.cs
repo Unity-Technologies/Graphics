@@ -1,7 +1,6 @@
-﻿using System.Linq;
-using UnityEngine.UIElements;
+﻿using UnityEngine.UIElements;
 
-namespace Drawing.Inspector
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     public static class PropertyDrawerUtils
     {

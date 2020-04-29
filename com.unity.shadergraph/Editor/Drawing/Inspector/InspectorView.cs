@@ -3,25 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
  using Data.Interfaces;
- using Drawing.Inspector.PropertyDrawers;
- using Drawing.Views;
- using UnityEditor;
  using UnityEditor.Experimental.GraphView;
- using UnityEditor.ShaderGraph.Drawing;
+ using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+ using UnityEditor.ShaderGraph.Drawing.Views;
  using UnityEngine;
  using UnityEngine.UIElements;
 
- namespace Drawing.Inspector
-{
+ namespace UnityEditor.ShaderGraph.Drawing.Inspector
+ {
     class InspectorView : GraphSubWindow
     {
         // References
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
-        private IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
-
-        private Action m_previewUpdateDelegate;
+        IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
+        Action m_previewUpdateDelegate;
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
@@ -85,7 +82,7 @@ using System.Reflection;
             m_ContentContainer.MarkDirtyRepaint();
         }
 
-        private void DrawSelection(ISelectable selectable, VisualElement outputVisualElement)
+        void DrawSelection(ISelectable selectable, VisualElement outputVisualElement)
         {
             if(selectable is IInspectable inspectable)
             {
@@ -93,7 +90,7 @@ using System.Reflection;
             }
         }
 
-        private void DrawInspectable(
+        void DrawInspectable(
             VisualElement outputVisualElement,
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
@@ -162,7 +159,7 @@ using System.Reflection;
             }
         }
 
-        private static bool IsPropertyTypeHandled(List<Type> propertyDrawerList, Type typeOfProperty,
+        static bool IsPropertyTypeHandled(List<Type> propertyDrawerList, Type typeOfProperty,
             out Type propertyDrawerToUse)
         {
             propertyDrawerToUse = null;

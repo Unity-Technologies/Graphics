@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using Drawing.Inspector;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -12,21 +10,21 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using Data.Interfaces;
-using Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
+        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
+
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        private Action m_propertyViewUpdateTrigger;
-        private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        Action m_propertyViewUpdateTrigger;
 
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
-
-        // Common
         IManipulator m_ResetReferenceMenu;
 
+        ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public PropertyNodeView(PropertyNode node, EdgeConnectorListener edgeConnectorListener)
             : base(null, ShaderPort.Create(node.GetOutputSlots<MaterialSlot>().First(), edgeConnectorListener))
@@ -52,22 +50,13 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
         }
-        public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
         public Node gvNode => this;
         public AbstractMaterialNode node { get; }
-
         public VisualElement colorElement => null;
-
-        public string inspectorTitle
-        {
-            get
-            {
-                return $"{property?.displayName} (Node)";
-            }
-        }
+        public string inspectorTitle => $"{property.displayName} (Node)";
 
         [Inspectable("ShaderInput", null)]
-        private AbstractShaderProperty property
+        AbstractShaderProperty property
         {
             get
             {
@@ -110,12 +99,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public PropertySheet GetInspectorContent()
-        {
-            var sheet = new PropertySheet();
-            return sheet;
-        }
-
         void ChangeExposedField(bool newValue)
         {
             property.generatePropertyBlock = newValue;
@@ -140,9 +123,19 @@ namespace UnityEditor.ShaderGraph
             }
             else
             {
-                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildResetReferenceNameContextualMenu);
                 this.AddManipulator(m_ResetReferenceMenu);
             }
+        }
+
+        void BuildResetReferenceNameContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Reset Reference", e =>
+            {
+                property.overrideReferenceName = null;
+                m_resetReferenceNameTrigger(property.referenceName);
+                DirtyNodes(ModificationScope.Graph);
+            }, DropdownMenuAction.AlwaysEnabled);
         }
 
         void RegisterPropertyChangeUndo(string actionName)
@@ -217,7 +210,7 @@ namespace UnityEditor.ShaderGraph
             this.MarkDirtyRepaint();
         }
 
-        private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
+        void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             var graph = node.owner as GraphData;
 

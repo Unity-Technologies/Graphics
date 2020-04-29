@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
@@ -15,8 +15,8 @@ namespace Drawing.Inspector.PropertyDrawers
         public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
         public delegate void PostTargetSettingsChangedCallback();
 
-        private PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
-        private ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+        PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
+        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
         // Targets have persistent data that needs to be maintained between interactions
         // Hence we are storing a reference to this particular property drawer to continue using it

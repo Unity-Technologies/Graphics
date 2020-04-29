@@ -2,6 +2,7 @@
 using System.Reflection;
 using Data.Interfaces;
 using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -28,7 +29,7 @@ namespace Drawing.Inspector.PropertyDrawers
         // Need a callback to fetch the row data directly from the source
         internal GetMatrixRowDelegate MatrixRowFetchCallback;
 
-        private void HandleMatrix2Property(
+        void HandleMatrix2Property(
             ValueChangedCallback valueChangedCallback,
             PropertySheet propertySheet,
             Matrix4x4 matrix2Property,
@@ -97,7 +98,7 @@ namespace Drawing.Inspector.PropertyDrawers
             ));
         }
 
-        private void HandleMatrix3Property(
+        void HandleMatrix3Property(
             ValueChangedCallback valueChangedCallback,
             PropertySheet propertySheet,
             Matrix4x4 matrix3Property,
@@ -198,7 +199,7 @@ namespace Drawing.Inspector.PropertyDrawers
             ));
         }
 
-        private void HandleMatrix4Property(
+        void HandleMatrix4Property(
             ValueChangedCallback valueChangedCallback,
             PropertySheet propertySheet,
             Matrix4x4 matrix4Property,

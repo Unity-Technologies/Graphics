@@ -1,12 +1,6 @@
 .unity-label {
-    padding-top: 5px;
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-bottom: 2px;
-    margin-left: 4px;
-    margin-top: 2px;
-    margin-right: 4px;
-    margin-bottom: 2px;
+    padding: 5px 2px 2px;
+    margin: 2px 4px;
 }
 
 .InspectorView {
@@ -31,19 +25,16 @@
     align-items: stretch;
 }
 
-.InspectorView > .mainContainer > #content > ScrollView {
+ ScrollView {
     flex: 1 0 0;
 }
 
 .InspectorView > .mainContainer > #content > #contentContainer {
     min-height: auto;
-    padding-bottom: 6px;
+    padding: 6px;
     flex-direction: column;
     flex-grow: 1;
     align-items: stretch;
-}
-.InspectorView > #content > #header {
-    font-size: 15px;
 }
 
 .InspectorView > .mainContainer > #content > #header {
@@ -59,18 +50,18 @@
     padding-bottom: 2px;
 }
 
-.InspectorView > .mainContainer > #content > #header > #labelContainer {
+#labelContainer {
     flex: 1 0 0;
     flex-direction: column;
     align-items: stretch;
 }
 
-.InspectorView > .mainContainer > #content > #header > #labelContainer > #titleLabel {
+#titleLabel {
     font-size : 14px;
     color: #c1c1c1;
 }
 
-.InspectorView > .mainContainer > #content > #header > #labelContainer > #subTitleLabel {
+#subTitleLabel {
     font-size: 11px;
     color: #606060;
 }

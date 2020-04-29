@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // A map from shaderInput reference names to the viewDataKey of the blackboardFieldView that used to represent them
         // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
-        private Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
+        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
@@ -392,16 +392,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
         {
-            foreach (var data in oldSelectionPersistenceData)
+            var newFieldView = evt.target as BlackboardFieldView;
+            // If this field view represents a value that was previously selected
+            if (oldSelectionPersistenceData.TryGetValue(newFieldView?.shaderInput.referenceName, out var oldViewDataKey))
             {
-                var newFieldView = evt.target as BlackboardFieldView;
-                // If this field view represents a value that was previously selected
-                if (newFieldView?.shaderInput.referenceName == data.Key)
-                {
-                    // ViewDataKey is how UIElements handles UI state persistence,
-                    // This selects the newly added field view
-                    newFieldView.viewDataKey = data.Value;
-                }
+                // ViewDataKey is how UIElements handles UI state persistence,
+                // This selects the newly added field view
+                newFieldView.viewDataKey = oldViewDataKey;
             }
         }
 

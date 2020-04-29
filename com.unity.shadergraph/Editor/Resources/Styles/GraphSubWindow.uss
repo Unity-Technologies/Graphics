@@ -1,12 +1,6 @@
 ﻿.unity-label {
-    padding-top: 5px;
-    padding-left: 2px;
-    padding-right: 2px;
-    padding-bottom: 2px;
-    margin-left: 4px;
-    margin-top: 2px;
-    margin-right: 4px;
-    margin-bottom: 2px;
+    padding: 5px 2px 2px;
+    margin: 2px 4px;
 }
 
 .GraphSubWindow {
@@ -40,10 +34,6 @@
 
 .GraphSubWindow.windowed > .resizer {
     display: none;
-}
-
-.GraphSubWindow:selected {
-    border-color: #44C0FF;
 }
 
 .GraphSubWindow > .mainContainer {
@@ -80,14 +70,12 @@
 
 .GraphSubWindow > .mainContainer > #content > #contentContainer {
     min-height: auto;
-    padding-left: 0;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 6px;
+    padding: 0 0 6px;
     flex-direction: column;
     flex-grow: 1;
     align-items: stretch;
 }
+
 .GraphSubWindow > #content > #header {
     font-size: 15px;
 }
@@ -105,23 +93,3 @@
     padding-bottom: 2px;
 }
 
-.GraphSubWindow.windowed > .mainContainer > #content > #header {
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-}
-
-.GraphSubWindow > .mainContainer > #content > #header > #labelContainer {
-    flex: 1 0 0;
-    flex-direction: column;
-    align-items: stretch;
-}
-
-.GraphSubWindow > .mainContainer > #content > #header > #labelContainer > #titleLabel {
-    font-size : 14px;
-    color: #c1c1c1;
-}
-
-.GraphSubWindow > .mainContainer > #content > #header > #labelContainer > #subTitleLabel {
-    font-size: 11px;
-    color: #606060;
-}

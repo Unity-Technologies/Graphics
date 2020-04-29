@@ -6,7 +6,7 @@ using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-namespace Drawing.Inspector.PropertyDrawers
+namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(Enum))]
     class EnumPropertyDrawer : IPropertyDrawer

@@ -1,9 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using Drawing.Inspector;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -19,15 +15,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     {}
     class ElementResizer : Manipulator
     {
-//        static MethodInfo m_ValidateLayoutMethod;
-//        public static void InternalValidateLayout(IPanel panel)
-//        {
-//            if (m_ValidateLayoutMethod == null)
-//                m_ValidateLayoutMethod = panel.GetType().GetMethod("ValidateLayout", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
-//
-//            m_ValidateLayoutMethod.Invoke(panel, new object[] {});
-//        }
-
         public readonly ResizableElement.Resizer direction;
 
         public readonly VisualElement resizedElement;
