@@ -1066,7 +1066,7 @@ namespace UnityEditor.ShaderGraph
             // Early out if there are no VT nodes in the graph
             if (stackNodes.Count <= 0 && subGraphNodes.Count <= 0)
             {
-                Debug.Log("No vt in subgr");
+                // Debug.Log("No vt in subgr");
                 return result;
             }
 
