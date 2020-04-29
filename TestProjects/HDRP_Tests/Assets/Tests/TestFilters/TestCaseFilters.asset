@@ -48,3 +48,45 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: bc3f6030b835ecd4c800561f9ff1af15, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: 292a7700209ba7c49ab0bcef8b7c8940, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: d04c39af67e5e18449a44f6a7778862f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: 340fc0a32de5178478b13cfa2dd928f6, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: abfc0c0cd1816114e9696849bc9e6406, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: f5cb4917223ead34abb31c1dc1013fb2, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash
