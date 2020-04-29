@@ -8,6 +8,8 @@
 #pragma kernel ScreenSpaceReflectionsTracing      SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection SSR_REPROJECT
 
+#pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+
 // Tweak parameters.
 // #define DEBUG
 #define SSR_TRACE_BEHIND_OBJECTS
@@ -39,6 +41,20 @@
 
 #ifdef DEBUG
     RW_TEXTURE2D(float4, _SsrDebugTexture);
+#endif
+
+// For opaque we do the following operation:
+// - Render opaque object in depth buffer
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth pyramid and raymarch with depth pyramid
+// For transparent reflection we chose to not regenerate a depth pyramid to save performance. So we have
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth buffer (use depth pyramid) and raymarch with depth pyramid
+// - Render transparent object with reflection in depth buffer in transparent prepass
+// - Trigger ray from position recover from new depth buffer and raymarch with opaque depth pyramid
+// So we need a seperate texture for the mip chain and for the depth source when doing the transprent reflection
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+TEXTURE2D_X(_DepthTexture);
 #endif
 
 #ifdef SSR_TRACE
@@ -104,7 +120,12 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     }
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+#else
     float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+#endif
 
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 
