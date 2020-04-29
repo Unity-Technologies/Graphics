@@ -160,9 +160,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
             m_LutSize = postProcessSettings.lutSize;
 
-            // Call after initializing m_LutSize as it's needed for render target allocation.
-            InitializeNonRenderGraphResources(hdAsset);
-
             // Grading specific
             m_HableCurve = new HableCurve();
 
@@ -171,8 +168,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
-
-            FillEmptyExposureTexture();
 
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
@@ -192,6 +187,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
                 m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
             }
+
+            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
+            InitializeNonRenderGraphResources(hdAsset);
         }
 
         public void Cleanup()
@@ -256,6 +254,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
                 enableRandomWrite: true, name: "Empty EV100 Exposure"
             );
+
+            FillEmptyExposureTexture();
 
             // Misc targets
             m_TempTexture1024 = RTHandles.Alloc(
