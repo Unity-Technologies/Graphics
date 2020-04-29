@@ -18,12 +18,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
-        // Targets have persistent data that needs to be maintained between interactions
-        // Hence we are storing a reference to this particular property drawer to continue using it
-        // private TargetPropertyDrawer m_TargetPropertyDrawer = new TargetPropertyDrawer();
-
-        //Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
-
         public void GetPropertyData(
             PostTargetSettingsChangedCallback postChangeValueCallback,
             ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
