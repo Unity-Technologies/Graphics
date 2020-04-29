@@ -35,7 +35,9 @@ namespace UnityEditor.VFX.Operator
         {
             Barycentric,
             Uniform,
-            BarycentricBis, //<= Experiment
+            //<= Experiment
+            LowDistorsionMapping,
+            BarycentricBis,
         }
 
         public class InputPropertiesPlacementSurfaceBarycentricCoordinates
@@ -63,6 +65,15 @@ namespace UnityEditor.VFX.Operator
 
             [Tooltip("Barycentric coordinates (condition = 1 is implicitly resolved ?).")]
             public Vector3 barycentric;
+        }
+
+        public class InputPropertiesPlacementSurfaceLowDistorsionMapping
+        {
+            [Tooltip("The triangle index to read from.")]
+            public uint triangle = 0u;
+
+            [Tooltip("From Eric.")]
+            public Vector2 square;
         }
         //Add trilinear coordinates ? How to represent this input user friendly...
 
@@ -193,6 +204,8 @@ namespace UnityEditor.VFX.Operator
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinates"));
                     else if (surfaceCoordinates == SurfaceCoordinates.BarycentricBis)
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinatesBis"));
+                    else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
+                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceLowDistorsionMapping"));
                     else
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceUniformSampling"));
                 }
@@ -253,6 +266,21 @@ namespace UnityEditor.VFX.Operator
 #endif
                 sampledValues.Add(sampled);
             }
+        }
+
+        private VFXExpression WIP_Function_Compute_TriangleLow(VFXExpression input)
+        {
+            var half2 = VFXOperatorUtility.HalfExpression[UnityEngine.VFX.VFXValueType.Float2];
+            var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
+            var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
+
+            var t = input * half2;
+            var offset = t.y - t.x;
+            var pred = new VFXExpressionCondition(VFXCondition.Greater, offset, zero);
+            var t2 = new VFXExpressionBranch(pred, t.y + offset, t.y);
+            var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
+            var t3 = one - t2 - t1;
+            return new VFXExpressionCombine(t1, t2, t3);
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -324,24 +352,73 @@ namespace UnityEditor.VFX.Operator
                     var sampleValue_A = allInputValues[i];
                     var sampleValue_B = allInputValues[i + attributeCount];
                     var sampleValue_C = allInputValues[i + attributeCount*2];
+                    var outputValueType = sampleValue_A.valueType;
 
                     VFXExpression barycentricCoordinates = null;
                     var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
                     if (surfaceCoordinates == SurfaceCoordinates.Barycentric)
                     {
-                        //https://docs.microsoft.com/en-us/previous-versions/windows/desktop/bb324330(v%3Dvs.85)
                         var barycentricCoordinateInput = inputExpression[2];
                         barycentricCoordinates = new VFXExpressionCombine(barycentricCoordinateInput.x, barycentricCoordinateInput.y, one - barycentricCoordinateInput.x - barycentricCoordinateInput.y);
                     }
-                    else if(surfaceCoordinates == SurfaceCoordinates.BarycentricBis)
+                    else if (surfaceCoordinates == SurfaceCoordinates.BarycentricBis)
                     {
+                        //*not optimal at all will be removed*
                         var inputBarycentric = inputExpression[2];
-                        //respect condition x + y + z = 1
-                        var sum = inputBarycentric.x + inputBarycentric.y + inputBarycentric.z;
-                        var reminderPerComponent = (one - sum) / VFXValue.Constant(3.0f);
-                        barycentricCoordinates = inputBarycentric + new VFXExpressionCombine(reminderPerComponent, reminderPerComponent, reminderPerComponent);
+
+                        //Compute P
+                        var P = sampleValue_A + sampleValue_B + sampleValue_C;
+                        P = P / VFXOperatorUtility.ThreeExpression[outputValueType];
+
+                        var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
+
+                        var baryABP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.x, inputBarycentric.y));
+                        var baryACP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.x, inputBarycentric.z));
+                        var baryCBP = WIP_Function_Compute_TriangleLow(new VFXExpressionCombine(inputBarycentric.y, inputBarycentric.z));
+
+                        var x = VFXOperatorUtility.CastFloat(baryABP.x, outputValueType);
+                        var y = VFXOperatorUtility.CastFloat(baryABP.y, outputValueType);
+                        var z = VFXOperatorUtility.CastFloat(baryABP.z, outputValueType);
+                        var rABP = sampleValue_A * x + sampleValue_B * y + P * z;
+
+                        x = VFXOperatorUtility.CastFloat(baryACP.x, outputValueType);
+                        y = VFXOperatorUtility.CastFloat(baryACP.y, outputValueType);
+                        z = VFXOperatorUtility.CastFloat(baryACP.z, outputValueType);
+                        var rACP = sampleValue_A * x + sampleValue_C * y + P * z;
+
+                        x = VFXOperatorUtility.CastFloat(baryCBP.x, outputValueType);
+                        y = VFXOperatorUtility.CastFloat(baryCBP.y, outputValueType);
+                        z = VFXOperatorUtility.CastFloat(baryCBP.z, outputValueType);
+                        var rCBP = sampleValue_C * x + sampleValue_B * y + P * z;
+
+                        //Use min from input to take which triangle fits
+                        var min = new VFXExpressionMin(inputBarycentric.x, inputBarycentric.y);
+                        min = new VFXExpressionMin(min, inputBarycentric.z);
+
+                        var predMinX = new VFXExpressionCondition(VFXCondition.Equal, inputBarycentric.x, min);
+                        var predMinY = new VFXExpressionCondition(VFXCondition.Equal, inputBarycentric.y, min);
+
+                        //r = predMinX ? rCBP : predMinY ? rACP : rABP
+                        var result = new VFXExpressionBranch(predMinX, rCBP, new VFXExpressionBranch(predMinY, rACP, rABP));
+                        outputExpressions.Add(result);
+                        continue;
                     }
-                    else if(surfaceCoordinates == SurfaceCoordinates.Uniform)
+                    else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
+                    {
+                        //https://hal.archives-ouvertes.fr/hal-02073696v2/document
+                        var input = inputExpression[2];
+
+                        var half2 = VFXOperatorUtility.HalfExpression[UnityEngine.VFX.VFXValueType.Float2];
+                        var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
+                        var t = input * half2;
+                        var offset = t.y - t.x;
+                        var pred = new VFXExpressionCondition(VFXCondition.Greater, offset, zero);
+                        var t2 = new VFXExpressionBranch(pred, t.y + offset, t.y);
+                        var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
+                        var t3 = one - t2 - t1;
+                        barycentricCoordinates = new VFXExpressionCombine(t1, t2, t3);
+                    }
+                    else if (surfaceCoordinates == SurfaceCoordinates.Uniform)
                     {
                         //See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
                         var input = VFXOperatorUtility.Saturate(inputExpression[2]);
@@ -357,7 +434,6 @@ namespace UnityEditor.VFX.Operator
                         throw new Exception("No supported surfaceCoordinates : " + surfaceCoordinates);
                     }
 
-                    var outputValueType = sampleValue_A.valueType;
                     var barycentricCoordinateX = VFXOperatorUtility.CastFloat(barycentricCoordinates.x, outputValueType);
                     var barycentricCoordinateY = VFXOperatorUtility.CastFloat(barycentricCoordinates.y, outputValueType);
                     var barycentricCoordinateZ = VFXOperatorUtility.CastFloat(barycentricCoordinates.z, outputValueType);
