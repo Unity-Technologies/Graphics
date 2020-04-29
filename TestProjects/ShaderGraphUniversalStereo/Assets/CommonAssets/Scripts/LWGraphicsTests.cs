@@ -37,6 +37,7 @@ public class LWGraphicsTests
         // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
         Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
 
+#if UNITY_2020_2_OR_NEWER
         // Ensure a valid XR display is active
         List<XRDisplaySubsystem> xrDisplays = new List<XRDisplaySubsystem>();
         SubsystemManager.GetInstances(xrDisplays);
@@ -44,6 +45,9 @@ public class LWGraphicsTests
 
         // Set mirror view to side-by-side (both eyes)
         xrDisplays[0].SetPreferredMirrorBlitMode(XRMirrorViewBlitMode.SideBySide);
+#else
+        XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
+#endif
 
         yield return null;
 
