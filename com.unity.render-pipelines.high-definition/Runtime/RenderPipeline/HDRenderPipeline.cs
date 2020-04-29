@@ -510,10 +510,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugDisplaySettings.data.msaaSamples = m_MSAASamples;
 
 #if ENABLE_VIRTUALTEXTURES
-            Debug.Log("Scriptable renderpipeline VT enabled");
+            // Debug.Log("Scriptable renderpipeline VT enabled");
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2 + VTBufferManager.AdditionalForwardRT];
 #else
-            Debug.Log("Scriptable renderpipeline VT disabled");
+            //Debug.Log("Scriptable renderpipeline VT disabled");
             m_MRTTransparentMotionVec = new RenderTargetIdentifier[2];
 #endif
 
