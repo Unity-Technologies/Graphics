@@ -1,4 +1,5 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
 
 #pragma enable_d3d11_debug_symbols
 
@@ -16,22 +17,8 @@
 
 #pragma kernel KHistogramGen        GEN_PASS
 #pragma kernel KHistogramReduce     REDUCE_PASS
-
-#define _HistogramRangeScale     _HistogramExposureParams.x
-#define _HistogramRangeBias      _HistogramExposureParams.y
-#define _HistogramMinPercentage  _HistogramExposureParams.z
-#define _HistogramMaxPercentage  _HistogramExposureParams.w
-
-
-#define HISTOGRAM_BINS 128          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
 #define GROUP_SIZE_X 16
 #define GROUP_SIZE_Y 8
-
-#ifdef GEN_PASS
-RWStructuredBuffer<uint> _HistogramBuffer;
-#else
-StructuredBuffer<uint> _HistogramBuffer;
-#endif
 
 
 // Because atomics are only on uint and we need a weighted value, we need to convert.
@@ -40,22 +27,6 @@ StructuredBuffer<uint> _HistogramBuffer;
 uint PackWeight(float weight)
 {
     return uint(weight * 2048);
-}
-
-float UnpackWeight(uint val)
-{
-    return val * rcp(2048.0f);
-}
-
-uint GetHistogramBinLocation(float value)
-{
-    float scaledLogLuma = ComputeEV100FromAvgLuminance(value) * _HistogramRangeScale + _HistogramRangeBias;
-    return uint(saturate(scaledLogLuma) * (HISTOGRAM_BINS - 1));
-}
-
-float BinLocationToEV(uint binIdx)
-{
-    return (binIdx * rcp(float(HISTOGRAM_BINS - 1))  - _HistogramRangeBias) / _HistogramRangeScale;
 }
 
 groupshared uint gs_localHistogram[HISTOGRAM_BINS];

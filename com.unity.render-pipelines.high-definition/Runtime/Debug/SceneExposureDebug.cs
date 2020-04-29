@@ -15,7 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>TODO_FCC ADD TODO</summary>
         HistogramView,
         /// <summary>TODO_FCC Visualize metering</summary>
-        Metering,
+        MeteringWeighted,
 
     }
 

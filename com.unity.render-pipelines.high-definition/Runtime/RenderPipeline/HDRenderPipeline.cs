@@ -4412,6 +4412,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void RenderExposureDebug(in DebugParameters parameters,
                                             RTHandle inputColorBuffer,
+                                            RTHandle currentExposure,
                                             RTHandle prevExposure,
                                             RTHandle output,
                                             ComputeBuffer histogramBuffer,
@@ -4425,12 +4426,24 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 exposureParams = new Vector4(exposureSettings.compensation.value + parameters.debugDisplaySettings.data.lightingDebugSettings.debugExposure, exposureSettings.limitMin.value,
                                                 exposureSettings.limitMax.value, 0f);
 
+            Vector4 exposureVariants = new Vector4(1.0f, (int)exposureSettings.meteringMode.value, (int)exposureSettings.adaptationMode.value, 0.0f);
+            parameters.debugExposureMaterial.SetVector(HDShaderIDs._Variants, exposureVariants);
             parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureParams, exposureParams);
             parameters.debugExposureMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(parameters.hdCamera));
             parameters.debugExposureMaterial.SetTexture(HDShaderIDs._SourceTexture, inputColorBuffer);
             parameters.debugExposureMaterial.SetTexture(HDShaderIDs._PreviousExposureTexture, prevExposure);
+            parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureTexture, currentExposure);
+            parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureWeightMask, exposureSettings.weightTextureMask.value);
+            parameters.debugExposureMaterial.SetBuffer(HDShaderIDs._HistogramBuffer, histogramBuffer);
+            
 
-            HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, 0);
+            int passIndex = 0;
+            if (parameters.debugDisplaySettings.data.exposureDebugSettings.debugMode == ExposureDebugMode.MeteringWeighted)
+                passIndex = 1;
+            if (parameters.debugDisplaySettings.data.exposureDebugSettings.debugMode == ExposureDebugMode.HistogramView)
+                passIndex = 2;
+
+            HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
         }
 
         static void RenderSkyReflectionOverlay(in DebugParameters debugParameters, CommandBuffer cmd, MaterialPropertyBlock mpb, ref float x, ref float y, float overlaySize)
@@ -4478,7 +4491,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO_FCC: Should this be inside the fullscreen debug ? Probably...
                 if (debugParams.exposureDebugEnabled)
                 {
-                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);
+                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);
                 }
 
                 // First resolve color picker
