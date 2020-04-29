@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Generate the mips
                 Texture filteredProjected = FilterAreaLightTexture(cmd, projectedCookie);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
 
                 RTHandlesDeleter.ScheduleRelease(projectedCookie);
             }
@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Generate the mips
                 Texture filteredProjected = FilterAreaLightTexture(cmd, projectedCookie);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID().GetHashCode() + ies.GetInstanceID().GetHashCode());
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID().GetHashCode() + ies.GetInstanceID().GetHashCode());
 
                 RTHandlesDeleter.ScheduleRelease(projectedCookie, 64);
                 RTHandlesDeleter.ScheduleRelease(projectedIES,    64);

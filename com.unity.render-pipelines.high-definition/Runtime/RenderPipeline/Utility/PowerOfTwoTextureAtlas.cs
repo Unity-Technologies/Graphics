@@ -59,12 +59,42 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void BlitOctahedralTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    HDUtils.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
         public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+            }
+        }
+
+        public void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
+            if (Is2D(texture))
+            {
+                BlitOctahedralTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }

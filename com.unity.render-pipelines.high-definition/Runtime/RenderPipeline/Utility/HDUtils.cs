@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         /// <summary>

@@ -255,6 +255,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
         }
 
+        public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // This atlas only support 2D texture so we only blit 2D textures
+            if (Is2D(texture))
+                BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+        }
+
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);

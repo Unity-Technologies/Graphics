@@ -110,11 +110,37 @@ Shader "Hidden/HDRP/Blit"
         float4 FragOctahedralBilinearRepeat(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float2 uv = input.texcoord.xy;
+            float u = input.texcoord.x;
+            float v = input.texcoord.y;
 
-            //if (any(uv < float2(0, 0)) || any(uv > float2(1, 1)))
-            if (all(uv < float2(0, 0)) || all(uv > float2(1, 1)))
-                ;
+            float2 uv;
+            if (u < 0.0f)
+            {
+                if (v < 0.0f)
+                    uv = float2(1.0f + u, 1.0f + v);
+                else if (v < 1.0f)
+                    uv = float2(-u, 1.0f - v);
+                else
+                    uv = float2(1.0f + u, v - 1.0f);
+            }
+            else if (u < 1.0f)
+            {
+                if (v < 0.0f)
+                    uv = float2(1.0f - u, -v);
+                else if (v < 1.0f)
+                    uv = float2(u, v);
+                else
+                    uv = float2(1.0f - u, 2.0f - v);
+            }
+            else
+            {
+                if (v < 0.0f)
+                    uv = float2(u - 1.0f, 1.0f + v);
+                else if (v < 1.0f)
+                    uv = float2(2.0f - u, 1.0f - v);
+                else
+                    uv = float2(u - 1.0f, v - 1.0f);
+            }
 
             return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
         }
