@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added a frame setting for alpha to mask.
 - Added support for custom passes in the AOV API
+- Added quad overdraw and vertex density debug modes.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)

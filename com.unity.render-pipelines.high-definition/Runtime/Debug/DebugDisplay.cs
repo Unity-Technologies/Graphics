@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint screenSpaceShadowIndex = 0;
             /// <summary>Max quad cost for quad overdraw display.</summary>
             public float maxQuadCost = 10.0f;
-            /// <summary>Max quad cost for quad overdraw display.</summary>
+            /// <summary>Max vertex density for vertex density display.</summary>
             public float maxVertexDensity = 10.0f;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
