@@ -281,7 +281,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static RenderStateCollection GBuffer = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-                { RenderState.ZTest(CoreRenderStates.Uniforms.zTestGBuffer) },
+                { RenderState.ZTest(ZTest.Equal), new FieldCondition(Fields.AlphaClip, true) },
+                { RenderState.ZTest(ZTest.LEqual), new FieldCondition(Fields.AlphaClip, false) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",

@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
     public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
+        [System.NonSerialized]
+        internal bool isInOnValidateCall = false;
 
         HDRenderPipelineAsset()
         {
@@ -37,12 +39,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         protected override void OnValidate()
         {
+            isInOnValidateCall = true;
+
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
             if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
 
             UpdateRenderingLayerNames();
+
+            isInOnValidateCall = false;
         }
 
         [SerializeField]
