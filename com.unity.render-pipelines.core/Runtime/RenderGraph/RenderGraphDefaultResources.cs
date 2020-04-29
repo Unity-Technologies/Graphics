@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle blackTextureXR { get; private set; }
         /// <summary>Default black (UInt) XR 2D texture.</summary>
         public TextureHandle blackUIntTextureXR { get; private set; }
-        /// <summary>Default blac XR 3D texture.</summary>
+        /// <summary>Default black XR 3D texture.</summary>
         public TextureHandle blackTexture3DXR { get; private set; }
         /// <summary>Default white XR 2D texture.</summary>
         public TextureHandle whiteTextureXR { get; private set; }
