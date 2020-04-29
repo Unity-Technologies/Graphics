@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion, cameraData.requireSrgbConversion);
@@ -76,7 +77,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             else
 #endif
-            if (cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if (isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
