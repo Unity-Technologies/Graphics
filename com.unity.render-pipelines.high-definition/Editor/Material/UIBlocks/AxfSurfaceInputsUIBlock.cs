@@ -239,13 +239,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DiffuseColorMapST = FindProperty(m_DiffuseColorMapText + tilingOffsetPropNameSuffix);
             m_SpecularColorMapST = FindProperty(m_SpecularColorMapText + tilingOffsetPropNameSuffix);
             m_NormalMapST = FindProperty(m_NormalMapText + tilingOffsetPropNameSuffix);
-            m_SpecularLobeMapST = FindProperty(m_SpecularColorMapText + tilingOffsetPropNameSuffix);
+            m_SpecularLobeMapST = FindProperty(m_SpecularLobeMapText + tilingOffsetPropNameSuffix);
             m_AlphaMapST = FindProperty(m_AlphaMapText + tilingOffsetPropNameSuffix);
             m_FresnelMapST = FindProperty(m_FresnelMapText + tilingOffsetPropNameSuffix);
             m_AnisoRotationMapST = FindProperty(m_AnisoRotationMapText + tilingOffsetPropNameSuffix);
             m_HeightMapST = FindProperty(m_HeightMapText + tilingOffsetPropNameSuffix);
             m_ClearcoatColorMapST = FindProperty(m_ClearcoatColorMapText + tilingOffsetPropNameSuffix);
-            m_ClearcoatNormalMapST = FindProperty(m_ClearcoatColorMapText + tilingOffsetPropNameSuffix);
+            m_ClearcoatNormalMapST = FindProperty(m_ClearcoatNormalMapText + tilingOffsetPropNameSuffix);
             m_ClearcoatIORMapST = FindProperty(m_ClearcoatIORMapText + tilingOffsetPropNameSuffix);
             m_CarPaint2_BTFFlakeMapST = FindProperty(m_CarPaint2_BTFFlakeMapText + tilingOffsetPropNameSuffix);
 
