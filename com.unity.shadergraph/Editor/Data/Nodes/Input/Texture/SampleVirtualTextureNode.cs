@@ -459,7 +459,7 @@ namespace UnityEditor.ShaderGraph
         string MakeVtSample(string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
         {
             const string SampleTemplate =
-                @"$precision4 {0}; VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {3}, {4}, {5}, {0});";
+                @"$precision4 {0}; VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {1}.layer{3}, {4}, {5}, {0});";
 
             return string.Format(
                 SampleTemplate,

@@ -462,9 +462,28 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(guid, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
+            // detect VT layer count mismatches
+            foreach (var paramProp in asset.inputs)
+            {
+                if (paramProp is VirtualTextureShaderProperty vtProp)
+                {
+                    int paramLayerCount = vtProp.value.layers.Count;
+
+                    var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
+                    var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
+                    int argLayerCount = argProp.value.layers.Count;
+
+                    if (argLayerCount != paramLayerCount)
+                        owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+
+                    break;
+                }
+            }
+
             ValidateShaderStage();
         }
 
+        // TODO: remove
         public Dictionary<string, string> GetValueToTextureStackDictionary(GenerationMode generationMode)
         {
             // Get the stack names for the texture values conected to inputs of the sub graph

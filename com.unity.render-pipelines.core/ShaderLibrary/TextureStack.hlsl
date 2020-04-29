@@ -76,11 +76,15 @@ struct VTPropertyParameters
 {
     GraniteConstantBuffers grCB;
     GraniteTranslationTexture translationTable;
-    int layerCount;
     GraniteCacheTexture cacheLayer0;
     GraniteCacheTexture cacheLayer1;
     GraniteCacheTexture cacheLayer2;
     GraniteCacheTexture cacheLayer3;
+    int layerCount;
+    int layer0;
+    int layer1;
+    int layer2;
+    int layer3;
 };
 
 #ifdef TEXTURESTACK_CLAMP
@@ -202,6 +206,10 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
         props.translationTable.Sampler = sampler##stackName##_transtab; \
         \
         props.layerCount = layers; \
+        props.layer0 = layer0Index; \
+        props.layer1 = layer1Index; \
+        props.layer2 = layer2Index; \
+        props.layer3 = layer3Index; \
         \
         props.cacheLayer0.TextureArray = stackName##_c##layer0Index; \
         props.cacheLayer0.Sampler = sampler##stackName##_c##layer0Index;\
@@ -217,29 +225,29 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 
 #define DECLARE_STACK(stackName, layer0SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
+	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
 	DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
 
 #define DECLARE_STACK2(stackName, layer0SamplerName, layer1SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
+	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
 	DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
 
 #define DECLARE_STACK3(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)\
-	DECLARE_BUILD_PROPERTIES(stackName,3,0,1,2,2)
+	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+	DECLARE_BUILD_PROPERTIES(stackName, 3, 0, 1, 2, 2)
 
 #define DECLARE_STACK4(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName, layer3SamplerName)\
 	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName,0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName,1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName,2)\
-	DECLARE_STACK_LAYER(stackName, layer3SamplerName,3)\
-	DECLARE_BUILD_PROPERTIES(stackName,4,0,1,2,3)
+	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+	DECLARE_STACK_LAYER(stackName, layer3SamplerName, 3)\
+	DECLARE_BUILD_PROPERTIES(stackName, 4, 0, 1, 2, 3)
 
 #define PrepareStack(inputParams, stackName) PrepareVT_##stackName(inputParams)
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
