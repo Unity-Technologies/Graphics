@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("float3 Position;");
                     sb.AppendLine("float3 Normal;");
-                    sb.AppendLine("float4 Tangent;");
+                    sb.AppendLine("float3 Tangent;");
                 }
                 sb.AppendLine("};");
                 sb.AppendLine("uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);");
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("const DeformedVertexData vertexData = _DeformedMeshData[asuint(_ComputeMeshIndex) + vertexID];");
                     sb.AppendLine("positionOut = vertexData.Position;");
                     sb.AppendLine("normalOut = vertexData.Normal;");
-                    sb.AppendLine("tangentOut = vertexData.Tangent.xyz;");
+                    sb.AppendLine("tangentOut = vertexData.Tangent;");
                 }
                 sb.AppendLine("}");
             });
