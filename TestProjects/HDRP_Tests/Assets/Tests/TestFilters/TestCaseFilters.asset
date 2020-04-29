@@ -27,3 +27,24 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: ce905d8c0a0497f458dbe86bf3b1f615, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Not working
