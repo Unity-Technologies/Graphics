@@ -109,13 +109,16 @@ namespace UnityEditor.ShaderGraph.Serialization
             s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.objectId, json));
         }
 
-        public static JsonObject CreateInstance(string typeString)
+        public static bool CreateInstance(string typeString, out JsonObject output)
         {
+            output = null;
             if (!k_TypeMap.TryGetValue(typeString, out var type))
             {
-                return null;
+                output = new UnknownTypeNode();
+                return false;
             }
-            return (JsonObject)Activator.CreateInstance(type, true);
+            output = (JsonObject)Activator.CreateInstance(type, true);
+            return true; 
         }
 
         private static FieldInfo s_ObjectIdField =
@@ -137,7 +140,17 @@ namespace UnityEditor.ShaderGraph.Serialization
                     var entry = entries[index];
                     try
                     {
-                        var value = index == 0 ? root : CreateInstance(entry.type);
+                        JsonObject value = null;
+                        bool tryDeserialize = true;
+                        if(index == 0)
+                        {
+                            value = root;
+                        }
+                        else
+                        {
+                            tryDeserialize = CreateInstance(entry.type, out value);
+                        }
+
                         var id = entry.id;
 
                         if (id != null)
@@ -173,13 +186,21 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         var value = valueMap[entry.id];
-                        EditorJsonUtility.FromJsonOverwrite(entry.json, value);
+                        value.Deserailize(entry.type, entry.json);
                         // Set ID again as it could be overwritten from JSON.
                         s_ObjectIdField.SetValue(value, entry.id);
                         value.OnAfterDeserialize(entry.json);
                     }
                     catch (Exception e)
                     {
+                        if(!String.IsNullOrEmpty(entry.id))
+                        {
+                            var value = valueMap[entry.id];
+                            if(value != null)
+                            {
+                                Debug.LogError($"Exception thrown while deserialize object of type {entry.type}: {e.Message}");
+                            }
+                        }
                         Debug.LogException(e);
                     }
                 }
@@ -226,7 +247,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 for (var i = 0; i < serializationQueue.Count; i++)
                 {
                     var value = serializationQueue[i];
-                    var json = EditorJsonUtility.ToJson(value, true);
+                    var json = value.Serialize();
                     idJsonList.Add((value.objectId, json));
                 }
 
@@ -272,7 +293,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 for (var i = 0; i < serializationQueue.Count; i++)
                 {
                     var value = serializationQueue[i];
-                    EditorJsonUtility.ToJson(value, true);
+                    value.Serialize();
                     valueMap[value.objectId] = value;
                 }
             }
@@ -282,6 +303,13 @@ namespace UnityEditor.ShaderGraph.Serialization
                 serializedSet.Clear();
                 isSerializing = false;
             }
+        }
+
+        public static bool TryGetType(string typeName, out Type type)
+        {
+            type = null;
+            return k_TypeMap.TryGetValue(typeName, out type);
+            
         }
     }
 }

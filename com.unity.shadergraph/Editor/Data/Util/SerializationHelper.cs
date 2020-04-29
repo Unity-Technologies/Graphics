@@ -67,7 +67,7 @@ namespace UnityEditor.Graphing
         {
             if(item is UnknownTypeNode node)
             {
-                return node.serializedData;
+                return new JSONSerializedElement() { JSONnodeData = node.Serialize() };
             }
 
             if (item == null)
@@ -114,7 +114,7 @@ namespace UnityEditor.Graphing
             {
                 if (typeof(T) == typeof(AbstractMaterialNode))
                 {
-                    UnknownTypeNode node = new UnknownTypeNode(item);
+                    UnknownTypeNode node = new UnknownTypeNode(item.JSONnodeData);
                     JsonUtility.FromJsonOverwrite(item.JSONnodeData, node);
                     return (T)(object)node;
                 }

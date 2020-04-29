@@ -13,11 +13,22 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class UnknownTypeNode : AbstractMaterialNode
     {
-        public JSONSerializedElement serializedData;
-        public UnknownTypeNode(JSONSerializedElement serializedNodeData) : base()
+        public string serializedData;
+
+        public UnknownTypeNode() : base()
+        {
+            serializedData = null;
+            isValid = false;
+        }
+        public UnknownTypeNode(string serializedNodeData) : base()
         {
             serializedData = serializedNodeData;
             isValid = false;
+        }
+
+        public override string Serialize()
+        {
+            return serializedData;
         }
 
         public override void ValidateNode()

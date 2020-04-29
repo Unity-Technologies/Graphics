@@ -23,6 +23,10 @@ namespace UnityEditor.ShaderGraph.Serialization
             OnBeforeSerialize();
         }
 
+        public virtual string Serialize() { return EditorJsonUtility.ToJson(this, true); }
+
+        public virtual void Deserailize(string typeInfo, string jsonData) { EditorJsonUtility.FromJsonOverwrite(jsonData, this); }
+
         public virtual void OnBeforeSerialize() { }
 
         public virtual void OnAfterDeserialize() { }

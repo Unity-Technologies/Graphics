@@ -78,6 +78,9 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         Dictionary<string, AbstractMaterialNode> m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>();
 
+        [NonSerialized]
+        Dictionary<string, AbstractMaterialNode> m_LegacyUpdateDictionary = new Dictionary<string, AbstractMaterialNode>();
+
         public IEnumerable<T> GetNodes<T>()
         {
             return m_Nodes.SelectValue().OfType<T>();
@@ -1552,34 +1555,52 @@ namespace UnityEditor.ShaderGraph
             m_Version = k_CurrentVersion;
         }
 
-        static JsonObject DeserializeLegacy(string typeString, string json)
+        static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
         {
-            var value = MultiJsonInternal.CreateInstance(typeString);
-            if (value == null)
+            bool tryDeserialize = MultiJsonInternal.CreateInstance(typeString, out JsonObject value);
+            if (tryDeserialize != true)
             {
                 Debug.Log($"Cannot create instance for {typeString}");
                 return null;
             }
-
             MultiJsonInternal.Enqueue(value, json);
+            return value as T;
+        }
 
-            return value;
+        static AbstractMaterialNode DeserializeLegacy(string typeString, string json)
+        {
+            bool tryDeserialize = MultiJsonInternal.CreateInstance(typeString, out JsonObject value);
+            if (tryDeserialize != true)
+            {
+                //Special case - want to support nodes of unknwon type for cross pipeline compatability 
+                value = new LegacyUnknownTypeNode(typeString, json);
+                MultiJsonInternal.Enqueue(value, json);
+                return value as AbstractMaterialNode;
+            }
+            else
+            {
+                MultiJsonInternal.Enqueue(value, json);
+                return value as AbstractMaterialNode;
+            }
+
         }
 
         public override void OnAfterDeserialize(string json)
         {
             if (m_Version == 0)
             {
+                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
+                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
+                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
+
+
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
                 var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
                 var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
                 var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
                 var groupGuidMap = new Dictionary<string, GroupData>();
-                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
-                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
-                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
-                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 m_GroupDatas.Clear();
                 m_StickyNoteDatas.Clear();
@@ -1600,7 +1621,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var serializedProperty in graphData0.m_SerializedProperties)
                 {
-                    var property = (AbstractShaderProperty)DeserializeLegacy(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
+                    var property = DeserializeLegacy<AbstractShaderProperty>(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
                     if (property == null)
                     {
                         continue;
@@ -1630,7 +1651,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
                 {
-                    var keyword = (ShaderKeyword)DeserializeLegacy(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
+                    var keyword = DeserializeLegacy<ShaderKeyword>(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
                     if (keyword == null)
                     {
                         continue;
@@ -1646,7 +1667,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
 
-                    var node = (AbstractMaterialNode)DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
+                    var node = DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
                     if (node == null)
                     {
                         continue;
@@ -1670,7 +1691,7 @@ namespace UnityEditor.ShaderGraph
 
                     foreach (var serializedSlot in node0.m_SerializableSlots)
                     {
-                        var slot = (MaterialSlot)DeserializeLegacy(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
+                        var slot = DeserializeLegacy<MaterialSlot>(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
                         if (slot == null)
                         {
                             continue;
@@ -1861,6 +1882,23 @@ namespace UnityEditor.ShaderGraph
                 m_Version = k_CurrentVersion;
             }
 
+            PooledList<(LegacyUnknownTypeNode, AbstractMaterialNode)> updatedNodes = PooledList<(LegacyUnknownTypeNode,AbstractMaterialNode)>.Get();
+            foreach(var node in m_Nodes.SelectValue())
+            {
+                if(node is LegacyUnknownTypeNode lNode && lNode.foundType != null)
+                {
+                    AbstractMaterialNode legacyNode = (AbstractMaterialNode)Activator.CreateInstance(lNode.foundType);
+                    JsonUtility.FromJsonOverwrite(lNode.serializedData, legacyNode);
+                    legacyNode.group = lNode.group;
+                    updatedNodes.Add((lNode, legacyNode));
+                    //m_Nodes.Remove(lNode);
+                }
+            }
+            foreach(var nodePair in updatedNodes)
+            {
+                ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
+            }
+
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
             foreach (var group in m_GroupDatas.SelectValue())
@@ -1925,10 +1963,15 @@ namespace UnityEditor.ShaderGraph
           
             foreach(var target in m_ActiveTargets.SelectValue())
             {
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
+                var nullCheckTarget = target;
+                if(target == null)
+                {
+                    nullCheckTarget = m_ValidTargets.FirstOrDefault();
+                }
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == nullCheckTarget.GetType());
                 var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
                 m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = target;
+                m_ValidTargets[targetIndex] = nullCheckTarget;
             }
 
             UpdateActiveTargets();
@@ -1938,6 +1981,11 @@ namespace UnityEditor.ShaderGraph
             {
                 NodeUtils.UpdateNodeActiveOnEdgeChange(node);
             }
+        }
+
+        private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)
+        {
+            //ALEX DO THINGS HERE :D 
         }
 
         public void OnEnable()

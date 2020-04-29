@@ -44,6 +44,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             public override SlotValueType valueType { get; }
             public override ConcreteSlotValueType concreteValueType { get; }
+
+            public override bool isDefaultValue => throw new NotImplementedException();
         }
 
         [OneTimeSetUp]
