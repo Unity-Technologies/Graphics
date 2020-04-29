@@ -84,6 +84,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RTHandles.Release(m_SSSColorMSAA);
             RTHandles.Release(m_SSSCameraFilteringBuffer);
+            if (!m_SSSReuseGBufferMemory)
+            {
+                RTHandles.Release(m_SSSColor);
+            }
         }
 
         RTHandle GetSSSBuffer()
@@ -117,11 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_CombineLightingPass);
             CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
-            if (!m_SSSReuseGBufferMemory)
-            {
-                RTHandles.Release(m_SSSColor);
-            }
-
             DestroySSSBuffers();
         }
 
