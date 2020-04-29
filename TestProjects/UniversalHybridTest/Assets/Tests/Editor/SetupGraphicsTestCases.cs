@@ -4,20 +4,13 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-
 public class SetupGraphicsTestCases : IPrebuildSetup
 {
     private static BuildTarget target;
-    
+
     public void Setup()
     {
-        //Trigger DOTS build config
-        Log("*************** SetupGraphicsTestCases - trigger BuildConfig.Build()");
-        target = EditorUserBuildSettings.activeBuildTarget;
-        FindConfig().Build();
-        Log("*************** SetupGraphicsTestCases - Move subscene cache");
-        CreateFolder();
-        CopyFiles();
+        TriggerPreparePlayerTest();
 
         // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
         // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
@@ -30,15 +23,44 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, t);
     }
 
-    private BuildConfiguration FindConfig()
+    private static BuildConfiguration FindConfig(BuildTarget t)
     {
         string configPath = "";
-        switch (target)
+        switch (t)
         {
             case BuildTarget.StandaloneWindows64: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
             case BuildTarget.StandaloneOSX: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Mac.buildconfiguration"; break;
         }
         return (BuildConfiguration)AssetDatabase.LoadAssetAtPath(configPath, typeof(BuildConfiguration));
+    }
+
+    public static void TriggerPreparePlayerTest()
+    {
+        var args = System.Environment.GetCommandLineArgs();
+        for(int i=0; i<args.Length; i++)
+        {
+            //Debug
+            Log("*************** SetupGraphicsTestCases - Args "+i+" = "+args[i]);
+
+            //Tell whether yamato is running player test or playmode test
+            if( args[i].Contains("Standalone") )
+            {
+                PreparePlayerTest();
+                break;
+            }
+        }
+    }
+
+    [MenuItem("GraphicsTest/PreparePlayerTest")]
+    public static void PreparePlayerTest()
+    {
+        //Trigger DOTS build config
+        Log("*************** SetupGraphicsTestCases - trigger BuildConfig.Build()");
+        target = EditorUserBuildSettings.activeBuildTarget;
+        FindConfig(target).Build();
+        Log("*************** SetupGraphicsTestCases - Move subscene cache");
+        CreateFolder();
+        CopyFiles();
     }
 
     [MenuItem("GraphicsTest/Debug/CreateFolder")]
