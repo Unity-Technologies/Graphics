@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -88,9 +89,34 @@ namespace UnityEditor.VFX
             if (features == Features.None)
                 throw new InvalidOperationException("This additional update context has no feature set");
 
-            var expressionMapper = m_Output.GetExpressionMapper(target);
+            
             if (target == VFXDeviceTarget.GPU)
             {
+                var expressionMapper = m_Output.GetExpressionMapper(target);
+
+                if (HasFeature(Features.LOD))
+                {
+                    var exp = GetExpressionsFromSlots(m_Output);
+                    var expNames = VFXMultiMeshHelper.GetLODExpressionNames(((IVFXMultiMeshOutput)m_Output).meshCount).ToArray();
+                    
+                    var lodExp = new VFXExpression[4];
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        lodExp[i] = VFXValue.Constant(0.0f);
+                        if (expNames.Length > i)
+                        {
+                            var foundExp = exp.FirstOrDefault(e => e.name == expNames[i]);
+                            if (foundExp.exp != null)
+                            {
+                                var ratioExp = foundExp.exp * VFXValue.Constant(0.01f);
+                                lodExp[i] = ratioExp * ratioExp; // ratio is squared
+                            }
+                        }
+                    }
+
+                    expressionMapper.AddExpression(new VFXExpressionCombine(lodExp), "lodValues", -1);
+                }
+
                 if (HasFeature(Features.MotionVector))
                 {
                     var currentFrameIndex = expressionMapper.FromNameAndId("currentFrameIndex", -1);
@@ -101,8 +127,11 @@ namespace UnityEditor.VFX
                     expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
                     expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
                 }
+
+                return expressionMapper;
             }
-            return expressionMapper;
+            else
+                return new VFXExpressionMapper();
         }
 
         protected override IEnumerable<VFXBlock> implicitPostBlock
@@ -156,6 +185,8 @@ namespace UnityEditor.VFX
 
                 if (HasFeature(Features.MotionVector))
                     yield return "VFX_FEATURE_MOTION_VECTORS";
+                if (HasFeature(Features.LOD))
+                    yield return "VFX_FEATURE_LOD";
             }
         }
 

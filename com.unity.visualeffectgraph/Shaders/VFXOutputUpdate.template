@@ -80,11 +80,50 @@ void CSMain(uint3 groupId		: SV_GroupID,
 #if INDIRECT_BUFFER_COUNT > 0
             if (attributes.alive)
             {
-#if INDIRECT_BUFFER_COUNT == 1
-                uint indirectIndex = outputBuffer0.IncrementCounter();
-			    outputBuffer0[indirectIndex] = index;
+#if VFX_FEATURE_LOD
+
+#if VFX_WORLD_SPACE
+	            float4x4 elementToWorld = elementToVFX;
+                elementToWorld._m03_m13_m23 = GetCameraRelativePositionWS(elementToWorld._m03_m13_m23);
+#else
+                float4x4 elementToWorld = mul(GetObjectToWorldMatrix(),elementToVFX);          
+#endif
+	            float4x4 viewSpace = mul(GetWorldToViewMatrix(),elementToWorld);
+	            // Compute zOffset in view space to not have to deal with device dependent clip space z range  
+	            float zOffset = Max3(abs(viewSpace._m20),abs(viewSpace._m21),abs(viewSpace._m22));
+		
+	            float4x4 clipSpace = mul(GetViewToHClipMatrix(),viewSpace);
+	            float2 screenRatio = float2(_ScreenSize.x * _ScreenSize.w, 1.0f);
+
+	            // Each axis in (x,y) clip space
+	            float2 xAxisProj = clipSpace._m00_m10 * screenRatio;
+	            float2 yAxisProj = clipSpace._m01_m11 * screenRatio;
+	            float2 zAxisProj = clipSpace._m02_m12 * screenRatio;
+
+	            // Square norm of each projected axis
+	            float xSqrLen = dot(xAxisProj, xAxisProj);
+	            float ySqrLen = dot(yAxisProj, yAxisProj);
+	            float zSqrLen = dot(zAxisProj, zAxisProj);
+
+	            // Find longest one
+	            float lodValue = Max3(xSqrLen, ySqrLen, zSqrLen);
+
+	            // Perspective divide (squared as we're dealing with square length)
+	            float z = lerp(clipSpace._m33 - zOffset * 0.5f,1.0f,unity_OrthoParams.w); // 1.0f for ortho
+                lodValue = (0.25f * lodValue) * rcp(z * z); // ratio of the screen (height) taken by element matrix
+
+                ${VFXLoadParameter:{lodValues}}
+                uint outputIndex = ~0u;
+                for (uint i = 0; i < INDIRECT_BUFFER_COUNT; ++i)
+                    if (lodValue > lodValues[i])
+                    {
+                        outputIndex = i;
+                        break;
+                    }
 #else
                 uint outputIndex = attributes.meshIndex;
+#endif
+
                 if (outputIndex == 0)
                 {
                     uint indirectIndex = outputBuffer0.IncrementCounter();
@@ -108,7 +147,6 @@ void CSMain(uint3 groupId		: SV_GroupID,
                     uint indirectIndex = outputBuffer3.IncrementCounter();
 			        outputBuffer3[indirectIndex] = index;
                 }
-#endif
 #endif
 #endif
 #endif

@@ -17,6 +17,7 @@ namespace UnityEditor.VFX
         private const string maskName = "subMeshMask";
         private const string lodName = "lodValue";
         private const string bufferName = "indirectBuffer";
+        private static readonly float[] lodFactors = new float[4] { 0.1f, 4.0f, 8.0f, 12.0f };
 
         private static string GetId(uint meshCount, int index)
         {
@@ -32,9 +33,18 @@ namespace UnityEditor.VFX
                 string id = GetId(meshCount, i);
 
                 if (lod)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), lodName + id, new TooltipAttribute("Specifies the screen ratio at which mesh" + id + " is used.")), (float)i);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), lodName + id, new TooltipAttribute("Specifies the screen ratio at which mesh" + id + " is used.")), lodFactors[meshCount - i - 1]);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), meshName + id, new TooltipAttribute("Specifies the mesh" + id + " used to render the particle.")), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), maskName + id, new TooltipAttribute("Defines a bitmask to control which submeshes are rendered for mesh" + id + "."), new BitFieldAttribute()), 0xffffffff);
+            }
+        }
+
+        public static IEnumerable<string> GetLODExpressionNames(uint meshCount)
+        {
+            for (int i = 0; i < meshCount; ++i)
+            {
+                string id = GetId(meshCount, i);
+                yield return lodName + id;
             }
         }
 

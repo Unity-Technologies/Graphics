@@ -18,6 +18,8 @@ namespace UnityEditor.VFX
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), SerializeField]
         private uint MeshCount = 1;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        private bool lod = false;
         public uint meshCount => MeshCount;
 
         public override VFXOutputUpdate.Features outputUpdateFeatures
@@ -25,8 +27,13 @@ namespace UnityEditor.VFX
             get
             {
                 VFXOutputUpdate.Features features = base.outputUpdateFeatures;
-                if (MeshCount > 1 && !(HasSorting() || HasStrips(true))) // TODO make it compatible with sorting and strips
-                    features |= VFXOutputUpdate.Features.MultiMesh;
+                if (!(HasSorting() || HasStrips(true))) // TODO make it compatible with sorting and strips
+                {
+                    if (MeshCount > 1)
+                        features |= VFXOutputUpdate.Features.MultiMesh;
+                    if (lod)
+                        features |= VFXOutputUpdate.Features.LOD;
+                }
                 return features;
             }
         }
@@ -56,9 +63,6 @@ namespace UnityEditor.VFX
 
                 if (usesFlipbook)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
-
-                if (meshCount > 1)
-                    yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
             }
         }
 
@@ -74,7 +78,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, false))
+                foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, lod))
                     yield return property;
 
                 if( shaderGraph == null)
