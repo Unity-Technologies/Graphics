@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
 - Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
+- Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 
 ### Fixed
