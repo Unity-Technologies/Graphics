@@ -51,6 +51,8 @@ SAMPLER(sampler_SVBRDF_ClearcoatIORMap);
 
 CBUFFER_START(UnityPerMaterial)
 
+    float4  _MappingMask;
+
     // Scale/Offsets:
     float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0
 
