@@ -17,9 +17,9 @@ static DirectionalShadowType g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
-RWTexture2D<uint> _DebugQuadLockUAV :register(u1);
-RWTexture2D<uint> _DebugQuadOverdrawUAV :register(u2);
-RWTexture2D<uint> _DebugVertexDensityUAV :register(u3);
+RW_TEXTURE2D_X(uint, _DebugQuadLockUAV);
+RW_TEXTURE2D_X(uint, _DebugQuadOverdrawUAV);
+RW_TEXTURE2D_X(uint, _DebugVertexDensityUAV);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
@@ -255,7 +255,7 @@ void IncrementVertexDensityCounter(float4 positionCS)
     if (all(ndc > 0.0) && positionCS.w > 0.0)
     {
         uint2 pixel = (uint2)(ndc * _ScreenSize.xy);
-        InterlockedAdd(_DebugVertexDensityUAV[pixel], 1);
+        InterlockedAdd(_DebugVertexDensityUAV[COORD_TEXTURE2D_X(pixel)], 1);
     }
 }
 

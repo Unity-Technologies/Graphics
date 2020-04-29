@@ -194,14 +194,14 @@ void Frag(PackedVaryingsToPS packedInput,
             for (int i = 0; i < 16; i++)
             {
                 if (!processed)
-                    InterlockedCompareExchange(_DebugQuadLockUAV[quad], unlockedID, id, prevID);
+                    InterlockedCompareExchange(_DebugQuadLockUAV[COORD_TEXTURE2D_X(quad)], unlockedID, id, prevID);
 
                 [branch]
                 if (prevID == unlockedID)
                 {
                     // Wait a bit, then unlock for other quads
                     if (++lockCount == 2)
-                        InterlockedExchange(_DebugQuadLockUAV[quad], unlockedID, prevID);
+                        InterlockedExchange(_DebugQuadLockUAV[COORD_TEXTURE2D_X(quad)], unlockedID, prevID);
                     processed = true;
                 }
 
@@ -210,7 +210,7 @@ void Frag(PackedVaryingsToPS packedInput,
             }
 
             if (lockCount)
-                InterlockedAdd(_DebugQuadOverdrawUAV[quad], 1);
+                InterlockedAdd(_DebugQuadOverdrawUAV[COORD_TEXTURE2D_X(quad)], 1);
         }
         else
 #endif
