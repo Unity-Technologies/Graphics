@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             
             foreach (var sceneView in sceneViewHaveValidateFunction)
                 sceneView.onValidateCameraMode -= RejectDrawMode;
+            sceneViewHaveValidateFunction.Clear();
         }
     }
 }
