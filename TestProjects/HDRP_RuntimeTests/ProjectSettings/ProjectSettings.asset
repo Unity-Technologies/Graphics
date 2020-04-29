@@ -49,6 +49,8 @@ PlayerSettings:
   m_StereoRenderingPath: 0
   m_ActiveColorSpace: 1
   m_MTRendering: 1
+  mipStripping: 0
+  numberOfMipsStripped: 0
   m_StackTraceTypes: 010000000100000001000000010000000100000001000000
   iosShowActivityIndicatorOnLoading: -1
   androidShowActivityIndicatorOnLoading: -1
@@ -103,6 +105,7 @@ PlayerSettings:
   xboxOneMonoLoggingLevel: 0
   xboxOneLoggingLevel: 1
   xboxOneDisableEsram: 0
+  xboxOneEnableTypeOptimization: 0
   xboxOnePresentImmediateThreshold: 0
   switchQueueCommandMemory: 1048576
   switchQueueControlMemory: 16384
@@ -112,6 +115,7 @@ PlayerSettings:
   switchNVNOtherPoolsGranularity: 16777216
   vulkanNumSwapchainBuffers: 3
   vulkanEnableSetSRGBWrite: 0
+  vulkanEnablePreTransform: 0
   m_SupportedAspectRatios:
     4:3: 0
     5:4: 0
@@ -310,6 +314,7 @@ PlayerSettings:
   cameraUsageDescription: 
   locationUsageDescription: 
   microphoneUsageDescription: 
+  switchNMETAOverride: 
   switchNetLibKey: 
   switchSocketMemoryPoolSize: 6144
   switchSocketAllocatorPoolSize: 128
@@ -492,6 +497,7 @@ PlayerSettings:
   ps4UseResolutionFallback: 0
   ps4ReprojectionSupport: 0
   ps4UseAudio3dBackend: 0
+  ps4UseLowGarlicFragmentationMode: 1
   ps4SocialScreenEnabled: 0
   ps4ScriptOptimizationLevel: 2
   ps4Audio3dVirtualSpeakerCount: 14
@@ -527,6 +533,7 @@ PlayerSettings:
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
   webGLCompressionFormat: 0
+  webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
@@ -596,6 +603,7 @@ PlayerSettings:
   XboxOnePersistentLocalStorageSize: 0
   XboxOneXTitleMemory: 8
   XboxOneOverrideIdentityName: 
+  XboxOneOverrideIdentityPublisher: 
   vrEditorSettings:
     daydream:
       daydreamIconForeground: {fileID: 0}
