@@ -50,7 +50,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4  positionCS  : SV_POSITION;
                 half4   color       : COLOR;
-                half2	uv          : TEXCOORD0;
+                float2	uv          : TEXCOORD0;
                 half2	lightingUV  : TEXCOORD1;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
@@ -129,7 +129,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4  positionCS		: SV_POSITION;
                 half4   color			: COLOR;
-                half2	uv				: TEXCOORD0;
+                float2	uv				: TEXCOORD0;
                 half3   normalWS		: TEXCOORD1;
                 half3   tangentWS		: TEXCOORD2;
                 half3   bitangentWS		: TEXCOORD3;
