@@ -1072,7 +1072,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Dispose of Render Pipeline can be call either by OnValidate() or by OnDisable().
             // Inside an OnValidate() call we can't call a DestroyImmediate().
             // Here we are releasing our singleton to not leak while doing a domain reload.
-            // However this is doing a call to DestroyImmediate(). 
+            // However this is doing a call to DestroyImmediate().
             // To workaround this, and was we only leak with Singleton while doing domain reload (and not in OnValidate)
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
@@ -1111,7 +1111,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
+            UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
