@@ -157,9 +157,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
-            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
-            m_LutSize = settings.lutSize;
+            var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+            m_LutSize = postProcessSettings.lutSize;
 
+            // Call after initializing m_LutSize as it's needed for render target allocation.
             InitializeNonRenderGraphResources(hdAsset);
 
             // Grading specific
@@ -180,16 +181,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // relying on (breaks determinism in their code)
             m_Random = new System.Random();
 
-            m_ColorFormat = (GraphicsFormat)settings.bufferFormat;
+            m_ColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
             m_KeepAlpha = false;
 
             // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = settings.supportsAlpha && settings.supportsAlpha;
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
 
             if (m_EnableAlpha == false)
             {
                 // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = settings.supportsAlpha;
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
             }
         }
 
