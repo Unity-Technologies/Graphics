@@ -7,6 +7,13 @@ Shader "HDRP/AxF"
 
         /////////////////////////////////////////////////////////////////////////////
         // General Parameters
+        // UI Only: transfered to _MappingMask
+        // BUG! 6 values work, not 7 -_-
+        //[Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, PlanarXY, 4, PlanarYZ, 5, PlanarZX, 6, Triplanar, 7)] _MappingMode("Mapping Mode", Float) = 0
+        [HideInInspector] _MappingMode("Mapping Mode", Float) = 0
+        [HideInInspector] _MappingMask("MappingMask", Vector) = (1, 0, 0, 0)
+        // UI Only:
+        [Enum(World, 0, Local, 1)] _PlanarSpace("Planar/Triplanar space", Float) = 0
 
         // Tilings and offsets
         _Material_SO( "Main Material Tiling & Offset", Vector) = (1, 1, 0, 0)
@@ -151,6 +158,10 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
     #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+
+    #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
+    #pragma shader_feature_local _ _REQUIRE_UV1 _REQUIRE_UV2 _REQUIRE_UV3
+    #pragma shader_feature_local _ _PLANAR_LOCAL
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
