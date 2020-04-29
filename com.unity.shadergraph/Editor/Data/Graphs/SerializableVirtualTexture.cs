@@ -21,7 +21,7 @@ namespace UnityEditor.ShaderGraph.Internal
     public sealed class SerializableVirtualTexture : ISerializationCallbackReceiver
     {
         [SerializeField]
-        public List<SerializableVirtualTextureLayer> entries = new List<SerializableVirtualTextureLayer>();
+        public List<SerializableVirtualTextureLayer> layers = new List<SerializableVirtualTextureLayer>();
 
         [SerializeField]
         public bool procedural;

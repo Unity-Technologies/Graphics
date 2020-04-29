@@ -11,11 +11,8 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     class VirtualTextureInputMaterialSlot : VirtualTextureMaterialSlot
     {
-        internal VirtualTextureShaderProperty m_Default;
-
         public VirtualTextureInputMaterialSlot()
         {
-            m_Default = new VirtualTextureShaderProperty();
         }
 
         public VirtualTextureInputMaterialSlot(
@@ -26,12 +23,11 @@ namespace UnityEditor.ShaderGraph
             bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
         {
-            m_Default = new VirtualTextureShaderProperty();
         }
 
         public override VisualElement InstantiateControl()
         {
-            return new VirtualTextureSlotControlView(this);
+            return null;
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)
@@ -45,38 +41,14 @@ namespace UnityEditor.ShaderGraph
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            var matOwner = owner as AbstractMaterialNode;
-            if (matOwner == null)
-                throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
-
-            VirtualTextureShaderProperty prop = m_Default.Copy() as VirtualTextureShaderProperty;
-            prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
-            // prop.modifiable = false;
-            prop.generatePropertyBlock = true;
-            // prop.value.texture = texture;
-            // prop.defaultType = defaultType;
-            properties.AddShaderProperty(prop);
         }
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.VirtualTexture)
-            {
-                name = name,
-                // textureValue = texture,      // TODO: virtual textures pass what...   strings?   nothing?
-            };
-            properties.Add(pp);
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            // not entirely sure why we need this function, but sure...
-
-            var slot = foundSlot as VirtualTextureInputMaterialSlot;
-            if (slot != null)
-            {
-                m_Default = slot.m_Default.Copy() as VirtualTextureShaderProperty;
-            }
         }
     }
 }

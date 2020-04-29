@@ -733,7 +733,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void RecreateList(VirtualTextureShaderProperty property)
         {
             // Create reorderable list from entries
-            m_VTReorderableList = new ReorderableList(property.value.entries, typeof(SerializableVirtualTextureLayer), true, true, true, true);
+            m_VTReorderableList = new ReorderableList(property.value.layers, typeof(SerializableVirtualTextureLayer), true, true, true, true);
         }
 
         private void AddCallbacks(VirtualTextureShaderProperty property)
@@ -762,7 +762,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    property.value.entries[index] = new SerializableVirtualTextureLayer(layerName, layerTexture);
+                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerTexture);
 
                     DirtyNodes();
                     Rebuild();
@@ -811,7 +811,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var layerName = "Layer" + index.ToString();
             // Add new entry
-            property.value.entries.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
 
             // Update Blackboard & Nodes
             DirtyNodes();
@@ -825,9 +825,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             List<int> ususedIDs = new List<int>();
 
-            foreach (SerializableVirtualTextureLayer virtualTextureEntry in property.value.entries)
+            foreach (SerializableVirtualTextureLayer virtualTextureEntry in property.value.layers)
             {
-                ususedIDs.Add(property.value.entries.IndexOf(virtualTextureEntry));
+                ususedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
             }
 
             for (int x = 1; x <= 4; x++)
@@ -847,7 +847,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Remove entry
             m_VTSelectedIndex = list.index;
             var selectedEntry = (SerializableVirtualTextureLayer)m_VTReorderableList.list[list.index];
-            property.value.entries.Remove(selectedEntry);
+            property.value.layers.Remove(selectedEntry);
 
             // Update Blackboard & Nodes
             DirtyNodes();

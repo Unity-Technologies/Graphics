@@ -507,6 +507,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     metaKeywords,
                     graphView.selection.OfType<StickyNote>().Select(x => x.userData));
 
+            // why do we serialize and deserialize only to make copies of everything in the steps below?
+            // is this just to clear out all non-serialized data?
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
                 return;
@@ -639,6 +641,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
                 var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
 
+                var materialGraph = (GraphData)graphObject.graph;
+                var fromPropertyNode = fromNode as PropertyNode;
+                var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
+
                 AbstractShaderProperty prop;
                 switch (fromSlot.concreteValueType)
                 {
@@ -685,7 +691,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         prop = new GradientShaderProperty();
                         break;
                     case ConcreteSlotValueType.VirtualTexture:
-                        prop = new VirtualTextureShaderProperty();
+                        prop = new VirtualTextureShaderProperty()
+                        {
+                            // also copy the VT settings over from the original property (if there is one)
+                            value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
+                        };
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -693,9 +703,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (prop != null)
                 {
-                    var materialGraph = (GraphData)graphObject.graph;
-                    var fromPropertyNode = fromNode as PropertyNode;
-                    var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
                     prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
                     prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})", prop.displayName);
 

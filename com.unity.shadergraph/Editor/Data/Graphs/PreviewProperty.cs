@@ -224,9 +224,12 @@ namespace UnityEditor.ShaderGraph
             else if (propType == PropertyType.VirtualTexture)
             {
                 var vt = vtValues;
-                for (int layer= 0; layer < vt.entries.Count; layer++)
+                if ((vt != null) && (vt.layers != null))     // this can be the case if the SampleVT node has no property connected
                 {
-                    mat.SetTexture(vt.entries[layer].layerName, vt.entries[layer].layerTexture.texture);
+                    for (int layer = 0; layer < vt.layers.Count; layer++)
+                    {
+                        mat.SetTexture(vt.layers[layer].layerName, vt.layers[layer].layerTexture.texture);
+                    }
                 }
             }
         }

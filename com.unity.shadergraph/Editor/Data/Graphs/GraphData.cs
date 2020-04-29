@@ -898,15 +898,19 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode)
+        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
             var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
             if (property == null)
                 return;
 
             var node = property.ToConcreteNode() as AbstractMaterialNode;
-            if (node == null)
+            if (node == null)   // Some nodes have no concrete form
+            {                
+                if (deleteNodeIfNoConcreteFormExists)
+                    RemoveNodeNoValidate(propertyNode);
                 return;
+            }
 
             var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
             var newSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault(s => s.valueType == slot.valueType);
@@ -1164,11 +1168,14 @@ namespace UnityEditor.ShaderGraph
                     // property can be made into a concrete node.
                     if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        // If the property is in the serialized paste graph, make the property node into a concrete node.
                         var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
                         if (pastedGraphMetaProperties.Any())
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            // some property nodes cannot be concretized..  fail to paste them
+                            if (pastedNode == null)
+                                continue;
                             pastedNode.drawState = node.drawState;
                             nodeGuidMap[oldGuid] = pastedNode.guid;
                         }

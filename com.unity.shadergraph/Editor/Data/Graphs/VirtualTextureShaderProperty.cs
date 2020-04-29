@@ -18,9 +18,9 @@ namespace UnityEditor.ShaderGraph
             value = new SerializableVirtualTexture();
 
             // add at least one layer
-            value.entries = new List<SerializableVirtualTextureLayer>();
-            value.entries.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
-            value.entries.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
+            value.layers = new List<SerializableVirtualTextureLayer>();
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -42,9 +42,9 @@ namespace UnityEditor.ShaderGraph
         {
             // adds a properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
             string result = "";
-            for (int layer= 0; layer < value.entries.Count; layer++)
+            for (int layer= 0; layer < value.layers.Count; layer++)
             {
-                string layerName = value.entries[layer].layerName;
+                string layerName = value.layers[layer].layerName;
                 result += $"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
             }
             return result;
@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
         {
-            int numLayers = value.entries.Count;
+            int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
                 builder.Append("DECLARE_STACK_CB(");
@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         internal override void AppendNonBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
         {
-            int numLayers = value.entries.Count;
+            int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
                 builder.Append("DECLARE_STACK");
@@ -72,10 +72,10 @@ namespace UnityEditor.ShaderGraph
                 builder.Append("(");
                 builder.Append(referenceName);
                 builder.Append(",");
-                for (int i = 0; i < value.entries.Count; i++)
+                for (int i = 0; i < value.layers.Count; i++)
                 {
                     if (i != 0) builder.Append(",");
-                    builder.Append(value.entries[i].layerName);
+                    builder.Append(value.layers[i].layerName);
                 }
                 builder.Append(")");
                 builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
@@ -97,11 +97,10 @@ namespace UnityEditor.ShaderGraph
             return "VTPropertyParameters " + referenceName;
         }
 
-        // if a blackboard property is deleted, all node instances of it are replaced with this:
+        // if a blackboard property is deleted, or copy/pasted, all node instances of it are replaced with this:
         internal override AbstractMaterialNode ToConcreteNode()
         {
-            // TODO:
-            return null;
+            return null;    // return null to indicate there is NO concrete form of a VT property
         }
 
         internal override PreviewProperty GetPreviewMaterialProperty()
@@ -126,15 +125,15 @@ namespace UnityEditor.ShaderGraph
 
         internal void AddTextureInfo(List<PropertyCollector.TextureInfo> infos)
         {
-            for (int layer = 0; layer < value.entries.Count; layer++)
+            for (int layer = 0; layer < value.layers.Count; layer++)
             {
-                string layerName = value.entries[layer].layerName;
-                var layerTexture = value.entries[layer].layerTexture;
+                string layerName = value.layers[layer].layerName;
+                var layerTexture = value.layers[layer].layerTexture;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
                     name = layerName,
-                    textureId = layerTexture != null ? layerTexture.texture.GetInstanceID() : 0,
+                    textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
                     modifiable = true
                 };
                 infos.Add(textureInfo);

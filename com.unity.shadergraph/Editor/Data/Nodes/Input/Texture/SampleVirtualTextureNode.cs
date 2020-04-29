@@ -167,7 +167,7 @@ namespace UnityEditor.ShaderGraph
         /*
             True if the masternode of the graph this node is currently in supports virtual texturing.
         */ 
-        private bool supportedByMasterNode      // TODO: 
+        private bool supportedByMasterNode
         {
             get
             {
@@ -236,27 +236,36 @@ namespace UnityEditor.ShaderGraph
                     });
                 });
 
-                // TODO
-//                 for (int i = 0; i < node.numSlots; i++)
-//                 {
-//                     int currentIndex = i; //to make lambda by-ref capturing happy
-//                     ps.Add(new PropertyRow(new Label("Layer " + (i + 1) + " Type")), (row) =>
-//                     {
-//                         row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
-//                         {
-//                             field.value = m_Node.m_TextureTypes[i];
-//                             field.RegisterValueChangedCallback(evt =>
-//                             {
-//                                 if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
-//                                     return;
-// 
-//                                 m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
-//                                 m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
-//                                 m_Node.Dirty(ModificationScope.Graph);
-//                             });
-//                         });
-//                     });
-//                 }
+                var vtProperty = m_Node.GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty == null)
+                {
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Please connect a VirtualTexture property to configure texture sampling type.")));
+                }
+                else
+                {
+                    int numLayers = vtProperty.value.layers.Count;
+
+                    for (int i = 0; i < numLayers; i++)
+                    {
+                        int currentIndex = i;   // to make lambda by-ref capturing happy
+                        ps.Add(new PropertyRow(new Label("Layer " + (i + 1) + " Type")), (row) =>
+                        {
+                            row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
+                            {
+                                field.value = m_Node.m_TextureTypes[i];
+                                field.RegisterValueChangedCallback(evt =>
+                                {
+                                    if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
+                                        return;
+
+                                    m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
+                                    m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
+                                    m_Node.Dirty(ModificationScope.Graph);
+                                });
+                            });
+                        });
+                    }
+                }
 
                 ps.Add(new PropertyRow(new Label("Normal Space")), (row) =>
                 {
@@ -277,7 +286,7 @@ namespace UnityEditor.ShaderGraph
 #if !ENABLE_VIRTUALTEXTURES
                 ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("VT is disabled, this node will do regular 2D sampling.")));
 #endif
-                if (!m_Node.supportedByMasterNode)
+                if (!m_Node.owner.isSubGraph && !m_Node.supportedByMasterNode)
                 {
                     ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support VT, this node will do regular 2D sampling.")));
                 }
@@ -352,9 +361,14 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(usedSlots, true);
         }
 
+        const string k_NoPropertyConnected = "A VirtualTexture property must be connected to the VT slot";
         public override void ValidateNode()
         {
             base.ValidateNode();
+            if (!IsSlotConnected(VirtualTextureInputId))
+            {
+                owner.AddValidationError(guid, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+            }
         }
 
         public string GetFeedbackVariableName()
@@ -421,7 +435,7 @@ namespace UnityEditor.ShaderGraph
             if (IsSlotConnected(VirtualTextureInputId))
             {
                 var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-                int numSlots = vtProperty.value.entries.Count;
+                int numLayers = vtProperty.value.layers.Count;
 
                 // TODO: this should be equivalent...
                 string VTPropertiesName2 = GetSlotValue(VirtualTextureInputId, generationMode);
@@ -433,7 +447,7 @@ namespace UnityEditor.ShaderGraph
                 string infoVariableName = localVariablePrefix + "_info";
 
                 bool anyConnected = false;
-                for (int i = 0; i < numSlots; i++)
+                for (int i = 0; i < numLayers; i++)
                 {
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
@@ -460,17 +474,17 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("StackInfo " + infoVariableName + " = PrepareVT(" + parametersVariableName + ", " + VTPropertiesName + ");");
                 }
 
-                for (int i = 0; i < numSlots; i++)
+                for (int i = 0; i < numLayers; i++)
                 {
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
-                        var layerName = vtProperty.value.entries[i].layerName;
+                        var layerName = vtProperty.value.layers[i].layerName;
                         sb.AppendLine(
                             MakeVtSample(infoVariableName, vtProperty.referenceName, i, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
                     }
                 }
 
-                for (int i = 0; i < numSlots; i++)
+                for (int i = 0; i < numLayers; i++)
                 {
                     if (IsSlotConnected(OutputSlotIds[i]))
                     {
