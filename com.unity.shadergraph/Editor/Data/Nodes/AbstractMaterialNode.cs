@@ -309,6 +309,11 @@ namespace UnityEditor.ShaderGraph
                     return owner.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);      // TODO:  propNode.GetProperty() ?
                 }
 
+                if (fromNode is RedirectNodeData redirectNode)
+                {
+                    return redirectNode.GetSlotProperty(RedirectNodeData.kInputSlotID);
+                }
+
                 return null;
             }
 
