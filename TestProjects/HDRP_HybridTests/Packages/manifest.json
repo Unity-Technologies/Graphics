@@ -10,6 +10,7 @@
     "com.unity.rendering.hybrid": "0.4.2-preview.14",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.platforms.windows": "0.3.0-preview.1",
+    "com.unity.platforms.macos": "0.3.0-preview.1",
     "com.unity.test-framework": "1.1.11",
     "com.unity.test-framework.build": "0.0.1-preview.12",
     "com.unity.test-framework.utp-reporter": "0.2.3-preview",
