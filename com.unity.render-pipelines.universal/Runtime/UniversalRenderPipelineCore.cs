@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEditor;
 using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
@@ -103,11 +104,7 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>
         /// True if the camera rendering is for the scene window in the editor
         /// </summary>
-        public bool isSceneViewCamera
-        {
-            get => cameraType == CameraType.SceneView;
-            set { Debug.LogWarning("Setting isSceneViewCamera is an invalid operation. Please use cameraType instead."); }
-        }
+        public bool isSceneViewCamera;
 
         /// <summary>
         /// True if the camera rendering is for the preview window in the editor
