@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         public int maximumLODLevelQualityLevel;
 
-        /// <summary>Stores SssQualityMode on disk.<summary>
+        /// <summary>Stores SssQualityMode on disk.</summary>
         [SerializeField]
         public SssQualityMode sssQualityMode;
         /// <summary>Stores SssQualityLevel on disk.</summary>
