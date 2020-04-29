@@ -13,8 +13,8 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
+    image: graphics-foundation/win10-dxr:latest
+    flavor: b1.xlarge
     components:
       - editor
       - il2cpp
@@ -75,7 +75,7 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
@@ -174,7 +174,6 @@ linux_apis:
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-    - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only

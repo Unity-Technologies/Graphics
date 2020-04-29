@@ -46,6 +46,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetIdentifier cameraTarget = (cameraData.targetTexture != null) ? new RenderTargetIdentifier(cameraData.targetTexture) : BuiltinRenderTextureType.CameraTarget;
 
             bool requiresSRGBConvertion = Display.main.requiresSrgbBlitToBackbuffer;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // For stereo case, eye texture always want color data in sRGB space.
             // If eye texture color format is linear, we do explicit sRGB convertion
@@ -64,7 +65,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // The blit will be reworked for stereo along the XRSDK work.
             Material blitMaterial = (cameraData.isStereoEnabled) ? null : m_BlitMaterial;
             cmd.SetGlobalTexture("_BlitTex", m_Source.Identifier());
-            if (cameraData.isStereoEnabled || cameraData.isSceneViewCamera || cameraData.isDefaultViewport)
+            if (cameraData.isStereoEnabled || isSceneViewCamera || cameraData.isDefaultViewport)
             {
                 // This set render target is necessary so we change the LOAD state to DontCare.
                 cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
