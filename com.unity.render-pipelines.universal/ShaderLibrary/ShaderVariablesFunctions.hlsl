@@ -49,24 +49,36 @@ bool IsPerspectiveProjection()
 
 float3 GetCameraPositionWS()
 {
-    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-        return float3(0, 0, 0);
-    #else
-        return _WorldSpaceCameraPos;
-    #endif
+    // Currently we do not support Camera Relative Rendering so
+    // we simply return the _WorldSpaceCameraPos until then
+    return _WorldSpaceCameraPos;
+
+    // We will replace the code above with this one once
+    // we start supporting Camera Relative Rendering
+    //#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    //    return float3(0, 0, 0);
+    //#else
+    //    return _WorldSpaceCameraPos;
+    //#endif
 }
 
 // Could be e.g. the position of a primary camera or a shadow-casting light.
 float3 GetCurrentViewPosition()
 {
-#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
+    // Currently we do not support Camera Relative Rendering so
+    // we simply return the _WorldSpaceCameraPos until then
     return GetCameraPositionWS();
-#else
-    // This is a generic solution.
-    // However, for the primary camera, using '_WorldSpaceCameraPos' is better for cache locality,
-    // and in case we enable camera-relative rendering, we can statically set the position is 0.
-    return UNITY_MATRIX_I_V._14_24_34;
-#endif
+
+    // We will replace the code above with this one once
+    // we start supporting Camera Relative Rendering
+    //#if defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS)
+    //    return GetCameraPositionWS();
+    //#else
+    //    // This is a generic solution.
+    //    // However, for the primary camera, using '_WorldSpaceCameraPos' is better for cache locality,
+    //    // and in case we enable camera-relative rendering, we can statically set the position is 0.
+    //    return UNITY_MATRIX_I_V._14_24_34;
+    //#endif
 }
 
 // Returns the forward (central) direction of the current view in the world space.
