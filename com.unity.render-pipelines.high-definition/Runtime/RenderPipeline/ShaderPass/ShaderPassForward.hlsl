@@ -123,7 +123,7 @@ void Frag(PackedVaryingsToPS packedInput,
     ENCODE_INTO_SSSBUFFER(surfaceData, posInput.positionSS, outSSSBuffer);
 #endif
 
-    
+
 
     // Same code in ShaderPassForwardUnlit.shader
     // Reminder: _DebugViewMaterialArray[i]
@@ -133,7 +133,7 @@ void Frag(PackedVaryingsToPS packedInput,
     //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
     //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
     bool viewMaterial = false;
-    int bufferSize = int(_DebugViewMaterialArray[0]);
+    int bufferSize = _DebugViewMaterialArray[0].x;
     if (bufferSize != 0)
     {
         bool needLinearToSRGB = false;
@@ -143,7 +143,7 @@ void Frag(PackedVaryingsToPS packedInput,
         // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
         for (int index = 1; index <= bufferSize; index++)
         {
-            int indexMaterialProperty = int(_DebugViewMaterialArray[index]);
+            int indexMaterialProperty = _DebugViewMaterialArray[index].x;
 
             // skip if not really in use
             if (indexMaterialProperty != 0)
