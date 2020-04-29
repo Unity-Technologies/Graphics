@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public static void Apply(CloudLayer layer, Material skyMaterial)
         {
-            if (layer != null)
+            if (layer != null && layer.enabled.value == true)
             {
                 Vector4 cloudParam = layer.GetParameters();
 

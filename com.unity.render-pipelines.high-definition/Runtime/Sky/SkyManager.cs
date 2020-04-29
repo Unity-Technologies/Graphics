@@ -812,6 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (staticLightingSky != null)
                 {
                     m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
+                    m_StaticLightingSky.cloudLayer = staticLightingSky.cloudLayer;
                     UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
                     m_StaticSkyUpdateRequired = false;
                 }
@@ -839,6 +840,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_BuiltinParameters.debugSettings = debugSettings;
             m_BuiltinParameters.frameIndex = frameIndex;
             m_BuiltinParameters.skySettings = skyContext.skySettings;
+            m_BuiltinParameters.cloudLayer = skyContext.cloudLayer;
         }
 
         public void PreRenderSky(HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle normalBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)

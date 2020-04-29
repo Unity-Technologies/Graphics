@@ -748,9 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
-
-                var cloudLayer = volumeStack.GetComponent<CloudLayer>();
-                visualSky.cloudLayer = (cloudLayer != null && cloudLayer.enabled.value) ? cloudLayer : null;
+                visualSky.cloudLayer = volumeStack.GetComponent<CloudLayer>();
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
