@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
-        private Action m_InspectorUpdateDelegate;
+        Action m_InspectorUpdateDelegate;
 
         public string inspectorTitle => this.graph.path;
 
