@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.Universal
         private static class Styles
         {
             public static readonly GUIContent RendererTitle = new GUIContent("Forward Renderer", "Custom Forward Renderer for Universal RP.");
+            public static readonly GUIContent PostProcessLabel = new GUIContent("Post Process Data", "The asset containing references to shaders and Textures that the Renderer uses for post-processing.");
             public static readonly GUIContent FilteringLabel = new GUIContent("Filtering", "Controls filter rendering settings for this renderer.");
             public static readonly GUIContent OpaqueMask = new GUIContent("Opaque Layer Mask", "Controls which opaque layers this renderer draws.");
             public static readonly GUIContent TransparentMask = new GUIContent("Transparent Layer Mask", "Controls which transparent layers this renderer draws.");
@@ -42,7 +43,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.RendererTitle, EditorStyles.boldLabel); // Title
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_PostProcessData);
+            EditorGUILayout.PropertyField(m_PostProcessData, Styles.PostProcessLabel);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
