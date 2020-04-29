@@ -408,7 +408,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle                depthTexture;
             public TextureHandle                contactShadowsTexture;
             public ComputeBufferHandle          lightList;
-            public HDShadowManager              shadowManager;
         }
 
         TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, BuildGPULightListOutput lightLists, int firstMipOffsetY)
