@@ -79,13 +79,11 @@ publish_{{ test.name }}:
         frequency: daily
 {% endif -%}
   dependencies:
-    
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
 {% for editor in editors -%}
-    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_{{ editor.version }}
 {% for platform in platforms -%}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
 # Disabled for linux since it requires GPUs

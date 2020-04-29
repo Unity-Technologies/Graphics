@@ -56,7 +56,6 @@ all_project_ci_{{ editor.version }}:
   {% if editor.version == "fast-2020.1" %}
   # run abv for non-draft PRs that are not docs
   triggers:
-    cancel_old_ci: true
     expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
