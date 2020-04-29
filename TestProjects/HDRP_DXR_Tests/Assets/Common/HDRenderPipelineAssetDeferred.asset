@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAssetDeferred
   m_EditorClassIdentifier: 
-  m_Version: 14
+  m_Version: 15
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -158,7 +158,7 @@ MonoBehaviour:
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 65899829919581
+      data1: 136268574097245
       data2: 4539628425396027392
     lodBias: 1
     lodBiasMode: 0
@@ -166,10 +166,13 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69344385302301
+      data1: 139713129479965
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -177,10 +180,13 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69696415080221
+      data1: 140065159257885
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -188,13 +194,20 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
     supportSSR: 1
+    supportSSRTransparent: 0
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    increaseSssSampleCount: 0
+    sssSampleBudget:
+      m_Values: 140000002800000050000000
+      m_SchemaId:
+        m_Id: With3Levels
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 0
     supportLightLayers: 0
@@ -220,7 +233,14 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
+    supportProbeVolume: 0
     supportRayTracing: 1
+    probeVolumeSettings:
+      atlasWidth: 128
+      atlasHeight: 128
+      atlasDepth: 512
+      atlasOctahedralDepthWidth: 2048
+      atlasOctahedralDepthHeight: 2048
     lightLoopSettings:
       cookieAtlasSize: 2048
       cookieFormat: 74
@@ -298,6 +318,7 @@ MonoBehaviour:
     xrSettings:
       singlePass: 1
       occlusionMesh: 1
+      cameraJitter: 0
     postProcessQualitySettings:
       NearBlurSampleCount: 030000000500000008000000
       NearBlurMaxRadius:
@@ -352,6 +373,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 784637474d9deec43a1d78b2361b9e6f, type: 2}
   - {fileID: 11400000, guid: 0069ee94e5a66174e8d3393776072a41, type: 2}
   - {fileID: 11400000, guid: e9b7d3ae706a8c845b9d317e195ff8a0, type: 2}
+  - {fileID: 11400000, guid: 57e246e5f8d6a8b4395e2070883735d5, type: 2}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
