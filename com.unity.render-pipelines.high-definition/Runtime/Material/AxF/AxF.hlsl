@@ -71,6 +71,15 @@
 #    define IF_FLAKES_JUST_BTF(a) (a)
 #endif
 
+#ifdef _MAPPING_TRIPLANAR
+#    define NB_FLAKES_RND_SHIFTS 3
+#    define FLAKES_SHIFT_IDX_PLANAR_ZY (0)
+#    define FLAKES_SHIFT_IDX_PLANAR_XZ (1)
+#    define FLAKES_SHIFT_IDX_PLANAR_XY (2)
+#else
+#    define NB_FLAKES_RND_SHIFTS 1
+#endif
+
 // Define this to sample the environment maps/LTC samples for each lobe, instead of a single sample with an average lobe
 #define USE_COOK_TORRANCE_MULTI_LOBES   1
 #define MAX_CT_LOBE_COUNT 3
@@ -80,6 +89,30 @@
 //-----------------------------------------------------------------------------
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
+
+void FillFlakesBSDFData(SurfaceData surfaceData, inout BSDFData bsdfData)
+{
+#ifdef _MAPPING_TRIPLANAR
+    bsdfData.flakesUVZY = surfaceData.flakesUVZY;
+    bsdfData.flakesUVXZ = surfaceData.flakesUVXZ;
+    bsdfData.flakesUVXY = surfaceData.flakesUVXY;
+    bsdfData.flakesMipLevelZY = surfaceData.flakesMipLevelZY;
+    bsdfData.flakesMipLevelXZ = surfaceData.flakesMipLevelXZ;
+    bsdfData.flakesMipLevelXY = surfaceData.flakesMipLevelXY;
+    bsdfData.flakesTriplanarWeights = surfaceData.flakesTriplanarWeights;
+#else
+    // NOTE: When not triplanar UVZY has one uv set or one planar coordinate set,
+    // and this planar coordinate set isn't necessarily ZY, we just reuse this field
+    // as a common one.
+    bsdfData.flakesUVZY = surfaceData.flakesUVZY;
+    bsdfData.flakesMipLevelZY = surfaceData.flakesMipLevelZY;
+    bsdfData.flakesUVXZ = 0;
+    bsdfData.flakesUVXY = 0;
+    bsdfData.flakesMipLevelXZ = 0;
+    bsdfData.flakesMipLevelXY = 0;
+    bsdfData.flakesTriplanarWeights = 0;
+#endif
+}
 
 // AxF splits the chromaticity and f0 from the usual "SpecularColor" convention
 // to just be a chromatic f0.
@@ -686,7 +719,7 @@ float   OrenNayar(in float3 n, in float3 v, in float3 l, in float roughness)
 BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData    bsdfData;
-    //  ZERO_INITIALIZE(BSDFData, data);
+    ZERO_INITIALIZE(BSDFData, bsdfData);
 
     bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
     bsdfData.specularOcclusion = surfaceData.specularOcclusion;
@@ -711,14 +744,12 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
 
     // Useless but pass along anyway
-    bsdfData.flakesUV = surfaceData.flakesUV;
-    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
+    FillFlakesBSDFData(surfaceData, bsdfData);
 
     //-----------------------------------------------------------------------------
 #elif defined(_AXF_BRDF_TYPE_CAR_PAINT)
     bsdfData.diffuseColor = surfaceData.diffuseColor;
-    bsdfData.flakesUV = surfaceData.flakesUV;
-    bsdfData.flakesMipLevel = surfaceData.flakesMipLevel;
+    FillFlakesBSDFData(surfaceData, bsdfData);
     bsdfData.clearcoatColor = 1.0;  // Not provided, assume white...
     bsdfData.clearcoatIOR = surfaceData.clearcoatIOR;
     bsdfData.clearcoatNormalWS = HasClearcoat() ? surfaceData.clearcoatNormalWS : surfaceData.normalWS;
@@ -810,9 +841,29 @@ uint    SampleFlakesLUT(uint index)
     //    return pipoLUT[min(11, _index)];
 }
 
-float3  SamplesFlakes(float2 UV, uint sliceIndex, float mipLevel)
+float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSDFData bsdfData)
 {
-    return _CarPaint2_BTFFlakeMapScale * SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, UV, sliceIndex, mipLevel).xyz;
+    float3 val = 0;
+#ifdef _MAPPING_TRIPLANAR
+    val += bsdfData.flakesTriplanarWeights.x * 
+           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                      bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
+                                      sliceIndex, bsdfData.flakesMipLevelZY).xyz;
+    val += bsdfData.flakesTriplanarWeights.y * 
+           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                      bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
+                                      sliceIndex, bsdfData.flakesMipLevelXZ).xyz;
+    val += bsdfData.flakesTriplanarWeights.z * 
+           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                      bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
+                                      sliceIndex, bsdfData.flakesMipLevelXY).xyz;
+    val *= _CarPaint2_BTFFlakeMapScale;
+#else
+    val = _CarPaint2_BTFFlakeMapScale * 
+          SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                     bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz;
+#endif
+    return val;
 }
 
 //
@@ -820,8 +871,9 @@ float3  SamplesFlakes(float2 UV, uint sliceIndex, float mipLevel)
 //
 float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 {
-    float2  UV = bsdfData.flakesUV;
-    float   mipLevel = bsdfData.flakesMipLevel;
+    //Now handled in SampleFlakes:
+    //float2  UV = bsdfData.flakesUV;
+    //float   mipLevel = bsdfData.flakesMipLevel;
 
     // thetaH sampling defines the angular sampling, i.e. angular flake lifetime
     float   binIndexH = _CarPaint2_FlakeNumThetaF * (2.0 * thetaH / PI) + 0.5; // TODO: doc says to use NumThetaF for both, check if this isn't a typo
@@ -836,8 +888,9 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     float   thetaD_weight = binIndexD - thetaD_low;
 
     // To allow lower thetaD samplings while preserving flake lifetime, "virtual" thetaD patches are generated by shifting existing ones
-    float2   offset_l = 0;
-    float2   offset_h = 0;
+    // NB_FLAKES_RND_SHIFTS = 1 if not triplanar; otherwise this is in case we want a randomization that takes planar coordinate index into account
+    float2   offset_l[NB_FLAKES_RND_SHIFTS] = (float2[NB_FLAKES_RND_SHIFTS])0;
+    float2   offset_h[NB_FLAKES_RND_SHIFTS] = (float2[NB_FLAKES_RND_SHIFTS])0;
 
     // Organization of the flake BTF slice array and LUT:
     //
@@ -943,8 +996,10 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
     // Access flake texture - make sure to stay in the correct slices (no slip over)
     if (thetaD_low < _CarPaint2_FlakeMaxThetaI)
     {
-        float2  UVl = UV + offset_l;
-        float2  UVh = UV + offset_h;
+        // These are spatial UVs, we let SampleFlakes deal with them in case of triplanar,
+        // and just submit the random shift offsets (TODO "virtual" angular patches)
+        //float2  UVl = UV + offset_l;
+        //float2  UVh = UV + offset_h;
 
         uint    LUT0 = SampleFlakesLUT(thetaD_low);
         uint    LUT1 = SampleFlakesLUT(thetaD_high);
@@ -954,10 +1009,10 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 
         if (LUT0 + thetaH_low < LUT0_limit)
         {
-            H0_D0 = SamplesFlakes(UVl, LUT0 + thetaH_low, mipLevel);
+            H0_D0 = SamplesFlakes(offset_l, LUT0 + thetaH_low, bsdfData);
             if (LUT0 + thetaH_high < LUT0_limit)
             {
-                H1_D0 = SamplesFlakes(UVl, LUT0 + thetaH_high, mipLevel);
+                H1_D0 = SamplesFlakes(offset_l, LUT0 + thetaH_high, bsdfData);
             }
         }
         // else it means that the calculated index for that thetaD_low and the thetaH_low
@@ -974,10 +1029,10 @@ float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
         {
             if (LUT1 + thetaH_low < LUT2)
             {
-                H0_D1 = SamplesFlakes(UVh, LUT1 + thetaH_low, mipLevel);
+                H0_D1 = SamplesFlakes(offset_h, LUT1 + thetaH_low, bsdfData);
                 if (LUT1 + thetaH_high < LUT2)
                 {
-                    H1_D1 = SamplesFlakes(UVh, LUT1 + thetaH_high, mipLevel);
+                    H1_D1 = SamplesFlakes(offset_h, LUT1 + thetaH_high, bsdfData);
                 }
             }
             // else, same thing as our comment above

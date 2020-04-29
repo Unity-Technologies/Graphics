@@ -80,11 +80,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    anisotropyAngle;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("Flakes UV")]
-            public Vector2  flakesUV;
+            [SurfaceDataAttributes("Flakes UV (or PlanarZY)")]
+            public Vector2  flakesUVZY;
+            [SurfaceDataAttributes("Flakes PlanarXZ")]
+            public Vector2  flakesUVXZ;
+            [SurfaceDataAttributes("Flakes PlanarXY")]
+            public Vector2  flakesUVXY;
 
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            [SurfaceDataAttributes("Flakes Mip (and for PlanarZY)")]
+            public float    flakesMipLevelZY;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXZ")]
+            public float    flakesMipLevelXZ;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXY")]
+            public float    flakesMipLevelXY;
+            [SurfaceDataAttributes("Flakes Triplanar Weights")]
+            public Vector3  flakesTriplanarWeights;
 
             // BTF Variables
 
@@ -127,11 +137,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    height_mm;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("")]
-            public Vector2  flakesUV;
-
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            public Vector2  flakesUVZY;
+            public Vector2  flakesUVXZ;
+            public Vector2  flakesUVXY;
+            public float  flakesMipLevelZY;
+            public float  flakesMipLevelXZ;
+            public float  flakesMipLevelXY;
+            public Vector3 flakesTriplanarWeights;
 
             // BTF Variables
 
