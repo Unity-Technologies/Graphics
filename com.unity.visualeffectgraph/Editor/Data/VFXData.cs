@@ -444,7 +444,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType != VFXContextType.Init)
                         onlyInit = false;
-                    if (context.contextType != VFXContextType.Output)
+                    if (context.contextType != VFXContextType.Output && context.contextType != VFXContextType.Filter)
                         onlyOutput = false;
                     if (context.contextType != VFXContextType.Update)
                     {

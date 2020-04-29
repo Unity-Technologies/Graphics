@@ -1,0 +1,119 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXPerPassInclude}
+${VFXInclude("Shaders/VFXParticleCommon.template")}
+
+ByteAddressBuffer attributeBuffer;
+
+#if VFX_FEATURE_MOTION_VECTORS
+RWByteAddressBuffer elementToVFXBuffer;
+#endif
+
+#if INDIRECT_BUFFER_COUNT > 0
+RWStructuredBuffer<uint> outputBuffer0;
+#endif
+#if INDIRECT_BUFFER_COUNT > 1
+RWStructuredBuffer<uint> outputBuffer1;
+#endif
+#if INDIRECT_BUFFER_COUNT > 2
+RWStructuredBuffer<uint> outputBuffer2;
+#endif
+#if INDIRECT_BUFFER_COUNT > 3
+RWStructuredBuffer<uint> outputBuffer3;
+#endif
+#if INDIRECT_BUFFER_COUNT > 4
+#error Too many indirect buffers defined.
+#endif
+
+CBUFFER_START(updateParams)
+	uint nbMax;
+	uint dispatchWidth;
+	uint systemSeed;
+CBUFFER_END
+
+${VFXGeneratedBlockFunction}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 groupId		: SV_GroupID,
+			uint3 groupThreadId	: SV_GroupThreadID)
+{
+	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	if (id < nbMax)
+	{
+		Attributes attributes = (Attributes)0;
+		SourceAttributes sourceAttributes = (SourceAttributes)0;
+
+        uint index = id;
+		${VFXLoadAttributes:{alive}}
+		if (attributes.alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			${VFXProcessBlocks}
+			
+			${VFXLoadSize}
+			float4x4 elementToVFX = GetElementToVFXMatrix(
+				attributes.axisX,
+				attributes.axisY,
+				attributes.axisZ,
+				float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+				float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+				size3,
+				attributes.position);
+
+#if VFX_FEATURE_MOTION_VECTORS 
+			UNITY_UNROLL
+			for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+			{
+				UNITY_UNROLL
+				for (int itIndexMatrixCol = 0; itIndexMatrixCol < 4; ++itIndexMatrixCol)
+				{
+					uint itIndexMatrix = itIndexMatrixCol * 4 + itIndexMatrixRow;
+					float value = elementToVFX[itIndexMatrixRow][itIndexMatrixCol];
+					elementToVFXBuffer.Store((index * 16 + itIndexMatrix) << 2, asuint(value));
+				}
+			}
+
+            elementToVFXBuffer.Store((index*16 + 15) << 2, attributes.alive ? asuint(currentFrameIndex) : 0u);
+#endif
+
+#if INDIRECT_BUFFER_COUNT > 0
+            if (attributes.alive)
+            {
+#if INDIRECT_BUFFER_COUNT == 1
+                uint indirectIndex = outputBuffer0.IncrementCounter();
+			    outputBuffer0[indirectIndex] = index;
+#else
+                uint outputIndex = attributes.meshIndex;
+                if (outputIndex == 0)
+                {
+                    uint indirectIndex = outputBuffer0.IncrementCounter();
+			        outputBuffer0[indirectIndex] = index;
+                }
+#if INDIRECT_BUFFER_COUNT > 1
+                else if (outputIndex == 1)
+                {
+                    uint indirectIndex = outputBuffer1.IncrementCounter();
+			        outputBuffer1[indirectIndex] = index;
+                }
+#if INDIRECT_BUFFER_COUNT > 2
+                else if (outputIndex == 2)
+                {
+                    uint indirectIndex = outputBuffer2.IncrementCounter();
+			        outputBuffer2[indirectIndex] = index;
+                }
+#if INDIRECT_BUFFER_COUNT > 3
+                else if (outputIndex == 3)
+                {
+                    uint indirectIndex = outputBuffer3.IncrementCounter();
+			        outputBuffer3[indirectIndex] = index;
+                }
+#endif
+#endif
+#endif
+#endif
+            }
+#endif
+		}		
+	}
+}

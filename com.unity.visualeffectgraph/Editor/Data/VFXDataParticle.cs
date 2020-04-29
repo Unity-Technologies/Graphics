@@ -462,14 +462,15 @@ namespace UnityEditor.VFX
 
         public override IEnumerable<VFXContext> InitImplicitContexts()
         {
-            if (!NeedsSort() && !m_Owners.OfType<IVFXSubRenderer>().Any(o => o.hasMotionVector))
+            if (!NeedsSort() &&
+                !m_Owners.OfType<VFXAbstractParticleOutput>().Any(o => o.NeedsOutputUpdate()))
             {
                 //Early out with the most common case
                 m_Contexts = m_Owners;
                 return Enumerable.Empty<VFXContext>();
             }
 
-            m_Contexts = new List<VFXContext>(m_Owners.Count + 1);
+            m_Contexts = new List<VFXContext>(m_Owners.Count + 2); // Allocate max number
             int index = 0;
 
             // First add init and updates
@@ -489,17 +490,20 @@ namespace UnityEditor.VFX
                 m_Contexts.Add(cameraSort);
             }
 
-            //Motion vector jobs
+            //additional update
             for (int outputIndex = index; outputIndex < m_Owners.Count; ++outputIndex)
             {
                 var currentOutputContext = m_Owners[outputIndex];
-                var abstractParticleOutput = currentOutputContext as IVFXSubRenderer;
-                if (abstractParticleOutput != null && abstractParticleOutput.hasMotionVector)
+                var abstractParticleOutput = currentOutputContext as VFXAbstractParticleOutput;
+                if (abstractParticleOutput == null)
+                    continue;
+
+                if (abstractParticleOutput.NeedsOutputUpdate())
                 {
-                    var motionVector = VFXContext.CreateImplicitContext<VFXMotionVector>(this);
-                    motionVector.SetEncapsulatedOutput(currentOutputContext);
-                    implicitContext.Add(motionVector);
-                    m_Contexts.Add(motionVector);
+                    var update = VFXContext.CreateImplicitContext<VFXOutputUpdate>(this);
+                    update.SetOutput(abstractParticleOutput);
+                    implicitContext.Add(update);
+                    m_Contexts.Add(update);
                 }
             }
 
@@ -513,6 +517,11 @@ namespace UnityEditor.VFX
         public bool NeedsIndirectBuffer()
         {
             return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw());
+        }
+
+        public bool NeedsGlobalIndirectBuffer()
+        {
+            return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasIndirectDraw() && !VFXOutputUpdate.HasFeature(o.outputUpdateFeatures,VFXOutputUpdate.Features.IndirectDraw));
         }
 
         public bool NeedsSort()
@@ -627,14 +636,44 @@ namespace UnityEditor.VFX
                 }
             }
 
-            int indirectBufferIndex = -1;
+            Dictionary < VFXContext, VFXOutputUpdate> indirectOutputToCuller = null;
             bool needsIndirectBuffer = NeedsIndirectBuffer();
+            int startIndirectBufferIndex = -1;
+            bool needsGlobalIndirectBuffer = false;
             if (needsIndirectBuffer)
             {
-                systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
-                indirectBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
-                systemBufferMappings.Add(new VFXMapping("indirectBuffer", indirectBufferIndex));
+                indirectOutputToCuller = new Dictionary<VFXContext, VFXOutputUpdate>();
+                foreach (var cullCompute in m_Contexts.OfType<VFXOutputUpdate>())
+                    if (cullCompute.HasFeature(VFXOutputUpdate.Features.IndirectDraw))
+                        indirectOutputToCuller.Add(cullCompute.output, cullCompute);
+
+                var allIndirectOutputs = owners.OfType<VFXAbstractParticleOutput>().Where(o => o.HasIndirectDraw());
+
+                startIndirectBufferIndex = outBufferDescs.Count;
+                needsGlobalIndirectBuffer = NeedsGlobalIndirectBuffer();
+                if (needsGlobalIndirectBuffer)
+                {
+                    systemBufferMappings.Add(new VFXMapping("indirectBuffer0", outBufferDescs.Count));
+                    outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 });
+                }
+
+                foreach (var indirectOutput in allIndirectOutputs)
+                {
+                    if (indirectOutputToCuller.ContainsKey(indirectOutput))
+                    {
+                        uint bufferCount = indirectOutputToCuller[indirectOutput].bufferCount;
+                        indirectOutputToCuller[indirectOutput].bufferIndex = outBufferDescs.Count;
+                        bool perCamera = indirectOutputToCuller[indirectOutput].isPerCamera;
+                        for (uint i = 0; i < bufferCount; ++i)
+                        {
+                            string bufferName = "indirectBuffer" + (outBufferDescs.Count - startIndirectBufferIndex);
+                            if (perCamera)
+                                bufferName += "PerCamera";
+                            systemBufferMappings.Add(new VFXMapping(bufferName, outBufferDescs.Count));
+                            outBufferDescs.Add(new VFXGPUBufferDesc() { type = ComputeBufferType.Counter, size = capacity, stride = 4 }); 
+                        }
+                    }
+                }
             }
 
             // sort buffers
@@ -654,11 +693,14 @@ namespace UnityEditor.VFX
             }
 
             var elementToVFXBufferMotionVector = new Dictionary<VFXContext, int>();
-            foreach (VFXMotionVector motionVectorContext in m_Contexts.OfType<VFXMotionVector>())
+            foreach (VFXOutputUpdate context in m_Contexts.OfType<VFXOutputUpdate>())
             {
-                int currentElementToVFXBufferMotionVector = outTemporaryBufferDescs.Count;
-                outTemporaryBufferDescs.Add(new VFXTemporaryGPUBufferDesc() { frameCount = 2u, desc = new VFXGPUBufferDesc { type = ComputeBufferType.Raw, size = capacity * 64, stride = 4 } });
-                elementToVFXBufferMotionVector.Add(motionVectorContext.encapsulatedOutput, currentElementToVFXBufferMotionVector);
+                if (context.HasFeature(VFXOutputUpdate.Features.MotionVector))
+                {
+                    int currentElementToVFXBufferMotionVector = outTemporaryBufferDescs.Count;
+                    outTemporaryBufferDescs.Add(new VFXTemporaryGPUBufferDesc() { frameCount = 2u, desc = new VFXGPUBufferDesc { type = ComputeBufferType.Raw, size = capacity * 64, stride = 4 } });
+                    elementToVFXBufferMotionVector.Add(context.output, currentElementToVFXBufferMotionVector);
+                }
             }
 
             var taskDescs = new List<VFXEditorTaskDesc>();
@@ -677,10 +719,14 @@ namespace UnityEditor.VFX
 
                 bufferMappings.Clear();
 
-                if (context is VFXMotionVector)
+                if (context is VFXOutputUpdate)
                 {
-                    var currentIndex = elementToVFXBufferMotionVector[(context as VFXMotionVector).encapsulatedOutput];
-                    temporaryBufferMappings.Add(new VFXMappingTemporary() { pastFrameIndex = 0u, perCameraBuffer = true, mapping = new VFXMapping("elementToVFXBuffer", currentIndex) });
+                    var update = (VFXOutputUpdate)context;
+                    if (update.HasFeature(VFXOutputUpdate.Features.MotionVector))
+                    {
+                        var currentIndex = elementToVFXBufferMotionVector[update.output];
+                        temporaryBufferMappings.Add(new VFXMappingTemporary() { pastFrameIndex = 0u, perCameraBuffer = true, mapping = new VFXMapping("elementToVFXBuffer", currentIndex) });
+                    }
                 }
                 else if (context.contextType == VFXContextType.Output && (context is IVFXSubRenderer) && (context as IVFXSubRenderer).hasMotionVector)
                 {
@@ -713,11 +759,32 @@ namespace UnityEditor.VFX
                     bufferMappings.Add(new VFXMapping("attachedStripDataBuffer", dependentBuffers.stripBuffers[stripData]));
                 }
 
-                if (indirectBufferIndex != -1 &&
-                    (context.contextType == VFXContextType.Update ||
-                     (context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).HasIndirectDraw())))
+                if (needsIndirectBuffer)
                 {
-                    bufferMappings.Add(new VFXMapping(context.taskType == VFXTaskType.CameraSort ? "inputBuffer" : "indirectBuffer", indirectBufferIndex));
+                    systemFlag |= VFXSystemFlag.SystemHasIndirectBuffer;
+
+                    if (context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).HasIndirectDraw())
+                        bufferMappings.Add(new VFXMapping("indirectBuffer", indirectOutputToCuller.ContainsKey(context) ? indirectOutputToCuller[context].bufferIndex : startIndirectBufferIndex));
+
+                    if (context.contextType == VFXContextType.Update)
+                    {
+                        if (context.taskType == VFXTaskType.Update && needsGlobalIndirectBuffer)
+                            bufferMappings.Add(new VFXMapping("indirectBuffer", startIndirectBufferIndex));
+                    }
+
+                    if (context.contextType == VFXContextType.Filter)
+                    {
+                        if (context.taskType == VFXTaskType.CameraSort && needsGlobalIndirectBuffer)
+                            bufferMappings.Add(new VFXMapping("inputBuffer", startIndirectBufferIndex));
+                        else if ((context as VFXOutputUpdate) != null)
+                        {
+                            var outputUpdate = (VFXOutputUpdate)context;
+                            int startIndex = outputUpdate.bufferIndex;
+                            uint bufferCount = outputUpdate.bufferCount;
+                            for (int j = 0; j < bufferCount; ++j)
+                                bufferMappings.Add(new VFXMapping("outputBuffer" + j, startIndex + j));
+                        }
+                    }
                 }
 
                 if (deadListBufferIndex != -1 && context.contextType == VFXContextType.Output && (context as VFXAbstractParticleOutput).NeedsDeadListCount())
@@ -762,7 +829,19 @@ namespace UnityEditor.VFX
                 taskDesc.parameters = cpuMappings.Concat(contextData.parameters).ToArray();
                 taskDesc.shaderSourceIndex = contextToCompiledData[context].indexInShaderSource;
 
-                taskDescs.Add(taskDesc);
+                if (context is IVFXMultiMeshOutput) // If the context is a multi mesh output, split and patch task desc into several tasks
+                {
+                    var multiMeshOutput = (IVFXMultiMeshOutput)context;
+                    for (int j = 0; j < multiMeshOutput.meshCount; ++j)
+                    {
+                        VFXEditorTaskDesc singleMeshTaskDesc = taskDesc;
+                        singleMeshTaskDesc.parameters = VFXMultiMeshHelper.PatchCPUMapping(taskDesc.parameters, multiMeshOutput.meshCount, j).ToArray();
+                        singleMeshTaskDesc.buffers = VFXMultiMeshHelper.PatchBufferMapping(taskDesc.buffers, j).ToArray();
+                        taskDescs.Add(singleMeshTaskDesc);
+                    }
+                }
+                else
+                    taskDescs.Add(taskDesc);
             }
 
             outSystemDescs.Add(new VFXEditorSystemDesc()

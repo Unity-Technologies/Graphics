@@ -92,6 +92,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the system will only output alive particles, as opposed to rendering all particles and culling dead ones in the vertex shader. Enable to improve performance when the system capacity is not reached or a high number of vertices per particle are used. Indirect draw is implicit when sorting is on.")]
         protected bool indirectDraw = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool computeCulling = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will cast shadows.")]
         protected bool castShadows = false;
 
@@ -107,8 +110,24 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting()) && !HasStrips(true); }
+        public bool HasIndirectDraw()   { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
         public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }
+        public bool HasComputeCulling() { return computeCulling && !(HasSorting() || HasStrips(true)); } // No compute culling on sorted outputs atm
+        public bool NeedsOutputUpdate() { return outputUpdateFeatures != VFXOutputUpdate.Features.None; }
+
+        public virtual VFXOutputUpdate.Features outputUpdateFeatures
+        {
+            get
+            {
+                VFXOutputUpdate.Features features = VFXOutputUpdate.Features.None;
+                if (hasMotionVector)
+                    features |= VFXOutputUpdate.Features.MotionVector;
+                if (HasComputeCulling())
+                    features |= VFXOutputUpdate.Features.Culling;
+                return features;
+            }
+        }
+
         int IVFXSubRenderer.sortPriority
         {
             get {
@@ -378,6 +397,9 @@ namespace UnityEditor.VFX
                     yield return "indirectDraw";
                     yield return "sort";
                 }
+
+                if (HasSorting())
+                    yield return "computeCulling";
             }
         }
 
@@ -458,7 +480,11 @@ namespace UnityEditor.VFX
             {
                 yield return new VFXMapping("sortPriority", sortPriority);
                 if (HasIndirectDraw())
+                {
                     yield return new VFXMapping("indirectDraw", 1);
+                    if (VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw) && VFXOutputUpdate.IsPerCamera(outputUpdateFeatures))
+                        yield return new VFXMapping("indirectPerCamera", 1);
+                }
             }
         }
     }

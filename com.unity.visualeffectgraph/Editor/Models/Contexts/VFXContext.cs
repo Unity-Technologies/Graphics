@@ -22,6 +22,7 @@ namespace UnityEditor.VFX
         Event = 1 << 4,
         SpawnerGPU = 1 << 5,
         Subgraph = 1 << 6,
+        Filter = 1 << 7,
 
         InitAndUpdate = Init | Update,
         InitAndUpdateAndOutput = Init | Update | Output,

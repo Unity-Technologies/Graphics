@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXMeshOutput : VFXShaderGraphParticleOutput
+    class VFXMeshOutput : VFXShaderGraphParticleOutput, IVFXMultiMeshOutput
     {
         public override string name { get { return "Output Particle Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
@@ -15,6 +15,21 @@ namespace UnityEditor.VFX
         public override bool supportsUV { get { return shaderGraph == null; } }
         public override bool implementsMotionVector { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back;  } }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Range(1, 4), SerializeField]
+        private uint MeshCount = 1;
+        public uint meshCount => MeshCount;
+
+        public override VFXOutputUpdate.Features outputUpdateFeatures
+        {
+            get
+            {
+                VFXOutputUpdate.Features features = base.outputUpdateFeatures;
+                if (MeshCount > 1 && !(HasSorting() || HasStrips(true))) // TODO make it compatible with sorting and strips
+                    features |= VFXOutputUpdate.Features.MultiMesh;
+                return features;
+            }
+        }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -41,6 +56,9 @@ namespace UnityEditor.VFX
 
                 if (usesFlipbook)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
+
+                if (meshCount > 1)
+                    yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
             }
         }
 
@@ -56,11 +74,12 @@ namespace UnityEditor.VFX
         {
             get
             {
+                foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, false))
+                    yield return property;
+
                 if( shaderGraph == null)
                     foreach (var property in PropertiesFromType("OptionalInputProperties"))
                         yield return property;
-                foreach (var property in base.inputProperties)
-                    yield return property;
             }
         }
 
@@ -68,13 +87,6 @@ namespace UnityEditor.VFX
         {
             [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
-        }
-        public class InputProperties
-        {
-            [Tooltip("Specifies the mesh used to render the particle.")]
-            public Mesh mesh = VFXResources.defaultResources.mesh;
-            [Tooltip("Defines a bitmask to control which submeshes are rendered."), BitField]
-            public uint subMeshMask = 0xffffffff;
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
@@ -85,14 +97,12 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    mapper.AddExpression(inputSlots.First(s => s.name == "mesh").GetExpression(), "mesh", -1);
-                    mapper.AddExpression(inputSlots.First(s => s.name == "subMeshMask").GetExpression(), "subMeshMask", -1);
+                    foreach (var name in VFXMultiMeshHelper.GetCPUExpressionNames(MeshCount))
+                        mapper.AddExpression(inputSlots.First(s => s.name == name).GetExpression(), name, -1);
                     break;
                 }
                 default:
-                {
                     break;
-                }
             }
 
             return mapper;
