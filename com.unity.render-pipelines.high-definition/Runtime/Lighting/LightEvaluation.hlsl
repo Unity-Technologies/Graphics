@@ -305,7 +305,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
-                               float3 lightToSample)
+                               float3 lightToSample, PositionInputs posInput)
 {
 #ifndef LIGHT_EVALUATION_NO_COOKIE
     int lightType = light.lightType;
@@ -319,7 +319,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SamplePointCookie(mul(lightToWorld,lightToSample), light.cookieScaleOffset);
+        cookie.rgb = SamplePointCookie(mul(lightToWorld, lightToSample), light.positionRWS, light.forward, posInput, light.cookieScaleOffset);
         cookie.a   = 1;
     }
     else
@@ -428,7 +428,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
     if (light.cookieMode != COOKIEMODE_NONE)
     {
         float3 lightToSample = posInput.positionWS - light.positionRWS;
-        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample);
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, light, lightToSample, posInput);
 
         color *= cookie;
     }

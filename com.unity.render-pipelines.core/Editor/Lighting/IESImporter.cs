@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
         [Range(32, 2048)]
-        public int   SpotCookieSize = 128;
+        public int   iesSize = 128;
         public bool  ApplyLightAttenuation  = true;
         public bool  UseIESMaximumIntensity = true;
 
@@ -72,19 +72,19 @@ namespace UnityEditor.Rendering
 
                 string warningMessage;
 
-                (warningMessage, cookieTextureCube) = engine.GenerateCubeCookie(iesMetaData.CookieCompression);
+                (warningMessage, cookieTextureCube) = engine.GenerateCubeCookie(iesMetaData.CookieCompression, iesMetaData.iesSize);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES Cube texture: {warningMessage}");
                 }
 
-                (warningMessage, cookieTexture2D) = engine.Generate2DCookie(iesMetaData.CookieCompression, iesMetaData.SpotAngle, iesMetaData.SpotCookieSize, iesMetaData.ApplyLightAttenuation);
+                (warningMessage, cookieTexture2D) = engine.Generate2DCookie(iesMetaData.CookieCompression, iesMetaData.SpotAngle, iesMetaData.iesSize, iesMetaData.ApplyLightAttenuation);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES 2D texture: {warningMessage}");
                 }
 
-                (warningMessage, cylindricalTexture) = engine.GenerateCylindricalTexture(iesMetaData.CookieCompression);
+                (warningMessage, cylindricalTexture) = engine.GenerateCylindricalTexture(iesMetaData.CookieCompression, iesMetaData.iesSize);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES latitude-longitude texture: {warningMessage}");

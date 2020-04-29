@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering
 
         SerializedProperty m_PrefabLightTypeProp;
         SerializedProperty m_SpotAngleProp;
-        SerializedProperty m_SpotCookieSizeProp;
+        SerializedProperty m_IESSizeProp;
         SerializedProperty m_ApplyLightAttenuationProp;
         SerializedProperty m_UseIESMaximumIntensityProp;
         SerializedProperty m_CookieCompressionProp;
@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering
 
             m_PrefabLightTypeProp         = serializedObject.FindPropertyRelative("PrefabLightType");
             m_SpotAngleProp               = serializedObject.FindPropertyRelative("SpotAngle");
-            m_SpotCookieSizeProp          = serializedObject.FindPropertyRelative("SpotCookieSize");
+            m_IESSizeProp                 = serializedObject.FindPropertyRelative("iesSize");
             m_ApplyLightAttenuationProp   = serializedObject.FindPropertyRelative("ApplyLightAttenuation");
             m_UseIESMaximumIntensityProp  = serializedObject.FindPropertyRelative("UseIESMaximumIntensity");
             m_CookieCompressionProp       = serializedObject.FindPropertyRelative("CookieCompression");
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_PrefabLightTypeProp, new GUIContent("Light Type"));
 
                 EditorGUILayout.PropertyField(m_SpotAngleProp);
-                EditorGUILayout.PropertyField(m_SpotCookieSizeProp, new GUIContent("IES Size"));
+                EditorGUILayout.PropertyField(m_IESSizeProp, new GUIContent("IES Size"));
                 EditorGUILayout.PropertyField(m_ApplyLightAttenuationProp);
 
                 EditorGUILayout.PropertyField(m_CookieCompressionProp);

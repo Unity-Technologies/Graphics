@@ -86,10 +86,14 @@ namespace UnityEditor.Rendering
             }
         }
 
-        public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression)
+        public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression, int textureSize)
         {
-            int width  = Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinHorizontalSampleCount(), k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
-            int height = Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinVerticalSampleCount(),   k_MinTextureSize, k_MaxTextureSize)); // for 180 latitudinal degrees
+            int width  = 2*textureSize;
+                //Mathf.NextPowerOfTwo(Mathf.Clamp(textureSize, k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
+                //Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinHorizontalSampleCount(), k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
+            int height = 2*textureSize;
+                //Mathf.NextPowerOfTwo(Mathf.Clamp(textureSize, k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
+                //Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinVerticalSampleCount(),   k_MinTextureSize, k_MaxTextureSize)); // for 180 latitudinal degrees
 
             NativeArray<Color32> colorBuffer;
 
@@ -131,10 +135,10 @@ namespace UnityEditor.Rendering
             return GenerateTexture(m_TextureGenerationType, TextureImporterShape.Texture2D, compression, textureSize, textureSize, colorBuffer);
         }
 
-        public (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression)
+        public (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
         {
-            int width  = k_CylindricalTextureWidth;  // for 360 longitudinal degrees
-            int height = k_CylindricalTextureHeight; // for 180 latitudinal degrees
+            int width =  2*textureSize;// k_CylindricalTextureWidth;  // for 360 longitudinal degrees
+            int height = textureSize;// k_CylindricalTextureHeight; // for 180 latitudinal degrees
 
             NativeArray<Color32> colorBuffer;
 
