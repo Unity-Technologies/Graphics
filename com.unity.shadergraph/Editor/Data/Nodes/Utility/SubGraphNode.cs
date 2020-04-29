@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph
 
         [Serializable]
         class AssetReference
-            {
+        {
             public long fileID = default;
             public string guid = default;
             public int type = default;
@@ -199,7 +199,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch(prop)
+                switch (prop)
                 {
                     case Texture2DShaderProperty texture2DProp:
                         arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
@@ -287,7 +287,7 @@ namespace UnityEditor.ShaderGraph
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
 
                 // Copy defaults
-                switch(prop.concreteShaderValueType)
+                switch (prop.concreteShaderValueType)
                 {
                     case ConcreteSlotValueType.Matrix4:
                         {
@@ -553,7 +553,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var property in asset.nodeProperties)
             {
                 properties.Add(property.GetPreviewMaterialProperty());
-        }
+            }
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -578,7 +578,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var include in asset.includes)
             {
                 IncludeLocation location;
-                if ( Enum.TryParse<IncludeLocation>(include.location, out location) )
+                if (Enum.TryParse<IncludeLocation>(include.location, out location))
                 {
                     registry.Add(include.value, location);
                 }
