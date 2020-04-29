@@ -91,6 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure.")]
         public NoInterpTextureParameter weightTextureMask = new NoInterpTextureParameter(null);
 
+        // TODO_FCC TODO: DO BEFORE PR. Better name and doc here.
 
         /// <summary>
         /// These values are the lower and upper percentages of the histogram that will be used to
@@ -98,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// contribute to the average luminance.
         /// </summary>
         [Tooltip("Sets the range of values (in terms of percentages) of the histogram that are accepted while finding a stable average exposure. Anything outside the value is discarded.")]
-        public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(50.0f, 90.0f), 0.001f, 100.0f);
+        public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(50.0f, 90.0f), 0.0f, 100.0f);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

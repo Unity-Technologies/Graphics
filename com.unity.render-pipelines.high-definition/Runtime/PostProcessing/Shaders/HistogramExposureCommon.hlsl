@@ -3,8 +3,8 @@
 
 #define _HistogramRangeScale     _HistogramExposureParams.x
 #define _HistogramRangeBias      _HistogramExposureParams.y
-#define _HistogramMinPercentage  _HistogramExposureParams.z
-#define _HistogramMaxPercentage  _HistogramExposureParams.w
+#define _HistogramMinPercentile  _HistogramExposureParams.z
+#define _HistogramMaxPercentile  _HistogramExposureParams.w
 
 #ifdef GEN_PASS
 RWStructuredBuffer<uint> _HistogramBuffer;
@@ -17,10 +17,14 @@ float UnpackWeight(uint val)
     return val * rcp(2048.0f);
 }
 
+float GetFractionWithinHistogram(float value)
+{
+    return ComputeEV100FromAvgLuminance(value) * _HistogramRangeScale + _HistogramRangeBias;
+}
+
 uint GetHistogramBinLocation(float value)
 {
-    float scaledLogLuma = ComputeEV100FromAvgLuminance(value) * _HistogramRangeScale + _HistogramRangeBias;
-    return uint(saturate(scaledLogLuma) * (HISTOGRAM_BINS - 1));
+    return uint(saturate(GetFractionWithinHistogram(value)) * (HISTOGRAM_BINS - 1));
 }
 
 float BinLocationToEV(uint binIdx)

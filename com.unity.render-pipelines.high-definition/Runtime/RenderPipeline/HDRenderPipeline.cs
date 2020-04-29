@@ -4427,6 +4427,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 exposureSettings.limitMax.value, 0f);
 
             Vector4 exposureVariants = new Vector4(1.0f, (int)exposureSettings.meteringMode.value, (int)exposureSettings.adaptationMode.value, 0.0f);
+            Vector2 histogramFraction = exposureSettings.histogramPercentages.value / 100.0f;
+            float evRange = exposureSettings.limitMax.value - exposureSettings.limitMin.value;
+            float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
+            float histBias = -exposureSettings.limitMin.value * histScale;
+            Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+
+            parameters.debugExposureMaterial.SetVector(HDShaderIDs._HistogramExposureParams, histogramParams);
             parameters.debugExposureMaterial.SetVector(HDShaderIDs._Variants, exposureVariants);
             parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureParams, exposureParams);
             parameters.debugExposureMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(parameters.hdCamera));

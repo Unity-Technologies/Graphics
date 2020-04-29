@@ -136,11 +136,11 @@ void ProcessBin(uint binIndex, inout float2 extremesSums, inout float evSum, ino
     float histVal = gs_values[binIndex];
     float binEV = BinLocationToEV(binIndex);
 
-    // Low values
+    // Shadows
     float off = min(extremesSums.x, histVal);
     extremesSums -= off;
     histVal -= off;
-    // High values
+    // Highlights
     histVal = min(extremesSums.y, histVal);
     extremesSums.y -= histVal;
 
@@ -158,7 +158,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float sum = ComputeTotalSum(threadID, histogramVal);
 
-    float2 extremesSums = float2(_HistogramMinPercentage, _HistogramMaxPercentage) * sum;
+    float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
 
     // TODO: This can probably done more efficiently. Also verify that all but the first wave
     // actually skip this or if we need to enforce it somehow.

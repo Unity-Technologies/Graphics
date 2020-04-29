@@ -12,8 +12,6 @@ Shader "Hidden/HDRP/DebugExposure"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-    //TEXTURE2D(_ExposureTexture);
-
     // REMOVE
 #pragma enable_d3d11_debug_symbols
 
@@ -43,10 +41,19 @@ Shader "Hidden/HDRP/DebugExposure"
         return 1.0f - r * r;
     }
 
+    float GetEVAtLocation(float2 uv)
+    {
+        float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
+        float luma = Luminance(color / prevExposure);
+
+        return ComputeEV100FromAvgLuminance(max(luma, 1e-4));
+    }
+
     // Returns true if it drew the location of the indicator.
     void DrawHeatSideBar(float2 uv, float2 startSidebar, float2 endSidebar, float evValueRange, float3 indicatorColor, float2 sidebarSize, inout float3 sidebarColor)
     {
-        float2 borderSize = 2 * _ScreenSize.zw;
+        float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
         uint indicatorHalfSize = 5;
 
         if (all(uv > startSidebar) && all(uv < endSidebar))
@@ -84,6 +91,53 @@ Shader "Hidden/HDRP/DebugExposure"
         return UnpackWeight(_HistogramBuffer[(uint)(bin)]);
     }
 
+    float ComputePercentile(float2 uv, float histSum, out float minPercentileBin, out float maxPercentileBin)
+    {
+        float sumBelowValue = 0.0f;
+        float sumForMin = 0.0f;
+        float sumForMax = 0.0f;
+
+        minPercentileBin = -1;
+        maxPercentileBin = -1;
+
+        float ev = GetEVAtLocation(uv);
+
+        for (int i = 0; i < HISTOGRAM_BINS; ++i)
+        {
+            float evAtBin = BinLocationToEV(i);
+            float evAtNextBin = BinLocationToEV(i+1);
+
+            float histVal = UnpackWeight(_HistogramBuffer[i]);
+
+            if (ev >= evAtBin)
+            {
+                sumBelowValue += histVal;
+            }
+
+             //TODO: This could be more precise, now it locks to bin location
+            if (minPercentileBin < 0)
+            {
+                sumForMin += histVal;
+                if (sumForMin / histSum >= _HistogramMinPercentile)
+                {
+
+                    minPercentileBin = i;
+                }
+            }
+
+            if (maxPercentileBin < 0)
+            {
+                sumForMax += histVal;
+                if (sumForMax / histSum >= _HistogramMaxPercentile)
+                {
+                    maxPercentileBin = i;
+                }
+            }
+        }
+
+        return sumBelowValue / histSum;
+    }
+
     void DrawHistogramIndicatorBar(uint coord, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
     {
         float halfWidthInScreen = widthNDC * _ScreenSize.x;
@@ -96,29 +150,33 @@ Shader "Hidden/HDRP/DebugExposure"
         }
     }
 
-    void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, inout float3 outColor)
+    void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
 
         if (uv.y > frameHeight) return;
 
         // ---- Draw General frame ---- 
-        if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x)) outColor = 0.0;
-        else if (uv.y > frameHeight - borderSize.y || uv.y < borderSize.y) outColor = 0.0;
+        if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
+        {
+            outColor = 0.0;
+            return;
+        }
+        else if (uv.y > frameHeight - borderSize.y || uv.y < borderSize.y)
+        {
+            outColor = 0.0;
+            return;
+        }
         else
-        outColor = lerp(outColor, backgroundColor, alpha);
+        {
+            outColor = lerp(outColor, backgroundColor, alpha);
+        }
 
         // ---- Draw Buckets frame ----
-        float maxValue = 0;
-        for (int i = 0; i <= HISTOGRAM_BINS; ++i)
-        {
-            float histogramVal = UnpackWeight(_HistogramBuffer[i]);
-            maxValue = max(histogramVal, maxValue);
-        }
 
         bool isEdgeOfBin = false;
         float val = GetHistogramValue(unormCoord.x, isEdgeOfBin);
-        val /= maxValue;
+        val /= maxHist;
 
         val *= (frameHeight * 0.9);
         if (uv.y < val)
@@ -130,11 +188,14 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         // ---- Draw indicators ----
-      //  void DrawHistogramIndicatorBar(uint coord, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
         float currExposure = _ExposureTexture[int2(0, 0)].y;
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-        DrawHistogramIndicatorBar(unormCoord.xy, evInRange, 0.002f, float3(0, 0, 1), outColor);
+        DrawHistogramIndicatorBar(unormCoord.xy, evInRange, 0.002f, 0.05, outColor);
 
+        // Find location for percentiles bars.
+
+        DrawHistogramIndicatorBar(unormCoord.xy, minPercentLoc, 0.002f, float3(0, 0, 1), outColor);
+        DrawHistogramIndicatorBar(unormCoord.xy, maxPercentLoc, 0.002f, float3(1, 0, 0), outColor);
 
         // ---- Draw labels ---- 
 
@@ -154,18 +215,11 @@ Shader "Hidden/HDRP/DebugExposure"
             float t = oneOverLabelCount * i;
             float labelValue = lerp(ParamExposureLimitMin, ParamExposureLimitMax, t);
             uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
-            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 0, 0), unormCoord, 1, labelLoc, outColor.rgb);
+            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 0.0f, 0.0f), unormCoord, 1, labelLoc, outColor.rgb);
         }
     }
 
-    float GetEVAtLocation(float2 uv)
-    {
-        float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
-        float luma = Luminance(color / prevExposure);
 
-        return ComputeEV100FromAvgLuminance(max(luma, 1e-4));
-    }
 
     float3 FragMetering(Varyings input) : SV_Target
     {
@@ -239,13 +293,39 @@ Shader "Hidden/HDRP/DebugExposure"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
 
-
-
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float3 outputColor = color;
-        DrawHistogramFrame(uv, input.positionCS.xy, 0.2 * _RTHandleScale.y, ToHeat(uv.x), 0.1f, outputColor);
+
+        // Get some overall info from the histogram
+        float maxValue = 0;
+        float sum = 0;
+        for (int i = 0; i < HISTOGRAM_BINS; ++i)
+        {
+            float histogramVal = UnpackWeight(_HistogramBuffer[i]);
+            maxValue = max(histogramVal, maxValue);
+            sum += histogramVal;
+        }
+
+        float minPercentileBin = 0;
+        float maxPercentileBin = 0;
+        float percentile = ComputePercentile(uv, sum, minPercentileBin, maxPercentileBin);
+
+        if (percentile < _HistogramMinPercentile)
+        {
+            outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(0.0f, 0.0f, 1.0) : color*0.33;
+        }
+        if (percentile > _HistogramMaxPercentile)
+        {
+            outputColor = (input.positionCS.x + input.positionCS.y) % 2 == 0 ? float3(1.0, 0.0f, 0.0f) : color * 0.33;
+        }
+
+        float histFrameHeight = 0.2 * _RTHandleScale.y;
+        float minPercentileLoc = minPercentileBin / (HISTOGRAM_BINS-1);
+        float maxPercentileLoc = maxPercentileBin / (HISTOGRAM_BINS-1);
+        DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, ToHeat(uv.x), 0.1f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
+
 
         return outputColor;// lerp(, color, 0.025f);
     }
