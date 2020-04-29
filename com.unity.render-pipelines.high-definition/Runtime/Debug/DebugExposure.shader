@@ -12,6 +12,8 @@ Shader "Hidden/HDRP/DebugExposure"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+#define PERCENTILE_AS_BARS 1
+
     // REMOVE
 #pragma enable_d3d11_debug_symbols
 
@@ -182,7 +184,22 @@ Shader "Hidden/HDRP/DebugExposure"
         if (uv.y < val)
         {
             isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
-            
+#if PERCENTILE_AS_BARS == 0
+            uint bin = uint((unormCoord.x * HISTOGRAM_BINS) / (_ScreenSize.x));
+            if (bin == uint(minPercentLoc))
+            {
+                outColor.rgb = float3(0, 0, 1);
+            }
+            else if(bin == uint(maxPercentLoc))
+            {
+                outColor.rgb = float3(1, 0, 0);
+            }
+            else if (bin < uint(minPercentLoc) || bin > uint(maxPercentLoc))
+            {
+                outColor.rgb = float3(0.25, 0.25, 0.25);
+            }
+            else
+#endif
             outColor.rgb = float3(1.0f, 1.0f, 1.0f);
             if (isEdgeOfBin) outColor.rgb = 0;
         }
@@ -190,13 +207,13 @@ Shader "Hidden/HDRP/DebugExposure"
         // ---- Draw indicators ----
         float currExposure = _ExposureTexture[int2(0, 0)].y;
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-        DrawHistogramIndicatorBar(unormCoord.xy, evInRange, 0.002f, 0.05, outColor);
+        DrawHistogramIndicatorBar(unormCoord.xy, evInRange, 0.002f, float3(0.05f, 0.05f, 0.05f), outColor);
 
         // Find location for percentiles bars.
-
+#if PERCENTILE_AS_BARS
         DrawHistogramIndicatorBar(unormCoord.xy, minPercentLoc, 0.002f, float3(0, 0, 1), outColor);
         DrawHistogramIndicatorBar(unormCoord.xy, maxPercentLoc, 0.002f, float3(1, 0, 0), outColor);
-
+#endif
         // ---- Draw labels ---- 
 
         // Number of labels
@@ -322,8 +339,13 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         float histFrameHeight = 0.2 * _RTHandleScale.y;
-        float minPercentileLoc = minPercentileBin / (HISTOGRAM_BINS-1);
-        float maxPercentileLoc = maxPercentileBin / (HISTOGRAM_BINS-1);
+        float minPercentileLoc = max(minPercentileBin, 0);
+        float maxPercentileLoc = min(maxPercentileBin, HISTOGRAM_BINS - 1);
+#if PERCENTILE_AS_BARS
+        minPercentileLoc /= (HISTOGRAM_BINS - 1);
+        maxPercentileLoc /= (HISTOGRAM_BINS - 1);
+#endif
+
         DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, ToHeat(uv.x), 0.1f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
 
 
