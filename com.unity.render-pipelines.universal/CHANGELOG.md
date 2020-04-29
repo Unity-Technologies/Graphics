@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a OnCameraCleanup() function to the ScriptableRenderPass API, that gets called by the renderer after rendering each camera
 - Added Default Material Type options to the 2D Renderer Data Asset property settings.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
+- Added option to disable XR autotests on test settings.
 
 ### Changed
 
@@ -53,6 +54,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The virtual ScriptableRenderer.FrameCleanup() function has been marked obsolete and replaced by ScriptableRenderer.OnCameraCleanup() to better describe when the function gets invoked by the renderer.
 - DepthOnlyPass, CopyDepthPass and CopyColorPass now use OnCameraSetup() instead of Configure() to set up their passes before executing as they only need to get their rendertextures once per camera instead of once per eye.
 - Updated shaders to be compatible with Microsoft's DXC.
+- Mesh GPU Instancing option is now hidden from the particles system renderer as this feature is not supported by URP.
+- The 2D Renderer now supports camera stacking.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -168,6 +171,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
 - Fixed an issue with shadows not being correctly calculated in some shaders.
 - Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
+- Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
+- Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
+- Fixed an issue where multi edit camera properties didn't work. [case 1230080](https://issuetracker.unity3d.com/issues/urp-certain-settings-are-not-applied-to-all-cameras-when-multi-editing-in-the-inspector)
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
+- Fixed issues with performance when importing fbx files
+- Fixed issues with NullReferenceException happening with URP shaders
+- Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
+- Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)
+- Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

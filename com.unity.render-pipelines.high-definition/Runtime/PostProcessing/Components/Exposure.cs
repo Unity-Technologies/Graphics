@@ -86,6 +86,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter adaptationSpeedLightToDark = new MinFloatParameter(1f, 0.001f);
 
         /// <summary>
+        /// Sets the texture mask used to weight the pixels in the buffer when computing exposure. Used only with .
+        /// </summary>
+        [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure..")]
+        public NoInterpTextureParameter weightTextureMask = new NoInterpTextureParameter(null);
+
+        /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
@@ -145,7 +151,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// have the minimum weight, and pixels in between have a progressively lower weight the
         /// closer they are to the screen borders.
         /// </summary>
-        CenterWeighted
+        CenterWeighted,
+
+
+        /// <summary>
+        /// The Camera applies a weight to every pixel in the buffer and then uses them to measure
+        /// the exposure. The weighting is specified by the texture provided by the user. Note that if
+        /// no texture is provided, then this metering mode is equivalent to Average.
+        /// </summary>
+        MaskWeighted
+
     }
 
     /// <summary>

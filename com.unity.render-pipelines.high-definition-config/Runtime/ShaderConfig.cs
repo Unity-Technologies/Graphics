@@ -50,7 +50,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         AreaLights = 1,
 
+        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
+
         BarnDoor = 0
     };
 
@@ -66,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
+        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
 }

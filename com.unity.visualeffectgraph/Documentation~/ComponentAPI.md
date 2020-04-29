@@ -1,5 +1,3 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
-
 # Visual Effect component API
 
 To create an instance of a [Visual Effect Graph](VisualEffectGraphAsset.md) in a Scene, Unity uses the [Visual Effect component](VisualEffectComponent.md). The Visual Effect component attaches to GameObjects in your Scene and references a Visual Effect Graph which defines the visual effect. This allows you to create different instances of effects at various positions and orientations, and control each effect independently. To control an effect at runtime, Unity provides C# API that you can use to modify the Visual Effect component and set [Property](Properties.md) overrides.
