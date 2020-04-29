@@ -22,9 +22,6 @@ namespace UnityEditor.ShaderGraph
         ContextData m_ContextData;
 
         [NonSerialized]
-        int m_Index;
-
-        [NonSerialized]
         BlockFieldDescriptor m_Descriptor;
 
         public BlockNode()
@@ -46,11 +43,7 @@ namespace UnityEditor.ShaderGraph
             set => m_ContextData = value;
         }
 
-        public int index
-        {
-            get => m_Index;
-            set => m_Index = value;
-        }
+        public int index => contextData.blocks.IndexOf(this);
 
         public BlockFieldDescriptor descriptor
         {

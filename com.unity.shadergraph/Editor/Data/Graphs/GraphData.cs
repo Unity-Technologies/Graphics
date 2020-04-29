@@ -302,7 +302,7 @@ namespace UnityEditor.ShaderGraph
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
 
         // TODO: Need a better way to handle this
-        public bool isVFXTarget => activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
+        public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
         public GraphData()
@@ -410,6 +410,9 @@ namespace UnityEditor.ShaderGraph
         public UnityEngine.UIElements.VisualElement GetSettings(Action onChange, Action<string> registerUndo)
         {
             var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
+
+            if(isSubGraph)
+                return element;
 
             // Add Label
             var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
@@ -644,7 +647,6 @@ namespace UnityEditor.ShaderGraph
             AddNodeNoValidate(blockNode);
 
             // Set BlockNode properties
-            blockNode.index = index;
             blockNode.contextData = contextData;
             
             // Add to ContextData
@@ -658,24 +660,10 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public List<BlockNode> GetBlocks()
-        {
-            var blocks = Graphing.ListPool<BlockNode>.Get();
-            foreach(var vertexBlock in vertexContext.blocks)
-            {
-                blocks.Add(vertexBlock);
-            }
-            foreach(var fragmentBlock in fragmentContext.blocks)
-            {
-                blocks.Add(fragmentBlock);
-            }
-            return blocks;
-        }
-
         public List<BlockFieldDescriptor> GetActiveBlocksForAllActiveTargets()
         {
             // Get list of active Block types
-            var currentBlocks = GetBlocks();
+            var currentBlocks = GetNodes<BlockNode>();
             var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList());
             foreach(var target in activeTargets)
             {
@@ -1926,27 +1914,19 @@ namespace UnityEditor.ShaderGraph
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
                     block.contextData = contextData;
-                    block.index = i;
                 }
             }
 
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
-
-            // TODO: Improve this?
-            var deserializedTargets = new Target[m_ActiveTargets.Count];
-            for(int i = 0; i < deserializedTargets.Length; i++)
+          
+            foreach(var target in m_ActiveTargets.SelectValue())
             {
-                deserializedTargets[i] = m_ActiveTargets[i].value;
-            }
-            
-            foreach(var deserializedTarget in deserializedTargets)
-            {
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == deserializedTarget.GetType());
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
                 var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
                 m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = deserializedTarget;
+                m_ValidTargets[targetIndex] = target;
             }
 
             UpdateActiveTargets();

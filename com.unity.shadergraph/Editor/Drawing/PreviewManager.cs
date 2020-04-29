@@ -60,10 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
                 AddPreview(node);
 
-            if(!graph.isSubGraph)
-            {
-                AddMasterPreview();
-            }
+            AddMasterPreview();
         }
 
         public OnPrimaryMasterChanged onPrimaryMasterChanged;
@@ -88,13 +85,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PreviewRenderData GetPreviewRenderData(AbstractMaterialNode node)
         {
             PreviewRenderData result = null;
-            if (node != null)
+            if(node == null || node is SubGraphOutputNode)
             {
-                m_RenderDatas.TryGetValue(node.objectId, out result);
+                result = m_MasterRenderData;
             }
             else
             {
-                result = m_MasterRenderData;
+                m_RenderDatas.TryGetValue(node.objectId, out result);
             }
             
             return result;
@@ -118,14 +115,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var shaderData = new PreviewShaderData
             {
-                node = null,
+                node = m_Graph.outputNode,
                 passesCompiling = 0,
                 isOutOfDate = true,
                 hasError = false,
             };
             renderData.shaderData = shaderData;
 
-            m_NodesNeedsRecompile.Add(null);
+            m_NodesNeedsRecompile.Add(m_Graph.outputNode);
             m_RefreshTimedNodes = true;
         }
 
@@ -337,12 +334,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in m_Graph.addedEdges)
             {
                 var node = edge.inputSlot.node;
-                if(node is BlockNode)
-                {
-                    UpdateMasterPreview(ModificationScope.Topological);
-                    continue;
-                }
-
                 if(node != null)
                 {
                     if(node is BlockNode)
@@ -417,7 +408,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     foreach (var node in m_NodesToDraw)
                     {
-                        if (node == null || node is BlockNode)
+                        if (node == null || node is BlockNode || node is SubGraphOutputNode)
                         {
                             renderMasterPreview = true;
                             continue;
@@ -602,13 +593,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
-                    m_NodesNeedsRecompile.Contains(null) &&
-                    !m_NodesCompiling.Contains(null) &&
+                    m_NodesNeedsRecompile.Contains(m_Graph.outputNode) &&
+                    !m_NodesCompiling.Contains(m_Graph.outputNode) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
                     var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
                     Assert.IsTrue(renderData != null);
-                    nodesToCompile.Add(null);
+                    nodesToCompile.Add(m_Graph.outputNode);
                 }
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
@@ -644,7 +635,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // kick async compiles for all nodes in m_NodeToCompile
                 foreach (var node in nodesToCompile)
                 {
-                    if (node is BlockNode || node == null)
+                    if (node is BlockNode || node == null || node is SubGraphOutputNode)
                     {
                         UpdateMasterNodeShader();
                         continue;

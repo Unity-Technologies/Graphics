@@ -278,8 +278,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
-
-            AddContexts();
+            
+            if(!m_Graph.isSubGraph)
+            {
+                AddContexts();
+            }
 
             using (AddGroupsMarker.Auto())
             {
