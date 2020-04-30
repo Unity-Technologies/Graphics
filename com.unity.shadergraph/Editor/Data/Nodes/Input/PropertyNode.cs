@@ -15,17 +15,41 @@ namespace UnityEditor.ShaderGraph
             name = "Property";
             UpdateNodeAfterDeserialization();
         }
-        
+
         [SerializeField]
         string m_PropertyGuidSerialized;
 
         Guid m_PropertyGuid;
 
+        public override void UpdateNodeAfterDeserialization()
+        {
+            base.UpdateNodeAfterDeserialization();
+
+            if (owner == null)
+                return;
+
+            // Get property from graphData
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                throw new NullReferenceException();
+
+            if (property is Vector1ShaderProperty vector1ShaderProperty && vector1ShaderProperty.floatType == FloatType.Slider)
+            {
+                // Previously, the Slider vector1 property allowed the min value to be greater than the max
+                // We no longer want to support that behavior so if such a property is encountered, swap the values
+                if (vector1ShaderProperty.rangeValues.x > vector1ShaderProperty.rangeValues.y)
+                {
+                    vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y, vector1ShaderProperty.rangeValues.x);
+                    Dirty(ModificationScope.Graph);
+                }
+            }
+        }
+
         public Guid propertyGuid
         {
             get { return m_PropertyGuid; }
             set
-        {
+            {
                 if (m_PropertyGuid == value)
                     return;
 
@@ -33,10 +57,10 @@ namespace UnityEditor.ShaderGraph
                 var property = owner.properties.FirstOrDefault(x => x.guid == value);
                 if (property == null)
                     return;
-                
+
                 AddOutputSlot(property);
                 Dirty(ModificationScope.Topological);
-        }
+            }
         }
         public override bool canSetPrecision => false;
 
@@ -48,7 +72,7 @@ namespace UnityEditor.ShaderGraph
 
             AddOutputSlot(property);
         }
-        
+
         public const int OutputSlotId = 0;
 
         void AddOutputSlot(AbstractShaderProperty property)
@@ -121,7 +145,7 @@ namespace UnityEditor.ShaderGraph
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
             if (property == null)
                 return;
-            
+
             switch(property.propertyType)
             {
                 case PropertyType.Boolean:
@@ -159,7 +183,7 @@ namespace UnityEditor.ShaderGraph
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {GradientUtil.GetGradientForPreview(property.referenceName)};");
                 else
                         sb.AppendLine($"Gradient {GetVariableNameForSlot(OutputSlotId)} = {property.referenceName};");
-                    break;
+                break;
             }
         }
 
@@ -168,7 +192,7 @@ namespace UnityEditor.ShaderGraph
             var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
                 if (property == null)
                 throw new NullReferenceException();
-            
+
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
@@ -177,7 +201,7 @@ namespace UnityEditor.ShaderGraph
 
             return property.referenceName;
         }
-        
+
         protected override void CalculateNodeHasError()
         {
             if (!propertyGuid.Equals(Guid.Empty) && !owner.properties.Any(x => x.guid == propertyGuid))
@@ -202,13 +226,13 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-            }
-        
+        }
+
         public override void OnBeforeSerialize()
-            {
+        {
             base.OnBeforeSerialize();
             m_PropertyGuidSerialized = m_PropertyGuid.ToString();
-            }
+        }
 
         public override void OnAfterDeserialize()
         {
