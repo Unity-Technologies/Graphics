@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
-
+#if UNITY_EDITOR
+using System.Linq;
+using UnityEditorInternal;
+#endif
 namespace UnityEngine.Rendering.HighDefinition
 {
     enum ShaderVariantLogLevel
@@ -96,7 +99,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // - cannot rely on OnEnable
                 //thus fallback with lazy init for them
                 if (m_RenderPipelineEditorResources == null || m_RenderPipelineEditorResources.Equals(null))
-                    m_RenderPipelineEditorResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                {
+                    var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                    m_RenderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
+                }
+
                 return m_RenderPipelineEditorResources;
             }
             set { m_RenderPipelineEditorResources = value; }
