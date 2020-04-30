@@ -56,7 +56,7 @@ Shader "Hidden/HDRP/DebugExposure"
     void DrawHeatSideBar(float2 uv, float2 startSidebar, float2 endSidebar, float evValueRange, float3 indicatorColor, float2 sidebarSize, inout float3 sidebarColor)
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
-        uint indicatorHalfSize = 5;
+        int indicatorHalfSize = 5;
 
         if (all(uv > startSidebar) && all(uv < endSidebar))
         {
@@ -140,7 +140,7 @@ Shader "Hidden/HDRP/DebugExposure"
         return sumBelowValue / histSum;
     }
 
-    void DrawHistogramIndicatorBar(uint coord, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
+    void DrawHistogramIndicatorBar(float coord, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
     {
         float halfWidthInScreen = widthNDC * _ScreenSize.x;
         float minScreenPos = (uvXLocation - widthNDC * 0.5) * _ScreenSize.x;
@@ -207,12 +207,12 @@ Shader "Hidden/HDRP/DebugExposure"
         // ---- Draw indicators ----
         float currExposure = _ExposureTexture[int2(0, 0)].y;
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-        DrawHistogramIndicatorBar(unormCoord.xy, evInRange, 0.002f, float3(0.05f, 0.05f, 0.05f), outColor);
+        DrawHistogramIndicatorBar(float(unormCoord.x), evInRange, 0.002f, float3(0.05f, 0.05f, 0.05f), outColor);
 
         // Find location for percentiles bars.
 #if PERCENTILE_AS_BARS
-        DrawHistogramIndicatorBar(unormCoord.xy, minPercentLoc, 0.002f, float3(0, 0, 1), outColor);
-        DrawHistogramIndicatorBar(unormCoord.xy, maxPercentLoc, 0.002f, float3(1, 0, 0), outColor);
+        DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.002f, float3(0, 0, 1), outColor);
+        DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.002f, float3(1, 0, 0), outColor);
 #endif
         // ---- Draw labels ---- 
 
