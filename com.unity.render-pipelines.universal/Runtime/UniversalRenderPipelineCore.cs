@@ -95,11 +95,21 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public bool clearDepth;
-        public bool isSceneViewCamera;
+        public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// True if the camera rendering is for the scene window in the editor
+        /// </summary>
+        public bool isSceneViewCamera => cameraType == CameraType.SceneView;
+
+        /// <summary>
+        /// True if the camera rendering is for the preview window in the editor
+        /// </summary>
+        public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
@@ -193,14 +203,6 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
-    }
-
-    class CameraDataComparer : IComparer<Camera>
-    {
-        public int Compare(Camera lhs, Camera rhs)
-        {
-            return (int)lhs.depth - (int)rhs.depth;
-        }
     }
 
     public static class ShaderKeywordStrings
@@ -304,11 +306,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
         void SortCameras(Camera[] cameras)
         {
-            if (cameras.Length <= 1)
-                return;
-            Array.Sort(cameras, new CameraDataComparer());
+            if (cameras.Length > 1)
+                Array.Sort(cameras, cameraComparison);
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,

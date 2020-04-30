@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Drawing.Inspector;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
@@ -15,6 +16,7 @@ using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
+using Unity.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -23,7 +25,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public WindowDockingLayout previewLayout = new WindowDockingLayout();
         public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
-        public Vector2 masterPreviewSize = new Vector2(400, 400);
+        public Vector2 masterPreviewSize = new Vector2(200, 200);
     }
 
     [Serializable]
@@ -31,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public bool isBlackboardVisible = true;
         public bool isPreviewVisible = true;
+        public bool isInspectorVisible = true;
         public string colorProvider = NoColors.Title;
     }
 
@@ -38,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
+        InspectorView m_InspectorView;
 
         GraphData m_Graph;
         PreviewManager m_PreviewManager;
@@ -100,6 +104,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_ColorManager;
         }
 
+        private static readonly ProfilerMarker AddGroupsMarker = new ProfilerMarker("AddGroups");
+        private static readonly ProfilerMarker AddStickyNotesMarker = new ProfilerMarker("AddStickyNotes");
         public GraphEditorView(EditorWindow editorWindow, GraphData graph, MessageManager messageManager)
         {
             m_GraphViewGroupTitleChanged = OnGroupTitleChanged;
@@ -130,8 +136,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         dockingTop = true,
                         dockingLeft = true,
-                        verticalOffset = 16,
-                        horizontalOffset = 16,
+                        verticalOffset = 8,
+                        horizontalOffset = 8,
                         size = new Vector2(200, 400)
                     }
                 };
@@ -142,7 +148,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
 
-            previewManager.RenderPreviews();
+            previewManager.RenderPreviews(false);
             var colorProviders = m_ColorManager.providerNames.ToArray();
             var toolbar = new IMGUIContainer(() =>
                 {
@@ -207,6 +213,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     GUILayout.Space(6);
 
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
                     m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
@@ -241,12 +251,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
                 CreateMasterPreview();
+                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
+                CreateInspector(() => { });
 
                 UpdateSubWindowsVisibility();
 
                 m_GraphView.graphViewChanged = GraphViewChanged;
 
-                RegisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
+                RegisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
                 if (m_Graph.isSubGraph)
                 {
                     m_GraphView.AddToClassList("subgraph");
@@ -256,25 +268,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearcherProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = NodeCreationRequest;
+            //regenerate entries when graph view is refocused, to propogate subgraph changes
+            m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
-            foreach (var graphGroup in graph.groups)
+            using (AddGroupsMarker.Auto())
             {
-                AddGroup(graphGroup);
+                foreach (var graphGroup in graph.groups)
+                    AddGroup(graphGroup);
             }
 
-            foreach (var stickyNote in graph.stickyNotes)
+            using (AddStickyNotesMarker.Auto())
             {
-                AddStickyNote(stickyNote);
+                foreach (var stickyNote in graph.stickyNotes)
+                    AddStickyNote(stickyNote);
             }
 
-            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                AddNode(node);
-
-            foreach (var edge in graph.edges)
-                AddEdge(edge);
-
+            AddNodes(graph.GetNodes<AbstractMaterialNode>());
+            AddEdges(graph.edges);
             Add(content);
         }
 
@@ -286,16 +298,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 c.screenMousePosition - m_EditorWindow.position.position, null);
         }
 
+
+        // Master Preview, Inspector and Blackboard all need to keep their layouts when hidden in order to restore user preferences.
+        // Because of their differences we do this is different ways, for now.
         void UpdateSubWindowsVisibility()
         {
-            // Master Preview and Blackboard both need to keep their layouts when hidden in order to restore user preferences.
-            // Because of their differences we do this is different ways, for now. + Blackboard needs to be effectively removed when hidden to avoid bugs.
-            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
-
+            // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                m_BlackboardProvider.blackboard.style.display = DisplayStyle.Flex;
+                 m_GraphView.Insert(m_GraphView.childCount, m_BlackboardProvider.blackboard);
             else
-                m_BlackboardProvider.blackboard.style.display = DisplayStyle.None;
+                m_BlackboardProvider.blackboard.RemoveFromHierarchy();
+
+            // Same for the inspector
+            if (m_UserViewSettings.isInspectorVisible)
+                m_GraphView.Insert(m_GraphView.childCount, m_InspectorView);
+            else
+                m_InspectorView.RemoveFromHierarchy();
+
+            m_MasterPreviewView.visible = m_UserViewSettings.isPreviewVisible;
         }
 
         Action<Group, string> m_GraphViewGroupTitleChanged;
@@ -326,6 +346,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             masterPreviewViewDraggable.OnDragFinished += UpdateSerializedWindowLayout;
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
+        }
+
+        void CreateInspector(Action previewUpdateDelegate)
+        {
+            m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
+            m_GraphView.Add(m_InspectorView);
+            m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -549,20 +576,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<IShaderNodeView> m_NodeViewHashSet = new HashSet<IShaderNodeView>();
         HashSet<ShaderGroup> m_GroupHashSet = new HashSet<ShaderGroup>();
 
-        public void HandleGraphChanges()
+        public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
             UnregisterGraphViewCallbacks();
 
-            if(previewManager.HandleGraphChanges())
+            previewManager.HandleGraphChanges();
+
+            if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {
                 var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-
                 m_ColorManager.SetNodesDirty(nodeList);
                 m_ColorManager.UpdateNodeViews(nodeList);
             }
 
             previewManager.RenderPreviews();
-            m_BlackboardProvider.HandleGraphChanges();
+            m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+            if(wasUndoRedoPerformed)
+                m_InspectorView.Update();
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)
@@ -751,7 +781,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         List<GraphElement> m_GraphElementsTemp = new List<GraphElement>();
 
-        void AddNode(AbstractMaterialNode node)
+        void AddNode(AbstractMaterialNode node, bool usePrebuiltVisualGroupMap = false)
         {
             var materialNode = node;
             Node nodeView;
@@ -763,7 +793,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (node is RedirectNodeData redirectNodeData)
             {
-                var redirectNodeView = new RedirectNodeView { userData = redirectNodeData };
+                var redirectNodeView = new RedirectNodeView {userData = redirectNodeData};
                 m_GraphView.AddElement(redirectNodeView);
                 redirectNodeView.ConnectToData(materialNode, m_EdgeConnectorListener);
                 nodeView = redirectNodeView;
@@ -780,12 +810,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             node.RegisterCallback(OnNodeChanged);
             nodeView.MarkDirtyRepaint();
 
-            if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
+            if (m_SearchWindowProvider.nodeNeedsRepositioning &&
+                m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
                 foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
                 {
-                    var port = (ShaderPort)element;
+                    var port = (ShaderPort) element;
                     if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
                     {
                         port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
@@ -794,19 +825,56 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-            // This should also work for sticky notes
-            m_GraphElementsTemp.Clear();
-            m_GraphView.graphElements.ToList(m_GraphElementsTemp);
-
-            if (materialNode.groupGuid != Guid.Empty)
+            if (usePrebuiltVisualGroupMap)
             {
-                foreach (var element in m_GraphElementsTemp)
+                // cheaper way to add the node to groups it is in
+                ShaderGroup groupView;
+                visualGroupMap.TryGetValue(materialNode.groupGuid, out groupView);
+                if (groupView != null)
+                    groupView.AddElement(nodeView);
+            }
+            else
+            {
+                // This should also work for sticky notes
+                m_GraphElementsTemp.Clear();
+                m_GraphView.graphElements.ToList(m_GraphElementsTemp);
+
+                if (materialNode.groupGuid != Guid.Empty)
                 {
-                    if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                    foreach (var element in m_GraphElementsTemp)
                     {
-                        groupView.AddElement(nodeView);
+                        if (element is ShaderGroup groupView && groupView.userData.guid == materialNode.groupGuid)
+                        {
+                            groupView.AddElement(nodeView);
+                        }
                     }
                 }
+            }
+        }
+
+        private static Dictionary<Guid, ShaderGroup> visualGroupMap = new Dictionary<Guid, ShaderGroup>();
+        private static void AddToVisualGroupMap(GraphElement e)
+        {
+            ShaderGroup sg = e as ShaderGroup;
+            if (sg != null)
+                visualGroupMap.Add(sg.userData.guid, sg);
+        }
+        private static Action<GraphElement> AddToVisualGroupMapAction = AddToVisualGroupMap;
+        void BuildVisualGroupMap()
+        {
+            visualGroupMap.Clear();
+            m_GraphView.graphElements.ForEach(AddToVisualGroupMapAction);
+        }
+
+        private static readonly ProfilerMarker AddNodesMarker = new ProfilerMarker("AddNodes");
+        void AddNodes(IEnumerable<AbstractMaterialNode> nodes)
+        {
+            using (AddNodesMarker.Auto())
+            {
+                BuildVisualGroupMap();
+                foreach (var node in nodes)
+                    AddNode(node, true);
+                visualGroupMap.Clear();
             }
         }
 
@@ -872,7 +940,45 @@ namespace UnityEditor.ShaderGraph.Drawing
             port.MarkDirtyRepaint();
         }
 
-        Edge AddEdge(IEdge edge)
+        private static Dictionary<AbstractMaterialNode, IShaderNodeView> visualNodeMap = new Dictionary<AbstractMaterialNode, IShaderNodeView>();
+        private static void AddToVisualNodeMap(Node n)
+        {
+            IShaderNodeView snv = n as IShaderNodeView;
+            if (snv != null)
+                visualNodeMap.Add(snv.node, snv);
+        }
+        private static Action<Node> AddToVisualNodeMapAction = AddToVisualNodeMap;
+        void BuildVisualNodeMap()
+        {
+            visualNodeMap.Clear();
+            m_GraphView.nodes.ForEach(AddToVisualNodeMapAction);
+        }
+
+        private static readonly ProfilerMarker AddEdgesMarker = new ProfilerMarker("AddEdges");
+        void AddEdges(IEnumerable<IEdge> edges)
+        {
+            using (AddEdgesMarker.Auto())
+            {
+                // fast way
+                BuildVisualNodeMap();
+                foreach (IEdge edge in edges)
+                {
+                    AddEdge(edge, true, false);
+                }
+
+                // apply the port update on every node
+                foreach (IShaderNodeView nodeView in visualNodeMap.Values)
+                {
+                    nodeView.gvNode.RefreshPorts();
+                    nodeView.UpdatePortInputTypes();
+                }
+
+                // cleanup temp data
+                visualNodeMap.Clear();
+            }
+        }
+
+        Edge AddEdge(IEdge edge, bool useVisualNodeMap = false, bool updateNodePorts = true)
         {
             var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             if (sourceNode == null)
@@ -890,12 +996,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var targetSlot = targetNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
 
-            var sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
+            IShaderNodeView sourceNodeView;
+            if (useVisualNodeMap)
+                visualNodeMap.TryGetValue(sourceNode, out sourceNodeView);
+            else
+                sourceNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().FirstOrDefault(x => x.node == sourceNode);
+
             if (sourceNodeView != null)
             {
                 var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
 
-                var targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
+                IShaderNodeView targetNodeView;
+                if (useVisualNodeMap)
+                    visualNodeMap.TryGetValue(targetNode, out targetNodeView);
+                else
+                    targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
+
                 var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
                 var edgeView = new Edge
@@ -909,10 +1025,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 edgeView.output.Connect(edgeView);
                 edgeView.input.Connect(edgeView);
                 m_GraphView.AddElement(edgeView);
-                sourceNodeView.gvNode.RefreshPorts();
-                targetNodeView.gvNode.RefreshPorts();
-                sourceNodeView.UpdatePortInputTypes();
-                targetNodeView.UpdatePortInputTypes();
+
+                if (updateNodePorts)
+                {
+                    sourceNodeView.gvNode.RefreshPorts();
+                    targetNodeView.gvNode.RefreshPorts();
+                    sourceNodeView.UpdatePortInputTypes();
+                    targetNodeView.UpdatePortInputTypes();
+                }
 
                 return edgeView;
             }
@@ -991,22 +1111,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             UpdateSubWindowsVisibility();
         }
 
-        void HandleEditorViewChanged(GeometryChangedEvent evt)
+        void ApplySerializedWindowLayouts(GeometryChangedEvent evt)
         {
-            m_BlackboardProvider.blackboard.SetPosition(m_FloatingWindowsLayout.blackboardLayout.GetLayout(m_GraphView.layout));
+            UnregisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
+
+            ApplyMasterPreviewLayout();
+
+            ApplyBlackboardLayout();
+
+            m_InspectorView.DeserializeLayout();
         }
 
-        void StoreBlackboardLayoutOnGeometryChanged(GeometryChangedEvent evt)
+        void ApplyMasterPreviewLayout()
+        {
+            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
+
+            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+
+            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            m_MasterPreviewView.RegisterCallback<GeometryChangedEvent>(SerializeMasterPreviewLayout);
+        }
+
+        void SerializeMasterPreviewLayout(GeometryChangedEvent evt)
         {
             UpdateSerializedWindowLayout();
         }
 
-        void ApplySerializewindowLayouts(GeometryChangedEvent evt)
+        void ApplyBlackboardLayout()
         {
-            UnregisterCallback<GeometryChangedEvent>(ApplySerializewindowLayouts);
-
-            ApplyMasterPreviewLayout();
-
             // Restore blackboard layout, and make sure that it remains in the view.
             Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
@@ -1015,26 +1148,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
 
             // Make sure that the positioning is on screen.
-            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
-            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
+            blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f,
+                Mathf.Max(0f, m_GraphView.contentContainer.layout.width - blackboardRect.width));
+            blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f,
+                Mathf.Max(0f, m_GraphView.contentContainer.layout.height - blackboardRect.height));
 
             // Set the processed blackboard layout.
             m_BlackboardProvider.blackboard.SetPosition(blackboardRect);
 
-            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
-
             // After the layout is restored from the previous session, start tracking layout changes in the blackboard.
-            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(StoreBlackboardLayoutOnGeometryChanged);
-
-            // After the layout is restored, track changes in layout and make the blackboard have the same behavior as the preview w.r.t. docking.
-            RegisterCallback<GeometryChangedEvent>(HandleEditorViewChanged);
+            m_BlackboardProvider.blackboard.RegisterCallback<GeometryChangedEvent>(SerializeBlackboardLayout);
         }
 
-        void ApplyMasterPreviewLayout()
+        void SerializeBlackboardLayout(GeometryChangedEvent evt)
         {
-            m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
-            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
-            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            UpdateSerializedWindowLayout();
         }
 
         void UpdateSerializedWindowLayout()

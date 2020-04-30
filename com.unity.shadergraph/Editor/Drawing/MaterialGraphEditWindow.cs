@@ -17,6 +17,8 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
+using Unity.Profiling;
+
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class MaterialGraphEditWindow : EditorWindow
@@ -233,9 +235,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (wasUndoRedoPerformed)
                 {
-                    graphEditorView.HandleGraphChanges();
+                    graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
+
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -244,7 +247,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.isDirty = false;
                 }
 
-                graphEditorView.HandleGraphChanges();
+                // Called again to handle changes from deserialization in case an undo/redo was performed
+                graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
             }
             catch (Exception e)
@@ -796,6 +800,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 AssetDatabase.ImportAsset(path);
         }
 
+        private static readonly ProfilerMarker GraphLoadMarker = new ProfilerMarker("GraphLoad");
+        private static readonly ProfilerMarker CreateGraphEditorViewMarker = new ProfilerMarker("CreateGraphEditorView");
         public void Initialize(string assetGuid)
         {
             try
@@ -835,21 +841,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 selectedGuid = assetGuid;
 
-                var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                graphObject = CreateInstance<GraphObject>();
-                graphObject.hideFlags = HideFlags.HideAndDontSave;
-                graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                graphObject.graph.assetGuid = assetGuid;
-                graphObject.graph.isSubGraph = isSubGraph;
-                graphObject.graph.messageManager = messageManager;
-                graphObject.graph.OnEnable();
-                graphObject.graph.ValidateGraph();
-
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                using (GraphLoadMarker.Auto())
                 {
-                    viewDataKey = selectedGuid,
-                    assetName = asset.name.Split('/').Last()
-                };
+                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                    graphObject = CreateInstance<GraphObject>();
+                    graphObject.hideFlags = HideFlags.HideAndDontSave;
+                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
+                    graphObject.graph.assetGuid = assetGuid;
+                    graphObject.graph.isSubGraph = isSubGraph;
+                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph.OnEnable();
+                    graphObject.graph.ValidateGraph();
+                }
+
+                using (CreateGraphEditorViewMarker.Auto())
+                {
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    {
+                        viewDataKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
+                }
 
                 Texture2D icon = GetThemeIcon(graphObject.graph);
 
@@ -882,6 +894,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            if (graphEditorView == null)
+                return;
+
             // this callback is only so we can run post-layout behaviors after the graph loads for the first time
             // we immediately unregister it so it doesn't get called again
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
