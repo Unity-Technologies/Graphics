@@ -9,6 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float MinCellSize { get; set; } = 5f;
         public Vector3Int GridResolution { get; private set; }
         public Bounds ReferenceBounds { get; private set; }
+        public Matrix4x4 GridToWorldMatrix { get; private set; }
 
         // Current subdivision level
         private List<ProbeVolumeBrick> level;
@@ -21,6 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public void BuildBrickStructure(Bounds referenceBounds)
         {
             this.ReferenceBounds = referenceBounds;
+
+            // Calculate transform matrix
+            this.GridToWorldMatrix = Matrix4x4.TRS(ReferenceBounds.min, Quaternion.identity, Vector3.one * MinCellSize);
 
             // Calculate resolution
             Vector3 resolutionFloat = referenceBounds.size / MinCellSize;
@@ -227,7 +231,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3 GridToWorld(Vector3 gridPos)
         {
-            return gridPos * MinCellSize - (ReferenceBounds.size / 2) + ReferenceBounds.center;
+            return GridToWorldMatrix.MultiplyPoint(gridPos);
+        }
+
+        public Vector3 WorldToGrid(Vector3 worldPos)
+        {
+            return GridToWorldMatrix.inverse.MultiplyPoint(worldPos);
         }
 
         private Vector3Int Position3D(int width, int height, int idx)
