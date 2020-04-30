@@ -376,7 +376,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
-                
+
                 var target = (Target)Activator.CreateInstance(type);
                 if(!target.isHidden)
                 {
@@ -447,14 +447,14 @@ namespace UnityEditor.ShaderGraph
                 // Create foldout
                 var foldout = new UnityEngine.UIElements.Foldout() { text = target.value.displayName, value = foldoutActive };
                 element.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt => 
+                foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
                     m_TargetFoldouts[target] = evt.newValue;
                     foldout.value = evt.newValue;
                     onChange();
                 });
-                
+
                 if(foldout.value)
                 {
                     // Get settings for Target
@@ -648,7 +648,7 @@ namespace UnityEditor.ShaderGraph
 
             // Set BlockNode properties
             blockNode.contextData = contextData;
-            
+
             // Add to ContextData
             if(index == -1 || index >= contextData.blocks.Count())
             {
@@ -683,7 +683,7 @@ namespace UnityEditor.ShaderGraph
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
                 fragmentBlock.value.isActive = activeBlockDescriptors.Contains(fragmentBlock.value.descriptor);
-            } 
+            }
         }
 
         public void AddRemoveBlocksFromActiveList(List<BlockFieldDescriptor> activeBlockDescriptors)
@@ -710,7 +710,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(descriptor.shaderStage != contextData.shaderStage)
                     return;
-                
+
                 if(contextData.blocks.Any(x => x.value.descriptor.Equals(descriptor)))
                     return;
 
@@ -951,7 +951,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(node == null)
                 return false;
-            
+
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
@@ -1397,7 +1397,7 @@ namespace UnityEditor.ShaderGraph
                 target.Setup(ref context);
                 m_ActiveTargets.Add(target);
             }
-            
+
             // Active blocks
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
             UpdateActiveBlocks(activeBlocks);
@@ -1716,7 +1716,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
                 }
 
                 foreach (var serializedElement in graphData0.m_SerializableEdges)
@@ -1762,7 +1762,7 @@ namespace UnityEditor.ShaderGraph
                                 var descriptor = blockMapping.Key;
                                 if(addedBlocks.Contains(descriptor))
                                     continue;
-                                
+
                                 addedBlocks.Add(descriptor);
 
                                 var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
@@ -1780,7 +1780,7 @@ namespace UnityEditor.ShaderGraph
                                 var newSlot = block.FindSlot<MaterialSlot>(0);
                                 if(oldSlot == null)
                                     continue;
-                                
+
                                 var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
                                 var newInputSlotRef = block.GetSlotReference(0);
 
@@ -1832,10 +1832,10 @@ namespace UnityEditor.ShaderGraph
                         {
                             if(!(target is ILegacyTarget legacyTarget))
                                 continue;
-                            
+
                             if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
                                 continue;
-                            
+
                             m_ActiveTargets.Add(target);
                             UpgradeFromBlockMap(newBlockMap);
                         }
@@ -1920,7 +1920,7 @@ namespace UnityEditor.ShaderGraph
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
-          
+
             foreach(var target in m_ActiveTargets.SelectValue())
             {
                 var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
