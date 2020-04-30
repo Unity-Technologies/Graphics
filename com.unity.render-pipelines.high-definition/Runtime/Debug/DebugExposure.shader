@@ -152,6 +152,8 @@ Shader "Hidden/HDRP/DebugExposure"
         }
     }
 
+   // void DrawHistogram
+
     void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
@@ -355,7 +357,7 @@ Shader "Hidden/HDRP/DebugExposure"
         maxPercentileLoc /= (HISTOGRAM_BINS - 1);
 #endif
 
-        DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, ToHeat(uv.x), 0.1f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
+        DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, float3(0.125,0.125,0.125), 0.4f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
 
 
         return outputColor;// lerp(, color, 0.025f);
