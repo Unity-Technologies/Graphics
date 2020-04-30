@@ -303,10 +303,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxShadowRequests = initParams.maxShadowRequests;
 
             cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
-                                            HDShaderIDs._CachedShadowmapAtlas, clearMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
+                                            HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
-                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, clearMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
+                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
         }
 
         // Keep in sync with both HDShadowSampling.hlsl

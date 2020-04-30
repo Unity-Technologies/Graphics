@@ -1756,12 +1756,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             viewportSize = Vector2.Max(viewportSize, new Vector2(HDShadowManager.k_MinShadowMapResolution, HDShadowManager.k_MinShadowMapResolution));
 
-            HDLightType lightType = type;
             // Update the directional shadow atlas size
             if (lightType == HDLightType.Directional)
                 shadowManager.UpdateDirectionalShadowResolution((int)viewportSize.x, shadowSettings.cascadeShadowSplitCount.value);
 
-            int count = GetShadowRequestCount(shadowSettings);
+            int count = GetShadowRequestCount(shadowSettings, lightType);
 
             bool needResolutionRequestNow = !shadowIsInCacheSystem || lightType == HDLightType.Directional;
             for (int index = 0; index < count; index++)
@@ -1839,8 +1838,6 @@ namespace UnityEngine.Rendering.HighDefinition
             bool shadowDoesntHavePlacement = shadowIsInCachedSystem && HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType);
             // If we force evicted the light, it will have lightIdxForCachedShadows == -1
             shadowDoesntHavePlacement = shadowDoesntHavePlacement || (lightIdxForCachedShadows == -1);
-
-            int count = GetShadowRequestCount(shadowSettings);
 
             for (int index = 0; index < count; index++)
             {
