@@ -585,7 +585,7 @@ namespace UnityEditor.ShaderGraph
         public void AddSlot(MaterialSlot slot)
         {
             if(slot == null)
-        {
+            {
                 throw new ArgumentException($"Trying to add null slot to node {this}");
             }
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
@@ -600,6 +600,32 @@ namespace UnityEditor.ShaderGraph
 
             // this will remove the old slot and add a new one
             // if an old one was found. This allows updating values
+            m_Slots.RemoveAll(x => x.value.id == slot.id);
+
+            m_Slots.Add(slot);
+            slot.owner = this;
+
+            OnSlotsChanged();
+
+            if (foundSlot == null)
+                return;
+
+            slot.CopyValuesFrom(foundSlot);
+            foundSlot.owner = null;
+        }
+
+        public void ReplaceSlot(MaterialSlot slot)
+        {
+            //needed for ReorderableSlotListView.cs to be able to change slot types dynamically
+            //it relied on old behavior without the instance checking added to AddSlot()
+            if(slot == null)
+            {
+                throw new ArgumentException($"Trying to add null slot to node {this}");
+            }
+            var foundSlot = FindSlot<MaterialSlot>(slot.id);
+
+            // this will remove the old slot and add a new one
+            // if an old one was found. This allows updating values, shader output, and concreteType
             m_Slots.RemoveAll(x => x.value.id == slot.id);
 
             m_Slots.Add(slot);
