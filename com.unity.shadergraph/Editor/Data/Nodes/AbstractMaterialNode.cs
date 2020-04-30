@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
@@ -91,6 +92,7 @@ namespace UnityEditor.ShaderGraph
 
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
+        [Inspectable("Precision", ConcretePrecision.Float)]
         public ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
@@ -223,9 +225,9 @@ namespace UnityEditor.ShaderGraph
         public void GetSlots<T>(List<T> foundSlots) where T : MaterialSlot
         {
             foreach (var slot in m_Slots.SelectValue())
-            {
+        {
                 if (slot is T materialSlot)
-                {
+            {
                     foundSlots.Add(materialSlot);
                 }
             }
@@ -583,7 +585,7 @@ namespace UnityEditor.ShaderGraph
         public void AddSlot(MaterialSlot slot)
         {
             if(slot == null)
-            {
+        {
                 throw new ArgumentException($"Trying to add null slot to node {this}");
             }
             var foundSlot = FindSlot<MaterialSlot>(slot.id);

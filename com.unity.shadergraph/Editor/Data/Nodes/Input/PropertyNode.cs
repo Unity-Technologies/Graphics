@@ -17,6 +17,30 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
+        public override void UpdateNodeAfterDeserialization()
+        {
+            base.UpdateNodeAfterDeserialization();
+
+            if (owner == null)
+                return;
+
+            // Get property from graphData
+            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
+            if (property == null)
+                throw new NullReferenceException();
+
+            if (property is Vector1ShaderProperty vector1ShaderProperty && vector1ShaderProperty.floatType == FloatType.Slider)
+            {
+                // Previously, the Slider vector1 property allowed the min value to be greater than the max
+                // We no longer want to support that behavior so if such a property is encountered, swap the values
+                if (vector1ShaderProperty.rangeValues.x > vector1ShaderProperty.rangeValues.y)
+                {
+                    vector1ShaderProperty.rangeValues = new Vector2(vector1ShaderProperty.rangeValues.y, vector1ShaderProperty.rangeValues.x);
+                    Dirty(ModificationScope.Graph);
+                }
+            }
+        }
+
         [SerializeField]
         JsonRef<AbstractShaderProperty> m_Property;
 
@@ -185,7 +209,7 @@ namespace UnityEditor.ShaderGraph
                 concretePrecision = precision.ToConcrete();
             else
                 concretePrecision = owner.concretePrecision;
-        }
+            }
 
     }
 }

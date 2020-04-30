@@ -7,10 +7,10 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
-
+using Data.Interfaces;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
-using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
@@ -18,7 +18,7 @@ using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialNodeView : Node, IShaderNodeView
+    sealed class MaterialNodeView : Node, IShaderNodeView, IInspectable
     {
         PreviewRenderData m_PreviewRenderData;
         Image m_PreviewImage;
@@ -40,6 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialGraphView m_GraphView;
 
+        public string inspectorTitle => $"{node.name} (Node)";
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, MaterialGraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
@@ -168,6 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         break;
                     }
                 }
+
                 //if no active target implementations are valid with the current pipeline, display the error
                 m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
                 if (!validTarget)
@@ -185,7 +187,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(m_NodeSettingsView);
 
             m_SettingsButton = new VisualElement {name = "settings-button"};
-            m_SettingsButton.Add(new VisualElement { name = "icon" });
+                m_SettingsButton.Add(new VisualElement {name = "icon"});
 
             m_Settings = new VisualElement();
             AddDefaultSettings();
@@ -203,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if(m_Settings.childCount > 0)
             {
-                m_ButtonContainer = new VisualElement { name = "button-container" };
+                    m_ButtonContainer = new VisualElement {name = "button-container"};
                 m_ButtonContainer.style.flexDirection = FlexDirection.Row;
                 m_ButtonContainer.Add(m_SettingsButton);
                 m_ButtonContainer.Add(m_CollapseButton);
@@ -438,6 +440,31 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SettingsButton.RemoveFromClassList("clicked");
                 UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             }
+        }
+
+
+        public object GetObjectToInspect()
+        {
+            return this.node;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.node.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            if (propertyDrawer is ShaderGUIOverridePropertyDrawer shaderGuiOverridePropertyDrawer)
+            {
+                shaderGuiOverridePropertyDrawer.GetPropertyData(node);
+            }
+        }
+
+        private void SetSelfSelected()
+        {
+            m_GraphView.ClearSelection();
+            m_GraphView.AddToSelection(this);
         }
 
         protected override void ToggleCollapse()
