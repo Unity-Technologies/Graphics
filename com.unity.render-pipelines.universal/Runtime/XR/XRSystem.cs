@@ -206,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
         // Used for camera stacking where we need to update the parameters per camera
         internal void UpdateFromCamera(ref XRPass xrPass, Camera camera)
         {
-            if (xrPass.enabled)
+            if (xrPass.enabled && display != null)
             {
                 display.GetRenderPass(xrPass.multipassId, out var renderPass);
                 display.GetCullingParameters(camera, renderPass.cullingPassIndex, out var cullingParams);
@@ -320,6 +320,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(cmd, _XRMirrorProfilingSampler))
             {
                 cmd.SetRenderTarget(camera.targetTexture != null  ? camera.targetTexture : new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget));
+                cmd.SetViewport(camera.pixelRect);
                 bool yflip = camera.targetTexture != null || camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview;
                 int mirrorBlitMode = display.GetPreferredMirrorBlitMode();
                 if (display.GetMirrorViewBlitDesc(null, out var blitDesc, mirrorBlitMode))
