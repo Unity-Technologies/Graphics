@@ -3524,8 +3524,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(1, m_SharedRTManager.GetDebugQuadLockRTI());
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugQuadOverdrawRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugQuadLockRTI());
+                cmd.SetRandomWriteTarget(3, m_SharedRTManager.GetDebugQuadOverdrawRTI());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -3556,7 +3556,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(3, m_SharedRTManager.GetDebugVertexDensityRTI());
+                cmd.SetRandomWriteTarget(4, m_SharedRTManager.GetDebugVertexDensityRTI());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -4476,9 +4476,9 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, parameters.depthPyramidOffsets);
             mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
 
-            cmd.SetRandomWriteTarget(1, parameters.quadLockRTI);
-            cmd.SetRandomWriteTarget(2, parameters.quadOverdrawRTI);
-            cmd.SetRandomWriteTarget(3, parameters.vertexDensityRTI);
+            cmd.SetRandomWriteTarget(2, parameters.quadLockRTI);
+            cmd.SetRandomWriteTarget(3, parameters.quadOverdrawRTI);
+            cmd.SetRandomWriteTarget(4, parameters.vertexDensityRTI);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 

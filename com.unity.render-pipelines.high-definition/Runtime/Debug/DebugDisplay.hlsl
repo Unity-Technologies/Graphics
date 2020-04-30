@@ -17,9 +17,9 @@ static DirectionalShadowType g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
-RW_TEXTURE2D_X(uint, _DebugQuadLockUAV);
-RW_TEXTURE2D_X(uint, _DebugQuadOverdrawUAV);
-RW_TEXTURE2D_X(uint, _DebugVertexDensityUAV);
+RW_TEXTURE2D_X(uint, _DebugQuadLockUAV) :register(u2);
+RW_TEXTURE2D_X(uint, _DebugQuadOverdrawUAV) :register(u3);
+RW_TEXTURE2D_X(uint, _DebugVertexDensityUAV) :register(u4);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
