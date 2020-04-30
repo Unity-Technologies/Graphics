@@ -155,7 +155,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -205,7 +205,7 @@ namespace UnityEditor.ShaderGraph
                 bool inputError = tempSlots.Any(x => x.hasError);
                 if (inputError)
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had input error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
                     hasError = true;
                 }
                 // configure the output slots now
@@ -236,12 +236,12 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-                
+
                 tempSlots.Clear();
                 GetOutputSlots(tempSlots);
                 if(tempSlots.Any(x => x.hasError))
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had output error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;
                 }
             }

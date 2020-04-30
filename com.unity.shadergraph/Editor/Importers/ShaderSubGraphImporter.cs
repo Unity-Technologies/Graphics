@@ -9,11 +9,12 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(11, Extension)]
+    [ScriptedImporter(12, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -39,10 +40,12 @@ namespace UnityEditor.ShaderGraph
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
             var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
-            var graphData = new GraphData { isSubGraph = true, assetGuid = subGraphGuid };
             var messageManager = new MessageManager();
-            graphData.messageManager = messageManager;
-            JsonUtility.FromJsonOverwrite(textGraph, graphData);
+            var graphData = new GraphData
+            {
+                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
+            };
+            MultiJson.Deserialize(graphData, textGraph);
 
             try
             {
@@ -60,7 +63,7 @@ namespace UnityEditor.ShaderGraph
                     graphAsset.isValid = false;
                     foreach (var pair in messageManager.GetNodeMessages())
                     {
-                        var node = graphData.GetNodeFromGuid(pair.Key);
+                        var node = graphData.GetNodeFromId(pair.Key);
                         foreach (var message in pair.Value)
                         {
                             MessageManager.Log(node, subGraphPath, message, graphAsset);
@@ -80,7 +83,6 @@ namespace UnityEditor.ShaderGraph
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
             asset.functions.Clear();
-            asset.nodeProperties.Clear();
             asset.isValid = true;
 
             graph.OnEnable();
@@ -95,14 +97,14 @@ namespace UnityEditor.ShaderGraph
 
             var outputNode = (SubGraphOutputNode)graph.outputNode;
 
-            asset.outputs.Clear();
-            outputNode.GetInputSlots(asset.outputs);
+            var outputSlots = PooledList<MaterialSlot>.Get();
+            outputNode.GetInputSlots(outputSlots);
 
             List<AbstractMaterialNode> nodes = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(nodes, outputNode);
 
             asset.effectiveShaderStage = ShaderStageCapability.All;
-            foreach (var slot in asset.outputs)
+            foreach (var slot in outputSlots)
             {
                 var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
                 if (stage != ShaderStageCapability.All)
@@ -113,8 +115,6 @@ namespace UnityEditor.ShaderGraph
             }
 
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
-            asset.inputs = graph.properties.ToList();
-            asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
 
@@ -170,7 +170,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Generate arguments... first INPUTS
                 var arguments = new List<string>();
-                foreach (var prop in asset.inputs)
+                foreach (var prop in graph.properties)
                 {
                     prop.ValidateConcretePrecision(asset.graphPrecision);
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
                 // Now generate outputs
-                foreach (var output in asset.outputs)
+                foreach (var output in outputSlots)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
                 // Create the function prototype from the arguments
@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
 
-                    foreach (var slot in asset.outputs)
+                    foreach (var slot in outputSlots)
                     {
                         sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
                     }
@@ -212,13 +212,12 @@ namespace UnityEditor.ShaderGraph
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             var collector = new PropertyCollector();
-            asset.nodeProperties = collector.properties;
             foreach (var node in nodes)
             {
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
             }
-
-            asset.OnBeforeSerialize();
+            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots);
+            outputSlots.Dispose();
         }
 
         static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)

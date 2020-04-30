@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added AlphaToMask render state.
 - Added a field to the Master Nodes that overrides the generated shader's ShaderGUI, which determines how a Material that uses a Shader Graph looks.
 - Added Redirect Nodes. You can now double-click an edge to add a control point that allows you to route edges around other nodes and connect multiple output edges.
+- Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.

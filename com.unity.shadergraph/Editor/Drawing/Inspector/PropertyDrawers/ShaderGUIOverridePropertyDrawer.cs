@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 m_MasterNode.owner.messageManager?.ClearNodesFromProvider(m_MasterNode,
                     m_MasterNode.ToEnumerable());
-                m_MasterNode.owner.messageManager?.AddOrAppendError(m_MasterNode, m_MasterNode.guid,
+                m_MasterNode.owner.messageManager?.AddOrAppendError(m_MasterNode, m_MasterNode.objectId,
                     new ShaderMessage(string.Format(k_InvalidShaderGUI, shaderGuiOverrideInfo.ShaderGUIOverride),
                         ShaderCompilerMessageSeverity.Warning));
             }
