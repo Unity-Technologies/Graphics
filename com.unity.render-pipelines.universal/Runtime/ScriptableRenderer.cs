@@ -634,7 +634,7 @@ namespace UnityEngine.Rendering.Universal
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
 
-                                if (!RenderingUtils.Contains(attachmentList.ToArray(),
+                                if (!RenderingUtils.Contains(attachmentList,
                                         rp.colorAttachmentDescriptors[i]))
                                 {
                                     attachmentList.Add(rp.colorAttachmentDescriptors[i]);
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
 
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
                             {
-                                if (!RenderingUtils.Contains(attachmentList.ToArray(), rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
+                                if (!RenderingUtils.Contains(attachmentList, rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
                                 {
                                     attachmentList.Add(rp.depthAttachmentDescriptor);
                                     depthAttachmentIdx = attachmentList.Count - 1;
@@ -678,7 +678,7 @@ namespace UnityEngine.Rendering.Universal
 
                     for (int i = 0; i < colorCount; i++)
                     {
-                        var idx = RenderingUtils.IndexOf(attachmentCopy.ToArray(), renderPass.colorAttachmentDescriptors[i]);
+                        var idx = RenderingUtils.IndexOf(attachmentCopy, renderPass.colorAttachmentDescriptors[i]);
 
                         if (idx != -1)
                         {
@@ -698,7 +698,7 @@ namespace UnityEngine.Rendering.Universal
 
                         for (int i = 0; i < renderPass.inputAttachmentDescriptors.Length; i++)
                         {
-                            var idx  = RenderingUtils.IndexOf(attachmentCopy.ToArray(),
+                            var idx  = RenderingUtils.IndexOf(attachmentCopy,
                                 renderPass.inputAttachmentDescriptors[i]);
 
                             if (idx != -1)
@@ -717,7 +717,7 @@ namespace UnityEngine.Rendering.Universal
                         var attachmentDescriptors = new NativeArray<AttachmentDescriptor>(attachmentList.ToArray(), Allocator.Temp);
                         //It should be set, but in some RenderPass breakage cases we need to be sure
                         if (depthAttachmentIdx == -1)
-                            depthAttachmentIdx = RenderingUtils.GetDepthAttachmentIndex(attachmentDescriptors.ToArray());
+                            depthAttachmentIdx = RenderingUtils.GetDepthAttachmentIndex(attachmentDescriptors);
                         context.BeginRenderPass(descriptor.width, descriptor.height, descriptor.sampleCount, attachmentDescriptors, depthAttachmentIdx);
                         attachmentDescriptors.Dispose();
                         renderPassStarted = true;

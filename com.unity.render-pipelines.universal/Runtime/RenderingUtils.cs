@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -282,7 +283,18 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        internal static int GetDepthAttachmentIndex(AttachmentDescriptor[] source)
+        internal static bool Contains(List<AttachmentDescriptor> source, AttachmentDescriptor value)
+        {
+            foreach (var identifier in source)
+            {
+                bool isTransient = identifier.loadAction == RenderBufferLoadAction.DontCare &&
+                                   identifier.storeAction == RenderBufferStoreAction.DontCare;
+                if (identifier == value && !isTransient)
+                    return true;
+            }
+            return false;
+        }
+        internal static int GetDepthAttachmentIndex(NativeArray<AttachmentDescriptor> source)
         {
             for (int i = 0; i < source.Length; ++i)
             {
