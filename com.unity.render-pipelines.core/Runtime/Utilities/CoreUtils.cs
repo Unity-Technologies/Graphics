@@ -880,6 +880,20 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Set a keyword to a compute shader
+        /// </summary>
+        /// <param name="cmd">ComputeShader on which to set the keyword.</param>
+        /// <param name="keyword">Keyword to be set.</param>
+        /// <param name="state">Value of the keyword to be set.</param>
+        public static void SetKeyword(ComputeShader cs, string keyword, bool state)
+        {
+            if (state)
+                cs.EnableKeyword(keyword);
+            else
+                cs.DisableKeyword(keyword);
+        }
+
+        /// <summary>
         /// Destroys a UnityObject safely.
         /// </summary>
         /// <param name="obj">Object to be destroyed.</param>
@@ -1013,7 +1027,7 @@ namespace UnityEngine.Rendering
                     // Post-processing is disabled in scene view if either showImageEffects is disabled or we are
                     // rendering in wireframe mode.
                     if (sv.camera == camera &&
-                        (sv.sceneViewState.showImageEffects && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
+                        (sv.sceneViewState.imageEffectsEnabled && sv.cameraMode.drawMode != UnityEditor.DrawCameraMode.Wireframe))
                     {
                         enabled = true;
                         break;
@@ -1045,7 +1059,11 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++) // Using a foreach on an ArrayList generates garbage ...
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.alwaysRefresh)
+            #if UNITY_2020_2_OR_NEWER
+                    if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
+            #else
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)                    
+            #endif
                     {
                         animateMaterials = true;
                         break;
@@ -1137,7 +1155,7 @@ namespace UnityEngine.Rendering
                 for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
                 {
                     var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.sceneViewState.showFog)
+                    if (sv.camera == camera && sv.sceneViewState.fogEnabled)
                     {
                         fogEnable = true;
                         break;

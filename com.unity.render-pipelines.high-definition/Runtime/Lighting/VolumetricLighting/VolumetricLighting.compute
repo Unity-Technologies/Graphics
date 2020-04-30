@@ -10,7 +10,7 @@
 #pragma multi_compile _ LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 #pragma multi_compile _ ENABLE_REPROJECTION
 #pragma multi_compile _ ENABLE_ANISOTROPY
-#pragma multi_compile VL_PRESET_MQ VL_PRESET_HQ
+#pragma multi_compile _ VL_PRESET_OPTIMAL
 
 #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
     #define USE_BIG_TILE_LIGHTLIST
@@ -19,23 +19,19 @@
 // Don't want contact shadows
 #define LIGHT_EVALUATION_NO_CONTACT_SHADOWS // To define before LightEvaluation.hlsl
 
-#ifdef VL_PRESET_MQ
-    // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
-    // Same texel count as in a 1080p frame buffer.
-    #define VBUFFER_TILE_SIZE 8
-#endif
-#ifdef VL_PRESET_HQ
-    // E.g. for 1080p: (1920/4)x(1080/4)x(128) = 16,588,800 voxels
-    // Double the texel count of a 4K frame buffer!
-    #define VBUFFER_TILE_SIZE 4
+#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+    #define USE_BIG_TILE_LIGHTLIST
 #endif
 
-#define GROUP_SIZE_1D                      8
-#define SUPPORT_LOCAL_LIGHTS               1 // Local lights contribute to fog lighting
+#ifdef VL_PRESET_OPTIMAL
+    // E.g. for 1080p: (1920/8)x(1080/8)x(64) = 2,073,600 voxels
+    #define VBUFFER_VOXEL_SIZE 8
+#endif
 
-#define SHADOW_USE_DEPTH_BIAS              0
-
-#define PREFER_HALF 0
+#define GROUP_SIZE_1D         8
+#define SUPPORT_LOCAL_LIGHTS  1 // Local lights contribute to fog lighting
+#define SHADOW_USE_DEPTH_BIAS 0
+#define PREFER_HALF           0
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -59,6 +55,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VBuffer.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
+
+// Use low quality shadow when doing volumetric
+#define SHADOW_LOW
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
@@ -67,29 +66,10 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferLightingIntegral);
-RW_TEXTURE3D(float4, _VBufferLightingFeedback);
-TEXTURE3D(_VBufferLightingHistory);
+RW_TEXTURE3D(float4, _VBufferLighting);
+RW_TEXTURE3D(float4, _VBufferFeedback);
+TEXTURE3D(_VBufferHistory);
 TEXTURE3D(_VBufferDensity);                     // RGB = scattering, A = extinction
-
-// TODO: avoid creating another Constant Buffer...
-CBUFFER_START(UnityVolumetricLighting)
-    float4x4 _VBufferCoordToViewDirWS[SHADEROPTIONS_XR_MAX_VIEWS];
-
-    float    _VBufferUnitDepthTexelSpacing;
-    uint     _NumVisibleDensityVolumes;         // Not used by this shader
-    float    _CornetteShanksConstant;
-    uint     _VBufferLightingHistoryIsValid;
-
-    float4   _VBufferSampleOffset;
-    float4   _VolumeMaskDimensions;             // Not used by this shader
-
-    // BigTile...
-    uint _NumTileBigTileX;
-    uint _NumTileBigTileY;
-    uint _EnvLightIndexShift;
-    uint _DensityVolumeIndexShift;
-CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -564,18 +544,18 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         // Reproject the history at 'centerWS'.
-        float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLightingHistory, s_linear_clamp_sampler),
+        float4 reprojValue = SampleVBuffer(TEXTURE3D_ARGS(_VBufferHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevCamPosRWS,
                                            UNITY_MATRIX_PREV_VP,
                                            _VBufferPrevViewportSize,
-                                           _VBufferHistoryPrevUvScaleAndLimit.xy,
-                                           _VBufferHistoryPrevUvScaleAndLimit.zw,
-                                           _VBufferPrevDepthEncodingParams,
-                                           _VBufferPrevDepthDecodingParams,
+                                           _VBufferHistoryViewportScale.xyz,
+                                           _VBufferHistoryViewportLimit.xyz,
+                                           _VBufferPrevDistanceEncodingParams,
+                                           _VBufferPrevDistanceDecodingParams,
                                            false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
 
-        bool reprojSuccess = (_VBufferLightingHistoryIsValid != 0) && (reprojValue.a != 0);
+        bool reprojSuccess = (_VBufferHistoryIsValid != 0) && (reprojValue.a != 0);
 
         if (reprojSuccess)
         {
@@ -587,7 +567,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
         // do not support reprojection and should neither read nor write to the history buffer.
         // This will cause them to alias, but it is the only way to prevent ghosting.
-        _VBufferLightingFeedback[voxelCoord] = normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferFeedback[voxelCoord] = normalizedBlendValue * float4(GetCurrentExposureMultiplier().xxx, 1);
 
         float4 linearizedBlendValue = normalizedBlendValue * dt;
         float4 blendValue = DelinearizeRGBD(linearizedBlendValue);
@@ -645,7 +625,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // This means storing the tone mapped radiance and transmittance instead of optical depth.
         // See "A Fresh Look at Generalized Sampling", p. 51.
         // TODO: re-enable tone mapping after implementing pre-exposure.
-        _VBufferLightingIntegral[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
+        _VBufferLighting[voxelCoord] = LinearizeRGBD(float4(/*FastTonemap*/(totalRadiance), opticalDepth)) * float4(GetCurrentExposureMultiplier().xxx, 1);
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
@@ -659,15 +639,21 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
                         uint2 groupId          : SV_GroupID,
                         uint2 groupThreadId    : SV_GroupThreadID)
 {
-    // Perform compile-time checks.
-    if (!IsPower2(VBUFFER_TILE_SIZE) || !IsPower2(TILE_SIZE_BIG_TILE)) return;
-
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
-    uint2 tileCoord   = groupOffset * VBUFFER_TILE_SIZE / TILE_SIZE_BIG_TILE;
-    uint  tileIndex   = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+#ifdef VL_PRESET_OPTIMAL
+    // The entire thread group is within the same light tile.
+    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
+#else
+    // No compile-time optimizations, no scalarization.
+    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
+    // a tile boundary. This means different voxel subsamples may belong to different tiles.
+    // We accept this error, and simply use the coordinates of the center of the voxel.
+    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
+#endif
+    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use

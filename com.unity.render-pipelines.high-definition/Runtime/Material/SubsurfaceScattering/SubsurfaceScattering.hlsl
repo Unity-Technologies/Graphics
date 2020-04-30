@@ -22,7 +22,7 @@ uint GetSubsurfaceScatteringTexturingMode(int diffusionProfile)
 
     if (enableSss)
     {
-        bool performPostScatterTexturing = IsBitSet(asuint(_TexturingModeFlags), diffusionProfile);
+        bool performPostScatterTexturing = IsBitSet(_TexturingModeFlags, diffusionProfile);
 
         if (performPostScatterTexturing)
         {
@@ -232,7 +232,7 @@ uint FindDiffusionProfileIndex(uint diffusionProfileHash)
     // Fetch the 4 bit index number by looking for the diffusion profile unique ID:
     for (i = 0; i < _DiffusionProfileCount; i++)
     {
-        if (asuint(_DiffusionProfileHashTable[i]) == diffusionProfileHash)
+        if (_DiffusionProfileHashTable[i].x == diffusionProfileHash)
         {
             diffusionProfileIndex = i;
             break;
