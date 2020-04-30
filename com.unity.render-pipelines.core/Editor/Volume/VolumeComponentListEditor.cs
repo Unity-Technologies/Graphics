@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -45,12 +48,31 @@ namespace UnityEditor.Rendering
     /// </example>
     public sealed class VolumeComponentListEditor
     {
+        struct VersionControlBarMethod
+        {
+            Action<Editor> m_Method;
+
+            public static VersionControlBarMethod New()
+            {
+                var propertyEditorType = Type.GetType("UnityEditor.PropertyEditor,UnityEditor");
+                var versionControlVarMethod = propertyEditorType.GetMethod("VersionControlBar", BindingFlags.Static | BindingFlags.NonPublic);
+                var editorArg = Expression.Parameter(typeof(Editor), "editor");
+                return new VersionControlBarMethod { m_Method = Expression.Lambda<Action<Editor>>(Expression.Call(versionControlVarMethod, editorArg), editorArg).Compile() };
+            }
+
+            public void Invoke(Editor assetEditor) => m_Method(assetEditor);
+        }
+
+        // Call this to draw the version control toolbar of an editor
+        static readonly VersionControlBarMethod k_VersionControlBar = VersionControlBarMethod.New();
+
         /// <summary>
         /// A direct reference to the <see cref="VolumeProfile"/> this editor displays.
         /// </summary>
         public VolumeProfile asset { get; private set; }
 
         Editor m_BaseEditor;
+        Editor m_AssetEditor;
 
         SerializedObject m_SerializedObject;
         SerializedProperty m_ComponentsProperty;
@@ -208,6 +230,25 @@ namespace UnityEditor.Rendering
 
             bool isEditable = !VersionControl.Provider.isActive
                 || AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible);
+
+            if (Provider.isActive)
+            {
+                // Refresh the asset editor if required
+                Editor.CreateCachedEditor(asset, typeof(VolumeProfileEditor), ref m_AssetEditor);
+
+                // Draw VCS toolbar
+                // Weird issue here, the rect returned is not correct while the space is allocated.
+                var _ = GUILayoutUtility.GetRect(Screen.width, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+                var toolbarRect = new Rect(
+                    0,                                     // start at the begining of the inspector, ignore padding
+                    EditorGUIUtility.singleLineHeight * 5     // 5 fields to show before
+                    + EditorGUIUtility.standardVerticalSpacing * 7, // 5 field space + initial padding + additional space
+                    Screen.width,                                 // The toolbar uses the full width
+                    EditorGUIUtility.singleLineHeight);            // And uses the standard height
+                GUILayout.BeginArea(toolbarRect);
+                k_VersionControlBar.Invoke(m_AssetEditor);
+                GUILayout.EndArea();
+            }
 
             using (new EditorGUI.DisabledScope(!isEditable))
             {
