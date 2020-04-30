@@ -11,9 +11,9 @@ namespace UnityEditor.ShaderGraph
         public const int kNormalOutputSlotId = 1;
         public const int kTangentOutputSlotId = 2;
 
-        public const string kOutputSlotPositionName = "Position";
-        public const string kOutputSlotNormalName = "Normal";
-        public const string kOutputSlotTangentName = "Tangent";
+        public const string kOutputSlotPositionName = "Deformed Position";
+        public const string kOutputSlotNormalName = "Deformed Normal";
+        public const string kOutputSlotTangentName = "Deformed Tangent";
 
         public ComputeDeformNode()
         {

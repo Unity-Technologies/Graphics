@@ -14,12 +14,12 @@ namespace UnityEditor.ShaderGraph
         public const int kNormalOutputSlotId = 4;
         public const int kTangentOutputSlotId = 5;
 
-        public const string kSlotPositionName = "Position";
-        public const string kSlotNormalName = "Normal";
-        public const string kSlotTangentName = "Tangent";
-        public const string kOutputSlotPositionName = "Position";
-        public const string kOutputSlotNormalName = "Normal";
-        public const string kOutputSlotTangentName = "Tangent";
+        public const string kSlotPositionName = "Vertex Position";
+        public const string kSlotNormalName = "Vertex Normal";
+        public const string kSlotTangentName = "Vertex Tangent";
+        public const string kOutputSlotPositionName = "Skinned Position";
+        public const string kOutputSlotNormalName = "Skinned Normal";
+        public const string kOutputSlotTangentName = "Skinned Tangent";
 
         public LinearBlendSkinningNode()
         {
