@@ -1895,8 +1895,8 @@ namespace UnityEditor.ShaderGraph
             }
             foreach(var nodePair in updatedNodes)
             {
-                //ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
                 m_Nodes.Add(nodePair.Item2);
+                //ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
             }
 
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
@@ -1984,7 +1984,34 @@ namespace UnityEditor.ShaderGraph
 
         private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)
         {
-            //ALEX DO THINGS HERE :D 
+            var oldSlots = new List<MaterialSlot>();
+            nodeToReplace.GetSlots(oldSlots);
+            var newSlots = new List<MaterialSlot>();
+            nodeReplacement.GetSlots(newSlots);
+
+            for(int i = 0; i < oldSlots.Count; i++)
+            {
+                newSlots[i].CopyValuesFrom(oldSlots[i]);
+                var oldSlotRef = nodeToReplace.GetSlotReference(oldSlots[i].id);
+                var newSlotRef = nodeReplacement.GetSlotReference(newSlots[i].id);
+
+                for(int x = 0; x < m_Edges.Count; x++)
+                {
+                    var edge = m_Edges[x];
+                    if (edge.inputSlot.Equals(oldSlotRef))
+                    {
+                        var outputSlot = edge.outputSlot;
+                        m_Edges.Remove(edge);
+                        m_Edges.Add(new Edge(outputSlot, newSlotRef));
+                    }
+                    else if (edge.outputSlot.Equals(oldSlotRef))
+                    {
+                        var inputSlot = edge.inputSlot;
+                        m_Edges.Remove(edge);
+                        m_Edges.Add(new Edge(newSlotRef, inputSlot));
+                    }
+                }
+            }
         }
 
         public void OnEnable()
