@@ -6,6 +6,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Colors;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -104,6 +105,7 @@ namespace UnityEditor.ShaderGraph
 
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
+        [Inspectable("Precision", ConcretePrecision.Float)]
         public ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
