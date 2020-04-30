@@ -1380,12 +1380,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         }
 
-        public bool virtualTexturingEnabled
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool virtualTexturingEnabled => true;
     }
 }
