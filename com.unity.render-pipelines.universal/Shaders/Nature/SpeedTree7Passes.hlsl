@@ -90,10 +90,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
         // global wind
         if (windQuality > WIND_QUALITY_NONE)
         {
-            // Disabling "pow(f,e) will not work for negative f"; warnings.
-            #pragma warning (disable : 3571)
             finalPosition = GlobalWind(finalPosition, treePos, true, rotatedWindVector, _ST_WindGlobal.x);
-            #pragma warning (enable : 3571)
         }
     #endif
 
