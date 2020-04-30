@@ -417,7 +417,9 @@ Shader ""Hidden/GraphErrorShader2""
             var portRequirements = new ShaderGraphRequirements[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
-                portRequirements[portIndex] = ShaderGraphRequirements.FromNodes(portNodeSets[portIndex].ToList(), ports[portIndex].stageCapability);
+                var requirementsNodes = portNodeSets[portIndex].ToList();
+                requirementsNodes.Add(ports[portIndex].owner);
+                portRequirements[portIndex] = ShaderGraphRequirements.FromNodes(requirementsNodes, ports[portIndex].stageCapability);
             }
 
             var portIndices = new List<int>();
@@ -479,6 +481,25 @@ Shader ""Hidden/GraphErrorShader2""
 
             #endregion
 
+            // VFX Code heavily relies on the slotId from the original MasterNodes
+            // Since we keep these around for upgrades anyway, for now it is simpler to use them
+            // Therefore we remap the output blocks back to the original Ids here
+            var originialPortIds = new int[ports.Count];
+            for(int i = 0; i < originialPortIds.Length; i++)
+            {
+                if(!VFXTarget.s_BlockMap.TryGetValue((ports[i].owner as BlockNode).descriptor, out var originalId))
+                    continue;
+
+                // In Master Nodes we had a different BaseColor/Color slot id between Unlit/Lit
+                // In the stack we use BaseColor for both cases. Catch this here.
+                if(asset.lit && originalId == ShaderGraphVfxAsset.ColorSlotId)
+                {
+                    originalId = ShaderGraphVfxAsset.BaseColorSlotId;
+                }
+
+                originialPortIds[i] = originalId;
+            }
+
             #region Output Struct
 
             sharedCodeIndices.Add(codeSnippets.Count);
@@ -488,7 +509,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 var port = ports[portIndex];
                 portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{port.id};");
+                codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{originialPortIds[portIndex]};");
             }
 
             sharedCodeIndices.Add(codeSnippets.Count);
@@ -571,7 +592,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 var port = ports[portIndex];
                 portCodeIndices[portIndex].Add(codeSnippets.Count);
-                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{port.id} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
+                codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
             }
 
             #endregion
@@ -589,8 +610,14 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 result.outputCodeIndices[i] = portCodeIndices[i].ToArray();
         }
+            
+            var outputMetadatas = new OutputMetadata[ports.Count];
+            for(int portIndex = 0; portIndex < outputMetadatas.Length; portIndex++)
+            {
+                outputMetadatas[portIndex] = new OutputMetadata(portIndex, ports[portIndex].shaderOutputName, originialPortIds[portIndex]);
+            }
 
-            asset.SetOutputs(ports.Select((t, i) => new OutputMetadata(i, t.shaderOutputName,t.id)).ToArray());
+            asset.SetOutputs(outputMetadatas);
 
             asset.evaluationFunctionName = evaluationFunctionName;
             asset.inputStructName = inputStructName;

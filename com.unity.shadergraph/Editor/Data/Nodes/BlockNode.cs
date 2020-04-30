@@ -111,8 +111,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -124,8 +123,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -137,8 +135,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -150,8 +147,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -163,8 +159,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return NeededCoordinateSpace.None;
 
             if(m_Descriptor.control == null)
@@ -176,8 +171,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)
@@ -189,8 +183,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)
@@ -202,8 +195,7 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
-            var slot = FindSlot<MaterialSlot>(0);
-            if(slot.isConnected || stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
+            if(stageCapability != m_Descriptor.shaderStage.GetShaderStageCapability())
                 return false;
 
             if(m_Descriptor.control == null)

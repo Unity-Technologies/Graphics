@@ -79,6 +79,17 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
+        public static Dictionary<BlockFieldDescriptor, int> s_BlockMap = new Dictionary<BlockFieldDescriptor, int>()
+        {
+            { BlockFields.SurfaceDescription.BaseColor, ShaderGraphVfxAsset.ColorSlotId },
+            { BlockFields.SurfaceDescription.Metallic, ShaderGraphVfxAsset.MetallicSlotId },
+            { BlockFields.SurfaceDescription.Smoothness, ShaderGraphVfxAsset.SmoothnessSlotId },
+            { BlockFields.SurfaceDescription.NormalTS, ShaderGraphVfxAsset.NormalSlotId },
+            { BlockFields.SurfaceDescription.Emission, ShaderGraphVfxAsset.EmissiveSlotId },
+            { BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId },
+            { BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId },
+        };
+
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
             blockMap = null;
