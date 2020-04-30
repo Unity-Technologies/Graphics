@@ -143,7 +143,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader        physicallyBasedSkyPS;
-
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -363,6 +364,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
+            [Reload("Runtime/RenderPipelineResources/Texture/GGXConeAngle70pc.png")]
+            public Texture2D   ggxConeAngle70pc;
         }
 
         [Serializable, ReloadGroup]

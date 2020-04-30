@@ -19,11 +19,18 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filters MIP map levels (other than 0) with GGX using BRDF importance sampling.
         abstract public void FilterCubemap(CommandBuffer cmd, Texture source, RenderTexture target);
 
-        public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, RenderTexture target)
+        internal struct PlanarTextureFilteringParameters
         {
-            m_MipGenerator.RenderColorGaussianPyramid(cmd, new Vector2Int(source.width, source.height), source, target);
-        }
+            public RenderTexture captureCameraDepthBuffer;
+            public Matrix4x4 captureCameraIVP;
+            public Vector3 captureCameraPosition;
+            public Vector4 captureCameraScreenSize;
+            public Vector3 probePosition;
+            public Vector3 probeNormal;
+            public float captureFOV;
+        };
 
+        abstract public void FilterPlanarTexture(CommandBuffer cmd, RenderTexture source, ref PlanarTextureFilteringParameters planarTextureFilteringParameters, RenderTexture target);
         public abstract void FilterCubemapMIS(CommandBuffer cmd, Texture source, RenderTexture target, RenderTexture conditionalCdf, RenderTexture marginalRowCdf);
     }
 }
