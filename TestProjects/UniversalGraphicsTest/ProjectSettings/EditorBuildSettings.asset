@@ -234,9 +234,9 @@ EditorBuildSettings:
     path: Assets/Scenes/127_DynamicScaling_DOF.unity
     guid: 069f595c511c463418479db2f730eec1
   - enabled: 1
-    path: Assets/Scenes/130_SSAO_DepthOnly_Projection.unity
+    path: Assets/Scenes/140_SSAO_DepthOnly_Projection.unity
     guid: 60a46018f9424431dbeb5a61cecff4df
   - enabled: 1
-    path: Assets/Scenes/131_SSAO_DepthOnly_Orthographic.unity
+    path: Assets/Scenes/141_SSAO_DepthOnly_Orthographic.unity
     guid: 73fdb5d4efdb24f34bfddeadf6c1ef1c
   m_configObjects: {}

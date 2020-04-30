@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-7986943408868500466
+--- !u!114 &-7868665181578123382
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -15,29 +15,26 @@ MonoBehaviour:
   active: 1
   m_AdvancedMode: 0
   NormalQuality:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 1
-  DownScale:
-    m_OverrideState: 1
-    m_Value: 0
-  Blur:
+  Downsample:
     m_OverrideState: 1
     m_Value: 1
   Intensity:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 5
     min: 0
     max: 10
   Radius:
     m_OverrideState: 1
-    m_Value: 0.1
-    min: 0.001
+    m_Value: 0.15
+    min: 0
     max: 10
   SampleCount:
     m_OverrideState: 0
     m_Value: 10
-    min: 2
-    max: 32
+    min: 0
+    max: 12
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48,10 +45,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: 130_SSAO_VolumeProfile
+  m_Name: 140_SSAO_VolumeProfile
   m_EditorClassIdentifier: 
   components:
-  - {fileID: -7986943408868500466}
+  - {fileID: -7868665181578123382}
 --- !u!114 &499369269818499701
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -69,10 +66,7 @@ MonoBehaviour:
   NormalQuality:
     m_OverrideState: 0
     m_Value: 1
-  DownScale:
-    m_OverrideState: 0
-    m_Value: 0
-  Blur:
+  Downsample:
     m_OverrideState: 0
     m_Value: 1
   Intensity:
