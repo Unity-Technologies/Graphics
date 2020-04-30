@@ -24,11 +24,6 @@ namespace UnityEditor.ShaderGraph
             if (owner == null)
                 return;
 
-            // Get property from graphData
-            var property = owner.properties.FirstOrDefault(x => x.guid == propertyGuid);
-            if (property == null)
-                throw new NullReferenceException();
-
             if (property is Vector1ShaderProperty vector1ShaderProperty && vector1ShaderProperty.floatType == FloatType.Slider)
             {
                 // Previously, the Slider vector1 property allowed the min value to be greater than the max

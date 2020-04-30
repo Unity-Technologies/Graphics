@@ -56,16 +56,7 @@ namespace UnityEditor.ShaderGraph
         public string inspectorTitle => $"{property.displayName} (Node)";
 
         [Inspectable("ShaderInput", null)]
-        AbstractShaderProperty property
-        {
-            get
-            {
-                var propNode = node as PropertyNode;
-                var graph = node.owner as GraphData;
-                var property = graph.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);
-                return property;
-            }
-        }
+        AbstractShaderProperty property => (node as PropertyNode)?.property;
 
         public object GetObjectToInspect()
         {
