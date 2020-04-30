@@ -1835,12 +1835,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool shadowIsInCachedSystem = !ShadowIsUpdatedEveryFrame();
             // Note if we are in cached system, but if a placement has not been found by this point we bail out shadows
-            bool shadowDoesntHavePlacement = false;
+            bool shadowHasAtlasPlacement = true;
             if (shadowIsInCachedSystem)
             {
-                shadowDoesntHavePlacement = HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType);
                 // If we force evicted the light, it will have lightIdxForCachedShadows == -1
-                shadowDoesntHavePlacement = shadowDoesntHavePlacement || (lightIdxForCachedShadows == -1);
+                shadowHasAtlasPlacement = !HDShadowManager.cachedShadowManager.LightIsPendingPlacement(this, shadowMapType) && (lightIdxForCachedShadows != -1);
             }
 
             for (int index = 0; index < count; index++)
@@ -1856,21 +1855,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
 
                 int cachedShadowID = lightIdxForCachedShadows + index;
-                bool shadowNeedsRendering = !shadowIsInCachedSystem || !shadowDoesntHavePlacement;
+                bool shadowNeedsRendering = shadowHasAtlasPlacement;
 
-                if (shadowIsInCachedSystem && !shadowDoesntHavePlacement)
+                if (shadowIsInCachedSystem && shadowHasAtlasPlacement)
                 {
                     shadowNeedsRendering = HDShadowManager.cachedShadowManager.ShadowIsPendingUpdate(cachedShadowID, shadowMapType);
                     HDShadowManager.cachedShadowManager.UpdateResolutionRequest(ref resolutionRequest, cachedShadowID, shadowMapType);
                 }
 
-                if (!shadowIsInCachedSystem)
-                {
-                    shadowDoesntHavePlacement = false;
-                }
-
                 shadowRequest.isInCachedAtlas = shadowIsInCachedSystem;
-
 
                 Vector2 viewportSize = resolutionRequest.resolution;
 
@@ -1953,7 +1946,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowRequestCount++;
             }
 
-            return shadowDoesntHavePlacement ? -1 : firstShadowRequestIndex;
+            return shadowHasAtlasPlacement ? firstShadowRequestIndex : -1;
         }
 
         void SetCommonShadowRequestSettings(HDShadowRequest shadowRequest, VisibleLight visibleLight, Vector3 cameraPos, Matrix4x4 invViewProjection, Vector2 viewportSize, int lightIndex, HDLightType lightType, HDShadowFilteringQuality filteringQuality)
