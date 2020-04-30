@@ -71,7 +71,7 @@ class VFXSlotContainerEditor : Editor
                     prop.Value.stringValue = strings[result];
                 }
             }
-            else if (prop.Key.FieldType.IsEnum && prop.Key.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
+            else if(prop.Key.FieldType.IsEnum)
             {
                 GUIContent[] enumNames = null;
                 int[] enumValues = null;

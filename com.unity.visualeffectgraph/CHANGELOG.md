@@ -86,7 +86,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some shader warnings
 - Fixed Sample Flipbook Texture File Names
 - Don't lose SRP output specific data when SRP package is not present
-- Support of flag settings in model inspector
 
 ## [7.1.1] - 2019-09-05
 ### Added
