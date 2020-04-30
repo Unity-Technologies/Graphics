@@ -98,8 +98,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = SpriteUnlitBlockMasks.Fragment,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.Fragment,
 
                 // Fields
                 structs = CoreStructCollections.Default,

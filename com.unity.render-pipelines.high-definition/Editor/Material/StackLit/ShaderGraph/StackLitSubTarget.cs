@@ -230,13 +230,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Material
             context.AddField(HDFields.Anisotropy,                   stackLitData.anisotropy);
             context.AddField(HDFields.Coat,                         stackLitData.coat);
-            context.AddField(HDFields.CoatMask,                     stackLitData.coat && context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
+            context.AddField(HDFields.CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
                                                                         context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
             // context.AddField(HDFields.CoatMaskZero,                 coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
             // context.AddField(HDFields.CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
-            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
+            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
             context.AddField(HDFields.SubsurfaceScattering,         lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                 lightingData.transmission);
@@ -265,9 +265,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
+            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
             context.AddField(HDFields.AlphaFog,                     systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
             context.AddField(HDFields.BlendPreserveSpecular,        systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
             context.AddField(HDFields.EnergyConservingSpecular,     lightingData.energyConservingSpecular);
@@ -275,23 +275,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DisableSSR,                   !lightingData.receiveSSR);
             context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
             context.AddField(HDFields.BentNormal,                   context.blocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
             context.AddField(HDFields.AmbientOcclusion,             context.blocks.Contains(BlockFields.SurfaceDescription.Occlusion) && 
-                                                                            context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
+                                                                            context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
             context.AddField(HDFields.Tangent,                      context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(HDFields.LightingGI,                   context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedGI) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(HDFields.BackLightingGI,               context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
+            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
             // if capHazinessWrtMetallic.isOn.
             context.AddField(HDFields.CapHazinessIfNotMetallic,     stackLitData.dualSpecularLobe &&
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss &&
                                                                             stackLitData.capHazinessWrtMetallic && stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic
-                                                                            && context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.HazyGlossMaxDielectricF0));
+                                                                            && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HazyGlossMaxDielectricF0));
             // Note here we combine an "enable"-like predicate and the $SurfaceDescription.(slotname) predicate
             // into a single $GeometricSpecularAA pedicate.
             //
@@ -310,11 +310,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // (Note we can achieve the same results in the template on just single predicates by making defines out of them,
             // and using #if defined() && etc)
             context.AddField(HDFields.GeometricSpecularAA,          stackLitData.geometricSpecularAA &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
             context.AddField(HDFields.SpecularAA,                   stackLitData.geometricSpecularAA &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
-                                                                            context.pass.pixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
+                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
             context.AddField(HDFields.SpecularOcclusion,            stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
                                                                             stackLitData.dataBasedSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off);
 
@@ -899,7 +899,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                pixelBlocks = StackLitBlockMasks.FragmentMETA,
+                validPixelBlocks = StackLitBlockMasks.FragmentMETA,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -924,8 +924,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = StackLitBlockMasks.VertexPosition,
-                pixelBlocks = StackLitBlockMasks.FragmentAlphaDepth,
+                validVertexBlocks = StackLitBlockMasks.VertexPosition,
+                validPixelBlocks = StackLitBlockMasks.FragmentAlphaDepth,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -949,8 +949,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentAlphaDepth,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentAlphaDepth,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -982,8 +982,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentDepthMotionVectors,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1009,8 +1009,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentDepthMotionVectors,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1036,8 +1036,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentDistortion,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1061,8 +1061,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1088,8 +1088,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1114,8 +1114,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1139,8 +1139,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1165,8 +1165,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1191,8 +1191,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 //Port mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = StackLitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = StackLitBlockMasks.FragmentForward,
 
                 //Collections
                 structs = CoreStructCollections.Default,

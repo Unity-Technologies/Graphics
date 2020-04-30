@@ -288,8 +288,8 @@ namespace UnityEditor.ShaderGraph
                 pixelNodes = Graphing.ListPool<AbstractMaterialNode>.Get();
 
                 // Process stack for vertex and fragment
-                ProcessStackForPass(m_GraphData.vertexContext, pass.vertexBlocks, vertexNodes, vertexSlots);
-                ProcessStackForPass(m_GraphData.fragmentContext, pass.pixelBlocks, pixelNodes, pixelSlots);
+                ProcessStackForPass(m_GraphData.vertexContext, pass.validVertexBlocks, vertexNodes, vertexSlots);
+                ProcessStackForPass(m_GraphData.fragmentContext, pass.validPixelBlocks, pixelNodes, pixelSlots);
 
                 // Collect excess shader properties from the TargetImplementation
                 m_Targets[targetIndex].CollectShaderProperties(propertyCollector, m_Mode);

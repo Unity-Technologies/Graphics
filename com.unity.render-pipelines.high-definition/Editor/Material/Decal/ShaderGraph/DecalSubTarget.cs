@@ -231,7 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -255,7 +255,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentEmissive,
+                validPixelBlocks = DecalBlockMasks.FragmentEmissive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -306,7 +306,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -333,7 +333,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentDefault,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
+                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
@@ -386,7 +386,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                pixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
+                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
