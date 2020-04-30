@@ -421,54 +421,41 @@ namespace UnityEditor.ShaderGraph
             return GetVariableNameForNode() + "_fb";
         }
 
-        string MakeVtParameters(string variableName, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddressMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality)
+        void AppendVtParameters(ShaderStringBuilder sb, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddressMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality)
         {
-            const string VTParametersInputTemplate = @"
-    VtInputParameters {0};
-    {0}.uv = {1};
-    {0}.lodOrOffset = {2};
-    {0}.dx = {3};
-    {0}.dy = {4};
-    {0}.addressMode = {5};
-    {0}.filterMode = {6};
-    {0}.levelMode = {7};
-    {0}.uvMode = {8};
-    {0}.sampleQuality = {9};
-    #if defined(SHADER_STAGE_RAY_TRACING)
-    if ({0}.levelMode == VtLevel_Automatic || {0}.levelMode == VtLevel_Bias)
-    {{
-        {0}.levelMode = VtLevel_Lod;
-        {0}.lodOrOffset = 0.0f;
-    }}
-    #endif
-";
-            return string.Format(
-                VTParametersInputTemplate,
-                variableName,
-                uvExpr,
-                (string.IsNullOrEmpty(lodExpr)) ? "0.0f" : lodExpr,
-                (string.IsNullOrEmpty(dxExpr)) ? "float2(0.0f, 0.0f)" : dxExpr,
-                (string.IsNullOrEmpty(dyExpr)) ? "float2(0.0f, 0.0f)" : dyExpr,
-                address.ToString(),
-                filter.ToString(),
-                lod.ToString(),
-                space.ToString(),
-                quality.ToString());
+            sb.AppendLine("VtInputParameters vtParams;");
+            sb.AppendLine("vtParams.uv = " + uvExpr + ";");
+            sb.AppendLine("vtParams.lodOrOffset = " + lodExpr + ";");
+            sb.AppendLine("vtParams.dx = " + dxExpr + ";");
+            sb.AppendLine("vtParams.dy = " + dyExpr + ";");
+            sb.AppendLine("vtParams.addressMode = " + address + ";");
+            sb.AppendLine("vtParams.filterMode = " + filter + ";");
+            sb.AppendLine("vtParams.levelMode = " + lod + ";");
+            sb.AppendLine("vtParams.uvMode = " + space + ";");
+            sb.AppendLine("vtParams.sampleQuality = " + quality + ";");
+
+            sb.AppendLine("#if defined(SHADER_STAGE_RAY_TRACING)");
+            sb.AppendLine("if (vtParams.levelMode == VtLevel_Automatic || vtParams.levelMode == VtLevel_Bias)");
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("vtParams.levelMode = VtLevel_Lod;");
+                sb.AppendLine("vtParams.lodOrOffset = 0.0f;");
+            }
+            sb.AppendLine("#endif");
         }
 
-        string MakeVtSample(string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
+        void AppendVtSample(ShaderStringBuilder sb, string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
         {
-            const string SampleTemplate =
-                @"VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {1}.layer{3}, {4}, {5}, {0});";
-
-            return string.Format(
-                SampleTemplate,
-                outputVariableName,  // 0
-                propertiesName,      // 1
-                infoVariable,        // 2
-                layerIndex,          // 3
-                lod.ToString(),      // 4
-                quality.ToString()); // 5
+            sb.AppendIndentation();
+            sb.Append("VirtualTexturingSample(");
+                sb.Append(propertiesName); sb.Append(".grCB.tilesetBuffer, ");
+                sb.Append(infoVariable);   sb.Append(".lookupData, ");
+                sb.Append(propertiesName); sb.Append(".cacheLayer"); sb.Append(layerIndex.ToString()); sb.Append(", ");
+                sb.Append(propertiesName); sb.Append(".layer"); sb.Append(layerIndex.ToString()); sb.Append(", ");
+                sb.Append(lod.ToString()); sb.Append(", ");
+                sb.Append(quality.ToString()); sb.Append(", ");
+                sb.Append(outputVariableName); sb.Append(");");
+            sb.AppendNewLine();
         }
 
         // Node generations
@@ -502,8 +489,32 @@ namespace UnityEditor.ShaderGraph
 
                     if (layerOutputVariableNames.Count > 0)
                     {
+                        string lodExpr = "0.0f";
+                        string dxExpr = "0.0f";
+                        string dyExpr = "0.0f";
+
+                        // function header
                         s.AppendIndentation();
-                        s.Append("float4 {0}(float2 uv, VTProperty vtProperty", functionName);
+                        s.Append("float4 ");
+                        s.Append(functionName);
+                        s.Append("(float2 uv");
+                        switch (lodCalculation)
+                        {
+                            case LodCalculation.VtLevel_Lod:
+                                s.Append(", float lod");
+                                lodExpr = "lod";
+                                break;
+                            case LodCalculation.VtLevel_Bias:
+                                s.Append(", float bias");
+                                lodExpr = "bias";
+                                break;
+                            case LodCalculation.VtLevel_Derivatives:
+                                s.Append(", float2 dx, float2 dy");
+                                dxExpr = "dx";
+                                dyExpr = "dy";
+                                break;
+                        }
+                        s.Append(", VTProperty vtProperty");
                         for (int i = 0; i < layerOutputVariableNames.Count; i++)
                         {
                             s.Append(", out float4 " + layerOutputVariableNames[i]);
@@ -511,20 +522,20 @@ namespace UnityEditor.ShaderGraph
                         s.Append(")");
                         s.AppendNewLine();
 
+                        // function body
                         using (s.BlockScope())
                         {
-                            s.AppendLine(
-                                MakeVtParameters(
-                                    "vtParams",
-                                    "uv",   // GetSlotValue(UVInputId, generationMode),
-                                    (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
-                                    GetSlotValue(DxInputId, generationMode),
-                                    GetSlotValue(DyInputId, generationMode),
-                                    AddressMode.VtAddressMode_Wrap,
-                                    FilterMode.VtFilter_Anisotropic,
-                                    m_LodCalculation,
-                                    UvSpace.VtUvSpace_Regular,
-                                    m_SampleQuality));
+                            AppendVtParameters(
+                                s,
+                                "uv",
+                                lodExpr,
+                                dxExpr,
+                                dyExpr,
+                                AddressMode.VtAddressMode_Wrap,
+                                FilterMode.VtFilter_Anisotropic,
+                                m_LodCalculation,
+                                UvSpace.VtUvSpace_Regular,
+                                m_SampleQuality);
 
                             s.AppendLine("StackInfo info = PrepareVT(vtParams, vtProperty);");
 
@@ -533,8 +544,7 @@ namespace UnityEditor.ShaderGraph
                                 // sample virtual texture layer
                                 int layer = layerOutputLayerIndex[i];
                                 string layerOutputVariable = layerOutputVariableNames[i];
-                                s.AppendLine(
-                                    MakeVtSample("info", "vtProperty", layer, layerOutputVariable, m_LodCalculation, m_SampleQuality));
+                                AppendVtSample(s, "info", "vtProperty", layer, layerOutputVariable, m_LodCalculation, m_SampleQuality);
 
                                 // apply normal conversion code, if necessary
                                 if (m_TextureTypes[layer] == TextureType.Normal)
@@ -591,6 +601,20 @@ namespace UnityEditor.ShaderGraph
                     sb.Append(GetFunctionName());
                     sb.Append("(");
                     sb.Append(GetSlotValue(UVInputId, generationMode));
+                    switch (lodCalculation)
+                    {
+                        case LodCalculation.VtLevel_Lod:
+                        case LodCalculation.VtLevel_Bias:
+                            sb.Append(", ");
+                            sb.Append((lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode));
+                            break;
+                        case LodCalculation.VtLevel_Derivatives:
+                            sb.Append(", ");
+                            sb.Append(GetSlotValue(DxInputId, generationMode));
+                            sb.Append(", ");
+                            sb.Append(GetSlotValue(DyInputId, generationMode));
+                            break;
+                    }
                     sb.Append(", ");
                     sb.Append(vtProperty.referenceName);
                     foreach (string layerOutputVariable in layerOutputVariables)
