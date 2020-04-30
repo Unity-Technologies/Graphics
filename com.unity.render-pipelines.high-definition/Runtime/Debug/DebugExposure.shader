@@ -155,6 +155,7 @@ Shader "Hidden/HDRP/DebugExposure"
     void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25) * _ScreenSize.w * _RTHandleScale.y;
 
         if (uv.y > frameHeight) return;
 
@@ -174,14 +175,22 @@ Shader "Hidden/HDRP/DebugExposure"
             outColor = lerp(outColor, backgroundColor, alpha);
         }
 
+        // ----  Draw label bar -----
+        if (uv.y < heightLabelBar)
+        {
+            outColor = outColor * 0.075f;
+        }
+
         // ---- Draw Buckets frame ----
 
         bool isEdgeOfBin = false;
         float val = GetHistogramValue(unormCoord.x, isEdgeOfBin);
         val /= maxHist;
 
-        val *= (frameHeight * 0.9);
-        if (uv.y < val)
+        val *= 0.95*(frameHeight - heightLabelBar);
+        val += heightLabelBar;
+
+        if (uv.y < val && uv.y > heightLabelBar)
         {
             isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
 #if PERCENTILE_AS_BARS == 0
@@ -207,13 +216,17 @@ Shader "Hidden/HDRP/DebugExposure"
         // ---- Draw indicators ----
         float currExposure = _ExposureTexture[int2(0, 0)].y;
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-        DrawHistogramIndicatorBar(float(unormCoord.x), evInRange, 0.002f, float3(0.05f, 0.05f, 0.05f), outColor);
 
-        // Find location for percentiles bars.
+        if (uv.y > heightLabelBar)
+        {
+            DrawHistogramIndicatorBar(float(unormCoord.x), evInRange, 0.003f, float3(0.05f, 0.05f, 0.05f), outColor);
+            // Find location for percentiles bars.
 #if PERCENTILE_AS_BARS
-        DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.002f, float3(0, 0, 1), outColor);
-        DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.002f, float3(1, 0, 0), outColor);
+            DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.003f, float3(0, 0, 1), outColor);
+            DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.003f, float3(1, 0, 0), outColor);
 #endif
+        }
+
         // ---- Draw labels ---- 
 
         // Number of labels
@@ -224,7 +237,7 @@ Shader "Hidden/HDRP/DebugExposure"
         int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
         int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
 
-        int labelLocationY = DEBUG_FONT_TEXT_WIDTH * 0.15;
+        int labelLocationY = 0.0f;
 
         [unroll]
         for (int i = 0; i <= labelCount; ++i)
@@ -232,7 +245,7 @@ Shader "Hidden/HDRP/DebugExposure"
             float t = oneOverLabelCount * i;
             float labelValue = lerp(ParamExposureLimitMin, ParamExposureLimitMax, t);
             uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
-            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 0.0f, 0.0f), unormCoord, 1, labelLoc, outColor.rgb);
+            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outColor.rgb);
         }
     }
 
