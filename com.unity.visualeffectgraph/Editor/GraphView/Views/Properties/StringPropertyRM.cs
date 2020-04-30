@@ -151,6 +151,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override bool isDelayed {
+            get => base.isDelayed;
+
+            set
+            {
+                if (base.isDelayed != value)
+                {
+                    base.isDelayed = value;
+
+                    if (isDelayed)
+                    {
+                        m_StringField.textfield.Q("unity-text-input").RegisterCallback<BlurEvent>(OnFocusLost);
+                        m_StringField.textfield.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnKeyDown);
+                    }
+                    else
+                    {
+                        m_StringField.textfield.Q("unity-text-input").UnregisterCallback<BlurEvent>(OnFocusLost);
+                        m_StringField.textfield.Q("unity-text-input").UnregisterCallback<KeyDownEvent>(OnKeyDown);
+                    }
+                }
+            }
+        }
+
         void OnKeyDown(KeyDownEvent e)
         {
             if (e.character == '\n')

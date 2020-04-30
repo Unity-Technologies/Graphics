@@ -188,6 +188,23 @@ namespace UnityEditor.VFX.UI
             return base.RangeShouldCreateSlider(range) && (uint)range.x < (uint)range.y;
         }
 
+        public override bool IsCompatible(IPropertyRMProvider provider)
+        {
+            if (!base.IsCompatible(provider)) return false;
+
+
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) == (m_EnumPopup == null))
+                return false;
+
+            if(m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            {
+                string[] enumValues = m_Provider.attributes.FindEnum();
+
+                return enumValues == m_EnumPopup.enumValues;
+            }
+            return true;
+        }
+
         protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
         {
             if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.BitField))

@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.Operator
             }
 
             var referenceValue = inputExpression.First();
-            referenceValue = new VFXExpressionCastIntToFloat(referenceValue);
+            referenceValue = new VFXExpressionCastUintToFloat(referenceValue);
 
             var startCaseOffset = 1;
             var stride = expressionCountPerUniqueSlot + 1;

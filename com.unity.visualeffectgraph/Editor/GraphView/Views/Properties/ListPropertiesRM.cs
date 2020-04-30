@@ -75,6 +75,11 @@ namespace UnityEditor.VFX.UI
             Update();
         }
 
+        void ItemChanged()
+        {
+            NotifyValueChanged();
+        }
+
         protected ReorderableList m_List;
 
         public override float GetPreferredControlWidth()
@@ -110,10 +115,10 @@ namespace UnityEditor.VFX.UI
 
         class ItemProvider : IPropertyRMProvider
         {
-            PropertyRM<List<T>> m_List;
+            ListPropertyRM<T,U> m_List;
             public int m_Index;
 
-            public ItemProvider(PropertyRM<List<T>> list, int index)
+            public ItemProvider(ListPropertyRM<T, U> list, int index)
             {
                 m_List = list;
                 m_Index = index;
@@ -125,7 +130,14 @@ namespace UnityEditor.VFX.UI
 
             bool IPropertyRMProvider.expandableIfShowsEverything => false;
 
-            object IPropertyRMProvider.value { get => ((List<T>)m_List.GetValue())[m_Index]; set => ((List<T>)m_List.GetValue())[m_Index] = (T)value; }
+            object IPropertyRMProvider.value {
+                get => ((List<T>)m_List.GetValue())[m_Index];
+                set
+                {
+                    ((List<T>)m_List.GetValue())[m_Index] = (T)value;
+                    m_List.ItemChanged();
+                }
+            }
 
             bool IPropertyRMProvider.spaceableAndMasterOfSpace => false;
 
@@ -167,7 +179,7 @@ namespace UnityEditor.VFX.UI
         protected U CreateNewField(int index)
         {
             U item = CreateField(new ItemProvider(this, index));
-
+            item.isDelayed = true;
             return item;
         }
 

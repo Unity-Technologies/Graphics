@@ -131,7 +131,7 @@ namespace UnityEditor.VFX.UI
                 UpdateIndeterminate();
             }
         }
-        public bool isDelayed { get; set; }
+        public virtual bool isDelayed { get; set; }
 
         protected bool hasChangeDelayed { get; set; }
 

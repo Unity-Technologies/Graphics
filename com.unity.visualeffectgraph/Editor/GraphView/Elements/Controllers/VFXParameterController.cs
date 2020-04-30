@@ -740,6 +740,11 @@ namespace UnityEditor.VFX.UI
                         value = maxValue;
                     }
                 }
+                else if(valueFilter == VFXValueFilter.Enum)
+                {
+                    if ((uint)value >= model.enumValues.Count)
+                        value = (uint)(model.enumValues.Count -1);
+                }
 
                 Undo.RecordObject(slot, "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
                 slot.value = value;
@@ -906,10 +911,10 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                if (canHaveValueFilter)
-                {
+                if (valueFilter == VFXValueFilter.Range)
                     return new VFXPropertyAttributes(new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)));
-                }
+                else if( valueFilter == VFXValueFilter.Enum)
+                    return new VFXPropertyAttributes(new EnumAttribute(model.enumValues.ToArray()));
                 return new VFXPropertyAttributes();
             }
         }
