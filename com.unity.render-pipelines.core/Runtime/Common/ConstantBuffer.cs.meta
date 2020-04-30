@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceReflection.cs.meta
+guid: 61649e120aa78c04e8b44d1c5af17d35
+=======
 guid: 6d9f50d0a621c534987e1e47d723d06e
+>>>>>>> 8f57f3a16bc29eb6b6995b083fc3fc9a89e9ea88:com.unity.render-pipelines.core/Runtime/Common/ConstantBuffer.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
