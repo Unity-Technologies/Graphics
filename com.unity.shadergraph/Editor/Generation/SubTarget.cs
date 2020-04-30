@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph
         internal abstract Type targetType { get; }
         internal Target target { get; set; }
         public string displayName { get; set; }
+        public bool isHidden { get; set; }
         public abstract bool IsActive();
         public abstract void Setup(ref TargetSetupContext context);
         public abstract void GetFields(ref TargetFieldContext context);

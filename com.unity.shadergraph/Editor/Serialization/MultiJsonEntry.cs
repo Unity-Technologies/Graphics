@@ -5,12 +5,14 @@ namespace UnityEditor.ShaderGraph.Serialization
         public string id { get; }
         public string type { get; }
         public string json { get; }
+        public bool typeKnown { get; }
 
-        public MultiJsonEntry(string type, string id, string json)
+        public MultiJsonEntry(string type, string id, string json, bool typeKnown = true)
         {
             this.id = id;
             this.type = type;
             this.json = json;
+            this.typeKnown = typeKnown;
         }
 
         public bool Equals(MultiJsonEntry other)

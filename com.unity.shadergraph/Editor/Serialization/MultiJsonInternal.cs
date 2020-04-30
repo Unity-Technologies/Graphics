@@ -2,12 +2,196 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
     static class MultiJsonInternal
     {
+        public class UnknownJsonObject : JsonObject
+        {
+            public string typeInfo;
+            public string jsonData;
+            public JsonData<JsonObject> castedObject;
+
+            public UnknownJsonObject(string typeInfo)
+            {
+                this.typeInfo = typeInfo;
+            }
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+            }
+
+            public override string Serialize()
+            {
+                return jsonData;
+            }
+
+            public override void OnAfterDeserialize(string json)
+            {
+                if (castedObject.value != null)
+                {
+                    Enqueue(castedObject, json);
+                }
+            }
+
+            public override T CastTo<T>()
+            {
+                if (castedObject.value != null)
+                    return castedObject.value.CastTo<T>();
+
+                Type t = typeof(T);
+                if(t == typeof(AbstractMaterialNode) || t.IsSubclassOf(typeof(AbstractMaterialNode)))
+                {
+                    UnknownNodeType unt = new UnknownNodeType(jsonData);
+                    valueMap[objectId] = unt;
+                    s_ObjectIdField.SetValue(unt, objectId);
+                    castedObject = unt;
+                    return unt.CastTo<T>();
+                }
+                else if(t == typeof(Target) || t.IsSubclassOf(typeof(Target)))
+                {
+                    UnknownTargetType utt = new UnknownTargetType(typeInfo, jsonData);
+                    valueMap[objectId] = utt;
+                    s_ObjectIdField.SetValue(utt, objectId);
+                    castedObject = utt;
+                    return utt.CastTo<T>();
+                }
+                else if(t == typeof(SubTarget) || t.IsSubclassOf(typeof(SubTarget)))
+                {
+                    UnknownSubTargetType ustt = new UnknownSubTargetType(typeInfo,jsonData);
+                    valueMap[objectId] = ustt;
+                    s_ObjectIdField.SetValue(ustt, objectId);
+                    castedObject = ustt;
+                    return ustt.CastTo<T>();
+                }
+                else
+                {
+                    Debug.LogError($"Unable to evaluate type {typeInfo} : {jsonData}");
+                }
+                return null;
+            }
+        }
+
+        public class UnknownTargetType : Target
+        {
+            public string jsonData;
+            public UnknownTargetType() : base ()
+            {
+                isHidden = true;
+            }
+
+            public UnknownTargetType(string displayName, string jsonData)
+            {
+                this.displayName = displayName;
+                isHidden = false;
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+            public override string Serialize()
+            {
+                return jsonData;
+            }
+            public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+            {
+            }
+
+            public override void GetFields(ref TargetFieldContext context)
+            {
+            }
+
+            public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
+            {
+            }
+
+            public override bool IsActive() => false;
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+            }
+        }
+
+        private class UnknownSubTargetType : SubTarget
+        {
+            public string jsonData;
+            public UnknownSubTargetType() : base()
+            {
+                isHidden = true;
+            }
+            public UnknownSubTargetType(string displayName, string jsonData) : base()
+            {
+                isHidden = false;
+                this.displayName = displayName;
+                this.jsonData = jsonData;
+            }
+
+            public override void Deserailize(string typeInfo, string jsonData)
+            {
+                this.jsonData = jsonData;
+                base.Deserailize(typeInfo, jsonData);
+            }
+
+            public override string Serialize()
+            {
+                return jsonData;
+            }
+
+            internal override Type targetType => typeof(UnknownTargetType);
+
+            public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+            {
+            }
+
+            public override void GetFields(ref TargetFieldContext context)
+            {
+            }
+
+            public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<string> registerUndo)
+            {
+            }
+
+            public override bool IsActive() => false;
+
+            public override void Setup(ref TargetSetupContext context)
+            {
+            }
+        }
+
+        class UnknownNodeType : AbstractMaterialNode
+        {
+            public string jsonData;
+
+            public UnknownNodeType() : base()
+            {
+                jsonData = null;
+                isValid = false;
+            }
+            public UnknownNodeType(string jsonData) : base()
+            {
+                this.jsonData = jsonData;
+                isValid = false;
+            }
+
+            public override string Serialize()
+            {
+                return jsonData;
+            }
+
+            public override void ValidateNode()
+            {
+                base.ValidateNode();
+
+                owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
+            }
+        }
+
         static readonly Dictionary<string, Type> k_TypeMap = CreateTypeMap();
 
         internal static bool isDeserializing;
@@ -114,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             output = null;
             if (!k_TypeMap.TryGetValue(typeString, out var type))
             {
-                output = new UnknownTypeNode();
+                output = new UnknownJsonObject(typeString);
                 return false;
             }
             output = (JsonObject)Activator.CreateInstance(type, true);
@@ -148,7 +332,10 @@ namespace UnityEditor.ShaderGraph.Serialization
                         }
                         else
                         {
-                            tryDeserialize = CreateInstance(entry.type, out value);
+                            if(!CreateInstance(entry.type, out value))
+                            {
+                                entries[index] = new MultiJsonEntry(entry.type, entry.id, entry.json, false);
+                            }
                         }
 
                         var id = entry.id;
@@ -163,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         if (rewriteIds || entry.id == null)
                         {
                             id = value.objectId;
-                            entries[index] = new MultiJsonEntry(entry.type, id, entry.json);
+                            entries[index] = new MultiJsonEntry(entry.type, id, entry.json, tryDeserialize);
                             valueMap[id] = value;
                         }
 
@@ -186,7 +373,41 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         var value = valueMap[entry.id];
-                        value.Deserailize(entry.type, entry.json);
+//                        if(entry.typeKnown == false)
+//                        {
+//                            try
+//                            {
+//                                UnknownNodeType utn = new UnknownNodeType();
+//                                utn.Deserailize(entry.type, entry.json);
+//                                valueMap[entry.id] = utn;
+//                            }
+//                            catch
+//                            {
+//                                try
+//                                {
+//                                    UnknownTargetType t = new UnknownTargetType();
+//                                    t.Deserailize(entry.type, entry.json);
+//                                    valueMap[entry.id] = t;
+//                                }
+//                                catch
+//                                {
+//                                    try
+//                                    {
+//                                        UnknownSubTargetType st = new UnknownSubTargetType();
+//                                        st.Deserailize(entry.type, entry.json);
+//                                        valueMap[entry.id] = st;
+//                                    }
+//                                    catch
+//                                    {
+//                                        throw new TypeLoadException("Could not figure out type of " + entry.type);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        else
+//                        {
+                            value.Deserailize(entry.type, entry.json);
+//                        }
                         // Set ID again as it could be overwritten from JSON.
                         s_ObjectIdField.SetValue(value, entry.id);
                         value.OnAfterDeserialize(entry.json);

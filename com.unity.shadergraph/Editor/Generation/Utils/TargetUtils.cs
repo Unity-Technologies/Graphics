@@ -37,7 +37,7 @@ namespace UnityEditor.ShaderGraph
                     continue;
 
                 var subTarget = (SubTarget)Activator.CreateInstance(type);
-                if(subTarget.targetType.Equals(typeof(T)))
+                if(!subTarget.isHidden && subTarget.targetType.Equals(typeof(T)))
                 {
                     subTarget.target = target;
                     subTargets.Add(subTarget);

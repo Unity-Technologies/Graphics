@@ -1891,12 +1891,12 @@ namespace UnityEditor.ShaderGraph
                     JsonUtility.FromJsonOverwrite(lNode.serializedData, legacyNode);
                     legacyNode.group = lNode.group;
                     updatedNodes.Add((lNode, legacyNode));
-                    //m_Nodes.Remove(lNode);
                 }
             }
             foreach(var nodePair in updatedNodes)
             {
-                ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
+                //ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
+                m_Nodes.Add(nodePair.Item2);
             }
 
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
@@ -1963,15 +1963,14 @@ namespace UnityEditor.ShaderGraph
           
             foreach(var target in m_ActiveTargets.SelectValue())
             {
-                var nullCheckTarget = target;
-                if(target == null)
+                if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))
                 {
-                    nullCheckTarget = m_ValidTargets.FirstOrDefault();
+                    m_ValidTargets.Add(target);
                 }
-                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == nullCheckTarget.GetType());
+                var activeTargetCurrent = m_ValidTargets.FirstOrDefault(x => x.GetType() == target.GetType());
                 var targetIndex = m_ValidTargets.IndexOf(activeTargetCurrent);
                 m_ActiveTargetBitmask = m_ActiveTargetBitmask | (1 << targetIndex);
-                m_ValidTargets[targetIndex] = nullCheckTarget;
+                m_ValidTargets[targetIndex] = target;
             }
 
             UpdateActiveTargets();

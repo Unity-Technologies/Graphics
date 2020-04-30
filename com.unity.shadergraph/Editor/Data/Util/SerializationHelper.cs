@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
@@ -65,9 +66,9 @@ namespace UnityEditor.Graphing
 
         public static JSONSerializedElement Serialize<T>(T item)
         {
-            if(item is UnknownTypeNode node)
+            if(item is JsonObject jsonObject)
             {
-                return new JSONSerializedElement() { JSONnodeData = node.Serialize() };
+                return new JSONSerializedElement() { JSONnodeData = jsonObject.Serialize() };
             }
 
             if (item == null)
@@ -112,16 +113,7 @@ namespace UnityEditor.Graphing
             //if type is null but T is an abstract material node, instead we create an unknowntype node
             if (type == null)
             {
-                if (typeof(T) == typeof(AbstractMaterialNode))
-                {
-                    UnknownTypeNode node = new UnknownTypeNode(item.JSONnodeData);
-                    JsonUtility.FromJsonOverwrite(item.JSONnodeData, node);
-                    return (T)(object)node;
-                }
-                else
-                {
                     throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
-                }
             }
 
             T instance;
