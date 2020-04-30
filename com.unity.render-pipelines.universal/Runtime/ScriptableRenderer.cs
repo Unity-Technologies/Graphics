@@ -641,7 +641,7 @@ namespace UnityEngine.Rendering.Universal
                                     if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
                                         depthAttachmentIdx = attachmentList.Count - 1;
                                 }
-                                if (rp.colorAttachmentDescriptors[i] == m_CameraColorTargetAttachment)
+                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
                                     m_FirstTimeCameraColorTargetIsBound = false;
                             }
 

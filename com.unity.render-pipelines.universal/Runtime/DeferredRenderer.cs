@@ -245,10 +245,10 @@ namespace UnityEngine.Rendering.Universal
             }
 
             var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
-            m_CameraColorDescriptor.ConfigureTarget(m_CameraColorTexture.Identifier(), true, true);
+            m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
 
             var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            m_CameraDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), true, false);
+            m_CameraDepthDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), true, false);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
                 m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
@@ -466,7 +466,7 @@ namespace UnityEngine.Rendering.Universal
 
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, bool offscreenDepth = false)
         {
-#if UNITY_IOS && !UNITY_EDITOR
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
             int depthAsRT = 1;
 #else
             int depthAsRT = 0;
@@ -491,7 +491,7 @@ namespace UnityEngine.Rendering.Universal
             //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
             gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
-#if UNITY_IOS && !UNITY_EDITOR
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
             gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount + 1] = new AttachmentDescriptor(DeferredConfig.GetGBufferFormat(4));
 #endif
 
@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DeferredPass.ConfigureTarget(gbufferAttachmentDescriptors[DeferredConfig.kGBufferSliceCount], depthBufferAttachmentDescriptor);
             m_DeferredPass.ConfigureInputAttachment(new[] {gbufferAttachmentDescriptors[0], gbufferAttachmentDescriptors[1], gbufferAttachmentDescriptors[2]
-#if UNITY_IOS && !UNITY_EDITOR
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
                 , gbufferAttachmentDescriptors[4]});
 #else
                 , depthBufferAttachmentDescriptor});
