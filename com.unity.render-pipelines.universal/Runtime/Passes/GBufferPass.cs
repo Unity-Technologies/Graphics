@@ -46,19 +46,18 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             // Create and declare the render targets used in the pass
-
-            for (int i = 0; i < DeferredConfig.kGBufferSliceCount; ++i)
+            for (int i = 0; i < m_DeferredLights.GBufferSliceCount; ++i)
             {
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
-                if (i != DeferredConfig.kGBufferLightingIndex)
+                if (i != m_DeferredLights.GBufferLightingIndex)
                 {
                     RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
-                    gbufferSlice.graphicsFormat = DeferredConfig.GetGBufferFormat(i, m_DeferredLights.accurateGbufferNormals);
+                    gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
                     cmd.GetTemporaryRT(m_ColorAttachments[i].id, gbufferSlice);
                 }
             }
 
-            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[DeferredConfig.kGBufferSliceCount];
+            RenderTargetIdentifier[] colorAttachmentIdentifiers = new RenderTargetIdentifier[m_DeferredLights.GBufferSliceCount];
             for (int i = 0; i < colorAttachmentIdentifiers.Length; ++i)
                 colorAttachmentIdentifiers[i] = m_ColorAttachments[i].Identifier();
 
@@ -74,7 +73,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
-                if (m_DeferredLights.accurateGbufferNormals)
+                if (m_DeferredLights.AccurateGbufferNormals)
                     gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
                 else
                     gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
@@ -103,7 +102,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
             for (int i = 0; i < m_ColorAttachments.Length; ++i)
-                if (i != DeferredConfig.kGBufferLightingIndex)
+                if (i != m_DeferredLights.GBufferLightingIndex)
                     cmd.ReleaseTemporaryRT(m_ColorAttachments[i].id);
         }
     }
