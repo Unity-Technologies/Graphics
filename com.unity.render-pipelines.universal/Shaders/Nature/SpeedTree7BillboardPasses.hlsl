@@ -32,10 +32,7 @@ void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half 
 #ifdef ENABLE_WIND
     if (_WindQuality * _WindEnabled > 0)
     {
-        // Disabling "pow(f,e) will not work for negative f"; warnings.
-        #pragma warning (disable : 3571)
         billboardPos = GlobalWind(billboardPos, worldPos, true, _ST_WindVector.xyz, input.texcoord1.w);
-        #pragma warning (enable : 3571)
     }
 #endif
 
