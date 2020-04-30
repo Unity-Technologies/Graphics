@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugExposure"
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#define PERCENTILE_AS_BARS 1
+#define PERCENTILE_AS_BARS 0
 
     // REMOVE
 #pragma enable_d3d11_debug_symbols
@@ -195,17 +195,13 @@ Shader "Hidden/HDRP/DebugExposure"
             isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
 #if PERCENTILE_AS_BARS == 0
             uint bin = uint((unormCoord.x * HISTOGRAM_BINS) / (_ScreenSize.x));
-            if (bin == uint(minPercentLoc))
+            if (bin <= uint(minPercentLoc))
             {
                 outColor.rgb = float3(0, 0, 1);
             }
-            else if(bin == uint(maxPercentLoc))
+            else if(bin >= uint(maxPercentLoc))
             {
                 outColor.rgb = float3(1, 0, 0);
-            }
-            else if (bin < uint(minPercentLoc) || bin > uint(maxPercentLoc))
-            {
-                outColor.rgb = float3(0.25, 0.25, 0.25);
             }
             else
 #endif
