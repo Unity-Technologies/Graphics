@@ -191,24 +191,26 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 #if SKY_MOTION
         if (dir.y >= 0 || !_UpperHemisphere)
         {
+            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
+
+#ifdef USE_FLOWMAP
             float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
             float3 bitangent = cross(tangent, dir);
 
-            // Compute flow factor
             float3 windDir = RotationUp(dir, _ScrollDirection);
-#ifdef USE_FLOWMAP
             float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
-#else
-            float2 flow = GenerateFlow(windDir);
-#endif
-
-            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
 
             float2 uv1 = alpha.x * flow;
             float2 uv2 = alpha.y * flow;
 
             float3 dd1 = uv1.x * tangent + uv1.y * bitangent;
             float3 dd2 = uv2.x * tangent + uv2.y * bitangent;
+#else
+            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection);
+
+            float3 dd1 = alpha.x*windDir*dir.y*1;
+            float3 dd2 = alpha.y*windDir*dir.y*1;
+#endif
 
             // Sample twice
             float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir + dd1, 0).rgb;
