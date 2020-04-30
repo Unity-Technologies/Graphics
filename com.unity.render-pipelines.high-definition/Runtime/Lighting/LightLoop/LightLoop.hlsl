@@ -473,11 +473,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+    bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
+    builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
+
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
-        bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
-        builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
-
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
         if (uninitialized)
 #endif
