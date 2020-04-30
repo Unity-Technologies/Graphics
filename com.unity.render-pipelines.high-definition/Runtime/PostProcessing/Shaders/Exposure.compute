@@ -39,21 +39,6 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
     _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
 }
 
-
-// TODO_FCC: REMOVE THIS.
-uint GetHistogramBinLocation(float value)
-{
-    float scaledLogLuma = ComputeEV100FromAvgLuminance(value) * 0.0333333333f + 0.33333333333;
-    return uint(saturate(scaledLogLuma) * (128 - 1));
-}
-// TODO_FCC: REMOVE THIS.
-float BinLocationToLogLuma(uint binIdx)
-{
-    return (binIdx * rcp(float(128 - 1)) - 0.33333333333) / 0.0333333333f;
-}
-
-
-
 //
 // Average luminance pre-pass
 // Transforms the input to log luminance in a square-POT target
@@ -70,11 +55,8 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx);
 
-    uint bin = GetHistogramBinLocation(luma);
-    float value = BinLocationToLogLuma(bin);
-
     float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4));
-    _OutputTexture[posInputs.positionSS] = float2(value, weight);
+    _OutputTexture[posInputs.positionSS] = float2(logLuma, weight);
 }
 
 //

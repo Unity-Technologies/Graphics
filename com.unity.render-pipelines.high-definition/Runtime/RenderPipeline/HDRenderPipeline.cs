@@ -4266,7 +4266,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool NeedExposureDebugMode(DebugDisplaySettings debugSettings)
         {
-            return debugSettings.data.exposureDebugSettings.debugMode != ExposureDebugMode.None;
+            return debugSettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None;
         }
 
         bool NeedsFullScreenDebugMode()
@@ -4445,9 +4445,9 @@ namespace UnityEngine.Rendering.HighDefinition
             
 
             int passIndex = 0;
-            if (parameters.debugDisplaySettings.data.exposureDebugSettings.debugMode == ExposureDebugMode.MeteringWeighted)
+            if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
                 passIndex = 1;
-            if (parameters.debugDisplaySettings.data.exposureDebugSettings.debugMode == ExposureDebugMode.HistogramView)
+            if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
                 passIndex = 2;
 
             HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
@@ -4495,7 +4495,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     PushColorPickerDebugTexture(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
                 }
 
-                // TODO_FCC: Should this be inside the fullscreen debug ? Probably...
                 if (debugParams.exposureDebugEnabled)
                 {
                     RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);

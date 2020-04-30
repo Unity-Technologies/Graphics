@@ -181,8 +181,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
             /// <summary>Current color picker debug settings.</summary>
             public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
-            /// <summary>Current exposure debug settings.</summary>
-            public ExposureDebugSettings exposureDebugSettings = new ExposureDebugSettings();       // TODO_FCC: TODO Check where to put this.
             /// <summary>Current false color debug settings.</summary>
             public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
             /// <summary>Current decals debug settings.</summary>
@@ -428,7 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any full screen exposure debug display is enabled.</returns>
         public bool IsDebugExposureModeEnabled()
         {
-            return data.exposureDebugSettings.debugMode != ExposureDebugMode.None;
+            return data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None;
         }
 
         /// <summary>
@@ -636,6 +634,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetProbeVolumeAtlasSliceMode(ProbeVolumeAtlasSliceMode value)
         {
             data.lightingDebugSettings.probeVolumeAtlasSliceMode = value;
+        }
+
+        /// <summary>
+        /// Set the current Exposure Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Probe Volume Debug Mode.</param>
+        internal void SetExposureDebugMode(ExposureDebugMode value)
+        {
+            data.lightingDebugSettings.exposureDebugMode = value;
         }
 
         /// <summary>
@@ -882,6 +889,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.FloatField { displayName = "Probe Volume Range Min Value", getter = () => data.lightingDebugSettings.probeVolumeMinValue, setter = value => data.lightingDebugSettings.probeVolumeMinValue = value },
                     new DebugUI.FloatField { displayName = "Probe Volume Range Max Value", getter = () => data.lightingDebugSettings.probeVolumeMaxValue, setter = value => data.lightingDebugSettings.probeVolumeMaxValue = value },
                 }
+                });
+
+                lighting.children.Add(new DebugUI.Foldout
+                {
+                    displayName = "Exposure ",
+                    children = {
+                        new DebugUI.EnumField { displayName = "Debug Mode", getter = () => (int)data.lightingDebugSettings.exposureDebugMode, setter = value => SetExposureDebugMode((ExposureDebugMode)value), autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.exposureDebugModeEnumIndex, setIndex = value => data.exposureDebugModeEnumIndex = value },
+                        new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value }
+                    }
                 });
 
                 lighting.children.Add(new DebugUI.EnumField { displayName = "Debug Mode", getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
@@ -1136,8 +1152,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
-
-            list.Add(new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
@@ -1399,19 +1413,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             });
-
-            widgetList.AddRange(new[]
-{
-                new DebugUI.Container
-                {
-                    displayName = "Exposure",
-                    children =
-                    {
-                        new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)data.exposureDebugSettings.debugMode, setter = value => data.exposureDebugSettings.debugMode = (ExposureDebugMode)value, autoEnum = typeof(ExposureDebugMode), getIndex = () => data.exposureDebugModeEnumIndex, setIndex = value => data.exposureDebugModeEnumIndex = value },
-                    }
-                }
-            });
-
 
             widgetList.Add(new DebugUI.BoolField  { displayName = "False Color Mode", getter = () => data.falseColorDebugSettings.falseColor, setter = value => data.falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
             if (data.falseColorDebugSettings.falseColor)

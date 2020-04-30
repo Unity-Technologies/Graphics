@@ -32,11 +32,6 @@ CBUFFER_END
 #define ParamAdaptationMode         _Variants.z
 #define ParamEvaluateMode           _Variants.w
 
-// TODO_FCC: IMPORTANT! This function uses hard coded values for the texture that is output by the prepass.
-// Need to make the analytical metering texture size independent.
-// When that is done, these defines should be moved back to Exposure.compute
-
-
 float GetPreviousExposureEV100()
 {
     return _PreviousExposureTexture[uint2(0u, 0u)].y;
