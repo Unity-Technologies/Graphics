@@ -45,8 +45,7 @@ public class HDRP_GraphicTestRunner
             }
             else
             {
-                // Skip incompatible XR tests
-                yield break;
+                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
             }
         }
 
@@ -60,6 +59,9 @@ public class HDRP_GraphicTestRunner
 
         for (int i=0 ; i<settings.waitFrames ; ++i)
             yield return null;
+
+        // Reset temporal effects on hdCamera
+        HDCamera.GetOrCreate(camera).Reset();
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
