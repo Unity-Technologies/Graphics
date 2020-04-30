@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph
         // argument string used to pass this property to a subgraph
         internal override string GetPropertyAsArgumentString()
         {
-            return "VTPropertyParameters " + referenceName;
+            return "VTProperty " + referenceName;
         }
 
         // if a blackboard property is deleted, or copy/pasted, all node instances of it are replaced with this:

@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
-    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV, IHasSettings, IMayRequireTime
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IHasSettings, IMayRequireTime
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
@@ -459,7 +459,7 @@ namespace UnityEditor.ShaderGraph
         string MakeVtSample(string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
         {
             const string SampleTemplate =
-                @"$precision4 {0}; VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {1}.layer{3}, {4}, {5}, {0});";
+                @"VirtualTexturingSample({1}.grCB.tilesetBuffer, {2}.lookupData, {1}.cacheLayer{3}, {1}.layer{3}, {4}, {5}, {0});";
 
             return string.Format(
                 SampleTemplate,
@@ -472,90 +472,150 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        public virtual void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
+        string GetFunctionName()
         {
-            // Not all outputs may be connected (well one is or we wouldn't get called) so we are careful to
-            // only generate code for connected outputs
+            return GetVariableNameForNode();
+        }
 
-            if (IsSlotConnected(VirtualTextureInputId))
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            string functionName = GetFunctionName();
+
+            registry.ProvideFunction(functionName, s =>
             {
-                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-                int numLayers = vtProperty.value.layers.Count;
-
-                // TODO: this should be equivalent...
-                string VTPropertiesName2 = GetSlotValue(VirtualTextureInputId, generationMode);
-                string VTPropertiesName = vtProperty.referenceName;
-                Assert.AreEqual(VTPropertiesName, VTPropertiesName2);
-
-                string localVariablePrefix = GetVariableNameForNode();
-                string parametersVariableName = localVariablePrefix + "_params";
-                string infoVariableName = localVariablePrefix + "_info";
-
-                bool anyConnected = false;
-                for (int i = 0; i < numLayers; i++)
+                if (IsSlotConnected(VirtualTextureInputId))
                 {
-                    if (IsSlotConnected(OutputSlotIds[i]))
+                    var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                    int layerCount = vtProperty.value.layers.Count;
+
+                    var layerOutputVariableNames = new List<string>();
+                    var layerOutputLayerIndex = new List<int>();
+
+                    for (int layer = 0; layer < layerCount; layer++)
                     {
-                        anyConnected = true;
-                        break;
-                    }
-                }
-
-                if (anyConnected)
-                {
-                    sb.AppendLine(
-                        MakeVtParameters(
-                            parametersVariableName,
-                            GetSlotValue(UVInputId, generationMode),
-                            (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
-                            GetSlotValue(DxInputId, generationMode),
-                            GetSlotValue(DyInputId, generationMode),
-                            AddressMode.VtAddressMode_Wrap,
-                            FilterMode.VtFilter_Anisotropic,
-                            m_LodCalculation,
-                            UvSpace.VtUvSpace_Regular,
-                            m_SampleQuality));
-
-                    sb.AppendLine("StackInfo " + infoVariableName + " = PrepareVT(" + parametersVariableName + ", " + VTPropertiesName + ");");
-                }
-
-                for (int i = 0; i < numLayers; i++)
-                {
-                    if (IsSlotConnected(OutputSlotIds[i]))
-                    {
-                        var layerName = vtProperty.value.layers[i].layerName;
-                        sb.AppendLine(
-                            MakeVtSample(infoVariableName, vtProperty.referenceName, i, GetVariableNameForSlot(OutputSlotIds[i]), m_LodCalculation, m_SampleQuality));
-                    }
-                }
-
-                for (int i = 0; i < numLayers; i++)
-                {
-                    if (IsSlotConnected(OutputSlotIds[i]))
-                    {
-
-                        if (m_TextureTypes[i] == TextureType.Normal)
+                        if (IsSlotConnected(OutputSlotIds[layer]))
                         {
-                            if (normalMapSpace == NormalMapSpace.Tangent)
+                            layerOutputVariableNames.Add("Layer"+layer);
+                            layerOutputLayerIndex.Add(layer);
+                        }
+                    }
+
+                    if (layerOutputVariableNames.Count > 0)
+                    {
+                        s.AppendIndentation();
+                        s.Append("float4 {0}(float2 uv, VTProperty vtProperty", functionName);
+                        for (int i = 0; i < layerOutputVariableNames.Count; i++)
+                        {
+                            s.Append(", out float4 " + layerOutputVariableNames[i]);
+                        }
+                        s.Append(")");
+                        s.AppendNewLine();
+
+                        using (s.BlockScope())
+                        {
+                            s.AppendLine(
+                                MakeVtParameters(
+                                    "vtParams",
+                                    "uv",   // GetSlotValue(UVInputId, generationMode),
+                                    (lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode),
+                                    GetSlotValue(DxInputId, generationMode),
+                                    GetSlotValue(DyInputId, generationMode),
+                                    AddressMode.VtAddressMode_Wrap,
+                                    FilterMode.VtFilter_Anisotropic,
+                                    m_LodCalculation,
+                                    UvSpace.VtUvSpace_Regular,
+                                    m_SampleQuality));
+
+                            s.AppendLine("StackInfo info = PrepareVT(vtParams, vtProperty);");
+
+                            for (int i = 0; i < layerOutputVariableNames.Count; i++)
                             {
-                                sb.AppendLine(string.Format("{0}.rgb = UnpackNormalmapRGorAG({0});", GetVariableNameForSlot(OutputSlotIds[i])));
+                                // sample virtual texture layer
+                                int layer = layerOutputLayerIndex[i];
+                                string layerOutputVariable = layerOutputVariableNames[i];
+                                s.AppendLine(
+                                    MakeVtSample("info", "vtProperty", layer, layerOutputVariable, m_LodCalculation, m_SampleQuality));
+
+                                // apply normal conversion code, if necessary
+                                if (m_TextureTypes[layer] == TextureType.Normal)
+                                {
+                                    s.AppendIndentation();
+                                    s.Append(layerOutputVariable);
+                                    s.Append(".rgb = ");
+                                    if (normalMapSpace == NormalMapSpace.Tangent)
+                                        s.Append("UnpackNormalmapRGorAG(");
+                                    else
+                                        s.Append("UnpackNormalRGB(");
+                                    s.Append(layerOutputVariable);
+                                    s.Append(");");
+                                    s.AppendNewLine();
+                                }
                             }
-                            else
-                            {
-                                sb.AppendLine(string.Format("{0}.rgb = UnpackNormalRGB({0});", GetVariableNameForSlot(OutputSlotIds[i])));
-                            }
+
+                            s.AppendLine("return GetResolveOutput(info);");
                         }
                     }
                 }
+            });
+        }
 
-                if (!noFeedback)
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
+        {
+            if (IsSlotConnected(VirtualTextureInputId))
+            {
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                int layerCount = vtProperty.value.layers.Count;
+
+                var layerOutputVariables = new List<string>();
+                for (int i = 0; i < layerCount; i++)
                 {
-                    //TODO: Investigate if the feedback pass can use halfs
-                    string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1});",
-                            GetFeedbackVariableName(),
-                            infoVariableName);
-                    sb.AppendLine(feedBackCode);
+                    if (IsSlotConnected(OutputSlotIds[i]))
+                    {
+                        // declare output variables up front
+                        string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
+                        sb.AppendLine("$precision4 " + layerOutputVariable + ";");
+                        layerOutputVariables.Add(layerOutputVariable);
+                    }
                 }
+
+                if (layerOutputVariables.Count > 0)
+                {
+                    // assign feedback variable
+                    sb.AppendIndentation();
+                    if (!noFeedback)
+                    {
+                        sb.Append("float4 ");
+                        sb.Append(GetFeedbackVariableName());
+                        sb.Append(" = ");
+                    }
+                    sb.Append(GetFunctionName());
+                    sb.Append("(");
+                    sb.Append(GetSlotValue(UVInputId, generationMode));
+                    sb.Append(", ");
+                    sb.Append(vtProperty.referenceName);
+                    foreach (string layerOutputVariable in layerOutputVariables)
+                    {
+                        sb.Append(", ");
+                        sb.Append(layerOutputVariable);
+                    }
+                    sb.Append(");");
+                    sb.AppendNewLine();
+                }
+            }
+            else
+            {
+                // set all outputs to zero
+                for (int i = 0; i < kMaxLayers; i++)
+                {
+                    if (IsSlotConnected(OutputSlotIds[i]))
+                    {
+                        // declare output variables up front
+                        string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
+                        sb.AppendLine("$precision4 " + layerOutputVariable + " = 0;");
+                    }
+                }
+                // TODO: should really just disable feedback in this case (need different feedback interface to do this)
+                sb.AppendLine("$precision4 " + GetFeedbackVariableName() + " = 1;");
             }
         }
 

@@ -72,7 +72,7 @@ struct StackInfo
 	float4 resolveOutput;
 };
 
-struct VTPropertyParameters
+struct VTProperty
 {
     GraniteConstantBuffers grCB;
     GraniteTranslationTexture translationTable;
@@ -155,7 +155,7 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
 }
 
 // TODO: replace PrepareVT with direct call to  VirtualTexturingLookup?
-StackInfo PrepareVT(VtInputParameters par, VTPropertyParameters props)
+StackInfo PrepareVT(VtInputParameters par, VTProperty props)
 {
 	StackInfo info;
     VirtualTexturingLookup(props.grCB, props.translationTable, par, info.lookupData, info.resolveOutput);
@@ -191,9 +191,9 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 }
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
-    VTPropertyParameters BuildVTProperties_##stackName()\
+    VTProperty BuildVTProperties_##stackName()\
     {\
-        VTPropertyParameters props; \
+        VTProperty props; \
         \
         GraniteStreamingTextureConstantBuffer textureParamBlock; \
         textureParamBlock.data[0] = stackName##_atlasparams[0]; \
