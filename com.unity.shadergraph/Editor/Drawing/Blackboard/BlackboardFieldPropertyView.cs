@@ -699,18 +699,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
         {
-            Toggle proceduralToggle = new Toggle { value = property.value.procedural };
-            proceduralToggle.OnToggleChanged(evt =>
-            {
-                graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
-                property.value.procedural = evt.newValue;
-                DirtyNodes(ModificationScope.Graph);
-            });
-            AddRow("Procedural", proceduralToggle);
-            // TODO: add layer names and texture assignments view here (could we re-use the TextureShaderProperty custom builder?)
-            // Func<VisualElement> makeItem = () => new Label();
-            // Action<VisualElement, int> bindItem = (e, i) => (e as Label).text = property.value.layerNames.ElementAt(i);
-            // const int itemHeight = 16;
+//             Toggle proceduralToggle = new Toggle { value = property.value.procedural };
+//             proceduralToggle.OnToggleChanged(evt =>
+//             {
+//                 graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
+//                 property.value.procedural = evt.newValue;
+//                 DirtyNodes(ModificationScope.Graph);
+//             });
+//             AddRow("Procedural", proceduralToggle);
 
             // var listView = new ListView(property.value.layerNames, itemHeight, makeItem, bindItem);
             // listView.style.flexGrow = 1.0f;

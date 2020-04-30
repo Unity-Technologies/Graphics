@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         public List<SerializableVirtualTextureLayer> layers = new List<SerializableVirtualTextureLayer>();
 
-        [SerializeField]
-        public bool procedural;
+//         [SerializeField]
+//         public bool procedural;
 
         public void OnBeforeSerialize()
         {
