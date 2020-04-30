@@ -122,11 +122,11 @@ namespace UnityEditor.VFX
                     var currentFrameIndex = expressionMapper.FromNameAndId("currentFrameIndex", -1);
                     if (currentFrameIndex == null)
                         Debug.LogError("CurrentFrameIndex isn't reachable in encapsulatedOutput for motionVector");
-
-                    //Since it's a compute shader without renderer associated, these entries aren't automatically sent
-                    expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
-                    expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
                 }
+
+                //Since it's a compute shader without renderer associated, these entries aren't automatically sent
+                expressionMapper.AddExpression(VFXBuiltInExpression.LocalToWorld, "unity_ObjectToWorld", -1);
+                expressionMapper.AddExpression(VFXBuiltInExpression.WorldToLocal, "unity_WorldToObject", -1);
 
                 return expressionMapper;
             }

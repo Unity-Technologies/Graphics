@@ -78,6 +78,9 @@ namespace UnityEditor.VFX
         {
             get
             {
+                foreach (var property in base.inputProperties)
+                    yield return property;
+
                 foreach (var property in VFXMultiMeshHelper.GetInputProperties(MeshCount, lod))
                     yield return property;
 

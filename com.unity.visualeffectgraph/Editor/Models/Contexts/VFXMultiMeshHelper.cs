@@ -33,9 +33,9 @@ namespace UnityEditor.VFX
                 string id = GetId(meshCount, i);
 
                 if (lod)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), lodName + id, new TooltipAttribute("Specifies the screen ratio at which mesh" + id + " is used.")), lodFactors[meshCount - i - 1]);
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), meshName + id, new TooltipAttribute("Specifies the mesh" + id + " used to render the particle.")), VFXResources.defaultResources.mesh);
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), maskName + id, new TooltipAttribute("Defines a bitmask to control which submeshes are rendered for mesh" + id + "."), new BitFieldAttribute()), 0xffffffff);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), lodName + id, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "Specifies the screen ratio at which mesh" + id + " is used.")), lodFactors[meshCount - i - 1]);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), meshName + id, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "Specifies the mesh" + id + " used to render the particle.")), VFXResources.defaultResources.mesh);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), maskName + id, new VFXPropertyAttribute(VFXPropertyAttribute.Type.kTooltip, "Defines a bitmask to control which submeshes are rendered for mesh" + id + "."), new VFXPropertyAttribute(VFXPropertyAttribute.Type.kBitField)), 0xffffffff);
             }
         }
 
