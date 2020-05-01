@@ -477,9 +477,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 Build_{{ project.name }}_Linux_{{ linux_api.name }}_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Linux_{{ linux_api.name }}_Player on version {{ editor.version }}
   agent:
-    flavor: b1.xlarge
-    type: Unity::VM
-    image: {{ platform.image }} 
+    type: {{ platform.type }}
+    image: {{ platform.image }}      
+    flavor: {{ platform.flavor }}
   {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
@@ -510,11 +510,7 @@ Build_{{ project.name }}_Linux_{{ linux_api.name }}_Player_{{ editor.version }}:
 {{ project.name }}_Linux_{{ linux_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on Linux_{{ linux_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    {% if testplatform.name == "editmode" %}
-    type: Unity::VM::GPU
-    {% else %}
     type: {{ platform.type }}
-    {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
   variables:
