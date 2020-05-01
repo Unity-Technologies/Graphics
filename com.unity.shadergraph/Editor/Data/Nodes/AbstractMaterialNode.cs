@@ -192,9 +192,6 @@ namespace UnityEditor.ShaderGraph
                 if(m_IsValid == value)
                     return;
                 
-                if(value == false)
-                    isActive = false;
-                
                 m_IsValid = value;
             }
         }

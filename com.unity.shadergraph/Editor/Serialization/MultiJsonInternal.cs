@@ -193,11 +193,13 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 jsonData = null;
                 isValid = false;
+                isActive = false;
             }
             public UnknownNodeType(string jsonData) 
             {
                 this.jsonData = jsonData;
                 isValid = false;
+                isActive = false;
             }
 
             public override void OnAfterDeserialize(string json)
@@ -214,8 +216,8 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void ValidateNode()
             {
-                base.ValidateNode();
-
+                isActive = false;
+                isValid = false;
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
             }
         }

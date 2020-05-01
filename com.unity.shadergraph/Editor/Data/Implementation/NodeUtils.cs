@@ -159,7 +159,7 @@ namespace UnityEditor.Graphing
 
         private static bool ValidLeafExists(AbstractMaterialNode node)
         {
-            if(!node.isValid)
+            if(!node.isActive)
             {
                 return false;
             }
@@ -203,9 +203,9 @@ namespace UnityEditor.Graphing
 
         private static bool ValidRootExists(AbstractMaterialNode node)
         {
-            if (!node.isValid)
+            if (node is BlockNode block)
             {
-                return false;
+                return block.isActive;
             }
 
             List<AbstractMaterialNode> childNodes = GetChildNodes(node);
@@ -231,7 +231,7 @@ namespace UnityEditor.Graphing
         {
             validLeaf = ValidLeafExists(node);
             validRoot = ValidRootExists(node);
-            validTree = validLeaf;
+            validTree = validRoot && validLeaf;
         }
 
         //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
@@ -248,7 +248,6 @@ namespace UnityEditor.Graphing
             {
                 UpdateForrest(node, validLeaf, validRoot, validTree, changedNodes, changedNodes != null);
             }
-
         }
 
         private static void UpdateForrest(AbstractMaterialNode node, bool validLeaf, bool validRoot, bool validTree, PooledHashSet<AbstractMaterialNode> changedNodes, bool getChangedNodes)
