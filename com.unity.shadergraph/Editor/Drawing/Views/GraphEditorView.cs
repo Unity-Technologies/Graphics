@@ -251,12 +251,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
 
-                // TODO: Temporary Inspector
-                m_InspectorView = new InspectorView(m_Graph, previewManager);
-                m_GraphView.Add(m_InspectorView);
-
                 CreateMasterPreview();
-                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector();
 
                 UpdateSubWindowsVisibility();
