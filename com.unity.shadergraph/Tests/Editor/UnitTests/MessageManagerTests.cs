@@ -286,6 +286,42 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var ret = GetListFrom(m_ComplexMgr);
             Assert.AreEqual(3, ret.Find(kpv => kpv.Key.Equals(node1.objectId)).Value.Count);
         }
+
+        [Test]
+        public void ReportAnyErrors_EmptyManager()
+        {
+            var ret = m_EmptyMgr.AnyError();
+            Assert.IsFalse(ret);
+        }
+
+        [Test]
+        public void ReportAnyErrors_ComplexManager()
+        {
+            var ret = m_ComplexMgr.AnyError();
+            Assert.IsTrue(ret);
+        }
+
+        [Test]
+        public void ReportAnyErrors_EmptyManager_OnlyWarnings()
+        {
+            m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
+            m_EmptyMgr.AddOrAppendError(p1, node1.objectId, w1);
+
+            var ret = m_EmptyMgr.AnyError();
+            Assert.IsFalse(ret);
+        }
+
+        [Test]
+        public void ReportAnyErrors_EmptyManager_ErrorOneProvider()
+        {
+            m_EmptyMgr.AddOrAppendError(p0, node0.objectId, w0);
+            m_EmptyMgr.AddOrAppendError(p1, node1.objectId, e1);
+
+            var ret = m_EmptyMgr.AnyError();
+            Assert.IsTrue(ret);
+        }
+
+
     }
 }
 

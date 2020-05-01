@@ -1,26 +1,23 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
+using System.Reflection;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
-using UnityEditor.Graphs;
-
+using Data.Interfaces;
 using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Drawing.Colors;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using Node = UnityEditor.Experimental.GraphView.Node;
-using SlotType = UnityEditor.Graphing.SlotType;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    sealed class MaterialGraphView : GraphView
+    sealed class MaterialGraphView : GraphView, IInspectable
     {
         public MaterialGraphView()
         {
@@ -50,7 +47,58 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.graph = graph;
         }
 
+        [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
+
+        Action m_InspectorUpdateDelegate;
+
+        public string inspectorTitle => this.graph.path;
+
+        public object GetObjectToInspect()
+        {
+            return this.graph;
+        }
+
+        public PropertyInfo[] GetPropertyInfo()
+        {
+            return this.GetType().GetProperties();
+        }
+
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        {
+            m_InspectorUpdateDelegate = inspectorUpdateDelegate;
+            if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
+            {
+                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+            }
+        }
+
+        void ChangeTargetSettings()
+        {
+            this.m_InspectorUpdateDelegate();
+        }
+        void ChangeConcretePrecision(ConcretePrecision newValue)
+        {
+            var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
+            if(graphEditorView == null)
+                return;
+
+            graph.owner.RegisterCompleteObjectUndo("Change Precision");
+            if (graph.concretePrecision == newValue)
+                return;
+
+            graph.concretePrecision = newValue;
+            var nodeList = this.Query<MaterialNodeView>().ToList();
+            graphEditorView.colorManager.SetNodesDirty(nodeList);
+
+            graph.ValidateGraph();
+            graphEditorView.colorManager.UpdateNodeViews(nodeList);
+            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+            {
+                node.Dirty(ModificationScope.Graph);
+            }
+        }
+
         public Action onConvertToSubgraphClick { get; set; }
         public Vector2 cachedMousePosition { get; private set; }
 
@@ -328,7 +376,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
+        public delegate void SelectionChanged(List<ISelectable> selection);
+        public SelectionChanged OnSelectionChange;
+        public override void AddToSelection(ISelectable selectable)
+        {
+            base.AddToSelection(selectable);
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
+        public override void RemoveFromSelection(ISelectable selectable)
+        {
+            base.RemoveFromSelection(selectable);
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
+        public override void ClearSelection()
+        {
+            base.ClearSelection();
+
+            if(OnSelectionChange != null)
+                OnSelectionChange(selection);
+        }
+
+
+        private void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
         {
             graph.owner.RegisterCompleteObjectUndo("Delete Group and Contents");
             var groupItems = graph.GetItemsInGroup(data);
@@ -1190,7 +1265,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Add new elements to selection
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
-                    {
+                        {
                             if (element is Edge edge && remappedEdges.Contains(edge.userData as IEdge))
                                 graphView.AddToSelection(edge);
 

@@ -1716,7 +1716,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode1>().FirstOrDefault();
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
                 }
 
                 foreach (var serializedElement in graphData0.m_SerializableEdges)
