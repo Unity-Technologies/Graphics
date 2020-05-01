@@ -17,9 +17,9 @@ cmd_map = {
         'standalone_build' : osx_metal.cmd_standalone_build
     },
     'linux' : {
-        'not_standalone': linux_split.cmd_not_standalone,
-        'standalone' : linux_split.cmd_standalone,
-        'standalone_build' : linux_split.cmd_standalone_build
+        'not_standalone': linux.cmd_not_standalone,
+        'standalone' : linux.cmd_standalone,
+        'standalone_build' : linux.cmd_standalone_build
     },
     'android' : {
         'not_standalone': android.cmd_not_standalone,
