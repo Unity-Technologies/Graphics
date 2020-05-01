@@ -195,3 +195,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c9a611601b514da47a39335dc899c5f3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
