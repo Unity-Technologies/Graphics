@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering
         [SettingsProvider]
         static SettingsProvider PreferenceGUI()
         {
-            return new SettingsProvider("Preferences/Core Render Pipeline", SettingsScope.User)
+            return new SettingsProvider("Preferences/Colors/SRP", SettingsScope.User)
             {
                 guiHandler = searchContext =>
                 {

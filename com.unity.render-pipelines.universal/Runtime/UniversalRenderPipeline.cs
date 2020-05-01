@@ -34,6 +34,8 @@ namespace UnityEngine.Rendering.Universal
             public static int unity_DeltaTime;
             public static int _TimeParameters;
         }
+        // color for lines
+        //internal static PrefColor s_SnappingLineColor = new PrefColor("General/Graph Snapping Line Color", 68 / 255f, 192 / 255f, 255 / 255f, 0.2f);
 
         public const string k_ShaderTagName = "UniversalPipeline";
 
@@ -528,6 +530,12 @@ namespace UnityEngine.Rendering.Universal
             cameraData.maxShadowDistance = (anyShadowsEnabled && cameraData.maxShadowDistance >= camera.nearClipPlane) ?
                 cameraData.maxShadowDistance : 0.0f;
 
+#if UNITY_EDITOR
+            if (cameraData.camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
             if (cameraData.isSceneViewCamera)
             {
                 cameraData.renderType = CameraRenderType.Base;
