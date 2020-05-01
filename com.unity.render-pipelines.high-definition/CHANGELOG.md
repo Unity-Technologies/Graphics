@@ -571,6 +571,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - DXR: Fixed shader compilation error with shader graph and pathtracer
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
