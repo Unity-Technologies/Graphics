@@ -134,7 +134,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (HasPreferredGUI() && string.IsNullOrEmpty(sanitizedInput))
             {
                 var defaultGUI = String.Empty;
-                //var defaultGUI = GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode);
                 m_ShaderGUIOverrideInfo.ShaderGUIOverride = defaultGUI;
             }
             else
@@ -203,7 +202,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         private bool HasPreferredGUI()
         {
             return false;
-            //return !string.IsNullOrEmpty(GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode));
         }
     }
 }

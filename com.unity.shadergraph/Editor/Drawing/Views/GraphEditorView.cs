@@ -1288,10 +1288,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdateSerializedWindowLayout()
         {
-            // TODO: Temporary Inspector
-            m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_InspectorView.layout, m_GraphView.layout);
-            m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
-
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
