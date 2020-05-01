@@ -633,7 +633,7 @@ namespace UnityEditor.ShaderGraph
 
             OnSlotsChanged();
 
-            if (foundSlot == null)
+            if (foundSlot == null || foundSlot == slot)
                 return;
 
             slot.CopyValuesFrom(foundSlot);
