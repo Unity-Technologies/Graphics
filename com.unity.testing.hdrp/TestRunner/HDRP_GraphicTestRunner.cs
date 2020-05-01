@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering.HighDefinition;
@@ -42,6 +43,13 @@ public class HDRP_GraphicTestRunner
                 // Increase tolerance to account for slight changes due to float precision
                 settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
                 settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
+
+                // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
+                foreach (var volume in GameObject.FindObjectsOfType<Volume>())
+                {
+                    if (volume.profile.TryGet<Fog>(out Fog fog))
+                        fog.volumeSliceCount.value *= 2;
+                }
             }
             else
             {
