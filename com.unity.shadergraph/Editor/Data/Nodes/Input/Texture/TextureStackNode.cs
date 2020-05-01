@@ -15,30 +15,6 @@ namespace UnityEditor.ShaderGraph
     // TODO: rename this file to VirtualTexturingFeedbackUtils
     static class VirtualTexturingFeedbackUtils
     {
-        // TODO: find some way to get rid of this...  :)  only being used to calculate: vtFeedbackRequiresScreenPos
-        // which could be done from the SampleVirtualTextureNode itself...
-        public static int  CountFeedbackVariables(
-            List<AbstractMaterialNode> activeNodesForPass)
-        {
-            int result = 0;
-
-            foreach (var node in activeNodesForPass)
-            {
-                if (node is SampleVirtualTextureNode vtNode)
-                {
-                    result += (vtNode.noFeedback) ? 0 : 1;
-                }
-
-                if (node is SubGraphNode sgNode)
-                {
-                    if (sgNode.asset == null) continue;
-                    result += sgNode.asset.vtFeedbackVariables.Count;
-                }
-            }
-
-            return result;
-        }
-
         // TODO: could get rid of this if we could run a codegen prepass (with proper keyword #ifdef)
         public static void GenerateVirtualTextureFeedback(
             List<AbstractMaterialNode> downstreamNodesIncludingRoot,

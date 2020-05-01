@@ -282,9 +282,6 @@ namespace UnityEditor.ShaderGraph
                     NodeUtils.DepthFirstCollectNodesFromNode(localVertexNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.vertexPorts, keywordCollector.permutations[i]);
                     NodeUtils.DepthFirstCollectNodesFromNode(localPixelNodes, outputNode, NodeUtils.IncludeSelf.Include, pass.pixelPorts, keywordCollector.permutations[i]);
 
-                    // This will ensure we only need screenpos for permutations that need vt feedback for more than one sample
-                    bool vtFeedbackRequiresScreenPos = VirtualTexturingFeedbackUtils.CountFeedbackVariables(localPixelNodes) > 0;
-
                     // Track each vertex node in this permutation
                     foreach(AbstractMaterialNode vertexNode in localVertexNodes)
                     {
@@ -750,7 +747,6 @@ namespace UnityEditor.ShaderGraph
             AbstractMaterialNode rootNode,
             GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
-            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -773,7 +769,7 @@ namespace UnityEditor.ShaderGraph
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includes, functionRegistry, surfaceDescriptionFunction,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, surfaceDescriptionFunction,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
@@ -800,7 +796,6 @@ namespace UnityEditor.ShaderGraph
         static void GenerateDescriptionForNode(
             AbstractMaterialNode activeNode,
             List<int> keywordPermutations,
-            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             ShaderStringBuilder descriptionFunction,
             PropertyCollector shaderProperties,
@@ -907,7 +902,6 @@ namespace UnityEditor.ShaderGraph
         internal static void GenerateVertexDescriptionFunction(
             GraphData graph,
             ShaderStringBuilder builder,
-            IncludeCollection includes,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             KeywordCollector shaderKeywords,
@@ -931,7 +925,7 @@ namespace UnityEditor.ShaderGraph
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
                 for(int i = 0; i < nodes.Count; i++)
                 {
-                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], includes, functionRegistry, builder,
+                    GenerateDescriptionForNode(nodes[i], keywordPermutationsPerNode[i], functionRegistry, builder,
                         shaderProperties, shaderKeywords,
                         graph, mode);
                 }
