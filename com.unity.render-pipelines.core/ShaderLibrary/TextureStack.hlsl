@@ -25,7 +25,7 @@
         [TextureStack.MyFancyStack] DiffuseTexture ("DiffuseTexture", 2D) = "white" {}
         [TextureStack.MyFancyStack] NormalTexture ("NormalTexture", 2D) = "white" {}
 
-    This will declare a texture stack with two shaders.
+    This will declare a texture stack with two textures.
 
     Then add the following to the PerMaterial constant buffer:
 
