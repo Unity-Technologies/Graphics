@@ -35,6 +35,8 @@ GLOBAL_CBUFFER_START(UnityRayTracingGlobals, UNITY_RAY_TRACING_GLOBAL_CBUFFER_RE
 	// Path tracing parameters
 	int _RaytracingMinRecursion;
 	int _RaytracingMaxRecursion;
+	// Ray traced indirect diffuse data
+	int _RayTracingDiffuseLightingOnly;
 CBUFFER_END
 
 RW_TEXTURE2D_ARRAY(uint, _RayCountTexture);

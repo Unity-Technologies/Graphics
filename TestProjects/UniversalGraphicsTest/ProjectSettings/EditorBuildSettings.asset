@@ -231,6 +231,15 @@ EditorBuildSettings:
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   - enabled: 1
+    path: Assets/Scenes/123_CameraStackingClear.unity
+    guid: 9aa9851df0da149c9a83a0f26072e234
+  - enabled: 1
+    path: Assets/Scenes/124_CameraStackingClearRT.unity
+    guid: 2fac616c9e61b45ccb7fcfa4fb18ae60
+  - enabled: 1
+    path: Assets/Scenes/125_CameraStackingVolumes.unity
+    guid: 9173c5ffc1365594aa9b927c4cd84c54
+  - enabled: 1
     path: Assets/Scenes/126_RendererFeatureActive.unity
     guid: 92276052d376244eb94e9548db46b27f
   - enabled: 1
