@@ -147,7 +147,6 @@ namespace UnityEditor.ShaderGraph
 #endif
 
             // declare non-batchable properties
-            builder.AppendLine("// START Non-batchable properties:");
             foreach (var prop in properties.Where(n => n.hasNonBatchableProperties || !n.generatePropertyBlock))
             {
                 if (prop.hasBatchableProperties && !prop.generatePropertyBlock) // batchable properties that don't generate property block can't be instanced, get put here
@@ -155,7 +154,6 @@ namespace UnityEditor.ShaderGraph
 
                 prop.AppendNonBatchablePropertyDeclarations(builder);
             }
-            builder.AppendLine("// END Non-batchable properties:");
         }
 
         public IEnumerable<AbstractShaderProperty> DotsInstancingProperties(GenerationMode mode)
