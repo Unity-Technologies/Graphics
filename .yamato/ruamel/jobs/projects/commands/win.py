@@ -19,7 +19,7 @@ def cmd_not_standalone(project, platform, api, test_platform_args):
 def cmd_standalone(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../players --player-connection-ip=auto'
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr\\utr {test_platform_args}Windows64 --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-load-path=../../players --player-connection-ip=auto'
     ])
     return base
 
@@ -27,6 +27,6 @@ def cmd_standalone(project, platform, api, test_platform_args):
 def cmd_standalone_build(project, platform, api, test_platform_args):
     base = _cmd_base(project, platform["components"])
     base.extend([
-        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr/utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../players --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project["folder"]} && utr\\utr {test_platform_args}Windows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{api["name"]}Linear" --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200 --player-save-path=../../players --build-only'
     ])
     return base
