@@ -111,3 +111,38 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: corruption
+  - FilteredScene: {fileID: 102900000, guid: 09baf18a7e1f6584f86675e6a2141c66, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c59b82120d32fbf4d96793fb7e0ec339, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 359ded33a047fd540b5e19a98547f5e2, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: b03383077f153b7439af7708ebe1155a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
