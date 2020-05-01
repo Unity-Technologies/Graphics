@@ -1,16 +1,16 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
- using Data.Interfaces;
- using UnityEditor.Experimental.GraphView;
- using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
- using UnityEditor.ShaderGraph.Drawing.Views;
- using UnityEngine;
- using UnityEngine.UIElements;
+using Data.Interfaces;
+using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
+using UnityEditor.ShaderGraph.Drawing.Views;
+using UnityEngine;
+using UnityEngine.UIElements;
 
- namespace UnityEditor.ShaderGraph.Drawing.Inspector
- {
+namespace UnityEditor.ShaderGraph.Drawing.Inspector
+{
     class InspectorView : GraphSubWindow
     {
         // References
@@ -18,7 +18,6 @@ using System.Reflection;
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
-        Action m_previewUpdateDelegate;
         protected override string windowTitle => "Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
@@ -35,10 +34,8 @@ using System.Reflection;
                 Debug.Log("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
-        public InspectorView(GraphView graphView, Action updatePreviewDelegate) : base(graphView)
+        public InspectorView(GraphView graphView) : base(graphView)
         {
-            m_previewUpdateDelegate = updatePreviewDelegate;
-
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
             foreach (var type in unregisteredPropertyDrawerTypes)
@@ -95,12 +92,11 @@ using System.Reflection;
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorAndPreviewUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
         }
 
-        void TriggerInspectorAndPreviewUpdate()
+        void TriggerInspectorUpdate()
         {
-            m_previewUpdateDelegate();
             Update();
         }
 

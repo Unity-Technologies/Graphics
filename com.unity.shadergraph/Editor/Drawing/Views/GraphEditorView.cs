@@ -237,7 +237,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
+                m_GraphView = new MaterialGraphView(graph, () => m_PreviewManager.UpdateMasterPreview(ModificationScope.Topological))
+                    { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
@@ -256,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 CreateMasterPreview();
                 // When Matt integrates his stacks work, the inspector will need to trigger preview updates
-                CreateInspector(() => { });
+                CreateInspector();
 
                 UpdateSubWindowsVisibility();
 
@@ -276,7 +277,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.RegisterCallback<FocusInEvent>( evt => { m_SearchWindowProvider.regenerateEntries = true; });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
-            
+
             if(!m_Graph.isSubGraph)
             {
                 AddContexts();
@@ -401,9 +402,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
         }
 
-        void CreateInspector(Action previewUpdateDelegate)
+        void CreateInspector()
         {
-            m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
+            m_InspectorView = new InspectorView(graphView);
             m_GraphView.Add(m_InspectorView);
             m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
@@ -498,7 +499,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             // the BlockNode into the GraphView during dragging
                             if(context.isDragging)
                                 continue;
-                            
+
                             // Remove from GraphView and add back to Context
                             m_GraphView.RemoveElement(element);
                             context.InsertBlock(element as MaterialNodeView);
@@ -689,7 +690,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         m_GraphView.RemoveElement((Node)nodeView);
                     }
-                    
+
                     if (node.group != null)
                     {
                         var shaderGroup = m_GraphView.graphElements.ToList().OfType<ShaderGroup>().First(g => g.userData == node.group);
@@ -982,9 +983,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Skip BlockNodes as we need to order them
                     if(node is BlockNode)
                         continue;
-                    
+
                     AddNode(node, true);
-                } 
+                }
                 visualGroupMap.Clear();
             }
         }
@@ -999,7 +1000,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var node in blocks.OrderBy(s => s.index))
                 {
                     AddNode(node);
-                } 
+                }
             }
         }
 

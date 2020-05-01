@@ -297,6 +297,11 @@ namespace UnityEditor.ShaderGraph
         List<Target> m_ValidTargets = new List<Target>();
 
         int m_ActiveTargetBitmask;
+        public int activeTargetBitmask
+        {
+            get => m_ActiveTargetBitmask;
+            set => m_ActiveTargetBitmask = value;
+        }
 
         public List<Target> validTargets => m_ValidTargets;
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
@@ -385,7 +390,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void UpdateActiveTargets()
+        public void UpdateActiveTargets()
         {
             // Update active TargetImplementation list
             if(m_ActiveTargets != null)
@@ -400,75 +405,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-        }
-
-        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
-
-        // TODO: We should not have any View code here
-        // TODO: However, for now we dont know how the InspectorView will work
-        // TODO: So for now leave it here and dont spill the assemblies outside the method
-        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange, Action<string> registerUndo)
-        {
-            var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
-
-            if(isSubGraph)
-                return element;
-
-            // Add Label
-            var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
-            targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            element.Add(new Drawing.PropertyRow(targetSettingsLabel));
-
-            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Targets")), (row) =>
-                {
-                    row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
-                        EditorGUI.BeginChangeCheck();
-                        var activeTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            registerUndo("Change active Targets");
-                            m_ActiveTargetBitmask = activeTargetBitmask;
-                            UpdateActiveTargets();
-                            onChange();
-                        }
-                    }));
-                });
-
-            // Iterate active TargetImplementations
-            foreach(var target in m_ActiveTargets)
-            {
-                // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
-                if(!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
-                {
-                    m_TargetFoldouts.Add(target, foldoutActive);
-                }
-
-                // Create foldout
-                var foldout = new UnityEngine.UIElements.Foldout() { text = target.value.displayName, value = foldoutActive };
-                element.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt =>
-                {
-                    // Update foldout value and rebuild
-                    m_TargetFoldouts[target] = evt.newValue;
-                    foldout.value = evt.newValue;
-                    onChange();
-                });
-
-                if(foldout.value)
-                {
-                    // Get settings for Target
-                    var context = new TargetPropertyGUIContext();
-                    target.value.GetPropertiesGUI(ref context, onChange, registerUndo);
-
-                    foreach(var property in context.properties)
-                    {
-                        element.Add(property);
-                    }
-                }
-            }
-
-            return element;
         }
 
         public void ClearChanges()

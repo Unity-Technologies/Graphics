@@ -42,15 +42,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<IShaderNodeView>().Any(x => x.node.canCopyNode) || selection.OfType<Group>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(GraphData graph) : this()
+        public MaterialGraphView(GraphData graph, Action previewUpdateDelegate) : this()
         {
             this.graph = graph;
+            this.m_PreviewManagerUpdateDelegate = previewUpdateDelegate;
         }
 
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
         Action m_InspectorUpdateDelegate;
+        Action m_PreviewManagerUpdateDelegate;
 
         public string inspectorTitle => this.graph.path;
 
@@ -75,8 +77,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ChangeTargetSettings()
         {
+            var activeBlocks = graph.GetActiveBlocksForAllActiveTargets();
+            if (ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                graph.AddRemoveBlocksFromActiveList(activeBlocks);
+            }
+
+            graph.UpdateActiveBlocks(activeBlocks);
+            this.m_PreviewManagerUpdateDelegate();
             this.m_InspectorUpdateDelegate();
         }
+
         void ChangeConcretePrecision(ConcretePrecision newValue)
         {
             var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
