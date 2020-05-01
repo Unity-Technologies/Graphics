@@ -67,6 +67,14 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
+                // declare regular texture properties (for fallback case)
+                for (int i = 0; i < value.layers.Count; i++)
+                {
+                    string layerRefName = value.layers[i].layerName;
+                    builder.Append(
+                        $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                }
+                // declare texture stack
                 builder.Append("DECLARE_STACK");
                 builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                 builder.Append("(");
@@ -80,7 +88,7 @@ namespace UnityEditor.ShaderGraph
                 builder.Append(")");
                 builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
 
-                // declare the actual property "variable" as a macro define to the BuildVTProperties function
+                // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function
                 builder.AppendLine("#define " + referenceName + " BuildVTProperties_" + referenceName + "()");
             }
         }

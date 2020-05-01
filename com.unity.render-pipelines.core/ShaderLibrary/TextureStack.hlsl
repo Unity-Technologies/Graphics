@@ -76,15 +76,9 @@ struct VTProperty
 {
     GraniteConstantBuffers grCB;
     GraniteTranslationTexture translationTable;
-    GraniteCacheTexture cacheLayer0;
-    GraniteCacheTexture cacheLayer1;
-    GraniteCacheTexture cacheLayer2;
-    GraniteCacheTexture cacheLayer3;
+    GraniteCacheTexture cacheLayer[4];
     int layerCount;
-    int layer0;
-    int layer1;
-    int layer2;
-    int layer3;
+    int layerIndex[4];
 };
 
 #ifdef TEXTURESTACK_CLAMP
@@ -154,14 +148,6 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
     return graniteParamBlock;
 }
 
-// TODO: replace PrepareVT with direct call to  VirtualTexturingLookup?
-StackInfo PrepareVT(VtInputParameters par, VTProperty props)
-{
-	StackInfo info;
-    VirtualTexturingLookup(props.grCB, props.translationTable, par, info.lookupData, info.resolveOutput);
-	return info;
-}
-
 #define jj2(a, b) a##b
 #define jj(a, b) jj2(a, b)
 
@@ -193,34 +179,34 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
     VTProperty BuildVTProperties_##stackName()\
     {\
-        VTProperty props; \
+        VTProperty vtProperty; \
         \
         GraniteStreamingTextureConstantBuffer textureParamBlock; \
         textureParamBlock.data[0] = stackName##_atlasparams[0]; \
         textureParamBlock.data[1] = stackName##_atlasparams[1]; \
         \
-        props.grCB.tilesetBuffer = GetConstantBuffer(textureParamBlock); \
-        props.grCB.streamingTextureBuffer = textureParamBlock; \
+        vtProperty.grCB.tilesetBuffer = GetConstantBuffer(textureParamBlock); \
+        vtProperty.grCB.streamingTextureBuffer = textureParamBlock; \
         \
-        props.translationTable.Texture = stackName##_transtab; \
-        props.translationTable.Sampler = sampler##stackName##_transtab; \
+        vtProperty.translationTable.Texture = stackName##_transtab; \
+        vtProperty.translationTable.Sampler = sampler##stackName##_transtab; \
         \
-        props.layerCount = layers; \
-        props.layer0 = layer0Index; \
-        props.layer1 = layer1Index; \
-        props.layer2 = layer2Index; \
-        props.layer3 = layer3Index; \
+        vtProperty.layerCount = layers; \
+        vtProperty.layerIndex[0] = layer0Index; \
+        vtProperty.layerIndex[1] = layer1Index; \
+        vtProperty.layerIndex[2] = layer2Index; \
+        vtProperty.layerIndex[3] = layer3Index; \
         \
-        props.cacheLayer0.TextureArray = stackName##_c##layer0Index; \
-        props.cacheLayer0.Sampler = sampler##stackName##_c##layer0Index;\
-        props.cacheLayer1.TextureArray = stackName##_c##layer1Index; \
-        props.cacheLayer1.Sampler = sampler##stackName##_c##layer1Index;\
-        props.cacheLayer2.TextureArray = stackName##_c##layer2Index; \
-        props.cacheLayer2.Sampler = sampler##stackName##_c##layer2Index;\
-        props.cacheLayer3.TextureArray = stackName##_c##layer3Index; \
-        props.cacheLayer3.Sampler = sampler##stackName##_c##layer3Index;\
+        vtProperty.cacheLayer[0].TextureArray = stackName##_c##layer0Index; \
+        vtProperty.cacheLayer[0].Sampler = sampler##stackName##_c##layer0Index;\
+        vtProperty.cacheLayer[1].TextureArray = stackName##_c##layer1Index; \
+        vtProperty.cacheLayer[1].Sampler = sampler##stackName##_c##layer1Index;\
+        vtProperty.cacheLayer[2].TextureArray = stackName##_c##layer2Index; \
+        vtProperty.cacheLayer[2].Sampler = sampler##stackName##_c##layer2Index;\
+        vtProperty.cacheLayer[3].TextureArray = stackName##_c##layer3Index; \
+        vtProperty.cacheLayer[3].Sampler = sampler##stackName##_c##layer3Index;\
         \
-        return props; \
+        return vtProperty; \
     }
 
 #define DECLARE_STACK(stackName, layer0SamplerName)\
@@ -254,6 +240,20 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 #define GetResolveOutput(info) info.resolveOutput
 #define PackResolveOutput(output) Granite_PackTileId(output)
 
+StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
+{
+    StackInfo info;
+    VirtualTexturingLookup(vtProperty.grCB, vtProperty.translationTable, vtParams, info.lookupData, info.resolveOutput);
+    return info;
+}
+
+float4 SampleVTLayer(VTProperty vtProperty, VtInputParameters vtParams, StackInfo info, int layerIndex)
+{
+    float4 result;
+    VirtualTexturingSample(vtProperty.grCB.tilesetBuffer, info.lookupData, vtProperty.cacheLayer[layerIndex], vtProperty.layerIndex[layerIndex], vtParams.levelMode, vtParams.sampleQuality, result);
+    return result;
+}
+
 float4 GetPackedVTFeedback(float4 feedback)
 {
     return Granite_PackTileId(feedback);
@@ -262,12 +262,40 @@ float4 GetPackedVTFeedback(float4 feedback)
 #define VIRTUAL_TEXTURING_SHADER_ENABLED
 
 #else
+// Virtual Texturing Disabled -- fallback to regular texture sampling
+
+#define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0, layer1, layer2, layer3)\
+    VTProperty BuildVTProperties_##stackName()\
+    {\
+        VTProperty vtProperty; \
+        \
+        vtProperty.layerCount = layers; \
+        vtProperty.Layer0 = layer0; \
+        vtProperty.Layer1 = layer1; \
+        vtProperty.Layer2 = layer2; \
+        vtProperty.Layer3 = layer3; \
+        \
+        ASSIGN_SAMPLER(vtProperty.samplerLayer0, sampler##layer0); \
+        ASSIGN_SAMPLER(vtProperty.samplerLayer1, sampler##layer1); \
+        ASSIGN_SAMPLER(vtProperty.samplerLayer2, sampler##layer2); \
+        ASSIGN_SAMPLER(vtProperty.samplerLayer3, sampler##layer3); \
+        \
+        return vtProperty; \
+    }
 
 // Stacks amount to nothing when VT is off
-#define DECLARE_STACK(stackName, layer0)
-#define DECLARE_STACK2(stackName, layer0, layer1)
-#define DECLARE_STACK3(stackName, layer0, layer1, layer2)
-#define DECLARE_STACK4(stackName, layer0, layer1, layer2, layer3)
+#define DECLARE_STACK(stackName, layer0) \
+    DECLARE_BUILD_PROPERTIES(stackName, 1, layer0, layer0, layer0, layer0)
+
+#define DECLARE_STACK2(stackName, layer0, layer1) \
+    DECLARE_BUILD_PROPERTIES(stackName, 2, layer0, layer1, layer1, layer1)
+
+#define DECLARE_STACK3(stackName, layer0, layer1, layer2) \
+    DECLARE_BUILD_PROPERTIES(stackName, 3, layer0, layer1, layer2, layer2)
+
+#define DECLARE_STACK4(stackName, layer0, layer1, layer2, layer3) \
+    DECLARE_BUILD_PROPERTIES(stackName, 4, layer0, layer1, layer2, layer3)
+
 #define DECLARE_STACK_CB(stackName)
 
 // Info is just the uv's
@@ -276,6 +304,19 @@ float4 GetPackedVTFeedback(float4 feedback)
 struct StackInfo
 {
     VtInputParameters vt;
+};
+
+struct VTProperty
+{
+    int layerCount;
+    TEXTURE2D(Layer0);
+    TEXTURE2D(Layer1);
+    TEXTURE2D(Layer2);
+    TEXTURE2D(Layer3);
+    SAMPLER(samplerLayer0);
+    SAMPLER(samplerLayer1);
+    SAMPLER(samplerLayer2);
+    SAMPLER(samplerLayer3);
 };
 
 StackInfo MakeStackInfo(VtInputParameters vt)
@@ -290,21 +331,38 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 
 // Sample just samples the texture
 #define SampleStack(info, lodMode, quality, texture) \
-    (lodMode == VtLevel_Automatic) ?\
+    (((lodMode) == VtLevel_Automatic) ?\
         SAMPLE_TEXTURE2D(texture, sampler##texture, info.vt.uv)\
-    :( (lodMode == VtLevel_Lod) ?\
+    :( ((lodMode) == VtLevel_Lod) ?\
         SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
-    :( (lodMode == VtLevel_Bias) ?\
+    :( ((lodMode) == VtLevel_Bias) ?\
         SAMPLE_TEXTURE2D_BIAS(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
-    :( /*(lodMode == /VtLevel_Derivatives)*/\
+    :( /*((lodMode) == /VtLevel_Derivatives)*/\
         SAMPLE_TEXTURE2D_GRAD(texture, sampler##texture, info.vt.uv, info.vt.dx, info.vt.dy)\
-    )));
+    ))))
+
+StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
+{
+    StackInfo result;
+    result.vt = vtParams;
+    return result;
+}
+
+#define SampleVTLayer(vtProperty, vtParams, info, layerIndex) \
+    (((vtParams.levelMode) == VtLevel_Automatic) ?\
+        SAMPLE_TEXTURE2D(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv)\
+    :( ((vtParams.levelMode) == VtLevel_Lod) ?\
+        SAMPLE_TEXTURE2D_LOD(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.lodOrOffset)\
+    :( ((vtParams.levelMode) == VtLevel_Bias) ?\
+        SAMPLE_TEXTURE2D_BIAS(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.lodOrOffset)\
+    :( /*((vtParams.levelMode) == /VtLevel_Derivatives)*/\
+        SAMPLE_TEXTURE2D_GRAD(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.dx, info.vt.dy)\
+    ))))
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
 #define PackResolveOutput(output) output
 #define GetPackedVTFeedback(feedback) feedback
-
 
 #endif
 

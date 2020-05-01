@@ -444,17 +444,15 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("#endif");
         }
 
-        void AppendVtSample(ShaderStringBuilder sb, string infoVariable, string propertiesName, int layerIndex, string outputVariableName, LodCalculation lod, QualityMode quality)
+        void AppendVtSample(ShaderStringBuilder sb, string propertiesName, string vtInputVariable, string infoVariable, int layerIndex, string outputVariableName)
         {
             sb.AppendIndentation();
-            sb.Append("VirtualTexturingSample(");
-                sb.Append(propertiesName); sb.Append(".grCB.tilesetBuffer, ");
-                sb.Append(infoVariable);   sb.Append(".lookupData, ");
-                sb.Append(propertiesName); sb.Append(".cacheLayer"); sb.Append(layerIndex.ToString()); sb.Append(", ");
-                sb.Append(propertiesName); sb.Append(".layer"); sb.Append(layerIndex.ToString()); sb.Append(", ");
-                sb.Append(lod.ToString()); sb.Append(", ");
-                sb.Append(quality.ToString()); sb.Append(", ");
-                sb.Append(outputVariableName); sb.Append(");");
+            sb.Append(outputVariableName); sb.Append(" = ");
+            sb.Append("SampleVTLayer(");
+            sb.Append(propertiesName);          sb.Append(", ");
+            sb.Append(vtInputVariable);         sb.Append(", ");
+            sb.Append(infoVariable);            sb.Append(", ");
+            sb.Append(layerIndex.ToString());   sb.Append(");");
             sb.AppendNewLine();
         }
 
@@ -537,14 +535,14 @@ namespace UnityEditor.ShaderGraph
                                 UvSpace.VtUvSpace_Regular,
                                 m_SampleQuality);
 
-                            s.AppendLine("StackInfo info = PrepareVT(vtParams, vtProperty);");
+                            s.AppendLine("StackInfo info = PrepareVT(vtProperty, vtParams);");
 
                             for (int i = 0; i < layerOutputVariableNames.Count; i++)
                             {
                                 // sample virtual texture layer
                                 int layer = layerOutputLayerIndex[i];
                                 string layerOutputVariable = layerOutputVariableNames[i];
-                                AppendVtSample(s, "info", "vtProperty", layer, layerOutputVariable, m_LodCalculation, m_SampleQuality);
+                                AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
 
                                 // apply normal conversion code, if necessary
                                 if (m_TextureTypes[layer] == TextureType.Normal)
