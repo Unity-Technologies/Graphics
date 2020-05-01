@@ -114,15 +114,10 @@ Pass
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-        half alpha = 1;
-        #if _SURFACE_TYPE_TRANSPARENT
-            alpha = surfaceDescription.Alpha;
-        #endif
-
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest: GENERIC_ALPHA_TEST(alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
         #endif
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
@@ -138,7 +133,7 @@ Pass
             shadow = dot(shadow3, float3(1.0f/3.0f, 1.0f/3.0f, 1.0f/3.0f));
 
             float4 shadowColor = (1 - shadow)*surfaceDescription.ShadowTint.rgba;
-            float  localAlpha  = saturate(shadowColor.a + alpha);
+            float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
 
             // Keep the nested lerp
             // With no Color (bsdfData.color.rgb, bsdfData.color.a == 0.0f), just use ShadowColor*Color to avoid a ring of "white" around the shadow
@@ -150,12 +145,12 @@ Pass
             #endif
             localAlpha = ApplyBlendMode(surfaceData.color, localAlpha).a;
 
-            alpha = localAlpha;
+            surfaceDescription.Alpha = localAlpha;
         #endif
 
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
-        builtinData.opacity = alpha;
+        builtinData.opacity = surfaceDescription.Alpha;
 
         #ifdef _ALPHATEST_ON
             // Used for sharpening by alpha to mask

@@ -30,6 +30,9 @@ namespace UnityEditor.ShaderGraph
                     case ShaderGraphImporter.Extension:
                         isSubGraph = false;
                         break;
+                    case ShaderGraphImporter.LegacyExtension:
+                        isSubGraph = false;
+                        break;
                     case ShaderSubGraphImporter.Extension:
                         isSubGraph = true;
                         break;

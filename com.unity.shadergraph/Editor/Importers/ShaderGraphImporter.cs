@@ -28,6 +28,7 @@ namespace UnityEditor.ShaderGraph
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
+        public const string LegacyExtension = "ShaderGraph";
 
         public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
