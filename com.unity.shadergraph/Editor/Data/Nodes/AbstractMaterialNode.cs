@@ -785,5 +785,13 @@ namespace UnityEditor.ShaderGraph
         }
 
         public virtual void Setup() {}
+
+        protected void EnqueSlotsForSerialization()
+        {
+            foreach(var slot in m_Slots)
+            {
+                slot.OnBeforeSerialize();
+            }
+        }
     }
 }

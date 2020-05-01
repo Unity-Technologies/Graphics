@@ -1896,7 +1896,7 @@ namespace UnityEditor.ShaderGraph
             foreach(var nodePair in updatedNodes)
             {
                 m_Nodes.Add(nodePair.Item2);
-                //ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
+                ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
             }
 
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);

@@ -33,7 +33,28 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 if (castedObject.value != null)
                 {
-                    Enqueue(castedObject, json);
+                    Enqueue(castedObject, json.Trim());
+                }
+            }
+
+            public override void OnAfterMultiDeserialize(string json)
+            {
+                if(castedObject.value == null)
+                {
+                    //Never got casted so nothing ever reffed this object
+                    //likely that some other unknown json object had a ref
+                    //to this thing. Need to include it in the serialization
+                    //step of the object still.
+                    if(jsonBlobs.TryGetValue(currentRoot.objectId, out var blobs))
+                    {
+                        blobs[objectId] = jsonData.Trim();
+                    }
+                    else
+                    {
+                        var lookup = new Dictionary<string, string>();
+                        lookup[objectId] = jsonData.Trim();
+                        jsonBlobs.Add(currentRoot.objectId, lookup) ;
+                    }
                 }
             }
 
@@ -97,7 +118,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             }
             public override string Serialize()
             {
-                return jsonData;
+                return jsonData.Trim();
             }
             public override void GetActiveBlocks(ref TargetActiveBlockContext context)
             {
@@ -140,7 +161,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override string Serialize()
             {
-                return jsonData;
+                return jsonData.Trim();
             }
 
             internal override Type targetType => typeof(UnknownTargetType);
@@ -173,15 +194,22 @@ namespace UnityEditor.ShaderGraph.Serialization
                 jsonData = null;
                 isValid = false;
             }
-            public UnknownNodeType(string jsonData) : base()
+            public UnknownNodeType(string jsonData) 
             {
                 this.jsonData = jsonData;
                 isValid = false;
             }
 
+            public override void OnAfterDeserialize(string json)
+            {
+                jsonData = json;
+                base.OnAfterDeserialize(json);
+            }
+
             public override string Serialize()
             {
-                return jsonData;
+                EnqueSlotsForSerialization();
+                return jsonData.Trim();
             }
 
             public override void ValidateNode()
@@ -205,6 +233,10 @@ namespace UnityEditor.ShaderGraph.Serialization
         internal static readonly List<JsonObject> serializationQueue = new List<JsonObject>();
 
         internal static readonly HashSet<string> serializedSet = new HashSet<string>();
+
+        static JsonObject currentRoot = null;
+
+        static Dictionary<string, Dictionary<string, string>>jsonBlobs = new Dictionary<string, Dictionary<string,string>>();
 
         static Dictionary<string, Type> CreateTypeMap()
         {
@@ -318,7 +350,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             try
             {
                 isDeserializing = true;
-
+                currentRoot = root;
                 for (var index = 0; index < entries.Count; index++)
                 {
                     var entry = entries[index];
@@ -373,41 +405,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         var value = valueMap[entry.id];
-//                        if(entry.typeKnown == false)
-//                        {
-//                            try
-//                            {
-//                                UnknownNodeType utn = new UnknownNodeType();
-//                                utn.Deserailize(entry.type, entry.json);
-//                                valueMap[entry.id] = utn;
-//                            }
-//                            catch
-//                            {
-//                                try
-//                                {
-//                                    UnknownTargetType t = new UnknownTargetType();
-//                                    t.Deserailize(entry.type, entry.json);
-//                                    valueMap[entry.id] = t;
-//                                }
-//                                catch
-//                                {
-//                                    try
-//                                    {
-//                                        UnknownSubTargetType st = new UnknownSubTargetType();
-//                                        st.Deserailize(entry.type, entry.json);
-//                                        valueMap[entry.id] = st;
-//                                    }
-//                                    catch
-//                                    {
-//                                        throw new TypeLoadException("Could not figure out type of " + entry.type);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        else
-//                        {
-                            value.Deserailize(entry.type, entry.json);
-//                        }
+                        value.Deserailize(entry.type, entry.json);
                         // Set ID again as it could be overwritten from JSON.
                         s_ObjectIdField.SetValue(value, entry.id);
                         value.OnAfterDeserialize(entry.json);
@@ -444,6 +442,7 @@ namespace UnityEditor.ShaderGraph.Serialization
             finally
             {
                 valueMap.Clear();
+                currentRoot = null;
                 isDeserializing = false;
             }
         }
@@ -464,13 +463,24 @@ namespace UnityEditor.ShaderGraph.Serialization
 
                 var idJsonList = new List<(string, string)>();
 
-                // Not a foreach because the queue is populated by `JsonRef<T>`s as we go.
+                // Not a foreach because the queue is populated by `JsonData<T>`s as we go.
                 for (var i = 0; i < serializationQueue.Count; i++)
                 {
                     var value = serializationQueue[i];
                     var json = value.Serialize();
                     idJsonList.Add((value.objectId, json));
                 }
+
+                if(jsonBlobs.TryGetValue(mainObject.objectId, out var blobs))
+                {
+                    foreach(var blob in blobs)
+                    {
+                        if(!idJsonList.Contains((blob.Key, blob.Value)))
+                            idJsonList.Add((blob.Key, blob.Value));
+                    }
+                }
+
+
 
                 idJsonList.Sort((x, y) =>
                     // Main object needs to be placed first
