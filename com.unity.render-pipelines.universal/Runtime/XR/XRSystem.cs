@@ -151,7 +151,11 @@ namespace UnityEngine.Rendering.Universal
             else if (xrEnabled && xrSupported)
             {
                 // Disable vsync on the main display when rendering to a XR device
-                QualitySettings.vSyncCount = 0;
+                // XRTODO: Quest provider has a bug where vSyncCount must be 1, otherwise app is locked to 30fps
+                if (Application.platform == RuntimePlatform.Android)
+                    QualitySettings.vSyncCount = 1;
+                else
+                    QualitySettings.vSyncCount = 0;
 
                 // XRTODO: handle camera.stereoTargetEye here ? or just add xrRendering on the camera ?
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
