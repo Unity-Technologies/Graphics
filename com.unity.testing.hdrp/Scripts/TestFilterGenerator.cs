@@ -90,7 +90,13 @@ class TestFilterGenerator
 
         string assetPath = AssetDatabase.GUIDToAssetPath(guids1[0]);
         TestFilters testFilters = (TestFilters)AssetDatabase.LoadAssetAtPath(assetPath, typeof(TestFilters));
+
+        // Sort by platform
+        filters.Sort(
+           (a, b) => (a.GraphicsDevice != b.GraphicsDevice) ? a.GraphicsDevice.CompareTo(b.GraphicsDevice) : a.FilteredScene.name.CompareTo(b.FilteredScene.name));
+
         testFilters.filters = filters.ToArray();
+        EditorUtility.SetDirty(testFilters);
 
         if (activeScenePath != null)
             EditorSceneManager.OpenScene(activeScenePath);
