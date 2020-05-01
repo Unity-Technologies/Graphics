@@ -16,7 +16,9 @@ class PreviewPublish_PublishJob():
             raise Exception('Tried to publish package for which "publish_source" set to false.')
 
         # define dependencies
-        dependencies = [f'{packages_filepath()}#{package_job_id_pack(package["name"])}']
+        dependencies = [
+            f'{packages_filepath()}#{package_job_id_pack(package["name"])}',
+            f'{abv_filepath()}#{abv_job_id_all_project_ci_nightly("trunk")}']
         for editor in editors:
             for platform in platforms:
                 dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], editor["version"])}')
