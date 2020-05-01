@@ -6,7 +6,8 @@
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "UnityEngine.TestTools.Graphics",
         "Unity.RenderPipelines.HighDefinition.Editor",
-        "HDRP_TestRunner"
+        "HDRP_TestRunner",
+        "UnityEditor.TestTools.Graphics"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

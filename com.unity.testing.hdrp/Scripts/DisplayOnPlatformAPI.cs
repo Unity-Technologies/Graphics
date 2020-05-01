@@ -9,6 +9,7 @@ public class DisplayOnPlatformAPI : MonoBehaviour
     public bool D3D11;
     public bool D3D12;
     public bool VukanWindows;
+    public bool Metal;
 
     List<PlatformAPI> platformApis = new List<PlatformAPI>();
 
@@ -24,6 +25,9 @@ public class DisplayOnPlatformAPI : MonoBehaviour
 
         if (VukanWindows)
             platformApis.Add(new PlatformAPI(RuntimePlatform.WindowsEditor, GraphicsDeviceType.Vulkan));
+
+        if (Metal)
+            platformApis.Add(new PlatformAPI(RuntimePlatform.OSXEditor, GraphicsDeviceType.Metal));
 
         bool display = false;
 
