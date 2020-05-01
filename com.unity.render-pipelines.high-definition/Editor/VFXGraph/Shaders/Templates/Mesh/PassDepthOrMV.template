@@ -130,7 +130,7 @@ void frag(ps_input i
         #ifndef VFX_SHADERGRAPH
             VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
         #else
-           #if HAS_SHADERGRAPH_PARAM_NORMAL
+           #if HAS_SHADERGRAPH_PARAM_NORMALTS
                float3 n =  OUTSG.Normal_8;
                normalWS = mul(n,tbn);
            #endif

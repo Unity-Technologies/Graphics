@@ -1,8 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.shadergraph/Editor/Data/Nodes/BlockNode.cs.meta
 guid: bd5e1b91fdc2348ac9ce3733135e9901
 timeCreated: 1495966736
 licenseType: Pro
+=======
+guid: 9bf52003256740c4ba5a1f6dac0544f4
+>>>>>>> origin/master:TestProjects/ShaderGraph/Assets/CommonAssets/Editor/ImportUpdateTests.cs.meta
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
   defaultReferences: []
   executionOrder: 0

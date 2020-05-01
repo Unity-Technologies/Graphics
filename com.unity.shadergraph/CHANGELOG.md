@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+- Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
 - Added samples for Procedural Patterns to the package.
 - You can now use the right-click context menu to delete Sticky Notes.
 - You can now save your graph as a new Asset.
@@ -29,9 +30,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed the `Branch` node so that it uses a ternary operator (`Out = bool ? a : B`) instead of a linear interpolate function.
-- Copied nodes are now pasted at the cursor location instead of slightly offset from their original location
+- Copied nodes are now pasted at the cursor location instead of slightly offset from their original location.
 - Error messages reported on Sub Graph output nodes for invalid previews now present clearer information, with documentation support.
-- Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC
+- Updated legacy COLOR output semantic to SV_Target in pixel shader for compatibility with DXC.
+- Updated the functions in the `Normal From Height` node to avoid NaN outputs.
+- Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 
 ### Fixed

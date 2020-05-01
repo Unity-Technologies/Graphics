@@ -73,7 +73,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
             context.AddField(Fields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
-            context.AddField(Fields.Normal,              context.blocks.Contains(BlockFields.SurfaceDescription.NormalTS));
+            context.AddField(Fields.Normal,              context.blocks.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+                                                         context.blocks.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                                                         context.blocks.Contains(BlockFields.SurfaceDescription.NormalWS));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -278,8 +280,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = LitBlockMasks.FragmentLit,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -305,8 +307,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = LitBlockMasks.FragmentMeta,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentMeta,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -331,8 +333,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -352,7 +354,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
                 BlockFields.SurfaceDescription.Emission,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Specular,

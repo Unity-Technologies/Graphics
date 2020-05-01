@@ -26,13 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_EditPathCancelled = false;
         List<Node> m_SelectedNodes = new List<Node>();
 
-        Dictionary<ShaderInput, bool> m_ExpandedInputs = new Dictionary<ShaderInput, bool>();
-
-        public Dictionary<ShaderInput, bool> expandedInputs
-        {
-            get { return m_ExpandedInputs; }
-        }
-
         public string assetName
         {
             get { return blackboard.title; }
@@ -260,8 +253,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void HandleGraphChanges()
+        public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
+            var selection = new List<ISelectable>(blackboard.selection);
+
             foreach (var inputGuid in m_Graph.removedInputs)
             {
                 BlackboardRow row;
@@ -272,14 +267,24 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // This tries to maintain the selection the user had before the undo/redo was performed,
+            // if the user hasn't added or removed any inputs
+            if (wasUndoRedoPerformed)
+            {
+                oldSelectionPersistenceData.Clear();
+                foreach (var item in selection)
+                {
+                    if (item is BlackboardFieldView blackboardFieldView)
+            {
+                        var guid = blackboardFieldView.shaderInput.referenceName;
+                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
+                    }
+                }
+            }
+
             foreach (var input in m_Graph.addedInputs)
             {
                 AddInputRow(input, index: m_Graph.GetGraphInputIndex(input));
-            }
-
-            foreach (var expandedInput in expandedInputs)
-            {
-                SessionState.SetBool($"Unity.ShaderGraph.Input.{expandedInput.Key}.isExpanded", expandedInput.Value);
             }
 
             if (m_Graph.movedInputs.Any())
@@ -293,8 +298,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
             }
-            m_ExpandedInputs.Clear();
         }
+
+        // A map from shaderInput reference names to the viewDataKey of the blackboardFieldView that used to represent them
+        // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
+        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
@@ -307,7 +315,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 input.generatePropertyBlock = input.isExposable;
             }
 
-            BlackboardField field = null;
+            BlackboardFieldView field = null;
             BlackboardRow row = null;
 
             switch(input)
@@ -315,9 +323,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardField(icon, property.displayName, property.propertyType.ToString()) { userData = property };
-                    var propertyView = new BlackboardFieldPropertyView(field, m_Graph, property);
-                    row = new BlackboardRow(field, propertyView) { userData = input };
+                    field = new BlackboardFieldView(m_Graph, property, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                    row = new BlackboardRow(field, null);
 
                     if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
@@ -336,9 +344,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
-                    field = new BlackboardField(icon, keyword.displayName, typeText) { userData = keyword };
-                    var keywordView = new BlackboardFieldKeywordView(field, m_Graph, keyword);
-                    row = new BlackboardRow(field, keywordView);
+                    field = new BlackboardFieldView(m_Graph, keyword, icon, keyword.displayName, typeText) { userData = keyword };
+                    field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
+                    row = new BlackboardRow(field, null);
 
                     if (index < 0 || index > m_InputRows.Count)
                         index = m_InputRows.Count;
@@ -354,16 +362,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
 
-            if(field == null || row == null)
-                return;
+            field.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
+            field.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
+            field.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
-            var pill = row.Q<Pill>();
-            pill.RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, input));
-            pill.RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, input));
-            pill.RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-
+            // Removing the expand button from the blackboard, its added by default
             var expandButton = row.Q<Button>("expandButton");
-            expandButton.RegisterCallback<MouseDownEvent>(evt => OnExpanded(evt, input), TrickleDown.TrickleDown);
+            expandButton.RemoveFromHierarchy();
 
             m_InputRows[input] = row;
 
@@ -374,7 +379,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 row.expanded = true;
-                m_ExpandedInputs[input] = true;
                 m_Graph.owner.RegisterCompleteObjectUndo("Create Graph Input");
                 m_Graph.AddGraphInput(input);
                 field.OpenTextEditor();
@@ -386,9 +390,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnExpanded(MouseDownEvent evt, ShaderInput input)
+        void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
         {
-            m_ExpandedInputs[input] = !m_InputRows[input].expanded;
+            var newFieldView = evt.target as BlackboardFieldView;
+            // If this field view represents a value that was previously selected
+            if (oldSelectionPersistenceData.TryGetValue(newFieldView?.shaderInput.referenceName, out var oldViewDataKey))
+            {
+                // ViewDataKey is how UIElements handles UI state persistence,
+                // This selects the newly added field view
+                newFieldView.viewDataKey = oldViewDataKey;
+            }
         }
 
         void DirtyNodes()

@@ -14,22 +14,31 @@ PropertyRow DoubleField {
 PropertyRow > #container{
     flex-grow: 1;
     padding-left: 8px;
-    padding-right: 8px;
+    padding-right: 16px;
     flex-direction: row;
 }
 
 PropertyRow > #container > #label {
-    width: 200px;
-    height: 24px;
+    width: 92px;
+    font-size: 12px;
+    margin-right: 4px;
     justify-content: center;
 }
 
 PropertyRow > #container > #label > Label {
     margin-bottom: 3px;
+    flex-wrap: wrap;
+    text-overflow: ellipsis; /* Possible values: clip | ellipsis */
+    -unity-text-overflow-position: end; /* Possible values: start | middle | end */
+    /* Conditions */
+    overflow: hidden;
+    white-space: wrap;
 }
 
 PropertyRow > #container > #content{
     flex-grow: 1;
-    height: 24px;
+    height: auto;
+    -unity-font-style: bold;
+    width: 100px;
     justify-content: center;
 }

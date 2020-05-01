@@ -300,6 +300,11 @@ namespace UnityEditor.ShaderGraph
         List<Target> m_ValidTargets = new List<Target>();
 
         int m_ActiveTargetBitmask;
+        public int activeTargetBitmask
+        {
+            get => m_ActiveTargetBitmask;
+            set => m_ActiveTargetBitmask = value;
+        }
 
         public List<Target> validTargets => m_ValidTargets;
         public DataValueEnumerable<Target> activeTargets => m_ActiveTargets.SelectValue();
@@ -379,7 +384,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
-                
+
                 var target = (Target)Activator.CreateInstance(type);
                 if(!target.isHidden)
                 {
@@ -388,7 +393,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void UpdateActiveTargets()
+        public void UpdateActiveTargets()
         {
             // Update active TargetImplementation list
             if(m_ActiveTargets != null)
@@ -403,75 +408,6 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-        }
-
-        Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
-
-        // TODO: We should not have any View code here
-        // TODO: However, for now we dont know how the InspectorView will work
-        // TODO: So for now leave it here and dont spill the assemblies outside the method
-        public UnityEngine.UIElements.VisualElement GetSettings(Action onChange, Action<string> registerUndo)
-        {
-            var element = new UnityEngine.UIElements.VisualElement() { name = "graphSettings" };
-
-            if(isSubGraph)
-                return element;
-
-            // Add Label
-            var targetSettingsLabel = new UnityEngine.UIElements.Label("Target Settings");
-            targetSettingsLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
-            element.Add(new Drawing.PropertyRow(targetSettingsLabel));
-
-            element.Add(new Drawing.PropertyRow(new UnityEngine.UIElements.Label("Targets")), (row) =>
-                {
-                    row.Add(new UnityEngine.UIElements.IMGUIContainer(() => {
-                        EditorGUI.BeginChangeCheck();
-                        var activeTargetBitmask = EditorGUILayout.MaskField(m_ActiveTargetBitmask, m_ValidTargets.Select(x => x.displayName).ToArray(), GUILayout.Width(100f));
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            registerUndo("Change active Targets");
-                            m_ActiveTargetBitmask = activeTargetBitmask;
-                            UpdateActiveTargets();
-                            onChange();
-                        }
-                    }));
-                });
-
-            // Iterate active TargetImplementations
-            foreach(var target in m_ActiveTargets)
-            {
-                // Ensure enabled state is being tracked and get value
-                bool foldoutActive = true;
-                if(!m_TargetFoldouts.TryGetValue(target, out foldoutActive))
-                {
-                    m_TargetFoldouts.Add(target, foldoutActive);
-                }
-
-                // Create foldout
-                var foldout = new UnityEngine.UIElements.Foldout() { text = target.value.displayName, value = foldoutActive };
-                element.Add(foldout);
-                foldout.RegisterValueChangedCallback(evt => 
-                {
-                    // Update foldout value and rebuild
-                    m_TargetFoldouts[target] = evt.newValue;
-                    foldout.value = evt.newValue;
-                    onChange();
-                });
-                
-                if(foldout.value)
-                {
-                    // Get settings for Target
-                    var context = new TargetPropertyGUIContext();
-                    target.value.GetPropertiesGUI(ref context, onChange, registerUndo);
-
-                    foreach(var property in context.properties)
-                    {
-                        element.Add(property);
-                    }
-                }
-            }
-
-            return element;
         }
 
         public void ClearChanges()
@@ -651,7 +587,7 @@ namespace UnityEditor.ShaderGraph
 
             // Set BlockNode properties
             blockNode.contextData = contextData;
-            
+
             // Add to ContextData
             if(index == -1 || index >= contextData.blocks.Count())
             {
@@ -686,7 +622,7 @@ namespace UnityEditor.ShaderGraph
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
                 fragmentBlock.value.isActive = activeBlockDescriptors.Contains(fragmentBlock.value.descriptor);
-            } 
+            }
         }
 
         public void AddRemoveBlocksFromActiveList(List<BlockFieldDescriptor> activeBlockDescriptors)
@@ -713,7 +649,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if(descriptor.shaderStage != contextData.shaderStage)
                     return;
-                
+
                 if(contextData.blocks.Any(x => x.value.descriptor.Equals(descriptor)))
                     return;
 
@@ -954,7 +890,7 @@ namespace UnityEditor.ShaderGraph
         {
             if(node == null)
                 return false;
-            
+
             return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
@@ -1400,7 +1336,7 @@ namespace UnityEditor.ShaderGraph
                 target.Setup(ref context);
                 m_ActiveTargets.Add(target);
             }
-            
+
             // Active blocks
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
             UpdateActiveBlocks(activeBlocks);
@@ -1784,7 +1720,7 @@ namespace UnityEditor.ShaderGraph
                                 var descriptor = blockMapping.Key;
                                 if(addedBlocks.Contains(descriptor))
                                     continue;
-                                
+
                                 addedBlocks.Add(descriptor);
 
                                 var contextData = descriptor.shaderStage == ShaderStage.Fragment ? m_FragmentContext : m_VertexContext;
@@ -1802,7 +1738,7 @@ namespace UnityEditor.ShaderGraph
                                 var newSlot = block.FindSlot<MaterialSlot>(0);
                                 if(oldSlot == null)
                                     continue;
-                                
+
                                 var oldInputSlotRef = m_OutputNode.value.GetSlotReference(slotId);
                                 var newInputSlotRef = block.GetSlotReference(0);
 
@@ -1854,10 +1790,10 @@ namespace UnityEditor.ShaderGraph
                         {
                             if(!(target is ILegacyTarget legacyTarget))
                                 continue;
-                            
+
                             if(!legacyTarget.TryUpgradeFromMasterNode(masterNode, out var newBlockMap))
                                 continue;
-                            
+
                             m_ActiveTargets.Add(target);
                             UpgradeFromBlockMap(newBlockMap);
                         }
@@ -1960,7 +1896,7 @@ namespace UnityEditor.ShaderGraph
             // First deserialize the ContextDatas
             DeserializeContextData(m_VertexContext, ShaderStage.Vertex);
             DeserializeContextData(m_FragmentContext, ShaderStage.Fragment);
-          
+
             foreach(var target in m_ActiveTargets.SelectValue())
             {
                 if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))

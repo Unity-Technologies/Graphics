@@ -14,8 +14,8 @@
         public string sharedTemplateDirectory;
 
         // Port mask
-        public BlockFieldDescriptor[] vertexBlocks;
-        public BlockFieldDescriptor[] pixelBlocks;
+        public BlockFieldDescriptor[] validVertexBlocks;
+        public BlockFieldDescriptor[] validPixelBlocks;
 
         // Collections
         public StructCollection structs;

@@ -97,5 +97,24 @@ namespace UnityEditor.ShaderGraph
             return element.userData is BlockNode blockNode &&
                 blockNode.descriptor.shaderStage == contextData.shaderStage;
         }
+
+        protected override void OnSeparatorContextualMenuEvent(ContextualMenuPopulateEvent evt, int separatorIndex)
+        {
+            Vector2 mousePosition = evt.mousePosition;
+            base.OnSeparatorContextualMenuEvent(evt, separatorIndex);
+
+            var graphView = GetFirstAncestorOfType<MaterialGraphView>();
+
+            evt.menu.InsertAction(0, "Create Node", (e) => 
+            {
+                var context = new NodeCreationContext()
+                {
+                    screenMousePosition = mousePosition,
+                    target = this,
+                    index = separatorIndex,
+                };
+                graphView.nodeCreationRequest(context);
+            });
+        }
     }
 }

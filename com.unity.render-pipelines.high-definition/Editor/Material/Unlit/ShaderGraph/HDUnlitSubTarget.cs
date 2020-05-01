@@ -104,9 +104,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DistortionDepthTest,          builtinData.distortionDepthTest);
 
             // Alpha
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.pixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
+            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
             context.AddField(HDFields.AlphaFog,                     systemData.surfaceType == SurfaceType.Transparent && builtinData.transparencyFog);
 
             // Misc
@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -395,8 +395,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -421,8 +421,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -448,8 +448,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -474,8 +474,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -500,8 +500,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDistortion,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -526,8 +526,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentForward,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -552,8 +552,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -577,8 +577,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -602,8 +602,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -627,8 +627,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -652,8 +652,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = UnlitBlockMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,

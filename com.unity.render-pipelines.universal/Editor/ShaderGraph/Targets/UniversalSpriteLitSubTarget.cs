@@ -106,8 +106,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = SpriteLitBlockMasks.FragmentLit,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -134,8 +134,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -161,8 +161,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,

@@ -420,7 +420,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var renderData = GetPreviewRenderData(node);
                         if (renderData == null) // non-active output nodes can have NULL render data (no preview)
                             continue;
-
+                        
                         if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                         {
                             // avoid calling NotifyPreviewChanged repeatedly
@@ -782,7 +782,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Mesh is invalid for VFXTarget
                 // We should handle this more gracefully
-                if(!m_Graph.isVFXTarget)
+                if(renderData != m_MasterRenderData || !m_Graph.isVFXTarget)
                 {
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
@@ -841,7 +841,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // TODO: Where to add errors to the stack??
                     if(shaderData.node == null)
                         return;
-
+                    
                     m_Messenger.AddOrAppendError(this, shaderData.node.objectId, messages[0]);
                 }
             }

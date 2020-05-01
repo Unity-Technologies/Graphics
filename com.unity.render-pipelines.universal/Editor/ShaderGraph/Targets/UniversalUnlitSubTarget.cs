@@ -177,8 +177,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexBlocks = CoreBlockMasks.Vertex,
-                pixelBlocks = CoreBlockMasks.FragmentColorAlpha,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = CoreBlockMasks.FragmentColorAlpha,
 
                 // Fields
                 structs = CoreStructCollections.Default,

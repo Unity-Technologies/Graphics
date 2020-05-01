@@ -5,10 +5,12 @@ using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.ShaderGraph
 {
-    sealed class VFXTarget : Target
+    sealed class VFXTarget : Target, ILegacyTarget
     {
         [SerializeField]
         bool m_Lit;
@@ -75,6 +77,50 @@ namespace UnityEditor.ShaderGraph
                 m_AlphaTest = evt.newValue;
                 onChange();
             });
+        }
+
+        public static Dictionary<BlockFieldDescriptor, int> s_BlockMap = new Dictionary<BlockFieldDescriptor, int>()
+        {
+            { BlockFields.SurfaceDescription.BaseColor, ShaderGraphVfxAsset.ColorSlotId },
+            { BlockFields.SurfaceDescription.Metallic, ShaderGraphVfxAsset.MetallicSlotId },
+            { BlockFields.SurfaceDescription.Smoothness, ShaderGraphVfxAsset.SmoothnessSlotId },
+            { BlockFields.SurfaceDescription.NormalTS, ShaderGraphVfxAsset.NormalSlotId },
+            { BlockFields.SurfaceDescription.Emission, ShaderGraphVfxAsset.EmissiveSlotId },
+            { BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId },
+            { BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId },
+        };
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            if(!(masterNode is VisualEffectMasterNode1 vfxMasterNode))
+                return false;
+
+            lit = vfxMasterNode.m_Lit;
+            alphaTest = vfxMasterNode.m_AlphaTest;
+
+            blockMap = new Dictionary<BlockFieldDescriptor, int>();
+            if (lit)
+            {
+                blockMap.Add(BlockFields.SurfaceDescription.BaseColor, ShaderGraphVfxAsset.BaseColorSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.Metallic, ShaderGraphVfxAsset.MetallicSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.Smoothness, ShaderGraphVfxAsset.SmoothnessSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.NormalTS, ShaderGraphVfxAsset.NormalSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.Emission, ShaderGraphVfxAsset.EmissiveSlotId);
+            }
+            else
+            {
+                blockMap.Add(BlockFields.SurfaceDescription.BaseColor, ShaderGraphVfxAsset.ColorSlotId);
+            }
+
+            blockMap.Add(BlockFields.SurfaceDescription.Alpha, ShaderGraphVfxAsset.AlphaSlotId);
+
+            if(alphaTest)
+            {
+                blockMap.Add(BlockFields.SurfaceDescription.AlphaClipThreshold, ShaderGraphVfxAsset.AlphaThresholdSlotId);
+            }
+
+            return true;
         }
     }
 }

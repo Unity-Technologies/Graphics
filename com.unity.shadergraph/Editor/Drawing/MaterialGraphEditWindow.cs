@@ -236,9 +236,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (wasUndoRedoPerformed)
                 {
-                    graphEditorView.HandleGraphChanges();
+                    graphEditorView.HandleGraphChanges(true);
                     graphObject.graph.ClearChanges();
                     graphObject.HandleUndoRedo();
+
                 }
 
                 if (graphObject.isDirty || wasUndoRedoPerformed)
@@ -247,7 +248,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphObject.isDirty = false;
                 }
 
-                graphEditorView.HandleGraphChanges();
+                // Called again to handle changes from deserialization in case an undo/redo was performed
+                graphEditorView.HandleGraphChanges(wasUndoRedoPerformed);
                 graphObject.graph.ClearChanges();
             }
             catch (Exception e)
@@ -876,6 +878,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnGeometryChanged(GeometryChangedEvent evt)
         {
+            if (graphEditorView == null)
+                return;
+
             // this callback is only so we can run post-layout behaviors after the graph loads for the first time
             // we immediately unregister it so it doesn't get called again
             graphEditorView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
