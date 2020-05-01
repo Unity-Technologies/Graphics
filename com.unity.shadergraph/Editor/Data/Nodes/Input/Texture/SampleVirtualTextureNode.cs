@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
-    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IHasSettings, IMayRequireTime
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition, IHasSettings
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
@@ -665,7 +665,14 @@ namespace UnityEditor.ShaderGraph
 
         public bool RequiresTime()
         {
-            return true;        // HACK: This ensures we repaint in shadergraph so data that gets streamed in also becomes visible.
+            // HACK: This ensures we repaint in shadergraph so data that gets streamed in also becomes visible.
+            return true;
+        }
+
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            // Feedback dithering requires screen position (and only works in Pixel Shader currently)
+            return stageCapability.HasFlag(ShaderStageCapability.Fragment) && !noFeedback;
         }
     }
 }

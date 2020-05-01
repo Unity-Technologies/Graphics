@@ -15,8 +15,6 @@ namespace UnityEditor.ShaderGraph
     // TODO: rename this file to VirtualTexturingFeedbackUtils
     static class VirtualTexturingFeedbackUtils
     {
-        public const string FeedbackSurfaceDescriptionVariableName = "VTPackedFeedback";
-
         // TODO: find some way to get rid of this...  :)  only being used to calculate: vtFeedbackRequiresScreenPos
         // which could be done from the SampleVirtualTextureNode itself...
         public static int  CountFeedbackVariables(
@@ -48,8 +46,6 @@ namespace UnityEditor.ShaderGraph
             ShaderStringBuilder surfaceDescriptionFunction,
             KeywordCollector shaderKeywords)
         {
-            surfaceDescriptionFunction.AppendLine("// Collect VT feedback");
-
             // A note on how we handle vt feedback in combination with keywords:
             // We essentially generate a fully separate feedback path for each permutation of keywords
             // so per permutation we gather variables contribution to feedback and we generate
@@ -127,32 +123,33 @@ namespace UnityEditor.ShaderGraph
                         surfaceDescriptionFunction.AppendLine(KeywordUtil.GetKeywordPermutationConditional(index));
                     }
 
-                    if (feedbackVariables.Count == 0)
+                    using (surfaceDescriptionFunction.BlockScope())
                     {
-                        string feedBackCode = $"surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
-                        surfaceDescriptionFunction.AppendLine(feedBackCode);
-                    }
-                    else if (feedbackVariables.Count == 1)
-                    {
-                        string feedBackCode = $"surface.VTPackedFeedback = GetPackedVTFeedback({feedbackVariables[0]});";
-                        surfaceDescriptionFunction.AppendLine(feedBackCode);
-                    }
-                    else if (feedbackVariables.Count > 1)
-                    {
-                        string arrayName = $"VTFeedback_array";
-                        surfaceDescriptionFunction.AppendLine($"float4 {arrayName}[{feedbackVariables.Count}];");
-
-                        int arrayIndex = 0;
-                        foreach (var variable in feedbackVariables)
+                        if (feedbackVariables.Count == 0)
                         {
-                            string code = $"{arrayName}[{arrayIndex}] = {variable};";
-                            surfaceDescriptionFunction.AppendLine(code);
-                            arrayIndex++;
+                            string feedBackCode = "surface.VTPackedFeedback = float4(1.0f,1.0f,1.0f,.0f);";
+                            surfaceDescriptionFunction.AppendLine(feedBackCode);
                         }
+                        else if (feedbackVariables.Count == 1)
+                        {
+                            string feedBackCode = "surface.VTPackedFeedback = GetPackedVTFeedback(" + feedbackVariables[0] + ");";
+                            surfaceDescriptionFunction.AppendLine(feedBackCode);
+                        }
+                        else if (feedbackVariables.Count > 1)
+                        {
+                            surfaceDescriptionFunction.AppendLine("float4 VTFeedback_array[" + feedbackVariables.Count + "];");
 
-                        string feedBackCode = $"surface.{FeedbackSurfaceDescriptionVariableName} = GetPackedVTFeedback({arrayName}[ (IN.{ShaderGeneratorNames.ScreenPosition}.x  + _FrameCount )% (uint){feedbackVariables.Count}]);";
+                            int arrayIndex = 0;
+                            foreach (var variable in feedbackVariables)
+                            {
+                                surfaceDescriptionFunction.AppendLine("VTFeedback_array[" + arrayIndex + "] = " + variable + ";");
+                                arrayIndex++;
+                            }
 
-                        surfaceDescriptionFunction.AppendLine(feedBackCode);
+                            surfaceDescriptionFunction.AppendLine("uint pixelColumn = (IN.ScreenPosition.x / IN.ScreenPosition.w) * _ScreenParams.x;");
+                            surfaceDescriptionFunction.AppendLine(
+                                "surface.VTPackedFeedback = GetPackedVTFeedback(VTFeedback_array[(pixelColumn + _FrameCount) % (uint)" + feedbackVariables.Count + "]);");
+                        }
                     }
 
                     if (shaderKeywords.permutations.Count >= 1)
@@ -170,7 +167,6 @@ namespace UnityEditor.ShaderGraph
                     list.Dispose();
                 }
                 feedbackVariablesPerPermutation.Dispose();
-                surfaceDescriptionFunction.AppendLine("// END Collect VT feedback");
             }
         }
 

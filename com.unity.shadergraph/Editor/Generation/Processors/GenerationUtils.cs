@@ -307,7 +307,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Get requirements for this permutation
                     vertexRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localVertexNodes, ShaderStageCapability.Vertex, false));
-                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false, vtFeedbackRequiresScreenPos));
+                    pixelRequirements[i].SetRequirements(ShaderGraphRequirements.FromNodes(localPixelNodes, ShaderStageCapability.Fragment, false));
 
                     // Add active fields
                     var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements[i].requirements, activeFields[i]));
@@ -321,11 +321,9 @@ namespace UnityEditor.ShaderGraph
             // No Keywords
             else
             {
-                bool vtFeedbackRequiresScreenPos = VirtualTexturingFeedbackUtils.CountFeedbackVariables(pixelNodes) > 0;
-
                 // Get requirements
                 vertexRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false));
-                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false, vtFeedbackRequiresScreenPos));
+                pixelRequirements.baseInstance.SetRequirements(ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false));
 
                 // Add active fields
                 var conditionalFields = GetActiveFieldsFromConditionals(GetConditionalFieldsFromGraphRequirements(vertexRequirements.baseInstance.requirements, activeFields.baseInstance));
@@ -732,13 +730,14 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
+                // TODO: move this into the regular FieldDescriptor system with a conditional, doesn't belong as a special case here
                 if (virtualTextureFeedback)
                 {
-                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), VirtualTexturingFeedbackUtils.FeedbackSurfaceDescriptionVariableName);
+                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "VTPackedFeedback");
 
                     if (!isSubgraphOutput && activeFields != null)
                     {
-                        var structField = new FieldDescriptor(structName, VirtualTexturingFeedbackUtils.FeedbackSurfaceDescriptionVariableName, "");
+                        var structField = new FieldDescriptor(structName, "VTPackedFeedback", "");
                         activeFields.AddAll(structField);
                     }
                 }
@@ -809,11 +808,6 @@ namespace UnityEditor.ShaderGraph
             GraphData graph,
             GenerationMode mode)
         {
-            if (activeNode is IGeneratesInclude includeNode)
-            {
-                includeNode.GenerateNodeInclude(includes, mode);
-            }
-
             if (activeNode is IGeneratesFunction functionNode)
             {
                 functionRegistry.builder.currentNode = activeNode;

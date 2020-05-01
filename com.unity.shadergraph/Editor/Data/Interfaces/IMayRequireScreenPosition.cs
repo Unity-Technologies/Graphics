@@ -9,10 +9,10 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireScreenPositionExtensions
     {
-        public static bool RequiresScreenPosition(this ISlot slot)
+        public static bool RequiresScreenPosition(this ISlot slot, ShaderStageCapability stageCapability = ShaderStageCapability.All)
         {
             var mayRequireScreenPosition = slot as IMayRequireScreenPosition;
-            return mayRequireScreenPosition != null && mayRequireScreenPosition.RequiresScreenPosition();
+            return mayRequireScreenPosition != null && mayRequireScreenPosition.RequiresScreenPosition(stageCapability);
         }
     }
 }

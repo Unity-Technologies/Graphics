@@ -55,8 +55,6 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
-        public List<SubGraphInclude> includes = new List<SubGraphInclude>();
-
         public List<string> vtFeedbackVariables = new List<string>();
 
         [NonSerialized]

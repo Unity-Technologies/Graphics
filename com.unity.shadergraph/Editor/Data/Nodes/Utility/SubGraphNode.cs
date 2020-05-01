@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction
-        , IGeneratesInclude
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -26,7 +25,6 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
-        , IMayRequireRequirePixelCoordinate
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -570,25 +568,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode)
-        {
-            if (asset == null || hasError)
-                return;
-
-            foreach (var include in asset.includes)
-            {
-                IncludeLocation location;
-                if (Enum.TryParse<IncludeLocation>(include.location, out location))
-                {
-                    registry.Add(include.value, location);
-                }
-                else
-                {
-                    Debug.LogError($"Error in Graph at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\": Sub Graph contains an include with an unknown include location {include.location}.", asset);
-                }
-            }
-        }
-
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             if (asset == null)
@@ -651,14 +630,6 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresFaceSign;
-        }
-
-        public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
-        {
-            if (asset == null)
-                return false;
-
-            return asset.requirements.requiresPixelCoordinate;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
