@@ -252,7 +252,40 @@ namespace UnityEngine.Rendering
                         newVisibleColumns.Sort();
                     }
                     header.state.visibleColumns = newVisibleColumns.ToArray();
+
+                    var cols = header.state.columns;
+                    for (int i = 0; i < cols.Length; i++)
+                        cols[i].width = 50f;
+                    header.ResizeToFit();
                 }
+#else
+                var columns = VisibleColumns;
+                if (index < 0 || index > columns.Length)
+                    return;
+
+                columns[index] = visible;
+#endif
+            }
+
+            /// <summary>
+            /// Get column visibility.
+            /// </summary>
+            /// <param name="index">Index of the column.</param>
+            /// <returns>True if the column is visible.</returns>
+            public bool GetColumnVisibility(int index)
+            {
+#if UNITY_EDITOR
+                var header = Header;
+                if (index < 0 || index >= m_ColumnCount)
+                    return false;
+
+                return header.IsColumnVisible(index + 1);
+#else
+                var columns = VisibleColumns;
+                if (index < 0 || index > columns.Length)
+                    return false;
+
+                return columns[index];
 #endif
             }
 
@@ -315,6 +348,41 @@ namespace UnityEngine.Rendering
                     return m_Header;
                 }
             }
+#else
+            bool[] m_Header = null;
+
+            /// <summary>
+            /// The visible columns
+            /// </summary>
+            public bool[] VisibleColumns
+            {
+                get
+                {
+                    if (m_Header != null)
+                        return m_Header;
+
+                    int columnCount = 0;
+                    if (children.Count != 0)
+                    {
+                        columnCount = ((Container)children[0]).children.Count;
+                        for (int i = 1; i < children.Count; i++)
+                        {
+                            if (((Container)children[i]).children.Count != columnCount)
+                            {
+                                Debug.LogError("All rows must have the same number of children.");
+                                return null;
+                            }
+                        }
+                    }
+
+                    m_Header = new bool[columnCount];
+                    for (int i = 0; i < columnCount; i++)
+                        m_Header[i] = true;
+
+                    return m_Header;
+                }
+            }
+#endif
 
             /// <summary>
             /// Method called when a children is added.
@@ -337,7 +405,6 @@ namespace UnityEngine.Rendering
                 base.OnItemRemoved(sender, e);
                 m_Header = null;
             }
-#endif
         }
     }
 }

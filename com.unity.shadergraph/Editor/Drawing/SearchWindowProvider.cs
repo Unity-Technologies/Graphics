@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool nodeNeedsRepositioning { get; set; }
         public SlotReference targetSlotReference { get; internal set; }
         public Vector2 targetPosition { get; internal set; }
+        public bool regenerateEntries { get; set; }
         private const string k_HiddenFolderName = "Hidden";
 
         public void Initialize(EditorWindow editorWindow, GraphData graph, GraphView graphView)
@@ -54,30 +55,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Icon = null;
             }
         }
-        
+
         List<int> m_Ids;
-        List<ISlot> m_Slots = new List<ISlot>();
+        List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         public void GenerateNodeEntries()
         {
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
-            List<NodeEntry> nodeEntries = new List<NodeEntry>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            var nodeEntries = new List<NodeEntry>();
+            foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
             {
-                foreach (var type in assembly.GetTypesOrNothing())
+                if ((!type.IsClass || type.IsAbstract)
+                    || type == typeof(PropertyNode)
+                    || type == typeof(KeywordNode)
+                    || type == typeof(SubGraphNode))
+                    continue;
+
+                if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
                 {
-                    if (type.IsClass && !type.IsAbstract && (type.IsSubclassOf(typeof(AbstractMaterialNode)))
-                        && type != typeof(PropertyNode)
-                        && type != typeof(KeywordNode)
-                        && type != typeof(SubGraphNode))
-                    {
-                        var attrs = type.GetCustomAttributes(typeof(TitleAttribute), false) as TitleAttribute[];
-                        if (attrs != null && attrs.Length > 0)
-                        {
-                            var node = (AbstractMaterialNode)Activator.CreateInstance(type);
-                            AddEntries(node, attrs[0].title, nodeEntries);
-                        }
-                    }
+                    var node = (AbstractMaterialNode) Activator.CreateInstance(type);
+                    AddEntries(node, attrs[0].title, nodeEntries);
                 }
             }
 
@@ -86,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var asset = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(AssetDatabase.GUIDToAssetPath(guid));
                 var node = new SubGraphNode { asset = asset };
                 var title = asset.path.Split('/').ToList();
-                
+
                 if (asset.descendents.Contains(m_Graph.assetGuid) || asset.assetGuid == m_Graph.assetGuid)
                 {
                     continue;
@@ -107,17 +104,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var property in m_Graph.properties)
             {
                 var node = new PropertyNode();
-                node.owner = m_Graph;
-                node.propertyGuid = property.guid;
-                node.owner = null;
+                node.property = property;
                 AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
             foreach (var keyword in m_Graph.keywords)
             {
                 var node = new KeywordNode();
-                node.owner = m_Graph;
-                node.keywordGuid = keyword.guid;
-                node.owner = null;
+                node.keyword = keyword;
                 AddEntries(node, new[] { "Keywords", "Keyword: " + keyword.displayName }, nodeEntries);
             }
 
@@ -134,25 +127,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                             return 1;
                         var value = entry1.title[i].CompareTo(entry2.title[i]);
                         if (value != 0)
-                        {                            
+                        {
                             // Make sure that leaves go before nodes
                             if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
                             {
-                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically 
+                                //once nodes are sorted, sort slot entries by slot order instead of alphebetically
                                 var alphaOrder = entry1.title.Length < entry2.title.Length ? -1 : 1;
-                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);                     
+                                var slotOrder = entry1.compatibleSlotId.CompareTo(entry2.compatibleSlotId);
                                 return alphaOrder.CompareTo(slotOrder);
-                            }                                                         
-                            
+                            }
+
                             return value;
                         }
                     }
                     return 0;
                 });
 
-            
+
             currentNodeEntries = nodeEntries;
-        }       
+        }
 
         void AddEntries(AbstractMaterialNode node, string[] title, List<NodeEntry> addNodeEntries)
         {
@@ -186,7 +179,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var materialSlot = (MaterialSlot)slot;
                     return !materialSlot.IsCompatibleStageWith(connectedSlot);
                 });
-            
+
             foreach (var slot in m_Slots)
             {
                 //var entryTitle = new string[title.Length];
@@ -203,15 +196,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
     }
     class SearcherProvider : SearchWindowProvider
-    {        
+    {
         public Searcher.Searcher LoadSearchWindow()
         {
-            GenerateNodeEntries();
-
-            //create empty root for searcher tree 
+            if (regenerateEntries)
+            {
+                GenerateNodeEntries();
+                regenerateEntries = false;
+            }
+            //create empty root for searcher tree
             var root = new List<SearcherItem>();
             var dummyEntry = new NodeEntry();
-            
+
             foreach (var nodeEntry in currentNodeEntries)
             {
                 SearcherItem item = null;
@@ -249,20 +245,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (parent.Depth == 0 && !root.Contains(parent))
                         root.Add(parent);
                 }
-                
+
             }
 
             var nodeDatabase = SearcherDatabase.Create(root, string.Empty, false);
-            
-            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));             
+
+            return new Searcher.Searcher(nodeDatabase, new SearchWindowAdapter("Create Node"));
         }
         public bool OnSearcherSelectEntry(SearcherItem entry, Vector2 screenMousePosition)
         {
             if(entry == null || (entry as SearchNodeItem).NodeGUID.node == null)
                 return false;
-           
+
             var nodeEntry = (entry as SearchNodeItem).NodeGUID;
-            var node = nodeEntry.node;
+            var node = CopyNodeForGraph(nodeEntry.node);
 
             var drawState = node.drawState;
 
@@ -293,6 +289,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             return true;
         }
+        public AbstractMaterialNode CopyNodeForGraph(AbstractMaterialNode oldNode)
+        {
+            var newNode = (AbstractMaterialNode)Activator.CreateInstance(oldNode.GetType());
+            if (newNode is SubGraphNode subgraphNode)
+            {
+                subgraphNode.asset = ((SubGraphNode)oldNode).asset;
+            }
+            else if(newNode is PropertyNode propertyNode)
+            {
+                propertyNode.owner = m_Graph;
+                propertyNode.property = ((PropertyNode)oldNode).property;
+                propertyNode.owner = null;
+            }
+            else if(newNode is KeywordNode keywordNode)
+            {
+                keywordNode.owner = m_Graph;
+                keywordNode.keyword = ((KeywordNode)oldNode).keyword;
+                keywordNode.owner = null;
+            }
+            return newNode;
+        }
     }
-    
+
+
 }
