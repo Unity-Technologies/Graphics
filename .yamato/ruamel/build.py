@@ -49,11 +49,12 @@ def create_project_specific_jobs(metafile_name):
                 for test_platform in metafile['test_platforms']:
 
                     if test_platform["name"].lower() == 'standalone':
-                        job = Project_StandaloneJob(project, editor, platform, api, test_platform)
-                        yml[job.job_id] = job.yml
-                        
-                        if job.build_job is not None:
-                            yml[job.build_job.job_id] = job.build_job.yml
+                        if f'{platform["name"]}_{api["name"]}'.lower() != 'osx_openglcore': # skip standalone for osx_openglcore
+                            job = Project_StandaloneJob(project, editor, platform, api, test_platform)
+                            yml[job.job_id] = job.yml
+                            
+                            if job.build_job is not None:
+                                yml[job.build_job.job_id] = job.build_job.yml
                     
                     elif platform["name"].lower() != "android": # android only has standalone, so run this block only for != android
                         job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
