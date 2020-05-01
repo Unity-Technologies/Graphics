@@ -17,11 +17,7 @@ HDRP_Hybrid_OSX_Metal_playmode_2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -49,11 +45,7 @@ HDRP_Hybrid_OSX_Metal_playmode XR_2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -81,11 +73,7 @@ HDRP_Hybrid_OSX_Metal_editmode_2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -113,11 +101,7 @@ HDRP_Hybrid_OSX_Metal_playmode_fast-2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -145,11 +129,7 @@ HDRP_Hybrid_OSX_Metal_playmode XR_fast-2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -177,11 +157,7 @@ HDRP_Hybrid_OSX_Metal_editmode_fast-2020.1:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -209,11 +185,7 @@ HDRP_Hybrid_OSX_Metal_playmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -241,11 +213,7 @@ HDRP_Hybrid_OSX_Metal_playmode XR_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -273,11 +241,7 @@ HDRP_Hybrid_OSX_Metal_editmode_trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -305,11 +269,7 @@ HDRP_Hybrid_OSX_Metal_playmode_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -337,11 +297,7 @@ HDRP_Hybrid_OSX_Metal_playmode XR_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -369,11 +325,7 @@ HDRP_Hybrid_OSX_Metal_editmode_fast-trunk:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -402,11 +354,7 @@ HDRP_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -435,11 +383,7 @@ HDRP_Hybrid_OSX_Metal_playmode XR_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/
@@ -468,11 +412,7 @@ HDRP_Hybrid_OSX_Metal_editmode_CUSTOM-REVISION:
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt -c editor -c il2cpp  --wait --published-only'
       -  |5-
 
-                 set GIT_BRANCH=$GIT_BRANCH
-                 set GIT_REVISION=$GIT_REVISION
-                 set YAMATO_JOB_ID=$YAMATO_JOB_ID
                  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/HDRP_HybridTests && ~/Graphics/TestProjects/HDRP_HybridTests/utr/utr --suite=editor --platform=editmode --testproject=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results'
-                 
                  UTR_RESULT=$? 
                  mkdir -p TestProjects/HDRP_HybridTests/test-results/
                  scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/HDRP_HybridTests/test-results/ TestProjects/HDRP_HybridTests/test-results/

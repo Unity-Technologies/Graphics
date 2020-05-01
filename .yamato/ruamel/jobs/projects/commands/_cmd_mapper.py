@@ -12,9 +12,9 @@ cmd_map = {
         'standalone_build' : osx_openglcore.cmd_standalone_build
     },
     'osx_metal' :  {
-        'not_standalone': osx_metal_split.cmd_not_standalone,
-        'standalone' : osx_metal_split.cmd_standalone,
-        'standalone_build' : osx_metal_split.cmd_standalone_build
+        'not_standalone': osx_metal.cmd_not_standalone,
+        'standalone' : osx_metal.cmd_standalone,
+        'standalone_build' : osx_metal.cmd_standalone_build
     },
     'linux' : {
         'not_standalone': linux_split.cmd_not_standalone,
