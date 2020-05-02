@@ -21,7 +21,7 @@ platforms:
   - name: UWP
     os: windows
     type: Unity::VM::GPU
-    image: cds-ops/win10-uwp-support:stable
+    image: sdet/gamecode_win10_uwp:latest
     flavor: b1.large
     components:
       - editor
