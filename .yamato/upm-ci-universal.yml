@@ -232,7 +232,7 @@ Build_{{ project.name }}_UWP_{{ win_api.name }}_Player_{{ editor.version }}:
   agent:
     flavor: b1.xlarge
     type: Unity::VM
-    image: sdet/gamecode_win10:stable
+    image: sdet/gamecode_win10:_uwp:latest
 {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
@@ -477,9 +477,9 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
 Build_{{ project.name }}_Linux_{{ linux_api.name }}_Player_{{ editor.version }}:
   name : Build {{ project.name }} on Linux_{{ linux_api.name }}_Player on version {{ editor.version }}
   agent:
-    type: {{ platform.type }}
+    type: Unity::VM
     image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    flavor: b1.xlarge
   {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
     CUSTOM_REVISION: custom_revision_not_set
