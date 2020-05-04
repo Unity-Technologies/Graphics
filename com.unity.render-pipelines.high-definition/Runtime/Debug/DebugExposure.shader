@@ -8,14 +8,11 @@ Shader "Hidden/HDRP/DebugExposure"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
     #pragma vertex Vert
-
+#pragma enable_d3d11_debug_symbols // TODO_FCC: REMOVE
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#define PERCENTILE_AS_BARS 0
-
-    // REMOVE
-#pragma enable_d3d11_debug_symbols
+    #define PERCENTILE_AS_BARS 0
 
     struct Attributes
     {
@@ -60,9 +57,9 @@ Shader "Hidden/HDRP/DebugExposure"
 
         if (all(uv > startSidebar) && all(uv < endSidebar))
         {
-            float inRange = (uv.y - startSidebar.y) / (endSidebar.y - startSidebar.y);
+            float inRange = (uv.x - startSidebar.x) / (endSidebar.x - startSidebar.x);
             evValueRange = clamp(evValueRange, 0.0f, 1.0f);
-            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.y * _ScreenSize.y;
+            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x;
             if (distanceInPixels < indicatorHalfSize)
             {
                 sidebarColor = indicatorColor;
@@ -130,7 +127,7 @@ Shader "Hidden/HDRP/DebugExposure"
             if (maxPercentileBin < 0)
             {
                 sumForMax += histVal;
-                if (sumForMax / histSum >= _HistogramMaxPercentile)
+                if (sumForMax / histSum > _HistogramMaxPercentile)
                 {
                     maxPercentileBin = i;
                 }
@@ -152,7 +149,25 @@ Shader "Hidden/HDRP/DebugExposure"
         }
     }
 
-   // void DrawHistogram
+    void DrawTriangleIndicator(float2 coord, float labelBarHeight, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
+    {
+        float halfWidthInScreen = widthNDC * _ScreenSize.x;
+        float heightInIndicator = (coord.y / labelBarHeight);
+        float indicatorWidth = 1.0f - heightInIndicator;
+
+        float minScreenPos = (uvXLocation - widthNDC * indicatorWidth * 0.5) * _ScreenSize.x;
+        float maxScreenPos = (uvXLocation + widthNDC * indicatorWidth * 0.5) * _ScreenSize.x;
+
+        if (coord.x > minScreenPos && coord.x < maxScreenPos)
+        {
+            outColor = color;
+        }
+        else if (coord.x > minScreenPos - 2 && coord.x < maxScreenPos + 2)
+        {
+            outColor = 0;
+        }
+
+    }
 
     void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
     {
@@ -196,12 +211,12 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
 #if PERCENTILE_AS_BARS == 0
-            uint bin = uint((unormCoord.x * HISTOGRAM_BINS) / (_ScreenSize.x));
-            if (bin <= uint(minPercentLoc))
+            uint bin = uint((unormCoord.x * (HISTOGRAM_BINS)) / (_ScreenSize.x));
+            if (bin <= uint(minPercentLoc) && minPercentLoc > 0)
             {
                 outColor.rgb = float3(0, 0, 1);
             }
-            else if(bin >= uint(maxPercentLoc))
+            else if(bin >= uint(maxPercentLoc) && maxPercentLoc > 0)
             {
                 outColor.rgb = float3(1, 0, 0);
             }
@@ -209,20 +224,6 @@ Shader "Hidden/HDRP/DebugExposure"
 #endif
             outColor.rgb = float3(1.0f, 1.0f, 1.0f);
             if (isEdgeOfBin) outColor.rgb = 0;
-        }
-
-        // ---- Draw indicators ----
-        float currExposure = _ExposureTexture[int2(0, 0)].y;
-        float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-
-        if (uv.y > heightLabelBar)
-        {
-            DrawHistogramIndicatorBar(float(unormCoord.x), evInRange, 0.003f, float3(0.05f, 0.05f, 0.05f), outColor);
-            // Find location for percentiles bars.
-#if PERCENTILE_AS_BARS
-            DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.003f, float3(0, 0, 1), outColor);
-            DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.003f, float3(1, 0, 0), outColor);
-#endif
         }
 
         // ---- Draw labels ---- 
@@ -245,6 +246,28 @@ Shader "Hidden/HDRP/DebugExposure"
             uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
             DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outColor.rgb);
         }
+
+        // ---- Draw indicators ----
+        float currExposure = _ExposureTexture[int2(0, 0)].y;
+        float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
+
+        float2 halfIndicatorSize = 0.007f;
+        float halfWidthInScreen = halfIndicatorSize * _ScreenSize.x;
+
+        float labelFrameHeightScreen = heightLabelBar * (_ScreenSize.y / _RTHandleScale.y);
+
+        if (uv.y < heightLabelBar)
+        {
+            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
+            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
+
+             // Find location for percentiles bars.
+#if PERCENTILE_AS_BARS
+            DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.003f, float3(0, 0, 1), outColor);
+            DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.003f, float3(1, 0, 0), outColor);
+#endif
+        }
+
     }
 
 
@@ -266,10 +289,9 @@ Shader "Hidden/HDRP/DebugExposure"
 
         float3 textColor = 0.0f;
 
-        // TODO: Should they be in pixels? ASK UX!
-        float2 sidebarSize = float2(0.025, 0.7);
+        float2 sidebarSize = float2(0.9, 0.02);
 
-        float2 sidebarBottomLeft = float2(0.04, (1.0 - sidebarSize.y) * 0.5) * _RTHandleScale.xy;
+        float2 sidebarBottomLeft = float2(0.05, 0.02) * _RTHandleScale.xy;
         float2 endPointSidebar = sidebarBottomLeft + sidebarSize * _RTHandleScale.xy;
 
         float3 outputColor = 0;
@@ -299,15 +321,44 @@ Shader "Hidden/HDRP/DebugExposure"
 
         int2 unormCoord = input.positionCS.xy;
 
-        int2 labelEVMinLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), 0);
-        int2 textLocation = labelEVMinLoc;
-        DrawFloatExplicitPrecision(ParamExposureLimitMin, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-        int2 labelEVMaxLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), sidebarSize.y * 0.98 * _ScreenSize.y);
-        textLocation = labelEVMaxLoc;
-        DrawFloatExplicitPrecision(ParamExposureLimitMax, textColor, unormCoord, 1, textLocation, outputColor.rgb);
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25f) * _ScreenSize.w * _RTHandleScale.y;
+        // Label bar
+        float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
+        if (uv.y + (sidebarSize.y * _RTHandleScale.y) < endPointSidebar.y  &&
+            uv.x >= (sidebarBottomLeft.x - borderSize.x) && uv.x <= (borderSize.x + endPointSidebar.x))
+        {
+            outputColor = outputColor * 0.075f;
+        }
+
+        // Number of labels
+        int labelCount = 8;
+        float oneOverLabelCount = rcp(labelCount);
+        float labelDeltaScreenSpace = _ScreenSize.x * oneOverLabelCount;
+
+        int minLabelLocationX = (sidebarBottomLeft.x - borderSize.x) *_ScreenSize.x + DEBUG_FONT_TEXT_WIDTH * 0.25;
+        int maxLabelLocationX = (borderSize.x + endPointSidebar.x) *_ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
+
+        int labelLocationY = 0.0f;
+
+        [unroll]
+        for (int i = 0; i <= labelCount; ++i)
+        {
+            float t = oneOverLabelCount * i;
+            float labelValue = lerp(ParamExposureLimitMin, ParamExposureLimitMax, t);
+            uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
+            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outputColor.rgb);
+        }
+
+
+        //int2 labelEVMinLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), 0);
+        //int2 textLocation = labelEVMinLoc;
+        //DrawFloatExplicitPrecision(ParamExposureLimitMin, textColor, unormCoord, 1, textLocation, outputColor.rgb);
+        //int2 labelEVMaxLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), sidebarSize.y * 0.98 * _ScreenSize.y);
+        //textLocation = labelEVMaxLoc;
+        //DrawFloatExplicitPrecision(ParamExposureLimitMax, textColor, unormCoord, 1, textLocation, outputColor.rgb);
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
-        textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
+        int2 textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
 
 
@@ -360,7 +411,7 @@ Shader "Hidden/HDRP/DebugExposure"
         DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, float3(0.125,0.125,0.125), 0.4f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
 
 
-        return outputColor;// lerp(, color, 0.025f);
+        return outputColor;
     }
 
     ENDHLSL
