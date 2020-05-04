@@ -12,10 +12,6 @@
 // Tile size of this compute
 #define PLANAR_REFLECTION_TILE_SIZE 8
 
-// This texture holds a radian value that matches the angle to grab 70% of the energy of the ggx lobe.
-TEXTURE2D(_ThetaValuesTexture);
-// Used to sample the theta values texture
-SAMPLER(s_linear_clamp);
 // Mip chain of depth and color
 TEXTURE2D(_DepthTextureMipChain);
 TEXTURE2D(_ReflectionColorMipChain);
@@ -39,33 +35,30 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
     int _SourceMipIndex;
     // Inverse view projection of the capture camera
     float4x4 _CaptureCameraIVP;
+    // Given that sometimes our writing texture can be bigger than the current target, we need to apply a scale factor before using the sampling intrinsic
     float _RTScaleFactor;
 CBUFFER_END
 
-// Output buffer of our code
+// Output buffer of our filtering code
 RW_TEXTURE2D(float4, _FilteredPlanarReflectionBuffer);
 
-bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
+// This function could be placed in a shared file.
+bool IntersectPlane(float3 rayOrigin, float3 rayDirection, float3 planePosition, float3 planeNormal, out float t)
 {
     t = -1.0;
-    float denom = dot(normal, ray_dir); 
+    float denom = dot(planeNormal, rayDirection); 
     if (abs(denom) > 1e-5)
     { 
-        float3 d = pos - ray_origin;
-        t = dot(d, normal) / denom;
+        float3 d = planePosition - rayOrigin;
+        t = dot(d, planeNormal) / denom;
         return (t >= 0); 
     }
     return false; 
 }
 
-float sqr(float value)
-{
-    return value * value;
-}
-float gaussian(float radius, float sigma)
-{
-    return exp(-sqr(radius / sigma));
-}
+// These angles have been experimentally computed to match the result of reflection probes. Initially this was a table dependent on angle and roughness, but given that every planar has a 
+// finite number of LODs and those LODS have fixed roughness and the angle changes the result, but not that much. I changed it to a per LOD LUT
+static const float reflectionProbeEquivalentAngles[8] = {0.0, 0.04, 0.12, 0.4, 0.9, 1.2, 1.2, 1.2};
 
 [numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
 void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -75,17 +68,20 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // Compute the pixel position to process
     int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
 
+    // Fetch the depth value for the current pixel. It would be great to use sample instead, but oblique matrices prevent us from doing it.
+    float centerDepthValue = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord, _SourceMipIndex).x;
+
     // Compute the coordinates that shall be used for sampling
     float2 sampleCoords = (currentCoord << (int)(_SourceMipIndex)) * _CaptureBaseScreenSize.zw * _RTScaleFactor;
-
-    // Read the a filtered depth value of the tap coord
-    float centerDepthValue = SAMPLE_TEXTURE2D_LOD(_DepthTextureMipChain, s_trilinear_clamp_sampler, sampleCoords, _SourceMipIndex).x;
 
     // Compute the world position of the tapped pixel
     PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP, 0, 0);
     
     // Compute the direction to the reflection pixel
     float3 rayDirection = normalize(centralPosInput.positionWS - _CaptureCameraPositon);
+    // For obliques matrices, when the depth is equal to zero (aka far plane), the position generated ends-up behind the camera. Frankly, I am not sure
+    // why but by inverting it we get the "correct result"
+    rayDirection = centerDepthValue == 0.0 ? -rayDirection : rayDirection;
 
     // Compute the position on the plane we shall be integrating from
     float t = -1.0;
@@ -97,11 +93,10 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     }
 
     // Compute the integration position (position on the plane)
-    float3 integrationPositionRWS = _CaptureCameraPositon + rayDirection * t;
+    const float3 integrationPositionRWS = _CaptureCameraPositon + rayDirection * t;
 
-    // Evaluate the cone halfangle for the filtering (it is the cone angle to grab 70% of the energy of the ggx lobe)
-    float halfAngle = SAMPLE_TEXTURE2D_LOD(_ThetaValuesTexture, s_linear_clamp, float2(dot(rayDirection,_ReflectionPlaneNormal), _IntegrationRoughness), 0).r;
-    halfAngle = halfAngle * PI * 0.5f;
+    // Evaluate the cone halfangle for the filtering
+    const float halfAngle = reflectionProbeEquivalentAngles[_SourceMipIndex];
 
     // Compute the distances we need for our filtering
     const float distanceCameraToPlane = length(integrationPositionRWS - _CaptureCameraPositon);
@@ -113,15 +108,19 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // We need to compute the view cone radius
     const float viewConeRadius = brdfConeRadius * distanceCameraToPlane / (distancePlaneToObject + distanceCameraToPlane);
 
-    // Compute the view cone's half angle. This matches the FOV angle to see exactly the half of the cone
+    // Compute the view cone's half angle. This matches the FOV angle to see exactly the half of the cone (The tangent could be precomputed in the table)
     const float viewConeHalfAngle = atan(viewConeRadius / distanceCameraToPlane);
     // Given the camera's fov and pixel resolution convert the viewConeHalfAngle to a number of pixels
     const float pixelDistance = viewConeHalfAngle / _CaptureCameraFOV * _CaptureCurrentScreenSize.x;
+
     // Convert this to a mip level shift starting from the mip 0
     const float miplevel = log2(pixelDistance / 2);
 
+    // Because of the high level of aliasing that this algorithm causes, especially on the higher mips, we apply a mip bias during the sampling to try to hide it
+    const float mipBias = _SourceMipIndex > 3 ? lerp(2.0, 5.0, (7.0 - _SourceMipIndex) / 5.0) : 0.0;
+
     // Read the integration color that we should take
-    const float3 integrationColor = SAMPLE_TEXTURE2D_LOD(_ReflectionColorMipChain, s_trilinear_clamp_sampler, sampleCoords, miplevel + _SourceMipIndex).xyz; 
+    const float3 integrationColor = SAMPLE_TEXTURE2D_LOD(_ReflectionColorMipChain, s_trilinear_clamp_sampler, sampleCoords, clamp(miplevel + _SourceMipIndex + mipBias, 0, 6)).xyz; 
 
     // Write the output ray data
     _FilteredPlanarReflectionBuffer[currentCoord] = float4(integrationColor, 1.0);
@@ -130,9 +129,13 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
 // Half resolution output texture for our mip chain build.
 RW_TEXTURE2D(float4, _HalfResReflectionBuffer);
 RW_TEXTURE2D(float, _HalfResDepthBuffer);
-// Given that the camera is using an oblique projection matrix, the inversion code doesnt work properly
-// If we detect that we are on the far plane, we override the value by an other one. This value has been choosen experimentally.
-#define OBLIQUE_CAMERA_DEPTH_CLAMP_VALUE 0.75
+
+// Use to compute the gauassian weight for our blur
+float gaussianWeight(float radius, float sigma)
+{
+    float k = radius / sigma;
+    return exp(-(k * k));
+}
 
 [numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
 void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -142,7 +145,7 @@ void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Compute the pixel position to process
     int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
 
-    // Here we have to go wider than the simple 2x2 neighborhood or there is too much aliasing
+    // Unfortunately, we have to go wider than the simple 2x2 neighborhood or there is too much aliasing
     float3 averageColor = 0.0;
     float sumW = 0.0;
     const float radius = 2;
@@ -152,29 +155,17 @@ void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
         for (int x = -radius; x <= radius; ++x)
         {
             const int2 tapCoord = currentCoord * 2 + uint2(x, y);
-            float r = sqrt(x*x + y*y);
+            float r = sqrt(x * x + y * y);
             // If the pixel is outside the current screen size, its weight becomes zero
             float weight =  tapCoord.x > _CaptureCurrentScreenSize.x ||  tapCoord.x < 0 
-                            || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : gaussian(r, sigma);
-            averageColor += LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, tapCoord, _SourceMipIndex) * weight;
+                            || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : gaussianWeight(r, sigma);
+            averageColor += LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, tapCoord, _SourceMipIndex).xyz * weight;
             sumW += weight;
         }
     }
     // Normalize and output
     _HalfResReflectionBuffer[currentCoord] = float4(averageColor / sumW, 1.0);
 
-    // Read the depth values
-    float d0 = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex);
-    float d1 = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + int2(1, 1), _SourceMipIndex);
-    float d2 = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + int2(0, 1), _SourceMipIndex);
-    float d3 = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + int2(1, 0), _SourceMipIndex);
-
-    // We we are on the far plane override the value
-    d0 = d0 == 0.0 ? OBLIQUE_CAMERA_DEPTH_CLAMP_VALUE : d0;
-    d1 = d1 == 0.0 ? OBLIQUE_CAMERA_DEPTH_CLAMP_VALUE : d1;
-    d2 = d2 == 0.0 ? OBLIQUE_CAMERA_DEPTH_CLAMP_VALUE : d2;
-    d3 = d3 == 0.0 ? OBLIQUE_CAMERA_DEPTH_CLAMP_VALUE : d3;
-
-    // Average and output to the depth buffer
-    _HalfResDepthBuffer[currentCoord] = (d0 + d1 + d2 + d3) * 0.25f;
+    // Experimentally, picking d0 instead of the average (when possible, not always due to oblique matrix projection) doesn't introduce major artifacts
+    _HalfResDepthBuffer[currentCoord] = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x;
 }

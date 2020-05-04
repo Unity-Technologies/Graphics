@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Planar reflection filtering
         ComputeShader m_PlanarReflectionFilteringCS;
-        Texture2D     m_GGXConeAngle;
         int           m_PlanarReflectionFilteringKernel = -1;
         int           m_PlanarReflectionDownScaleKernel = -1;
         RTHandle      m_PlanarReflectionFilterTex0;
@@ -77,7 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_PlanarReflectionFilteringCS     = m_RenderPipelineResources.shaders.planarReflectionFilteringCS;
                 m_PlanarReflectionFilteringKernel = m_PlanarReflectionFilteringCS.FindKernel("FilterPlanarReflection");
                 m_PlanarReflectionDownScaleKernel = m_PlanarReflectionFilteringCS.FindKernel("DownScaleReflection");
-                m_GGXConeAngle = m_RenderPipelineResources.textures.ggxConeAngle70pc;
             }
 
             for (int i = 0; i < 6; ++i)
@@ -292,7 +290,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set input textures
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionFilteringKernel, HDShaderIDs._DepthTextureMipChain, m_PlanarReflectionFilterDepthTex0);
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionFilteringKernel, HDShaderIDs._ReflectionColorMipChain, m_PlanarReflectionFilterTex0);
-                cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionFilteringKernel, HDShaderIDs._ThetaValuesTexture, m_GGXConeAngle);
 
                 // Input constant parameters required
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureBaseScreenSize, planarTextureFilteringParameters.captureCameraScreenSize);

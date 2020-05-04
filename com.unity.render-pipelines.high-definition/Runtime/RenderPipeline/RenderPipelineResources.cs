@@ -364,8 +364,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/RenderPipelineResources/Texture/DefaultHDRISky.exr")]
             public Cubemap     defaultHDRISky;
-            [Reload("Runtime/RenderPipelineResources/Texture/GGXConeAngle70pc.png")]
-            public Texture2D   ggxConeAngle70pc;
         }
 
         [Serializable, ReloadGroup]
