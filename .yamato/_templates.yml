@@ -10,7 +10,7 @@ pack_hdrp_template:
     artifacts:
         packages:
             paths:
-              -  "packages/**/*"
+              -  "upm-ci~/packages/**/*"
               -  "templates/**/*"
 pack_universal_template:
     name: Pack Universal Template
@@ -24,7 +24,7 @@ pack_universal_template:
     artifacts:
         packages:
             paths:
-              -  "packages/**/*"
+              -  "upm-ci~/packages/**/*"
               -  "templates/**/*"
 test_hdrp_template_win_trunk:
     name: Test HDRP Template win trunk
