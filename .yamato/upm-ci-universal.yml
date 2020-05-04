@@ -13,7 +13,7 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
+    image: graphics-foundation/win10-dxr:latest
     flavor: b1.large
     components:
       - editor
