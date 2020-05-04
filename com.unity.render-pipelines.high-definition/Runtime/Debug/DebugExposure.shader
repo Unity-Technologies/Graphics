@@ -152,21 +152,23 @@ Shader "Hidden/HDRP/DebugExposure"
     void DrawTriangleIndicator(float2 coord, float labelBarHeight, float uvXLocation, float widthNDC, float3 color, inout float3 outColor)
     {
         float halfWidthInScreen = widthNDC * _ScreenSize.x;
-        float heightInIndicator = (coord.y / labelBarHeight);
+        float arrowStart = labelBarHeight * 0.4f;
+
+        float heightInIndicator = ((coord.y - arrowStart) / (labelBarHeight - arrowStart));
         float indicatorWidth = 1.0f - heightInIndicator;
 
         float minScreenPos = (uvXLocation - widthNDC * indicatorWidth * 0.5) * _ScreenSize.x;
         float maxScreenPos = (uvXLocation + widthNDC * indicatorWidth * 0.5) * _ScreenSize.x;
 
-        if (coord.x > minScreenPos && coord.x < maxScreenPos)
+        uint triangleBorder = 2;
+        if (coord.x > minScreenPos && coord.x < maxScreenPos && coord.y >= arrowStart)
         {
             outColor = color;
         }
-        else if (coord.x > minScreenPos - 2 && coord.x < maxScreenPos + 2)
+        else if (coord.x > minScreenPos - triangleBorder && coord.x < maxScreenPos + triangleBorder && coord.y > arrowStart - triangleBorder)
         {
             outColor = 0;
         }
-
     }
 
     void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
@@ -249,7 +251,10 @@ Shader "Hidden/HDRP/DebugExposure"
 
         // ---- Draw indicators ----
         float currExposure = _ExposureTexture[int2(0, 0)].y;
+        float targetExposure = _ExposureDebugTexture[int2(0, 0)].x;
+
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
+        float targetEVInRange = (targetExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
         float2 halfIndicatorSize = 0.007f;
         float halfWidthInScreen = halfIndicatorSize * _ScreenSize.x;
@@ -258,7 +263,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
         if (uv.y < heightLabelBar)
         {
-            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
+            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, targetEVInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
             DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
 
              // Find location for percentiles bars.

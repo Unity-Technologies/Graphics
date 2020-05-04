@@ -12,6 +12,12 @@ RWStructuredBuffer<uint> _HistogramBuffer;
 StructuredBuffer<uint> _HistogramBuffer;
 #endif
 
+#ifdef OUTPUT_DEBUG_DATA
+RW_TEXTURE2D(float2, _ExposureDebugTexture);
+#else
+TEXTURE2D(_ExposureDebugTexture);
+#endif
+
 float UnpackWeight(uint val)
 {
     return val * rcp(2048.0f);

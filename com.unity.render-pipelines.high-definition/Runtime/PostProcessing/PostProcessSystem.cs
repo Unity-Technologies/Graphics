@@ -40,6 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Texture2D m_ExposureCurveTexture;
         RTHandle m_EmptyExposureTexture; // RGHalf
+        RTHandle m_DebugExposureData; 
         ComputeBuffer m_HistogramBuffer;
         readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
 
@@ -189,6 +190,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Empty EV100 Exposure"
             );
 
+            m_DebugExposureData = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                enableRandomWrite: true, name: "Debug Exposure Info"
+            );
+
+
             m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
             // TODO: Remove this line when atomic bug in HLSLcc is fixed.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
@@ -241,6 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Pool.Cleanup();
 
             RTHandles.Release(m_EmptyExposureTexture);
+            RTHandles.Release(m_DebugExposureData);
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
@@ -260,6 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
             m_EmptyExposureTexture      = null;
+            m_DebugExposureData         = null;
             m_TempTexture1024           = null;
             m_TempTexture32             = null;
             m_AlphaTexture              = null;
@@ -286,6 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_EmptyExposureTexture.rt.IsCreated())
                 FillEmptyExposureTexture();
 
+            HDUtils.CheckRTCreated(m_DebugExposureData.rt);
             HDUtils.CheckRTCreated(m_InternalLogLut.rt);
             HDUtils.CheckRTCreated(m_TempTexture1024.rt);
             HDUtils.CheckRTCreated(m_TempTexture32.rt);
@@ -775,6 +784,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return rt ?? m_EmptyExposureTexture;
         }
 
+        public RTHandle GetExposureDebugData()
+        {
+            return m_DebugExposureData;
+        }
+
         public ComputeBuffer GetHistogramBuffer()
         {
             return m_HistogramBuffer;
@@ -933,6 +947,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
         {
             var cs = m_Resources.shaders.histogramExposureCS;
+            cs.shaderKeywords = null;
             int kernel;
 
             GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
@@ -950,6 +965,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 prevExposure = m_EmptyExposureTexture; // Use neutral texture
             }
 
+            // TODO_FCC TODO: Make this generic setup in a function so that we can share with dynamic exposure.
             m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
             m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
             m_ExposureVariants[2] = (int)adaptationMode;
@@ -996,6 +1012,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
+
+            if (m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureDebugTexture, m_DebugExposureData);
+                cs.EnableKeyword("OUTPUT_DEBUG_DATA");
+            }
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }

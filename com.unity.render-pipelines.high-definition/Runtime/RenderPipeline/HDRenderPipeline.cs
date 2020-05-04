@@ -4414,6 +4414,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             RTHandle inputColorBuffer,
                                             RTHandle currentExposure,
                                             RTHandle prevExposure,
+                                            RTHandle debugExposureData,
                                             RTHandle output,
                                             ComputeBuffer histogramBuffer,
                                             CommandBuffer cmd)
@@ -4448,7 +4449,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)
                 passIndex = 1;
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+            {
+                parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureDebugTexture, debugExposureData);
                 passIndex = 2;
+            }
 
             HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
         }
@@ -4497,7 +4501,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (debugParams.exposureDebugEnabled)
                 {
-                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);
+                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera),  m_PostProcessSystem.GetExposureDebugData(),m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetHistogramBuffer(), cmd);
                 }
 
                 // First resolve color picker
