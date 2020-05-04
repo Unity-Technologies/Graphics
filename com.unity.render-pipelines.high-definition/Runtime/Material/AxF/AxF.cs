@@ -105,6 +105,22 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Flakes Triplanar Weights")]
             public Vector3  flakesTriplanarWeights;
 
+            // if non null, we will prefer gradients (to be used statically only!)
+            [SurfaceDataAttributes("Flakes ddx (and for PlanarZY)")]
+            public Vector2  flakesDdxZY;
+            [SurfaceDataAttributes("Flakes ddy (and for PlanarZY)")]
+            public Vector2  flakesDdyZY;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXZ")]
+            public Vector2  flakesDdxXZ;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXZ")]
+            public Vector2  flakesDdyXZ;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXY")]
+            public Vector2  flakesDdxXY;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
+            public Vector2  flakesDdyXY;
+            [SurfaceDataAttributes("Normal anti moire fade notch debug")]
+            public float    notchScaleDebug;
+
             // BTF Variables
 
             // Clearcoat
@@ -149,10 +165,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector2  flakesUVZY;
             public Vector2  flakesUVXZ;
             public Vector2  flakesUVXY;
-            public float  flakesMipLevelZY;
-            public float  flakesMipLevelXZ;
-            public float  flakesMipLevelXY;
-            public Vector3 flakesTriplanarWeights;
+            public float    flakesMipLevelZY;
+            public float    flakesMipLevelXZ;
+            public float    flakesMipLevelXY;
+            public Vector3  flakesTriplanarWeights;
+            public Vector2  flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
+            public Vector2  flakesDdyZY;
+            public Vector2  flakesDdxXZ;
+            public Vector2  flakesDdyXZ;
+            public Vector2  flakesDdxXY;
+            public Vector2  flakesDdyXY;
 
             // BTF Variables
 

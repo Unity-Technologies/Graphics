@@ -22,6 +22,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    mappingModeText = new GUIContent("Mapping Mode");
             public static GUIContent    planarSpaceText = new GUIContent("Planar Space");
+
+            public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
+            public static GUIContent    normalMipNotchCenterText = new GUIContent("Normal Anti-Moire Notch Center", "0 is near mip, 1 is fartest");
+            public static GUIContent    normalMipNotchParamsText = new GUIContent("Normal Anti-Moire Notch Params", "w is strength of effect, set at 0 to disable, xyz are in mip levels: x = notch fade-in width, y = notch plateau width, z = notch fade-out width");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
             public static GUIContent    diffuseColorMapText = new GUIContent("Diffuse Color");
@@ -126,6 +130,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static string               m_PlanarSpaceText = "_PlanarSpace";
         MaterialProperty  m_PlanarSpace = null;
+
+        static string               m_NormalMipNotchCenterText = "_NormalMipNotchCenter";
+        MaterialProperty  m_NormalMipNotchCenter = null;
+        static string               m_NormalMipNotchParamsText = "_NormalMipNotchParams";
+        MaterialProperty  m_NormalMipNotchParams = null;
 
         MaterialProperty  m_MaterialTilingOffset = null;
         MaterialProperty  m_DiffuseColorMapST = null;
@@ -256,6 +265,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MappingMode = FindProperty(m_MappingModeText);
             m_MappingMask = FindProperty(m_MappingMaskText);
             m_PlanarSpace = FindProperty(m_PlanarSpaceText);
+
+            m_NormalMipNotchCenter = FindProperty(m_NormalMipNotchCenterText);
+            m_NormalMipNotchParams = FindProperty(m_NormalMipNotchParamsText);
 
             m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
     
@@ -401,7 +413,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
-            materialEditor.ShaderProperty(m_MaterialTilingOffset, "Main Tiling & Offset");
+            materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
+
+            materialEditor.ShaderProperty(m_NormalMipNotchCenter, Styles.normalMipNotchCenterText);
+            materialEditor.ShaderProperty(m_NormalMipNotchParams, Styles.normalMipNotchParamsText);
 
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);

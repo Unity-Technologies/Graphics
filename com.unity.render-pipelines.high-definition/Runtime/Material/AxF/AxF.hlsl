@@ -100,17 +100,30 @@ void FillFlakesBSDFData(SurfaceData surfaceData, inout BSDFData bsdfData)
     bsdfData.flakesMipLevelXZ = surfaceData.flakesMipLevelXZ;
     bsdfData.flakesMipLevelXY = surfaceData.flakesMipLevelXY;
     bsdfData.flakesTriplanarWeights = surfaceData.flakesTriplanarWeights;
+
+    bsdfData.flakesDdxZY = surfaceData.flakesDdxZY;
+    bsdfData.flakesDdyZY = surfaceData.flakesDdyZY;
+    bsdfData.flakesDdxXZ = surfaceData.flakesDdxXZ;
+    bsdfData.flakesDdyXZ = surfaceData.flakesDdyXZ;
+    bsdfData.flakesDdxXY = surfaceData.flakesDdxXY;
+    bsdfData.flakesDdyXY = surfaceData.flakesDdyXY;
 #else
     // NOTE: When not triplanar UVZY has one uv set or one planar coordinate set,
     // and this planar coordinate set isn't necessarily ZY, we just reuse this field
     // as a common one.
     bsdfData.flakesUVZY = surfaceData.flakesUVZY;
     bsdfData.flakesMipLevelZY = surfaceData.flakesMipLevelZY;
+    bsdfData.flakesDdxZY = surfaceData.flakesDdxZY;
+    bsdfData.flakesDdyZY = surfaceData.flakesDdyZY;
     bsdfData.flakesUVXZ = 0;
     bsdfData.flakesUVXY = 0;
     bsdfData.flakesMipLevelXZ = 0;
     bsdfData.flakesMipLevelXY = 0;
     bsdfData.flakesTriplanarWeights = 0;
+    bsdfData.flakesDdxXZ = 0;
+    bsdfData.flakesDdyXZ = 0;
+    bsdfData.flakesDdxXY = 0;
+    bsdfData.flakesDdyXY = 0;
 #endif
 }
 
@@ -843,25 +856,46 @@ uint    SampleFlakesLUT(uint index)
 
 float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSDFData bsdfData)
 {
+    // We can't use SAMPLE_TEXTURE2D_ARRAY, the compiler can't unroll in that case, and the lightloop is built with unroll
+    // That's why we calculate gradients or LOD earlier.
+    //
     float3 val = 0;
+    bool useCachedDdxDdy = all(bsdfData.flakesDdxZY == (float2)0);
+
 #ifdef _MAPPING_TRIPLANAR
     val += bsdfData.flakesTriplanarWeights.x * 
-           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                      bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
-                                      sliceIndex, bsdfData.flakesMipLevelZY).xyz;
+           (useCachedDdxDdy ?
+             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                        bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
+                                        sliceIndex, bsdfData.flakesMipLevelZY).xyz
+           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                         bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
+                                         sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
+
     val += bsdfData.flakesTriplanarWeights.y * 
-           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                      bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
-                                      sliceIndex, bsdfData.flakesMipLevelXZ).xyz;
+           (useCachedDdxDdy ?
+             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                        bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
+                                        sliceIndex, bsdfData.flakesMipLevelXZ).xyz
+           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                         bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
+                                         sliceIndex, bsdfData.flakesDdxXZ, bsdfData.flakesDdyXZ).xyz );
     val += bsdfData.flakesTriplanarWeights.z * 
-           SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                      bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
-                                      sliceIndex, bsdfData.flakesMipLevelXY).xyz;
+           (useCachedDdxDdy ?
+             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                        bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
+                                        sliceIndex, bsdfData.flakesMipLevelXY).xyz
+           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                         bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
+                                         sliceIndex, bsdfData.flakesDdxXY, bsdfData.flakesDdyXY).xyz );
     val *= _CarPaint2_BTFFlakeMapScale;
 #else
     val = _CarPaint2_BTFFlakeMapScale * 
-          SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
-                                     bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz;
+          (useCachedDdxDdy ?
+            SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                       bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz
+          : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
+                                        bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
 #endif
     return val;
 }
