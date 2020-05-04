@@ -11,7 +11,7 @@ pack_hdrp_template:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-              -  "templates/**/*"
+              -  "upm-ci~/templates/**/*"
 pack_universal_template:
     name: Pack Universal Template
     agent:
@@ -25,7 +25,7 @@ pack_universal_template:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-              -  "templates/**/*"
+              -  "upm-ci~/templates/**/*"
 test_hdrp_template_win_trunk:
     name: Test HDRP Template win trunk
     agent:
