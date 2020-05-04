@@ -19,8 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraMode.drawMode == DrawCameraMode.DeferredSmoothness ||
                 cameraMode.drawMode == DrawCameraMode.DeferredNormal ||
                 cameraMode.drawMode == DrawCameraMode.ValidateAlbedo ||
-                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular ||
-                cameraMode.drawMode == DrawCameraMode.LightOverlap
+                cameraMode.drawMode == DrawCameraMode.ValidateMetalSpecular
                 )
                 return false;
 
