@@ -101,6 +101,14 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the range of values (in terms of percentages) of the histogram that are accepted while finding a stable average exposure. Anything outside the value is discarded.")]
         public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(50.0f, 90.0f), 0.0f, 100.0f);
 
+
+
+        public Vector2Parameter proceduralCenter = new Vector2Parameter(new Vector2(0.5f, 0.5f));
+
+        public Vector2Parameter proceduralRadii  = new Vector2Parameter(new Vector2(0.15f, 0.15f));
+
+        public FloatParameter   proceduralSoftness = new FloatParameter(0.8f);
+
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>
@@ -174,7 +182,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// the exposure. The weighting is specified by the texture provided by the user. Note that if
         /// no texture is provided, then this metering mode is equivalent to Average.
         /// </summary>
-        MaskWeighted
+        MaskWeighted,
+
+        /// <summary>
+        /// Create a weight mask centered around the specified UV and with the desired parameters. 
+        /// </summary>
+        ProceduralMask,
+
 
     }
 

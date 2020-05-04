@@ -11,6 +11,8 @@ RW_TEXTURE2D(float2, _OutputTexture);
 
 CBUFFER_START(cb)
 float4 _ExposureParams;
+float4 _ProceduralMaskParams;
+float4 _ProceduralMaskParams2;
 float4 _HistogramExposureParams;
 float4 _AdaptationParams;
 uint4 _Variants;
@@ -31,6 +33,11 @@ CBUFFER_END
 #define ParamMeteringMode           _Variants.y
 #define ParamAdaptationMode         _Variants.z
 #define ParamEvaluateMode           _Variants.w
+
+#define ProceduralCenter           _ProceduralMaskParams.xy     // Transformed in screen space on CPU
+#define ProceduralRadii            _ProceduralMaskParams.zw     
+#define ProceduralSoftness         _ProceduralMaskParams2.x
+
 
 float GetPreviousExposureEV100()
 {
@@ -62,6 +69,16 @@ float WeightSample(uint2 pixel, float2 sourceSize)
         {
             // Mask weigthing
             return SAMPLE_TEXTURE2D_LOD(_ExposureWeightMask, s_linear_clamp_sampler, pixel * rcp(sourceSize), 0.0).x;
+        }
+        case 4u:
+        {
+            // Procedural.
+            float radius = max(ProceduralRadii.x, ProceduralRadii.y);
+            float2 ellipseScale = float2(radius / ProceduralRadii.x, radius / ProceduralRadii.y);
+
+            float dist = length(ProceduralCenter * ellipseScale - pixel * ellipseScale);
+            return saturate(1.0 - pow((dist / radius), ProceduralSoftness));
+
         }
 
         default:

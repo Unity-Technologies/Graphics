@@ -25,6 +25,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_HistogramPercentages;
 
+        SerializedDataParameter m_ProceduralCenter;
+        SerializedDataParameter m_ProceduralRadii;
+        SerializedDataParameter m_ProceduralSoftness;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -46,6 +50,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WeightTextureMask = Unpack(o.Find(x => x.weightTextureMask));
 
             m_HistogramPercentages = Unpack(o.Find(x => x.histogramPercentages));
+
+            m_ProceduralCenter = Unpack(o.Find(x => x.proceduralCenter));
+            m_ProceduralRadii = Unpack(o.Find(x => x.proceduralRadii));
+            m_ProceduralSoftness = Unpack(o.Find(x => x.proceduralSoftness));
+
         }
 
         public override void OnInspectorGUI()
@@ -69,6 +78,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MeteringMode);
                 if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
                     PropertyField(m_WeightTextureMask);
+
+                if (m_MeteringMode.value.intValue == (int) MeteringMode.ProceduralMask)
+                {
+                    PropertyField(m_ProceduralCenter);
+                    PropertyField(m_ProceduralRadii);
+                    PropertyField(m_ProceduralSoftness);
+
+                }
 
                 // Temporary hiding the field since we don't support anything but color buffer for now.
                 //PropertyField(m_LuminanceSource);
