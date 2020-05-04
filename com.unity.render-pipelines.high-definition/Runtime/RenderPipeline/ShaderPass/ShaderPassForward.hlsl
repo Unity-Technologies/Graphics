@@ -60,7 +60,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
 #endif
 
-#ifdef DEBUG_DISPLAY
+#if defined(DEBUG_DISPLAY) && !defined(_DEPTHOFFSET_ON)
 [earlydepthstencil] // quad overshading debug mode write to UAVs
 #endif
 void Frag(PackedVaryingsToPS packedInput,
