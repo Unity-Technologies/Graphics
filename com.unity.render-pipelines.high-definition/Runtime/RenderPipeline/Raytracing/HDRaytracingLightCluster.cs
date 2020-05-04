@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (light == null || !light.enabled) continue;
 
                     // Reserve space in the cookie atlas
-                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
+                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
                
                     // Grab the light range
@@ -754,7 +754,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
 
                 // Reserve the cookie resolution in the 2D atlas
-                m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent);
+                m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent, additionalLightData.type);
             }
         }
 
