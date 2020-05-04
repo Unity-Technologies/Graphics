@@ -3977,7 +3977,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.0015
     UseHDR: 0
-  WaitFrames: 60
+  WaitFrames: 120
 --- !u!1 &1490545285
 GameObject:
   m_ObjectHideFlags: 0
