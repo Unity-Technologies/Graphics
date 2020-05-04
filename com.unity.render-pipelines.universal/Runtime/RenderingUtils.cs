@@ -229,9 +229,9 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
-        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] attachments)
+        internal static int GetValidColorAttachmentCount(AttachmentDescriptor[] attachments)
         {
-            uint nonNullAttachments = 0;
+            int nonNullAttachments = 0;
             if (attachments != null)
             {
                 foreach (var handle in attachments)

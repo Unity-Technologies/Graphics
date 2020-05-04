@@ -607,7 +607,6 @@ namespace UnityEngine.Rendering.Universal
                 else
                 {
                     int depthAttachmentIdx = -1;
-                    var colorCount = RenderingUtils.GetValidColorAttachmentCount(renderPass.colorAttachmentDescriptors);
 
                     if (!renderPassStarted)
                     {
@@ -627,58 +626,7 @@ namespace UnityEngine.Rendering.Universal
                                 continue;
 
                             rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-
-                            for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
-                            {
-                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
-                                    && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
-                                    && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
-                                    break;
-
-                                var isTransient =
-                                    RenderingUtils.IsAttachmentTransient(rp.colorAttachmentDescriptors[i]);
-
-                                var descIdx = RenderingUtils.IndexOf(attachmentList,
-                                    rp.colorAttachmentDescriptors[i]);
-
-                                // Transient attachments should only be used in a single sub pass, therefore no need to check for duplication
-                                if (descIdx == -1 || isTransient)
-                                    attachmentList.Add(rp.colorAttachmentDescriptors[i]);
-
-                                if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
-                                    depthAttachmentIdx = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
-                                else
-                                    rp.m_ColorBindings[i] = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
-
-                                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
-                                    m_FirstTimeCameraColorTargetIsBound = false;
-
-                            }
-
-                            if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
-                            {
-                                if (!RenderingUtils.Contains(attachmentList, rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
-                                {
-                                    attachmentList.Add(rp.depthAttachmentDescriptor);
-                                    depthAttachmentIdx = attachmentList.Count - 1;
-                                }
-
-                                if (rp.depthAttachmentDescriptor == m_CameraDepthTargetAttachment)
-                                    m_FirstTimeCameraDepthTargetIsBound = false;
-                            }
-
-                            if (rp.hasInputAttachment)
-                            {
-                                // Need a copy to correctly map transient attachments as they might be identical
-                                var listCopy = attachmentList.ToArray();
-                                for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
-                                {
-                                    var idx  = RenderingUtils.IndexOf(listCopy,
-                                        rp.inputAttachmentDescriptors[i]);
-                                    rp.m_InputBindings[i] = idx;
-                                    listCopy[idx] = ScriptableRenderPass.EmptyAttachment;
-                                }
-                            }
+                            SetupForNativeRenderPass(rp, ref attachmentList, ref depthAttachmentIdx);
                         }
 
                         context.ExecuteCommandBuffer(cmd);
@@ -702,6 +650,7 @@ namespace UnityEngine.Rendering.Universal
                             depthAttachmentIdx = RenderingUtils.GetDepthAttachmentIndex(attachmentDescriptors);
                         context.BeginRenderPass(descriptor.width, descriptor.height, descriptor.sampleCount, attachmentDescriptors, depthAttachmentIdx);
                         attachmentDescriptors.Dispose();
+                        attachmentList.Clear();
                         renderPassStarted = true;
                     }
 
@@ -710,16 +659,16 @@ namespace UnityEngine.Rendering.Universal
                     else
                         context.BeginSubPass(renderPass.m_ColorBindings);
 
+                    renderPass.m_ColorBindings.Dispose();
+                    if (renderPass.m_InputBindings.IsCreated)
+                        renderPass.m_InputBindings.Dispose();
                     ExecuteNativeRenderPass(context, renderPass, ref renderingData);
                     context.EndSubPass();
                 }
             }
 
             if (renderPassStarted)
-            {
-                attachmentList.Clear();
                 context.EndRenderPass();
-            }
 
             if (submit)
                 context.Submit();
@@ -923,6 +872,61 @@ namespace UnityEngine.Rendering.Universal
             renderPass.Execute(context, ref renderingData);
         }
 
+        void SetupForNativeRenderPass(ScriptableRenderPass rp, ref List<AttachmentDescriptor> attachmentList,
+            ref int depthAttachmentIdx)
+        {
+            if (rp.colorAttachmentDescriptors.Length > 0 && !rp.m_ColorBindings.IsCreated)
+                rp.m_ColorBindings = new NativeArray<int>(rp.colorAttachmentDescriptors.Length, Allocator.Temp);
+
+            for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
+            {
+                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
+                    && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
+                    && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
+                    break;
+
+                var isTransient = RenderingUtils.IsAttachmentTransient(rp.colorAttachmentDescriptors[i]);
+
+                var descIdx = RenderingUtils.IndexOf(attachmentList, rp.colorAttachmentDescriptors[i]);
+
+                // Transient attachments should only be used in a single sub pass, therefore no need to check for duplication
+                if (descIdx == -1 || isTransient)
+                    attachmentList.Add(rp.colorAttachmentDescriptors[i]);
+
+                if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
+                    depthAttachmentIdx = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
+                else
+                    rp.m_ColorBindings[i] = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
+
+                if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
+                    m_FirstTimeCameraColorTargetIsBound = false;
+
+            }
+
+            if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
+            {
+                if (!RenderingUtils.Contains(attachmentList, rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
+                {
+                    attachmentList.Add(rp.depthAttachmentDescriptor);
+                    depthAttachmentIdx = attachmentList.Count - 1;
+                }
+
+                if (rp.depthAttachmentDescriptor == m_CameraDepthTargetAttachment)
+                    m_FirstTimeCameraDepthTargetIsBound = false;
+            }
+
+            if (rp.hasInputAttachment)
+            {
+                                // Need a copy to correctly map transient attachments as they might be identical
+                var listCopy = attachmentList.ToArray();
+                for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
+                {
+                    var idx  = RenderingUtils.IndexOf(listCopy, rp.inputAttachmentDescriptors[i]);
+                    rp.m_InputBindings[i] = idx;
+                    listCopy[idx] = ScriptableRenderPass.EmptyAttachment;
+                }
+            }
+        }
         void ExecuteNativeRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
             ref RenderingData renderingData)
         {
@@ -942,14 +946,8 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
-
-            if (renderPass.m_ColorBindings.IsCreated)
-                renderPass.m_ColorBindings.Dispose();
-            if (renderPass.m_InputBindings.IsCreated)
-                renderPass.m_InputBindings.Dispose();
-
-
         }
+
         void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
         {
             context.StartMultiEye(camera, eyeIndex);

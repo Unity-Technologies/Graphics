@@ -173,7 +173,6 @@ namespace UnityEngine.Rendering.Universal
         {
             m_DepthAttachmentDescriptor = depthAttachment;
             ConfigureTarget(colorAttachment);
-            m_ColorBindings = new NativeArray<int>(m_ColorBindings.Length, Allocator.Temp);
         }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -199,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
         {
             overrideCameraTarget = true;
 
-            uint nonNullColorAttachments = RenderingUtils.GetValidColorAttachmentCount(colorAttachments);
+            int nonNullColorAttachments = RenderingUtils.GetValidColorAttachmentCount(colorAttachments);
             if (nonNullColorAttachments > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorAttachments +
                                " renderTargets, which is more than the maximum supported:" +
@@ -207,7 +206,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachmentDescriptors = colorAttachments;
             m_DepthAttachmentDescriptor = depthAttachment;
-            m_ColorBindings = new NativeArray<int>(colorAttachments.Length, Allocator.Temp);
+            m_ColorBindings = new NativeArray<int>(nonNullColorAttachments, Allocator.Temp);
         }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -229,7 +228,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachmentDescriptors[0] = attachment;
             for (int i = 1; i < m_ColorAttachmentDescriptors.Length; ++i)
                 m_ColorAttachmentDescriptors[i] = EmptyAttachment;
-            m_ColorBindings = new NativeArray<int>(1, Allocator.Temp);
+            m_ColorBindings = new NativeArray<int>(attachment.format != RenderTextureFormat.Depth ? 1 : 0, Allocator.Temp);
         }
 
         /// <summary>
