@@ -102,6 +102,7 @@ The version number for this package has increased due to a version update of a r
 - Remove some shader warnings
 - Fixed Sample Flipbbook Texture File Names
 - Support of flag settings in model inspector
+- height of initial event name.
 
 ## [7.1.1] - 2019-09-05
 ### Added
