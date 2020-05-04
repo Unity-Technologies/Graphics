@@ -6,7 +6,7 @@ pack_core:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.render-pipelines.core
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.render-pipelines.core
     artifacts:
         packages:
             paths:
@@ -36,7 +36,7 @@ pack_lwrp:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.render-pipelines.lightweight
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.render-pipelines.lightweight
     artifacts:
         packages:
             paths:
@@ -66,7 +66,7 @@ pack_shadergraph:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.shadergraph
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.shadergraph
     artifacts:
         packages:
             paths:
@@ -96,7 +96,7 @@ pack_hdrp:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.render-pipelines.high-definition
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.render-pipelines.high-definition
     artifacts:
         packages:
             paths:
@@ -126,7 +126,7 @@ pack_universal:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.render-pipelines.universal
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.render-pipelines.universal
     artifacts:
         packages:
             paths:
@@ -156,7 +156,7 @@ pack_vfx:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.visualeffectgraph
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.visualeffectgraph
     artifacts:
         packages:
             paths:
@@ -186,7 +186,7 @@ pack_config:
         flavor: b1.large
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
-      -  upm-ci package pack --package-path com.unity.render-pipelines.high-definition-config
+      -  upm-ci package pack --artifacts-path packages/**/* --package-path com.unity.render-pipelines.high-definition-config
     artifacts:
         packages:
             paths:
