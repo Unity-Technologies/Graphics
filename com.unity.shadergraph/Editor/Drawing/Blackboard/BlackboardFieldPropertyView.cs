@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -697,20 +698,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddRow("Default", field);
         }
 
+#region VTProperty Reorderable List
         void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
         {
-//             Toggle proceduralToggle = new Toggle { value = property.value.procedural };
-//             proceduralToggle.OnToggleChanged(evt =>
-//             {
-//                 graph.owner.RegisterCompleteObjectUndo("Change VT Procedural Toggle");
-//                 property.value.procedural = evt.newValue;
-//                 DirtyNodes(ModificationScope.Graph);
-//             });
-//             AddRow("Procedural", proceduralToggle);
-
-            // var listView = new ListView(property.value.layerNames, itemHeight, makeItem, bindItem);
-            // listView.style.flexGrow = 1.0f;
-            // listView.style.height = property.value.layerNames.Count * itemHeight;
             m_VTContainer = new IMGUIContainer(() => OnGUIHandler(property)) { name = "VTListContainer" };
             AddRow("Entries", m_VTContainer);
         }
@@ -738,10 +728,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_VTReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
-                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(displayRect, "Layer Name");
-                var referenceRect = new Rect((rect.x + indent) + (rect.width - indent) / 2, rect.y, (rect.width - indent) / 2, rect.height);
-                EditorGUI.LabelField(referenceRect, "Texture Asset");
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(displayRect, "Display Name");
+                var referenceRect = new Rect((rect.x) + (rect.width - indent) / 3, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(referenceRect, "Reference Name");
+                var textureRect = new Rect((rect.x) + (rect.width - indent) / 3 * 2, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(textureRect, "Texture Asset");
             };
 
             // Draw Element
@@ -750,15 +742,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SerializableVirtualTextureLayer entry = ((SerializableVirtualTextureLayer)m_VTReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
 
-                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
-                var selectedObject = EditorGUI.ObjectField( new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture));
+                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
+                var layerRefName = EditorGUI.DelayedTextField( new Rect((rect.x + rect.width) / 3, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerRefName, EditorStyles.label);
+                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture));
 
                 SerializableTexture layerTexture = new SerializableTexture();
                 layerTexture.texture = (Texture)selectedObject;
 
+                //need to sanitize each layer with all existing properties
+                var propertiesList = graph.properties.Where(p => p.guid != property.guid);
+                if (layerName != property.value.layers[index].layerName)
+                {
+                    var propertyNames = propertiesList.Select(p => p.displayName);
+                    layerName = GraphUtil.SanitizeName(propertyNames.Concat(property.value.layers.Select(p => p.layerName)), "{0} ({1})", layerName);
+                }
+                if (layerRefName != property.value.layers[index].layerRefName)
+                {
+                    string name = layerRefName.Trim();
+                    if (Regex.IsMatch(name, @"^\d+"))
+                        name = "_" + name;
+                    name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+                    var propertyRefNames = propertiesList.Select(p => p.referenceName);
+                    layerRefName = GraphUtil.SanitizeName(propertyRefNames.Concat(property.value.layers.Select(p => p.layerRefName)), "{0}_{1}", name);
+                }
+
                 if (EditorGUI.EndChangeCheck())
                 {
-                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerTexture);
+                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerRefName, layerTexture);
 
                     DirtyNodes();
                     Rebuild();
@@ -807,7 +817,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var layerName = "Layer" + index.ToString();
             // Add new entry
-            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, new SerializableTexture()));
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, layerName, new SerializableTexture()));
 
             // Update Blackboard & Nodes
             DirtyNodes();
@@ -856,7 +866,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             DirtyNodes();
         }
-
+#endregion
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
