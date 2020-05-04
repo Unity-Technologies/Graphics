@@ -7,8 +7,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>Color buffer mip chain.</summary>
         ColorBufferMipChain,
-        /// <summary>Volumetric lighting buffer.</summary>
-        VolumetricLighting,
         /// <summary>Exposure buffer.</summary>
         Exposure,
         /// <summary>Temporal antialiasing history.</summary>

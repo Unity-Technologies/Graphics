@@ -18,53 +18,59 @@
 //
 // UnityEngine.Rendering.HighDefinition.AxF+SurfaceData:  static fields
 //
-#define DEBUGVIEW_AXF_SURFACEDATA_NORMAL (1200)
-#define DEBUGVIEW_AXF_SURFACEDATA_NORMAL_VIEW_SPACE (1201)
-#define DEBUGVIEW_AXF_SURFACEDATA_TANGENT (1202)
-#define DEBUGVIEW_AXF_SURFACEDATA_DIFFUSE_COLOR (1203)
-#define DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_COLOR (1204)
-#define DEBUGVIEW_AXF_SURFACEDATA_FRESNEL_F0 (1205)
-#define DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE (1206)
-#define DEBUGVIEW_AXF_SURFACEDATA_HEIGHT (1207)
-#define DEBUGVIEW_AXF_SURFACEDATA_ANISOTROPIC_ANGLE (1208)
-#define DEBUGVIEW_AXF_SURFACEDATA_FLAKES_UV (1209)
-#define DEBUGVIEW_AXF_SURFACEDATA_FLAKES_MIP (1210)
-#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_COLOR (1211)
-#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_NORMAL (1212)
-#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_IOR (1213)
-#define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL (1214)
-#define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1215)
+#define DEBUGVIEW_AXF_SURFACEDATA_AMBIENT_OCCLUSION (1200)
+#define DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_OCCLUSION (1201)
+#define DEBUGVIEW_AXF_SURFACEDATA_NORMAL (1202)
+#define DEBUGVIEW_AXF_SURFACEDATA_NORMAL_VIEW_SPACE (1203)
+#define DEBUGVIEW_AXF_SURFACEDATA_TANGENT (1204)
+#define DEBUGVIEW_AXF_SURFACEDATA_DIFFUSE_COLOR (1205)
+#define DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_COLOR (1206)
+#define DEBUGVIEW_AXF_SURFACEDATA_FRESNEL_F0 (1207)
+#define DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE (1208)
+#define DEBUGVIEW_AXF_SURFACEDATA_HEIGHT (1209)
+#define DEBUGVIEW_AXF_SURFACEDATA_ANISOTROPIC_ANGLE (1210)
+#define DEBUGVIEW_AXF_SURFACEDATA_FLAKES_UV (1211)
+#define DEBUGVIEW_AXF_SURFACEDATA_FLAKES_MIP (1212)
+#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_COLOR (1213)
+#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_NORMAL (1214)
+#define DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_IOR (1215)
+#define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL (1216)
+#define DEBUGVIEW_AXF_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1217)
 
 //
 // UnityEngine.Rendering.HighDefinition.AxF+BSDFData:  static fields
 //
-#define DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS (1250)
-#define DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE (1251)
-#define DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS (1252)
-#define DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS (1253)
-#define DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR (1254)
-#define DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR (1255)
-#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0 (1256)
-#define DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS (1257)
-#define DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM (1258)
-#define DEBUGVIEW_AXF_BSDFDATA_FLAKES_UV (1259)
-#define DEBUGVIEW_AXF_BSDFDATA_FLAKES_MIP (1260)
-#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_COLOR (1261)
-#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_NORMAL_WS (1262)
-#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1263)
-#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL (1264)
-#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1265)
+#define DEBUGVIEW_AXF_BSDFDATA_AMBIENT_OCCLUSION (1250)
+#define DEBUGVIEW_AXF_BSDFDATA_SPECULAR_OCCLUSION (1251)
+#define DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS (1252)
+#define DEBUGVIEW_AXF_BSDFDATA_NORMAL_VIEW_SPACE (1253)
+#define DEBUGVIEW_AXF_BSDFDATA_TANGENT_WS (1254)
+#define DEBUGVIEW_AXF_BSDFDATA_BI_TANGENT_WS (1255)
+#define DEBUGVIEW_AXF_BSDFDATA_DIFFUSE_COLOR (1256)
+#define DEBUGVIEW_AXF_BSDFDATA_SPECULAR_COLOR (1257)
+#define DEBUGVIEW_AXF_BSDFDATA_FRESNEL_F0 (1258)
+#define DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS (1259)
+#define DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM (1260)
+#define DEBUGVIEW_AXF_BSDFDATA_FLAKES_UV (1261)
+#define DEBUGVIEW_AXF_BSDFDATA_FLAKES_MIP (1262)
+#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_COLOR (1263)
+#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_NORMAL_WS (1264)
+#define DEBUGVIEW_AXF_BSDFDATA_CLEARCOAT_IOR (1265)
+#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL (1266)
+#define DEBUGVIEW_AXF_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE (1267)
 
 // Generated from UnityEngine.Rendering.HighDefinition.AxF+SurfaceData
 // PackingRules = Exact
 struct SurfaceData
 {
+    float ambientOcclusion;
+    float specularOcclusion;
     float3 normalWS;
     float3 tangentWS;
     float3 diffuseColor;
     float3 specularColor;
     float3 fresnelF0;
-    float2 specularLobe;
+    float3 specularLobe;
     float height_mm;
     float anisotropyAngle;
     float2 flakesUV;
@@ -79,13 +85,15 @@ struct SurfaceData
 // PackingRules = Exact
 struct BSDFData
 {
+    float ambientOcclusion;
+    float specularOcclusion;
     float3 normalWS;
     float3 tangentWS;
     float3 biTangentWS;
     float3 diffuseColor;
     float3 specularColor;
     float3 fresnelF0;
-    float2 roughness;
+    float3 roughness;
     float height_mm;
     float2 flakesUV;
     float flakesMipLevel;
@@ -102,6 +110,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
 {
     switch (paramId)
     {
+        case DEBUGVIEW_AXF_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_OCCLUSION:
+            result = surfacedata.specularOcclusion.xxx;
+            break;
         case DEBUGVIEW_AXF_SURFACEDATA_NORMAL:
             result = surfacedata.normalWS * 0.5 + 0.5;
             break;
@@ -123,7 +137,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.fresnelF0;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_SPECULAR_LOBE:
-            result = float3(surfacedata.specularLobe, 0.0);
+            result = surfacedata.specularLobe;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_HEIGHT:
             result = surfacedata.height_mm.xxx;
@@ -162,6 +176,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
 {
     switch (paramId)
     {
+        case DEBUGVIEW_AXF_BSDFDATA_AMBIENT_OCCLUSION:
+            result = bsdfdata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_AXF_BSDFDATA_SPECULAR_OCCLUSION:
+            result = bsdfdata.specularOcclusion.xxx;
+            break;
         case DEBUGVIEW_AXF_BSDFDATA_NORMAL_WS:
             result = bsdfdata.normalWS * 0.5 + 0.5;
             break;
@@ -184,7 +204,7 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             result = bsdfdata.fresnelF0;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_ROUGHNESS:
-            result = float3(bsdfdata.roughness, 0.0);
+            result = bsdfdata.roughness;
             break;
         case DEBUGVIEW_AXF_BSDFDATA_HEIGHT_MM:
             result = bsdfdata.height_mm.xxx;

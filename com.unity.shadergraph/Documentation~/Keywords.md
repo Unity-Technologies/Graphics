@@ -42,7 +42,9 @@ In addition to the common parameters listed above, Boolean Keywords have the fol
 ## Enum Keywords
 Enum Keywords can have two or more states, which you define in the **Entries** list. If you expose an Enum Keyword, the **Display Names** in its **Entries** list appear in a dropdown menu in the Material Inspector.
 
-When you define an Enum Keyword, Shader Graph appends the entry’s **Reference Suffix** to the main **Reference** name to define each state. It uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
+When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** to the right, under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
+
+Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ). 
 
 ![](images/keywords_enum.png)
 

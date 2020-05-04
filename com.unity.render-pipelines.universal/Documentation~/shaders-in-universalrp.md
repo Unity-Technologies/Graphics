@@ -32,4 +32,4 @@ If you’re targeting less powerful devices, or just would like simpler shading,
 
 If you don’t need real-time lighting, or would rather only use [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) and sample global illumination, choose a Baked Lit Shader. 
 
-If you don’t need lighting in on a material at all, you can choose the an Unlit Shader. 
+If you don’t need lighting on a Material at all, you can choose the an Unlit Shader. 
