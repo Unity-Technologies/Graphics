@@ -218,8 +218,8 @@ namespace UnityEngine.Rendering
             //        = 78 / (100 * 0.65) * 2^ EV_100
             //        = 1.2 * 2^ EV
             // Reference: http://en.wikipedia.org/wiki/Film_speed
-            float maxLuminance = 1.2f * Mathf.Pow(2f, EV100);
-            return 1f / maxLuminance;
+            float maxLuminance = 1.2f * Mathf.Pow(2.0f, EV100);
+            return 1.0f / maxLuminance;
         }
 
         /// <summary>
@@ -229,8 +229,12 @@ namespace UnityEngine.Rendering
         /// <returns>An exposure value, in EV100.</returns>
         public static float ConvertExposureToEV100(float exposure)
         {
-            const float k = 1f / 1.2f;
-            return -Mathf.Log(exposure / k, 2f);
+            // Compute the maximum luminance possible with H_sbs sensitivity
+            // EV_100 = log2(   S * q    / (78 * exposure) )
+            //        = log2( 100 * 0.65 / (78 * exposure) )
+            //        = log2(    1.0f    / (1.2 * exposure) )
+            // Reference: http://en.wikipedia.org/wiki/Film_speed
+            return Mathf.Log(1.0f / (1.2f * exposure), 2.0f);
         }
 
         /// <summary>

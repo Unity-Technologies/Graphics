@@ -35,5 +35,36 @@
 #define FULLSCREENDEBUGMODE_VALIDATE_SPECULAR_COLOR (25)
 #define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (26)
 
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDebugDisplay
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesDebugDisplay)
+    float4 _DebugRenderingLayersColors[32];
+    uint4 _DebugViewMaterialArray[11];
+    int _DebugLightingMode;
+    int _DebugLightLayersMask;
+    int _DebugShadowMapMode;
+    int _DebugMipMapMode;
+    int _DebugFullScreenMode;
+    float _DebugTransparencyOverdrawWeight;
+    int _DebugMipMapModeTerrainTexture;
+    int _ColorPickerMode;
+    float4 _DebugLightingAlbedo;
+    float4 _DebugLightingSmoothness;
+    float4 _DebugLightingNormal;
+    float4 _DebugLightingAmbientOcclusion;
+    float4 _DebugLightingSpecularColor;
+    float4 _DebugLightingEmissiveColor;
+    float4 _DebugLightingMaterialValidateHighColor;
+    float4 _DebugLightingMaterialValidateLowColor;
+    float4 _DebugLightingMaterialValidatePureMetalColor;
+    float4 _MousePixelCoord;
+    float4 _MouseClickPixelCoord;
+    int _MatcapMixAlbedo;
+    float _MatcapViewScale;
+    int _DebugSingleShadowIndex;
+    int _DebugProbeVolumeMode;
+    float3 _DebugDisplayPad0;
+CBUFFER_END
+
 
 #endif
