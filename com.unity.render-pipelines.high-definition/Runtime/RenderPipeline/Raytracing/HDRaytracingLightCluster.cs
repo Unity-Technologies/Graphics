@@ -542,11 +542,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 int shadowIndex = additionalLightData.shadowIndex;
                 int screenSpaceShadowIndex = -1;
                 int screenSpaceChannelSlot = -1;
+                int lightFlagOffset        = -1;
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
                 m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData, 
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightFlagOffset, ref lightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.

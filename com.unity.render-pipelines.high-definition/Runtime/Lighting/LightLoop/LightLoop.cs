@@ -1183,6 +1183,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Populates the light list with light flags for a given light.
         internal void FillLightFlags(ref LightData lightData, HDAdditionalLightData additionalLightData, ref int lightFlagOffset)
         {
+            // Skip the addition of light flags in case it's not requested (need confirm light flags usage with raytracing).
+            if (lightFlagOffset == -1)
+                return;
+
             int lightFlagIndex = 0;
 
             for (; lightFlagIndex < additionalLightData.lightFlags.Length; lightFlagIndex++)
