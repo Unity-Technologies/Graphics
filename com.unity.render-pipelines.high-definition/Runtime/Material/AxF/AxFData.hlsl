@@ -3,6 +3,21 @@
 //-------------------------------------------------------------------------------------
 #define SURFACE_GRADIENT // Note: this affects Material/MaterialUtilities.hlsl's GetNormalWS() and makes it expect a surface gradient.
 
+//no #define FLAKES_TILE_BEFORE_SCALE
+#define AXF_REUSE_SCREEN_DDXDDY
+// ...ie use _GRAD sampling for everything and calculate those only one time:
+// offset doesn't change derivatives, and scales just scales them, so we can cache them.
+
+// The compiler can't unroll the lightloop if flakes are sampled inside it, so we need to cache either LOD
+// or derivatives. We prefer the later, as the CalculateLevelOfDetail will not work when anisotropic filtering
+// is used, and AxF materials textures often have trilinear filtering set.
+#define FLAKES_USE_DDXDDY
+
+#define NORMAL_FADE_NOTCH //anti moire algo
+// Options:
+//#define NORMAL_FADE_NOTCH_SMOOTH
+//#define NORMAL_FADE_NOTCH_USES_CUSTOM_LOD
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
@@ -17,17 +32,37 @@
 
 // Note: the scaling _Material_SO.xy should already be in texuv, but NOT the bias.
 #define AXF_TRANSFORM_TEXUV_BYNAME(texuv, name) ((texuv.xy) * name##_SO.xy + name##_SO.zw + _Material_SO.zw)
+#define AXF_GET_SINGE_SCALE_OFFSET(name) (name##_SO)
 #define AXF_TRANSFORM_TEXUV(texuv, scaleOffset) ((texuv.xy) * scaleOffset.xy + scaleOffset.zw + _Material_SO.zw)
+
+// Note: the scaling _Material_SO.xy should already be in ddx and ddy:
+#define AXF_SCALE_DDXDDY_BYNAME(vddx, name) ((vddx) * (name##_SO.xy))
+
+#if 0
+#define DDX(param) ddx_fine(param)
+#define DDY(param) ddy_fine(param)
+#else
+#define DDX(param) ddx(param)
+#define DDY(param) ddy(param)
+#endif
 
 struct TextureUVMapping
 {
 #ifdef _MAPPING_TRIPLANAR
+    float2 uvZY;
     float2 uvXZ;
     float2 uvXY;
-    float2 uvZY;
     float3 triplanarWeights;
+    float2 ddxZY;
+    float2 ddyZY;
+    float2 ddxXZ;
+    float2 ddyXZ;
+    float2 ddxXY;
+    float2 ddyXY;
 #else
     float2 uvBase; // uv0..uv3 or a planar set (ZY, XZ or XY)
+    float2 ddxBase;
+    float2 ddyBase;
 #endif
 
     float3 vertexNormalWS;
@@ -37,9 +72,9 @@ struct TextureUVMapping
 
 void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
 {
+    float2 uvZY;
     float2 uvXZ;
     float2 uvXY;
-    float2 uvZY;
     float2 uv3 = 0;
 
     // Set uv* variables above: they will contain a set of uv0...3 or a planar set:
@@ -60,9 +95,17 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
 #ifdef _MAPPING_TRIPLANAR
     // In that case, we will need to store the 3 sets of planar coordinates:
     // (Apply AxF's main material tiling scale also)
+    uvMapping.uvZY = uvZY * _Material_SO.xy;
     uvMapping.uvXZ = uvXZ * _Material_SO.xy;
     uvMapping.uvXY = uvXY * _Material_SO.xy;
-    uvMapping.uvZY = uvZY * _Material_SO.xy;
+
+    uvMapping.ddxZY = DDX(uvMapping.uvZY);
+    uvMapping.ddyZY = DDY(uvMapping.uvZY);
+    uvMapping.ddxXZ = DDX(uvMapping.uvXZ);
+    uvMapping.ddyXZ = DDY(uvMapping.uvXZ);
+    uvMapping.ddxXY = DDX(uvMapping.uvXY);
+    uvMapping.ddyXY = DDY(uvMapping.uvXY);
+
 #endif
 
 #else // #if (defined(_MAPPING_PLANAR) || defined(_MAPPING_TRIPLANAR))
@@ -84,6 +127,10 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
 
     // Apply AxF's main material tiling scale:
     uvMapping.uvBase *= _Material_SO.xy;
+
+    uvMapping.ddxBase = DDX(uvMapping.uvBase);
+    uvMapping.ddyBase = DDY(uvMapping.uvBase);
+
 #endif
 
     // Calculate triplanar weights, interpreting "local planar space" for coordinates
@@ -124,28 +171,213 @@ void InitTextureUVMapping(FragInputs input, out TextureUVMapping uvMapping)
 #endif //#if (defined(_REQUIRE_UV1)||defined(_REQUIRE_UV2)||defined(_REQUIRE_UV3))
 }
 
-float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping)
+// Make sure lodBiasOrGrad is used statically!
+//
+#define AXF_SAMPLE_USE_LOD 1
+#define AXF_SAMPLE_USE_BIAS 2
+#define AXF_SAMPLE_USE_GRAD 3
+
+// Note that scaleOffset are the texture specific ones, not the main material ones!
+float4 AxfSampleTexture2D(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping,
+                          int lodBiasOrGrad = 0, float3 lodOrBias = 0, float3x2 triDdx = (float3x2)0, float3x2 triDdy = (float3x2)0)
 {
+    bool useLod = lodBiasOrGrad == 1;
+    bool useBias = lodBiasOrGrad == 2;
+    bool useGrad = lodBiasOrGrad == 3;
+    bool useCachedDdxDdy = false;    
+#ifdef AXF_REUSE_SCREEN_DDXDDY
+    useCachedDdxDdy = false;
+#endif
+
 #ifdef _MAPPING_TRIPLANAR
     float4 val = 0;
 
-    val += uvMapping.triplanarWeights.x * SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset));
-    val += uvMapping.triplanarWeights.y * SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset));
-    val += uvMapping.triplanarWeights.z * SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset));
+    val += uvMapping.triplanarWeights.x 
+           * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
+           : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
+           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
+           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset),  scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
+           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset)) );
+    val += uvMapping.triplanarWeights.y 
+           * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
+           : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
+           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
+           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset),  scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
+           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset)) );
+    val += uvMapping.triplanarWeights.z 
+           * ( useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
+           : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
+           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
+           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset),  scaleOffset.xy * uvMapping.ddxXY, scaleOffset.xy * uvMapping.ddyXY)
+           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset)) );
 
     return val;
 #else
-    return SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
+    return useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), lodOrBias.x)
+           : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), lodOrBias.x)
+           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), triDdx[0], triDdy[0])
+           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset),  scaleOffset.xy * uvMapping.ddxBase, scaleOffset.xy * uvMapping.ddyBase)
+           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
 #endif
+}
+
+
+//                                                                             __ <--- notchLevel
+// Notch fade in a region: shape of the curve is a reversed notch:       .__./|  |\.____.
+//                                                                 LOD = 0  A B  C D    mipCnt
+struct NotchCurve
+{
+    float notchA;
+    float notchB;
+    float notchC;
+    float notchD;
+    float notchLevel;
+};
+
+NotchCurve NormalNotchGetCurve(float mipCnt)
+{
+    NotchCurve notchCurve;
+
+    float notchCenter = mipCnt*_NormalMipNotchCenter;// _NormalMipNotchCenter is between 0 and 1
+    notchCurve.notchLevel = _NormalMipNotchParams.w; // full effect region level 0 = no effect, 1 = full removal of normal map
+    float notchDelayW = _NormalMipNotchParams.x;     // width to full effect
+    float notchSustainW = _NormalMipNotchParams.y;   // full effect region width: C - B
+    float notchReleaseW = _NormalMipNotchParams.z;   // width to no effect
+
+    notchCurve.notchC = min( mipCnt, notchCenter + 0.5 * notchSustainW );
+    notchCurve.notchD = min( mipCnt, notchCurve.notchC + notchReleaseW );
+    notchCurve.notchB = max( 0, notchCenter - 0.5 * notchSustainW );
+    notchCurve.notchA = max( 0, notchCurve.notchB - notchDelayW );
+
+    return notchCurve;
+}
+
+float NormalNotchGetSurfaceGradientFadeScale(float lod, NotchCurve notchCurve, bool smooth = false)
+{
+#ifdef NORMAL_FADE_NOTCH_SMOOTH
+    smooth = true;
+#endif
+    float scale = 1.0;
+    float notchLevel = notchCurve.notchLevel;
+    float notchC = notchCurve.notchC;
+    float notchD = notchCurve.notchD;
+    float notchB = notchCurve.notchB;
+    float notchA = notchCurve.notchA;
+
+    if (smooth)
+    {
+        scale = (1 - saturate(notchLevel*( smoothstep(notchA,notchB,lod)*(1 - smoothstep(notchC,notchD,lod)) )) );
+    }
+    else
+    {
+        float lerpFactor = saturate((lod - notchA) * rcp(max(notchB - notchA, 0.0001))) - saturate((lod - notchC) * rcp(max(notchD - notchC, 0.0001)));
+        scale = 1 - saturate(notchLevel*lerpFactor);
+    }
+
+    return scale;
+}
+
+
+#define UVSET_BASE 0
+#define UVSET_ZY 0
+#define UVSET_XZ 1
+#define UVSET_XY 2
+
+float NormalNotchGetLod(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping,
+                        float mipCnt, uint uvSet = 0,
+                        int lodBiasOrGrad = 0, float3 lodOrBias = 0, float3x2 triDdx = (float3x2)0, float3x2 triDdy = (float3x2)0)
+{
+    // By default, try to use CalculateLevelOfDetail (this requires aniso = 0 for the normal sampler! otherwise result is not good)
+    bool useCustomLodCalculation = false;
+#ifdef NORMAL_FADE_NOTCH_USES_CUSTOM_LOD
+    useCustomLodCalculation = true;
+#endif
+
+    bool useLod = lodBiasOrGrad == 1;
+    bool useBias = lodBiasOrGrad == 2;
+    bool useGrad = lodBiasOrGrad == 3;
+    bool useCachedDdxDdy = false;    
+    // If we have to use custom screen space derivatives (useGrad), we don't need UV,
+    // and are forced to use a custom LOD calculation (otherwise, we can use CalculateLevelOfDetail on UVs)
+    // Note that we use the cached derivatives which we always calculate.
+    // The AXF_REUSE_SCREEN_DDXDDY is to always sample using _GRAD instead of normal sampling, and in that case,
+    // aside from this function, grads are not used.
+
+    useCustomLodCalculation = useCustomLodCalculation || useGrad;
+
+    float2 dpdx;
+    float2 dpdy;
+    float2 uv;
+    float inputLodOrBias;
+    float lod;
+
+    switch(uvSet)
+    {
+    case UVSET_BASE:
+        inputLodOrBias = lodOrBias.x;
+
+#ifdef _MAPPING_TRIPLANAR
+        uv = uvMapping.uvZY;
+        dpdx = useGrad ? triDdx[0] : uvMapping.ddxZY;
+        dpdy = useGrad ? triDdy[0] : uvMapping.ddyZY;
+#else
+        uv = uvMapping.uvBase;
+        dpdx = useGrad ? triDdx[0] : uvMapping.ddxBase;
+        dpdy = useGrad ? triDdy[0] : uvMapping.ddyBase;
+#endif
+        break;
+
+#ifdef _MAPPING_TRIPLANAR
+    case UVSET_XZ:
+        inputLodOrBias = lodOrBias.y;
+        uv = uvMapping.uvXZ;
+        dpdx = useGrad ? triDdx[1] : uvMapping.ddxXZ;
+        dpdy = useGrad ? triDdy[1] : uvMapping.ddyXZ;
+        break;
+    case UVSET_XY:
+        inputLodOrBias = lodOrBias.z;
+        uv = uvMapping.uvXY;
+        dpdx = useGrad ? triDdx[2] : uvMapping.ddxXY;
+        dpdy = useGrad ? triDdy[2] : uvMapping.ddyXY;
+        break;
+#endif
+    }
+
+    uv = AXF_TRANSFORM_TEXUV(uv, scaleOffset);
+    
+    float dSq = max(dot(dpdx, dpdx), dot(dpdy, dpdy));
+    lod = useCustomLodCalculation ? (0.5 * log2(dSq) + mipCnt) : CALCULATE_TEXTURE2D_LOD(textureName, samplerName, uv);
+
+    lod += useBias ? inputLodOrBias : 0;
+    lod = useLod ? inputLodOrBias : lod;
+
+    return lod;
 }
 
 
 // Normal map sampling requires special care especially for triplanar, we will use gradients for that.
 // Also, AxF normal maps are encoded on 3 channels (xyz) but are still tangent space.
-float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping)
+// Make sure useLod is used statically!
+// Note that scaleOffset are the texture specific ones, not the main material ones!
+float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping, bool useNormalFadeNotch = false,
+                                             int lodBiasOrGrad = 0, float3 lodOrBias = 0, float3x2 triDdx = (float3x2)0, float3x2 triDdy = (float3x2)0)
 {
     float scale = 1.0;
+    bool useLod = lodBiasOrGrad == 1;
+    bool useBias = lodBiasOrGrad == 2;
+    bool useGrad = lodBiasOrGrad == 3;
+    bool useCachedDdxDdy = false;    
+#ifdef AXF_REUSE_SCREEN_DDXDDY
+    useCachedDdxDdy = true;
+#endif
+
+    float notchScale = 1.0;
+    float notchLod;
+    float mipCnt = GetMipCount(textureName);
+    NotchCurve notchCurve = NormalNotchGetCurve(mipCnt);
+
 #ifdef _MAPPING_TRIPLANAR
+
     float2 derivXplane;
     float2 derivYPlane;
     float2 derivZPlane;
@@ -154,14 +386,39 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
 
     // UnpackDerivativeNormalRGB will unpack an RGB tangent space normal map and output a corresponding height map gradient
     // (We will sum those to get a volume gradient and from it a surface gradient (and/or a final normal). Both have 3 coordinates)
-    packedNormal = SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset));
-    derivXplane = uvMapping.triplanarWeights.x * UnpackDerivativeNormalRGB(packedNormal, scale);
 
-    packedNormal = SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset));
+    packedNormal = useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
+                   : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), lodOrBias.x)
+                   : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
+                   : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
+                   : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset));
+    derivXplane = uvMapping.triplanarWeights.x * UnpackDerivativeNormalRGB(packedNormal, scale);
+    
+    notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_ZY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
+    notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
+    derivXplane *= notchScale;
+
+    packedNormal = useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
+                   : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), lodOrBias.y)
+                   : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
+                   : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
+                   : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset));
     derivYPlane = uvMapping.triplanarWeights.y * UnpackDerivativeNormalRGB(packedNormal, scale);
 
-    packedNormal = SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset));
+    notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XZ, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
+    notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
+    derivYPlane *= notchScale;
+
+    packedNormal = useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
+                   : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), lodOrBias.z)
+                   : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
+                   : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), scaleOffset.xy * uvMapping.ddxXY, scaleOffset.xy * uvMapping.ddyXY)
+                   : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset));
     derivZPlane = uvMapping.triplanarWeights.z * UnpackDerivativeNormalRGB(packedNormal, scale);
+
+    notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
+    notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
+    derivZPlane *= notchScale;
 
     // Important note! See SurfaceGradientFromTriplanarProjection:
     // Tiling scales should NOT be negative!
@@ -171,19 +428,26 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     float3 surfaceGrad = SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad);
 
     // We don't need to process further operation on the gradient, but we dont resolve it to a normal immediately:
-    //return SurfaceGradientResolveNormal(uvMapping.vertexNormalWS, surfaceGrad);
+    // ie by doing return SurfaceGradientResolveNormal(uvMapping.vertexNormalWS, surfaceGrad);
     // This is because we use GetNormalWS() later which with #define SURFACE_GRADIENT, expects a surface gradient.
     return surfaceGrad;
 
 #else
     // No triplanar: in that case, just sample the texture, but also unpacks it as a surface gradient! See comment above
 
-    float4 packedNormal = SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
+    float4 packedNormal = useLod ? SAMPLE_TEXTURE2D_LOD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), lodOrBias.x)
+                          : useBias ? SAMPLE_TEXTURE2D_BIAS(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), lodOrBias.x)
+                          : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), triDdx[0], triDdy[0])
+                          : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), scaleOffset.xy * uvMapping.ddxBase, scaleOffset.xy * uvMapping.ddyBase)
+                          : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
     float2 deriv = UnpackDerivativeNormalRGB(packedNormal, scale);
+
+    notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_BASE, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
+    notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
 
 #ifndef _MAPPING_PLANAR
     // No planar mapping, in that case, just use the generated (or simply cached if using uv0) TBN:
-    return SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS, uvMapping.vertexBitangentWS);
+    return notchScale * SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS, uvMapping.vertexBitangentWS);
 #else
     float3 volumeGrad;
 
@@ -196,15 +460,32 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     else if (_MappingMask.z == 1.0) // uvXY
         volumeGrad = float3(deriv.x, deriv.y, 0.0);
 
-    return SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad);
+    return notchScale * SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad);
 #endif // if not _MAPPING_PLANAR
 #endif // if triplanar.
 }
 
 #define AXF_SAMPLE_TEXTURE2D(name, uvMapping) AxfSampleTexture2D(name, sampler##name, name##_SO, uvMapping)
 #define AXF_SAMPLE_SMP_TEXTURE2D(name, samplername, uvMapping) AxfSampleTexture2D(name, samplername, name##_SO, uvMapping)
-#define AXF_SAMPLE_TEXTURE2D_NORMAL_AS_GRAD(name, uvMapping) AxFSampleTexture2DNormalAsSurfaceGrad(name, sampler##name, name##_SO, uvMapping)
-#define AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(name, samplername, uvMapping) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping)
+#define AXF_SAMPLE_SMP_TEXTURE2D_LOD(name, samplername, lod, uvMapping) AxfSampleTexture2D(name, samplername, name##_SO, uvMapping, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_LOD, lod)
+#define AXF_SAMPLE_SMP_TEXTURE2D_BIAS(name, samplername, bias, uvMapping) AxfSampleTexture2D(name, samplername, name##_SO, uvMapping, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_BIAS, bias)
+
+#ifdef _MAPPING_TRIPLANAR
+#define AXF_SAMPLE_SMP_TEXTURE2D_GRAD(name, samplername, triddx, triddy, uvMapping) AxfSampleTexture2D(name, samplername, name##_SO, uvMapping, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_GRAD, /*unused*/(float3)0, triddx, triddy)
+#else
+#define AXF_SAMPLE_SMP_TEXTURE2D_GRAD(name, samplername, vddx, vddy, uvMapping) AxfSampleTexture2D(name, samplername, name##_SO, uvMapping, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_GRAD, /*unused*/(float3)0, float3x2(vddx, (float2)0, (float2)0), float3x2(vddy, (float2)0, (float2)0))
+#endif
+
+#define AXF_SAMPLE_TEXTURE2D_NORMAL_AS_GRAD(name, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, sampler##name, name##_SO, uvMapping, useNormalFadeNotch)
+#define AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(name, samplername, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping, useNormalFadeNotch)
+#define AXF_SAMPLE_SMP_TEXTURE2D_LOD_NORMAL_AS_GRAD(name, samplername, lod, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping, useNormalFadeNotch, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_LOD, lod)
+#define AXF_SAMPLE_SMP_TEXTURE2D_BIAS_NORMAL_AS_GRAD(name, samplername, bias, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping, useNormalFadeNotch, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_BIAS, bias)
+
+#ifdef _MAPPING_TRIPLANAR
+#define AXF_SAMPLE_SMP_TEXTURE2D_GRAD_NORMAL_AS_GRAD(name, samplername, triddx, triddy, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping, useNormalFadeNotch, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_GRAD, /*unused*/(float3)0, triddx, triddy)
+#else
+#define AXF_SAMPLE_SMP_TEXTURE2D_GRAD_NORMAL_AS_GRAD(name, samplername, vddx, vddy, uvMapping, useNormalFadeNotch) AxFSampleTexture2DNormalAsSurfaceGrad(name, samplername, name##_SO, uvMapping, useNormalFadeNotch, /*lodBiasOrGrad*/ AXF_SAMPLE_USE_GRAD, /*unused*/(float3)0, float3x2(vddx, (float2)0, (float2)0), float3x2(vddy, (float2)0, (float2)0))
+#endif
 
 
 float2 TileFlakesUV(float2 flakesUV)
@@ -221,16 +502,17 @@ float2 TileFlakesUV(float2 flakesUV)
     return flakesUV;
 }
 
-//#define FLAKES_TILE_BEFORE_SCALE
 
 void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceData)
 {
+    surfaceData.flakesDdxZY = surfaceData.flakesDdyZY = surfaceData.flakesDdxXZ = surfaceData.flakesDdyXZ =
+    surfaceData.flakesDdxXY = surfaceData.flakesDdyXY = 0;
+
 #ifdef _MAPPING_TRIPLANAR
     float2 uv;
 
     uv = AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvZY, _CarPaint2_BTFFlakeMap);
     surfaceData.flakesMipLevelZY = CALCULATE_TEXTURE2D_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap, uv);
-
 #ifndef FLAKES_TILE_BEFORE_SCALE
     surfaceData.flakesUVZY = TileFlakesUV(uv);
 #else
@@ -254,7 +536,20 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 #endif
 
     surfaceData.flakesTriplanarWeights = uvMapping.triplanarWeights;
-#else
+
+#ifdef FLAKES_USE_DDXDDY
+    // Filling surfaceData.flakesDdx* to nonzero values will automatically ignore surfaceData.flakesMipLevel*
+    // and the compiler will optimize them out (see SampleFlakes in AxF.hlsl)
+    surfaceData.flakesDdxZY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddxZY, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdyZY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddyZY, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdxXZ = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddxXZ, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdyXZ = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddyXZ, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdxXY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddxXY, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdyXY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddyXY, _CarPaint2_BTFFlakeMap);
+#endif
+
+#else // TRIPLANAR
+
     float2 uv;
     // NOTE: When not triplanar UVZY has one uv set or one planar coordinate set,
     // and this planar coordinate set isn't necessarily ZY, we just reuse this field
@@ -265,6 +560,13 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
     surfaceData.flakesUVZY = TileFlakesUV(uv);
 #else
     surfaceData.flakesUVZY = AXF_TRANSFORM_TEXUV_BYNAME(TileFlakesUV(uvMapping.uvBase), _CarPaint2_BTFFlakeMap);
+#endif
+
+#ifdef FLAKES_USE_DDXDDY
+    // Filling surfaceData.flakesDdx* to nonzero values will automatically ignore surfaceData.flakesMipLevel*
+    // and the compiler will optimize them out (see SampleFlakes in AxF.hlsl)
+    surfaceData.flakesDdxZY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddxBase, _CarPaint2_BTFFlakeMap);
+    surfaceData.flakesDdyZY = AXF_SCALE_DDXDDY_BYNAME(uvMapping.ddyBase, _CarPaint2_BTFFlakeMap);
 #endif
 
     surfaceData.flakesUVXZ = surfaceData.flakesUVXY = 0;
@@ -375,6 +677,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float sqrtF0 = sqrt(clearcoatF0);
     surfaceData.clearcoatIOR = max(1.0, (1.0 + sqrtF0) / (1.00001 - sqrtF0));    // We make sure it's working for F0=1
 
+    //
+    // TBN
+    //
 #if 0
 // TEST without gradients: comment out the #define SURFACE_GRADIENT before the include of materialutilities to test this path!
     GetNormalWS(
@@ -391,17 +696,35 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     );
 // ...TEST without gradients
 #else
-    // TBN 
     // Note: since SURFACE_GRADIENT is enabled, resolve is done with input.tangentToWorld[2] in GetNormalWS(),
     // and uvMapping uses that as vertexNormalWS.
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping).xyz, surfaceData.normalWS, doubleSidedConstants);
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+
+    bool useNormalFadeNotch = false;
+#ifdef NORMAL_FADE_NOTCH //anti moire algo
+    useNormalFadeNotch = true;
 #endif
 
-    alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
+    //To help adjust the normal anti-moire lod-dependent notch, display it in debug:
+#if defined(DEBUG_DISPLAY)
+    float notchScale = 1.0;
+    float notchLod;
+    float mipCnt = GetMipCount(_SVBRDF_NormalMap);
+    float4 scaleOffset = AXF_GET_SINGE_SCALE_OFFSET(_SVBRDF_NormalMap);
+    NotchCurve notchCurve = NormalNotchGetCurve(mipCnt);
+    notchLod = NormalNotchGetLod(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_BASE);
+    notchScale = NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve);
+    surfaceData.notchScaleDebug = notchScale;
+#endif
 
-    // Useless for SVBRDF
-    SetFlakesSurfaceData(uvMapping, surfaceData);
+    //Normal sampling:
+    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping, useNormalFadeNotch).xyz, surfaceData.normalWS, doubleSidedConstants);
+    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+#endif // use gradients
+
+    // Useless for SVBRDF, will be optimized out
+    //SetFlakesSurfaceData(uvMapping, surfaceData);
+
+    alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
     //-----------------------------------------------------------------------------
     // _AXF_BRDF_TYPE_CAR_PAINT
@@ -415,7 +738,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularLobe = _CarPaint2_CTSpreads.xyz; // We may want to modify these (eg for Specular AA)
 
     surfaceData.normalWS = input.tangentToWorld[2].xyz;
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
     SetFlakesSurfaceData(uvMapping, surfaceData);
 
