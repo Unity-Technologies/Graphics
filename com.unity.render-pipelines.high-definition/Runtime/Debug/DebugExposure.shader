@@ -8,7 +8,6 @@ Shader "Hidden/HDRP/DebugExposure"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
     #pragma vertex Vert
-#pragma enable_d3d11_debug_symbols // TODO_FCC: REMOVE
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
@@ -50,10 +49,12 @@ Shader "Hidden/HDRP/DebugExposure"
     }
 
     // Returns true if it drew the location of the indicator.
-    void DrawHeatSideBar(float2 uv, float2 startSidebar, float2 endSidebar, float evValueRange, float3 indicatorColor, float2 sidebarSize, inout float3 sidebarColor)
+    void DrawHeatSideBar(float2 uv, float2 startSidebar, float2 endSidebar, float evValueRange, float3 indicatorColor, float2 sidebarSize, float extremeMargin, inout float3 sidebarColor)
     {
+        float2 extremesSize = float2(extremeMargin, 0);
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
         int indicatorHalfSize = 5;
+
 
         if (all(uv > startSidebar) && all(uv < endSidebar))
         {
@@ -73,7 +74,15 @@ Shader "Hidden/HDRP/DebugExposure"
                 sidebarColor = ToHeat(inRange);
             }
         }
-        else if(all(uv > startSidebar - borderSize) && all(uv < endSidebar + borderSize))
+        else if (all(uv > startSidebar - extremesSize) && all(uv < endSidebar))
+        {
+            sidebarColor = float3(0,0,0);
+        }
+        else if (all(uv > startSidebar) && all(uv < endSidebar + extremesSize))
+        {
+            sidebarColor = float3(1, 1, 1);
+        }
+        else if(all(uv > startSidebar - (extremesSize + borderSize)) && all(uv < endSidebar + (extremesSize + borderSize)))
         {
             sidebarColor = 0.0f;
         }
@@ -284,7 +293,7 @@ Shader "Hidden/HDRP/DebugExposure"
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
-        return color * weight;// lerp(, color, 0.025f);
+        return color * weight;
     }
 
     float3 FragSceneEV100(Varyings input) : SV_Target
@@ -294,10 +303,12 @@ Shader "Hidden/HDRP/DebugExposure"
 
         float3 textColor = 0.0f;
 
-        float2 sidebarSize = float2(0.9, 0.02);
+        float2 sidebarSize = float2(0.9, 0.02) * _RTHandleScale.xy;
 
-        float2 sidebarBottomLeft = float2(0.05, 0.02) * _RTHandleScale.xy;
-        float2 endPointSidebar = sidebarBottomLeft + sidebarSize * _RTHandleScale.xy;
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25f) * _ScreenSize.w * _RTHandleScale.y;
+
+        float2 sidebarBottomLeft = float2(0.05 * _RTHandleScale.x, heightLabelBar);
+        float2 endPointSidebar = sidebarBottomLeft + sidebarSize;
 
         float3 outputColor = 0;
         float ev = GetEVAtLocation(uv);
@@ -308,7 +319,7 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             outputColor = ToHeat(evInRange);
         }
-        else if (ev > ParamExposureLimitMax)                 // << TODO_FCC: Ask UX TODO what color scheme is good here.
+        else if (ev > ParamExposureLimitMax)
         {
             outputColor = 1.0f;
         }
@@ -322,14 +333,14 @@ Shader "Hidden/HDRP/DebugExposure"
         float indicatorEV = GetEVAtLocation(indicatorUV);
         float indicatorEVRange = (indicatorEV - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
-        DrawHeatSideBar(uv, sidebarBottomLeft, endPointSidebar, indicatorEVRange, 0.66f, sidebarSize, outputColor);
+        float extremeMargin = 5 * _ScreenSize.z * _RTHandleScale.x;
+        DrawHeatSideBar(uv, sidebarBottomLeft, endPointSidebar, indicatorEVRange, 0.66f, sidebarSize, extremeMargin, outputColor);
 
         int2 unormCoord = input.positionCS.xy;
 
-        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25f) * _ScreenSize.w * _RTHandleScale.y;
         // Label bar
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
-        if (uv.y + (sidebarSize.y * _RTHandleScale.y) < endPointSidebar.y  &&
+        if (uv.y < heightLabelBar  &&
             uv.x >= (sidebarBottomLeft.x - borderSize.x) && uv.x <= (borderSize.x + endPointSidebar.x))
         {
             outputColor = outputColor * 0.075f;
@@ -340,8 +351,8 @@ Shader "Hidden/HDRP/DebugExposure"
         float oneOverLabelCount = rcp(labelCount);
         float labelDeltaScreenSpace = _ScreenSize.x * oneOverLabelCount;
 
-        int minLabelLocationX = (sidebarBottomLeft.x - borderSize.x) *_ScreenSize.x + DEBUG_FONT_TEXT_WIDTH * 0.25;
-        int maxLabelLocationX = (borderSize.x + endPointSidebar.x) *_ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
+        int minLabelLocationX = (sidebarBottomLeft.x - borderSize.x) * (_ScreenSize.x / _RTHandleScale.x) + DEBUG_FONT_TEXT_WIDTH * 0.25;
+        int maxLabelLocationX = (borderSize.x + endPointSidebar.x) * (_ScreenSize.x / _RTHandleScale.x) - (DEBUG_FONT_TEXT_WIDTH * 3);
 
         int labelLocationY = 0.0f;
 
@@ -354,18 +365,9 @@ Shader "Hidden/HDRP/DebugExposure"
             DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outputColor.rgb);
         }
 
-
-        //int2 labelEVMinLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), 0);
-        //int2 textLocation = labelEVMinLoc;
-        //DrawFloatExplicitPrecision(ParamExposureLimitMin, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-        //int2 labelEVMaxLoc = (sidebarBottomLeft * _ScreenSize.xy * (1.0f / _RTHandleScale.xy)) + int2(-(sidebarSize.x * _ScreenSize.x + DEBUG_FONT_TEXT_WIDTH), sidebarSize.y * 0.98 * _ScreenSize.y);
-        //textLocation = labelEVMaxLoc;
-        //DrawFloatExplicitPrecision(ParamExposureLimitMax, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
         int2 textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-
 
         return outputColor;
     }
