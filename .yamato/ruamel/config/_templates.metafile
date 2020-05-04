@@ -32,7 +32,7 @@ platforms:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
-      copycmd: copy packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       editorpath: .\.Editor
     - name: mac
       os: macos
@@ -43,7 +43,7 @@ platforms:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
-      copycmd: cp ./packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
 agent_win: 
   type: Unity::VM
