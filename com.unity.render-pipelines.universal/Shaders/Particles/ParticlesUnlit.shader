@@ -92,6 +92,10 @@ Shader "Universal Render Pipeline/Particles/Unlit"
             #pragma shader_feature _DISTORTION_ON
 
             // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
+
+            // -------------------------------------
             // Unity defined keywords
             #pragma multi_compile_fog
 

@@ -10,10 +10,10 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-    #if defined (SHADER_QUALITY_LOW) || !defined(_NORMALMAP)
+    #if defined (_SHADER_QUALITY_LOW) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
-    #elif defined (SHADER_QUALITY_MEDIUM)
+    #elif defined (_SHADER_QUALITY_MEDIUM)
         // Evaluates L2 SH in vertex and L0L1 in pixel
         #define EVALUATE_SH_MIXED
     #endif
@@ -56,7 +56,7 @@ float DistanceAttenuation(float distanceSqr, half2 distanceAttenuation)
     // for directional lights attenuation will be 1
     float lightAtten = rcp(distanceSqr);
 
-#if defined (SHADER_QUALITY_HIGH)
+#if defined (_SHADER_QUALITY_HIGH)
     // Use the smoothing factor also used in the Unity lightmapper.
     half factor = distanceSqr * distanceAttenuation.x;
     half smoothFactor = saturate(1.0h - factor * factor);

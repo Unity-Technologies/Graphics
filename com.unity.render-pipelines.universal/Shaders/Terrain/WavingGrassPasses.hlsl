@@ -41,7 +41,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.positionWS = input.posWSShininess.xyz;
 
     half3 viewDirWS = input.viewDir;
-#if defined (SHADER_QUALITY_HIGH)
+#if defined (_SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 

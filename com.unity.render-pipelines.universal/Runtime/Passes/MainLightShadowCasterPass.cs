@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_MaxCascades = 4;
         const int k_ShadowmapBufferBits = 16;
+        float m_MaxShadowDistance;
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
@@ -107,6 +108,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (!success)
                     return false;
             }
+
+            m_MaxShadowDistance = renderingData.cameraData.maxShadowDistance;
 
             return true;
         }
@@ -209,10 +212,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             float softShadowsProp = softShadows ? 1.0f : 0.0f;
-            float shadowDistance = (GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset).shadowDistance;
             cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, shadowDistance*shadowDistance, 0.0f));
+            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams, new Vector4(light.shadowStrength, softShadowsProp, m_MaxShadowDistance*m_MaxShadowDistance, 0.0f));
 
             if (m_ShadowCasterCascadesCount > 1)
             {

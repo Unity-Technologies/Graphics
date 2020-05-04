@@ -71,7 +71,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
         inputData.viewDirectionWS = input.viewDirWS;
     #endif
 
-    #if defined (SHADER_QUALITY_HIGH)
+    #if defined (_SHADER_QUALITY_HIGH)
         inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
     #endif
 
@@ -92,7 +92,7 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
-#if !defined(SHADER_QUALITY_LOW)
+#if !defined(_SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
     #endif
@@ -154,7 +154,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
-#if !defined(SHADER_QUALITY_LOW)
+#if !defined(_SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
         LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
     #endif

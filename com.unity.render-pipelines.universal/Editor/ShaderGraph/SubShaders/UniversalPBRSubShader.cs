@@ -94,6 +94,7 @@ namespace UnityEditor.Rendering.Universal
                 s_AdditionalLightShadowsKeyword,
                 s_ShadowsSoftKeyword,
                 s_MixedLightingSubtractiveKeyword,
+                s_ShaderQualityKeyword,
             },
         };
 
@@ -384,6 +385,21 @@ namespace UnityEditor.Rendering.Universal
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+        };
+
+        static KeywordDescriptor s_ShaderQualityKeyword = new KeywordDescriptor()
+        {
+            displayName = "Shader Quality",
+            referenceName = "_SHADER_QUALITY",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Low", referenceName = "LOW" },
+                new KeywordEntry() { displayName = "Medium", referenceName = "MEDIUM" },
+                new KeywordEntry() { displayName = "High", referenceName = "HIGH" },
+            }
         };
 #endregion
 

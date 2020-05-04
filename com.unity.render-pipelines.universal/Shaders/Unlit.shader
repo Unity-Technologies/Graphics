@@ -50,6 +50,10 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
+
             #include "UnlitInput.hlsl"
 
             struct Attributes

@@ -1,23 +1,22 @@
 #ifndef UNIVERSAL_SHADER_OPTIONS_INCLUDED
 #define UNIVERSAL_SHADER_OPTIONS_INCLUDED
 
-#if !defined (SHADER_QUALITY_LOW) && !defined (SHADER_QUALITY_MEDIUM) && !defined (SHADER_QUALITY_HIGH)
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#if !defined (_SHADER_QUALITY_LOW) && !defined (_SHADER_QUALITY_MEDIUM) && !defined (_SHADER_QUALITY_HIGH)
 #if defined(SHADER_API_GLES)
-#define SHADER_QUALITY_LOW
+#define _SHADER_QUALITY_LOW
+#elif defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
+#define _SHADER_QUALITY_MEDIUM
 #else
-#define SHADER_QUALITY_MEDIUM
-#endif
-#else
-#define SHADER_QUALITY_HIGH
+#define _SHADER_QUALITY_HIGH
 #endif
 #endif
 
-#if defined (SHADER_QUALITY_LOW)
+
+#if defined (_SHADER_QUALITY_LOW)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderQualityLow.cs.hlsl"
-#elif defined (SHADER_QUALITY_MEDIUM)
+#elif defined (_SHADER_QUALITY_MEDIUM)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderQualityMedium.cs.hlsl"
-#elif defined (SHADER_QUALITY_HIGH)
+#elif defined (_SHADER_QUALITY_HIGH)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderQualityHigh.cs.hlsl"
 #endif
 #endif

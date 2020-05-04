@@ -50,6 +50,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"

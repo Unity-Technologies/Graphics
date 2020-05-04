@@ -64,7 +64,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.normalWS = NormalizeNormalPerPixel(output.normalWS);
 
-#if defined (SHADER_QUALITY_HIGH)
+#if defined (_SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 
@@ -97,7 +97,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.color = input.color;
 
     half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
-#if !defined (SHADER_QUALITY_HIGH)
+#if !defined (_SHADER_QUALITY_HIGH)
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
 

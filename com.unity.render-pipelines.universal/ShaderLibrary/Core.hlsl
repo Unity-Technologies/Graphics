@@ -109,7 +109,7 @@ half OutputAlpha(half outputAlpha)
 // High Quality Tier: Normalize in both vertex and pixel shaders.
 real3 NormalizeNormalPerVertex(real3 normalWS)
 {
-#if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
+#if defined(_SHADER_QUALITY_LOW) && defined(_NORMALMAP)
     return normalWS;
 #else
     return normalize(normalWS);
@@ -118,7 +118,7 @@ real3 NormalizeNormalPerVertex(real3 normalWS)
 
 real3 NormalizeNormalPerPixel(real3 normalWS)
 { 
-#if defined(SHADER_QUALITY_HIGH) || defined(_NORMALMAP)
+#if defined(_SHADER_QUALITY_HIGH) || defined(_NORMALMAP)
     return normalize(normalWS);
 #else
     return normalWS;
