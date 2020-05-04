@@ -47,9 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Container = new VisualElement { name = "container" };
             {
-                m_Control = this.slot.InstantiateControl();
-                if (m_Control != null)
-                    m_Container.Add(m_Control);
+                CreateControl();
 
                 var slotElement = new VisualElement { name = "slot" };
                 {
@@ -97,9 +95,21 @@ namespace UnityEditor.ShaderGraph.Drawing
                     disposable.Dispose();
                 m_Container.Remove(m_Control);
             }
+            CreateControl();
+        }
+
+        void CreateControl()
+        {
             m_Control = slot.InstantiateControl();
             if (m_Control != null)
+            {
                 m_Container.Insert(0, m_Control);
+            }
+            else
+            {
+                // Some slot types don't support an input control, so hide this
+                m_Container.visible = m_EdgeControl.visible = false;
+            }
         }
 
         public void Dispose()

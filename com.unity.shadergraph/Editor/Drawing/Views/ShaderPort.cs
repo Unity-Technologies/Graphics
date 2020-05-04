@@ -45,6 +45,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 visualClass = slot.concreteValueType.ToClassName();
             }
         }
+
+        public Action<Port> OnDisconnect;
+
+        public override void Disconnect(Edge edge)
+        {
+            base.Disconnect(edge);
+            OnDisconnect?.Invoke(this);
+        }
     }
 
     static class ShaderPortExtensions

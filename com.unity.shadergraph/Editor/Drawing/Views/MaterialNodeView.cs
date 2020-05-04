@@ -35,7 +35,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsButton;
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
-        VisualElement m_AllPortsContainer;
 
         MaterialGraphView m_GraphView;
 
@@ -49,7 +48,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             var contents = this.Q("contents");
-            m_AllPortsContainer = this.Q("top");
 
             m_GraphView = graphView;
             mainContainer.style.overflow = StyleKeyword.None;    // Override explicit style set in base class
@@ -202,7 +200,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public bool FindPort(SlotReference slotRef, out ShaderPort port)
         {
-            port = m_AllPortsContainer.Query<ShaderPort>().Where(p => p.slot.slotReference.Equals(slotRef)).First();
+            port = inputContainer.Query<ShaderPort>().ToList()
+                .Concat(outputContainer.Query<ShaderPort>().ToList())
+                .First(p => p.slot.slotReference.Equals(slotRef));
+
             return port != null;
         }
 
@@ -279,11 +280,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override bool expanded
         {
-            get { return base.expanded; }
+            get => base.expanded;
             set
             {
-                if (base.expanded != value)
-                    base.expanded = value;
+                if (base.expanded == value)
+                    return;
+
+                base.expanded = value;
 
                 if (node.drawState.expanded != value)
                 {
@@ -292,7 +295,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.drawState = ds;
                 }
 
-                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+                foreach (var inputPort in inputContainer.Query<ShaderPort>().ToList())
+                {
+                    inputPort.parent.style.visibility = inputPort.style.visibility;
+                }
+
+                RefreshExpandedState(); // Necessary b/c we can't override enough Node.cs functions to update only what's needed
             }
         }
 
@@ -561,21 +569,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 }
-                case ModificationScope.Layout:
-                {
-                    var inputPorts = inputContainer.Query<ShaderPort>().ToList();
-                    foreach (var port in inputPorts)
-                    {
-                        if (GetPortInputView(port, out var portInputView))
-                        {
-                            UpdatePortInputVisibility(portInputView, port);
-                        }
-                    }
-                    break;
-                }
             }
 
-            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            RefreshExpandedState(); // Necessary b/c we can't override enough Node.cs functions to update only what's needed
 
             foreach (var listener in m_ControlItems.Children().OfType<AbstractMaterialNodeModificationListener>())
             {
@@ -593,7 +589,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var port = ShaderPort.Create(slot, m_ConnectorListener);
                 if (slot.isOutputSlot)
+                {
                     outputContainer.Add(port);
+                }
                 else
                 {
                     var portContainer = new VisualElement();
@@ -603,7 +601,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     portContainer.Add(port);
                     inputContainer.Add(portContainer);
                 }
+                port.OnDisconnect = OnEdgeDisconnected;
             }
+        }
+
+        void OnEdgeDisconnected(Port obj)
+        {
+            RefreshExpandedState();
         }
 
         static bool GetPortInputView(ShaderPort port, out PortInputView view)
@@ -614,7 +618,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in m_AllPortsContainer.Query<ShaderPort>().ToList())
+            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
@@ -644,8 +648,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void UpdatePortInputVisibility(PortInputView portInputView, ShaderPort port)
         {
-            portInputView.visible = port.visible && !port.slot.isConnected;
+            SetElementVisible(portInputView, !port.slot.isConnected);
+            port.parent.style.visibility = port.style.visibility;
             portInputView.MarkDirtyRepaint();
+        }
+
+        void SetElementVisible(VisualElement element, bool isVisible)
+        {
+            const string k_HiddenClassList = "hidden";
+
+            if (isVisible)
+            {
+                // Restore default value for visibility by setting it to StyleKeyword.Null.
+                // Setting it to Visibility.Visible would make it visible even if parent is hidden.
+                element.style.visibility = StyleKeyword.Null;
+                element.RemoveFromClassList(k_HiddenClassList);
+            }
+            else
+            {
+                element.style.visibility = Visibility.Hidden;
+                element.AddToClassList(k_HiddenClassList);
+            }
         }
 
         void OnMouseHover(EventBase evt)
