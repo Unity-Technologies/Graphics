@@ -3524,7 +3524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-            cmd.SetGlobalBuffer(HDShaderIDs._LightFlagDatas, param.lightData.lightFlagData);
+            cmd.SetGlobalBuffer(HDShaderIDs._LightFlagDatas, m_LightLoopLightData.lightFlagData);
         }
 
         static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
