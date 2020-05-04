@@ -19,7 +19,7 @@ class Package_PackJob():
         job.set_agent(agent)
         job.add_commands( [
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
-                f'upm-ci package pack --artifacts-path {PATH_PACKAGES} --package-path {package["packagename"]}'])
+                f'upm-ci package pack --artifacts-path packages --package-path {package["packagename"]}'])
         job.add_artifacts_packages()
         return job
     
