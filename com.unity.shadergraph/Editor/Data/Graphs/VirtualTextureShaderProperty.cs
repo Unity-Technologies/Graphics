@@ -19,8 +19,8 @@ namespace UnityEditor.ShaderGraph
 
             // add at least one layer
             value.layers = new List<SerializableVirtualTextureLayer>();
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", new SerializableTexture()));
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", "Layer0", new SerializableTexture()));
+            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", "Layer1", new SerializableTexture()));
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -45,7 +45,8 @@ namespace UnityEditor.ShaderGraph
             for (int layer= 0; layer < value.layers.Count; layer++)
             {
                 string layerName = value.layers[layer].layerName;
-                result += $"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
+                string layerRefName = value.layers[layer].layerRefName;
+                result += $"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
             }
             return result;
         }
@@ -70,7 +71,7 @@ namespace UnityEditor.ShaderGraph
                 // declare regular texture properties (for fallback case)
                 for (int i = 0; i < value.layers.Count; i++)
                 {
-                    string layerRefName = value.layers[i].layerName;
+                    string layerRefName = value.layers[i].layerRefName;
                     builder.Append(
                         $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
                 }
@@ -83,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < value.layers.Count; i++)
                 {
                     if (i != 0) builder.Append(",");
-                    builder.Append(value.layers[i].layerName);
+                    builder.Append(value.layers[i].layerRefName);
                 }
                 builder.Append(")");
                 builder.AppendLine(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string

@@ -8,11 +8,13 @@ namespace UnityEditor.ShaderGraph.Internal
     public struct SerializableVirtualTextureLayer
     {
         public string layerName;
+        public string layerRefName;
         public SerializableTexture layerTexture;
 
-        public SerializableVirtualTextureLayer(string name, SerializableTexture texture)
+        public SerializableVirtualTextureLayer(string name, string refName, SerializableTexture texture)
         {
             this.layerName = name;
+            this.layerRefName = refName;
             this.layerTexture = texture;
         }
     }
