@@ -545,9 +545,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources = null;
             }
 
+            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
             if (HDRenderPipeline.defaultAsset.renderPipelineEditorResources == null)
             {
-                var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
                 HDRenderPipeline.defaultAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
             }
 
@@ -556,7 +557,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 InternalEditorUtility.SaveToSerializedFileAndForget(
                     new Object[]{HDRenderPipeline.defaultAsset.renderPipelineEditorResources },
-                    HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset",
+                    editorResourcesPath,
                     true);
             }
 

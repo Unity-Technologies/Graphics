@@ -379,14 +379,15 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrpAsset == null)
                 return;
 
-            var objs = InternalEditorUtility.LoadSerializedFileAndForget(HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset");
+            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
             hdrpAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
             if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
                 HDUtils.GetHDRenderPipelinePath()))
             {
                 InternalEditorUtility.SaveToSerializedFileAndForget(
                     new UnityEngine.Object[] { HDRenderPipeline.defaultAsset.renderPipelineEditorResources },
-                    HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset",
+                    editorResourcesPath,
                     true);
             }
         }
