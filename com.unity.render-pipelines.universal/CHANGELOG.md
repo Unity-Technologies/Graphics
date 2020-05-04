@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Mesh GPU Instancing option is now hidden from the particles system renderer as this feature is not supported by URP.
 - The 2D Renderer now supports camera stacking.
+- 2D shaders now use half-precision floats whenever precise results are not necessary.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
