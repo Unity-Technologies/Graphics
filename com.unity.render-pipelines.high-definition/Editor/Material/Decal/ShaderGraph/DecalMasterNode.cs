@@ -466,6 +466,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public bool virtualTexturingEnabled => false;
+        public bool supportsVirtualTexturing => false;
     }
 }

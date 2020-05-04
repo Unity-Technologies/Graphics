@@ -165,18 +165,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         /*
-            True if the masternode of the graph this node is currently in supports virtual texturing.
-        */ 
-        private bool supportedByMasterNode
-        {
-            get
-            {
-                var masterNode = owner?.GetNodes<IMasterNode>().FirstOrDefault();
-                return masterNode?.virtualTexturingEnabled ?? false;
-            }
-        }
-
-        /*
             The panel behind the cogwheel node settings
         */
         class SampleVirtualTextureNodeSettingsView : VisualElement
@@ -283,18 +271,25 @@ namespace UnityEditor.ShaderGraph
                     });
                 });
 
-#if !ENABLE_VIRTUALTEXTURES
-                ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("VT is disabled, this node will do regular 2D sampling.")));
-#endif
-                if (!m_Node.owner.isSubGraph && !m_Node.supportedByMasterNode)
+                // display warning if the current master node doesn't support virtual texturing
+                if (!m_Node.owner.isSubGraph)
                 {
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support VT, this node will do regular 2D sampling.")));
+                    bool supportedByMasterNode = m_Node.owner.GetNodes<IMasterNode>().FirstOrDefault()?.supportsVirtualTexturing ?? false;
+                    if (!supportedByMasterNode)
+                        ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support Virtual Texturing, this node will do regular 2D sampling.")));
                 }
 
+                // display warning if the current render pipeline doesn't support virtual texturing
                 IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
-                if (vtRp == null || vtRp.virtualTexturingEnabled == false)
+                if (vtRp == null)
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline does not support Virtual Texturing, this node will do regular 2D sampling.")));
+                else if (vtRp.virtualTexturingEnabled == false)
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline has disabled Virtual Texturing, this node will do regular 2D sampling.")));
+                else
                 {
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline does not support VT." + ((vtRp ==null) ? "(Interface not implemented by" + GraphicsSettings.currentRenderPipeline.GetType().Name + ")" : "(virtualTexturingEnabled == false)"))));
+#if !ENABLE_VIRTUALTEXTURES
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.")));
+#endif
                 }
 
                 Add(ps);

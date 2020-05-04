@@ -587,6 +587,6 @@ namespace UnityEditor.Rendering.HighDefinition
             base.CollectShaderProperties(collector, generationMode);
         }
 
-        public bool virtualTexturingEnabled => true;
+        public bool supportsVirtualTexturing => true;
     }
 }
