@@ -72,7 +72,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < value.layers.Count; i++)
                 {
                     string layerRefName = value.layers[i].layerRefName;
-                    builder.Append(
+                    builder.AppendLine(
                         $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
                 }
                 // declare texture stack

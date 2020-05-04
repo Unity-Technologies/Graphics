@@ -71,7 +71,6 @@ namespace UnityEditor.ShaderGraph
                             Debug.Assert(shaderKeywords.permutations.Count == 0, $"Shader has {shaderKeywords.permutations.Count} permutations but keywordPermutationsPerNode of some nodes are null.");
                             foreach (var feedbackSlot in sgNode.asset.vtFeedbackVariables)
                             {
-
                                 feedbackVariablesPerPermutation[0].Add(node.GetVariableNameForNode() + "_" + feedbackSlot);
                             }
                         }

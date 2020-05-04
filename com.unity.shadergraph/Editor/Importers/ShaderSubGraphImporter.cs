@@ -112,6 +112,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
             asset.keywords = graph.keywords.ToList();
