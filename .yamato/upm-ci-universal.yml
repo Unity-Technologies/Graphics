@@ -14,7 +14,7 @@ platforms:
     os: windows
     type: Unity::VM::GPU
     image: graphics-foundation/win10-dxr:latest
-    flavor: b1.xlarge
+    flavor: b1.large
     components:
       - editor
       - il2cpp
