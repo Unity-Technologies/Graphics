@@ -15,6 +15,9 @@ Shader "HDRP/AxF"
         // UI Only:
         [Enum(World, 0, Local, 1)] _PlanarSpace("Planar/Triplanar space", Float) = 0
 
+        _NormalMipNotchCenter("NormalMipNotchCenter", Range(0.0, 1.0)) = 1.0
+        _NormalMipNotchParams("NormalMipNotchParams (D,S,R,L)", Vector) = (0, 0, 0, 0)
+
         // Tilings and offsets
         _Material_SO( "Main Material Tiling & Offset", Vector) = (1, 1, 0, 0)
         _SVBRDF_DiffuseColorMap_SO( "_SVBRDF_DiffuseColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
@@ -149,8 +152,10 @@ Shader "HDRP/AxF"
 
     HLSLINCLUDE
 
+    #pragma prefer_hlslcc gles
+    #pragma exclude_renderers d3d11_9x gles
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    //#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
