@@ -85,6 +85,8 @@ all_project_ci_nightly_{{ editor.version }}:
       rerun: always
     - path: .yamato/upm-ci-universal_hybrid.yml#All_Universal_Hybrid_{{ editor.version }}
       rerun: always
+    - path: .yamato/upm-ci-hdrp.yml#HDRP_Win_DX12_playmode_{{ editor.version }}
+      rerun: always
   triggers:
     recurring:
       - branch: master

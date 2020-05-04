@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireMeshUVExtensions
     {
-        public static bool RequiresMeshUV(this ISlot slot, UVChannel channel)
+        public static bool RequiresMeshUV(this MaterialSlot slot, UVChannel channel)
         {
             var mayRequireMeshUV = slot as IMayRequireMeshUV;
             return mayRequireMeshUV != null && mayRequireMeshUV.RequiresMeshUV(channel);

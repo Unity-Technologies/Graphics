@@ -21,6 +21,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     || snippet.passName == "SubSurfaceDXR")
                     return true;
             }
+            else
+            {
+                // If we only support Performance mode, we do not want the indirectDXR shader
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Performance
+                    && snippet.passName == "IndirectDXR")
+                    return true;
+
+                // If we only support Quality mode, we do not want the indirectDXR shader
+                if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality
+                    && snippet.passName == "GBufferDXR")
+                    return true;
+            }
 
             return false;
         }
