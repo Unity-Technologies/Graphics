@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_SampleQuality = value;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
