@@ -20,7 +20,7 @@ templates:
     dependencies:
       - core
       - shadergraph
-      - pack_universal
+      - universal
     hascodependencies: 1
 platforms:
     - name: win

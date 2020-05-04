@@ -83,7 +83,7 @@ test_universal_template_win_trunk:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -105,7 +105,7 @@ test_universal_template_win_trunk_dependencies:
       -  .yamato/_templates.yml#test_universal_template_win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -173,7 +173,7 @@ test_universal_template_mac_trunk:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -195,7 +195,7 @@ test_universal_template_mac_trunk_dependencies:
       -  .yamato/_templates.yml#test_universal_template_mac_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -263,7 +263,7 @@ test_universal_template_win_2020.1:
       -  .yamato/_editor.yml#editor:priming:2020.1:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -285,7 +285,7 @@ test_universal_template_win_2020.1_dependencies:
       -  .yamato/_templates.yml#test_universal_template_win_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -353,7 +353,7 @@ test_universal_template_mac_2020.1:
       -  .yamato/_editor.yml#editor:priming:2020.1:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -375,7 +375,7 @@ test_universal_template_mac_2020.1_dependencies:
       -  .yamato/_templates.yml#test_universal_template_mac_2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -443,7 +443,7 @@ test_universal_template_win_fast-trunk:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -465,7 +465,7 @@ test_universal_template_win_fast-trunk_dependencies:
       -  .yamato/_templates.yml#test_universal_template_win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -533,7 +533,7 @@ test_universal_template_mac_fast-trunk:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -555,7 +555,7 @@ test_universal_template_mac_fast-trunk_dependencies:
       -  .yamato/_templates.yml#test_universal_template_mac_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -623,7 +623,7 @@ test_universal_template_win_fast-2020.1:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:windows
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -645,7 +645,7 @@ test_universal_template_win_fast-2020.1_dependencies:
       -  .yamato/_templates.yml#test_universal_template_win_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -713,7 +713,7 @@ test_universal_template_mac_fast-2020.1:
       -  .yamato/_editor.yml#editor:priming:fast-2020.1:macos
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -735,7 +735,7 @@ test_universal_template_mac_fast-2020.1_dependencies:
       -  .yamato/_templates.yml#test_universal_template_mac_fast-2020.1
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#pack_pack_universal
+      -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
