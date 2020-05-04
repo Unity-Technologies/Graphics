@@ -7,6 +7,8 @@ Shader "Hidden/HDRP/DebugExposure"
     #define DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 
+#pragma enable_d3d11_debug_symbols
+
     #pragma vertex Vert
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
@@ -284,8 +286,6 @@ Shader "Hidden/HDRP/DebugExposure"
 
     }
 
-
-
     float3 FragMetering(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -293,7 +293,26 @@ Shader "Hidden/HDRP/DebugExposure"
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
-        return color * weight;
+        float pipFraction = 0.33f;
+        uint borderSize = 3;
+        float2 topRight = pipFraction * _ScreenSize.xy;
+
+        if (all(input.positionCS.xy < topRight))
+        {
+            float2 scaledUV = uv / pipFraction;
+            float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
+            float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy);
+
+            return pipColor * weight;
+        }
+        else if (all(input.positionCS.xy < (topRight + borderSize)))
+        {
+            return float3(0.33f, 0.33f, 0.33f);
+        }
+        else
+        {
+            return color;
+        }
     }
 
     float3 FragSceneEV100(Varyings input) : SV_Target
