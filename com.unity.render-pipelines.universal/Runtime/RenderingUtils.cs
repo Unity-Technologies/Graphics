@@ -294,6 +294,13 @@ namespace UnityEngine.Rendering.Universal
             }
             return false;
         }
+
+        internal static bool IsAttachmentTransient(AttachmentDescriptor attachment)
+        {
+            return attachment.loadAction == RenderBufferLoadAction.DontCare &&
+                   attachment.storeAction == RenderBufferStoreAction.DontCare;
+        }
+
         internal static int GetDepthAttachmentIndex(NativeArray<AttachmentDescriptor> source)
         {
             for (int i = 0; i < source.Length; ++i)
@@ -330,6 +337,15 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
+        internal static int IndexOf(List<AttachmentDescriptor> source, AttachmentDescriptor value)
+        {
+            for (int i = 0; i < source.Count; ++i)
+            {
+                if (source[i] == value)
+                    return i;
+            }
+            return -1;
+        }
         /// <summary>
         /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
         /// </summary>

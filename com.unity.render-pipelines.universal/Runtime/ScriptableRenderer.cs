@@ -627,6 +627,7 @@ namespace UnityEngine.Rendering.Universal
                                 continue;
 
                             rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+
                             for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                             {
                                 if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
@@ -634,15 +635,24 @@ namespace UnityEngine.Rendering.Universal
                                     && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
                                     break;
 
-                                if (!RenderingUtils.Contains(attachmentList,
-                                        rp.colorAttachmentDescriptors[i]))
-                                {
+                                var isTransient =
+                                    RenderingUtils.IsAttachmentTransient(rp.colorAttachmentDescriptors[i]);
+
+                                var descIdx = RenderingUtils.IndexOf(attachmentList,
+                                    rp.colorAttachmentDescriptors[i]);
+
+                                // Transient attachments should only be used in a single sub pass, therefore no need to check for duplication
+                                if (descIdx == -1 || isTransient)
                                     attachmentList.Add(rp.colorAttachmentDescriptors[i]);
-                                    if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
-                                        depthAttachmentIdx = attachmentList.Count - 1;
-                                }
+
+                                if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
+                                    depthAttachmentIdx = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
+                                else
+                                    rp.m_ColorBindings[i] = descIdx == -1 || isTransient ? attachmentList.Count - 1 : descIdx;
+
                                 if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
                                     m_FirstTimeCameraColorTargetIsBound = false;
+
                             }
 
                             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
@@ -656,6 +666,19 @@ namespace UnityEngine.Rendering.Universal
                                 if (rp.depthAttachmentDescriptor == m_CameraDepthTargetAttachment)
                                     m_FirstTimeCameraDepthTargetIsBound = false;
                             }
+
+                            if (rp.hasInputAttachment)
+                            {
+                                // Need a copy to correctly map transient attachments as they might be identical
+                                var listCopy = attachmentList.ToArray();
+                                for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
+                                {
+                                    var idx  = RenderingUtils.IndexOf(listCopy,
+                                        rp.inputAttachmentDescriptors[i]);
+                                    rp.m_InputBindings[i] = idx;
+                                    listCopy[idx] = ScriptableRenderPass.EmptyAttachment;
+                                }
+                            }
                         }
 
                         context.ExecuteCommandBuffer(cmd);
@@ -666,47 +689,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         Debug.LogError("Maximum attachment count " + k_MaxAttachmentCount + " has been exceeded with " + attachmentList.Count );
                         break;
-                    }
-
-                    //Map color and input attachments for the subpass
-                    //We use the copy for mapping attachments and replacing them with empty to avoid duplicating transient attachments
-                    AttachmentDescriptor[] attachmentCopy = attachmentList.ToArray();
-
-                    NativeArray<int> colorIndices =
-                        new NativeArray<int>((int)colorCount, Allocator.Temp);
-                    NativeArray<int> inputIndices = new NativeArray<int>(0, Allocator.Temp);
-
-                    for (int i = 0; i < colorCount; i++)
-                    {
-                        var idx = RenderingUtils.IndexOf(attachmentCopy, renderPass.colorAttachmentDescriptors[i]);
-
-                        if (idx != -1)
-                        {
-                            if (attachmentCopy[idx].format == RenderTextureFormat.Depth)
-                                depthAttachmentIdx = idx;
-
-                            attachmentCopy[idx] = ScriptableRenderPass.EmptyAttachment;
-
-                            if (idx != depthAttachmentIdx)
-                                colorIndices[i] = idx;
-                        }
-                    }
-
-                    if (renderPass.hasInputAttachment)
-                    {
-                        inputIndices = new NativeArray<int>(renderPass.inputAttachmentDescriptors.Length, Allocator.Temp);
-
-                        for (int i = 0; i < renderPass.inputAttachmentDescriptors.Length; i++)
-                        {
-                            var idx  = RenderingUtils.IndexOf(attachmentCopy,
-                                renderPass.inputAttachmentDescriptors[i]);
-
-                            if (idx != -1)
-                            {
-                                attachmentCopy[idx] = ScriptableRenderPass.EmptyAttachment;
-                                inputIndices[i] = idx;
-                            }
-                        }
                     }
 
                     var descriptor = renderPass.renderPassDescriptor;
@@ -724,14 +706,9 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (renderPass.hasInputAttachment)
-                        context.BeginSubPass(colorIndices, inputIndices, descriptor.readOnlyDepth);
+                        context.BeginSubPass(renderPass.m_ColorBindings, renderPass.m_InputBindings, descriptor.readOnlyDepth);
                     else
-                        context.BeginSubPass(colorIndices);
-
-                    if (inputIndices.IsCreated)
-                        inputIndices.Dispose();
-                    if (colorIndices.IsCreated)
-                        colorIndices.Dispose();
+                        context.BeginSubPass(renderPass.m_ColorBindings);
 
                     ExecuteNativeRenderPass(context, renderPass, ref renderingData);
                     context.EndSubPass();
@@ -965,6 +942,12 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             renderPass.Execute(context, ref renderingData);
+
+            if (renderPass.m_ColorBindings.IsCreated)
+                renderPass.m_ColorBindings.Dispose();
+            if (renderPass.m_InputBindings.IsCreated)
+                renderPass.m_InputBindings.Dispose();
+
 
         }
         void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)

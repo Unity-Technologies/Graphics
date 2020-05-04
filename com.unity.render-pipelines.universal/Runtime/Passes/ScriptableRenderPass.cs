@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -103,6 +104,8 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         internal AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
         internal AttachmentDescriptor[] m_InputAttachmentDescriptors;
+        internal NativeArray<int> m_ColorBindings;
+        internal NativeArray<int> m_InputBindings;
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         internal AttachmentDescriptor m_DepthAttachmentDescriptor;
         RenderPassDescriptor m_RenderPassDescriptor;
@@ -170,6 +173,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_DepthAttachmentDescriptor = depthAttachment;
             ConfigureTarget(colorAttachment);
+            m_ColorBindings = new NativeArray<int>(m_ColorBindings.Length, Allocator.Temp);
         }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -203,6 +207,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachmentDescriptors = colorAttachments;
             m_DepthAttachmentDescriptor = depthAttachment;
+            m_ColorBindings = new NativeArray<int>(colorAttachments.Length, Allocator.Temp);
         }
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -224,6 +229,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachmentDescriptors[0] = attachment;
             for (int i = 1; i < m_ColorAttachmentDescriptors.Length; ++i)
                 m_ColorAttachmentDescriptors[i] = EmptyAttachment;
+            m_ColorBindings = new NativeArray<int>(1, Allocator.Temp);
         }
 
         /// <summary>
@@ -260,11 +266,13 @@ namespace UnityEngine.Rendering.Universal
         internal void ConfigureInputAttachment(AttachmentDescriptor input)
         {
             m_InputAttachmentDescriptors = new AttachmentDescriptor[] { input };
+            m_InputBindings = new NativeArray<int>(1, Allocator.Temp);
         }
 
         internal void ConfigureInputAttachment(AttachmentDescriptor[] inputs)
         {
             m_InputAttachmentDescriptors = inputs;
+            m_InputBindings = new NativeArray<int>(inputs.Length, Allocator.Temp);
         }
 
         internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = true)
@@ -286,7 +294,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
         public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
-        {}
+        {
+        }
 
         /// <summary>
         /// This method is called by the renderer before executing the render pass.
