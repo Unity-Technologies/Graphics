@@ -26,7 +26,7 @@ After you add an **HDRI Sky** override, you must set the Volume to use **HDRI Sk
 | - **Procedural distortion**      | Check the box to distort the sky using a uniform wind direction. |
 | -- **Flowmap**                   | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the sky. Only available if **Procedural is unchecked. |
 | -- **Upper Hemisphere Only**     | Check the box if the flowmap contains distortion for the sky above the horizon only. Only available if **Procedural is unchecked. |
-| - **Scroll direction**           | Use the slider to set the scrolling directio for the distortion, in degrees. |
+| - **Scroll direction**           | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**               | Modify the speed at which HDRP scrolls the distortion texture. |
 | **Intensity Mode**        | Use the drop-down to select the method that HDRP uses to calculate the sky intensity.<br />&#8226; **Exposure**: HDRP calculates intensity from an exposure value in EV100.<br />&#8226; **Multiplier**: HDRP calculates intensity from a flat multiplier. <br />&#8226; **Lux**: HDRP calculates intensity in terms of a target Lux value. |
 | - **Exposure**                   | Set the amount of light per unit area that HDRP applies to the HDRI Sky cubemap.<br />This property only appears when you select **Exposure** from the **Intensity Mode** drop-down. |

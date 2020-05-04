@@ -20,18 +20,11 @@ float3 GetSkyViewDirWS(float2 positionCS)
 // Returns latlong coords from view direction
 float2 GetLatLongCoords(float3 dir, float upperHemisphereOnly)
 {
-    float angle = atan2(dir.z, dir.x)/(2.0*PI) + 0.5;
-    float height = lerp(dir.y * 0.5 + 0.5, dir.y, upperHemisphereOnly);
-
-    return float2(angle, height);
-}
-
-// Generates a flow for a constant wind in the z direction
-// source: https://www.gdcvault.com/play/1020146/Moving-the-Heavens-An-Artistic
-float2 GenerateFlow(float3 dir)
-{
-    float3 d = float3(0, 1, 0) - dir;
-    return (dir.y > 0) * normalize(d - dot(d, dir) * dir).zx;
+    const float2 invAtan = float2(0.1591, 0.3183);
+    float2 uv = float2(atan2(dir.x, dir.z), asin(dir.y));
+    uv = uv * invAtan + 0.5;
+    uv.y = lerp(uv.y, uv.y * 2.0 - 1.0, upperHemisphereOnly);
+    return uv;
 }
 
 #endif // __SKYUTILS_H__
