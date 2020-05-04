@@ -556,7 +556,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        const string kGraphVariables = "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl";
         const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
@@ -572,7 +571,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static IncludeCollection ShaderGraphPregraph = new IncludeCollection
         {
             { kGraphFunctions, IncludeLocation.Pregraph },
-            { kGraphVariables, IncludeLocation.Pregraph },
         };
 
         public static IncludeCollection CorePostgraph = new IncludeCollection
@@ -602,7 +600,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
-    } 
+    }
 #endregion
 
 #region Defines
