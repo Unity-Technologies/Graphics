@@ -1,126 +1,101 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using Data.Interfaces;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    abstract class BlackboardFieldView : VisualElement
+    class BlackboardFieldView : BlackboardField, IInspectable
     {
-        readonly BlackboardField m_BlackboardField;
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
 
         ShaderInput m_Input;
 
-        Toggle m_ExposedToogle;
-        TextField m_ReferenceNameField;
-        List<VisualElement> m_Rows;
-        public List<VisualElement> rows => m_Rows;
+        [Inspectable("Shader Input", null)]
+        public ShaderInput shaderInput => m_Input;
 
-        int m_UndoGroup = -1;
-        public int undoGroup => m_UndoGroup;
+        static Type s_ContextualMenuManipulator = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
 
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
+        // Common
         IManipulator m_ResetReferenceMenu;
 
-        EventCallback<KeyDownEvent> m_KeyDownCallback;
-        public EventCallback<KeyDownEvent> keyDownCallback => m_KeyDownCallback;
-        EventCallback<FocusOutEvent> m_FocusOutCallback;
-        public EventCallback<FocusOutEvent> focusOutCallback => m_FocusOutCallback;
+        private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
+        {
+            switch(m_Input)
+            {
+                case AbstractShaderProperty property:
+                    var graphEditorView = GetFirstAncestorOfType<GraphEditorView>();
+                    if(graphEditorView == null)
+                        return;
+                    var colorManager = graphEditorView.colorManager;
+                    var nodes = graphEditorView.graphView.Query<MaterialNodeView>().ToList();
 
-        public BlackboardFieldView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
+                    colorManager.SetNodesDirty(nodes);
+                    colorManager.UpdateNodeViews(nodes);
+
+                    foreach (var node in graph.GetNodes<PropertyNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
+                case ShaderKeyword keyword:
+                    foreach (var node in graph.GetNodes<KeywordNode>())
+                    {
+                        node.UpdateNode();
+                        node.Dirty(modificationScope);
+                    }
+
+                    // Cant determine if Sub Graphs contain the keyword so just update them
+                    foreach (var node in graph.GetNodes<SubGraphNode>())
+                    {
+                        node.Dirty(modificationScope);
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
+        private Action m_propertyViewUpdateTrigger;
+        private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+
+        public string inspectorTitle
+        {
+            get
+            {
+                switch(m_Input)
+                {
+                    case AbstractShaderProperty property:
+                        return $"{m_Input.displayName} (Property)";
+                    case ShaderKeyword keyword:
+                        return $"{m_Input.displayName} (Keyword)";
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
+        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
-            m_BlackboardField = blackboardField;
             m_Graph = graph;
             m_Input = input;
-            m_Rows = new List<VisualElement>();
-
-            m_KeyDownCallback = new EventCallback<KeyDownEvent>(evt =>
-            {
-                // Record Undo for input field edit
-                if (m_UndoGroup == -1)
-                {
-                    m_UndoGroup = Undo.GetCurrentGroup();
-                    graph.owner.RegisterCompleteObjectUndo("Change property value");
-                }
-                // Handle scaping input field edit
-                if (evt.keyCode == KeyCode.Escape && m_UndoGroup > -1)
-                {
-                    Undo.RevertAllDownToGroup(m_UndoGroup);
-                    m_UndoGroup = -1;
-                    evt.StopPropagation();
-                }
-                // Dont record Undo again until input field is unfocused
-                m_UndoGroup++;
-                this.MarkDirtyRepaint();
-            });
-
-            m_FocusOutCallback = new EventCallback<FocusOutEvent>(evt =>
-            {
-                // Reset UndoGroup when done editing input field
-                m_UndoGroup = -1;
-            });
-
-            BuildDefaultFields(input);
-            BuildCustomFields(input);
-
-            AddToClassList("sgblackboardFieldView");
         }
 
-        void BuildDefaultFields(ShaderInput input)
+        public object GetObjectToInspect()
         {
-            if(!m_Graph.isSubGraph)
-            {
-                m_ExposedToogle = new Toggle();
-                m_ExposedToogle.OnToggleChanged(evt =>
-                {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
-                    input.generatePropertyBlock = evt.newValue;
-                    m_BlackboardField.icon = input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
-                    Rebuild();
-                    DirtyNodes(ModificationScope.Graph);
-                });
-                m_ExposedToogle.value = input.generatePropertyBlock && input.isExposable;
-                AddRow("Exposed", m_ExposedToogle, input.isExposable);
-            }
-
-            if(!m_Graph.isSubGraph || input is ShaderKeyword)
-            {
-                m_ReferenceNameField = new TextField(512, false, false, ' ') { isDelayed = true };
-                m_ReferenceNameField.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
-                m_ReferenceNameField.value = input.referenceName;
-                m_ReferenceNameField.RegisterValueChangedCallback(evt =>
-                {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Change Reference Name");
-                    if (m_ReferenceNameField.value != m_Input.referenceName)
-                        m_Graph.SanitizeGraphInputReferenceName(input, evt.newValue);
-
-                    m_ReferenceNameField.value = input.referenceName;
-                    if (string.IsNullOrEmpty(input.overrideReferenceName))
-                        m_ReferenceNameField.RemoveFromClassList("modified");
-                    else
-                        m_ReferenceNameField.AddToClassList("modified");
-
-                    Rebuild();
-                    DirtyNodes(ModificationScope.Graph);
-                    UpdateReferenceNameResetMenu();
-                });
-                if (!string.IsNullOrEmpty(input.overrideReferenceName))
-                    m_ReferenceNameField.AddToClassList("modified");
-
-                AddRow("Reference", m_ReferenceNameField, input.isRenamable);
-            }
+            return shaderInput;
         }
-
-        public abstract void BuildCustomFields(ShaderInput input);
-        public abstract void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node);
 
         void UpdateReferenceNameResetMenu()
         {
@@ -141,53 +116,120 @@ namespace UnityEditor.ShaderGraph.Drawing
             evt.menu.AppendAction("Reset Reference", e =>
                 {
                     m_Input.overrideReferenceName = null;
-                    m_ReferenceNameField.value = m_Input.referenceName;
-                    m_ReferenceNameField.RemoveFromClassList("modified");
+                    m_resetReferenceNameTrigger(shaderInput.referenceName);
                     DirtyNodes(ModificationScope.Graph);
                 }, DropdownMenuAction.AlwaysEnabled);
         }
 
-        public VisualElement AddRow(string labelText, VisualElement control, bool enabled = true)
+#region PropertyDrawers
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            VisualElement rowView = CreateRow(labelText, control, enabled);
-            Add(rowView);
-            m_Rows.Add(rowView);
-            return rowView;
+            if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
+            {
+                shaderInputPropertyDrawer.GetPropertyData(m_Graph.isSubGraph,
+                    ChangeExposedField,
+                    ChangeReferenceNameField,
+                    () => m_Graph.ValidateGraph(),
+                    () => m_Graph.OnKeywordChanged(),
+                    ChangePropertyValue,
+                    RegisterPropertyChangeUndo,
+                    MarkNodesAsDirty);
+
+                m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
+                m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+            }
         }
 
-        public void Rebuild()
+        public PropertyInfo[] GetPropertyInfo()
         {
-            // Delete all rows
-            for (int i = 0; i < m_Rows.Count; i++)
+            return GetType().GetProperties();
+        }
+
+        void ChangeExposedField(bool newValue)
+        {
+            m_Input.generatePropertyBlock = newValue;
+            icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+        }
+
+        void ChangeReferenceNameField(string newValue)
+        {
+            if (newValue != m_Input.referenceName)
+                m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
+
+            UpdateReferenceNameResetMenu();
+        }
+
+        void RegisterPropertyChangeUndo(string actionName)
+        {
+            m_Graph.owner.RegisterCompleteObjectUndo(actionName);
+        }
+
+        void MarkNodesAsDirty(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
+        {
+            DirtyNodes(modificationScope);
+            if(triggerPropertyViewUpdate)
+                m_propertyViewUpdateTrigger();
+        }
+
+        void ChangePropertyValue(object newValue)
+        {
+            var property = m_Input as AbstractShaderProperty;
+            if(property == null)
+                return;
+
+            switch(property)
             {
-                if (m_Rows[i].parent == this)
-                    Remove(m_Rows[i]);
+                case BooleanShaderProperty booleanProperty:
+                    booleanProperty.value = ((ToggleData)newValue).isOn;
+                    break;
+                case Vector1ShaderProperty vector1Property:
+                    vector1Property.value = (float) newValue;
+                    break;
+                case Vector2ShaderProperty vector2Property:
+                    vector2Property.value = (Vector2) newValue;
+                    break;
+                case Vector3ShaderProperty vector3Property:
+                    vector3Property.value = (Vector3) newValue;
+                    break;
+                case Vector4ShaderProperty vector4Property:
+                    vector4Property.value = (Vector4) newValue;
+                    break;
+                case ColorShaderProperty colorProperty:
+                    colorProperty.value = (Color) newValue;
+                    break;
+                case Texture2DShaderProperty texture2DProperty:
+                    texture2DProperty.value.texture = (Texture) newValue;
+                    break;
+                case Texture2DArrayShaderProperty texture2DArrayProperty:
+                    texture2DArrayProperty.value.textureArray = (Texture2DArray) newValue;
+                    break;
+                case Texture3DShaderProperty texture3DProperty:
+                    texture3DProperty.value.texture = (Texture3D) newValue;
+                    break;
+                case CubemapShaderProperty cubemapProperty:
+                    cubemapProperty.value.cubemap = (Cubemap) newValue;
+                    break;
+                case Matrix2ShaderProperty matrix2Property:
+                    matrix2Property.value = (Matrix4x4) newValue;
+                    break;
+                case Matrix3ShaderProperty matrix3Property:
+                    matrix3Property.value = (Matrix4x4) newValue;
+                    break;
+                case Matrix4ShaderProperty matrix4Property:
+                    matrix4Property.value = (Matrix4x4) newValue;
+                    break;
+                case SamplerStateShaderProperty samplerStateProperty:
+                    samplerStateProperty.value = (TextureSamplerState) newValue;
+                    break;
+                case GradientShaderProperty gradientProperty:
+                    gradientProperty.value = (Gradient) newValue;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
-            // Rebuild
-            BuildDefaultFields(m_Input);
-            BuildCustomFields(m_Input);
+            MarkDirtyRepaint();
         }
-
-        VisualElement CreateRow(string labelText, VisualElement control, bool enabled)
-        {
-            VisualElement rowView = new VisualElement();
-
-            rowView.AddToClassList("rowView");
-
-            if(!string.IsNullOrEmpty(labelText))
-            {
-                Label label = new Label(labelText);
-                label.SetEnabled(enabled);
-                label.AddToClassList("rowViewLabel");
-                rowView.Add(label);
-            }
-
-            control.AddToClassList("rowViewControl");
-            control.SetEnabled(enabled);
-
-            rowView.Add(control);
-            return rowView;
-        }
+#endregion
     }
 }
