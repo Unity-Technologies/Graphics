@@ -587,7 +587,7 @@ namespace UnityEngine.Rendering.Universal
             int endIndex = blockRanges[blockIndex + 1];
             bool renderPassStarted = false;
 
-            List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>();
+            List<AttachmentDescriptor> attachmentList = new List<AttachmentDescriptor>(8);
 
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
@@ -900,12 +900,11 @@ namespace UnityEngine.Rendering.Universal
 
                 if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
                     m_FirstTimeCameraColorTargetIsBound = false;
-
             }
 
             if (rp.depthAttachmentDescriptor.graphicsFormat != GraphicsFormat.None)
             {
-                if (!RenderingUtils.Contains(attachmentList, rp.depthAttachmentDescriptor) && depthAttachmentIdx == -1)
+                if (depthAttachmentIdx == -1 && !RenderingUtils.Contains(attachmentList, rp.depthAttachmentDescriptor))
                 {
                     attachmentList.Add(rp.depthAttachmentDescriptor);
                     depthAttachmentIdx = attachmentList.Count - 1;
@@ -917,7 +916,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (rp.hasInputAttachment)
             {
-                                // Need a copy to correctly map transient attachments as they might be identical
+                // Need a copy to correctly map transient attachments as they might be identical
                 var listCopy = attachmentList.ToArray();
                 for (int i = 0; i < rp.inputAttachmentDescriptors.Length; i++)
                 {
