@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     return;
 
                 clipThresholdSlot.owner = node;
-                if(clipThresholdSlot.isConnected || clipThresholdSlot.value != clipThresholdSlot.defaultValue)
+                if(clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
                 {
                     m_AlphaClip = true;
                 }
