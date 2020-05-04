@@ -602,6 +602,7 @@ namespace UnityEngine.Rendering.Universal
                         context.EndRenderPass();
                         renderPassStarted = false;
                     }
+                    attachmentList.Clear();
                     ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
                 }
                 else

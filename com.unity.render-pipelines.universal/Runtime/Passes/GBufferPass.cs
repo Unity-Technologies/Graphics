@@ -10,7 +10,6 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         public static GraphicsFormat[] kGBufferFormats = new GraphicsFormat[5] {
             GraphicsFormat.R8G8B8A8_SRGB,    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
-            //TODO: Figure out a way to have multiple identical attachments, but also check that there wouldn't be any duplicates
             GraphicsFormat.R8G8B8A8_SRGB,    // specular        specular        specular        metallic        (sRGB rendertarget)
             GraphicsFormat.R8G8B8A8_UNorm,   // encoded-normal  encoded-normal  encoded-normal  smoothness
             GraphicsFormat.None,             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
