@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
@@ -11,25 +12,54 @@ using System.IO;
 
 public class HDRP_GraphicTestRunner
 {
+    Texture2D backBufferCaptureTexture;
+    bool doCapture = false;
+    int w;
+    int h;
+
+    GraphicsTestCase m_testCase;
+
+    Camera camera;
+
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        m_testCase = testCase;
         SceneManager.LoadScene(testCase.ScenePath);
 
-        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
-        for (int i=0 ; i<5 ; ++i)
-            yield return null;
+        yield return null;
 
-        // Load the test settings
-        var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
-
-        var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+        camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
         if (camera == null) camera = GameObject.FindObjectOfType<Camera>();
         if (camera == null)
         {
             Assert.Fail("Missing camera for graphic tests.");
         }
+
+        // Load the test settings
+        var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
+
+        if (settings.captureFromBackBuffer)
+        {
+            w = settings.ImageComparisonSettings.TargetWidth;
+            h = settings.ImageComparisonSettings.TargetHeight;
+
+            SetViewSize(w, h);
+
+            backBufferCaptureTexture = new Texture2D(
+                w, h,
+                TextureFormat.RGB24,
+                false,
+                true
+                );
+
+            RenderPipelineManager.endCameraRendering += PostRenderCallback;
+        }
+
+        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        for (int i = 0; i < 4; ++i)
+            yield return null;
 
         Time.captureFramerate = settings.captureFramerate;
 
@@ -58,14 +88,28 @@ public class HDRP_GraphicTestRunner
             yield return null;
         }
 
-        for (int i=0 ; i<settings.waitFrames ; ++i)
+        for (int i = 0; i < settings.waitFrames; ++i)
             yield return null;
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
+            if (settings.captureFromBackBuffer)
+            {
+                doCapture = true;
+                Debug.Log("doCapture = true");
+
+                while (doCapture) yield return null;
+
+                RenderPipelineManager.endCameraRendering -= PostRenderCallback;
+
+                ImageAssert.AreEqual(testCase.ReferenceImage, backBufferCaptureTexture);
+            }
+            else
+            {
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
+            }
 
             if (settings.checkMemoryAllocation)
             {
@@ -113,7 +157,7 @@ public class HDRP_GraphicTestRunner
             // First test: Shader Graph
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -129,7 +173,7 @@ public class HDRP_GraphicTestRunner
             // Second test: HDRP/Lit Materials
             try
             {
-                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
+                ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null) ? settings.ImageComparisonSettings : null);
             }
             catch (AssertionException)
             {
@@ -143,7 +187,45 @@ public class HDRP_GraphicTestRunner
         }
     }
 
+    void PostRenderCallback( ScriptableRenderContext context, Camera cam )
+    {
+        Debug.Log("PostRenderCallback");
+
+        if ( !doCapture)
+            return;
+
+        Debug.Log(camera.name + " vs " + cam.name);
+
+        if (camera != cam) return;
+
+        Debug.Log("ReadPixels");
+
+        backBufferCaptureTexture.ReadPixels(
+            new Rect(0, 0, w, h),
+            0, 0,
+            false
+            );
+
+        backBufferCaptureTexture.Apply();
+
+        ImageAssert.AreEqual(m_testCase.ReferenceImage, backBufferCaptureTexture);
+
+        doCapture = false;
+
+        Debug.Log("Finished Capture");
+    }
+
+    void SetViewSize( int width, int height)
+    {
 #if UNITY_EDITOR
+        GameViewUtils.SetGameViewSize(width, height);
+#else
+        Screen.SetResolution(width, height, Screen.fullScreenMode);
+#endif
+    }
+
+#if UNITY_EDITOR
+
 
     [TearDown]
     public void DumpImagesInEditor()

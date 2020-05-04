@@ -16,6 +16,8 @@ using UnityEngine.SceneManagement;
 [ExecuteAlways]
 public class HDRP_TestSettings : GraphicsTestSettings
 {
+    public bool captureFromBackBuffer = false;
+
 	public UnityEngine.Events.UnityEvent doBeforeTest;
 	public int captureFramerate = 0;
 	public int waitFrames = 0;
