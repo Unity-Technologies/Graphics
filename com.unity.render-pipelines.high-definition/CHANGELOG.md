@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fixed a performance issue with stochastic ray traced area shadows.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
