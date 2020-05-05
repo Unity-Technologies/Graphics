@@ -602,8 +602,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                var nodesNeedRecompileCount = m_NodesNeedsRecompile.Count();
-                for(int i = 0; i < nodesNeedRecompileCount; i++)
+                for(int i = 0; i < m_NodesNeedsRecompile.Count(); i++)
                 {
                     var node = m_NodesNeedsRecompile.ElementAt(i);
 
