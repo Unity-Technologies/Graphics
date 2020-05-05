@@ -3939,7 +3939,7 @@ Camera:
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
-  m_AllowMSAA: 1
+  m_AllowMSAA: 0
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
   m_OcclusionCulling: 1
@@ -3977,7 +3977,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.0015
     UseHDR: 0
-  WaitFrames: 5000
+  WaitFrames: 800
 --- !u!1 &1490545285
 GameObject:
   m_ObjectHideFlags: 0
