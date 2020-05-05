@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static Plane[] s_CachedPlanes = new Plane[6];
 
+        // Keep in sync with both HDShadowSampling.hlsl
         static float GetPunctualFilterWidthInTexels(HDShadowFilteringQuality quality)
         {
             switch (quality)

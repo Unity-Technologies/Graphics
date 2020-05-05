@@ -17,34 +17,77 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: 'Baking issue: scene 005'
   - FilteredScene: {fileID: 102900000, guid: 169aede566e462449812f4bfb3f8d20d, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00588090625f'
   - FilteredScene: {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: 'Baking issue: scene 017'
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00277045905f'
   - FilteredScene: {fileID: 102900000, guid: c4dab86134e72034aac45c19df32ceb7, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: This test makes next test fail with unhandled log message
   - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
+    XrSdk: None
+    StereoModes: 0
     Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00287158438f'
   - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 21
-    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was 0.000877162092f'
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was
+      0.000877162092f'
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone won't work with back buffer capure
+  - FilteredScene: {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone won't work with back buffer capure
+  - FilteredScene: {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone won't work with back buffer capure
+  - FilteredScene: {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone won't work with back buffer capure
