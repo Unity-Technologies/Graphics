@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -90,6 +90,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           target.clearCoat );
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     target.clearCoat );
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -108,7 +110,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Surface");
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
@@ -128,7 +130,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Alpha Clip");
                 target.alphaClip = evt.newValue;
                 onChange();
@@ -138,7 +140,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.twoSided, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Two Sided");
                 target.twoSided = evt.newValue;
                 onChange();
@@ -153,6 +155,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Clear Coat", new Toggle() { value = target.clearCoat }, (evt) =>
+            {
+                if (Equals(target.twoSided, evt.newValue))
+                    return;
+
+                registerUndo("Change Clear Coat");
+                target.clearCoat = evt.newValue;
+                onChange();
+            });
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -160,7 +172,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             blockMap = null;
             if(!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;
-            
+
             // Set data
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
@@ -245,7 +257,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
                     _2d.pragmas = CorePragmas.DOTSDefault;
-                    
+
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,

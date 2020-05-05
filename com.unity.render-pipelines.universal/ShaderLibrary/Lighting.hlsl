@@ -204,7 +204,7 @@ int GetPerObjectLightIndex(uint index)
 #elif !defined(SHADER_API_GLES)
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
-    
+
     // TODO: Can we index a float4? Currently compiler is
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
@@ -580,11 +580,13 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
 half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+    half smoothness, half occlusion, half3 emission, half alpha,
+    half clearCoatStrength,
+    half clearCoatSmoothness)
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
@@ -606,6 +608,13 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 
     color += emission;
     return half4(color, alpha);
+}
+
+// TODO: just a mock function as there's a second PR before this which has these in a struct and has similar backcompat overloads
+half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+    half smoothness, half occlusion, half3 emission, half alpha)
+{
+    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha, 0, 1);
 }
 
 half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
