@@ -9,11 +9,11 @@ namespace UnityEditor.VFX
 #if UNITY_2020_2_OR_NEWER
     class VFXExpressionVertexBufferFromMesh : VFXExpression
     {
-        public VFXExpressionVertexBufferFromMesh() : this(VFXValue<Mesh>.Default)
+        public VFXExpressionVertexBufferFromMesh() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionVertexBufferFromMesh(VFXExpression mesh) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh })
+        public VFXExpressionVertexBufferFromMesh(VFXExpression mesh, VFXExpression channelFormatAndDimensionAndStream) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh, channelFormatAndDimensionAndStream })
         {
         }
 
@@ -478,11 +478,11 @@ namespace UnityEditor.VFX
 
     class VFXExpressionMeshVertexStride : VFXExpression
     {
-        public VFXExpressionMeshVertexStride() : this(VFXValue<Mesh>.Default)
+        public VFXExpressionMeshVertexStride() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionMeshVertexStride(VFXExpression mesh) : base(Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
+        public VFXExpressionMeshVertexStride(VFXExpression mesh, VFXExpression channelIndex) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh, channelIndex })
         {
         }
 
@@ -491,8 +491,10 @@ namespace UnityEditor.VFX
         protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
         {
             var meshReduce = constParents[0];
+            var channelIndexReduce = constParents[1];
             var mesh = meshReduce.Get<Mesh>();
-            return VFXValue.Constant(VFXExpressionMesh.GetVertexStride(mesh));
+            var channelIndex = channelIndexReduce.Get<uint>();
+            return VFXValue.Constant(VFXExpressionMesh.GetVertexStride(mesh, channelIndex));
         }
     }
 }

@@ -217,11 +217,13 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        private void SampleVertex(VFXExpression mesh, VFXExpression meshVertexStride, VFXExpression meshVertexCount, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
+        private void SampleVertex(VFXExpression mesh, VFXExpression meshVertexCount, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
         {
             foreach (var vertexAttribute in GetOutputVertexAttributes())
             {
                 var channelIndex = VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute));
+
+                var meshVertexStride = new VFXExpressionMeshVertexStride(mesh, channelIndex);
                 var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, channelIndex);
 
                 var outputType = GetOutputType(vertexAttribute);
@@ -260,7 +262,6 @@ namespace UnityEditor.VFX.Operator
         {
             var mesh = inputExpression[0];
 
-            var meshVertexStride = new VFXExpressionMeshVertexStride(mesh);
             var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
             var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
             var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
@@ -269,7 +270,7 @@ namespace UnityEditor.VFX.Operator
             if (placementMode == PlacementMode.Vertex)
             {
                 var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, vertexIndex, outputExpressions);
+                SampleVertex(mesh, meshVertexCount, vertexIndex, outputExpressions);
             }
             else if (placementMode == PlacementMode.Edge)
             {
@@ -289,8 +290,8 @@ namespace UnityEditor.VFX.Operator
                 var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
 
                 var allInputValues = new List<VFXExpression>();
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, sampledIndex_B, allInputValues);
+                SampleVertex(mesh, meshVertexCount, sampledIndex_A, allInputValues);
+                SampleVertex(mesh, meshVertexCount, sampledIndex_B, allInputValues);
 
                 var attributeCount = GetOutputVertexAttributes().Count();
                 for (int i = 0; i < attributeCount; ++i)
@@ -315,9 +316,9 @@ namespace UnityEditor.VFX.Operator
                 var sampledIndex_C = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(2u), meshIndexFormat);
 
                 var allInputValues = new List<VFXExpression>();
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, sampledIndex_B, allInputValues);
-                SampleVertex(mesh, meshVertexStride, meshVertexCount, sampledIndex_C, allInputValues);
+                SampleVertex(mesh, meshVertexCount, sampledIndex_A, allInputValues);
+                SampleVertex(mesh, meshVertexCount, sampledIndex_B, allInputValues);
+                SampleVertex(mesh, meshVertexCount, sampledIndex_C, allInputValues);
 
                 var attributeCount = GetOutputVertexAttributes().Count();
                 for (int i = 0; i < attributeCount; ++i)

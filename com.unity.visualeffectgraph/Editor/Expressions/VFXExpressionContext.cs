@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
                         ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat3
                         ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat4
                         ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexColor)
-                        return new VFXExpressionVertexBufferFromMesh(exp);
+                        return new VFXExpressionVertexBufferFromMesh(exp, sourceExpression.parents[2] /* channelFormatAndDimensionAndStream */);
 
                     if (sourceExpression.operation == VFXExpressionOperation.SampleMeshIndex)
                         return new VFXExpressionIndexBufferFromMesh(exp);

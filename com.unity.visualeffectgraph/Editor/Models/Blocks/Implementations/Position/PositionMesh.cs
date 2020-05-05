@@ -57,19 +57,23 @@ namespace UnityEditor.VFX.Block
                     vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
                 }
 
-                var vertexStride = new VFXExpressionMeshVertexStride(mesh);
                 var positionOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
                 var normalOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
 
 #if UNITY_2020_2_OR_NEWER
-                var positionVertexOffset = vertexStride * vertexIndex + positionOffset;
-                var normalVertexOffset = vertexStride * vertexIndex + normalOffset;
+
+                var vertexStridePosition = new VFXExpressionMeshVertexStride(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
+                var vertexStrideNormal = new VFXExpressionMeshVertexStride(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
+
+                var positionVertexOffset = vertexStridePosition * vertexIndex + positionOffset;
+                var normalVertexOffset = vertexStrideNormal * vertexIndex + normalOffset;
                 var positionChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
                 var normalChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
 
                 yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, positionVertexOffset, positionChannelFormatAndDimension), "sampledPosition");
                 yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, normalVertexOffset, normalChannelFormatAndDimension), "sampledNormal");
 #else
+                var vertexStride = new VFXExpressionMeshVertexStride(mesh);
                 yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, positionOffset, vertexStride), "sampledPosition");
                 yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, normalOffset, vertexStride), "sampledNormal");
 #endif
