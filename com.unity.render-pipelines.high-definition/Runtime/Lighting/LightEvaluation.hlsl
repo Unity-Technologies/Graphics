@@ -398,7 +398,10 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 
     color.a *= PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
                                         light.angleScale, light.angleOffset);
+
+#if SHADEROPTIONS_LIGHT_OCCLUSION_PLANE
     color.a *= EvaluateOcclusionPlane_Punctual(posInput, light);
+#endif
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.

@@ -369,7 +369,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
-                occlusionPlaneData = new ComputeBuffer(occlusionPlaneCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OcclusionPlaneData)));
+
+                if (ShaderConfig.s_LightOcclusionPlane != 0)
+                    occlusionPlaneData = new ComputeBuffer(occlusionPlaneCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OcclusionPlaneData)));
             }
 
             public void Cleanup()
@@ -378,7 +380,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SafeRelease(lightData);
                 CoreUtils.SafeRelease(envLightData);
                 CoreUtils.SafeRelease(decalData);
-                CoreUtils.SafeRelease(occlusionPlaneData);
+
+                if (ShaderConfig.s_LightOcclusionPlane != 0)
+                    CoreUtils.SafeRelease(occlusionPlaneData);
             }
         }
 
@@ -568,7 +572,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights.Clear();
                 lights.Clear();
                 envLights.Clear();
-                occlusionPlanes.Clear();
+
+                if (ShaderConfig.s_LightOcclusionPlane != 0)
+                    occlusionPlanes.Clear();
+
                 punctualLightCount = 0;
                 areaLightCount = 0;
 
@@ -586,7 +593,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 directionalLights = new List<DirectionalLightData>();
                 lights = new List<LightData>();
                 envLights = new List<EnvLightData>();
-                occlusionPlanes = new List<OcclusionPlaneData>();
+
+                if (ShaderConfig.s_LightOcclusionPlane != 0)
+                    occlusionPlanes = new List<OcclusionPlaneData>();
 
                 lightsPerView = new List<LightsPerView>();
                 for (int i = 0; i < TextureXR.slices; ++i)
@@ -1183,23 +1192,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // Populates the light list with occlusion planes for a given light.
         internal void FillOcclusionPlanes(ref LightData lightData, HDAdditionalLightData additionalLightData, ref int occlusionPlaneOffset)
         {
-            // Skip the addition of occlusion planes in case it's not requested (need confirm occlusion planes usage with raytracing).
-            if (occlusionPlaneOffset == -1)
-                return;
-
-            int occlusionPlaneIndex = 0;
-
-            for (; occlusionPlaneIndex < additionalLightData.occlusionPlanes.Length; occlusionPlaneIndex++)
+            if (ShaderConfig.s_LightOcclusionPlane != 0)
             {
-                if ((occlusionPlaneOffset + occlusionPlaneIndex) >= m_MaxOcclusionPlanesOnScreen) 
-                    continue;
+                // Skip the addition of occlusion planes in case it's not requested (need confirm occlusion planes usage with raytracing).
+                if (occlusionPlaneOffset == -1)
+                    return;
 
-                m_lightList.occlusionPlanes.Add(additionalLightData.occlusionPlanes[occlusionPlaneIndex].flagData);
+                int occlusionPlaneIndex = 0;
+
+                for (; occlusionPlaneIndex < additionalLightData.occlusionPlanes.Length; occlusionPlaneIndex++)
+                {
+                    if ((occlusionPlaneOffset + occlusionPlaneIndex) >= m_MaxOcclusionPlanesOnScreen) 
+                        continue;   
+
+                    m_lightList.occlusionPlanes.Add(additionalLightData.occlusionPlanes[occlusionPlaneIndex].flagData);
+                }
+
+                lightData.occlusionPlaneIndex = occlusionPlaneOffset;
+                lightData.occlusionPlaneCount = occlusionPlaneIndex;
+                occlusionPlaneOffset += lightData.occlusionPlaneCount;
             }
-
-            lightData.occlusionPlaneIndex = occlusionPlaneOffset;
-            lightData.occlusionPlaneCount = occlusionPlaneIndex;
-            occlusionPlaneOffset += lightData.occlusionPlaneCount;
         }
 
         internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
@@ -3507,7 +3519,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightLoopLightData.lightData.SetData(m_lightList.lights);
             m_LightLoopLightData.envLightData.SetData(m_lightList.envLights);
             m_LightLoopLightData.decalData.SetData(DecalSystem.m_DecalDatas, 0, 0, Math.Min(DecalSystem.m_DecalDatasCount, m_MaxDecalsOnScreen)); // don't add more than the size of the buffer
-            m_LightLoopLightData.occlusionPlaneData.SetData(m_lightList.occlusionPlanes);
+            
+            if (ShaderConfig.s_LightOcclusionPlane != 0)
+                m_LightLoopLightData.occlusionPlaneData.SetData(m_lightList.occlusionPlanes);
 
             // These two buffers have been set in Rebuild(). At this point, view 0 contains combined data from all views
             m_TileAndClusterData.convexBoundsBuffer.SetData(m_lightList.lightsPerView[0].bounds);
@@ -3528,7 +3542,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatas, m_LightLoopLightData.envLightData);
             cmd.SetGlobalBuffer(HDShaderIDs._DecalDatas, m_LightLoopLightData.decalData);
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
-            cmd.SetGlobalBuffer(HDShaderIDs._OcclusionPlaneDatas, m_LightLoopLightData.occlusionPlaneData);
+
+            if (ShaderConfig.s_LightOcclusionPlane != 0)
+                cmd.SetGlobalBuffer(HDShaderIDs._OcclusionPlaneDatas, m_LightLoopLightData.occlusionPlaneData);
         }
 
         static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
