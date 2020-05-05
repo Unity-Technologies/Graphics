@@ -479,7 +479,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // It needs to be placed already, otherwise needs to go through the registering cycle first.
             CachedShadowRecord shadowRecord;
-            Debug.Assert(m_PlacedShadows.TryGetValue(shadowIdx, out shadowRecord));
+            bool recordFound = m_PlacedShadows.TryGetValue(shadowIdx, out shadowRecord);
+            Debug.Assert(recordFound);
+            // Return to avoid error when assert is skipped.
+            if (!recordFound) return;
 
             // It already schedule for update we do nothing;
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))
