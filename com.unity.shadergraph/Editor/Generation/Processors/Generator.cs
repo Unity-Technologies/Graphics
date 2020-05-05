@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, Target target)
+        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, List<BlockFieldDescriptor> connectedBlocks, Target target)
         {
             var activeFields = new ActiveFields();
             if(outputNode == null)
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
                 m_GraphData.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
                 bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
 
-                var context = new TargetFieldContext(pass, blocks, hasDotsProperties);
+                var context = new TargetFieldContext(pass, blocks, connectedBlocks, hasDotsProperties);
                 target.GetFields(ref context);
                 var fields = GenerationUtils.GetActiveFieldsFromConditionals(context.conditionalFields.ToArray());
                 foreach(FieldDescriptor field in fields)
@@ -189,10 +189,11 @@ namespace UnityEditor.ShaderGraph
 
                 // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
                 var currentBlockDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
+                var connectedBlockDescriptors = m_Blocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
 
                 foreach(PassCollection.Item pass in descriptor.passes)
                 {
-                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, currentBlockDescriptors, m_Targets[targetIndex]);
+                    var activeFields = GatherActiveFieldsFromNode(m_OutputNode, pass.descriptor, currentBlockDescriptors, connectedBlockDescriptors, m_Targets[targetIndex]);
 
                     // TODO: cleanup this preview check, needed for HD decal preview pass
                     if(m_Mode == GenerationMode.Preview)
