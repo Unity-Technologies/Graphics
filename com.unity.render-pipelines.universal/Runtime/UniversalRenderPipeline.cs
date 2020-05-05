@@ -337,6 +337,11 @@ namespace UnityEngine.Rendering.Universal
             {
                 baseCameraData.xr = xrPass;
 
+                // XRTODO: remove isStereoEnabled in 2021.x
+#pragma warning disable 0618
+                baseCameraData.isStereoEnabled = xrPass.enabled;
+#pragma warning restore 0618
+
                 if (baseCameraData.xr.enabled)
                 {
                     xrActive = true;

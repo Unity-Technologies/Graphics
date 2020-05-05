@@ -157,8 +157,8 @@ namespace UnityEngine.Rendering.Universal
 
         internal XRPass xr;
 
-        [Obsolete]
-        public bool isStereoEnabled { get => xr != null && xr.enabled; }
+        [Obsolete("Please use xr.enabled instead.")]
+        public bool isStereoEnabled;
 
         public float maxShadowDistance;
         public bool postProcessEnabled;
@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
         /// <returns>Returns true if the given camera is rendering in stereo mode, false otherwise.</returns>
-        [Obsolete]
+        [Obsolete("Please use CameraData.xr.enabled instead.")]
         public static bool IsStereoEnabled(Camera camera)
         {
             if (camera == null)
@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="camera">Camera to check state from.</param>
         /// <returns>Returns true if the given camera is rendering in multi pass stereo mode, false otherwise.</returns>
-        [Obsolete]
+        [Obsolete("Please use CameraData.xr.singlePassEnabled instead.")]
         static bool IsMultiPassStereoEnabled(Camera camera)
         {
             if (camera == null)

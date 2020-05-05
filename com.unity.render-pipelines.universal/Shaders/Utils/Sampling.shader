@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/BoxDownsample"
+Shader "Hidden/Universal Render Pipeline/Sampling"
 {
     SubShader
     {
