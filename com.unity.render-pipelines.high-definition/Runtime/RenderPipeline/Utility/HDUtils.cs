@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal HDAdditionalLightData s_DefaultHDAdditionalLightData { get { return ComponentSingleton<HDAdditionalLightData>.instance; } }
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
-        
+
         static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
 
         static Texture3D m_ClearTexture3D;
@@ -473,7 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
-        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made. 
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
         internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
         {
             if(wasUnsetFromQuality)
@@ -1000,6 +1000,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void ReleaseComponentSingletons()
+        {
+            ComponentSingleton<HDAdditionalReflectionData>.Release();
+            ComponentSingleton<HDAdditionalLightData>.Release();
+            ComponentSingleton<HDAdditionalCameraData>.Release();
         }
 
         internal static void DisplayUnsupportedXRMessage()

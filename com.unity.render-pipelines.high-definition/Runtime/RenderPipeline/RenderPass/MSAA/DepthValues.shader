@@ -3,6 +3,7 @@ Shader "Hidden/HDRP/DepthValues"
     HLSLINCLUDE
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+        #pragma multi_compile _ _HAS_MOTION_VECTORS
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         // #pragma enable_d3d11_debug_symbols
@@ -10,7 +11,9 @@ Shader "Hidden/HDRP/DepthValues"
         // Target multisampling textures
         TEXTURE2D_X_MSAA(float, _DepthTextureMS);
         TEXTURE2D_X_MSAA(float4, _NormalTextureMS);
+        #ifdef _HAS_MOTION_VECTORS
         TEXTURE2D_X_MSAA(float2, _MotionVectorTextureMS);
+        #endif
 
         struct Attributes
         {
@@ -29,7 +32,9 @@ Shader "Hidden/HDRP/DepthValues"
         {
             float4 depthValues : SV_Target0;
             float4 normal : SV_Target1;
+            #ifdef _HAS_MOTION_VECTORS
             float2 motionVectors : SV_Target2;
+            #endif
             float actualDepth : SV_Depth;
         };
 
@@ -51,7 +56,9 @@ Shader "Hidden/HDRP/DepthValues"
             float depthVal = LOAD_TEXTURE2D_X_MSAA(_DepthTextureMS, pixelCoords, 0).x;
             fragO.depthValues = float4(depthVal, depthVal, depthVal, 0.0f);
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #ifdef _HAS_MOTION_VECTORS
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, 0);
+            #endif
             fragO.actualDepth = fragO.depthValues.x;
             return fragO;
         }
@@ -77,8 +84,10 @@ Shader "Hidden/HDRP/DepthValues"
             fragO.depthValues.z *= 0.5;
             fragO.actualDepth = fragO.depthValues.x;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
+            #endif
             return fragO;
         }
 
@@ -103,8 +112,10 @@ Shader "Hidden/HDRP/DepthValues"
             fragO.depthValues.z *= 0.25;
             fragO.actualDepth = fragO.depthValues.x;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
+            #endif
             return fragO;
         }
 
@@ -129,8 +140,10 @@ Shader "Hidden/HDRP/DepthValues"
             fragO.depthValues.z *= 0.125;
             fragO.actualDepth = fragO.depthValues.x;
             fragO.normal = LOAD_TEXTURE2D_X_MSAA(_NormalTextureMS, pixelCoords, 0);
+            #ifdef _HAS_MOTION_VECTORS
             // We pick the closest sample to camera, not really a great solution, but resolving motion vectors is ill defined.
             fragO.motionVectors = LOAD_TEXTURE2D_X_MSAA(_MotionVectorTextureMS, pixelCoords, closestSample);
+            #endif
             return fragO;
         }
     ENDHLSL

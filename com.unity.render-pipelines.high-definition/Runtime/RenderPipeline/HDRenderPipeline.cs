@@ -103,6 +103,12 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
+        // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
+        bool m_PreviousLightsUseLinearIntensity;
+        bool m_PreviousLightsUseColorTemperature;
+        bool m_PreviousSRPBatcher;
+        ShadowmaskMode m_PreviousShadowMaskMode;
+
         bool m_FrameSettingsHistoryEnabled = false;
 
         /// <summary>
@@ -660,16 +666,22 @@ namespace UnityEngine.Rendering.HighDefinition
             Shader.globalRenderPipeline = "HDRenderPipeline";
 
             // HD use specific GraphicsSettings
+            m_PreviousLightsUseLinearIntensity = GraphicsSettings.lightsUseLinearIntensity;
             GraphicsSettings.lightsUseLinearIntensity = true;
+            m_PreviousLightsUseColorTemperature = GraphicsSettings.lightsUseColorTemperature;
             GraphicsSettings.lightsUseColorTemperature = true;
-
+            m_PreviousSRPBatcher = GraphicsSettings.useScriptableRenderPipelineBatching;
             GraphicsSettings.useScriptableRenderPipelineBatching = m_Asset.enableSRPBatcher;
+
+            // In case shadowmask mode isn't setup correctly, force it to correct usage (as there is no UI to fix it)
+            m_PreviousShadowMaskMode = QualitySettings.shadowmaskMode;
+            QualitySettings.shadowmaskMode = ShadowmaskMode.DistanceShadowmask;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
                 reflectionProbeModes = SupportedRenderingFeatures.ReflectionProbeModes.Rotation,
                 defaultMixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly,
-                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask,
+                mixedLightingModes = SupportedRenderingFeatures.LightmapMixedBakeModes.IndirectOnly | (m_Asset.currentPlatformRenderPipelineSettings.supportShadowMask ? SupportedRenderingFeatures.LightmapMixedBakeModes.Shadowmask : 0),
                 lightmapBakeTypes = LightmapBakeType.Baked | LightmapBakeType.Mixed | LightmapBakeType.Realtime,
                 lightmapsModes = LightmapsMode.NonDirectional | LightmapsMode.CombinedDirectional,
                 lightProbeProxyVolumes = true,
@@ -774,10 +786,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Shader.globalRenderPipeline = "";
 
-            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
+            GraphicsSettings.lightsUseLinearIntensity = m_PreviousLightsUseLinearIntensity;
+            GraphicsSettings.lightsUseColorTemperature = m_PreviousLightsUseColorTemperature;
+            GraphicsSettings.useScriptableRenderPipelineBatching = m_PreviousSRPBatcher;
+            QualitySettings.shadowmaskMode = m_PreviousShadowMaskMode;
 
-            // Reset srp batcher state just in case
-            GraphicsSettings.useScriptableRenderPipelineBatching = false;
+            SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
             Lightmapping.ResetDelegate();
         }
@@ -940,6 +954,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             CameraCaptureBridge.enabled = false;
+
+            // Dispose of Render Pipeline can be call either by OnValidate() or by OnDisable().
+            // Inside an OnValidate() call we can't call a DestroyImmediate().
+            // Here we are releasing our singleton to not leak while doing a domain reload.
+            // However this is doing a call to DestroyImmediate(). 
+            // To workaround this, and was we only leak with Singleton while doing domain reload (and not in OnValidate)
+            // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
+            if (!m_Asset.isInOnValidateCall)
+                HDUtils.ReleaseComponentSingletons();
         }
 
 
@@ -1035,6 +1058,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Bind the camera's ray tracing frame index
                     cmd.SetGlobalInt(HDShaderIDs._RaytracingFrameIndex, RayTracingFrameIndex(hdCamera));
+                }
+                else
+                {
+                    cmd.SetGlobalInt(HDShaderIDs._RaytracedIndirectDiffuse, 0);
                 }
                 cmd.SetGlobalFloat(HDShaderIDs._ContactShadowOpacity, m_ContactShadows.opacity.value);
             }
@@ -1147,6 +1174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Indices of render request to render before this one
             public List<int> dependsOnRenderRequestIndices;
             public CameraSettings cameraSettings;
+            public List<(HDProbe.RenderData, HDProbe)> viewDependentProbesData;
         }
         struct HDCullingResults
         {
@@ -1366,7 +1394,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         },
                         dependsOnRenderRequestIndices = ListPool<int>.Get(),
                         index = renderRequests.Count,
-                        cameraSettings = CameraSettings.From(hdCamera)
+                        cameraSettings = CameraSettings.From(hdCamera),
+                        viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
                         // TODO: store DecalCullResult
                     };
                     renderRequests.Add(request);
@@ -1450,6 +1479,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             parentCamera = visibleInRenderRequest.hdCamera.camera;
 
+                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
+
                             AddHDProbeRenderRequests(
                                 visibleProbe,
                                 viewerTransform,
@@ -1457,8 +1488,16 @@ namespace UnityEngine.Rendering.HighDefinition
                                 HDUtils.GetSceneCullingMaskFromCamera(visibleInRenderRequest.hdCamera.camera),
                                 parentCamera,
                                 visibleInRenderRequest.hdCamera.camera.fieldOfView,
-                                visibleInRenderRequest.hdCamera.camera.aspect
+                                visibleInRenderRequest.hdCamera.camera.aspect,
+                                ref renderDatas
                             );
+
+                            foreach (var renderData in renderDatas)
+                            {
+                                visibleInRenderRequest.viewDependentProbesData.Add((renderData, visibleProbe));
+                            }
+
+                            ListPool<HDProbe.RenderData>.Release(renderDatas);
                         }
                     }
                     else
@@ -1473,7 +1512,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                 visibleInOneViewer = true;
                         }
                         if (visibleInOneViewer)
-                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, parentCamera);
+                        {
+                            var renderDatas = ListPool<HDProbe.RenderData>.Get();
+                            AddHDProbeRenderRequests(visibleProbe, null, visibilities, 0, parentCamera, referenceFieldOfView: 90, referenceAspect: 1, ref renderDatas);
+                            ListPool<HDProbe.RenderData>.Release(renderDatas);
+                        }
                     }
                 }
                 foreach (var pair in renderRequestIndicesWhereTheProbeIsVisible)
@@ -1487,8 +1530,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     List<(int index, float weight)> visibilities,
                     ulong overrideSceneCullingMask,
                     Camera parentCamera,
-                    float referenceFieldOfView = 90,
-                    float referenceAspect = 1
+                    float referenceFieldOfView,
+                    float referenceAspect,
+                    ref List<HDProbe.RenderData> renderDatas
                 )
                 {
                     var position = ProbeCapturePositionSettings.ComputeFrom(
@@ -1587,16 +1631,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (!visibleProbe.realtimeTexture.IsCreated())
                             visibleProbe.realtimeTexture.Create();
 
-                        visibleProbe.SetRenderData(
-                            ProbeSettings.Mode.Realtime,
-                            new HDProbe.RenderData(
+                        var renderData = new HDProbe.RenderData(
                                 camera.worldToCameraMatrix,
                                 camera.projectionMatrix,
                                 camera.transform.position,
                                 camera.transform.rotation,
                                 cameraSettings[j].frustum.fieldOfView,
                                 cameraSettings[j].frustum.aspect
-                            )
+                            );
+
+                        renderDatas.Add(renderData);
+
+                        visibleProbe.SetRenderData(
+                            ProbeSettings.Mode.Realtime,
+                            renderData
                         );
 
                         // TODO: Assign the actual final target to render to.
@@ -1613,7 +1661,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             clearCameraSettings = true,
                             dependsOnRenderRequestIndices = ListPool<int>.Get(),
                             index = renderRequests.Count,
-                            cameraSettings = cameraSettings[j]
+                            cameraSettings = cameraSettings[j],
+                            viewDependentProbesData = ListPool<(HDProbe.RenderData, HDProbe)>.Get()
                             // TODO: store DecalCullResult
                         };
 
@@ -1736,6 +1785,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 target.id = m_TemporaryTargetForCubemaps;
                             }
 
+                            // The HDProbe store only one RenderData per probe, however RenderData can be view dependent (e.g. planar probes).
+                            // To avoid that the render data for the wrong view is used, we previously store a copy of the render data
+                            // for each viewer and we are going to set it on the probe right before said viewer is rendered. 
+                            foreach (var probeDataPair in renderRequest.viewDependentProbesData)
+                            {
+                                var probe = probeDataPair.Item2;
+                                var probeRenderData = probeDataPair.Item1;
+                                probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
+                            }
 
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
@@ -1775,6 +1833,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     renderRequest.hdCamera.camera.targetTexture = null;
 
                                 ListPool<int>.Release(renderRequest.dependsOnRenderRequestIndices);
+                                ListPool<(HDProbe.RenderData, HDProbe)>.Release(renderRequest.viewDependentProbesData);
 
                                 // Culling results can be shared between render requests: clear only when required
                                 if (!skipClearCullingResults.Contains(renderRequest.index))
@@ -3069,6 +3128,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 m_DbufferManager.BindBlackTextures(cmd);
+                
+                // Bind buffer to make sure that something is bound .
+                cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
+
                 return;
             }
 
@@ -3354,7 +3417,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PreRenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
             {
                 return;
             }
@@ -3370,7 +3433,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if(m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
             {
                 return;
             }
@@ -4026,8 +4089,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);
 
-                // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
-                cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
+
             }
         }
 
@@ -4187,7 +4249,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 mpb.SetTexture(HDShaderIDs._InputCubemap, debugParameters.skyReflectionTexture);
                 mpb.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
-                mpb.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                mpb.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
                 mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
                 cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                 cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
@@ -4292,7 +4354,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                         m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                         // If the matcap view is enabled, the sky isn't updated so we clear the background color
-                        m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera) ||
+                        m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                         // If we want the sky but the sky don't exist, still clear with background color
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                         // Special handling for Preview we force to clear with background color (i.e black)

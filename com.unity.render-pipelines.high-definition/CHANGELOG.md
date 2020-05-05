@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
+- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -39,6 +42,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed various object leaks in HDRP.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
+- Fixed MSAA depth resolve when there is no motion vectors
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed NaN which can appear with real time reflection and inf value
+- Fixed warning about missing bound decal buffer
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 
 ### Changed
@@ -49,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 
 ## [7.3.0] - 2020-03-11
 
