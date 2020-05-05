@@ -1658,6 +1658,11 @@ namespace UnityEngine.Rendering.HighDefinition
             // If the shadow is too far away, we don't render it
             m_WillRenderShadowMap &= processedLight.lightType == HDLightType.Directional || processedLight.distanceToCamera < shadowFadeDistance;
 
+            if (processedLight.lightType == HDLightType.Area && areaLightShape != AreaLightShape.Rectangle)
+            {
+                m_WillRenderShadowMap = false;
+            }
+
             // First we reset the ray tracing and screen space shadow data
             m_WillRenderScreenSpaceShadow = false;
             m_WillRenderRayTracedShadow = false;

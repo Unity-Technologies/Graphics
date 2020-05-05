@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 punctualShadowAtlas.RegisterLight(lightData);
             }
 
-            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area)
+            if (ShaderConfig.s_AreaLights == 1 && lightType == HDLightType.Area && lightData.areaLightShape == AreaLightShape.Rectangle)
             {
                 areaShadowAtlas.RegisterLight(lightData);
             }
