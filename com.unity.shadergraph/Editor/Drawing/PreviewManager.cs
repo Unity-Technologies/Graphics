@@ -63,8 +63,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddMasterPreview();
         }
 
-        public OnPrimaryMasterChanged onPrimaryMasterChanged;
-
         static Texture2D GenerateFourSquare(Color c1, Color c2)
         {
             var tex = new Texture2D(2, 2);

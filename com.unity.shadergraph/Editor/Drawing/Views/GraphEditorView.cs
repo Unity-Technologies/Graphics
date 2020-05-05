@@ -23,20 +23,9 @@ namespace UnityEditor.ShaderGraph.Drawing
     [Serializable]
     class FloatingWindowsLayout
     {
-        public WindowDockingLayout previewLayout = new WindowDockingLayout
-        {
-            dockingTop = false,
-            dockingLeft = false,
-            verticalOffset = 8,
-            horizontalOffset = 8
-        };
-        public WindowDockingLayout blackboardLayout = new WindowDockingLayout
-        {
-            dockingTop = true,
-            dockingLeft = true,
-            verticalOffset = 8,
-            horizontalOffset = 8
-        };
+        public WindowDockingLayout previewLayout = new WindowDockingLayout();
+        public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
+        public Vector2 masterPreviewSize = new Vector2(200, 200);
     }
 
     [Serializable]
@@ -72,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         UserViewSettings m_UserViewSettings;
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
-        FloatingWindowsLayout m_FloatingWindowsLayout = new FloatingWindowsLayout();
+        FloatingWindowsLayout m_FloatingWindowsLayout;
 
         public Action saveRequested { get; set; }
 
@@ -128,98 +117,121 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MessageManager = messageManager;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
-            previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
-            previewManager.RenderPreviews(false);
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
-
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
-            var colorProviders = m_ColorManager.providerNames.ToArray();
 
-            var toolbar = new IMGUIContainer(() =>
+            string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
+            if (!string.IsNullOrEmpty(serializedWindowLayout))
             {
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
+                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+            }
+            else
+            {
+                m_FloatingWindowsLayout = new FloatingWindowsLayout
                 {
-                    if (saveRequested != null)
-                        saveRequested();
-                }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
-                {
-                    saveAsRequested();
-                }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                {
-                    if (showInProjectRequested != null)
-                        showInProjectRequested();
-                }
-
-                EditorGUI.BeginChangeCheck();
-                GUILayout.Label("Precision");
-                graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-                    m_ColorManager.SetNodesDirty(nodeList);
-                    graph.ValidateGraph();
-                    m_ColorManager.UpdateNodeViews(nodeList);
-                    foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                    blackboardLayout =
                     {
-                        node.Dirty(ModificationScope.Graph);
+                        dockingTop = true,
+                        dockingLeft = true,
+                        verticalOffset = 8,
+                        horizontalOffset = 8,
+                        size = new Vector2(200, 400)
                     }
-                }
+                };
+            }
 
-                if (isCheckedOut != null)
+            if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
+            {
+                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+            }
+
+            previewManager.RenderPreviews(false);
+            var colorProviders = m_ColorManager.providerNames.ToArray();
+            var toolbar = new IMGUIContainer(() =>
                 {
-                    if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                    GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                    if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
                     {
-                        if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                        if (saveRequested != null)
+                            saveRequested();
+                    }
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("Save As...", EditorStyles.toolbarButton))
+                    {
+                        saveAsRequested();
+                    }
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                    {
+                        if (showInProjectRequested != null)
+                            showInProjectRequested();
+                    }
+
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Label("Precision");
+                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+                        m_ColorManager.SetNodesDirty(nodeList);
+                        graph.ValidateGraph();
+                        m_ColorManager.UpdateNodeViews(nodeList);
+                        foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                         {
-                            if (checkOut != null)
-                                checkOut();
+                            node.Dirty(ModificationScope.Graph);
                         }
                     }
-                    else
+
+                    if (isCheckedOut != null)
                     {
-                        EditorGUI.BeginDisabledGroup(true);
-                        GUILayout.Button("Check Out", EditorStyles.toolbarButton);
-                        EditorGUI.EndDisabledGroup();
-                    }
-                }
-
-                GUILayout.FlexibleSpace();
-
-                EditorGUI.BeginChangeCheck();
-                GUILayout.Label("Color Mode");
-                var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
-                GUILayout.Space(4);
-                m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
-
-                GUILayout.Space(6);
-
-                m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
-
-                GUILayout.Space(6);
-
-                m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    if(newColorIdx != m_ColorManager.activeIndex)
-                    {
-                        m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                        m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+                        if (!isCheckedOut() && Provider.enabled && Provider.isActive)
+                        {
+                            if (GUILayout.Button("Check Out", EditorStyles.toolbarButton))
+                            {
+                                if (checkOut != null)
+                                    checkOut();
+                            }
+                        }
+                        else
+                        {
+                            EditorGUI.BeginDisabledGroup(true);
+                            GUILayout.Button("Check Out", EditorStyles.toolbarButton);
+                            EditorGUI.EndDisabledGroup();
+                        }
                     }
 
-                    UpdateSubWindowsVisibility();
+                    GUILayout.FlexibleSpace();
 
-                    var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                    EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
-                }
-                GUILayout.EndHorizontal();
-            });
+                    EditorGUI.BeginChangeCheck();
+                    GUILayout.Label("Color Mode");
+                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                    GUILayout.Space(4);
+                    m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+
+                    GUILayout.Space(6);
+
+                    m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if(newColorIdx != m_ColorManager.activeIndex)
+                        {
+                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
+                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+                        }
+
+                        UpdateSubWindowsVisibility();
+
+                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                    }
+                    GUILayout.EndHorizontal();
+                });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
@@ -235,14 +247,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
-                string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
-                if (!string.IsNullOrEmpty(serializedWindowLayout))
-                {
-                    m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-                }
+                m_BlackboardProvider = new BlackboardProvider(graph);
+                m_GraphView.Add(m_BlackboardProvider.blackboard);
 
-                CreateBlackboard();
                 CreateMasterPreview();
+                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector();
 
                 UpdateSubWindowsVisibility();
@@ -374,12 +383,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.groupTitleChanged = null;
             m_GraphView.elementsAddedToGroup = null;
             m_GraphView.elementsRemovedFromGroup = null;
-        }
-
-        void CreateBlackboard()
-        {
-            m_BlackboardProvider = new BlackboardProvider(m_Graph);
-            m_GraphView.Add(m_BlackboardProvider.blackboard);
         }
 
         void CreateMasterPreview()
@@ -1221,16 +1224,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void OnPrimaryMasterChanged()
-        {
-            m_MasterPreviewView?.RemoveFromHierarchy();
-            CreateMasterPreview();
-            ApplyMasterPreviewLayout();
-            UpdateSubWindowsVisibility();
-        }
-
         void ApplySerializedWindowLayouts(GeometryChangedEvent evt)
         {
+            Debug.Log("Layout");
             UnregisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
 
             ApplyMasterPreviewLayout();
@@ -1242,20 +1238,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ApplyMasterPreviewLayout()
         {
-            // If a preview size was loaded in from saved user settings use that
-            if (m_FloatingWindowsLayout.previewLayout.size.x > 0f && m_FloatingWindowsLayout.previewLayout.size.y > 0f)
-            {
-                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.previewLayout.size);
-            }
-            else // Use default specified in the stylesheet for master preview
-            {
-                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.layout.size;
-            }
-
             m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
 
-            m_MasterPreviewView.style.width = m_FloatingWindowsLayout.previewLayout.size.x;
-            m_MasterPreviewView.style.height = m_FloatingWindowsLayout.previewLayout.size.y;
+            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
+
+            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
+            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
             m_MasterPreviewView.RegisterCallback<GeometryChangedEvent>(SerializeMasterPreviewLayout);
         }
 
@@ -1266,17 +1254,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ApplyBlackboardLayout()
         {
-            // If a blackboard size was loaded in from saved user settings use that
-            if (m_FloatingWindowsLayout.blackboardLayout.size.x > 0f && m_FloatingWindowsLayout.blackboardLayout.size.y > 0f)
-            {
-                blackboardProvider.blackboard.style.width = m_FloatingWindowsLayout.blackboardLayout.size.x;
-                blackboardProvider.blackboard.style.height = m_FloatingWindowsLayout.blackboardLayout.size.y;
-            }
-            else // Use default specified in the stylesheet for blackboard
-            {
-                m_FloatingWindowsLayout.blackboardLayout.size = blackboardProvider.blackboard.layout.size;
-            }
-
             // Restore blackboard layout, and make sure that it remains in the view.
             Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
@@ -1310,11 +1287,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
 
-            m_InspectorView.ClampToParentLayout(m_GraphView.layout);
-
             if (m_MasterPreviewView.expanded)
             {
-                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.previewTextureView.layout.size;
+                m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
             }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
