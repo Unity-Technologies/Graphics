@@ -1502,7 +1502,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
                 m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
                 m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
-                m_ChildEmissiveMeshViewer.layer = m_AreaLightEmissiveMeshLayer;
+                m_ChildEmissiveMeshViewer.layer = areaLightEmissiveMeshLayer == -1 ? gameObject.layer : areaLightEmissiveMeshLayer;
 
                 m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
                 emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
@@ -1527,7 +1527,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         MotionVectorGenerationMode m_AreaLightEmissiveMeshMotionVectorGenerationMode;
         [SerializeField]
-        int m_AreaLightEmissiveMeshLayer = 0; //Default
+        int m_AreaLightEmissiveMeshLayer = -1; //Special value that means we need to grab the one in the Light for initialization (for migration purpose)
 
         /// <summary> Change the Shadow Casting Mode of the generated emissive mesh for Area Light </summary>
         public ShadowCastingMode areaLightEmissiveMeshShadowCastingMode
@@ -2137,7 +2137,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_Animated)
                 return;
 #endif
-
+            if (areaLightEmissiveMeshLayer == -1
+                && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
+                && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
+                m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
+            
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)
             {

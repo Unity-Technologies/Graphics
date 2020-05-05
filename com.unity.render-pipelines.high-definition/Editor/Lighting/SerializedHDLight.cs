@@ -106,6 +106,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedObject serializedObject;
 
+        public SerializedProperty lightLayer;
+        private SerializedObject lightGameObject;
+
         //contain serialized property that are mainly used to draw inspector
         public LightEditor.Settings settings;
 
@@ -415,6 +418,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             RefreshEmissiveMeshReference();
+
+            lightGameObject = new SerializedObject(serializedObject.targetObjects.Select(ld => ((HDAdditionalLightData)ld).gameObject).ToArray());
+            lightLayer = lightGameObject.FindProperty("m_Layer");
         }
 
         void RefreshEmissiveMeshReference()
@@ -458,6 +464,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             serializedObject.Update();
             settings.Update();
+
+            lightGameObject.Update();
+            deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
+            deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
         }
 
         void ApplyInternal(bool withDeportedEmissiveMeshData)

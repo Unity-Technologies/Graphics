@@ -830,31 +830,59 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.showMixedValue = false;
 
-                lineRect = EditorGUILayout.GetControlRect();
-                int layer;
-                EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues;
+                EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues || serialized.lightLayer.hasMultipleDifferentValues;
                 EditorGUI.BeginChangeCheck();
-                using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshLayer, showSubArea, serialized.areaLightEmissiveMeshLayer, serialized.deportedAreaLightEmissiveMeshLayer))
+                bool toggle;
+                using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshSameLayer, showSubArea, serialized.areaLightEmissiveMeshLayer, serialized.deportedAreaLightEmissiveMeshLayer))
                 {
-                    layer = EditorGUI.LayerField(lineRect, s_Styles.areaLightEmissiveMeshLayer, serialized.areaLightEmissiveMeshLayer.intValue);
+                    toggle = EditorGUILayout.Toggle(s_Styles.areaLightEmissiveMeshSameLayer, serialized.areaLightEmissiveMeshLayer.intValue == -1);
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    serialized.UpdateAreaLightEmissiveMeshLayer(layer);
-                }
-                // or if the value of layer got changed using the layer change including child mechanism (strangely apply even if object not editable),
-                // discard the change: the child is not saved anyway so the value in HDAdditionalLightData is the only serialized one.
-                if (!EditorGUI.showMixedValue
-                    && serialized.areaLightEmissiveMeshLayer != null
-                    && !serialized.areaLightEmissiveMeshLayer.Equals(null)
-                    && serialized.deportedAreaLightEmissiveMeshLayer != null
-                    && !serialized.deportedAreaLightEmissiveMeshLayer.Equals(null)
-                    && serialized.areaLightEmissiveMeshLayer.intValue != serialized.deportedAreaLightEmissiveMeshLayer.intValue)
-                {
-                    GUI.changed = true; //force register change to handle update and apply later
-                    serialized.UpdateAreaLightEmissiveMeshLayer(layer);
+                    serialized.UpdateAreaLightEmissiveMeshLayer(serialized.lightLayer.intValue);
+                    if (toggle)
+                        serialized.areaLightEmissiveMeshLayer.intValue = -1;
                 }
                 EditorGUI.showMixedValue = false;
+
+                ++EditorGUI.indentLevel;
+                if (toggle || serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        lineRect = EditorGUILayout.GetControlRect();
+                        EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues || serialized.lightLayer.hasMultipleDifferentValues;
+                        EditorGUI.LayerField(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, serialized.lightLayer.intValue);
+                        EditorGUI.showMixedValue = false;
+                    }
+                }
+                else
+                {
+                    EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues;
+                    lineRect = EditorGUILayout.GetControlRect();
+                    int layer;
+                    EditorGUI.BeginChangeCheck();
+                    using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, showSubArea, serialized.areaLightEmissiveMeshLayer, serialized.deportedAreaLightEmissiveMeshLayer))
+                    {
+                        layer = EditorGUI.LayerField(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, serialized.areaLightEmissiveMeshLayer.intValue);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.UpdateAreaLightEmissiveMeshLayer(layer);
+                    }
+                    // or if the value of layer got changed using the layer change including child mechanism (strangely apply even if object not editable),
+                    // discard the change: the child is not saved anyway so the value in HDAdditionalLightData is the only serialized one.
+                    else if (!EditorGUI.showMixedValue
+                        && serialized.deportedAreaLightEmissiveMeshLayer != null
+                        && !serialized.deportedAreaLightEmissiveMeshLayer.Equals(null)
+                        && serialized.areaLightEmissiveMeshLayer.intValue != serialized.deportedAreaLightEmissiveMeshLayer.intValue)
+                    {
+                        GUI.changed = true; //force register change to handle update and apply later
+                        serialized.UpdateAreaLightEmissiveMeshLayer(layer);
+                    }
+                    EditorGUI.showMixedValue = false;
+                }
+                --EditorGUI.indentLevel;
 
                 --EditorGUI.indentLevel;
             }
