@@ -29,18 +29,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
-#define SHADERPASS SHADERPASS_VOLUME_VOXELIZATION
-
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Core/Utilities/GeometryUtils.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricLighting.cs.hlsl"
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
-
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -177,7 +169,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         float heightMultiplier = ComputeHeightFogMultiplier(fragmentHeight, _HeightFogBaseHeight, _HeightFogExponents);
 
         // Start by sampling the height fog.
-        float3 voxelScattering = _HeightFogBaseScattering * heightMultiplier;
+        float3 voxelScattering = _HeightFogBaseScattering.xyz * heightMultiplier;
         float  voxelExtinction = _HeightFogBaseExtinction * heightMultiplier;
 
         for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)

@@ -112,6 +112,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a ray tracing mode option in the HDRP asset that allows to override and shader stripping.
 - Added support for arbitrary resolution scaling of Volumetric Lighting to the Fog volume component.
 - Added range attenuation for box-shaped spotlights.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
+- Added a DisplayInfo attribute to specify a name override and a display order for Volume Component fields (used only in default inspector for now).
+- Added Min distance to contact shadows.
+- Added support for Depth of Field in path tracing (by sampling the lens aperture).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -530,6 +536,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression in the ray traced indirect diffuse due to the new probe system.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
+- Fixed a bug where Decal Shader Graphs would not recieve reprojected Position, Normal, or Bitangent data. (1239921)
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
@@ -550,7 +557,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed PBR shader ZTest rendering in deferred.
 - Replaced commands incompatible with async compute in light list build process.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
 - Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed scalarization code for contact shadows.
+- Fixed volume debug in playmode
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
+- Fixed shader warning in PCSS code when using Vulkan.
+- Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
+- Fixed an error about procedural sky being logged by mistake.
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 
 ### Changed
@@ -671,6 +689,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid building the mip chain a second time for SSR for transparent objects.
 - Replaced "High Quality" Subsurface Scattering with a set of Quality Levels.
 - Replaced "High Quality" Volumetric Lighting with "Screen Resolution Percentage" and "Volume Slice Count" on the Fog volume component.
+- Merged material samples and shader samples
+- Update material samples scene visuals
+- Use multi_compile API for deferred compute shader with shadow mask.
+- Made the StaticLightingSky class public so that users can change it by script for baking purpose.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.1.1] - 2019-09-05
 
