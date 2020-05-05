@@ -60,10 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
 
-        internal UserViewSettings viewSettings
-        {
-            get { return m_UserViewSettings; }
-        }
+        internal UserViewSettings viewSettings { get => m_UserViewSettings; }
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
         FloatingWindowsLayout m_FloatingWindowsLayout;
