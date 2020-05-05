@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     DrawGeneralContent,
                     DrawGeneralAdvancedContent
                     ),
-                CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Spot || serialized.type == HDLightType.Point && !serialized.settings.isCompletelyBaked,
+                CED.TernaryConditional((serialized, owner) => ShaderConfig.s_LightOcclusionPlane != 0 && (serialized.type == HDLightType.Spot || serialized.type == HDLightType.Point) && !serialized.settings.isCompletelyBaked,
                     CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
                         (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
                         (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),

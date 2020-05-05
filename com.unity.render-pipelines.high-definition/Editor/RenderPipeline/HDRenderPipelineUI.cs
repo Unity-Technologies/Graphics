@@ -214,10 +214,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_SectionOcclusionPlanes(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
+            if (ShaderConfig.s_LightOcclusionPlane != 1)
+            {
+                EditorGUILayout.HelpBox("Light Occlusion Planes are disabled in the configuration file.", MessageType.Info);
+                GUI.enabled = false;
+            }
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.maxOcclusionPlanesOnScreen, Styles.maxOcclusionPlanesOnScreenName);
             if (EditorGUI.EndChangeCheck())
                 serialized.renderPipelineSettings.lightLoopSettings.maxOcclusionPlanesOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxOcclusionPlanesOnScreen.intValue, 1, HDRenderPipeline.k_MaxOcclusionPlanesOnScreen);
+
+            GUI.enabled = true;
         }
 
         static void Drawer_SectionCookies(SerializedHDRenderPipelineAsset serialized, Editor owner)
