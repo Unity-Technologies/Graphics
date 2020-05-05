@@ -1226,7 +1226,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ApplySerializedWindowLayouts(GeometryChangedEvent evt)
         {
-            Debug.Log("Layout");
             UnregisterCallback<GeometryChangedEvent>(ApplySerializedWindowLayouts);
 
             ApplyMasterPreviewLayout();
@@ -1239,6 +1238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ApplyMasterPreviewLayout()
         {
             m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
+            m_FloatingWindowsLayout.previewLayout.ApplySize(m_MasterPreviewView);
 
             previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
 
