@@ -73,9 +73,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
-        bool m_ClearCoat = false;
-
-        [SerializeField]
         string m_CustomEditorGUI;
 
         public UniversalTarget()
@@ -140,12 +137,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaClip = value;
         }
 
-        public bool clearCoat
-        {
-            get => m_ClearCoat;
-            set => m_ClearCoat = value;
-        }
-
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;
@@ -185,11 +176,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
             context.AddField(Fields.DoubleSided,            twoSided);
-
-            // TODO: should HDRP Coat, CoatMask etc. fields be in shadergraph and shared? currently different defines for URP and HDRP.
-            // TODO: should URP have URPFields.cs?
-            // TODO: should this be in the sub target?
-            context.AddField(CoreFields.ClearCoat,          clearCoat);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -849,7 +835,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CoreFields
     {
         public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
-        public static FieldDescriptor ClearCoat             = new FieldDescriptor("Universal", "ClearCoat", "UNIVERSAL_CLEARCOAT");
     }
 #endregion
 }
