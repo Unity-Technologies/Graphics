@@ -8,6 +8,7 @@ using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
 using Data.Interfaces;
+using Drawing.Inspector.PropertyDrawers;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
@@ -286,6 +287,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public Node gvNode => this;
+
+        [Inspectable("Node", null)]
         public AbstractMaterialNode node { get; private set; }
 
         public override bool expanded
@@ -407,6 +410,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Settings.Add(ps);
         }
 
+        void SetNodesAsDirty()
+        {
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+            editorView.colorManager.SetNodesDirty(nodeList);
+        }
+
+        void UpdateNodeViews()
+        {
+            var editorView = GetFirstAncestorOfType<GraphEditorView>();
+            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
+            editorView.colorManager.UpdateNodeViews(nodeList);
+        }
+
         void RecreateSettings()
         {
             m_Settings.RemoveFromHierarchy();
@@ -446,16 +463,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public object GetObjectToInspect()
         {
-            return this.node;
+            return this;
         }
 
         public PropertyInfo[] GetPropertyInfo()
         {
-            return this.node.GetType().GetProperties();
+            return this.GetType().GetProperties();
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
+            if (propertyDrawer is NodePropertyDrawer nodePropertyDrawer)
+            {
+                nodePropertyDrawer.GetPropertyData(SetNodesAsDirty, UpdateNodeViews);
+            }
         }
 
         private void SetSelfSelected()

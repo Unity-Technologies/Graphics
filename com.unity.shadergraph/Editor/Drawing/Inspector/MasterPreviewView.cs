@@ -231,7 +231,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnScroll(float scrollValue)
         {
             float rescaleAmount = -scrollValue * .03f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.0f, 5f);
+            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
 
             DirtyMasterNode(ModificationScope.Node);
         }

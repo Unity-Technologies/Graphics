@@ -30,19 +30,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         internal delegate void PostChangeValueCallback(bool bTriggerPropertyUpdate = false, ModificationScope modificationScope = ModificationScope.Node);
 
         // Keyword
-<<<<<<< HEAD
         ReorderableList m_KeywordReorderableList;
         int m_KeywordSelectedIndex;
 
         //Virtual Texture
         ReorderableList m_VTReorderableList;
         int m_VTSelectedIndex;
-=======
-        ReorderableList m_ReorderableList;
-        int m_SelectedIndex;
+
         private static GUIStyle greyLabel;
 
->>>>>>> 781a92a1ce... [skip ci] Inspector: Fixed bug 1244134 and property visible in inspector after deletion
 
         // Reference Name
         TextField m_ReferenceNameField;
@@ -50,9 +46,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         ShaderInput shaderInput;
 
-<<<<<<< HEAD
         GraphData graphData;
-=======
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -61,7 +55,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             greyLabel.hover = new GUIStyleState { textColor = Color.grey };
         }
 
->>>>>>> 781a92a1ce... [skip ci] Inspector: Fixed bug 1244134 and property visible in inspector after deletion
         bool isSubGraph { get ; set;  }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
@@ -1085,8 +1078,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9_\s])", "_");
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
     }
