@@ -100,6 +100,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(40.0f, 90.0f), 0.0f, 100.0f);
 
         /// <summary>
+        /// Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode)
+        /// </summary>
+        [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
+        public BoolParameter histogramUseCurveRemapping = new BoolParameter(false);
+
+        /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>

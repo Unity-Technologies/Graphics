@@ -170,6 +170,11 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
         w = max(w, 1e-4f);
         float avgEV = evProcessedSum * rcp(w);
 
+        if (ParamEvaluateMode == 2)
+        {
+            avgEV = CurveRemap(avgEV);
+        }
+
         float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
         exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
         _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure), exposure);

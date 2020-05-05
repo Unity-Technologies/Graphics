@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_WeightTextureMask;
 
         SerializedDataParameter m_HistogramPercentages;
+        SerializedDataParameter m_HistogramCurveRemapping;
 
         public override void OnEnable()
         {
@@ -46,6 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WeightTextureMask = Unpack(o.Find(x => x.weightTextureMask));
 
             m_HistogramPercentages = Unpack(o.Find(x => x.histogramPercentages));
+            m_HistogramCurveRemapping = Unpack(o.Find(x => x.histogramUseCurveRemapping));
+
         }
 
         public override void OnInspectorGUI()
@@ -88,6 +91,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
                     PropertyField(m_HistogramPercentages);
+                    PropertyField(m_HistogramCurveRemapping, EditorGUIUtility.TrTextContent("Use Curve Remapping"));
+                    if (m_HistogramCurveRemapping.value.boolValue)
+                    {
+                        PropertyField(m_CurveMap);
+                    }
                 }
 
                 EditorGUILayout.Space();

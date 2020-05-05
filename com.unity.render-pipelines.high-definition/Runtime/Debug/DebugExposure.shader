@@ -318,7 +318,7 @@ Shader "Hidden/HDRP/DebugExposure"
         float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
         float targetEVInRange = (targetExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
-        float2 halfIndicatorSize = 0.007f;
+        float halfIndicatorSize = 0.007f;
         float halfWidthInScreen = halfIndicatorSize * _ScreenSize.x;
 
         float labelFrameHeightScreen = heightLabelBar * (_ScreenSize.y / _RTHandleScale.y);
@@ -342,7 +342,7 @@ Shader "Hidden/HDRP/DebugExposure"
             const float K = 12.5; // Reflected-light meter calibration constant
             float luminanceFromExposure = _ExposureTexture[int2(0, 0)].x * (exp2(exposureAtLoc) * (K / 100.0f));
 
-            val = saturate(Tonemap(luminanceFromExposure));
+            val = saturate(Luminance(Tonemap(luminanceFromExposure)));
             val *= 0.95 * (frameHeight - heightLabelBar);
             val += heightLabelBar;
 
