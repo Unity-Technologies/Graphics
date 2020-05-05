@@ -591,8 +591,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
-                    m_NodesNeedsRecompile.Contains(m_Graph.outputNode) &&
-                    !m_NodesCompiling.Contains(m_Graph.outputNode) &&
+                    ((m_NodesNeedsRecompile.Contains(m_Graph.outputNode) && !m_NodesCompiling.Contains(m_Graph.outputNode)) ||
+                    (m_NodesNeedsRecompile.Any(x => x is BlockNode) && !m_NodesCompiling.Any(x => x is BlockNode))) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
                     var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
@@ -602,10 +602,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                foreach (var node in m_NodesNeedsRecompile)
+                var nodesNeedRecompileCount = m_NodesNeedsRecompile.Count();
+                for(int i = 0; i < nodesNeedRecompileCount; i++)
                 {
-                    if(node == null)
+                    var node = m_NodesNeedsRecompile.ElementAt(i);
+
+                    // Remove BlockNode instances as null gets added to nodesToCompile
+                    if(node == null || node is BlockNode)
+                    {
+                        m_NodesNeedsRecompile.Remove(node);
                         continue;
+                    }
 
                     if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
                         break;
