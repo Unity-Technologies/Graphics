@@ -123,13 +123,13 @@ struct LightData
     float penumbraTint;
     float padding;
     float boxLightSafeExtent;
-    int lightFlagIndex;
-    int lightFlagCount;
+    int occlusionPlaneIndex;
+    int occlusionPlaneCount;
 };
 
-// Generated from UnityEngine.Rendering.HighDefinition.LightFlagData
+// Generated from UnityEngine.Rendering.HighDefinition.OcclusionPlaneData
 // PackingRules = Exact
-struct LightFlagData
+struct OcclusionPlaneData
 {
     float4 plane;
     float feather;

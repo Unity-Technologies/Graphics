@@ -1372,48 +1372,48 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only for spot + point lights
         [SerializeField]
-        LightFlag[] m_LightFlags;
+        LightOcclusionPlane[] m_OcclusionPlanes;
 
-        public LightFlag[] lightFlags
+        public LightOcclusionPlane[] occlusionPlanes
         {
             get
             {
-                ValidateLightFlags();
-                return m_LightFlags;
+                ValidateOcclusionPlanes();
+                return m_OcclusionPlanes;
             }
         }
 
         void OnTransformChildrenChanged()
         {
-            InValidateLightFlags();
+            InValidateOcclusionPlanes();
         }
 
-        void InValidateLightFlags()
+        void InValidateOcclusionPlanes()
         {
-            m_LightFlags = null;
+            m_OcclusionPlanes = null;
         }
 
-        void ValidateLightFlags()
+        void ValidateOcclusionPlanes()
         {
-            var flags = new List<LightFlag>();
-            GetComponentsInChildren(flags);
+            var planes = new List<LightOcclusionPlane>();
+            GetComponentsInChildren(planes);
 
-            if (flags.Count == 0)
+            if (planes.Count == 0)
             {
-                m_LightFlags = new LightFlag[0];
+                m_OcclusionPlanes = new LightOcclusionPlane[0];
             }
 
-            for (int i = flags.Count - 1; i >= 0; --i)
+            for (int i = planes.Count - 1; i >= 0; --i)
             {
-                if (flags[i].transform.parent != transform)
-                    flags.RemoveAt(i);
+                if (planes[i].transform.parent != transform)
+                    planes.RemoveAt(i);
             }
 
-            foreach (var f in flags)
-                m_LightFlags = flags.ToArray();
+            foreach (var f in planes)
+                m_OcclusionPlanes = planes.ToArray();
 
-            if (m_LightFlags == null)
-                m_LightFlags = new LightFlag[0];
+            if (m_OcclusionPlanes == null)
+                m_OcclusionPlanes = new LightOcclusionPlane[0];
         }
 
         /// <summary>
@@ -2952,31 +2952,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public LightFlag AddLightFlag(LightFlag copyFrom = null)
+        public LightOcclusionPlane AddOcclusionPlane(LightOcclusionPlane copyFrom = null)
         {
-            var go = new GameObject("Flag", typeof(LightFlag));
+            var go = new GameObject("Occlusion Plane", typeof(LightOcclusionPlane));
 #if UNITY_EDITOR
-            Undo.RegisterCreatedObjectUndo(go, "Add Light Flag");
-            Undo.SetTransformParent(go.transform, transform, "Add Light Flag");
+            Undo.RegisterCreatedObjectUndo(go, "Add Occlusion Plane");
+            Undo.SetTransformParent(go.transform, transform, "Add Occlusion Plane");
             EditorUtility.SetDirty(this);
 #else
             go.transform.parent = transform.parent;
 #endif
-            var flag = go.GetComponent<LightFlag>();
+            var plane = go.GetComponent<LightOcclusionPlane>();
             if (copyFrom == null)
             {
-                flag.transform.localPosition = Vector3.zero;
-                flag.transform.localRotation = Quaternion.identity;
-                flag.m_Feather = 1;
+                plane.transform.localPosition = Vector3.zero;
+                plane.transform.localRotation = Quaternion.identity;
+                plane.m_Feather = 1;
             }
             else
             {
-                flag.transform.localPosition = copyFrom.transform.localPosition;
-                flag.transform.localRotation = copyFrom.transform.localRotation;
-                flag.m_Feather = copyFrom.m_Feather;
+                plane.transform.localPosition = copyFrom.transform.localPosition;
+                plane.transform.localRotation = copyFrom.transform.localRotation;
+                plane.m_Feather = copyFrom.m_Feather;
             }
 
-            return flag;
+            return plane;
         }
 
 #if UNITY_EDITOR

@@ -91,8 +91,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
 
-        // Light flags
-        public SerializedProperty lightFlags;
+        // Occlusion plane
+        public SerializedProperty occlusionPlanes;
         
         // Bias control
         public SerializedProperty slopeBias;
@@ -370,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition
 				slopeBias = o.Find("m_SlopeBias");
                 normalBias = o.Find("m_NormalBias");
 
-                lightFlags = o.Find("m_LightFlags");
+                occlusionPlanes = o.Find("m_OcclusionPlanes");
 
                 // private references for prefab handling
                 pointLightHDType = o.Find("m_PointlightHDType");

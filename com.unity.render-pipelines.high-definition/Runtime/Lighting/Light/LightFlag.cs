@@ -1,15 +1,15 @@
 ﻿namespace UnityEngine.Rendering.HighDefinition
 {
-    public class LightFlag : MonoBehaviour
+    public class LightOcclusionPlane : MonoBehaviour
     {
         [Tooltip("How much to feather the clipped edge")]
         public float m_Feather = 1.0f;
 
-        public LightFlagData flagData
+        public OcclusionPlaneData flagData
         {
             get
             {
-                return new LightFlagData
+                return new OcclusionPlaneData
                 {
                     plane   = GetFlagPlane(),
                     feather = m_Feather * 0.1f

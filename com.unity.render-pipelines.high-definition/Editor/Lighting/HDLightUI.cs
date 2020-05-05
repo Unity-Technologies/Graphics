@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             BakedShadow = 1 << 7,
             ShadowQuality = 1 << 8,
             CelestialBody = 1 << 9,
-            LightFlags = 1 << 10,
+            OcclusionFlags = 1 << 10,
         }
 
         enum AdvancedMode
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         DrawShapeContent,
                         CED.Group(
                             CED.space,
-                            CED.FoldoutGroup(s_Styles.lightFlagsSubHeader, Expandable.LightFlags, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawLightFlags)
+                            CED.FoldoutGroup(s_Styles.occlusionPlanesSubHeader, Expandable.OcclusionFlags, k_ExpandedState, FoldoutOption.SubFoldout | FoldoutOption.Indent, DrawOcclusionPlanes)
                         )
                     ),
                     CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, 
@@ -1165,7 +1165,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.maxDepthBias, s_Styles.maxDepthBias);
         }
 
-        static void DrawLightFlags(SerializedHDLight serialized, Editor owner)
+        static void DrawOcclusionPlanes(SerializedHDLight serialized, Editor owner)
         {
             if (owner.targets.Length > 1)
             {
@@ -1178,18 +1178,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 rect = EditorGUI.IndentedRect(rect);
                 labelWidth = EditorGUIUtility.labelWidth - (rect.x - labelWidth);
                 
-                if (GUI.Button(rect, "Add Light Flag"))
+                if (GUI.Button(rect, "Add Occlusion Plane"))
                 {
-                    (serialized.serializedObject.targetObject as HDAdditionalLightData).AddLightFlag();
+                    (serialized.serializedObject.targetObject as HDAdditionalLightData).AddOcclusionPlane();
                 }
                 
                 EditorGUI.indentLevel++;
                 labelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth = 0;
-                var removeLabel = new GUIContent("Remove", "Destroy the light flag");
+                var removeLabel = new GUIContent("Remove", "Destroy the occlusion plane");
                 float removeWidth = GUI.skin.button.CalcSize(removeLabel).x;
                 const float hSpace = 2;
-                var flags = (serialized.serializedObject.targetObject as HDAdditionalLightData).lightFlags;
+                var flags = (serialized.serializedObject.targetObject as HDAdditionalLightData).occlusionPlanes;
 
                 foreach (var f in flags)
                 {
@@ -1197,7 +1197,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     rect.width -= removeWidth + hSpace;
                     bool enabled = GUI.enabled;
                     GUI.enabled = false;
-                    EditorGUI.ObjectField(rect, f, typeof(LightFlag), !EditorUtility.IsPersistent(owner.target));
+                    EditorGUI.ObjectField(rect, f, typeof(LightOcclusionPlane), !EditorUtility.IsPersistent(owner.target));
                     GUI.enabled = enabled;
                     rect.x += rect.width + hSpace; rect.width = removeWidth;
                     

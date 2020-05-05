@@ -375,14 +375,14 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;  
 }
 
-float EvaluateLightFlag_Punctual(PositionInputs posInput, LightData light)
+float EvaluateOcclusionPlane_Punctual(PositionInputs posInput, LightData light)
 {
     float visibility = 1;
 
-    for (int i = light.lightFlagIndex; i < light.lightFlagIndex + light.lightFlagCount; i++)
+    for (int i = light.occlusionPlaneIndex; i < light.occlusionPlaneIndex + light.occlusionPlaneCount; i++)
     {
-        LightFlagData lightFlag = FetchLightFlag(i);
-        visibility *= EvaluateShadowPlane(GetAbsolutePositionWS(posInput.positionWS), lightFlag.plane, lightFlag.feather);
+        OcclusionPlaneData occlusionPlane = FetchOcclusionPlane(i);
+        visibility *= EvaluateShadowPlane(GetAbsolutePositionWS(posInput.positionWS), occlusionPlane.plane, occlusionPlane.feather);
     }
 
     return visibility;
@@ -398,7 +398,7 @@ float4 EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs 
 
     color.a *= PunctualLightAttenuation(distances, light.rangeAttenuationScale, light.rangeAttenuationBias,
                                         light.angleScale, light.angleOffset);
-    color.a *= EvaluateLightFlag_Punctual(posInput, light);
+    color.a *= EvaluateOcclusionPlane_Punctual(posInput, light);
 
 #ifndef LIGHT_EVALUATION_NO_HEIGHT_FOG
     // Height fog attenuation.

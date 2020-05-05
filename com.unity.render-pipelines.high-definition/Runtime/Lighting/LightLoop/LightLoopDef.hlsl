@@ -339,9 +339,9 @@ EnvLightData FetchEnvLight(uint index)
     return _EnvLightDatas[index];
 }
 
-LightFlagData FetchLightFlag(uint index)
+OcclusionPlaneData FetchOcclusionPlane(uint index)
 {
-    return _LightFlagDatas[index];
+    return _OcclusionPlaneDatas[index];
 }
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte

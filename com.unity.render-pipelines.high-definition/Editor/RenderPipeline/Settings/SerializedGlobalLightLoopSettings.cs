@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxEnvLightsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
-        public SerializedProperty maxLightFlagsOnScreen;
+        public SerializedProperty maxOcclusionPlanesOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
             maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
 
-            maxLightFlagsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxLightFlagsOnScreen);
+            maxOcclusionPlanesOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxOcclusionPlanesOnScreen);
         }
     }
 }

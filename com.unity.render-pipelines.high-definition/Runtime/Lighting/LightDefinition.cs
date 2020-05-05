@@ -171,12 +171,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public float   padding;
         public float   boxLightSafeExtent;
-        public int     lightFlagIndex;
-        public int     lightFlagCount;
+        public int     occlusionPlaneIndex;
+        public int     occlusionPlaneCount;
     };
 
     [GenerateHLSL(PackingRules.Exact, false)]
-    public struct LightFlagData
+    public struct OcclusionPlaneData
     {
         public Vector4 plane;
 

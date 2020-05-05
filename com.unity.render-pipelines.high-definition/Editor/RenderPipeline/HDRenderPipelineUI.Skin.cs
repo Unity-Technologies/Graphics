@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
-            public static readonly GUIContent lightFlagSubTitle = EditorGUIUtility.TrTextContent("Light Flags");
+            public static readonly GUIContent occlusionPlaneSubTitle = EditorGUIUtility.TrTextContent("Light Occlusion Planes");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightLayerName5 = EditorGUIUtility.TrTextContent("Light Layer Name 5", "The display name for Light Layer 5. This is purely cosmetic, and can be used to articulate intended use of Light Layer 5");
             public static readonly GUIContent lightLayerName6 = EditorGUIUtility.TrTextContent("Light Layer Name 6", "The display name for Light Layer 6. This is purely cosmetic, and can be used to articulate intended use of Light Layer 6");
             public static readonly GUIContent lightLayerName7 = EditorGUIUtility.TrTextContent("Light Layer Name 7", "The display name for Light Layer 7. This is purely cosmetic, and can be used to articulate intended use of Light Layer 7");
-            public static readonly GUIContent maxLightFlagsOnScreenName = EditorGUIUtility.TrTextContent("Max Light Flags On Screen", "Sets the maximum number of light flags that HDRP light loop can handle on screen at once.");
+            public static readonly GUIContent maxOcclusionPlanesOnScreenName = EditorGUIUtility.TrTextContent("Max Occlusion Planes On Screen", "Sets the maximum number of occlusion planes that HDRP light loop can handle on screen at once.");
             public static readonly GUIContent colorBufferFormatContent = EditorGUIUtility.TrTextContent("Color Buffer Format", "Specifies the format used by the scene color render target. R11G11B10 is a faster option and should have sufficient precision.");
             public static readonly GUIContent supportCustomPassContent = EditorGUIUtility.TrTextContent("Custom Pass", "When enabled, HDRP allocates a custom pass buffer. It also enable custom passes inside Custom Pass Volume components.");
             public static readonly GUIContent customBufferFormatContent = EditorGUIUtility.TrTextContent("Custom Buffer Format", "Specifies the format used by the custom pass render target.");
