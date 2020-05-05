@@ -470,10 +470,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
                         {
                             DoHistogramBasedExposure(cmd, camera, source);
-                           // m_Exposure.mode.value = ExposureMode.Automatic;
                         }
                         else
+                        {
                             DoDynamicExposure(cmd, camera, source);
+                        }
 
                         // On reset history we need to apply dynamic exposure immediately to avoid
                         // white or black screen flashes when the current exposure isn't anywhere
@@ -887,25 +888,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var cs = m_Resources.shaders.exposureCS;
             int kernel;
 
-            GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
-
-            // Setup variants
-            var adaptationMode = m_Exposure.adaptationMode.value;
-
-            if (!Application.isPlaying || camera.resetPostProcessingHistory)
-                adaptationMode = AdaptationMode.Fixed;
-
-            if (camera.resetPostProcessingHistory)
-            {
-                // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
-                // When we reset history we must setup neutral value
-                prevExposure = m_EmptyExposureTexture; // Use neutral texture
-            }
-
-            m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
-            m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
-            m_ExposureVariants[2] = (int)adaptationMode;
-            m_ExposureVariants[3] = 0;
+            DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
 
             var sourceTex = colorBuffer;
 
@@ -954,13 +937,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
-        void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        void DynamicExposureSetup(CommandBuffer cmd, HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure)
         {
-            var cs = m_Resources.shaders.histogramExposureCS;
-            cs.shaderKeywords = null;
-            int kernel;
-
-            GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
+            GrabExposureHistoryTextures(camera, out prevExposure, out nextExposure);
 
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
@@ -980,7 +959,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
             m_ExposureVariants[2] = (int)adaptationMode;
             m_ExposureVariants[3] = 0;
+        }
 
+        void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        {
+            var cs = m_Resources.shaders.histogramExposureCS;
+            cs.shaderKeywords = null;
+            int kernel;
+
+            DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
             // Parameters
             Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
             float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
