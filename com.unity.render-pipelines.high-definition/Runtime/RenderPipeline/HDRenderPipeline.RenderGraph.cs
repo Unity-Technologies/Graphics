@@ -206,14 +206,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 hdCamera.ExecuteCaptureActions(m_RenderGraph, colorBuffer);
 
                 postProcessDest = RenderDebug(  m_RenderGraph,
-                                            hdCamera,
+                                                hdCamera,
                                                 postProcessDest,
-                                            prepassOutput.depthBuffer,
-                                            prepassOutput.depthPyramidTexture,
-                                            m_DebugFullScreenTexture,
-                                            colorPickerTexture,
-                                            shadowResult,
-                                            cullingResults);
+                                                prepassOutput.depthBuffer,
+                                                prepassOutput.depthPyramidTexture,
+                                                m_DebugFullScreenTexture,
+                                                colorPickerTexture,
+                                                shadowResult,
+                                                cullingResults);
 
                 BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
 
@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
-                    mrt1 = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, name = "Transparency Velocity Dummy" });
+                    mrt1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, name = "Transparency Velocity Dummy" });
                 }
 
                 passData.renderTargetCount = 2;
@@ -778,16 +778,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderSkyPassData
         {
-            public VisualEnvironment            visualEnvironment;
-            public Light                        sunLight;
-            public HDCamera                     hdCamera;
+            public VisualEnvironment    visualEnvironment;
+            public Light                sunLight;
+            public HDCamera             hdCamera;
             public TextureHandle        volumetricLighting;
             public TextureHandle        colorBuffer;
             public TextureHandle        depthStencilBuffer;
             public TextureHandle        intermediateBuffer;
-            public DebugDisplaySettings         debugDisplaySettings;
-            public SkyManager                   skyManager;
-            public int                          frameCount;
+            public DebugDisplaySettings debugDisplaySettings;
+            public SkyManager           skyManager;
+            public int                  frameCount;
         }
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
@@ -805,7 +805,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.volumetricLighting = builder.ReadTexture(volumetricLighting);
                 passData.colorBuffer = builder.WriteTexture(colorBuffer);
                 passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
-                passData.intermediateBuffer = builder.WriteTexture(renderGraph.CreateTexture(colorBuffer));
+                passData.intermediateBuffer = builder.CreateTransientTexture(colorBuffer);
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
                 passData.frameCount = m_FrameCount;
@@ -923,8 +923,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4                      size;
         }
 
-        void RenderDistortion(  RenderGraph                 renderGraph,
-                                HDCamera                    hdCamera,
+        void RenderDistortion(  RenderGraph     renderGraph,
+                                HDCamera        hdCamera,
                                 TextureHandle   colorBuffer,
                                 TextureHandle   depthStencilBuffer,
                                 TextureHandle   colorPyramidBuffer,
