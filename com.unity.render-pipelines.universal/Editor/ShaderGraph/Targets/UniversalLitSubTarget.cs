@@ -20,6 +20,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
+        [SerializeField]
+        bool m_ClearCoat = false;
+
         public UniversalLitSubTarget()
         {
             displayName = "Lit";
@@ -35,6 +38,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_NormalDropOffSpace;
             set => m_NormalDropOffSpace = value;
+        }
+
+        public bool clearCoat
+        {
+            get => m_ClearCoat;
+            set => m_ClearCoat = value;
         }
 
         public override bool IsActive() => true;
@@ -76,6 +85,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.Normal,              context.blocks.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                                                          context.blocks.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                                                          context.blocks.Contains(BlockFields.SurfaceDescription.NormalWS));
+            // TODO: should HDRP Coat, CoatMask etc. fields be in shadergraph and shared? currently different defines for URP and HDRP.
+            context.AddField(Fields.ClearCoat,           clearCoat);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -90,8 +101,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           target.clearCoat );
-            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     target.clearCoat );
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat );
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat );
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -156,13 +167,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Clear Coat", new Toggle() { value = target.clearCoat }, (evt) =>
+            context.AddProperty("Clear Coat", new Toggle() { value = clearCoat }, (evt) =>
             {
-                if (Equals(target.twoSided, evt.newValue))
+                if (Equals(clearCoat, evt.newValue))
                     return;
 
                 registerUndo("Change Clear Coat");
-                target.clearCoat = evt.newValue;
+                clearCoat = evt.newValue;
                 onChange();
             });
         }

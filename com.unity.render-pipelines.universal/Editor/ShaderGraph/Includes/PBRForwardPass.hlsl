@@ -74,8 +74,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half clearCoatStrength = 0;
     half clearCoatSmoothness = 1;
     #ifdef _CLEARCOAT
-        clearCoatStrength   = surfaceDescription.ClearCoatMask;
-        clearCoatSmoothness = surfaceDescription.ClearCoatSmoothness;
+        clearCoatStrength   = surfaceDescription.CoatMask;
+        clearCoatSmoothness = surfaceDescription.CoatSmoothness;
     #endif
 
     half4 color = UniversalFragmentPBR(

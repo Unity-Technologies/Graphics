@@ -59,7 +59,7 @@ Pass
     $Varyings.cullFace:                 #define VARYINGS_NEED_CULLFACE
     $features.graphVertex:              #define FEATURES_GRAPH_VERTEX
     $Universal.UseLegacySpriteBlocks:   #define UNIVERSAL_USELEGACYSPRITEBLOCKS
-    $Universal.ClearCoat:               #define UNIVERSAL_CLEARCOAT
+    $ClearCoat:                         #define _CLEARCOAT 1
     $splice(PassInstancing)
     $splice(GraphDefines)
     $splice(DotsInstancingVars)
