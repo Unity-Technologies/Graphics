@@ -230,7 +230,6 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
-  {% endif %}
   {% endfor %}
 
   {% else %}
