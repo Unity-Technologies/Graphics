@@ -109,9 +109,18 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
+            public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
+            internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
+            internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
+            internal static readonly GUIContent probeVolumeAtlasWidth = EditorGUIUtility.TrTextContent("Atlas Width", "Width (resolution in X) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasHeight = EditorGUIUtility.TrTextContent("Atlas Height", "Height (resolution in Y) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasDepth = EditorGUIUtility.TrTextContent("Atlas Depth", "Depth (resolution in Z) of the atlas containing visible ProbeVolumes.");
+            internal static readonly GUIContent probeVolumeAtlasOctahedralDepthWidth = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Width", "Width of the atlas containing visible ProbeVolumes octahedral depth data");
+            internal static readonly GUIContent probeVolumeAtlasOctahedralDepthHeight = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Height", "Height of the atlas containing visible ProbeVolumes octahedral depth data.");
+
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";
@@ -146,7 +155,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
-            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
+            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Clustered Decals on Screen", "Sets the maximum number of decals that can affect transparent GameObjects on screen.");
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
             public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
@@ -221,7 +230,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 { supportTransparentBackface         , shaderVariantDrawback },
                 { supportTransparentDepthPrepass     , shaderVariantDrawback },
                 { supportTransparentDepthPostpass    , shaderVariantDrawback },
-                { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) }
+                { supportRaytracing                  , string.Format("{0}, {1}", memoryDrawback, lotShaderVariantDrawback) },
+                { supportProbeVolumeContent          , string.Format("{0}, {1}", memoryDrawback, shaderVariantDrawback) },
+                { probeVolumeAtlasWidth              , memoryDrawback },
+                { probeVolumeAtlasHeight             , memoryDrawback },
+                { probeVolumeAtlasDepth              , memoryDrawback },
             };
 
             public static Dictionary<SupportedLitShaderMode, string> supportLitShaderModeDrawbacks = new Dictionary<SupportedLitShaderMode, string>

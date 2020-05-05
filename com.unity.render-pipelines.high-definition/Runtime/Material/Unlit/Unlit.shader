@@ -88,6 +88,10 @@ Shader "HDRP/Unlit"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+
+        // Debug constants must be exposed as properties so the shader is compatible
+        // with the SRP batcher
+        [HideInInspector] _UnlitColorMap_MipInfo("_UnlitColorMap_MipInfo", Vector) = (0, 0, 0, 0)
     }
 
     HLSLINCLUDE
@@ -418,7 +422,7 @@ Shader "HDRP/Unlit"
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
-            
+
             #define SHADERPASS SHADERPASS_DISTORTION
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -559,7 +563,7 @@ Shader "HDRP/Unlit"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11                
+            #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
             #define SHADOW_LOW

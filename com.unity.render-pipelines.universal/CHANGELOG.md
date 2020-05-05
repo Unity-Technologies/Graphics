@@ -20,9 +20,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
 - Added the option to control the transparent layer separately in the Forward Renderer.
 - Added the ability to set individual RendererFeatures to be active or not, use `ScriptableRendererFeature.SetActive(bool)` to set whether a Renderer Feature will execute,  `ScriptableRendererFeature.isActive` can be used to check the current active state of the Renderer Feature.
+ additional steps to the 2D Renderer setup page for quality and platform settings.
 - If Unity Editor Analytics are enabled, Universal collects anonymous data about usage of Universal. This helps the Universal team focus our efforts on the most common scenarios, and better understand the needs of our customers.
+- Added a OnCameraSetup() function to the ScriptableRenderPass API, that gets called by the renderer before rendering each camera
+- Added a OnCameraCleanup() function to the ScriptableRenderPass API, that gets called by the renderer after rendering each camera
+- Added Default Material Type options to the 2D Renderer Data Asset property settings.
+- Added additional steps to the 2D Renderer setup page for quality and platform settings.
+- Added option to disable XR autotests on test settings.
 
 ### Changed
+
 - Moved the icon that indicates the type of a Light 2D from the Inspector header to the Light Type field.
 - Eliminated some GC allocations from the 2D Renderer.
 - Added SceneSelection pass for TerrainLit shader.
@@ -39,10 +46,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The number of maximum visible lights is now determined by whether the platform is mobile or not.
 - Renderer Feature list is now redesigned to fit more closely to the Volume Profile UI, this vastly improves UX and reliability of the Renderer Features List.
 - Default color values for Lit and SimpleLit shaders changed to white due to issues with texture based workflows.
+- You can now subclass ForwardRenderer to create a custom renderer based on it.
 - The pipeline is now computing tangent space in per fragment.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
 - You can now subclass ForwardRenderer to create a custom renderer based on it.
 - URP shaders that contain a priority slider now no longer have an offset of 50 by default.
+- The virtual ScriptableRenderer.FrameCleanup() function has been marked obsolete and replaced by ScriptableRenderer.OnCameraCleanup() to better describe when the function gets invoked by the renderer.
+- DepthOnlyPass, CopyDepthPass and CopyColorPass now use OnCameraSetup() instead of Configure() to set up their passes before executing as they only need to get their rendertextures once per camera instead of once per eye.
+- Updated shaders to be compatible with Microsoft's DXC.
+- Mesh GPU Instancing option is now hidden from the particles system renderer as this feature is not supported by URP.
+- The 2D Renderer now supports camera stacking.
+- 2D shaders now use half-precision floats whenever precise results are not necessary.
 
 ### Fixed
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
@@ -143,6 +157,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
 - Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
+- Fixed an issue when Linear -> sRGB conversion would not happen on some Android devices. [case 1226208](https://issuetracker.unity3d.com/issues/no-srgb-conversion-on-some-android-devices-when-using-the-universal-render-pipeline)
 - Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was smapled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
 - Fixed an issue where an exception would be thrown when resetting the ShadowCaster2D component. [case 1225339](https://issuetracker.unity3d.com/issues/urp-unassignedreferenceexception-thrown-on-resetting-the-shadow-caster-2d-component)
 - Fixe an issue where using a Subtractive Blend Style for your 2D Lights might cause artifacts in certain post-processing effects. [case 1215584](https://issuetracker.unity3d.com/issues/urp-incorrect-colors-in-scene-when-using-subtractive-and-multiply-blend-mode-in-gamma-color-space)
@@ -154,6 +169,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
 - Fixed an issue that caused transparent objects to always render over top of world space UI. [case 1219877](https://issuetracker.unity3d.com/product/unity/issues/guid/1219877/)
 - Fixed issue causing sorting fudge to not work between shadergraph and urp particle shaders. [case 1222762](https://issuetracker.unity3d.com/product/unity/issues/guid/1222762/)
+- Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
+- Fixed an issue with shadows not being correctly calculated in some shaders.
+- Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
+- Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
+- Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
+- Fixed an issue where multi edit camera properties didn't work. [case 1230080](https://issuetracker.unity3d.com/issues/urp-certain-settings-are-not-applied-to-all-cameras-when-multi-editing-in-the-inspector)
+- Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
+- Fixed issues with performance when importing fbx files
+- Fixed issues with NullReferenceException happening with URP shaders
+- Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
+- Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)
+- Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
+- Fixed an issue with reflections when using an orthographic camera [case 1209255](https://issuetracker.unity3d.com/issues/urp-weird-reflections-when-using-lit-material-and-a-camera-with-orthographic-projection)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
@@ -204,6 +232,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused self-shadowing artifacts when adjusting shadow near-plane on spot lights.
 - Fixed an issue that caused specular highlights to disappear when the smoothness value was set to 1.0. [case 1161827](https://issuetracker.unity3d.com/issues/lwrp-hdrp-lit-shader-max-smoothness-value-is-incosistent-between-pipelines)
 - Fixed an issue in the Material upgrader that caused transparent Materials to not upgrade correctly to Universal RP. [case 1170419](https://issuetracker.unity3d.com/issues/shader-conversion-upgrading-project-materials-causes-standard-transparent-materials-to-flicker-when-moving-the-camera).
+- Fixed an issue causing shadows to be incorrectly rendered when a light was close to the shadow caster.
 - Fixed post-processing for the 2D Renderer.
 - Fixed an issue in Light2D that caused a black line to appear for a 360 degree spotlight.
 - Fixed a post-processing rendering issue with non-fullscreen viewport. [case 1177660](https://issuetracker.unity3d.com/issues/urp-render-scale-slider-value-modifies-viewport-coordinates-of-the-screen-instead-of-the-resolution)

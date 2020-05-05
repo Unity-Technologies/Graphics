@@ -1122,7 +1122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Dots
                 new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
@@ -1152,9 +1152,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Double Sided
                 new ConditionalField(HDFields.DoubleSided,                  doubleSidedMode != DoubleSidedMode.Disabled),
                 new ConditionalField(HDFields.DoubleSidedFlip,              doubleSidedMode == DoubleSidedMode.FlippedNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
                 new ConditionalField(HDFields.DoubleSidedMirror,            doubleSidedMode == DoubleSidedMode.MirroredNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Specular Occlusion
                 new ConditionalField(HDFields.SpecularOcclusionFromAO,      specularOcclusionMode == SpecularOcclusionMode.FromAO),

@@ -732,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Eye.MotionVectors)),
+                                                                                        !pass.Equals(HDEyeSubTarget.EyePasses.MotionVectors)),
 
                 // Material
                 new ConditionalField(HDFields.Eye,                                  materialType == MaterialType.Eye),

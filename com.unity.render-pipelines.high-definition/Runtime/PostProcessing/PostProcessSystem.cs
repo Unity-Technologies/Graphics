@@ -99,6 +99,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_DitheringFS;
         bool m_AntialiasingFS;
 
+        // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
+        float m_DebugExposureCompensation;
+
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
         static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
@@ -129,6 +132,15 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly System.Random m_Random;
 
         HDRenderPipeline m_HDInstance;
+
+        void FillEmptyExposureTexture()
+        {
+            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
+            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
+            tex.Apply();
+            Graphics.Blit(tex, m_EmptyExposureTexture);
+            CoreUtils.Destroy(tex);
+        }
 
         public PostProcessSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
@@ -180,11 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
-            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
-            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
-            tex.Apply();
-            Graphics.Blit(tex, m_EmptyExposureTexture);
-            CoreUtils.Destroy(tex);
+            FillEmptyExposureTexture();
 
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
@@ -238,6 +246,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_InternalLogLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
             CoreUtils.Destroy(m_ClearBlackMaterial);
+            CoreUtils.Destroy(m_SMAAMaterial);
+            CoreUtils.Destroy(m_TemporalAAMaterial);
             CoreUtils.SafeRelease(m_BokehNearKernel);
             CoreUtils.SafeRelease(m_BokehFarKernel);
             CoreUtils.SafeRelease(m_BokehIndirectCmd);
@@ -254,11 +264,30 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InternalLogLut            = null;
             m_FinalPassMaterial         = null;
             m_ClearBlackMaterial        = null;
+            m_SMAAMaterial              = null;
+            m_TemporalAAMaterial        = null;
             m_BokehNearKernel           = null;
             m_BokehFarKernel            = null;
             m_BokehIndirectCmd          = null;
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
+        }
+
+        // In some cases, the internal buffer of render textures might be invalid.
+        // Usually when using these textures with API such as SetRenderTarget, they are recreated internally.
+        // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
+        void CheckRenderTexturesValidity()
+        {
+            if (!m_EmptyExposureTexture.rt.IsCreated())
+                FillEmptyExposureTexture();
+
+            HDUtils.CheckRTCreated(m_InternalLogLut.rt);
+            HDUtils.CheckRTCreated(m_TempTexture1024.rt);
+            HDUtils.CheckRTCreated(m_TempTexture32.rt);
+            if (m_KeepAlpha)
+            {
+                HDUtils.CheckRTCreated(m_AlphaTexture.rt);
+            }
         }
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
@@ -310,6 +339,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
+            m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
+
+            CheckRenderTexturesValidity();
+
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
             {
@@ -318,7 +351,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (IsExposureFixed())
+                // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
+                // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
+                // Texture current and previous are swapped at the beginning of the frame.
+                bool isFixedExposure = IsExposureFixed();
+                if (isFixedExposure)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
@@ -326,7 +363,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
+                // Note: GetExposureTexture(camera) must be call AFTER the call of DoFixedExposure to be correctly taken into account
+                // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
+                // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
+                // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
+                // After that we re-use the pre-exposure system
+                RTHandle currentExposureTexture = (camera.resetPostProcessingHistory && !isFixedExposure) ? m_EmptyExposureTexture : GetExposureTexture(camera);
+
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
         }
@@ -389,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 #if UNITY_EDITOR
                     if (isSceneView)
-                        stopNaNs = HDRenderPipelinePreferences.sceneViewStopNaNs;
+                        stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
                 #endif
 
                     if (stopNaNs)
@@ -431,8 +475,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                             PoolSource(ref source, destination);
+                        }
                     }
-                }
                 }
 
                 if (m_PostProcessEnabled)
@@ -473,9 +517,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
+                    bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                         camera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                         camera.camera.cameraType != CameraType.Preview &&
+                         m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
+
                     // Depth of Field is done right after TAA as it's easier to just re-project the CoC
                     // map rather than having to deal with all the implications of doing it before TAA
-                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS)
+                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
@@ -731,12 +781,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Exposure.mode.value == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure.value, 0f, 0f, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
             }
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -813,9 +863,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (camera.resetPostProcessingHistory)
             {
-                kernel = cs.FindKernel("KReset");
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
-                cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+                // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
+                // When we reset history we must setup neutral value
+                prevExposure = m_EmptyExposureTexture; // Use neutral texture
             }
 
             m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
@@ -829,6 +879,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
+            if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, m_Exposure.weightTextureMask.value);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
+            }
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture1024);
             cmd.DispatchCompute(cs, kernel, 1024 / 8, 1024 / 8, 1);
 
@@ -843,14 +901,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reduction: 2nd pass (32 -> 1) + evaluate exposure
             if (m_Exposure.mode.value == ExposureMode.Automatic)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
                 m_ExposureVariants[3] = 1;
             }
             else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, min, max, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, min, max, 0f));
                 m_ExposureVariants[3] = 2;
             }
 
@@ -921,7 +979,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
@@ -930,15 +987,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
-            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection); 
+            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
 
-            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, 0.0f);
+            // The anti flicker becomes much more aggressive on higher values
+            float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
+
+            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
             Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
                                               prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
             var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
             var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
 
-            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point. 
+            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
             float plusWeights = Mathf.Exp(-2.29f);
             float centerWeight = 1;
@@ -959,7 +1019,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetRandomWriteTarget(2, nextMVLen);
-            cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
@@ -1793,7 +1852,11 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
                 cs = m_Resources.shaders.motionBlurCS;
+                cs.shaderKeywords = null;
+
+                CoreUtils.SetKeyword(cs, "ENABLE_ALPHA", m_EnableAlpha);
                 kernel = cs.FindKernel("MotionBlurCS");
+
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
@@ -2828,7 +2891,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hashCode = ComputeHashCode(scaleFactor.x, scaleFactor.y, (int)format, mipmap);
 
                 if (m_Targets.TryGetValue(hashCode, out var stack) && stack.Count > 0)
-                    return stack.Pop();
+                {
+                    var tex = stack.Pop();
+                    HDUtils.CheckRTCreated(tex.rt);
+                    return tex;
+                }
 
                 var rt = RTHandles.Alloc(
                     scaleFactor, TextureXR.slices, DepthBits.None, colorFormat: format, dimension: TextureXR.dimension,

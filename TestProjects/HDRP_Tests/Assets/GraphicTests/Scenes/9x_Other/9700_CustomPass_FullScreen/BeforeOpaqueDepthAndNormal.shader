@@ -44,7 +44,7 @@
             color = float4(CustomPassLoadCameraColor(varyings.positionCS.xy, 0), 1);
 
         // Add your custom pass code here
-        outputDepth = 0.06;
+        outputDepth = 0.063;
 
         // Fade value allow you to increase the strength of the effect while the camera gets closer to the custom pass volume
         float f = 1 - abs(_FadeValue * 2 - 1);

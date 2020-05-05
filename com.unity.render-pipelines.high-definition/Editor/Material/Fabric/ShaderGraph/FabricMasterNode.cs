@@ -743,7 +743,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Fabric.MotionVectors)),
+                                                                                        !pass.Equals(HDFabricSubTarget.FabricPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDFields.CottonWool,                           materialType == MaterialType.CottonWool),
                 new ConditionalField(HDFields.Silk,                                 materialType == MaterialType.Silk),

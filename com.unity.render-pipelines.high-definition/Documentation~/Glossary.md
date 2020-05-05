@@ -40,7 +40,7 @@ A face refers to one side of a piece of geometry. The front face is the side of 
 
 #### f-number:
 
-The ratio of the focal length to the diameter of the camera lens.
+The ratio of the focal length to the diameter of the camera lens. HDRP technically uses [t-number](https://en.wikipedia.org/wiki/F-number#T-stop), but since Cameras in Unity are optically perfect, f-number and t-number are identical.
 
 <a name="NyquistRate"></a>
 
@@ -137,3 +137,12 @@ A function that describes a wave that represents the human eye’s relative sens
 #### punctual lights: 
 A light is considered to be punctual if it emits light from a single point. HDRPs Spot and Point Lights are punctual.
 
+## Rendering Artifacts
+
+<a name="Disocclusion"></a>
+#### disocclusion
+A rendering artifact that describes the situation where a GameObject that was previously occluded becomes visible.
+
+<a name="Ghosting"></a>
+#### ghosting
+A rendering artifact that describes the situation where a moving GameObject leaves a trail of pixels behind it.

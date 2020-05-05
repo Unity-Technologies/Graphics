@@ -199,3 +199,5 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
     return lighting;
 }
+
+

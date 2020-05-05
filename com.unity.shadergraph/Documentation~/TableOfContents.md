@@ -11,10 +11,11 @@
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
     * [Custom Function Node](Custom-Function-Node)
+    * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
-	* [Sub Graph Asset](Sub-graph-Asset)
+    * [Sub Graph Asset](Sub-graph-Asset)
     * [Node](Node) 
         * [Port](Port)  
         * [Custom Port Menu](Custom-Port-Menu)

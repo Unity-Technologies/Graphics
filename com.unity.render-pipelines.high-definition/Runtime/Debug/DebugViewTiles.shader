@@ -28,7 +28,6 @@ Shader "Hidden/HDRP/DebugViewTiles"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
             #define DEBUG_DISPLAY
@@ -40,6 +39,9 @@ Shader "Hidden/HDRP/DebugViewTiles"
             // the deferred shader will require to use multicompile.
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
 
+#if (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && defined(USE_CLUSTERED_LIGHTLIST)
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
+#endif
             //-------------------------------------------------------------------------------------
             // variable declaration
             //-------------------------------------------------------------------------------------
@@ -191,10 +193,27 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint mask = 1u << category;
                     if (mask & _ViewTilesFlags)
                     {
-                        uint start;
-                        uint count;
-                        GetCountAndStart(posInput, category, start, count);
-                        n += count;
+                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
+                        {
+                        #if defined(USE_CLUSTERED_LIGHTLIST)
+                            // If evaluating probe volumes during material pass, their data is only avaibile in clustered.
+                            // To accurately reflect this, if a user has selected to view the count inside of the tiled list,
+                            // the count should be zero.
+                            uint start;
+                            uint count;
+                            ProbeVolumeGetCountAndStart(posInput, category, start, count);
+                            n += count;
+                        #endif
+                        }
+                        else
+                    #endif
+                        {
+                            uint start;
+                            uint count;
+                            GetCountAndStart(posInput, category, start, count);
+                            n += count;
+                        }
                     }
                 }
                 if (n == 0)
@@ -230,7 +249,20 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     uint category = (LIGHTCATEGORY_COUNT - 1) - tileCoord.y;
                     uint start;
                     uint count;
-                    GetCountAndStart(mousePosInput, category, start, count);
+
+                #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+                    if (category == LIGHTCATEGORY_PROBE_VOLUME)
+                    {
+                    #if defined(USE_CLUSTERED_LIGHTLIST)
+                        ProbeVolumeGetCountAndStart(mousePosInput, category, start, count);
+                        n += count;
+                    #endif
+                    }
+                    else
+                #endif
+                    {
+                        GetCountAndStart(mousePosInput, category, start, count);
+                    }
 
                     float4 result2 = float4(.1,.1,.1,.9);
                     int2 fontCoord = int2(pixelCoord.x, offsetInTile.y);
@@ -243,7 +275,18 @@ Shader "Hidden/HDRP/DebugViewTiles"
                     }
                     else if(lightListIndex >= 0 && lightListIndex < (int)count)
                     {
-                        n = FetchIndex(start, lightListIndex);
+                    #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
+                        if (category == LIGHTCATEGORY_PROBE_VOLUME)
+                        {
+                        #if defined(USE_CLUSTERED_LIGHTLIST)
+                            n = ProbeVolumeFetchIndex(start, lightListIndex);
+                        #endif
+                        }
+                        else
+                    #endif
+                        {
+                            n = FetchIndex(start, lightListIndex);
+                        }
                     }
 
                     if (n >= 0)

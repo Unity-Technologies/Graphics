@@ -42,9 +42,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DownsamplingMethod = downsampling;
         }
 
-        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            RenderTextureDescriptor descriptor = cameraTextureDescripor;
+            RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
             descriptor.msaaSamples = 1;
             descriptor.depthBufferBits = 0;
             if (m_DownsamplingMethod == Downsampling._2xBilinear)
@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         /// <inheritdoc/>
-        public override void FrameCleanup(CommandBuffer cmd)
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");

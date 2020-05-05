@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
         static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
+        static readonly GUIContent xrRenderingContent = EditorGUIUtility.TrTextContent("XR Rendering");
 
 #if ENABLE_MULTIPLE_DISPLAYS
         static readonly GUIContent targetDisplayContent = EditorGUIUtility.TrTextContent("Target Display");

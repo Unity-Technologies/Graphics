@@ -121,7 +121,7 @@ namespace UnityEditor.ShaderGraph
 
                     // get the output details
                     var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = owner.GetNodeFromGuid(outputSlotRef.nodeGuid);
+                    var outputNode = outputSlotRef.node;
                     if (outputNode == null)
                         continue;
 
@@ -195,7 +195,7 @@ namespace UnityEditor.ShaderGraph
                 bool inputError = tempSlots.Any(x => x.hasError);
                 if (inputError)
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had input error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
                     hasError = true;
                 }
                 // configure the output slots now
@@ -246,7 +246,7 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(tempSlots);
                 if(tempSlots.Any(x => x.hasError))
                 {
-                    owner.AddConcretizationError(guid, string.Format("Node {0} had output error", guid));
+                    owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;
                 }
             }
@@ -297,7 +297,7 @@ namespace UnityEditor.ShaderGraph
                 var edges = owner.GetEdges(slots[i].slotReference).ToList();
                 if (!edges.Any())
                     continue;
-                var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+                var outputNode = edges[0].outputSlot.node;
                 var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
                 if (outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix3
@@ -312,7 +312,7 @@ namespace UnityEditor.ShaderGraph
             var edges = owner.GetEdges(slot.slotReference).ToList();
             if (!edges.Any())
                 return;
-            var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
+            var outputNode = edges[0].outputSlot.node;
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
             slot.SetConcreteType(outputSlot.concreteValueType);
         }
