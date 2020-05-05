@@ -617,7 +617,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
                 {
-                    sb.AppendLine(prop.GetPropertyBlockString());
+                    prop.AppendPropertyBlockStrings(sb);
                 }
 
                 // Keywords use hardcoded state in preview

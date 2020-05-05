@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
@@ -55,9 +56,27 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal string hideTagString => hidden ? "[HideInInspector]" : "";
 
+        // simple properties use a single reference name; this function covers that case
+        // complex properties can override this function to produce multiple reference names
+        internal virtual void GetPropertyReferenceNames(List<string> result)
+        {
+            result.Add(referenceName);
+        }
+        internal virtual void GetPropertyDisplayNames(List<string> result)
+        {
+            result.Add(displayName);
+        }
+
+        // the simple interface for simple properties
         internal virtual string GetPropertyBlockString()
         {
             return string.Empty;
+        }
+
+        // the more complex interface for complex properties (defaulted for simple properties)
+        internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+        {
+            builder.AppendLine(GetPropertyBlockString());
         }
 
         // the simple interface for simple properties

@@ -228,7 +228,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     for (int layer = 0; layer < vt.layers.Count; layer++)
                     {
-                        mat.SetTexture(vt.layers[layer].layerName, vt.layers[layer].layerTexture.texture);
+                        mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
                     }
                 }
             }

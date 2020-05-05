@@ -744,30 +744,38 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
                 var layerRefName = EditorGUI.DelayedTextField( new Rect((rect.x + rect.width) / 3, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerRefName, EditorStyles.label);
-                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture));
+                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture), false);
 
                 SerializableTexture layerTexture = new SerializableTexture();
                 layerTexture.texture = (Texture)selectedObject;
 
-                //need to sanitize each layer with all existing properties
-                var propertiesList = graph.properties.Where(p => p.guid != property.guid);
-                if (layerName != property.value.layers[index].layerName)
-                {
-                    var propertyNames = propertiesList.Select(p => p.displayName);
-                    layerName = GraphUtil.SanitizeName(propertyNames.Concat(property.value.layers.Select(p => p.layerName)), "{0} ({1})", layerName);
-                }
-                if (layerRefName != property.value.layers[index].layerRefName)
-                {
-                    string name = layerRefName.Trim();
-                    if (Regex.IsMatch(name, @"^\d+"))
-                        name = "_" + name;
-                    name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-                    var propertyRefNames = propertiesList.Select(p => p.referenceName);
-                    layerRefName = GraphUtil.SanitizeName(propertyRefNames.Concat(property.value.layers.Select(p => p.layerRefName)), "{0}_{1}", name);
-                }
-
                 if (EditorGUI.EndChangeCheck())
                 {
+                    //need to sanitize each layer with all existing properties
+                    string oldLayerName = property.value.layers[index].layerName;
+                    if (layerName != oldLayerName)
+                    {
+                        var otherPropertyNames = graph.BuildPropertyDisplayNameList(property.guid, oldLayerName);
+                        layerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", layerName);
+                    }
+
+                    string oldLayerRefName = property.value.layers[index].layerRefName;
+                    if (layerRefName != oldLayerRefName)
+                    {
+                        if (!string.IsNullOrEmpty(layerRefName))
+                        {
+                            string name = layerRefName.Trim();
+                            if (!string.IsNullOrEmpty(layerRefName))
+                            {
+                                if (Regex.IsMatch(name, @"^\d+"))
+                                    name = "_" + name;
+                                name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+                                var otherPropertyRefNames = graph.BuildPropertyReferenceNameList(property.guid, oldLayerRefName);
+                                layerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", name);
+                            }
+                        }
+                    }
+
                     property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerRefName, layerTexture);
 
                     DirtyNodes();

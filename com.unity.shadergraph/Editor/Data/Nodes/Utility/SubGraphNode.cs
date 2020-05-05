@@ -468,11 +468,13 @@ namespace UnityEditor.ShaderGraph
 
                     var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
                     var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
-                    int argLayerCount = argProp.value.layers.Count;
+                    if (argProp != null)
+                    {
+                        int argLayerCount = argProp.value.layers.Count;
 
-                    if (argLayerCount != paramLayerCount)
-                        owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
-
+                        if (argLayerCount != paramLayerCount)
+                            owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                    }
                     break;
                 }
             }

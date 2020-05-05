@@ -37,18 +37,39 @@ namespace UnityEditor.ShaderGraph
         internal override bool isExposable => true;         // the textures are exposable at least..
         internal override bool isRenamable => true;
 
-        // this is used for properties exposed to the Material in the shaderlab Properties{} block
-        internal override string GetPropertyBlockString()
+        internal override void GetPropertyReferenceNames(List<string> result)
         {
-            // adds a properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
-            string result = "";
-            for (int layer= 0; layer < value.layers.Count; layer++)
+            result.Add(referenceName);
+            for (int layer = 0; layer < value.layers.Count; layer++)
+            {
+                result.Add(value.layers[layer].layerRefName);
+            }
+        }
+        internal override void GetPropertyDisplayNames(List<string> result)
+        {
+            result.Add(displayName);
+            for (int layer = 0; layer < value.layers.Count; layer++)
+            {
+                result.Add(value.layers[layer].layerName);
+            }
+        }
+
+        // this is used for properties exposed to the Material in the shaderlab Properties{} block
+        internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
+        {
+            // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
+            for (int layer = 0; layer < value.layers.Count; layer++)
             {
                 string layerName = value.layers[layer].layerName;
                 string layerRefName = value.layers[layer].layerRefName;
-                result += $"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}{Environment.NewLine}";
+                builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
             }
-            return result;
+        }
+
+        internal override string GetPropertyBlockString()
+        {
+            // this should not be called, as it is replaced by the Append*PropertyBlockStrings function above
+            throw new NotSupportedException();
         }
 
         internal override void AppendBatchablePropertyDeclarations(ShaderStringBuilder builder, string delimiter = ";")
@@ -123,25 +144,38 @@ namespace UnityEditor.ShaderGraph
 
         internal override ShaderInput Copy()
         {
-            return new VirtualTextureShaderProperty
+            var vt =  new VirtualTextureShaderProperty
             {
                 displayName = displayName,
                 hidden = hidden,
-                value = value,
+                value = new SerializableVirtualTexture(),
                 precision = precision
             };
+
+            // duplicate layer data, but reset reference names (they should be unique)
+            for (int layer = 0; layer < value.layers.Count; layer++)
+            {
+                var guid = Guid.NewGuid();
+                vt.value.layers.Add(
+                    new SerializableVirtualTextureLayer(
+                        value.layers[layer].layerName,
+                        $"Layer_{GuidEncoder.Encode(guid)}",
+                        value.layers[layer].layerTexture));
+            }
+
+            return vt;
         }
 
         internal void AddTextureInfo(List<PropertyCollector.TextureInfo> infos)
         {
             for (int layer = 0; layer < value.layers.Count; layer++)
             {
-                string layerName = value.layers[layer].layerName;
+                string layerRefName = value.layers[layer].layerRefName;
                 var layerTexture = value.layers[layer].layerTexture;
 
                 var textureInfo = new PropertyCollector.TextureInfo
                 {
-                    name = layerName,
+                    name = layerRefName,
                     textureId = (layerTexture != null && layerTexture.texture != null) ? layerTexture.texture.GetInstanceID() : 0,
                     modifiable = true
                 };
