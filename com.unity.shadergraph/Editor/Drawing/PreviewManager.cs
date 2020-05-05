@@ -329,33 +329,37 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case PropertyType.VirtualTexture:
 
                         // setup the VT textures on the material
+                        bool setAnyTextures = false;
                         var vt = prop.vtProperty.value;
                         for (int layer = 0; layer < vt.layers.Count; layer++)
                         {
                             if (vt.layers[layer].layerTexture.texture != null)
                             {
                                 mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
+                                setAnyTextures = true;
                             }
                         }
 
                         // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
 #if ENABLE_VIRTUALTEXTURES
-                        int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
-                        try
+                        if (setAnyTextures)
                         {
-                            // Ensure we always request the mip sized 256x256
-                            int width, height;
-                            UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
-                            int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
-                            const int baseMip = 8;
-                            int mip = Math.Max(textureMip - baseMip, 0);
-                            UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
-                            // This is valid in this case as we're still authoring the material.
-                            Debug.Log("REMOVEME: invalid operation on vt request");
+                            int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
+                            try
+                            {
+                                // Ensure we always request the mip sized 256x256
+                                int width, height;
+                                UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                                int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
+                                const int baseMip = 8;
+                                int mip = Math.Max(textureMip - baseMip, 0);
+                                UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
+                                // This is valid in this case as we're still authoring the material.
+                            }
                         }
 #endif // ENABLE_VIRTUALTEXTURES
                         break;
