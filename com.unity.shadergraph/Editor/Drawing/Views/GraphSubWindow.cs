@@ -225,6 +225,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
+            windowDockingLayout.ApplyPosition(this);
+            SerializeLayout();
         }
 
         public void OnStartResize()
@@ -246,6 +248,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 windowDockingLayout = m_DefaultLayout;
 
             // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
+            windowDockingLayout.size = layout.size;
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
