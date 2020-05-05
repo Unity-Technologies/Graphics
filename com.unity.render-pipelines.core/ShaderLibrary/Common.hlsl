@@ -1260,4 +1260,7 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
     return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
 }
 
+// These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
+TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
+
 #endif // UNITY_COMMON_INCLUDED

@@ -536,6 +536,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression in the ray traced indirect diffuse due to the new probe system.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
+- Fixed a bug where Decal Shader Graphs would not recieve reprojected Position, Normal, or Bitangent data. (1239921)
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
@@ -564,6 +565,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed shader warning in PCSS code when using Vulkan.
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
+- Fixed an error about procedural sky being logged by mistake.
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
 - Improved performance of reflection probe management when using a lot of probes.
 
 ### Changed
@@ -687,6 +692,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Merged material samples and shader samples
 - Update material samples scene visuals
 - Use multi_compile API for deferred compute shader with shadow mask.
+- Made the StaticLightingSky class public so that users can change it by script for baking purpose.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.1.1] - 2019-09-05
 
