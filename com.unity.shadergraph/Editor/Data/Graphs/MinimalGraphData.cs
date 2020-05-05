@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
- namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     /// <summary>
     /// Minimal version of <see cref="GraphData"/> used for gathering dependencies. This allows us to not deserialize
@@ -15,67 +17,68 @@ using UnityEngine;
     /// want to avoid the extra GC pressure.
     /// </summary>
     [Serializable]
-    class MinimalGraphData : ISerializationCallbackReceiver
+    class MinimalGraphData
     {
         static Dictionary<string, Type> s_MinimalTypeMap = CreateMinimalTypeMap();
 
-         static Dictionary<string, Type> CreateMinimalTypeMap()
+        static Dictionary<string, Type> CreateMinimalTypeMap()
         {
             var types = new Dictionary<string, Type>();
-            foreach (var nodeType in TypeCache.GetTypesWithAttribute<HasDependenciesAttribute>())
+            foreach (var type in TypeCache.GetTypesWithAttribute<HasDependenciesAttribute>())
             {
-                var dependencyAttribute = (HasDependenciesAttribute)nodeType.GetCustomAttributes(typeof(HasDependenciesAttribute), false)[0];
+                var dependencyAttribute = (HasDependenciesAttribute)type.GetCustomAttributes(typeof(HasDependenciesAttribute), false)[0];
                 if (!typeof(IHasDependencies).IsAssignableFrom(dependencyAttribute.minimalType))
                 {
-                    Debug.LogError($"{nodeType} must implement {typeof(IHasDependencies)} to be used in {typeof(HasDependenciesAttribute)}");
+                    Debug.LogError($"{type} must implement {typeof(IHasDependencies)} to be used in {typeof(HasDependenciesAttribute)}");
                     continue;
                 }
 
-                 types.Add(nodeType.FullName, dependencyAttribute.minimalType);
+                types.Add(type.FullName, dependencyAttribute.minimalType);
 
-                 var formerNameAttributes = (FormerNameAttribute[])nodeType.GetCustomAttributes(typeof(FormerNameAttribute), false);
+                var formerNameAttributes = (FormerNameAttribute[])type.GetCustomAttributes(typeof(FormerNameAttribute), false);
                 foreach (var formerNameAttribute in formerNameAttributes)
                 {
                     types.Add(formerNameAttribute.fullName, dependencyAttribute.minimalType);
                 }
             }
+
             return types;
         }
 
-         [SerializeField]
+        [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
-         public List<string> dependencies { get; set; }
-
-         public void OnAfterDeserialize()
-        {
-            foreach (var element in m_SerializableNodes)
-            {
-                if (s_MinimalTypeMap.TryGetValue(element.typeInfo.fullName, out var minimalType))
-                {
-                    var instance = (IHasDependencies)Activator.CreateInstance(minimalType);
-                    JsonUtility.FromJsonOverwrite(element.JSONnodeData, instance);
-                    instance.GetSourceAssetDependencies(dependencies);
-                }
-            }
-        }
-
-         public void OnBeforeSerialize()
-        {
-        }
-
-         public static string[] GetDependencyPaths(string assetPath)
+        public static string[] GetDependencyPaths(string assetPath)
         {
             var dependencies = new List<string>();
             GetDependencyPaths(assetPath, dependencies);
             return dependencies.ToArray();
         }
 
-         public static void GetDependencyPaths(string assetPath, List<string> dependencies)
+        public static void GetDependencyPaths(string assetPath, List<string> dependencies)
         {
             var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
-            var minimalGraphData = new MinimalGraphData { dependencies = dependencies };
-            JsonUtility.FromJsonOverwrite(textGraph, minimalGraphData);
+            var entries = MultiJsonInternal.Parse(textGraph);
+
+            if (string.IsNullOrWhiteSpace(entries[0].type))
+            {
+                var minimalGraphData = JsonUtility.FromJson<MinimalGraphData>(textGraph);
+                entries.Clear();
+                foreach (var node in minimalGraphData.m_SerializableNodes)
+                {
+                    entries.Add(new MultiJsonEntry(node.typeInfo.fullName, null, node.JSONnodeData));
+                }
+            }
+
+            foreach (var entry in entries)
+            {
+                if (s_MinimalTypeMap.TryGetValue(entry.type, out var minimalType))
+                {
+                    var instance = (IHasDependencies)Activator.CreateInstance(minimalType);
+                    JsonUtility.FromJsonOverwrite(entry.json, instance);
+                    instance.GetSourceAssetDependencies(dependencies);
+                }
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AreaLightShapeTypeLogicIsolation,
             PCSSUIUpdate,
             MoveEmissionMesh,
+            EnableApplyRangeAttenuationOnBoxLight,
         }
 
         /// <summary>
@@ -162,6 +163,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         data.m_AreaLightEmissiveMeshShadowCastingMode = oldShadowCastingMode;
                         data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = oldMotionVectorMode;
+                    }
+                }),
+                MigrationStep.New(Version.EnableApplyRangeAttenuationOnBoxLight, (HDAdditionalLightData data) =>
+                {
+                    // When enabling range attenuation for box light, the default value was "true"
+                    // causing a migration issue. So when we migrate we setup applyRangeAttenuation to false
+                    // if we are a box light to keep the previous behavior
+                    if (data.type == HDLightType.Spot)
+                    {
+                        if (data.spotLightShape == SpotLightShape.Box)
+                        {
+                            data.applyRangeAttenuation = false;
+                        }
                     }
                 })
             );
