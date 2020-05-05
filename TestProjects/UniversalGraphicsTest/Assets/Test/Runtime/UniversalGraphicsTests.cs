@@ -31,40 +31,20 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
 
         Scene scene = SceneManager.GetActiveScene();
 
-        if (scene.name.Substring(3, 4).Equals("_xr_"))
+        yield return null;
+
+        int waitFrames = settings.WaitFrames;
+
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
         {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo Universal tests do not run on MacOSX.");
-
-            XRSettings.LoadDeviceByName("MockHMD");
-            yield return null;
-
-            XRSettings.enabled = true;
-            yield return null;
-
-            XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
-            yield return null;
-
-            foreach (var camera in cameras)
-                camera.stereoTargetEye = StereoTargetEyeMask.Both;
-#else
-            yield return null;
-#endif
+            waitFrames = 1;
         }
-        else
-        {
-#if ENABLE_VR && ENABLE_VR_MODULE
-            XRSettings.enabled = false;
-#endif
-            yield return null;
-        }
-
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
 #if UNITY_ANDROID
         // On Android first scene often needs a bit more frames to load all the assets
