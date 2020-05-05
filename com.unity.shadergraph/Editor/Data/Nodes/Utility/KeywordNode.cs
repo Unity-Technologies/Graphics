@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEngine.Serialization;
-using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
+    [Serializable]
     [Title("Utility", "Keyword")]
     class KeywordNode : AbstractMaterialNode, IOnAssetEnabled, IGeneratesBodyCode
     {
@@ -20,19 +20,17 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private string m_KeywordGuidSerialized;
+        JsonRef<ShaderKeyword> m_Keyword;
 
-        private Guid m_KeywordGuid;
-
-        public Guid keywordGuid
+        public ShaderKeyword keyword
         {
-            get { return m_KeywordGuid; }
+            get { return m_Keyword; }
             set
             {
-                if (m_KeywordGuid == value)
+                if (m_Keyword == value)
                     return;
 
-                m_KeywordGuid = value;
+                m_Keyword = value;
                 UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
@@ -49,15 +47,11 @@ namespace UnityEditor.ShaderGraph
 
         public void UpdateNode()
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-
             name = keyword.displayName;
-            UpdatePorts(keyword);
+            UpdatePorts();
         }
 
-        void UpdatePorts(ShaderKeyword keyword)
+        void UpdatePorts()
         {
             switch(keyword.keywordType)
             {
@@ -140,10 +134,6 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
-            var keyword = owner.keywords.FirstOrDefault(x => x.guid == keywordGuid);
-            if (keyword == null)
-                return;
-
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
             switch(keyword.keywordType)
             {
@@ -211,29 +201,10 @@ namespace UnityEditor.ShaderGraph
 
         protected override void CalculateNodeHasError()
         {
-            if (!keywordGuid.Equals(Guid.Empty) && !owner.keywords.Any(x => x.guid == keywordGuid))
+            if (keyword == null || !owner.keywords.Any(x => x == keyword))
             {
-                owner.AddConcretizationError(guid, "Keyword Node has no associated keyword.");
+                owner.AddConcretizationError(objectId, "Keyword Node has no associated keyword.");
                 hasError = true;
-            }
-        }
-
-        public override void OnBeforeSerialize()
-        {
-            base.OnBeforeSerialize();
-
-            // Handle keyword guid serialization
-            m_KeywordGuidSerialized = m_KeywordGuid.ToString();
-        }
-
-        public override void OnAfterDeserialize()
-        {
-            base.OnAfterDeserialize();
-
-            // Handle keyword guid serialization
-            if (!string.IsNullOrEmpty(m_KeywordGuidSerialized))
-            {
-                m_KeywordGuid = new Guid(m_KeywordGuidSerialized);
             }
         }
     }
