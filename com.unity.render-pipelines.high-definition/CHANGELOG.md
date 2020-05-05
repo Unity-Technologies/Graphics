@@ -6,9 +6,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed shadowmask UI now correctly showing shadowmask disable
+
+### Changed
+- Shadowmask and realtime reflection probe property are hide in Quality settings
+
+## [8.1.0] - 2020-04-21
+
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added support for specular AA from geometric curvature in AxF
+- Added support for baked AO (no input for now) in AxF
+- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added support for rasterized area light shadows in StackLit
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
+- Added range attenuation for box-shaped spotlights.
+- Added Min distance to contact shadows.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -39,6 +58,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
 - Fixed path validation when creating new volume profile (case 1229933)
 - Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed various object leaks in HDRP.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed MSAA depth resolve when there is no motion vectors
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed white flash happening with auto-exposure in some cases (case 1223774)
+- Fixed NaN which can appear with real time reflection and inf value
+- Fixed raytracing shader compilation on Metal
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
+- Fixed scalarization code for contact shadows
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 
 ### Changed
@@ -49,6 +87,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Shadowmask and realtime reflection probe property are hide in Quality settings
+
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
 
 ## [7.3.0] - 2020-03-11
 
@@ -99,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed cubemap thumbnail generation at project load time. 
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.

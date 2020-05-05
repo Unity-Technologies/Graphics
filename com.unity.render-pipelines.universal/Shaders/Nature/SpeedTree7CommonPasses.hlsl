@@ -1,6 +1,10 @@
 #ifndef UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 #define UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 
+// Disable warnings we aren't interested in
+#pragma warning (disable : 3571) // "pow(f,e) will not work for negative f"; however in majority of our calls to pow we know f is not negative
+#pragma warning (disable : 3206) // implicit truncation of vector type
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 struct SpeedTreeVertexInput
@@ -40,7 +44,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
