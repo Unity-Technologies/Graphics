@@ -38,27 +38,21 @@ float3 GetDistordedCloudColor(float3 dir, float3 sky)
         float2 alpha = frac(float2(_CloudScrollFactor, _CloudScrollFactor + 0.5)) - 0.5;
 
 #ifdef USE_CLOUD_MAP
-        float3 tangent = cross(dir, float3(0.0, 1.0, 0.0));
+        float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
         float3 bitangent = cross(tangent, dir);
 
         float3 windDir = CloudRotationUp(dir, _CloudScrollDirection);
         float2 flow = SAMPLE_TEXTURE2D_LOD(_CloudFlowmap, sampler_CloudFlowmap, GetLatLongCoords(windDir, _CloudUpperHemisphere), 0).rg * 2.0 - 1.0;
 
-        float2 uv1 = alpha.x * flow;
-        float2 uv2 = alpha.y * flow;
-
-        float3 dd1 = uv1.x * tangent + uv1.y * bitangent;
-        float3 dd2 = uv2.x * tangent + uv2.y * bitangent;
+        float3 dd = flow.x * tangent + flow.y * bitangent;
 #else
         float3 windDir = CloudRotationUp(float3(0, 0, 1), _CloudScrollDirection);
-
-        float3 dd1 = alpha.x*windDir*sin(dir.y*PI*0.5)*1;
-        float3 dd2 = alpha.y*windDir*sin(dir.y*PI*0.5)*1;
+        float3 dd = windDir*sin(dir.y*PI*0.5);
 #endif
 
         // Sample twice
-        float3 color1 = sampleCloud(normalize(dir + dd1), sky);
-        float3 color2 = sampleCloud(normalize(dir + dd2), sky);
+        float3 color1 = sampleCloud(normalize(dir + alpha.x * dd), sky);
+        float3 color2 = sampleCloud(normalize(dir + alpha.y * dd), sky);
 
         // Blend color samples
         return lerp(color1, color2, abs(2.0 * alpha.x));

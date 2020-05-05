@@ -155,7 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
 
                 var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
-                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
+                SkySettings defaultSky = null;
+                if (defaultVolume.sharedProfile != null) // This can happen with old projects.
+                    defaultVolume.sharedProfile.TryGet(skyType, out defaultSky);
                 var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.
