@@ -79,6 +79,7 @@ publish_{{ test.name }}:
         frequency: daily
 {% endif -%}
   dependencies:
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}

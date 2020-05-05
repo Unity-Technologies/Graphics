@@ -11,14 +11,14 @@ ResizableElement
 
 ResizableElement #right
 {
-    width: 8px;
+    width: 12px;
     flex-direction: column;
     align-items: stretch;
 }
 
 ResizableElement #left
 {
-    width: 8px;
+    width: 12px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -32,7 +32,7 @@ ResizableElement #middle
 
 ResizableElement #left #top-left-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-up-left;
 }
 
@@ -44,13 +44,13 @@ ResizableElement #left #left-resize
 
 ResizableElement #left #bottom-left-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-up-right;
 }
 
 ResizableElement #middle #top-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-vertical;
 }
 
@@ -61,13 +61,13 @@ ResizableElement #middle #middle-center
 
 ResizableElement #middle #bottom-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-vertical;
 }
 
 ResizableElement #right #top-right-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-up-right;
 }
 
@@ -79,6 +79,6 @@ ResizableElement #right #right-resize
 
 ResizableElement #right #bottom-right-resize
 {
-    height: 8px;
+    height: 12px;
     cursor: resize-up-left;
 }
