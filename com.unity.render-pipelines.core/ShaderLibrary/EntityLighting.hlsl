@@ -252,6 +252,24 @@ real3 SampleSingleLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), float2
     return illuminance;
 }
 
+real3 SampleSingleLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), float2 uv, float slice, float4 transform, bool encodedLightmap, real4 decodeInstructions)
+{
+    // transform is scale and bias
+    uv = uv * transform.xy + transform.zw;
+    real3 illuminance = real3(0.0, 0.0, 0.0);
+    // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    if (encodedLightmap)
+    {
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgba;
+        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
+    }
+    else
+    {
+        illuminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgb;
+    }
+    return illuminance;
+}
+
 real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
 {
     // In directional mode Enlighten bakes dominant light direction
@@ -275,6 +293,35 @@ real3 SampleDirectionalLightmap(TEXTURE2D_PARAM(lightmapTex, lightmapSampler), T
     else
     {
         illuminance = SAMPLE_TEXTURE2D(lightmapTex, lightmapSampler, uv).rgb;
+    }
+    real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
+    return illuminance * halfLambert / max(1e-4, direction.w);
+}
+
+
+real3 SampleDirectionalLightmap(TEXTURE2D_ARRAY_PARAM(lightmapTex, lightmapSampler), TEXTURE2D_ARRAY_PARAM(lightmapDirTex, lightmapDirSampler), float2 uv, float slice, float4 transform, float3 normalWS, bool encodedLightmap, real4 decodeInstructions)
+{
+    // In directional mode Enlighten bakes dominant light direction
+    // in a way, that using it for half Lambert and then dividing by a "rebalancing coefficient"
+    // gives a result close to plain diffuse response lightmaps, but normalmapped.
+
+    // Note that dir is not unit length on purpose. Its length is "directionality", like
+    // for the directional specular lightmaps.
+
+    // transform is scale and bias
+    uv = uv * transform.xy + transform.zw;
+
+    real4 direction = SAMPLE_TEXTURE2D_ARRAY(lightmapDirTex, lightmapDirSampler, uv, slice);
+    // Remark: baked lightmap is RGBM for now, dynamic lightmap is RGB9E5
+    real3 illuminance = real3(0.0, 0.0, 0.0);
+    if (encodedLightmap)
+    {
+        real4 encodedIlluminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgba;
+        illuminance = DecodeLightmap(encodedIlluminance, decodeInstructions);
+    }
+    else
+    {
+        illuminance = SAMPLE_TEXTURE2D_ARRAY(lightmapTex, lightmapSampler, uv, slice).rgb;
     }
     real halfLambert = dot(normalWS, direction.xyz - 0.5) + 0.5;
     return illuminance * halfLambert / max(1e-4, direction.w);

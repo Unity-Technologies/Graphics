@@ -109,6 +109,7 @@ real4 unity_SpecCube0_HDR;
 
 // Lightmap block feature
 float4 unity_LightmapST;
+float4 unity_LightmapIndex;
 float4 unity_DynamicLightmapST;
 
 // SH block feature
@@ -205,11 +206,16 @@ SAMPLER(samplerunity_SpecCube0);
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE2D_ARRAY(unity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps);
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
 
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+TEXTURE2D_ARRAY(unity_ShadowMasks);
 
 // ----------------------------------------------------------------------------
 

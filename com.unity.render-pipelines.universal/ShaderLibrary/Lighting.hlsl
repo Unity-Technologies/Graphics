@@ -429,10 +429,16 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
-#ifdef DIRLIGHTMAP_COMBINED
+#if defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED) && defined(UNITY_DOTS_INSTANCING_ENABLED)
+    return SampleDirectionalLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps),
+        TEXTURE2D_ARRAY_ARGS(unity_LightmapsInd, samplerunity_Lightmaps),
+        lightmapUV, unity_LightmapIndex, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+#elif defined(LIGHTMAP_ON) && defined(DIRLIGHTMAP_COMBINED)
     return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
         TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
+#elif defined(LIGHTMAP_ON) && defined(UNITY_DOTS_INSTANCING_ENABLED)
+    return SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps), lightmapUV, unity_LightmapIndex, unity_LightmapIndex, transformCoords, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
     return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
 #else
