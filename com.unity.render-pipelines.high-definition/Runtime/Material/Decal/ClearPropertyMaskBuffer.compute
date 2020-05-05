@@ -5,14 +5,20 @@
 
 #pragma kernel CSMain
 
+#ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
+RWStructuredBuffer<uint> _DecalPropertyMaskBuffer : register(u0);
+#endif
+
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
+#ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
     int blockID = id.x / 8;
     int blockX = id.x % 8;
     int blockY = id.y;
     int index = blockID * 64 + blockY * 8 + blockX;
-#ifdef PLATFORM_SUPPORTS_BUFFER_ATOMICS_IN_PIXEL_SHADER
     _DecalPropertyMaskBuffer[index] = 0;
+#else
+    // Do nothing
 #endif
 }

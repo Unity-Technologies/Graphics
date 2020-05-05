@@ -1,4 +1,3 @@
-TEXTURE3D(_VBufferLighting);
 TEXTURECUBE_ARRAY(_SkyTexture);
 
 TEXTURE2D_ARRAY(_SkyTextureIntegrals);

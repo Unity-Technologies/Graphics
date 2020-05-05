@@ -12,16 +12,76 @@
 // LightLoop
 // ----------------------------------------------------------------------------
 
+void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinData, inout AggregateLighting aggregateLighting)
+{
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+    {
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            aggregateLighting.direct.diffuse = real3(0.0, 0.0, 0.0);
+        }
+
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            aggregateLighting.direct.specular = real3(0.0, 0.0, 0.0);
+        }
+
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            aggregateLighting.indirect.specularReflected = real3(0.0, 0.0, 0.0);
+        }
+
+        // Note: specular transmission is the refraction and as it reflect lighting behind the object it
+        // must be displayed for both diffuse and specular mode, except if we ask for direct lighting only
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_REFRACTION_LIGHTING)
+        {
+            aggregateLighting.indirect.specularTransmitted = real3(0.0, 0.0, 0.0);
+        }
+
+        if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+            _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING
+#if (SHADERPASS != SHADERPASS_DEFERRED_LIGHTING)
+            || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING // With deferred, Emissive is store in builtinData.bakeDiffuseLighting
+#endif
+            )
+        {
+            builtinData.bakeDiffuseLighting = real3(0.0, 0.0, 0.0);
+        }
+
+        if (_DebugLightingMode != DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        {
+            builtinData.emissiveColor = real3(0.0, 0.0, 0.0);
+        }
+    }
+#endif
+}
+
 void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
 {
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
     {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING)
-    {
-        diffuseLighting = float3(0.0, 0.0, 0.0); // Disable diffuse lighting
+        // Debug info is written to diffuseColor inside of light loop.
+        specularLighting = float3(0.0, 0.0, 0.0);
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
@@ -80,7 +140,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_MATCAP_VIEW)
     {
-        specularLighting = 0.0f;
+        specularLighting = float3(0.0, 0.0, 0.0);
         float3 normalVS = mul((float3x3)UNITY_MATRIX_V, bsdfData.normalWS).xyz;
 
         float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -97,15 +157,6 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 
         diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
-    else if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
-    {
-        // Debug info is written to diffuseColor inside of light loop.
-        specularLighting = float3(0.0, 0.0, 0.0);
-    }
-
-    // We always apply exposure when in debug mode. The exposure value will be at a neutral 0.0 when not needed.
-    diffuseLighting *= exp2(_DebugExposure);
-    specularLighting *= exp2(_DebugExposure);
 #endif
 }
 
@@ -479,6 +530,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     }
 
 #endif
+
+    ApplyDebugToLighting(context, builtinData, aggregateLighting);
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting

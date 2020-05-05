@@ -9,12 +9,22 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using Object = System.Object;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
+#if ENABLE_HYBRID_RENDERER_V2
+    // Bump the version number when Hybrid Renderer V2 is enabled, to make
+    // sure that all shader graphs get re-imported. Re-importing is required,
+    // because the shader graph codegen is different for V2.
+    // This ifdef can be removed once V2 is the only option.
+    [ScriptedImporter(100, Extension, 3)]
+#else
     [ScriptedImporter(32, Extension, 3)]
+#endif
+
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
@@ -88,9 +98,11 @@ Shader ""Hidden/GraphErrorShader2""
             UnityEngine.Object mainObject;
 
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            var graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -109,7 +121,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 foreach (var pair in graph.messageManager.GetNodeMessages())
                 {
-                    var node = graph.GetNodeFromGuid(pair.Key);
+                    var node = graph.GetNodeFromId(pair.Key);
                     MessageManager.Log(node, path, pair.Value.First(), shader);
                 }
             }
@@ -163,7 +175,7 @@ Shader ""Hidden/GraphErrorShader2""
                 configuredTextures = generator.configuredTextures;
                 sourceAssetDependencyPaths = generator.assetDependencyPaths;
 
-                if (graph.messageManager.nodeMessagesChanged)
+                if (graph.messageManager.AnyError())
                 {
                     shaderString = null;
                 }
@@ -181,9 +193,11 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths, out GraphData graph)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -193,9 +207,11 @@ Shader ""Hidden/GraphErrorShader2""
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = JsonUtility.FromJson<GraphData>(textGraph);
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(path);
+            GraphData graph = new GraphData
+            {
+                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
+            };
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
 
@@ -257,10 +273,10 @@ Shader ""Hidden/GraphErrorShader2""
                 portNodeSets[portIndex] = nodeSet;
             }
 
-            var portPropertySets = new HashSet<Guid>[ports.Count];
+            var portPropertySets = new HashSet<string>[ports.Count];
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
-                portPropertySets[portIndex] = new HashSet<Guid>();
+                portPropertySets[portIndex] = new HashSet<string>();
             }
 
             foreach (var node in nodes)
@@ -275,7 +291,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var portNodeSet = portNodeSets[portIndex];
                     if (portNodeSet.Contains(node))
                     {
-                        portPropertySets[portIndex].Add(propertyNode.propertyGuid);
+                        portPropertySets[portIndex].Add(propertyNode.property.objectId);
                     }
                 }
             }
@@ -322,7 +338,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var message = new StringBuilder($"Precision mismatch for function {name}:");
                     foreach (var node in source.nodes)
                     {
-                        message.AppendLine($"{node.name} ({node.guid}): {node.concretePrecision}");
+                        message.AppendLine($"{node.name} ({node.objectId}): {node.concretePrecision}");
                     }
                     throw new InvalidOperationException(message.ToString());
                 }
@@ -355,7 +371,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property.objectId))
                     {
                         portCodeIndices[portIndex].Add(codeSnippets.Count);
                     }
@@ -484,7 +500,7 @@ Shader ""Hidden/GraphErrorShader2""
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
-                    if (portPropertySet.Contains(property.guid))
+                    if (portPropertySet.Contains(property.objectId))
                 {
                         portCodeIndices[portIndex].Add(codeIndex);
                         portPropertyIndices[portIndex].Add(propertyIndex);

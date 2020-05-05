@@ -103,10 +103,12 @@ CBUFFER_START(ShaderVariablesLightList)
     uint g_isOrthographic;
     uint g_BaseFeatureFlags;
     int g_iNumSamplesMSAA;
-    int _EnvLightIndexShift;
-    int _DecalIndexShift;
-    int _DensityVolumeIndexShift;
-    int _ProbeVolumeIndexShift;
+    uint _EnvLightIndexShift;
+    uint _DecalIndexShift;
+    uint _DensityVolumeIndexShift;
+    uint _ProbeVolumeIndexShift;
+    uint _Pad0_SVLL;
+    uint _Pad1_SVLL;
 CBUFFER_END
 
 //
