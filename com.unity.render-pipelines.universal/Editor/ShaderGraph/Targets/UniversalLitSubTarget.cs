@@ -91,6 +91,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           target.clearCoat );
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     target.clearCoat );
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -152,6 +154,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Fragment Normal Space");
                 normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Clear Coat", new Toggle() { value = target.clearCoat }, (evt) =>
+            {
+                if (Equals(target.twoSided, evt.newValue))
+                    return;
+
+                registerUndo("Change Clear Coat");
+                target.clearCoat = evt.newValue;
                 onChange();
             });
         }

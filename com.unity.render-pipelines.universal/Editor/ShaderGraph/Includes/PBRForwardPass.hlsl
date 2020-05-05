@@ -71,6 +71,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         float metallic = surfaceDescription.Metallic;
     #endif
 
+    half clearCoatStrength = 0;
+    half clearCoatSmoothness = 1;
+    #ifdef _CLEARCOAT
+        clearCoatStrength   = surfaceDescription.ClearCoatMask;
+        clearCoatSmoothness = surfaceDescription.ClearCoatSmoothness;
+    #endif
+
     half4 color = UniversalFragmentPBR(
 			inputData,
 			surfaceDescription.BaseColor,
@@ -79,7 +86,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Smoothness,
 			surfaceDescription.Occlusion,
 			surfaceDescription.Emission,
-			alpha);
+			alpha,
+            clearCoatStrength,
+            clearCoatSmoothness);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
