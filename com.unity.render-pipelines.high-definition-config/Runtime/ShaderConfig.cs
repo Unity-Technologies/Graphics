@@ -53,8 +53,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
 
-        BarnDoor = 0
-    };
+        BarnDoor = 0,
+
+        LightOcclusionPlane = 0
+    };  
 
     // Note: #define can't be use in include file in C# so we chose this way to configure both C# and hlsl
     // Changing a value in this enum Config here require to regenerate the hlsl include and recompile C# and shaders
@@ -68,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
+        public static int s_LightOcclusionPlane = (int)ShaderOptions.LightOcclusionPlane;
         [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
