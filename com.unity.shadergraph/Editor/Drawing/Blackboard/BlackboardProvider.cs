@@ -279,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var item in selection)
                 {
                     if (item is BlackboardFieldView blackboardFieldView)
-            {
+                    {
                         var guid = blackboardFieldView.shaderInput.referenceName;
                         oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
                     }
