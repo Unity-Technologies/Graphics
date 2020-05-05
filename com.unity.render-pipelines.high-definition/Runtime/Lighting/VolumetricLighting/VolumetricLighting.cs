@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Remove if equals to the ones in global CB?
         public uint _NumTileBigTileX;
         public uint _NumTileBigTileY;
+        public uint _Pad0_SVV;
+        public uint _Pad1_SVV;
     }
 
 
