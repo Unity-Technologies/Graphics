@@ -254,6 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
             systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
+            systemData.zWrite = false;
             builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
             target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
 
