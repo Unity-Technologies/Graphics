@@ -3,9 +3,7 @@
 
 
 // TODO List to investigate
-//  - Number of bins:
 //      - Worth considering multiple histograms per lane in the thread. (i.e. sharedHisto[BINS][NUMB_HIST] )
-//      - Worth checking the optimal group size.
 //      - At the moment the dispatch is at half res, but the buffer sampled is full res,
 //        causing fairly bad cache behaviour. Can we use the mip chain realistically without issues? [The one we have is blurred and might be incomplete?] 
 
@@ -155,8 +153,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
 
-    // TODO: This can probably done more efficiently. Also verify that all but the first wave
-    // actually skip this or if we need to enforce it somehow.
+    // TODO: This can probably done more efficiently.
     if (threadID == 0)
     {
         float evProcessedSum = 0;

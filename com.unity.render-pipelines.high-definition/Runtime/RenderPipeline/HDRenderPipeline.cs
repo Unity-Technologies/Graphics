@@ -4281,6 +4281,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PushFullScreenLightingDebugTexture(HDCamera hdCamera, CommandBuffer cmd, RTHandle textureID)
         {
+            // In practice, this is only useful for the SingleShadow debug view.
+            // TODO: See how we can make this nicer than a specific functions just for one case.
             if (NeedsFullScreenDebugMode() && m_FullScreenDebugPushed == false)
             {
                 m_FullScreenDebugPushed = true;

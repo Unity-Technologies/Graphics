@@ -1,5 +1,5 @@
 
-#define HISTOGRAM_BINS 128          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
+#define HISTOGRAM_BINS 128
 
 #define _HistogramRangeScale     _HistogramExposureParams.x
 #define _HistogramRangeBias      _HistogramExposureParams.y
