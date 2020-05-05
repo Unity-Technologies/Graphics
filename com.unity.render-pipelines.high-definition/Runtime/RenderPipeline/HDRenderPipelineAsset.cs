@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipelineAsset()
         {
-
+            
         }
 
         void Reset() => OnValidate();
