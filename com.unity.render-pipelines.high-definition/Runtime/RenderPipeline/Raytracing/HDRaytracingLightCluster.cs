@@ -731,7 +731,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the volume of the cluster
             EvaluateClusterVolume(hdCamera);
+        }
 
+		public void BuildLightClusterBuffer(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+		{
+			  // If there is no lights to process or no environment not the shader is missing
+            if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
+                return;
+			
             // Cull the lights within the evaluated cluster range
             CullLights(cmd);
 
