@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public override string GetDefaultReferenceName()
         {
-            return $"Color_{GuidEncoder.Encode(guid)}";
+            return $"Color_{objectId}";
         }
         
         [SerializeField]
@@ -63,7 +63,9 @@ namespace UnityEditor.ShaderGraph.Internal
                 displayName = displayName,
                 hidden = hidden,
                 value = value,
-                colorMode = colorMode
+                colorMode = colorMode,
+                precision = precision,
+                gpuInstanced = gpuInstanced,
             };
         }
     }

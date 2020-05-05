@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ReorderableList m_BeforeTransparentCustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
-            int m_CurrentVolumeProfileHash;
+            int m_CurrentVolumeProfileInstanceID;
 
             public void OnGUI(string searchContext)
             {
@@ -209,9 +209,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.EndHorizontal();
 
                 // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
-                if (m_CurrentVolumeProfileHash != asset.GetHashCode() && m_CachedDefaultVolumeProfileEditor != null)
+                if (m_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && m_CachedDefaultVolumeProfileEditor != null)
                 {
-                    m_CurrentVolumeProfileHash = asset.GetHashCode();
+                    m_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
                     m_CachedDefaultVolumeProfileEditor = null;
                 }
 

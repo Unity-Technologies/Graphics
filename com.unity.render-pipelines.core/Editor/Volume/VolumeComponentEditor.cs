@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
-    /// A custom editor class that draws a <see cref="VolumeComponent"/> in the Inspector. If you do not 
+    /// A custom editor class that draws a <see cref="VolumeComponent"/> in the Inspector. If you do not
     /// provide a custom editor for a <see cref="VolumeComponent"/>, Unity uses the default one.
     /// You must use a <see cref="VolumeComponentEditorAttribute"/> to let the editor know which
     /// component this drawer is for.
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
     /// Below is an example of a custom <see cref="VolumeComponent"/>:
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [Serializable, VolumeComponentMenu("Custom/Example Component")]
     /// public class ExampleComponent : VolumeComponent
     /// {
@@ -53,18 +53,18 @@ namespace UnityEditor.Rendering
     /// And its associated editor:
     /// <code>
     /// using UnityEditor.Rendering;
-    /// 
+    ///
     /// [VolumeComponentEditor(typeof(ExampleComponent))]
     /// class ExampleComponentEditor : VolumeComponentEditor
     /// {
     ///     SerializedDataParameter m_Intensity;
-    /// 
+    ///
     ///     public override void OnEnable()
     ///     {
     ///         var o = new PropertyFetcher&lt;ExampleComponent&gt;(serializedObject);
     ///         m_Intensity = Unpack(o.Find(x => x.intensity));
     ///     }
-    /// 
+    ///
     ///     public override void OnInspectorGUI()
     ///     {
     ///         PropertyField(m_Intensity);
@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         protected Editor m_Inspector;
 
-        List<SerializedDataParameter> m_Parameters;
+        List<(GUIContent displayName, int displayOrder, SerializedDataParameter param)> m_Parameters;
 
         static Dictionary<Type, VolumeParameterDrawer> s_ParameterDrawers;
 
@@ -179,6 +179,20 @@ namespace UnityEditor.Rendering
             OnEnable();
         }
 
+
+        class ParameterSorter : Comparer<(GUIContent displayName, int displayOrder, SerializedDataParameter param)>
+        {
+            public override int Compare((GUIContent displayName, int displayOrder, SerializedDataParameter param) x, (GUIContent displayName, int displayOrder, SerializedDataParameter param) y)
+            {
+                if (x.displayOrder < y.displayOrder)
+                    return -1;
+                else if (x.displayOrder == y.displayOrder)
+                    return 0;
+                else
+                    return 1;
+            }
+        }
+
         /// <summary>
         /// Unity calls this method when the object loads.
         /// </summary>
@@ -188,7 +202,7 @@ namespace UnityEditor.Rendering
         /// </remarks>
         public virtual void OnEnable()
         {
-            m_Parameters = new List<SerializedDataParameter>();
+            m_Parameters = new List<(GUIContent, int, SerializedDataParameter)>();
 
             // Grab all valid serializable field on the VolumeComponent
             // TODO: Should only be done when needed / on demand as this can potentially be wasted CPU when a custom editor is in use
@@ -206,9 +220,19 @@ namespace UnityEditor.Rendering
             foreach (var field in fields)
             {
                 var property = serializedObject.FindProperty(field.Name);
+                var name = "";
+                var order = 0;
+                var attr = (DisplayInfoAttribute[])field.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                if (attr.Length != 0)
+                {
+                    name = attr[0].name;
+                    order = attr[0].order;
+                }
+
                 var parameter = new SerializedDataParameter(property);
-                m_Parameters.Add(parameter);
+                m_Parameters.Add((new GUIContent(name), order, parameter));
             }
+            m_Parameters.Sort(new ParameterSorter());
         }
 
         /// <summary>
@@ -239,7 +263,12 @@ namespace UnityEditor.Rendering
         {
             // Display every field as-is
             foreach (var parameter in m_Parameters)
-                PropertyField(parameter);
+            {
+                if (parameter.displayName.text != "")
+                    PropertyField(parameter.param, parameter.displayName);
+                else
+                    PropertyField(parameter.param);
+            }
         }
 
         /// <summary>

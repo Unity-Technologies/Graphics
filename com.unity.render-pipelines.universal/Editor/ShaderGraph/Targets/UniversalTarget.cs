@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
             }
-            
+
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
@@ -253,7 +253,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -262,7 +262,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
@@ -272,7 +272,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
@@ -349,7 +349,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
-        const string kGraphVariables = "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl";
         const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
@@ -365,7 +364,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static IncludeCollection ShaderGraphPregraph = new IncludeCollection
         {
             { kGraphFunctions, IncludeLocation.Pregraph },
-            { kGraphVariables, IncludeLocation.Pregraph },
         };
 
         public static IncludeCollection CorePostgraph = new IncludeCollection
@@ -395,9 +393,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { CorePostgraph },
             { kShadowCasterPass, IncludeLocation.Postgraph },
         };
-    } 
+    }
 #endregion
-    
+
 #region KeywordDescriptors
     static class CoreKeywordDescriptors
     {

@@ -6,6 +6,7 @@ using NUnit.Framework;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.UnitTests
@@ -17,9 +18,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             hideFlags = HideFlags.HideAndDontSave;
 
             var textGraph = File.ReadAllText(graphPath, Encoding.UTF8);
-            graph = JsonUtility.FromJson<GraphData>(textGraph);
+            graph = new GraphData();
             graph.messageManager = new MessageManager();
             graph.assetGuid = AssetDatabase.AssetPathToGUID(graphPath);
+            MultiJson.Deserialize(graph, textGraph);
             graph.OnEnable();
             graph.ValidateGraph();
         }
@@ -59,7 +61,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
                 if (edge == null) continue;
 
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
                 var curOutputType = outputSlot.valueType.ToConcreteSlotValueType();
 
@@ -73,7 +75,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
                     // Verify all errors are expected
                     foreach (var message in m_Graph.messageManager.GetNodeMessages())
                     {
-                        if (message.Key.Equals(m_CFNode.guid) && message.Value.Exists(msg =>
+                        if (message.Key.Equals(m_CFNode.objectId) && message.Value.Exists(msg =>
                             msg.severity == ShaderCompilerMessageSeverity.Error))
                         {
                             Assert.IsFalse(SlotValueHelper.AreCompatible(slotValType, curOutputType),
@@ -105,17 +107,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var edge = m_Graph.GetEdges(slot.slotReference).FirstOrDefault();
                 if (edge == null) continue;
 
-                var outputNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, Guid.Empty);
+                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
 
                 // Verify all errors are expected
                 foreach (var message in m_Graph.messageManager.GetNodeMessages())
                 {
-                    if (message.Key.Equals(m_CFNode.guid) && message.Value.Exists(msg =>
+                    if (message.Key.Equals(m_CFNode.objectId) && message.Value.Exists(msg =>
                         msg.severity == ShaderCompilerMessageSeverity.Error))
                     {
                         Assert.Fail(message.Value.FirstOrDefault().message);

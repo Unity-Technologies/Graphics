@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+                var gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
                 lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, m_FrameCount);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
@@ -75,13 +75,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                                               hdCamera,
                                                               prepassOutput.resolvedNormalBuffer,
                                                               prepassOutput.resolvedMotionVectorsBuffer,
+                                                              prepassOutput.depthBuffer,
                                                               prepassOutput.depthPyramidTexture,
                                                               prepassOutput.stencilBuffer,
                                                               clearCoatMask);
 
-                lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
+                lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
-                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList);
+                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList, m_FrameCount);
 
                 shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
 
@@ -113,11 +114,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    hdCamera.xr.StopSinglePass(cmd);
                 //}
 
-                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
+                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult);
+                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
@@ -582,10 +583,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderLowResTransparentPassData
         {
-            public FrameSettings                frameSettings;
-            public RendererListHandle   rendererList;
-            public TextureHandle        lowResBuffer;
-            public TextureHandle        downsampledDepthBuffer;
+            public ShaderVariablesGlobal    globalCB;
+            public FrameSettings            frameSettings;
+            public RendererListHandle       rendererList;
+            public TextureHandle            lowResBuffer;
+            public TextureHandle            downsampledDepthBuffer;
         }
 
         TextureHandle RenderLowResTransparent(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle downsampledDepth, CullingResults cullingResults)
@@ -594,6 +596,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var passNames = m_Asset.currentPlatformRenderPipelineSettings.supportTransparentBackface ? m_AllTransparentPassNames : m_TransparentNoBackfaceNames;
 
+                passData.globalCB = m_ShaderVariablesGlobalCB;
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullingResults, hdCamera.camera, passNames, m_CurrentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_LowTransparent)));
@@ -605,13 +608,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (RenderLowResTransparentPassData data, RenderGraphContext context) =>
                 {
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 1);
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenDownsampleFactor, 2);
+                    UpdateOffscreenRenderingConstants(ref data.globalCB, true, 2u);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
 
                     DrawTransparentRendererList(context.renderContext, context.cmd, data.frameSettings,  context.resources.GetRendererList(data.rendererList));
 
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenRendering, 0);
-                    context.cmd.SetGlobalInt(HDShaderIDs._OffScreenDownsampleFactor, 1);
+                    UpdateOffscreenRenderingConstants(ref data.globalCB, false, 1u);
+                    ConstantBuffer.PushGlobal(context.cmd, data.globalCB, HDShaderIDs._ShaderVariablesGlobal);
                 });
 
                 return passData.lowResBuffer;
@@ -789,7 +792,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
         {
-            if (m_CurrentDebugDisplaySettings.IsMatcapViewEnabled(hdCamera))
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
             {
                 return;
             }
@@ -869,19 +872,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = context.resources.GetTexture(data.colorPyramid);
                     var inputTexture = context.resources.GetTexture(data.inputColor);
                     data.hdCamera.colorPyramidHistoryMipCount = data.mipGenerator.RenderColorGaussianPyramid(context.cmd, pyramidSize, inputTexture, colorPyramid);
-
-                    // TODO : Replace that by _RTHandleScaleHistory in the shaders. Only missing part is lodCount
-                    float scaleX = data.hdCamera.actualWidth / (float)colorPyramid.rt.width;
-                    float scaleY = data.hdCamera.actualHeight / (float)colorPyramid.rt.height;
-                    Vector4 pyramidScaleLod = new Vector4(scaleX, scaleY, data.hdCamera.colorPyramidHistoryMipCount, 0.0f);
-                    // Warning! Danger!
-                    // The color pyramid scale is only correct for the most detailed MIP level.
-                    // For the other MIP levels, due to truncation after division by 2, a row or
-                    // column of texels may be lost. Since this can happen to BOTH the texture
-                    // size AND the viewport, (uv * _ColorPyramidScale.xy) can be off by a texel
-                    // unless the scale is 1 (and it will not be 1 if the texture was resized
-                    // and is of greater size compared to the viewport).
-                    context.cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, pyramidScaleLod);
                 });
             }
 
@@ -896,13 +886,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        distortionBuffer;
             public TextureHandle        depthStencilBuffer;
             public RendererListHandle   distortionRendererList;
-            public FrameSettings                frameSettings;
+            public FrameSettings        frameSettings;
         }
 
         TextureHandle AccumulateDistortion( RenderGraph     renderGraph,
-                                                    HDCamera                    hdCamera,
+                                            HDCamera        hdCamera,
                                             TextureHandle   depthStencilBuffer,
-                                                    CullingResults              cullResults)
+                                            CullingResults  cullResults)
         {
             using (var builder = renderGraph.AddRenderPass<AccumulateDistortionPassData>("Accumulate Distortion", out var passData, ProfilingSampler.Get(HDProfileId.Distortion)))
             {
