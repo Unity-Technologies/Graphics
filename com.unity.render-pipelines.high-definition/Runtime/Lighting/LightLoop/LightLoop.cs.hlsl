@@ -107,6 +107,8 @@ CBUFFER_START(ShaderVariablesLightList)
     uint _DecalIndexShift;
     uint _DensityVolumeIndexShift;
     uint _ProbeVolumeIndexShift;
+    uint _Pad0_SVLL;
+    uint _Pad1_SVLL;
 CBUFFER_END
 
 //
