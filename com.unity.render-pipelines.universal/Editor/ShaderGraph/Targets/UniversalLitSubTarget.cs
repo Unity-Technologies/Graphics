@@ -387,6 +387,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
+                BlockFields.SurfaceDescription.CoatMask,
+                BlockFields.SurfaceDescription.CoatSmoothness,
             };
 
             public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
