@@ -225,6 +225,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
+            windowDockingLayout.ApplyPosition(this);
+            SerializeLayout();
         }
 
         public void OnStartResize()

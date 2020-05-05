@@ -128,7 +128,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_EditorWindow = editorWindow;
             m_Graph = graph;
             m_MessageManager = messageManager;
-            styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
             previewManager.RenderPreviews(false);
@@ -138,6 +137,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
             var colorProviders = m_ColorManager.providerNames.ToArray();
+
+            styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
 
             var toolbar = new IMGUIContainer(() =>
                 {

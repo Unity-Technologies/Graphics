@@ -3,8 +3,8 @@ MasterPreviewView {
     position: absolute;
     right: 10px;
     bottom: 10px;
-    width: 200px;
-    height: 200px;
+    width: 225px;
+    height: 225px;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
     border-radius: 6px;
@@ -25,7 +25,7 @@ MasterPreviewView > #top {
 }
 
 MasterPreviewView > #top > #title {
-    font-size: 12px;
+    font-size: 14px;
     color: rgb(180, 180, 180);
     padding: 1px 2px 2px;
 }
