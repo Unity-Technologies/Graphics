@@ -1492,9 +1492,53 @@ namespace UnityEngine.Rendering.HighDefinition
             if (PrefabUtility.IsPartOfPrefabAsset(this))
                     return;
 #endif
+            bool here = m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null);
 
-            //if not here, create it
-            if (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null))
+#if UNITY_EDITOR
+            //if not parented anymore, destroy it
+            if (here && m_ChildEmissiveMeshViewer.transform.parent != transform)
+            {
+                if (Application.isPlaying)
+                    Destroy(m_ChildEmissiveMeshViewer);
+                else
+                    DestroyImmediate(m_ChildEmissiveMeshViewer);
+                m_ChildEmissiveMeshViewer = null;
+                m_EmissiveMeshFilter = null;
+                here = false;
+            }
+#endif
+
+            //if not here, try to find it first
+            if (!here)
+            {
+                foreach (Transform child in transform)
+                {
+                    var test = child.GetComponents(typeof(Component));
+                    if (child.name == k_EmissiveMeshViewerName
+                        && child.hideFlags == (HideFlags.NotEditable | HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor)
+                        && child.GetComponents(typeof(MeshFilter)).Length == 1
+                        && child.GetComponents(typeof(MeshRenderer)).Length == 1
+                        && child.GetComponents(typeof(Component)).Length == 3) // Transform + MeshFilter + MeshRenderer
+                    {
+                        m_ChildEmissiveMeshViewer = child.gameObject;
+                        m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
+                        m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
+                        m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+                        m_ChildEmissiveMeshViewer.layer = areaLightEmissiveMeshLayer == -1 ? gameObject.layer : areaLightEmissiveMeshLayer;
+
+                        m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
+                        emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
+                        emissiveMeshRenderer.shadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
+                        emissiveMeshRenderer.motionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+
+                        here = true;
+                        break;
+                    }
+                }
+            }
+
+            //if still not here, create it
+            if (!here)
             {
                 m_ChildEmissiveMeshViewer = new GameObject(k_EmissiveMeshViewerName, typeof(MeshFilter), typeof(MeshRenderer));
                 m_ChildEmissiveMeshViewer.hideFlags = HideFlags.NotEditable | HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
@@ -2137,6 +2181,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_Animated)
                 return;
 #endif
+
+#if UNITY_EDITOR
+            //if not parented anymore, refresh it
+            if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null) && m_ChildEmissiveMeshViewer.transform.parent != transform)
+            {
+                CreateChildEmissiveMeshViewerIfNeeded();
+                UpdateAreaLightEmissiveMesh();
+            }
+#endif
+
+            //auto change layer on emissive mesh
             if (areaLightEmissiveMeshLayer == -1
                 && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
                 && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
