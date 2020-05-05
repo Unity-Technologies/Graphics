@@ -478,10 +478,13 @@ namespace UnityEngine.Rendering.Universal
             // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
             // We only do this for the main camera and this only takes effect in the beginning of next frame.
             // This settings should not be changed on a frame basis so that's fine.
-            QualitySettings.antiAliasing = msaaSamples;
+            if (msaaSampleCountHasChanged)
+            {
+                QualitySettings.antiAliasing = msaaSamples;
 
-            if (xrEnabled && msaaSampleCountHasChanged)
-                XR.XRDevice.UpdateEyeTextureMSAASetting();
+                if (xrEnabled && msaaSampleCountHasChanged)
+                    XR.XRDevice.UpdateEyeTextureMSAASetting();
+            }
 #endif
         }
 

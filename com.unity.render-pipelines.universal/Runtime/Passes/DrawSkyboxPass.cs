@@ -23,10 +23,10 @@ namespace UnityEngine.Rendering.Universal
                 if (renderingData.cameraData.xr.singlePassEnabled)
                 {
                     // Setup legacy skybox stereo buffer
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xr.GetProjMatrix(0));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.xr.GetViewMatrix(0));
-                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xr.GetProjMatrix(1));
-                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.xr.GetViewMatrix(1));
+                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.GetProjectionMatrix(0));
+                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, renderingData.cameraData.GetViewMatrix(0));
+                    renderingData.cameraData.camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetProjectionMatrix(1));
+                    renderingData.cameraData.camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, renderingData.cameraData.GetViewMatrix(1));
 
                     CommandBuffer cmd = CommandBufferPool.Get();
 
@@ -46,8 +46,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.xr.GetProjMatrix(0);
-                    renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.xr.GetViewMatrix(0);
+                    renderingData.cameraData.camera.projectionMatrix = renderingData.cameraData.GetProjectionMatrix(0);
+                    renderingData.cameraData.camera.worldToCameraMatrix = renderingData.cameraData.GetViewMatrix(0);
 
                     context.DrawSkybox(renderingData.cameraData.camera);
                 }

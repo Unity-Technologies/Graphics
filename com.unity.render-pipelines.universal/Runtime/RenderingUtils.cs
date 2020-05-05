@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
         internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
 
         // Hold the stereo matrices in this class to avoid allocating arrays every frame
-        class StereoConstants
+        internal class StereoConstants
         {
             public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
             public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
