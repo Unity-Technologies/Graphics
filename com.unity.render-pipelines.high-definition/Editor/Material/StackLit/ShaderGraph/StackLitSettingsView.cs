@@ -356,13 +356,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Per Punctual/Directional Lights
             context.AddLabel("Per Punctual/Directional Lights:", 1);
-            context.AddProperty("Base Layer Uses Refracted Angles", 2, new Toggle() { value = stackLitData.anisotropyForAreaLights }, stackLitData.coat, (evt) =>
+            context.AddProperty("Base Layer Uses Refracted Angles", 2, new Toggle() { value = stackLitData.shadeBaseUsingRefractedAngles }, stackLitData.coat, (evt) =>
             {
-                if (Equals(stackLitData.anisotropyForAreaLights, evt.newValue))
+                if (Equals(stackLitData.shadeBaseUsingRefractedAngles, evt.newValue))
                     return;
 
                 registerUndo("Base Layer Uses Refracted Angles");
-                stackLitData.anisotropyForAreaLights = evt.newValue;
+                stackLitData.shadeBaseUsingRefractedAngles = evt.newValue;
                 onChange();
             });
             context.AddProperty("Recompute Stack & Iridescence", 2, new Toggle() { value = stackLitData.recomputeStackPerLight }, stackLitData.coat || stackLitData.iridescence, (evt) =>
