@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        internal bool displayAreaLightEmissiveMesh
+        public bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -1502,6 +1502,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
                 m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
                 m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+                m_ChildEmissiveMeshViewer.layer = m_AreaLightEmissiveMeshLayer;
 
                 m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
                 emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
@@ -1525,6 +1526,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
         [SerializeField]
         MotionVectorGenerationMode m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+        [SerializeField]
+        int m_AreaLightEmissiveMeshLayer = 0; //Default
 
         /// <summary> Change the Shadow Casting Mode of the generated emissive mesh for Area Light </summary>
         public ShadowCastingMode areaLightEmissiveMeshShadowCastingMode
@@ -1559,7 +1562,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
+
+        /// <summary> Change the Layer of the generated emissive mesh for Area Light </summary>
+        public int areaLightEmissiveMeshLayer
+        {
+            get => m_AreaLightEmissiveMeshLayer;
+            set
+            {
+                if (m_AreaLightEmissiveMeshLayer == value)
+                    return;
+
+                m_AreaLightEmissiveMeshLayer = value;
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                {
+                    emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+                }
+            }
+        }
+
         private void DisableCachedShadowSlot()
         {
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
