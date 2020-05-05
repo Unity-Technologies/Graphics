@@ -394,7 +394,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //     stackLitData.devMode = evt.newValue;
             //     onChange();
             // });
-            context.AddProperty("Show And Enable StackLit Debugs", 1, new Toggle() { value = stackLitData.debug }, (evt) =>
+            context.AddProperty("Show And Enable StackLit Debugs", 1, new Toggle() { value = stackLitData.debug }, stackLitData.devMode, (evt) =>
             {
                 if (Equals(stackLitData.debug, evt.newValue))
                     return;
