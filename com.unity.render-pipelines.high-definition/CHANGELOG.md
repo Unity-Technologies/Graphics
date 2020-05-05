@@ -569,6 +569,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
+- Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed XR tests 1219, 2008, 3003, 5001, 5002, 5003, 5008, 8101 and 8102
 
 ### Changed
