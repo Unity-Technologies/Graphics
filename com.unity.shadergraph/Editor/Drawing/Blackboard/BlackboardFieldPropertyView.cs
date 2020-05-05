@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
@@ -9,11 +10,16 @@ using UnityEngine.UIElements;
 using Toggle = UnityEngine.UIElements.Toggle;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditorInternal;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldPropertyView : BlackboardFieldView
     {
+        private ReorderableList m_VTReorderableList; //reorderable list data for the Virtual Texture property
+        private IMGUIContainer m_VTContainer;
+        private int m_VTSelectedIndex;
         public BlackboardFieldPropertyView(BlackboardField blackboardField, GraphData graph, ShaderInput input)
             : base (blackboardField, graph, input)
         {
@@ -71,6 +77,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
                 case GradientShaderProperty gradientProperty:
                     BuildGradientPropertyField(gradientProperty);
+                    break;
+                case VirtualTextureShaderProperty virtualTextureProperty:
+                    BuildVirtualTexturePropertyField(virtualTextureProperty);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -330,7 +339,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
             AddRow("Mode", defaultModeField, !graph.isSubGraph && property.generatePropertyBlock);
         }
-
         void BuildTexture2DArrayPropertyField(Texture2DArrayShaderProperty property)
         {
             var field = new ObjectField { value = property.value.textureArray, objectType = typeof(Texture2DArray) };
@@ -689,6 +697,184 @@ namespace UnityEditor.ShaderGraph.Drawing
                 });
             AddRow("Default", field);
         }
+
+#region VTProperty Reorderable List
+        void BuildVirtualTexturePropertyField(VirtualTextureShaderProperty property)
+        {
+            m_VTContainer = new IMGUIContainer(() => OnGUIHandler(property)) { name = "VTListContainer" };
+            AddRow("Entries", m_VTContainer);
+        }
+        private void OnGUIHandler(VirtualTextureShaderProperty property)
+        {
+            if(m_VTReorderableList == null)
+            {
+                RecreateList(property);
+                AddCallbacks(property);
+            }
+
+            m_VTReorderableList.index = m_VTSelectedIndex;
+            m_VTReorderableList.DoLayoutList();
+        }
+
+        internal void RecreateList(VirtualTextureShaderProperty property)
+        {
+            // Create reorderable list from entries
+            m_VTReorderableList = new ReorderableList(property.value.layers, typeof(SerializableVirtualTextureLayer), true, true, true, true);
+        }
+
+        private void AddCallbacks(VirtualTextureShaderProperty property)
+        {
+            // Draw Header
+            m_VTReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(displayRect, "Display Name");
+                var referenceRect = new Rect((rect.x) + (rect.width - indent) / 3, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(referenceRect, "Reference Name");
+                var textureRect = new Rect((rect.x) + (rect.width - indent) / 3 * 2, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(textureRect, "Texture Asset");
+            };
+
+            // Draw Element
+            m_VTReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                SerializableVirtualTextureLayer entry = ((SerializableVirtualTextureLayer)m_VTReorderableList.list[index]);
+                EditorGUI.BeginChangeCheck();
+
+                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
+                var layerRefName = EditorGUI.DelayedTextField( new Rect((rect.x + rect.width) / 3, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerRefName, EditorStyles.label);
+                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture), false);
+
+                SerializableTexture layerTexture = new SerializableTexture();
+                layerTexture.texture = (Texture)selectedObject;
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    //need to sanitize each layer with all existing properties
+                    string oldLayerName = property.value.layers[index].layerName;
+                    if (layerName != oldLayerName)
+                    {
+                        var otherPropertyNames = graph.BuildPropertyDisplayNameList(property.guid, oldLayerName);
+                        layerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", layerName);
+                    }
+
+                    string oldLayerRefName = property.value.layers[index].layerRefName;
+                    if (layerRefName != oldLayerRefName)
+                    {
+                        if (!string.IsNullOrEmpty(layerRefName))
+                        {
+                            string name = layerRefName.Trim();
+                            if (!string.IsNullOrEmpty(layerRefName))
+                            {
+                                if (Regex.IsMatch(name, @"^\d+"))
+                                    name = "_" + name;
+                                name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+                                var otherPropertyRefNames = graph.BuildPropertyReferenceNameList(property.guid, oldLayerRefName);
+                                layerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", name);
+                            }
+                        }
+                    }
+
+                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerRefName, layerTexture);
+
+                    DirtyNodes();
+                    Rebuild();
+                }
+            };
+
+            // Element height
+            m_VTReorderableList.elementHeightCallback = (int indexer) =>
+            {
+                return m_VTReorderableList.elementHeight;
+            };
+
+            // Can add
+            m_VTReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
+                return list.count < 4;
+            };
+
+            // Can remove
+            m_VTReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
+                return list.count > 1;
+            };
+
+            void AddEntryLamda(ReorderableList list) => AddEntry(list, property);
+            void RemoveEntryLamda(ReorderableList list) => RemoveEntry(list, property);
+            // Add callback delegates
+            m_VTReorderableList.onSelectCallback += SelectEntry;
+            m_VTReorderableList.onAddCallback += AddEntryLamda;
+            m_VTReorderableList.onRemoveCallback += RemoveEntryLamda;
+            m_VTReorderableList.onReorderCallback += ReorderEntries;
+        }
+
+        private void SelectEntry(ReorderableList list)
+        {
+            m_VTSelectedIndex = list.index;
+        }
+
+        private void AddEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Add Virtual Texture Entry");
+
+            int index = GetFirstUnusedID(property);
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
+            var layerName = "Layer" + index.ToString();
+            // Add new entry
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, layerName, new SerializableTexture()));
+
+            // Update Blackboard & Nodes
+            DirtyNodes();
+            Rebuild();
+            graph.OnKeywordChanged();
+            m_VTSelectedIndex = list.list.Count - 1;
+        }
+
+        // Allowed indicies are 1-MAX_ENUM_ENTRIES
+        private int GetFirstUnusedID(VirtualTextureShaderProperty property)
+        {
+            List<int> ususedIDs = new List<int>();
+
+            foreach (SerializableVirtualTextureLayer virtualTextureEntry in property.value.layers)
+            {
+                ususedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
+            }
+
+            for (int x = 1; x <= 4; x++)
+            {
+                if (!ususedIDs.Contains(x))
+                    return x;
+            }
+
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
+        }
+
+        private void RemoveEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            graph.owner.RegisterCompleteObjectUndo("Remove Virtual Texture Entry");
+
+            // Remove entry
+            m_VTSelectedIndex = list.index;
+            var selectedEntry = (SerializableVirtualTextureLayer)m_VTReorderableList.list[list.index];
+            property.value.layers.Remove(selectedEntry);
+
+            // Update Blackboard & Nodes
+            DirtyNodes();
+            Rebuild();
+            graph.OnKeywordChanged();
+            m_VTSelectedIndex = m_VTSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_VTSelectedIndex;
+        }
+
+        private void ReorderEntries(ReorderableList list)
+        {
+            DirtyNodes();
+        }
+#endregion
 
         public override void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {

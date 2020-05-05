@@ -767,13 +767,64 @@ namespace UnityEditor.ShaderGraph
             m_AddedInputs.Add(input);
         }
 
+        // only ignores names matching ignoreName on properties matching ignoreGuid
+        public List<string> BuildPropertyDisplayNameList(Guid ignoreGuid, string ignoreName)
+        {
+            List<String> result = new List<String>();
+            foreach (var p in properties)
+            {
+                int before = result.Count;
+                p.GetPropertyDisplayNames(result);
+
+                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                {
+                    // remove ignoreName, if it was just added
+                    for (int i = before; i < result.Count; i++)
+                    {
+                        if (result[i] == ignoreName)
+                        {
+                            result.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+                    
+            return result;
+        }
+
+        // only ignores names matching ignoreName on properties matching ignoreGuid
+        public List<string> BuildPropertyReferenceNameList(Guid ignoreGuid, string ignoreName)
+        {
+            List<String> result = new List<String>();
+            foreach (var p in properties)
+            {
+                int before = result.Count;
+                p.GetPropertyReferenceNames(result);
+
+                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                {
+                    // remove ignoreName, if it was just added
+                    for (int i = before; i < result.Count; i++)
+                    {
+                        if (result[i] == ignoreName)
+                        {
+                            result.RemoveAt(i);
+                            break;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
         public void SanitizeGraphInputName(ShaderInput input)
         {
             input.displayName = input.displayName.Trim();
-            switch(input)
+            switch (input)
             {
                 case AbstractShaderProperty property:
-                    input.displayName = GraphUtil.SanitizeName(properties.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(input.guid, input.displayName), "{0} ({1})", input.displayName);
                     break;
                 case ShaderKeyword keyword:
                     input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
@@ -799,7 +850,7 @@ namespace UnityEditor.ShaderGraph
             switch(input)
             {
                 case AbstractShaderProperty property:
-                    property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p.guid != property.guid).Select(p => p.referenceName), "{0}_{1}", name);
+                    property.overrideReferenceName = GraphUtil.SanitizeName(BuildPropertyReferenceNameList(property.guid, property.referenceName), "{0}_{1}", name);
                     break;
                 case ShaderKeyword keyword:
                     keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
@@ -898,15 +949,19 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode)
+        void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
             var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
             if (property == null)
                 return;
 
             var node = property.ToConcreteNode() as AbstractMaterialNode;
-            if (node == null)
+            if (node == null)   // Some nodes have no concrete form
+            {                
+                if (deleteNodeIfNoConcreteFormExists)
+                    RemoveNodeNoValidate(propertyNode);
                 return;
+            }
 
             var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
             var newSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault(s => s.valueType == slot.valueType);
@@ -1164,11 +1219,14 @@ namespace UnityEditor.ShaderGraph
                     // property can be made into a concrete node.
                     if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
                     {
-                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        // If the property is in the serialized paste graph, make the property node into a concrete node.
                         var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
                         if (pastedGraphMetaProperties.Any())
                         {
                             pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            // some property nodes cannot be concretized..  fail to paste them
+                            if (pastedNode == null)
+                                continue;
                             pastedNode.drawState = node.drawState;
                             nodeGuidMap[oldGuid] = pastedNode.guid;
                         }

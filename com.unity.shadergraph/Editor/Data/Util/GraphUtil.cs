@@ -370,10 +370,11 @@ namespace UnityEditor.ShaderGraph
 
             return null;
         }
-        /*
-            Find all nodes of the given type downstream from the given node
-            Returns a unique list. So even if a node can be reached through different paths it will be present only once.
-        */
+
+        //
+        //  Find all nodes of the given type downstream from the given node
+        //  Returns a unique list. So even if a node can be reached through different paths it will be present only once.
+        //
         public static List<NodeType> FindDownStreamNodesOfType<NodeType>(AbstractMaterialNode node) where NodeType : AbstractMaterialNode
         {
             // Should never be called without a node

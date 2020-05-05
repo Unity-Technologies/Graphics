@@ -20,19 +20,6 @@ namespace UnityEditor.ShaderGraph
         }
     }
 
-    [Serializable]
-    struct SubGraphInclude
-    {
-        public string value;
-        public string location;
-
-        public SubGraphInclude(string value, string location)
-        {
-            this.value = value;
-            this.location = location;
-        }
-    }
-
     class SubGraphAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         public bool isValid;
@@ -54,8 +41,6 @@ namespace UnityEditor.ShaderGraph
         public string path;
 
         public List<FunctionPair> functions = new List<FunctionPair>();
-
-        public List<SubGraphInclude> includes = new List<SubGraphInclude>();
 
         public List<string> vtFeedbackVariables = new List<string>();
 

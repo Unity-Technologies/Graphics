@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph
         , IGeneratesBodyCode
         , IOnAssetEnabled
         , IGeneratesFunction
-        , IGeneratesInclude
         , IMayRequireNormal
         , IMayRequireTangent
         , IMayRequireBitangent
@@ -26,7 +25,6 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
-        , IMayRequireRequirePixelCoordinate
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -64,7 +62,7 @@ namespace UnityEditor.ShaderGraph
 
         [Serializable]
         class AssetReference
-            {
+        {
             public long fileID = default;
             public string guid = default;
             public int type = default;
@@ -199,7 +197,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch(prop)
+                switch (prop)
                 {
                     case Texture2DShaderProperty texture2DProp:
                         arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
@@ -287,7 +285,7 @@ namespace UnityEditor.ShaderGraph
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
 
                 // Copy defaults
-                switch(prop.concreteShaderValueType)
+                switch (prop.concreteShaderValueType)
                 {
                     case ConcreteSlotValueType.Matrix4:
                         {
@@ -407,8 +405,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in asset.outputs)
             {
                 var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
-                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage);
-                newSlot.hidden = slot.hidden;
+                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
                 AddSlot(newSlot);
                 validNames.Add(slot.id);
             }
@@ -462,29 +459,27 @@ namespace UnityEditor.ShaderGraph
                 owner.AddValidationError(guid, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
-            ValidateShaderStage();
-        }
-
-        public Dictionary<string, string> GetValueToTextureStackDictionary(GenerationMode generationMode)
-        {
-            // Get the stack names for the texture values conected to inputs of the sub graph
-            Dictionary<string, string> valueToStackLookup = new Dictionary<string, string>();
-            for (int propertyIndex = 0; propertyIndex < m_PropertyIds.Count; propertyIndex++)
+            // detect VT layer count mismatches
+            foreach (var paramProp in asset.inputs)
             {
-                int slotId = m_PropertyIds[propertyIndex];
-                if (FindInputSlot<Texture2DInputMaterialSlot>(slotId) != null)
+                if (paramProp is VirtualTextureShaderProperty vtProp)
                 {
-                    var value = GetSlotValue(slotId, generationMode);
-                    var guid = m_PropertyGuids[propertyIndex];
-                    var input = asset.inputs.First(el => el.guid == Guid.Parse(guid)) as Texture2DShaderProperty;
-                    if (input != null && !string.IsNullOrEmpty(input.textureStack))
-                    {
-                        valueToStackLookup.Add(value, input.textureStack);
-                    }
+                    int paramLayerCount = vtProp.value.layers.Count;
 
+                    var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
+                    var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
+                    if (argProp != null)
+                    {
+                        int argLayerCount = argProp.value.layers.Count;
+
+                        if (argLayerCount != paramLayerCount)
+                            owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                    }
+                    break;
                 }
             }
-            return valueToStackLookup;
+
+            ValidateShaderStage();
         }
 
         public override void CollectShaderProperties(PropertyCollector visitor, GenerationMode generationMode)
@@ -497,19 +492,6 @@ namespace UnityEditor.ShaderGraph
             foreach (var property in asset.nodeProperties)
             {
                 visitor.AddShaderProperty(property);
-            }
-
-            // Get the stack names for the texture values conected to inputs of the sub graph
-            Dictionary<string, string> valueToStackLookup = GetValueToTextureStackDictionary(generationMode);
-
-            // Set textureStacks of any texture properties matching the connected textures
-            foreach (var prop in visitor.properties.OfType<Texture2DShaderProperty>())
-            {
-                string stackName;
-                if (valueToStackLookup.TryGetValue(prop.referenceName, out stackName))
-                {
-                    prop.textureStack = stackName;
-                }
             }
         }
 
@@ -534,7 +516,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var property in asset.nodeProperties)
             {
                 properties.Add(property.GetPreviewMaterialProperty());
-        }
+            }
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
@@ -548,25 +530,6 @@ namespace UnityEditor.ShaderGraph
                 {
                     s.AppendLines(function.value);
                 });
-            }
-        }
-
-        public virtual void GenerateNodeInclude(IncludeCollection registry, GenerationMode generationMode)
-        {
-            if (asset == null || hasError)
-                return;
-
-            foreach (var include in asset.includes)
-            {
-                IncludeLocation location;
-                if ( Enum.TryParse<IncludeLocation>(include.location, out location) )
-                {
-                    registry.Add(include.value, location);
-                }
-                else
-                {
-                    Debug.LogError($"Error in Graph at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\": Sub Graph contains an include with an unknown include location {include.location}.", asset);
-                }
             }
         }
 
@@ -632,14 +595,6 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresFaceSign;
-        }
-
-        public bool RequiresPixelCoordinate(ShaderStageCapability stageCapability)
-        {
-            if (asset == null)
-                return false;
-
-            return asset.requirements.requiresPixelCoordinate;
         }
 
         public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)

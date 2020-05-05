@@ -13,7 +13,7 @@ using UnityEditor.ShaderGraph.Internal;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(11, Extension)]
+    [ScriptedImporter(12, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -77,10 +77,8 @@ namespace UnityEditor.ShaderGraph
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var includes = new IncludeCollection();
             var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
             registry.names.Clear();
-            asset.includes.Clear();
             asset.functions.Clear();
             asset.nodeProperties.Clear();
             asset.isValid = true;
@@ -115,8 +113,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
-
-            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false, asset.vtFeedbackVariables.Count > 1);
+            asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.inputs = graph.properties.ToList();
             asset.keywords = graph.keywords.ToList();
             asset.graphPrecision = graph.concretePrecision;
@@ -164,10 +161,6 @@ namespace UnityEditor.ShaderGraph
                     registry.builder.currentNode = node;
                     generatesFunction.GenerateNodeFunction(registry, GenerationMode.ForReals);
                     registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
-                }
-                if (node is IGeneratesInclude generatesInclude)
-                {
-                    generatesInclude.GenerateNodeInclude(includes, GenerationMode.ForReals);
                 }
             }
 
@@ -226,7 +219,6 @@ namespace UnityEditor.ShaderGraph
                 }
             });
 
-            asset.includes.AddRange(includes.Select(x => new SubGraphInclude(x.descriptor.value, "" + x.descriptor.location)));
             asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
 
             var collector = new PropertyCollector();

@@ -687,12 +687,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (shad.GetPropertyType(i) != UnityEngine.Rendering.ShaderPropertyType.Texture) continue;
 
-                string name;
+                string stackName;
                 int layer;
-
-                if (shad.FindTextureStack(i, out name, out layer))
+                if (shad.FindTextureStack(i, out stackName, out layer))
                 {
-                    int stackPropertyId = Shader.PropertyToID(name);
+                    int stackPropertyId = Shader.PropertyToID(stackName);
                     try
                     {
                         // Ensure we always request the mip sized 256x256

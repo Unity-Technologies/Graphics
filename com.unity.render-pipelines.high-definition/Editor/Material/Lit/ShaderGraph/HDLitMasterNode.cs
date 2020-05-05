@@ -1109,7 +1109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Ideally we do this another way but HDLit needs this for conditional pragmas
             var shaderProperties = new PropertyCollector();
             owner.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
-            bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
+            bool hasDotsProperties = shaderProperties.DotsInstancingProperties(GenerationMode.ForReals).Any();
 
             return new ConditionalField[]
             {
@@ -1380,12 +1380,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         }
 
-        public bool virtualTexturingEnabled
-        {
-            get
-            {
-                return true;
-            }
-        }
+        public bool supportsVirtualTexturing => true;
     }
 }
