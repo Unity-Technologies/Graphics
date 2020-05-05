@@ -784,12 +784,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return rt ?? m_EmptyExposureTexture;
         }
 
-        public RTHandle GetExposureDebugData()
+        internal RTHandle GetExposureDebugData()
         {
             return m_DebugExposureData;
         }
 
-        public ComputeBuffer GetHistogramBuffer()
+        internal HableCurve GetCustomToneMapCurve()
+        {
+            return m_HableCurve;
+        }
+
+        internal int GetLutSize()
+        {
+            return m_LutSize;
+        }
+
+        internal ComputeBuffer GetHistogramBuffer()
         {
             return m_HistogramBuffer;
         }

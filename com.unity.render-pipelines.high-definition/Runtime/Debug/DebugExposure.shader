@@ -6,6 +6,9 @@ Shader "Hidden/HDRP/DebugExposure"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
     #define DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 #pragma enable_d3d11_debug_symbols
 
@@ -14,6 +17,28 @@ Shader "Hidden/HDRP/DebugExposure"
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #define PERCENTILE_AS_BARS 0
+
+    // Contains the scene color post-processed (tonemapped etc.)
+    TEXTURE2D_X(_DebugFullScreenTexture);
+
+    // Tonemap related 
+    TEXTURE3D(_LogLut3D);
+    SAMPLER(sampler_LogLut3D);
+
+    float4 _ExposureDebugParams;
+    float4 _LogLut3D_Params;    // x: 1 / lut_size, y: lut_size - 1, z: contribution, w: unused
+    // Custom tonemapping settings
+    float4 _CustomToneCurve;
+    float4 _ToeSegmentA;
+    float4 _ToeSegmentB;
+    float4 _MidSegmentA;
+    float4 _MidSegmentB;
+    float4 _ShoSegmentA;
+    float4 _ShoSegmentB;
+
+    #define _DrawTonemapCurve   _ExposureDebugParams.x
+    #define _TonemapType        _ExposureDebugParams.y
+
 
     struct Attributes
     {
@@ -33,6 +58,32 @@ Shader "Hidden/HDRP/DebugExposure"
         output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
         return output;
+    }
+
+    float3 Tonemap(float3 colorLinear)
+    {
+        if(_TonemapType == 1) // Neutral
+        {
+            colorLinear = NeutralTonemap(colorLinear);
+        }
+        if (_TonemapType == 2) // ACES
+        {
+            // Note: input is actually ACEScg (AP1 w/ linear encoding)
+            float3 aces = ACEScg_to_ACES(colorLinear);
+            colorLinear = AcesTonemap(aces);
+        }
+        if (_TonemapType == 3) // Custom
+        {
+            colorLinear = CustomTonemap(colorLinear, _CustomToneCurve.xyz, _ToeSegmentA, _ToeSegmentB.xy, _MidSegmentA, _MidSegmentB.xy, _ShoSegmentA, _ShoSegmentB.xy);
+        }
+        if (_TonemapType == 4) // External
+        {
+            float3 colorLutSpace = saturate(LinearToLogC(colorLinear));
+            float3 colorLut = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
+            colorLinear = lerp(colorLinear, colorLut, _LogLut3D_Params.z);
+        }
+
+        return colorLinear;
     }
 
     float3 ToHeat(float value)
@@ -284,13 +335,31 @@ Shader "Hidden/HDRP/DebugExposure"
 #endif
         }
 
+        // ---- Draw Tonemap curve ----
+        if (_DrawTonemapCurve)
+        {
+            float exposureAtLoc = lerp(ParamExposureLimitMin, ParamExposureLimitMax, uv.x);
+            const float K = 12.5; // Reflected-light meter calibration constant
+            float luminanceFromExposure = _ExposureTexture[int2(0, 0)].x * (exp2(exposureAtLoc) * (K / 100.0f));
+
+            val = saturate(Tonemap(luminanceFromExposure));
+            val *= 0.95 * (frameHeight - heightLabelBar);
+            val += heightLabelBar;
+
+            float curveWidth = 4 * _ScreenSize.w;
+
+            if (uv.y < val && uv.y >(val - curveWidth))
+            {
+                outColor = outColor * 0.1 + 0.9 * 0;
+            }
+        }
     }
 
     float3 FragMetering(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
-        float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+        float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float pipFraction = 0.33f;
@@ -400,7 +469,7 @@ Shader "Hidden/HDRP/DebugExposure"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
 
-        float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+        float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float3 outputColor = color;
