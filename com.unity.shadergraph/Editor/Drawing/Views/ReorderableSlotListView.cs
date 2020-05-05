@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Cant modify existing slots so need to create new and copy values
                     var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
                     newSlot.CopyValuesFrom(oldSlot);
-                    m_Node.ReplaceSlot(newSlot);
+                    m_Node.AddSlot(newSlot, false);
 
                     // Need to get all current slots as everything after the edited slot in the list must be added again
                     List<MaterialSlot> slots = new List<MaterialSlot>();
@@ -112,7 +112,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             continue;
 
                         // Remove and re-add
-                        m_Node.ReplaceSlot(slot);
+                        m_Node.AddSlot(slot, false);
                     }
 
                     RecreateList();
