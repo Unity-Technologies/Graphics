@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
             return new PreviewProperty(propertyType)
             {
                 name = referenceName,
-                vtValues = value
+                vtProperty = this
             };
         }
 

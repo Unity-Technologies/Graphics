@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             [FieldOffset(0)]
             public Gradient gradientValue;
             [FieldOffset(0)]
-            public SerializableVirtualTexture vtValues;
+            public VirtualTextureShaderProperty vtProperty;
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -111,19 +111,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public SerializableVirtualTexture vtValues
+        public VirtualTextureShaderProperty vtProperty
         {
             get
             {
                 if (propType != PropertyType.VirtualTexture)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
-                return m_ClassData.vtValues;
+                return m_ClassData.vtProperty;
             }
             set
             {
                 if (propType != PropertyType.VirtualTexture)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
-                m_ClassData.vtValues = value;
+                m_ClassData.vtProperty = value;
             }
         }
 
@@ -223,14 +223,7 @@ namespace UnityEditor.ShaderGraph
             }
             else if (propType == PropertyType.VirtualTexture)
             {
-                var vt = vtValues;
-                if ((vt != null) && (vt.layers != null))     // this can be the case if the SampleVT node has no property connected
-                {
-                    for (int layer = 0; layer < vt.layers.Count; layer++)
-                    {
-                        mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
-                    }
-                }
+                // virtual texture assignments are not supported via the material property block, we must assign them to the materials
             }
         }
     }

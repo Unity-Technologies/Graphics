@@ -289,7 +289,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
-        void CollectPreviewProperties()
+        void CollectPreviewProperties(PooledList<PreviewProperty> perMaterialPreviewProperties)
         {
             using (CollectPreviewPropertiesMarker.Auto())
             using (var tempCollectNodes = PooledHashSet<AbstractMaterialNode>.Get())
@@ -307,7 +307,59 @@ namespace UnityEditor.ShaderGraph.Drawing
                     tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
 
                 foreach (var previewProperty in tempPreviewProps)
+                {
                     previewProperty.SetValueOnMaterialPropertyBlock(m_SharedPreviewPropertyBlock);
+
+                    // virtual texture assignments must be pushed to the materials themselves (MaterialPropertyBlocks not supported)
+                    if ((previewProperty.propType == PropertyType.VirtualTexture) &&
+                        (previewProperty.vtProperty?.value?.layers != null))
+                    {
+                        perMaterialPreviewProperties.Add(previewProperty);
+                    }
+                }
+            }
+        }
+
+        void AssignPerMaterialPreviewProperties(Material mat, List<PreviewProperty> perMaterialPreviewProperties)
+        {
+            foreach (var prop in perMaterialPreviewProperties)
+            {
+                switch (prop.propType)
+                {
+                    case PropertyType.VirtualTexture:
+
+                        // setup the VT textures on the material
+                        var vt = prop.vtProperty.value;
+                        for (int layer = 0; layer < vt.layers.Count; layer++)
+                        {
+                            if (vt.layers[layer].layerTexture.texture != null)
+                            {
+                                mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
+                            }
+                        }
+
+                        // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
+#if ENABLE_VIRTUALTEXTURES
+                        int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
+                        try
+                        {
+                            // Ensure we always request the mip sized 256x256
+                            int width, height;
+                            UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                            int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
+                            const int baseMip = 8;
+                            int mip = Math.Max(textureMip - baseMip, 0);
+                            UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
+                            // This is valid in this case as we're still authoring the material.
+                            Debug.Log("REMOVEME: invalid operation on vt request");
+                        }
+#endif // ENABLE_VIRTUALTEXTURES
+                        break;
+                }
             }
         }
 
@@ -318,6 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (RenderPreviewsMarker.Auto())
             using (var renderList2D = PooledList<PreviewRenderData>.Get())
             using (var renderList3D = PooledList<PreviewRenderData>.Get())
+            using (var perMaterialPreviewProperties = PooledList<PreviewProperty>.Get())
             {
                 if (requestShaders)
                     UpdateShaders();
@@ -330,45 +383,47 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_NodesToDraw.Count <= 0)
                     return;
 
-                CollectPreviewProperties();
+                CollectPreviewProperties(perMaterialPreviewProperties);
 
+                // setup other global properties
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
+                m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
 
                 using (PrepareNodesMarker.Auto())
-                foreach (var node in m_NodesToDraw)
                 {
-                    if (node == null || !node.hasPreview || !node.previewExpanded)
-                        continue;
-
-                    var renderData = GetPreviewRenderData(node);
-                    if (renderData == null) // non-active output nodes can have NULL render data (no preview)
-                        continue;
-
-                    if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
+                    foreach (var node in m_NodesToDraw)
                     {
-                        // avoid calling NotifyPreviewChanged repeatedly
-                        if (renderData.texture != null)
+                        if (node == null || !node.hasPreview || !node.previewExpanded)
+                            continue;
+
+                        var renderData = GetPreviewRenderData(node);
+                        if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                            continue;
+
+                        if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                         {
-                            renderData.texture = null;
-                            renderData.NotifyPreviewChanged();
+                            // avoid calling NotifyPreviewChanged repeatedly
+                            if (renderData.texture != null)
+                            {
+                                renderData.texture = null;
+                                renderData.NotifyPreviewChanged();
+                            }
+                            continue;
                         }
-                        continue;
+
+                        if (renderData.shaderData.hasError)
+                        {
+                            renderData.texture = m_ErrorTexture;
+                            renderData.NotifyPreviewChanged();
+                            continue;
+                        }
+
+                        if (renderData.previewMode == PreviewMode.Preview2D)
+                            renderList2D.Add(renderData);
+                        else
+                            renderList3D.Add(renderData);
                     }
-
-                    renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
-
-                    if (renderData.shaderData.hasError)
-                    {
-                        renderData.texture = m_ErrorTexture;
-                        renderData.NotifyPreviewChanged();
-                        continue;
-                    }
-
-                    if (renderData.previewMode == PreviewMode.Preview2D)
-                        renderList2D.Add(renderData);
-                    else
-                        renderList3D.Add(renderData);
                 }
 
                 EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
@@ -387,7 +442,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.orthographic = true;
 
                 foreach (var renderData in renderList2D)
-                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
+                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 // Render 3D previews
                 m_SceneResources.camera.transform.position = -Vector3.forward * 5;
@@ -395,7 +450,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.orthographic = false;
 
                 foreach (var renderData in renderList3D)
-                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
+                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 var renderMasterPreview = masterRenderData != null && m_NodesToDraw.Contains(masterRenderData.shaderData.node);
                 if (renderMasterPreview && masterRenderData.shaderData.mat != null)
@@ -415,7 +470,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
-                    RenderPreview(masterRenderData, mesh, previewTransform);
+                    RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
                 }
 
                 m_SceneResources.light0.enabled = false;
@@ -679,44 +734,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void RequestVTData(Material mat)
-        {
-#if ENABLE_VIRTUALTEXTURES
-            Shader shad = mat.shader;
-            for (int i = 0; i < shad.GetPropertyCount(); i++)
-            {
-                if (shad.GetPropertyType(i) != UnityEngine.Rendering.ShaderPropertyType.Texture) continue;
-
-                string stackName;
-                int layer;
-                if (shad.FindTextureStack(i, out stackName, out layer))
-                {
-                    int stackPropertyId = Shader.PropertyToID(stackName);
-                    try
-                    {
-                        // Ensure we always request the mip sized 256x256
-                        int width, height;
-                        UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
-                        int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
-                        const int baseMip = 8;
-                        int mip = Math.Max(textureMip - baseMip, 0);
-                        UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
-                        // This is valid in this case as we're still authoring the material.
-                    }
-                }
-            }
-
-            // If only shadergraph windows are visible HDRP will may render cameras and VT won't tick. So always to a tick here just to be sure.
-            UnityEngine.Rendering.VirtualTexturing.System.Update();
-#endif
-        }
-
        private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
-        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
+        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform, PooledList<PreviewProperty> perMaterialPreviewProperties)
         {
             using (RenderPreviewMarker.Auto())
             {
@@ -729,7 +748,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
 
-				RequestVTData(renderData.shaderData.mat);
+                AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
 
