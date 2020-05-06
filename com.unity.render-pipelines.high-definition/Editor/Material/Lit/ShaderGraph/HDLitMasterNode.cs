@@ -199,6 +199,23 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_RayTracing;
+
+        public ToggleData rayTracing
+        {
+            get { return new ToggleData(m_RayTracing); }
+            set
+            {
+                if (m_RayTracing == value.isOn)
+                    return;
+
+                m_RayTracing = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
         SurfaceType m_SurfaceType;
 
         public SurfaceType surfaceType
@@ -786,6 +803,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+
+
+        [SerializeField]
         int m_MaterialNeedsUpdateHash = 0;
 
         int ComputeMaterialNeedsUpdateHash()
@@ -1087,7 +1122,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Dots
                 new ConditionalField(HDFields.DotsInstancing,               dotsInstancing.isOn),
@@ -1117,9 +1152,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Double Sided
                 new ConditionalField(HDFields.DoubleSided,                  doubleSidedMode != DoubleSidedMode.Disabled),
                 new ConditionalField(HDFields.DoubleSidedFlip,              doubleSidedMode == DoubleSidedMode.FlippedNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
                 new ConditionalField(HDFields.DoubleSidedMirror,            doubleSidedMode == DoubleSidedMode.MirroredNormals &&
-                                                                                !pass.Equals(HDPasses.HDLit.MotionVectors)),
+                                                                                !pass.Equals(HDLitSubTarget.LitPasses.MotionVectors)),
 
                 // Specular Occlusion
                 new ConditionalField(HDFields.SpecularOcclusionFromAO,      specularOcclusionMode == SpecularOcclusionMode.FromAO),
@@ -1144,11 +1179,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(Fields.NormalDropOffWS,                normalDropOffSpace == NormalDropOffSpace.World),
 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,              alphaTest.isOn && alphaTestShadow.isOn &&
-                                                                                pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
-                new ConditionalField(HDFields.AlphaTestPrepass,             alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
-                new ConditionalField(HDFields.AlphaTestPostpass,            alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                // We always generate the keyword ALPHATEST_ON
+                new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && (pass.pixelPorts.Contains(AlphaThresholdSlotId) || pass.pixelPorts.Contains(AlphaThresholdShadowSlotId) ||
+                                                                                 pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId) || pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId))),
+                // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+                // Do alpha test only if we aren't using the TestShadow one
+                // Note: we always generate the code for DoAlphaTestXXX as it is then the keyword _ALPHATEST_ON that will define if it is enabled or not
+                new ConditionalField(HDFields.DoAlphaTest,                  alphaTest.isOn && (pass.pixelPorts.Contains(AlphaThresholdSlotId) &&
+                                                                                !(alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)))),
+                new ConditionalField(HDFields.DoAlphaTestShadow,            alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaThresholdShadowSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPrepass,           alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPostpass,          alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaThresholdDepthPostpassSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,        surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,   surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
@@ -1177,6 +1219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.TransparentBackFace,          surfaceType != SurfaceType.Opaque && backThenFrontRendering.isOn),
                 new ConditionalField(HDFields.TransparentDepthPrePass,      surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
                 new ConditionalField(HDFields.TransparentDepthPostPass,     surfaceType != SurfaceType.Opaque && alphaTestDepthPostpass.isOn),
+                new ConditionalField(HDFields.RayTracing,                   rayTracing.isOn),
             };
         }
 
@@ -1303,6 +1346,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
@@ -1311,6 +1355,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddRayTracingProperty(collector, rayTracing.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }

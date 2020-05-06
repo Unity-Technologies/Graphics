@@ -129,7 +129,7 @@ Shader "HDRenderPipeline/GraphicTests/2004_AnimatedCookie_AnimMat2"
                 if (_StarsAnim[frame*STAR_COL*STAR_ROW + uv.y*STAR_ROW +uv.x]) c = 1;
             }
 
-            float4 frag(v2f_customrendertexture IN) : COLOR
+            float4 frag(v2f_customrendertexture IN) : SV_Target
             {
                 float4 c = float4(12.0/255.0, 65.0/255.0, 121.0/255.0, 1); // background color
 

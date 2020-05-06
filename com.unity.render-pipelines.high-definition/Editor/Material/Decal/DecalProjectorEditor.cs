@@ -135,6 +135,18 @@ namespace UnityEditor.Rendering.HighDefinition
         private void OnDestroy() =>
             DestroyImmediate(m_MaterialEditor);
 
+        public bool HasFrameBounds()
+        {
+            return true;
+        }
+
+        public Bounds OnGetFrameBounds()
+        {
+            DecalProjector decalProjector = target as DecalProjector;
+
+            return new Bounds(decalProjector.transform.position, handle.size);
+        }
+
         public void UpdateMaterialEditor()
         {
             int validMaterialsCount = 0;

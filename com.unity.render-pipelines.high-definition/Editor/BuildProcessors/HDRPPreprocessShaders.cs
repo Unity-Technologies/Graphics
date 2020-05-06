@@ -5,6 +5,8 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -17,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            // TODO: We need to perform compute shader stripping as soon as it is possible. Most egregious case would be the shadow filtering quality for Deferred.compute
+
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
@@ -59,6 +63,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
             if (isTransparentPostpass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportTransparentDepthPostpass)
+                return true;
+
+            bool isRayTracingPrepass = snippet.passName == "RayTracingPrepass";
+            if (isRayTracingPrepass && !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing)
                 return true;
 
             // If we are in a release build, don't compile debug display variant
@@ -133,6 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> shaderProcessorsList;
 
+        internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
         uint m_TotalVariantsInputCount;
         uint m_TotalVariantsOutputCount;
@@ -225,6 +234,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
+            Stopwatch shaderStripingWatch = new Stopwatch();
+            shaderStripingWatch.Start();
+
             using (new ExportShaderStrip(exportLog, "Temp/shader-strip.json", shader, snippet, inputData, this))
             {
 
@@ -292,6 +304,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            shaderStripingWatch.Stop();
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }
 

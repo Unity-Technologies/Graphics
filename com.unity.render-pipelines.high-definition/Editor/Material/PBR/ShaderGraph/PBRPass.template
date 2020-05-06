@@ -53,9 +53,7 @@ Pass
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
-    #ifdef DEBUG_DISPLAY
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-    #else
+    #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
         #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
@@ -159,9 +157,6 @@ Pass
 
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion as PBR master node don't have any option
-        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-
         #ifdef DEBUG_DISPLAY
             if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
             {
@@ -173,6 +168,9 @@ Pass
             // as it can modify attribute use for static lighting
             ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
         #endif
+
+        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion as PBR master node don't have any option
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)

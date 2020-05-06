@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthBits                   m_DepthBufferBits;
         RenderTextureFormat         m_Format;
         string                      m_Name;
-        int                         m_AtlasSizeShaderID;
         int                         m_AtlasShaderID;
         int                         m_MomentAtlasShaderID;
         RenderPipelineResources     m_RenderPipelineResources;
@@ -53,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_HasResizedAtlas = false;
         int frameCounter = 0;
 
-        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, int atlasSizeShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
+        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
         {
             this.width = width;
             this.height = height;
@@ -63,7 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Name = name;
             m_AtlasShaderID = atlasShaderID;
             m_MomentAtlasShaderID = momentAtlasShaderID;
-            m_AtlasSizeShaderID = atlasSizeShaderID;
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
@@ -441,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
             atlasShapeID++;
         }
 
-        public void RenderShadows(CullingResults cullResults, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        public void RenderShadows(CullingResults cullResults, in ShaderVariablesGlobal globalCB, FrameSettings frameSettings, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (m_ShadowRequests.Count == 0)
                 return;
@@ -449,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ShadowDrawingSettings shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
             shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
 
-            var parameters = PrepareRenderShadowsParameters();
+            var parameters = PrepareRenderShadowsParameters(globalCB);
             RenderShadows(parameters, m_Atlas, shadowDrawSettings, renderContext, cmd);
 
             if (parameters.blurAlgorithm == BlurAlgorithm.IM)
@@ -464,11 +462,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct RenderShadowsParameters
         {
+            public ShaderVariablesGlobal    globalCB;
             public List<HDShadowRequest>    shadowRequests;
             public Material                 clearMaterial;
             public bool                     debugClearAtlas;
             public int                      atlasShaderID;
-            public int                      atlasSizeShaderID;
             public BlurAlgorithm            blurAlgorithm;
 
             // EVSM
@@ -479,14 +477,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader            imShadowBlurMomentsCS;
         }
 
-        RenderShadowsParameters PrepareRenderShadowsParameters()
+        RenderShadowsParameters PrepareRenderShadowsParameters(in ShaderVariablesGlobal globalCB)
         {
             var parameters = new RenderShadowsParameters();
+            parameters.globalCB = globalCB;
             parameters.shadowRequests = m_ShadowRequests;
             parameters.clearMaterial = m_ClearMaterial;
             parameters.debugClearAtlas = m_LightingDebugSettings.clearShadowAtlas;
             parameters.atlasShaderID = m_AtlasShaderID;
-            parameters.atlasSizeShaderID = m_AtlasSizeShaderID;
             parameters.blurAlgorithm = m_BlurAlgorithm;
 
             // EVSM
@@ -499,14 +497,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderShadows(  RenderShadowsParameters parameters,
-                                    RTHandle                atlasRenderTexture,
-                                    ShadowDrawingSettings   shadowDrawSettings,
-                                    ScriptableRenderContext renderContext,
-                                    CommandBuffer           cmd)
+        static void RenderShadows(  in RenderShadowsParameters  parameters,
+                                    RTHandle                    atlasRenderTexture,
+                                    ShadowDrawingSettings       shadowDrawSettings,
+                                    ScriptableRenderContext     renderContext,
+                                    CommandBuffer               cmd)
         {
             cmd.SetRenderTarget(atlasRenderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.SetGlobalVector(parameters.atlasSizeShaderID, new Vector4(atlasRenderTexture.rt.width, atlasRenderTexture.rt.height, 1.0f / atlasRenderTexture.rt.width, 1.0f / atlasRenderTexture.rt.height));
 
             // Clear the whole atlas to avoid garbage outside of current request when viewing it.
             if (parameters.debugClearAtlas)
@@ -526,15 +523,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowDrawSettings.lightIndex = shadowRequest.lightIndex;
                 shadowDrawSettings.splitData = shadowRequest.splitData;
 
+                var globalCB = parameters.globalCB;
                 // Setup matrices for shadow rendering:
                 Matrix4x4 viewProjection = shadowRequest.deviceProjectionYFlip * shadowRequest.view;
-                cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, shadowRequest.view);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, shadowRequest.view.inverse);
-                cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, shadowRequest.deviceProjectionYFlip);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, shadowRequest.deviceProjectionYFlip.inverse);
-                cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjection);
-                cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjection.inverse);
-                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowClipPlanes, shadowRequest.frustumPlanes);
+                globalCB._ViewMatrix = shadowRequest.view;
+                globalCB._InvViewMatrix = shadowRequest.view.inverse;
+                globalCB._ProjMatrix = shadowRequest.deviceProjectionYFlip;
+                globalCB._InvProjMatrix = shadowRequest.deviceProjectionYFlip.inverse;
+                globalCB._ViewProjMatrix = viewProjection;
+                globalCB._InvViewProjMatrix = viewProjection.inverse;
+
+                ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesGlobal);
+
+                cmd.SetGlobalVectorArray(HDShaderIDs._ShadowFrustumPlanes, shadowRequest.frustumPlanes);
 
                 // TODO: remove this execute when DrawShadows will use a CommandBuffer
                 renderContext.ExecuteCommandBuffer(cmd);

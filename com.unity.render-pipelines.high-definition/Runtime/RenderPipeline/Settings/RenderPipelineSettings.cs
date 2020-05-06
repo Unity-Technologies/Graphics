@@ -59,11 +59,27 @@ namespace UnityEngine.Rendering.HighDefinition
             R11G11B10 = GraphicsFormat.B10G11R11_UFloatPack32,
         }
 
+        /// <summary>
+        /// Supported Ray Tracing Mode.
+        /// </summary>
+        public enum SupportedRayTracingMode
+        {
+            /// <summary>Performance mode only.</summary>
+            Performance = 1 << 0,
+            /// <summary>Quality mode only.</summary>
+            Quality = 1 << 1,
+            /// <summary>Both Performance and Quality modes.</summary>
+            Both = Performance | Quality
+        }
+
         internal static RenderPipelineSettings NewDefault() => new RenderPipelineSettings()
         {
             supportShadowMask = true,
             supportSSAO = true,
             supportSubsurfaceScattering = true,
+            sssSampleBudget = new IntScalableSetting(new[] { (int)DefaultSssSampleBudgetForQualityLevel.Low,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.Medium,
+                                                             (int)DefaultSssSampleBudgetForQualityLevel.High }, ScalableSettingSchemaId.With3Levels),
             supportVolumetrics = true,
             supportDistortion = true,
             supportTransparentBackface = true,
@@ -91,6 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightingQualitySettings = GlobalLightingQualitySettings.NewDefault(),
 
             supportRayTracing = false,
+            supportedRayTracingMode = SupportedRayTracingMode.Both,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
             maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
             lightLayerName0 = "Light Layer default",
@@ -101,6 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+            supportProbeVolume = false,
+            probeVolumeSettings = GlobalProbeVolumeSettings.@default,
         };
 
         /// <summary>
@@ -124,12 +143,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportSSAO;
         /// <summary>Support subsurface scattering.</summary>
         public bool supportSubsurfaceScattering;
-        /// <summary>High quality subsurface scattering.</summary>
-        public bool increaseSssSampleCount;
+        /// <summary>Sample budget for the Subsurface Scattering algorithm.</summary>
+        public IntScalableSetting sssSampleBudget;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
-        /// <summary>High quality volumetric lighting.</summary>
-        public bool increaseResolutionOfVolumetrics;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
         /// <summary>Name for light layer 0.</summary>
@@ -185,10 +202,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDitheringCrossFade;
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
+        /// <summary>Support Probe Volumes.</summary>
+        [SerializeField] internal bool supportProbeVolume;
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
+        /// <summary>Support ray tracing mode.</summary>
+        public SupportedRayTracingMode supportedRayTracingMode;
 
-        /// <summary>Global light loop settings.</summary>
+        /// <summary>Global Probe Volume settings.</summary>
+        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
+		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
         public HDShadowInitParameters hdShadowInitParams;
@@ -214,5 +237,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global lighting quality settings.</summary>
         public GlobalLightingQualitySettings lightingQualitySettings;
+
+    #pragma warning disable 618 // Type or member is obsolete
+        [Obsolete("For data migration")]
+        internal bool m_ObsoleteincreaseSssSampleCount;
+    #pragma warning restore 618
     }
 }

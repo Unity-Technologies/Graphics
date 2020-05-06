@@ -25,7 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
             BackThenFrontRendering      = 1 << 7,
             ReceiveSSR                  = 1 << 8,
             ShowAfterPostProcessPass    = 1 << 9,
-            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass,
+            AlphaToMask                 = 1 << 10,
+            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
             Lit                         = All,
             All                         = ~0,
         }
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Controls the threshold for shadow pass alpha clipping.");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Controls the threshold for transparent depth prepass alpha clipping.");
             public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Controls the threshold for transparent depth postpass alpha clipping.");
+            public static GUIContent alphaToMaskText = new GUIContent("Alpha To Mask", "When enabled and using MSAA, HDRP enables alpha to coverage during the depth prepass.");
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "When enabled, HDRP renders a depth postpass for transparent objects. This improves post-processing effects like depth of field.");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
@@ -59,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent zWriteEnableText = new GUIContent("Depth Write", "When enabled, transparent objects write to the depth buffer.");
             public static GUIContent transparentZTestText = new GUIContent("Depth Test", "Set the comparison function to use during the Z Testing.");
+            public static GUIContent rayTracingText = new GUIContent("Ray Tracing (Preview)", "If this option is enabled and recursive rendering is active, the object will be rendered using ray tracing.");
 
             public static GUIContent transparentSortPriorityText = new GUIContent("Sorting Priority", "Sets the sort priority (from -100 to 100) of transparent meshes using this Material. HDRP uses this value to calculate the sorting order of all transparent meshes on screen.");
             public static GUIContent enableTransparentFogText = new GUIContent("Receive fog", "When enabled, this Material can receive fog.");
@@ -115,6 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
         MaterialProperty alphaCutoffPostpass = null;
         const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
+        MaterialProperty alphaToMask = null;
+        const string kAlphaToMask = "_AlphaToMask";
         MaterialProperty transparentDepthPrepassEnable = null;
         const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
@@ -210,6 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty stencilRef = null;
         MaterialProperty zTest = null;
         MaterialProperty transparentCullMode = null;
+        MaterialProperty rayTracing = null;
 
         SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
 
@@ -273,6 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition
             alphaCutoffShadow = FindProperty(kAlphaCutoffShadow);
             alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass);
             alphaCutoffPostpass = FindProperty(kAlphaCutoffPostpass);
+            alphaToMask = FindProperty(kAlphaToMask);
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable);
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable);
 
@@ -347,6 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
             stencilRef = FindProperty(kStencilRef);
             zTest = FindProperty(kZTestTransparent);
             transparentCullMode = FindProperty(kTransparentCullMode);
+            rayTracing = FindProperty(kRayTracing);
 
             refractionModel = FindProperty(kRefractionModel);
         }
@@ -400,6 +408,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                if ((m_Features & Features.AlphaToMask) != 0)
+                {
+                    if (alphaToMask != null)
+                        materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
+                }
+
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
                 if (surfaceTypeValue == SurfaceType.Transparent)
@@ -416,7 +430,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            
+            else if ((m_Features & Features.AlphaToMask) != 0)
+            {
+                if (alphaToMask != null)
+                    alphaToMask.floatValue = 0.0f;
+            }
+
+
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {
@@ -533,6 +553,10 @@ namespace UnityEditor.Rendering.HighDefinition
             // TODO: does not work with multi-selection
             Material material = materialEditor.target as Material;
 
+            // We only display the ray tracing option if the asset supports it (and the attributes exists in this shader)
+            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported && rayTracing != null)
+                materialEditor.ShaderProperty(rayTracing, Styles.rayTracingText);
+
             var mode = (SurfaceType)surfaceType.floatValue;
             var renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
@@ -648,12 +672,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.AfterPostProcessing);
             }
 
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.OpaqueRenderQueue.Raytracing);
-            }
-
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());
         }
 
@@ -682,12 +700,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_RenderingPassNames.Add("After post-process");
                 m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.AfterPostProcessing);
-            }
-
-            if ((RenderPipelineManager.currentPipeline as HDRenderPipeline).rayTracingSupported)
-            {
-                m_RenderingPassNames.Add("Raytracing");
-                m_RenderingPassValues.Add((int)HDRenderQueue.TransparentRenderQueue.Raytracing);
             }
 
             return EditorGUILayout.IntPopup(text, inputValue, m_RenderingPassNames.ToArray(), m_RenderingPassValues.ToArray());

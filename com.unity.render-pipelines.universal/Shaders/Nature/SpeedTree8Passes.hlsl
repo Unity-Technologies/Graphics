@@ -33,7 +33,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
@@ -146,6 +146,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
             #if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
                 globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
             #endif
+
             windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
             input.vertex.xyz = windyPosition;
         }
@@ -213,7 +214,7 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
@@ -230,11 +231,12 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
         output.viewDirWS = viewDirWS;
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    output.positionWS = vertexInput.positionWS;
+
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         output.shadowCoord = GetShadowCoord(vertexInput);
     #endif
 
-    output.positionWS = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
 
     return output;
@@ -282,11 +284,13 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     inputData.viewDirectionWS = SafeNormalize(inputData.viewDirectionWS);
 #endif
 
-#ifdef _MAIN_LIGHT_SHADOWS
-    inputData.shadowCoord = input.interpolated.shadowCoord;
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        inputData.shadowCoord = input.interpolated.shadowCoord;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #else
+        inputData.shadowCoord = float4(0, 0, 0, 0);
+    #endif
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;

@@ -8,7 +8,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDAdditionalLightData : ISerializationCallbackReceiver, IVersionable<HDAdditionalLightData.Version>
+    public partial class HDAdditionalLightData : IVersionable<HDAdditionalLightData.Version>
     {
         enum Version
         {
@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AreaLightShapeTypeLogicIsolation,
             PCSSUIUpdate,
             MoveEmissionMesh,
+            EnableApplyRangeAttenuationOnBoxLight,
         }
 
         /// <summary>
@@ -163,29 +164,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.m_AreaLightEmissiveMeshShadowCastingMode = oldShadowCastingMode;
                         data.m_AreaLightEmissiveMeshMotionVectorGenerationMode = oldMotionVectorMode;
                     }
+                }),
+                MigrationStep.New(Version.EnableApplyRangeAttenuationOnBoxLight, (HDAdditionalLightData data) =>
+                {
+                    // When enabling range attenuation for box light, the default value was "true"
+                    // causing a migration issue. So when we migrate we setup applyRangeAttenuation to false
+                    // if we are a box light to keep the previous behavior
+                    if (data.type == HDLightType.Spot)
+                    {
+                        if (data.spotLightShape == SpotLightShape.Box)
+                        {
+                            data.applyRangeAttenuation = false;
+                        }
+                    }
                 })
             );
 #pragma warning restore 0618, 0612
-
-        /// <summary>
-        /// Deserialization callback
-        /// </summary>
-        void ISerializationCallbackReceiver.OnAfterDeserialize() {}
-
-        /// <summary>
-        /// Serialization callback
-        /// </summary>
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-        {
-            UpdateBounds();
-        }
-
-        void OnEnable()
-        {
-            if (shadowUpdateMode == ShadowUpdateMode.OnEnable)
-                m_ShadowMapRenderedSinceLastRequest = false;
-            SetEmissiveMeshRendererEnabled(true);
-        }
 
         void Migrate()
         {

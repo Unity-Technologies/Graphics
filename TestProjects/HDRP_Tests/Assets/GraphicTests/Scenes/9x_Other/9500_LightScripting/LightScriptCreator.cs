@@ -45,6 +45,7 @@ public class LightScriptCreator : MonoBehaviour
             {
                 case 0: // Spot Box
                     hdLight.SetLightTypeAndShape(HDLightTypeAndShape.BoxSpot);
+                    hdLight.applyRangeAttenuation = false;
                     break;
                 case 1: // Spot Pyramid
                     hdLight.SetLightTypeAndShape(HDLightTypeAndShape.PyramidSpot);

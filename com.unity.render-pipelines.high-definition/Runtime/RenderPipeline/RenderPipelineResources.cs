@@ -61,6 +61,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildPerBigTileLightListCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clustered.compute")]
             public ComputeShader buildPerVoxelLightListCS;              // clustered
+            [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clearatomic.compute")]
+            public ComputeShader lightListClusterClearAtomicIndexCS;
             [Reload("Runtime/Lighting/LightLoop/materialflags.compute")]
             public ComputeShader buildMaterialFlagsCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
@@ -71,10 +73,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader volumeVoxelizationCS;
             [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLighting.compute")]
             public ComputeShader volumetricLightingCS;
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricLightingFiltering.compute")]
+            public ComputeShader volumetricLightingFilteringCS;
             [Reload("Runtime/Lighting/LightLoop/DeferredTile.shader")]
             public Shader deferredTilePS;
             [Reload("Runtime/Lighting/Shadow/ScreenSpaceShadows.shader")]
             public Shader screenSpaceShadowPS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasBlit.compute")]
+            public ComputeShader probeVolumeAtlasBlitCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthBlit.compute")]
+            public ComputeShader probeVolumeAtlasOctahedralDepthBlitCS;
+            [Reload("Runtime/Lighting/ProbeVolume/ProbeVolumeAtlasOctahedralDepthConvolve.compute")]
+            public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
+            public Shader debugDisplayProbeVolumePS;
+
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
@@ -178,8 +191,12 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ambient occlusion
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAO.compute")]
             public ComputeShader GTAOCS;
-            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAODenoise.compute")]
-            public ComputeShader GTAODenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOSpatialDenoise.compute")]
+            public ComputeShader GTAOSpatialDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOTemporalDenoise.compute")]
+            public ComputeShader GTAOTemporalDenoiseCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOCopyHistory.compute")]
+            public ComputeShader GTAOCopyHistoryCS;
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
@@ -222,12 +239,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader depthOfFieldGatherCS;
             [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldCombine.compute")]
             public ComputeShader depthOfFieldCombineCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldPreCombineFar.compute")]
+            public ComputeShader depthOfFieldPreCombineFarCS;
+            [Reload("Runtime/PostProcessing/Shaders/DepthOfFieldClearIndirectArgs.compute")]
+            public ComputeShader depthOfFieldClearIndirectArgsCS;
             [Reload("Runtime/PostProcessing/Shaders/PaniniProjection.compute")]
             public ComputeShader paniniProjectionCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlurMotionVecPrep.compute")]
             public ComputeShader motionBlurMotionVecPrepCS;
-            [Reload("Runtime/PostProcessing/Shaders/MotionBlurTilePass.compute")]
-            public ComputeShader motionBlurTileGenCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurGenTilePass.compute")]
+            public ComputeShader motionBlurGenTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurMergeTilePass.compute")]
+            public ComputeShader motionBlurMergeTileCS;
+            [Reload("Runtime/PostProcessing/Shaders/MotionBlurNeighborhoodTilePass.compute")]
+            public ComputeShader motionBlurNeighborhoodTileCS;
             [Reload("Runtime/PostProcessing/Shaders/MotionBlur.compute")]
             public ComputeShader motionBlurCS;
             [Reload("Runtime/PostProcessing/Shaders/BloomPrefilter.compute")]
@@ -246,8 +271,21 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader SMAAPS;
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
+
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
+
+            // Accumulation
+            [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]
+            public ComputeShader accumulationCS;
+
+            // Compositor
+            [Reload("Runtime/Compositor/Shaders/AlphaInjection.shader")]
+            public Shader alphaInjectionPS;
+            [Reload("Runtime/Compositor/Shaders/ChromaKeying.shader")]
+            public Shader chromaKeyingPS;
+            [Reload("Runtime/Compositor/Shaders/CustomClear.shader")]
+            public Shader customClearPS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

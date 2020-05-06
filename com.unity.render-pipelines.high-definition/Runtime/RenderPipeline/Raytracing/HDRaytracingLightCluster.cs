@@ -69,6 +69,12 @@ namespace UnityEngine.Rendering.HighDefinition
         int envLightCount = 0;
         int totalLightCount = 0;
         int numLightsPerCell = 0;
+        Bounds bounds = new Bounds();
+        Vector3 minBounds = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+        Vector3 maxBounds = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue);
+        Matrix4x4 localToWorldMatrix = new Matrix4x4();
+        VisibleLight visibleLight = new VisibleLight();
+        Light lightComponent;
 
         public HDRaytracingLightCluster()
         {
@@ -200,7 +206,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ResizeLightDataBuffer(int numLights)
         {
-            // Release the previous buffer 
+            // Release the previous buffer
             if (m_LightDataGPUArray != null)
             {
                 // If it is not null and it has already the right size, we are pretty much done
@@ -239,6 +245,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void OOBBToAABBBounds(Vector3 centerWS, Vector3 extents, Vector3 up, Vector3 right, Vector3 forward, ref Bounds outBounds)
+        {
+            // Reset the bounds of the AABB
+            bounds.min = minBounds;
+            bounds.max = maxBounds;
+
+            // Push the 8 corners of the oobb into the AABB
+            bounds.Encapsulate(centerWS + right * extents.x + up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x + up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x - up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS + right * extents.x - up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x + up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x + up * extents.y - forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x - up * extents.y + forward * extents.z);
+            bounds.Encapsulate(centerWS - right * extents.x - up * extents.y - forward * extents.z);
+        }
+
         void BuildGPULightVolumes(HDRayTracingLights rayTracingLights)
         {
             int totalNumLights = rayTracingLights.lightCount;
@@ -268,22 +291,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (light == null || !light.enabled) continue;
 
                     // Reserve space in the cookie atlas
-                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light);
+                    m_RenderPipeline.ReserveCookieAtlasTexture(currentLight, light, currentLight.type);
 
+               
+                    // Grab the light range
                     float lightRange = light.range;
-                    m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
-                    m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
-                    m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
-                    m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
-
+                    
                     if (currentLight.type != HDLightType.Area)
                     {
+                        m_LightVolumesCPUArray[realIndex].range = new Vector3(lightRange, lightRange, lightRange);
+                        m_LightVolumesCPUArray[realIndex].position = currentLight.gameObject.transform.position;
+                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 0;
                         m_LightVolumesCPUArray[realIndex].lightType = 0;
                         punctualLightCount++;
                     }
                     else
                     {
+                        // let's compute the oobb of the light influence volume first
+                        Vector3 oobbDimensions = new Vector3(currentLight.shapeWidth + 2 * lightRange, currentLight.shapeHeight + 2 * lightRange, lightRange); // One-sided
+                        Vector3 extents    = 0.5f * oobbDimensions;
+                        Vector3 oobbCenter = currentLight.gameObject.transform.position + extents.z * currentLight.gameObject.transform.forward;
+
+                        // Let's now compute an AABB that matches the previously defined OOBB
+                        OOBBToAABBBounds(oobbCenter, extents, currentLight.gameObject.transform.up, currentLight.gameObject.transform.right, currentLight.gameObject.transform.forward, ref bounds);
+
+                        // Fill the volume data
+                        m_LightVolumesCPUArray[realIndex].range = bounds.extents;
+                        m_LightVolumesCPUArray[realIndex].position = bounds.center;
+                        m_LightVolumesCPUArray[realIndex].active = (currentLight.gameObject.activeInHierarchy ? 1 : 0);
+                        m_LightVolumesCPUArray[realIndex].lightIndex = (uint)lightIdx;
                         m_LightVolumesCPUArray[realIndex].shape = 1;
                         m_LightVolumesCPUArray[realIndex].lightType = 1;
                         areaLightCount++;
@@ -429,7 +467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
         {
             // If no lights, exit
             if (rayTracingLights.lightCount == 0)
@@ -446,12 +484,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_LightDataCPUArray.Clear();
 
+            // Grab the shadow settings
+            var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
+            BoolScalableSetting contactShadowScalableSetting = HDAdditionalLightData.ScalableSettings.UseContactShadow(m_RenderPipeline.asset);
+
             // Build the data for every light
             for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
             {
-                var lightData = new LightData();
-
+                // Grab the additinal light data to process
                 HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
+
+                LightData lightData = new LightData();
                 // When the user deletes a light source in the editor, there is a single frame where the light is null before the collection of light in the scene is triggered
                 // the workaround for this is simply to add an invalid light for that frame
                 if(additionalLightData == null)
@@ -459,205 +502,56 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_LightDataCPUArray.Add(lightData);
                     continue;
                 }
-                Light light = additionalLightData.gameObject.GetComponent<Light>();
 
-                // Both of these positions are non-camera-relative.
-                float distanceToCamera = (light.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
-                float lightDistanceFade = HDUtils.ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
-
-                bool contributesToLighting = ((additionalLightData.lightDimmer > 0) && (additionalLightData.affectDiffuse || additionalLightData.affectSpecular)) || (additionalLightData.volumetricDimmer > 0);
-                contributesToLighting = contributesToLighting && (lightDistanceFade > 0);
-
-                if (!contributesToLighting)
-                    continue;
-
-                lightData.lightLayers = additionalLightData.GetLightLayers();
+                // Evaluate all the light type data that we need
                 LightCategory lightCategory = LightCategory.Count;
                 GPULightType gpuLightType = GPULightType.Point;
                 LightVolumeType lightVolumeType = LightVolumeType.Count;
                 HDLightType lightType = additionalLightData.type;
                 HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
 
-                lightData.lightType = gpuLightType;
+                // Fetch the light component for this light
+                additionalLightData.gameObject.TryGetComponent(out lightComponent);
 
-                lightData.positionRWS = light.gameObject.transform.position;
+                // Build the processed light data  that we need
+                ProcessedLightData processedData = new ProcessedLightData();
+                processedData.additionalLightData = additionalLightData;
+                processedData.lightType = additionalLightData.type;
+                processedData.lightCategory = lightCategory;
+                processedData.gpuLightType = gpuLightType;
+                processedData.lightVolumeType = lightVolumeType;
+                // Both of these positions are non-camera-relative.
+                processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
+                processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
+                processedData.isBakedShadowMask = HDRenderPipeline.IsBakedShadowMaskLight(lightComponent);
 
-                bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
-
-                lightData.range = light.range;
-
-                if (applyRangeAttenuation)
-                {
-                    lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
-                    lightData.rangeAttenuationBias = 1.0f;
-
-                    if (lightData.lightType == GPULightType.Rectangle)
-                    {
-                        // Rect lights are currently a special case because they use the normalized
-                        // [0, 1] attenuation range rather than the regular [0, r] one.
-                        lightData.rangeAttenuationScale = 1.0f;
-                    }
-                }
-                else // Don't apply any attenuation but do a 'step' at range
-                {
-                    // Solve f(x) = b - (a * x)^2 where x = (d/r)^2.
-                    // f(0) = huge -> b = huge.
-                    // f(1) = 0    -> huge - a^2 = 0 -> a = sqrt(huge).
-                    const float hugeValue = 16777216.0f;
-                    const float sqrtHuge = 4096.0f;
-                    lightData.rangeAttenuationScale = sqrtHuge / (light.range * light.range);
-                    lightData.rangeAttenuationBias = hugeValue;
-
-                    if (lightData.lightType == GPULightType.Rectangle)
-                    {
-                        // Rect lights are currently a special case because they use the normalized
-                        // [0, 1] attenuation range rather than the regular [0, r] one.
-                        lightData.rangeAttenuationScale = sqrtHuge;
-                    }
-                }
-
-                Color value = light.color.linear * light.intensity;
+                // Build a visible light 
+                Color finalColor = lightComponent.color.linear * lightComponent.intensity;
                 if (additionalLightData.useColorTemperature)
-                    value *= Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                lightData.color = new Vector3(value.r, value.g, value.b);
+                    finalColor *= Mathf.CorrelatedColorTemperatureToRGB(lightComponent.colorTemperature);
+                visibleLight.finalColor = finalColor;
+                visibleLight.range = lightComponent.range;
+                // This should be done explicitely, localtoworld matrix doesn't work here
+                localToWorldMatrix.SetColumn(3, lightComponent.gameObject.transform.position);
+                localToWorldMatrix.SetColumn(2, lightComponent.transform.forward);
+                localToWorldMatrix.SetColumn(1, lightComponent.transform.up);
+                localToWorldMatrix.SetColumn(0, lightComponent.transform.right);
+                visibleLight.localToWorldMatrix = localToWorldMatrix;
+                visibleLight.spotAngle = lightComponent.spotAngle;
 
-                lightData.forward = light.transform.forward;
-                lightData.up = light.transform.up;
-                lightData.right = light.transform.right;
+                int shadowIndex = additionalLightData.shadowIndex;
+                int screenSpaceShadowIndex = -1;
+                int screenSpaceChannelSlot = -1;
+                Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
-                lightData.boxLightSafeExtent = 1.0f;
-                if (lightData.lightType == GPULightType.ProjectorBox)
-                {
-                    // Rescale for cookies and windowing.
-                    lightData.right *= 2.0f / Mathf.Max(additionalLightData.shapeWidth, 0.001f);
-                    lightData.up *= 2.0f / Mathf.Max(additionalLightData.shapeHeight, 0.001f);
-                }
-                else if (lightData.lightType == GPULightType.ProjectorPyramid)
-                {
-                    // Get width and height for the current frustum
-                    var spotAngle = light.spotAngle;
+                // Use the shared code to build the light data
+                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData, 
+                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
 
-                    float frustumWidth, frustumHeight;
-
-                    if (additionalLightData.aspectRatio >= 1.0f)
-                    {
-                        frustumHeight = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
-                        frustumWidth = frustumHeight * additionalLightData.aspectRatio;
-                    }
-                    else
-                    {
-                        frustumWidth = 2.0f * Mathf.Tan(spotAngle * 0.5f * Mathf.Deg2Rad);
-                        frustumHeight = frustumWidth / additionalLightData.aspectRatio;
-                    }
-
-                    // Rescale for cookies and windowing.
-                    lightData.right *= 2.0f / frustumWidth;
-                    lightData.up *= 2.0f / frustumHeight;
-                }
-
-                if (lightData.lightType == GPULightType.Spot)
-                {
-                    var spotAngle = light.spotAngle;
-
-                    var innerConePercent = additionalLightData.innerSpotPercent01;
-                    var cosSpotOuterHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * Mathf.Deg2Rad), 0.0f, 1.0f);
-                    var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
-                    var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
-
-                    var val = Mathf.Max(0.0001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
-                    lightData.angleScale = 1.0f / val;
-                    lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
-
-                    // Rescale for cookies and windowing.
-                    float cotOuterHalfAngle = cosSpotOuterHalfAngle / sinSpotOuterHalfAngle;
-                    lightData.up *= cotOuterHalfAngle;
-                    lightData.right *= cotOuterHalfAngle;
-                }
-                else
-                {
-                    // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
-                    lightData.angleScale = 0.0f;
-                    lightData.angleOffset = 1.0f;
-                }
-
-                if (lightData.lightType != GPULightType.Directional && lightData.lightType != GPULightType.ProjectorBox)
-                {
-                    // Store the squared radius of the light to simulate a fill light.
-                    lightData.size = new Vector2(additionalLightData.shapeRadius * additionalLightData.shapeRadius, 0);
-                }
-
-                if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Tube)
-                {
-                    lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
-                }
-
-                lightData.lightDimmer = lightDistanceFade * (additionalLightData.lightDimmer);
-                lightData.diffuseDimmer = lightDistanceFade * (additionalLightData.affectDiffuse ? additionalLightData.lightDimmer : 0);
-                lightData.specularDimmer = lightDistanceFade * (additionalLightData.affectSpecular ? additionalLightData.lightDimmer * hdCamera.frameSettings.specularGlobalDimmer : 0);
-                lightData.volumetricLightDimmer = lightDistanceFade * (additionalLightData.volumetricDimmer);
-
-                lightData.cookieMode = CookieMode.None;
-                lightData.contactShadowMask = 0;
-                lightData.cookieIndex = -1;
-                lightData.shadowIndex = -1;
-                lightData.screenSpaceShadowIndex = -1;
-
-
-                if (light != null && light.cookie != null)
-                {
-                    // TODO: add texture atlas support for cookie textures.
-                    switch (lightType)
-                    {
-                        case HDLightType.Spot:
-                            lightData.cookieMode = (additionalLightData.legacyLight.cookie.wrapMode == TextureWrapMode.Repeat) ? CookieMode.Repeat : CookieMode.Clamp;
-                            lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, light.cookie);
-                            break;
-                        case HDLightType.Point:
-                            lightData.cookieMode = CookieMode.Clamp;
-                            lightData.cookieIndex = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, light.cookie);
-                            break;
-                    }
-                }
-                else if (lightType == HDLightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
-                {
-                    // Projectors lights must always have a cookie texture.
-                    // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
-                    lightData.cookieMode = CookieMode.Clamp;
-                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
-                }
-                else if (lightData.lightType == GPULightType.Rectangle && additionalLightData.areaLightCookie != null)
-                {
-                    lightData.cookieMode = CookieMode.Clamp;
-                    lightData.cookieScaleOffset = m_RenderPipeline.m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
-                }
-
-                {
-                    lightData.shadowDimmer = 1.0f;
-                    lightData.volumetricShadowDimmer = 1.0f;
-                }
-
-                {
-                    // fix up shadow information
-                    lightData.shadowIndex = additionalLightData.shadowIndex;
-                }
-
-                // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
-                lightData.minRoughness = (1.0f - additionalLightData.maxSmoothness) * (1.0f - additionalLightData.maxSmoothness);
-
-                // No usage for the shadow masks
-                lightData.shadowMaskSelector = Vector4.zero;
-                {
-                    // use -1 to say that we don't use shadow mask
-                    lightData.shadowMaskSelector.x = -1.0f;
-                    lightData.nonLightMappedOnly = 0;
-                }
-
-                if (ShaderConfig.s_CameraRelativeRendering != 0)
-                {
-                    // Caution: 'LightData.positionWS' is camera-relative after this point.
-                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                    lightData.positionRWS -= camPosWS;
-                }
+                // We make the light position camera-relative as late as possible in order
+                // to allow the preceding code to work with the absolute world space coordinates.
+                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                HDRenderPipeline.UpdateLightCameraRelativetData(ref lightData, camPosWS);
 
                 // Set the data for this light
                 m_LightDataCPUArray.Add(lightData);
@@ -697,12 +591,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, m_RenderPipeline.m_CurrentDebugDisplaySettings, ref envLightData);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
                 Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                m_RenderPipeline.UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                HDRenderPipeline.UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
 
                 m_EnvLightDataCPUArray.Add(envLightData);
             }
@@ -820,7 +714,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return;
         }
 
-        public void EvaluateLightClusters(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
+        public void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
         {
             // If there is no lights to process or no environment not the shader is missing
             if (rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
@@ -847,9 +741,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Build the light Cluster
             BuildLightCluster(hdCamera, cmd);
+        }
+        
+        public void ReserveCookieAtlasSlots( HDRayTracingLights rayTracingLights)
+        {
+            for (int lightIdx = 0; lightIdx < rayTracingLights.hdLightArray.Count; ++lightIdx)
+            {
+                // Grab the additional light data to process
+                HDAdditionalLightData additionalLightData = rayTracingLights.hdLightArray[lightIdx];
 
+                // Fetch the light component for this light
+                additionalLightData.gameObject.TryGetComponent(out lightComponent);
+
+                // Reserve the cookie resolution in the 2D atlas
+                m_RenderPipeline.ReserveCookieAtlasTexture(additionalLightData, lightComponent, additionalLightData.type);
+            }
+        }
+
+        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        {
             // Build the light data
-            BuildLightData(cmd, hdCamera, rayTracingLights);
+            BuildLightData(cmd, hdCamera, rayTracingLights, debugDisplaySettings);
 
             // Build the light data
             BuildEnvLightData(cmd, hdCamera, rayTracingLights);

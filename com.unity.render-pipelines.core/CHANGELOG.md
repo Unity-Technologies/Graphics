@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
+- Add tooltips in LookDev's toolbar.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -35,6 +36,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
 - Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
+- Fixed issue when LookDev window is opened and the CoreRP Package is updated to a newer version.
+- Fix LookDev's camera button layout.
+- Fix LookDev's layout vanishing on domain reload.
+- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
+- Fixed division by zero in `V_SmithJointGGX` function.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -44,6 +50,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replaced calls to deprecated PlayerSettings.virtualRealitySupported property.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 - Updated macros to be compatible with the new shader preprocessor.
+- Updated shaders to be compatible with Microsoft's DXC.
 
 ## [7.1.1] - 2019-09-05
 

@@ -28,7 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
         OverrideQualitySettings,
     }
     /// <summary>
-    /// Defines how the MaximumLOD
+    /// Defines how the MaximumLOD is computed.
     /// </summary>
     public enum MaximumLODLevelMode
     {
@@ -37,6 +37,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Offset the current quality settings value.</summary>
         OffsetQualitySettings,
         /// <summary>Set the current quality settings value.</summary>
+        OverrideQualitySettings,
+    }
+    /// <summary>
+    /// Defines how the SssSampleBudget is computed.
+    /// </summary>
+    public enum SssQualityMode
+    {
+        /// <summary>Use a quality settings value.</summary>
+        FromQualitySettings,
+        /// <summary>Use a custom value.</summary>
         OverrideQualitySettings,
     }
 
@@ -92,6 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
         [FrameSettingsField(0, displayedName: "MSAA within Forward", negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.")]
         MSAA = 31,
+        /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAA }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
         OpaqueObjects = 2,
@@ -212,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: MaterialQualityLevel, type: FrameSettingsFieldAttribute.DisplayType.Others, tooltip: "The material quality level to use.")]
         MaterialQualityLevel = 66,
 
-        //lighting settings from 20 to 39
+        //lighting settings: 20-39, 46-49
         /// <summary>When enabled, Cameras using these Frame Settings render shadows.</summary>
         [FrameSettingsField(1, autoName: ShadowMaps, customOrderInGroup: 1, tooltip: "When enabled, Cameras using these Frame Settings render shadows.")]
         ShadowMaps = 20,
@@ -234,9 +247,24 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion (Depends on \"Screen Space Ambient Occlusion\" in current HDRP Asset).")]
         SSAO = 24,
+
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.</summary>
-        [FrameSettingsField(1, autoName: SubsurfaceScattering, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
-        SubsurfaceScattering = 25,
+        [FrameSettingsField(1, customOrderInGroup: 46, autoName: SubsurfaceScattering,
+        tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
+        SubsurfaceScattering = 46,
+        /// <summary>Configures the sample budget of the Subsurface Scattering algorithm using Quality Levels. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 47, displayedName: "Quality Mode", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(SssQualityMode),
+        tooltip: "Configures the way the sample budget of the Subsurface Scattering algorithm is determined. You can either pick from one of the existing values in the Quality Settings, or request a custom number of samples.")]
+        SssQualityMode = 47,
+        /// <summary>Sets the Quality Level of the Subsurface Scattering algorithm.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 48, displayedName: "Quality Level", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
+        tooltip: "Sets the Quality Level of the Subsurface Scattering algorithm.")]
+        SssQualityLevel = 48,
+        /// <summary>Sets the custom sample budget of the Subsurface Scattering algorithm.</summary>
+        [FrameSettingsField(1, customOrderInGroup: 49, displayedName: "Custom Sample Budget", positiveDependencies: new[] { SubsurfaceScattering }, type: FrameSettingsFieldAttribute.DisplayType.Others,
+        tooltip: "Sets the custom sample budget of the Subsurface Scattering algorithm.")]
+        SssCustomSampleBudget = 49,
+
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).</summary>
         [FrameSettingsField(1, autoName: Transmission, tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) Materials with an added transmission effect (only if you enable Transmission on the SSS Material in the Material's Inspector).")]
         Transmission = 26,
@@ -311,6 +339,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses material variant classification to compute lighting.</summary>
         [FrameSettingsField(3, autoName: ComputeMaterialVariants, positiveDependencies: new[] { DeferredTile })]
         ComputeMaterialVariants = 125,
+        /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
+        [FrameSettingsField(1, autoName: ProbeVolume)]
+        ProbeVolume = 127,
 
         //only 128 booleans saved. For more, change the BitArray used
     }
@@ -320,7 +351,9 @@ namespace UnityEngine.Rendering.HighDefinition
     [DebuggerDisplay("{mask.humanizedData}")]
     public struct FrameSettingsOverrideMask
     {
-        /// <summary>Mask of overridden values.</summary>
+        /// <summary>Gets the underlying BitArray HDRP uses to store the override mask and thus specific which field is overridden or not.
+        /// Note: BitArray128 is implements IBitArray and therefore has the scripting API described below. It is recomended to use the interface as the exact BitArray con evolve from one version of the package to another as the we need more capacity here.
+        /// </summary>
         [SerializeField]
         public BitArray128 mask;
     }
@@ -395,8 +428,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.SkyReflection,
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
+                (uint)FrameSettingsField.AlphaToMask,
+                (uint)FrameSettingsField.ProbeVolume,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -443,9 +481,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyReflection,
+                (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -493,6 +535,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // (uint)FrameSettingsField.DirectSpecularLighting,
             }),
             lodBias = 1,
+            sssQualityMode        = SssQualityMode.FromQualitySettings,
+            sssQualityLevel       = 0,
+            sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -503,59 +548,67 @@ namespace UnityEngine.Rendering.HighDefinition
         BitArray128 bitDatas;
 
         /// <summary>
-        /// if <c>lodBiasMode == LODBiasMode.Fixed</c>, then this value will overwrite <c>QualitySettings.lodBias</c>
-        /// if <c>lodBiasMode == LODBiasMode.ScaleQualitySettings</c>, then this value will scale <c>QualitySettings.lodBias</c>
+        /// If <c>lodBiasMode</c> is <c>LODBiasMode.Fixed</c>, then this value overwrites <c>QualitySettings.lodBias</c>.
+        /// If <c>lodBiasMode</c> is <c>LODBiasMode.ScaleQualitySettings</c>, then this value scales <c>QualitySettings.lodBias</c>.
         /// </summary>
         [SerializeField]
         public float lodBias;
-        /// <summary>Define how the <c>QualitySettings.lodBias</c> value is set.</summary>
+        /// <summary>Specifies how HDRP calculates <c>QualitySettings.lodBias</c>.</summary>
         [SerializeField]
         public LODBiasMode lodBiasMode;
-        /// <summary>The quality level to use when fetching the quality setting value.</summary>
+        /// <summary>The quality level the rendering component uses when it fetches the quality setting value.</summary>
         [SerializeField]
         public int lodBiasQualityLevel;
         /// <summary>
-        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.FromQualitySettings</c>, then this value will overwrite <c>QualitySettings.maximumLODLevel</c>
-        /// if <c>maximumLODLevelMode == MaximumLODLevelMode.OffsetQualitySettings</c>, then this value will offset <c>QualitySettings.maximumLODLevel</c>
+        /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.FromQualitySettings</c>, then this value overwrites <c>QualitySettings.maximumLODLevel</c>
+        /// If <c>maximumLODLevelMode</c> is <c>MaximumLODLevelMode.OffsetQualitySettings</c>, then this value offsets <c>QualitySettings.maximumLODLevel</c>
         /// </summary>
         [SerializeField]
         public int maximumLODLevel;
-        /// <summary>Define how the <c>QualitySettings.maximumLODLevel</c> value is set.</summary>
+        /// <summary>Specifies how HDRP calculates <c>QualitySettings.maximumLODLevel</c>.</summary>
         [SerializeField]
         public MaximumLODLevelMode maximumLODLevelMode;
-        /// <summary>The quality level to use when fetching the quality setting value.</summary>
+        /// <summary>The maximum quality level the rendering component uses when it fetches the quality setting value.</summary>
         [SerializeField]
         public int maximumLODLevelQualityLevel;
 
+        /// <summary>Stores SssQualityMode on disk.<summary>
+        [SerializeField]
+        public SssQualityMode sssQualityMode;
+        /// <summary>Stores SssQualityLevel on disk.</summary>
+        [SerializeField]
+        public int sssQualityLevel;
+        /// <summary>Stores SssCustomSampleBudget on disk.</summary>
+        [SerializeField]
+        public int sssCustomSampleBudget;
+
+        /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
+        internal int sssResolvedSampleBudget;
+
         /// <summary>
-        /// The material quality level to use for this rendering.
-        /// if <c>materialQuality == 0</c>, then the material quality from the current quality settings
-        /// (in HDRP Asset) will be used.
+        /// The material quality level this rendering component uses.
+        /// If <c>materialQuality == 0</c>, the rendering component uses the material quality from the current quality settings in the HDRP Asset.
         /// </summary>
         public MaterialQuality materialQuality;
 
-        /// <summary>Helper to see binary saved data on LitShaderMode as a LitShaderMode enum.</summary>
+        /// <summary>Specifies the rendering path this rendering component uses. Here you can use the <c>LitShaderMode</c> enum to specify whether the rendering component uses forward or deferred rendering.</summary>
         public LitShaderMode litShaderMode
         {
             get => bitDatas[(uint)FrameSettingsField.LitShaderMode] ? LitShaderMode.Deferred : LitShaderMode.Forward;
             set => bitDatas[(uint)FrameSettingsField.LitShaderMode] = value == LitShaderMode.Deferred;
         }
 
-        /// <summary>
-        /// <summary>Get stored data for this field.</summary>
-        /// </summary>
+        /// <summary>Gets the stored override value for the passed in Frame Setting. Use this to access boolean values.</summary>
         /// <param name="field">Requested field.</param>
         /// <returns>True if the field is enabled.</returns>
         public bool IsEnabled(FrameSettingsField field) => bitDatas[(uint)field];
-        /// <summary>
-        /// <summary>Set stored data for this field.</summary>
-        /// </summary>
+        /// <summary>Sets the stored override value for the passed in Frame Setting. Use this to access boolean values.</summary>
         /// <param name="field">Requested field.</param>
         /// <param name="value">State to set to the field.</param>
         public void SetEnabled(FrameSettingsField field, bool value) => bitDatas[(uint)field] = value;
 
         /// <summary>
-        /// Compute the LOD bias value to use
+        /// Calculates the LOD bias value to use.
         /// </summary>
         /// <param name="hdrp">The HDRP Assets to use</param>
         /// <returns>The LOD Bias to use</returns>
@@ -572,7 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Compute the Maximum LOD level to use
+        /// Calculates the Maximum LOD level to use.
         /// </summary>
         /// <param name="hdrp">The HDRP Asset to use</param>
         /// <returns>The Maximum LOD level to use.</returns>
@@ -584,6 +637,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 case MaximumLODLevelMode.FromQualitySettings: return source[maximumLODLevelQualityLevel];
                 case MaximumLODLevelMode.OffsetQualitySettings: return source[maximumLODLevelQualityLevel] + maximumLODLevel;
                 case MaximumLODLevelMode.OverrideQualitySettings: return maximumLODLevel;
+                default: throw new ArgumentOutOfRangeException(nameof(maximumLODLevelMode));
+            }
+        }
+
+        /// <summary>
+        /// Returns the sample budget of the Subsurface Scattering algorithm.
+        /// </summary>
+        /// <param name="hdrp">The HDRP Asset to use.</param>
+        /// <returns>The sample budget of the Subsurface Scattering algorithm.</returns>
+        public int GetResolvedSssSampleBudget(HDRenderPipelineAsset hdrp)
+        {
+            var source = hdrp.currentPlatformRenderPipelineSettings.sssSampleBudget;
+            switch (sssQualityMode)
+            {
+                case SssQualityMode.FromQualitySettings:     return source[sssQualityLevel];
+                case SssQualityMode.OverrideQualitySettings: return sssCustomSampleBudget;
                 default: throw new ArgumentOutOfRangeException(nameof(maximumLODLevelMode));
             }
         }
@@ -609,6 +678,12 @@ namespace UnityEngine.Rendering.HighDefinition
             overriddenFrameSettings.bitDatas = (overridingFrameSettings.bitDatas & frameSettingsOverideMask.mask) | (~frameSettingsOverideMask.mask & overriddenFrameSettings.bitDatas);
 
             //other overrides
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssQualityMode])
+                overriddenFrameSettings.sssQualityMode = overridingFrameSettings.sssQualityMode;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssQualityLevel])
+                overriddenFrameSettings.sssQualityLevel = overridingFrameSettings.sssQualityLevel;
+            if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.SssCustomSampleBudget])
+                overriddenFrameSettings.sssCustomSampleBudget = overridingFrameSettings.sssCustomSampleBudget;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBias])
                 overriddenFrameSettings.lodBias = overridingFrameSettings.lodBias;
             if (frameSettingsOverideMask.mask[(uint) FrameSettingsField.LODBiasMode])
@@ -657,6 +732,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //MSAA only supported in forward
             // TODO: The work will be implemented piecemeal to support all passes
             bool msaa = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitizedFrameSettings.litShaderMode == LitShaderMode.Forward;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // No recursive reflections
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR] &= renderPipelineSettings.supportSSR && !msaa && !preview;
@@ -703,6 +779,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume;
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>
@@ -735,45 +813,43 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Equality operator.
+        /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).
         /// </summary>
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if both settings are equal.</returns>
         public static bool operator ==(FrameSettings a, FrameSettings b)
-            => a.bitDatas == b.bitDatas
-            && a.lodBias == b.lodBias
-            && a.lodBiasMode == b.lodBiasMode
-            && a.lodBiasQualityLevel == b.lodBiasQualityLevel
-            && a.maximumLODLevel == b.maximumLODLevel
-            && a.maximumLODLevelMode == b.maximumLODLevelMode
+            => a.bitDatas                    == b.bitDatas
+            && a.sssQualityMode              == b.sssQualityMode
+            && a.sssQualityLevel             == b.sssQualityLevel
+            && a.sssCustomSampleBudget       == b.sssCustomSampleBudget
+            && a.lodBias                     == b.lodBias
+            && a.lodBiasMode                 == b.lodBiasMode
+            && a.lodBiasQualityLevel         == b.lodBiasQualityLevel
+            && a.maximumLODLevel             == b.maximumLODLevel
+            && a.maximumLODLevelMode         == b.maximumLODLevelMode
             && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
-            && a.materialQuality == b.materialQuality;
+            && a.materialQuality             == b.materialQuality;
 
         /// <summary>
-        /// Inequality operator.
+        /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
         /// </summary>
         /// <param name="a">First frame settings.</param>
         /// <param name="b">Second frame settings.</param>
         /// <returns>True if settings are not equal.</returns>
-        public static bool operator !=(FrameSettings a, FrameSettings b)
-            => a.bitDatas != b.bitDatas
-            || a.lodBias != b.lodBias
-            || a.lodBiasMode != b.lodBiasMode
-            || a.lodBiasQualityLevel != b.lodBiasQualityLevel
-            || a.maximumLODLevel != b.maximumLODLevel
-            || a.maximumLODLevelMode != b.maximumLODLevelMode
-            || a.maximumLODLevelQualityLevel != b.maximumLODLevelQualityLevel
-            || a.materialQuality != b.materialQuality;
+        public static bool operator !=(FrameSettings a, FrameSettings b) => !(a == b);
 
         /// <summary>
-        /// Equality operator.
+        /// Equality operator between two FrameSettings. Return `true` if equivalent. (comparison of content).
         /// </summary>
         /// <param name="obj">Frame Settings to compare to.</param>
         /// <returns>True if both settings are equal.</returns>
         public override bool Equals(object obj)
             => (obj is FrameSettings)
             && bitDatas.Equals(((FrameSettings)obj).bitDatas)
+            && sssQualityMode.Equals(((FrameSettings)obj).sssQualityMode)
+            && sssQualityLevel.Equals(((FrameSettings)obj).sssQualityLevel)
+            && sssCustomSampleBudget.Equals(((FrameSettings)obj).sssCustomSampleBudget)
             && lodBias.Equals(((FrameSettings)obj).lodBias)
             && lodBiasMode.Equals(((FrameSettings)obj).lodBiasMode)
             && lodBiasQualityLevel.Equals(((FrameSettings)obj).lodBiasQualityLevel)
@@ -783,13 +859,17 @@ namespace UnityEngine.Rendering.HighDefinition
             && materialQuality.Equals(((FrameSettings)obj).materialQuality);
 
         /// <summary>
-        /// Returns the hash code of the frame settings.
+        /// Returns the hash code of this object.
         /// </summary>
         /// <returns>Hash code of the frame settings.</returns>
         public override int GetHashCode()
         {
             var hashCode = 1474027755;
+
             hashCode = hashCode * -1521134295 + bitDatas.GetHashCode();
+            hashCode = hashCode * -1521134295 + sssQualityMode.GetHashCode();
+            hashCode = hashCode * -1521134295 + sssQualityLevel.GetHashCode();
+            hashCode = hashCode * -1521134295 + sssCustomSampleBudget.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBias.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBiasMode.GetHashCode();
             hashCode = hashCode * -1521134295 + lodBiasQualityLevel.GetHashCode();
@@ -797,6 +877,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
+
             return hashCode;
         }
 
@@ -869,6 +950,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     groups.Add(new DebuggerGroup("Bits without attribute", noAttribute.Where(fs => fs != FrameSettingsField.None)?.Select(fs => new DebuggerEntry(Enum.GetName(typeof(FrameSettingsField), fs), m_FrameSettings.bitDatas[(uint)fs])).ToArray()));
 
                     groups.Add(new DebuggerGroup("Non Bit data", new DebuggerEntry[] {
+                        new DebuggerEntry("sssQualityMode", m_FrameSettings.sssQualityMode),
+                        new DebuggerEntry("sssQualityLevel", m_FrameSettings.sssQualityLevel),
+                        new DebuggerEntry("sssCustomSampleBudget", m_FrameSettings.sssCustomSampleBudget),
                         new DebuggerEntry("lodBias", m_FrameSettings.lodBias),
                         new DebuggerEntry("lodBiasMode", m_FrameSettings.lodBiasMode),
                         new DebuggerEntry("lodBiasQualityLevel", m_FrameSettings.lodBiasQualityLevel),

@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var previewWidth = k_PreviewHeight;
             var previewSize = new Rect(previewWidth, k_PreviewHeight + EditorGUIUtility.singleLineHeight + 2, 0, 0);
-            
+
             if (Event.current.type == EventType.Layout
                 || !firstDraw && Event.current.type == EventType.Repaint)
             {
@@ -304,7 +304,7 @@ namespace UnityEditor.Rendering.HighDefinition
             k_PreviewMaterial.SetPass(0);
             Graphics.DrawMeshNow(k_QuadMesh, Matrix4x4.TRS(mirrorPosition, mirrorRotation, Vector3.one * capturePointPreviewSize * 2));
         }
-        
+
         static void InitIcons()
         {
             s_MipMapLow = EditorGUIUtility.IconContent("PreTextureMipMapLow");
@@ -319,7 +319,6 @@ namespace UnityEditor.Rendering.HighDefinition
         bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => false;
         bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => false;
         bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => false;
-
 
         ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings => new ProbeSettingsOverride
         {
@@ -360,7 +359,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 camera = CameraSettingsFields.none
             }
         };
-        
+
         Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
         static readonly HDProbeUI.ToolBar[] k_Toolbars =
         {

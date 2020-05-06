@@ -8,6 +8,5 @@
         public string renderTypeOverride;
         public bool generatesPreview;
         public PassCollection passes;
-        public string customEditorOverride;
     }
 }
