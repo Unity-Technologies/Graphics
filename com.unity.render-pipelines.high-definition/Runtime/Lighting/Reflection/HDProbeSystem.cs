@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 
@@ -255,6 +256,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_RebuildPlanarProbeArray)
             {
+                RemoveDestroyedProbes(m_PlanarProbes);
+
                 m_RebuildPlanarProbeArray = false;
                 var i = 0;
                 foreach (var probe in m_PlanarProbes)
@@ -262,6 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_PlanarProbesArray[i] = (PlanarReflectionProbe)probe;
                     ++i;
                 }
+                m_PlanarProbeCount = m_PlanarProbes.Count;
             }
         }
 
@@ -274,15 +278,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Assert.AreEqual(stateHash, state.stateHash, "HDProbes changes since culling was prepared, this will lead to incorrect results.");
 
             results.Reset();
-            var probes = results.writeableVisibleProbes;
 
             Array.Resize(
                 ref m_QueryCullResults_Indices,
                 Parameters.maxActivePlanarReflectionProbe + Parameters.maxActiveReflectionProbe
             );
             var indexCount = state.cullingGroup.QueryIndices(true, m_QueryCullResults_Indices, 0);
-            for (int i = 0; i < indexCount; ++i)
-                probes.Add(state.hdProbes[m_QueryCullResults_Indices[i]]);
+            results.AddRange(Enumerable.Range(0, indexCount).Select(i => state.hdProbes[m_QueryCullResults_Indices[i]]));
         }
 
         static void RemoveDestroyedProbes(HashSet<HDProbe> probes)
