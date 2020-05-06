@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed the valid TRS test failing due to variable not being initialized to the identity matrix in RTShadows (1220600).
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fixed transparent motion vectors not working when in MSAA.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
