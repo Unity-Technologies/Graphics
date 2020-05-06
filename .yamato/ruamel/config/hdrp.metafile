@@ -85,3 +85,4 @@ all:
         - editmode
         - playmode
         - playmode XR
+        - Standalone
