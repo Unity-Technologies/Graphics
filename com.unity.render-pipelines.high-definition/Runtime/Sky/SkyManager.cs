@@ -413,6 +413,24 @@ namespace UnityEngine.Rendering.HighDefinition
             return GetAmbientProbe(hdCamera.lightingSky);
         }
 
+        internal bool HasSetValidAmbientProbe(HDCamera hdCamera)
+        {
+            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+            if (ambientMode == SkyAmbientMode.Static)
+                return true;
+
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic && hdCamera.lightingSky != null &&
+                hdCamera.lightingSky.IsValid() && IsCachedContextValid(hdCamera.lightingSky))
+            {
+                ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
+                var renderingContext = cachedContext.renderingContext;
+                return renderingContext.ambientProbeIsReady;
+            }
+
+            return false;
+
+        }
+
         internal void SetupAmbientProbe(HDCamera hdCamera)
         {
             // Working around GI current system
