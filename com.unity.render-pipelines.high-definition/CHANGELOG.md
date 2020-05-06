@@ -536,6 +536,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression in the ray traced indirect diffuse due to the new probe system.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
+- Fixed a bug where Decal Shader Graphs would not recieve reprojected Position, Normal, or Bitangent data. (1239921)
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
@@ -568,6 +569,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
+- DXR: Fixed shader compilation error with shader graph and pathtracer
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
 
 ### Changed

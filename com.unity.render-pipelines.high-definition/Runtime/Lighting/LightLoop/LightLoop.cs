@@ -234,6 +234,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
+        public uint         _Pad0_SVLL;
+        public uint         _Pad1_SVLL;
     }
 
     internal struct ProcessedLightData

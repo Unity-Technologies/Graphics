@@ -5,12 +5,13 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    abstract class MaterialSlot : ISlot
+    abstract class MaterialSlot : JsonObject
     {
         const string k_NotInit =  "Not Initilaized";
 
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph
 
         public SlotReference slotReference
         {
-            get { return new SlotReference(owner.guid, m_Id); }
+            get { return new SlotReference(owner, m_Id); }
         }
 
         public AbstractMaterialNode owner { get; set; }
@@ -182,12 +183,6 @@ namespace UnityEditor.ShaderGraph
         public int id
         {
             get { return m_Id; }
-        }
-
-        public int priority
-        {
-            get { return m_Priority; }
-            set { m_Priority = value; }
         }
 
         public bool isInputSlot
@@ -289,14 +284,9 @@ namespace UnityEditor.ShaderGraph
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
 
-        bool Equals(MaterialSlot other)
+        public bool Equals(MaterialSlot other)
         {
-            return m_Id == other.m_Id && owner.guid.Equals(other.owner.guid);
-        }
-
-        public bool Equals(ISlot other)
-        {
-            return Equals(other as object);
+            return m_Id == other.m_Id && owner == other.owner;
         }
 
         public override bool Equals(object obj)
@@ -313,6 +303,17 @@ namespace UnityEditor.ShaderGraph
             {
                 return (m_Id * 397) ^ (owner != null ? owner.GetHashCode() : 0);
             }
+        }
+
+        public virtual void CopyDefaultValue(MaterialSlot other)
+        {
+            m_Id = other.m_Id;
+            m_DisplayName = other.m_DisplayName;
+            m_SlotType = other.m_SlotType;
+            m_Priority = other.m_Priority;
+            m_Hidden = other.m_Hidden;
+            m_ShaderOutputName = other.m_ShaderOutputName;
+            m_StageCapability = other.m_StageCapability;
         }
     }
 }
