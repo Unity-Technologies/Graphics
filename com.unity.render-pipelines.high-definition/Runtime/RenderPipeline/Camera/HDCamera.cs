@@ -200,6 +200,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
+        /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
+        internal bool                   isPersistent = false;
+
         // VisualSky is the sky used for rendering in the main view.
         // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
         // It's usually the visual sky unless a sky lighting override is setup.
@@ -375,7 +378,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass)
+        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass, bool allocateHistoryBuffers = true)
         {
             // Inherit animation settings from the parent camera.
             Camera aniCam = (parentCamera != null) ? parentCamera : camera;
@@ -404,6 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAntialiasing();
 
             // Handle memory allocation.
+            if (allocateHistoryBuffers)
             {
                 // Have to do this every frame in case the settings have changed.
                 // The condition inside controls whether we perform init/deinit or not.
@@ -457,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                    finalViewport = GetPixelRect();
                 }
 
                 actualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -497,12 +501,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
+        /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
+        internal void SetReferenceSize()
+        {
+            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+        }
+        
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
         internal void BeginRender(CommandBuffer cmd)
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
-            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            SetReferenceSize();
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
@@ -560,7 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
                 // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory))
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory && !camera.isPersistent))
                     s_Cleanup.Add(key);
             }
 
@@ -571,6 +581,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             s_Cleanup.Clear();
+        }
+
+        internal static void ResetAllHistoryRTHandleSystems(int width, int height)
+        {
+            foreach (var kvp in s_Cameras)
+            {
+                var hdCamera = kvp.Value;
+                var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
+                // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                {
+                    hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+                }
+            }
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
@@ -776,6 +800,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        internal void OverridePixelRect(Rect newPixelRect) => m_OverridePixelRect = newPixelRect;
+        internal void ResetPixelRect() => m_OverridePixelRect = null;
         #endregion
 
         #region Private API
@@ -807,6 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
+        Rect?                   m_OverridePixelRect = null;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {
@@ -1238,6 +1266,14 @@ namespace UnityEngine.Rendering.HighDefinition
         void ReleaseHistoryBuffer()
         {
             m_HistoryRTSystem.ReleaseAll();
+        }
+
+        Rect GetPixelRect()
+        {
+            if (m_OverridePixelRect != null)
+                return m_OverridePixelRect.Value;
+            else
+                return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
         #endregion
     }
