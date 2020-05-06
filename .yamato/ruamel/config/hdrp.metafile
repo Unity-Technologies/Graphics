@@ -1,6 +1,7 @@
 project:
   name: HDRP 
   folder: HDRP_Tests
+  folder_standalone: HDRP_RuntimeTests
 editors:
   - version: 2020.1
     rerun_strategy: on-new-revision

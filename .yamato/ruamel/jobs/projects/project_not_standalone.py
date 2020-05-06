@@ -14,7 +14,7 @@ class Project_NotStandaloneJob():
     def get_job_definition(self, project, editor, platform, api, test_platform):
 
         cmd = get_cmd(platform["name"], api["name"], 'not_standalone')
-        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project, platform, api, test_platform["args"]))
+        job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project["folder"], platform, api, test_platform["args"]))
         return job
     
     
