@@ -231,8 +231,6 @@ namespace UnityEditor.Rendering
 
                     m_PreviewRenderUtility.BeginPreview(r, background);
 
-                    m_PreviewRenderUtility.
-
                     bool fog = RenderSettings.fog;
                     Unsupported.SetRenderSettingsUseFogNoDirty(false);
 
