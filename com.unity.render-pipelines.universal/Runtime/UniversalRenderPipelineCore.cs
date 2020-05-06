@@ -75,7 +75,7 @@ namespace UnityEngine.Rendering.Universal
 
         /// <summary>
         /// Returns the camera GPU projection matrix. This contains platform specific changes to handle y-flip and reverse z.
-        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture. 
+        /// Similar to <c>GL.GetGPUProjectionMatrix</c> but queries URP internal state to know if the pipeline is rendering to render texture.
         /// For more info on platform differences regarding camera projection check: https://docs.unity3d.com/Manual/SL-PlatformDifferences.html
         /// </summary>
         /// <seealso cref="GL.GetGPUProjectionMatrix(Matrix4x4, bool)"/>
@@ -95,11 +95,21 @@ namespace UnityEngine.Rendering.Universal
         internal float aspectRatio;
         public float renderScale;
         public bool clearDepth;
-        public bool isSceneViewCamera;
+        public CameraType cameraType;
         public bool isDefaultViewport;
         public bool isHdrEnabled;
         public bool requiresDepthTexture;
         public bool requiresOpaqueTexture;
+
+        /// <summary>
+        /// True if the camera rendering is for the scene window in the editor
+        /// </summary>
+        public bool isSceneViewCamera => cameraType == CameraType.SceneView;
+
+        /// <summary>
+        /// True if the camera rendering is for the preview window in the editor
+        /// </summary>
+        public bool isPreviewCamera => cameraType == CameraType.Preview;
 
         /// <summary>
         /// True if the camera device projection matrix is flipped. This happens when the pipeline is rendering
@@ -179,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int viewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixVP");
 
         public static readonly int inverseViewMatrix = Shader.PropertyToID("unity_MatrixInvV");
-        // Undefined: 
+        // Undefined:
         // public static readonly int inverseProjectionMatrix = Shader.PropertyToID("unity_MatrixInvP");
         public static readonly int inverseViewAndProjectionMatrix = Shader.PropertyToID("unity_MatrixInvVP");
 

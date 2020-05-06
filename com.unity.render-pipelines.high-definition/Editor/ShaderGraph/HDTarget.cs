@@ -522,7 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target50) },
-            { Pragma.Raytracing("test") },
+            { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
     }
