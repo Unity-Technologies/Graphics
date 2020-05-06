@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Min distance to contact shadows.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 
 ### Fixed
@@ -572,9 +573,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - DXR: Fixed shader compilation error with shader graph and pathtracer
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fixed flickering of the game/scene view when lookdev is running.
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed transparent motion vectors not working when in MSAA.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
