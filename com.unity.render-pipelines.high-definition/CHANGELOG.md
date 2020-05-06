@@ -573,6 +573,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - DXR: Fixed shader compilation error with shader graph and pathtracer
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed a performance issue with stochastic ray traced area shadows.
+- Fixed cookie texture not updated when changing an import settings (srgb for example).
 - Fixed flickering of the game/scene view when lookdev is running.
 
 ### Changed
