@@ -115,6 +115,16 @@ Shader "Hidden/HDRP/CustomPassUtils"
         {
             Name "HorizontalBlur"
 
+            Stencil
+            {
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
+                Comp [_StencilCmp]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+            }
+
             ZWrite Off
             ZTest Always
             Blend Off
@@ -128,6 +138,16 @@ Shader "Hidden/HDRP/CustomPassUtils"
         Pass
         {
             Name "VerticalBlur"
+
+            Stencil
+            {
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                Ref [_StencilRef]
+                Comp [_StencilCmp]
+                Pass [_StencilPass]
+                Fail [_StencilFail]
+            }
 
             ZWrite Off
             ZTest Always

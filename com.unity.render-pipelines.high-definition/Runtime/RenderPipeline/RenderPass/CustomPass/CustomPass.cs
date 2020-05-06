@@ -127,6 +127,28 @@ namespace UnityEngine.Rendering.HighDefinition
             All,
         }
 
+        /// <summary>Available stencil bits when using the custom depth buffer</summary>
+        [Flags]
+        public enum CustomStencilBits
+        {
+            /// <summary>Bit 0</summary>
+            Bit0 = 1 << 0,
+            /// <summary>Bit 1</summary>
+            Bit1 = 1 << 1,
+            /// <summary>Bit 2</summary>
+            Bit2 = 1 << 2,
+            /// <summary>Bit 3</summary>
+            Bit3 = 1 << 3,
+            /// <summary>Bit 4</summary>
+            Bit4 = 1 << 4,
+            /// <summary>Bit 5</summary>
+            Bit5 = 1 << 5,
+            /// <summary>Bit 6</summary>
+            Bit6 = 1 << 6,
+            /// <summary>Bit 7</summary>
+            Bit7 = 1 << 7,
+        }
+
         internal struct RenderTargets
         {
             public RTHandle cameraColorMSAABuffer;

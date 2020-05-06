@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if ((hdCamera.volumeLayerMask & (1 << gameObject.layer)) == 0)
                 return false;
 
-            Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+            SetCustomPassGlobalConstants();
 
             foreach (var pass in customPasses)
             {
@@ -99,6 +99,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return executed;
+        }
+
+        void SetCustomPassGlobalConstants()
+        {
+            Shader.SetGlobalFloat(HDShaderIDs._CustomPassInjectionPoint, (float)injectionPoint);
+            Shader.SetGlobalFloat(HDShaderIDs._UserStencilBit0, (int)UserStencilUsage.UserBit0);
+            Shader.SetGlobalFloat(HDShaderIDs._UserStencilBit1, (int)UserStencilUsage.UserBit1);
         }
 
         internal bool WillExecuteInjectionPoint(HDCamera hdCamera)

@@ -178,7 +178,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
+        public static readonly int _StencilWriteMask = Shader.PropertyToID("_StencilWriteMask");
+        public static readonly int _StencilReadMask = Shader.PropertyToID("_StencilReadMask");
         public static readonly int _StencilCmp = Shader.PropertyToID("_StencilCmp");
+        public static readonly int _StencilPass = Shader.PropertyToID("_StencilPass");
+        public static readonly int _StencilFail = Shader.PropertyToID("_StencilFail");
 
         public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
 
@@ -340,6 +344,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CustomDepthTexture = Shader.PropertyToID("_CustomDepthTexture");
         public static readonly int _CustomColorTexture = Shader.PropertyToID("_CustomColorTexture");
         public static readonly int _CustomPassInjectionPoint = Shader.PropertyToID("_CustomPassInjectionPoint");
+
+        // Defined stencil variable in the shader so users don't use hardcoded values in the Stencil syntax
+        public static readonly int _UserStencilBit0 = Shader.PropertyToID("_UserStencilBit0");
+        public static readonly int _UserStencilBit1 = Shader.PropertyToID("_UserStencilBit1");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");
         public static readonly int _Mipmap = Shader.PropertyToID("_Mipmap");

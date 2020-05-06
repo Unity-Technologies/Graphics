@@ -26,6 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static ProfilingSampler copySampler = new ProfilingSampler("Copy");
         static ProfilingSampler renderFromCameraSampler = new ProfilingSampler("Render From Camera");
         static ProfilingSampler renderDepthFromCameraSampler = new ProfilingSampler("Render Depth");
+        static ProfilingSampler renderStencilFromCameraSampler = new ProfilingSampler("Render Stencil");
         static ProfilingSampler renderNormalFromCameraSampler = new ProfilingSampler("Render Normal");
         static ProfilingSampler renderTangentFromCameraSampler = new ProfilingSampler("Render Tangent");
 
@@ -41,6 +42,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static int copyPassIndex;
         static int depthToColorPassIndex;
         static int depthPassIndex;
+        static int writeNothingPassIndex;
         static int normalToColorPassIndex;
         static int tangentToColorPassIndex;
 
@@ -55,6 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
             customPassRenderersUtilsMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipeline.defaultAsset.renderPipelineResources.shaders.customPassRenderersUtils);
             depthToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthToColorPass");
             depthPassIndex = customPassRenderersUtilsMaterial.FindPass("DepthPass");
+            writeNothingPassIndex = customPassRenderersUtilsMaterial.FindPass("Nothing");
             normalToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("NormalToColorPass");
             tangentToColorPassIndex = customPassRenderersUtilsMaterial.FindPass("TangentToColorPass");
         }
@@ -297,6 +300,41 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Setup a stencil mask to apply to the passes in the block
+        /// The passes that support stencil masking are: Gaussian Blur (without downsample), Copy and FullScreenPass if the shader supports it
+        /// </summary>
+        public class StencilMask : IDisposable
+        {
+            internal static RTHandle fullscreenStencilBuffer = null;
+
+            public StencilMask(CustomPassContext ctx, RTHandle stencilBuffer, UserStencilUsage userStencilRefValue, CompareFunction stencilComparison)
+                : this(ctx, stencilBuffer, (CustomPass.CustomStencilBits)userStencilRefValue, stencilComparison, (int)(UserStencilUsage.UserBit0 | UserStencilUsage.UserBit1)) {}
+
+            public StencilMask(CustomPassContext ctx, RTHandle stencilBuffer, CustomPass.CustomStencilBits referenceValue, CompareFunction stencilComparison)
+                : this(ctx, stencilBuffer, referenceValue, stencilComparison, 255) {}
+
+            internal StencilMask(CustomPassContext ctx, RTHandle stencilBuffer, CustomPass.CustomStencilBits referenceValue, CompareFunction stencilComparison, int mask)
+            {
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilReadMask, mask);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilWriteMask, mask);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilRef, (int)referenceValue);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilCmp, (int)stencilComparison);
+
+                // We don't affect stencil values in this pass
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilPass, (int)StencilOp.Keep);
+                ctx.cmd.SetGlobalInt(HDShaderIDs._StencilFail, (int)StencilOp.Keep);
+
+                fullscreenStencilBuffer = stencilBuffer;
+            }
+
+            /// <summary>We don't reset the render state as we don't know which stencil state was set before</summary>
+            void IDisposable.Dispose()
+            {
+                fullscreenStencilBuffer = null;
+            }
+        }
+
+        /// <summary>
         /// Simpler version of ScriptableRenderContext.DrawRenderers to draw HDRP materials.
         /// </summary>
         /// <param name="ctx">Custom Pass Context.</param>
@@ -433,17 +471,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Disable the multi pass rendering (use in XR)
+        /// Disable the single pass rendering (use in XR)
         /// </summary>
-        public struct DisableMultiPassRendering : IDisposable
+        public struct DisableSinglePassRendering : IDisposable
         {
             CustomPassContext m_Context;
 
             /// <summary>
-            /// Disable the multi pass rendering (use in XR)
+            /// Disable the single pass rendering (use in XR)
             /// </summary>
             /// <param name="ctx">Custom Pass Context.</param>
-            public DisableMultiPassRendering(in CustomPassContext ctx)
+            public DisableSinglePassRendering(in CustomPassContext ctx)
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
@@ -495,7 +533,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (targetDepth != null)
                 CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
 
-            using (new DisableMultiPassRendering(ctx))
+            using (new DisableSinglePassRendering(ctx))
             {
                 using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
                 {
@@ -544,6 +582,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderFromCamera(ctx, view, targetColor, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, depthToColorPassIndex, overrideRenderState);
             }
         }
+
+        public static void RenderStencilFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, UserStencilUsage stencilBitsToWrite, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderStencilFromCamera(ctx, view, layerMask, stencilBitsToWrite, renderQueueFilter, overrideRenderState);
+            
+        public static void RenderStencilFromCamera(in CustomPassContext ctx, Camera view, LayerMask layerMask, CustomPass.CustomStencilBits stencilBitsToWrite, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderStencilFromCamera(ctx, view, layerMask, stencilBitsToWrite, renderQueueFilter, overrideRenderState);
+
+        public static void RenderStencilFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, UserStencilUsage stencilBitsToWrite, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+            => RenderStencilFromCamera(ctx, view, targetDepth, clearFlag, layerMask, (CustomPass.CustomStencilBits)stencilBitsToWrite, renderQueueFilter, overrideRenderState);
+
+        public static void RenderStencilFromCamera(in CustomPassContext ctx, Camera view, RTHandle targetDepth, ClearFlag clearFlag, LayerMask layerMask, CustomPass.CustomStencilBits stencilBitsToWrite, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        {
+            overrideRenderState.mask |= RenderStateMask.Stencil;
+            var stencil = overrideRenderState.stencilState;
+            stencil.enabled = true;
+            overrideRenderState.stencilReference = (int)stencilBitsToWrite;
+            stencil.compareFunctionBack = stencil.compareFunctionFront = CompareFunction.Always;
+            stencil.writeMask = 255;
+            stencil.passOperationFront = stencil.passOperationBack = StencilOp.Replace;
+            overrideRenderState.stencilState = stencil;
+
+            using (new ProfilingScope(ctx.cmd, renderStencilFromCameraSampler))
+            {
+                RenderFromCamera(ctx, view, null, targetDepth, clearFlag, layerMask, renderQueueFilter, customPassRenderersUtilsMaterial, writeNothingPassIndex, overrideRenderState);
+            }
+        }
+
 
         /// <summary>
         /// Render world space normal of objects from the view point of a camera into the color buffer.
@@ -618,7 +683,10 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.position = new Vector2(viewport.size.x * destScaleBias.z, viewport.size.y * destScaleBias.w);
             viewport.size *= new Vector2(destScaleBias.x, destScaleBias.y);
 
-            CoreUtils.SetRenderTarget(ctx.cmd, destination, clearFlag, Color.black, miplevel);
+            if (StencilMask.fullscreenStencilBuffer != null)
+                CoreUtils.SetRenderTarget(ctx.cmd, destination, StencilMask.fullscreenStencilBuffer, clearFlag, Color.black, miplevel);
+            else
+                CoreUtils.SetRenderTarget(ctx.cmd, destination, clearFlag, Color.black, miplevel);
             ctx.cmd.SetViewport(viewport);
 
             block.SetVector(HDShaderIDs._ViewportSize, new Vector4(destSize.x, destSize.y, 1.0f / destSize.x, 1.0f / destSize.y));

@@ -148,5 +148,33 @@
 
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "Nothing"
+            Tags { "LightMode" = "Nothing" }
+
+            Blend Off
+            ZWrite Off
+            ZTest LEqual
+
+            ColorMask 0
+
+            Cull Back
+
+            HLSLPROGRAM
+
+            // Put the code to render the objects in your custom pass in this function
+            void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 viewDirection, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+            {
+                // Write back the data to the output structures
+                ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+                surfaceData.color = fragInputs.tangentToWorld[0].xyz;
+            }
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl"
+
+            ENDHLSL
+        }
     }
 }
