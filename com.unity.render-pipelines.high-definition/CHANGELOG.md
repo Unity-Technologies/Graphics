@@ -578,6 +578,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed transparent motion vectors not working when in MSAA.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
