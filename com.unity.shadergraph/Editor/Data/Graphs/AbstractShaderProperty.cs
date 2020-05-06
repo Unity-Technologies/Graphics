@@ -58,13 +58,13 @@ namespace UnityEditor.ShaderGraph.Internal
 
         // simple properties use a single reference name; this function covers that case
         // complex properties can override this function to produce multiple reference names
-        internal virtual void GetPropertyReferenceNames(List<string> result)
+        internal virtual void ForEachPropertyReferenceName(Func<string, string> func)
         {
-            result.Add(referenceName);
+            overrideReferenceName = func(referenceName);
         }
-        internal virtual void GetPropertyDisplayNames(List<string> result)
+        internal virtual void ForEachPropertyDisplayName(Func<string, string> func)
         {
-            result.Add(displayName);
+            displayName = func(displayName);
         }
 
         // the simple interface for simple properties

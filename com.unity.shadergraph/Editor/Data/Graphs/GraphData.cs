@@ -771,10 +771,11 @@ namespace UnityEditor.ShaderGraph
         public List<string> BuildPropertyDisplayNameList(Guid ignoreGuid, string ignoreName)
         {
             List<String> result = new List<String>();
+            Func<string, string> addResult = dispName => { result.Add(dispName); return dispName; };
             foreach (var p in properties)
             {
                 int before = result.Count;
-                p.GetPropertyDisplayNames(result);
+                p.ForEachPropertyDisplayName(addResult);
 
                 if ((p.guid == ignoreGuid) && (ignoreName != null))
                 {
@@ -797,10 +798,11 @@ namespace UnityEditor.ShaderGraph
         public List<string> BuildPropertyReferenceNameList(Guid ignoreGuid, string ignoreName)
         {
             List<String> result = new List<String>();
+            Func<string, string> addResult = refName => { result.Add(refName); return refName; };
             foreach (var p in properties)
             {
                 int before = result.Count;
-                p.GetPropertyReferenceNames(result);
+                p.ForEachPropertyReferenceName(addResult);
 
                 if ((p.guid == ignoreGuid) && (ignoreName != null))
                 {
@@ -820,14 +822,13 @@ namespace UnityEditor.ShaderGraph
 
         public void SanitizeGraphInputName(ShaderInput input)
         {
-            input.displayName = input.displayName.Trim();
             switch (input)
             {
                 case AbstractShaderProperty property:
-                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(input.guid, input.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeDisplayName(input.displayName, BuildPropertyDisplayNameList(input.guid, input.displayName), "Property");
                     break;
                 case ShaderKeyword keyword:
-                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeDisplayName(input.displayName, keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "Keyword");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -836,24 +837,13 @@ namespace UnityEditor.ShaderGraph
 
         public void SanitizeGraphInputReferenceName(ShaderInput input, string newName)
         {
-            if (string.IsNullOrEmpty(newName))
-                return;
-
-            string name = newName.Trim();
-            if (string.IsNullOrEmpty(name))
-                return;
-
-            if (Regex.IsMatch(name, @"^\d+"))
-                name = "_" + name;
-
-            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
             switch(input)
             {
                 case AbstractShaderProperty property:
-                    property.overrideReferenceName = GraphUtil.SanitizeName(BuildPropertyReferenceNameList(property.guid, property.referenceName), "{0}_{1}", name);
+                    property.overrideReferenceName = GraphUtil.SanitizeDisplayName(newName, BuildPropertyReferenceNameList(property.guid, property.referenceName), "Property");
                     break;
                 case ShaderKeyword keyword:
-                    keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
+                    keyword.overrideReferenceName = GraphUtil.SanitizeDisplayName(newName, keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "KEYWORD").ToUpper();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

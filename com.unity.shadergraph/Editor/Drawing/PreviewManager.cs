@@ -335,8 +335,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             if (vt.layers[layer].layerTexture.texture != null)
                             {
-                                mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
-                                setAnyTextures = true;
+                                int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
+                                if (propIndex != -1)
+                                {
+                                    mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
+                                    setAnyTextures = true;
+                                }
                             }
                         }
 

@@ -16,11 +16,30 @@ namespace UnityEditor.ShaderGraph
         {
             displayName = "VirtualTexture";
             value = new SerializableVirtualTexture();
-
-            // add at least one layer
             value.layers = new List<SerializableVirtualTextureLayer>();
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer0", "Layer0", new SerializableTexture()));
-            value.layers.Add(new SerializableVirtualTextureLayer("Layer1", "Layer1", new SerializableTexture()));
+        }
+
+        public static VirtualTextureShaderProperty CreateNewUnique(GraphData graphData)
+        {
+            // build list of existing property names, so we can make sure ours are unique
+            var refNameList = graphData.BuildPropertyReferenceNameList(Guid.Empty, null);
+            var displayNameList = graphData.BuildPropertyDisplayNameList(Guid.Empty, null);
+
+            var vt = new VirtualTextureShaderProperty();
+            vt.displayName = GraphUtil.SanitizeName(displayNameList, "{0} ({1})", "VirtualTexture");
+            // vt.overrideReferenceName = GraphUtil.SanitizeName(refNameList, "{0}_{1}", "VirtualTexture");
+
+            vt.value.layers.Add(new SerializableVirtualTextureLayer(
+                GraphUtil.SanitizeName(displayNameList, "{0} ({1})", "Layer0"),
+                GraphUtil.SanitizeName(refNameList, "{0}_{1}", "Layer0"),
+                new SerializableTexture()));
+
+            vt.value.layers.Add(new SerializableVirtualTextureLayer(
+                GraphUtil.SanitizeName(displayNameList, "{0} ({1})", "Layer1"),
+                GraphUtil.SanitizeName(refNameList, "{0}_{1}", "Layer1"),
+                new SerializableTexture()));
+
+            return vt;
         }
 
         public override PropertyType propertyType => PropertyType.VirtualTexture;
@@ -37,20 +56,20 @@ namespace UnityEditor.ShaderGraph
         internal override bool isExposable => true;         // the textures are exposable at least..
         internal override bool isRenamable => true;
 
-        internal override void GetPropertyReferenceNames(List<string> result)
+        internal override void ForEachPropertyReferenceName(Func<string, string> func)
         {
-            result.Add(referenceName);
+            overrideReferenceName = func(referenceName);
             for (int layer = 0; layer < value.layers.Count; layer++)
             {
-                result.Add(value.layers[layer].layerRefName);
+                value.layers[layer].layerRefName = func(value.layers[layer].layerRefName);
             }
         }
-        internal override void GetPropertyDisplayNames(List<string> result)
+        internal override void ForEachPropertyDisplayName(Func<string, string> func)
         {
-            result.Add(displayName);
+            displayName = func(displayName);
             for (int layer = 0; layer < value.layers.Count; layer++)
             {
-                result.Add(value.layers[layer].layerName);
+                value.layers[layer].layerName = func(value.layers[layer].layerName);
             }
         }
 

@@ -289,6 +289,53 @@ namespace UnityEditor.ShaderGraph
             return string.Format(duplicateFormat, name, duplicateNumber);
         }
 
+        public static string SanitizeDisplayName(string original, IEnumerable<string> otherDisplayNames, string suggested)
+        {
+            var name = original;
+
+            // can't be empty
+            if (string.IsNullOrEmpty(name))
+                name = suggested;
+            else
+            {
+                // remove spaces at the beginning or end
+                name = name.Trim();
+                if (string.IsNullOrEmpty(name))
+                    name = suggested;
+            }
+
+            name = GraphUtil.SanitizeName(otherDisplayNames, "{0} ({1})", name);
+
+            return name;
+        }
+
+        public static string SanitizeReferenceName(string original, IEnumerable<string> otherReferenceNames, string suggested)
+        {
+            var name = original;
+
+            // can't be empty
+            if (string.IsNullOrEmpty(name))
+                name = suggested;
+            else
+            {
+                // remove spaces at the beginning or end
+                name = name.Trim();
+                if (string.IsNullOrEmpty(name))
+                    name = suggested;
+            }
+
+            // can't start with a digit
+            if (Regex.IsMatch(name, @"^\d+"))
+                name = "_" + name;
+
+            // replace any non-standard characters with underscore
+            name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+
+            name = GraphUtil.SanitizeName(otherReferenceNames, "{0}_{1}", name);
+
+            return name;
+        }
+
         public static bool WriteToFile(string path, string content)
         {
             try
