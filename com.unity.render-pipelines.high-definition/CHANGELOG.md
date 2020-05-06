@@ -61,6 +61,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
+- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fixed a performance issue with stochastic ray traced area shadows.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 
 ### Changed
