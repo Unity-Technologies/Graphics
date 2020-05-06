@@ -42,7 +42,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 return BuiltinRenderTextureType.CameraTarget;
             }
-            if(id == -2)
+            if (id == -2)
             {
                 return rtid;
             }

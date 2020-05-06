@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 cmd.SetViewport(cameraData.xr.GetViewport());
 
-                // We f-flip if
+                // We y-flip if
                 // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
                 bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;

@@ -234,7 +234,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             return cameraData.requireSrgbConversion && m_EnableSRGBConversionIfNeeded;
         }
 
-        // TODO: deprecate this version in favor of the above with load/store actions
         private new void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material, int passIndex = 0)
         {
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
