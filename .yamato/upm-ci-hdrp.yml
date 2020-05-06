@@ -230,7 +230,11 @@ All_{{ project.name }}_{{ editor.version }}:
 
   {% for win_api in win_apis %}
     {% if win_api.name == "Vulkan" and testplatform.name == "playmode XR" %}
-    #skip
+    #skip - Vulkan don't support VR
+    {% elsif win_api.name == "Vulkan" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11
+    {% elsif win_api.name == "DX12" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11	
     {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
     {% endif %}
