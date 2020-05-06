@@ -2,6 +2,7 @@ Shader "Hidden/HDRP/DebugExposure"
 {
     HLSLINCLUDE
 
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Components/Tonemapping.cs.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
     #define DEBUG_DISPLAY
@@ -60,21 +61,21 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float3 Tonemap(float3 colorLinear)
     {
-        if(_TonemapType == 1) // Neutral
+        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL) 
         {
             colorLinear = NeutralTonemap(colorLinear);
         }
-        if (_TonemapType == 2) // ACES
+        if (_TonemapType == TONEMAPPINGMODE_ACES) 
         {
             // Note: input is actually ACEScg (AP1 w/ linear encoding)
             float3 aces = ACEScg_to_ACES(colorLinear);
             colorLinear = AcesTonemap(aces);
         }
-        if (_TonemapType == 3) // Custom
+        if (_TonemapType == TONEMAPPINGMODE_CUSTOM) // Custom
         {
             colorLinear = CustomTonemap(colorLinear, _CustomToneCurve.xyz, _ToeSegmentA, _ToeSegmentB.xy, _MidSegmentA, _MidSegmentB.xy, _ShoSegmentA, _ShoSegmentB.xy);
         }
-        if (_TonemapType == 4) // External
+        if (_TonemapType == TONEMAPPINGMODE_EXTERNAL) // External
         {
             float3 colorLutSpace = saturate(LinearToLogC(colorLinear));
             float3 colorLut = ApplyLut3D(TEXTURE3D_ARGS(_LogLut3D, sampler_LogLut3D), colorLutSpace, _LogLut3D_Params.xy);
@@ -92,11 +93,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float GetEVAtLocation(float2 uv)
     {
-        float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
-        float luma = Luminance(color / prevExposure);
-
-        return ComputeEV100FromAvgLuminance(max(luma, 1e-4));
+        return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4));
     }
 
     // Returns true if it drew the location of the indicator.

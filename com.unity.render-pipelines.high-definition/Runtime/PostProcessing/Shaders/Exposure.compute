@@ -12,7 +12,6 @@ TEXTURE2D(_InputTexture);
 
 #define PREPASS_TEX_SIZE 1024.0
 #define PREPASS_TEX_HALF_SIZE 512.0
-#pragma enable_d3d11_debug_symbols
 
 //
 // Fixed exposure
