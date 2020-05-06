@@ -225,11 +225,14 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "OSX_Metal" %}
   #skip
   {% elsif platform.name == "Linux" %}
-  #skip
-  
+  #skip  
   {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
+    {% if win_api.name == "Vulkan" and testplatform.name == "playmode XR" %}
+    #skip - Vulkan don't support XR
+	{% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+	{% endif %}
   {% endfor %}
 
   {% else %}
