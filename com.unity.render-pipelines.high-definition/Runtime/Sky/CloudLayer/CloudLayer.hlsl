@@ -47,12 +47,13 @@ float3 GetDistordedCloudColor(float3 dir, float3 sky)
         float3 dd = flow.x * tangent + flow.y * bitangent;
 #else
         float3 windDir = CloudRotationUp(float3(0, 0, 1), _CloudScrollDirection);
+        windDir.x *= -1.0;
         float3 dd = windDir*sin(dir.y*PI*0.5);
 #endif
 
         // Sample twice
-        float3 color1 = sampleCloud(normalize(dir + alpha.x * dd), sky);
-        float3 color2 = sampleCloud(normalize(dir + alpha.y * dd), sky);
+        float3 color1 = sampleCloud(normalize(dir - alpha.x * dd), sky);
+        float3 color2 = sampleCloud(normalize(dir - alpha.y * dd), sky);
 
         // Blend color samples
         return lerp(color1, color2, abs(2.0 * alpha.x));

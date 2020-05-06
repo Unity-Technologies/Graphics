@@ -21,9 +21,10 @@ float3 GetSkyViewDirWS(float2 positionCS)
 float2 GetLatLongCoords(float3 dir, float upperHemisphereOnly)
 {
     const float2 invAtan = float2(0.1591, 0.3183);
-    float2 uv = float2(atan2(dir.x, dir.z), asin(dir.y));
-    uv = uv * invAtan + 0.5;
-    uv.y = lerp(uv.y, uv.y * 2.0 - 1.0, upperHemisphereOnly);
+
+    float fastATan2 = FastATan(dir.x/dir.z) + (dir.z <= 0.0) * sign(dir.x) * PI;
+    float2 uv = float2(fastATan2, FastASin(dir.y)) * invAtan + 0.5;
+    uv.y = upperHemisphereOnly ? uv.y * 2.0 - 1.0 : uv.y;
     return uv;
 }
 
