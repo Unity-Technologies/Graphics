@@ -18,6 +18,9 @@
 //#define NORMAL_FADE_NOTCH_SMOOTH
 //#define NORMAL_FADE_NOTCH_USES_CUSTOM_LOD
 
+//#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGB
+#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGorAG
+
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
@@ -392,7 +395,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset));
-    derivXplane = uvMapping.triplanarWeights.x * UnpackDerivativeNormalRGB(packedNormal, scale);
+    derivXplane = uvMapping.triplanarWeights.x * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
     
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_ZY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
     notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
@@ -403,7 +406,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset));
-    derivYPlane = uvMapping.triplanarWeights.y * UnpackDerivativeNormalRGB(packedNormal, scale);
+    derivYPlane = uvMapping.triplanarWeights.y * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XZ, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
     notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
@@ -414,7 +417,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), scaleOffset.xy * uvMapping.ddxXY, scaleOffset.xy * uvMapping.ddyXY)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset));
-    derivZPlane = uvMapping.triplanarWeights.z * UnpackDerivativeNormalRGB(packedNormal, scale);
+    derivZPlane = uvMapping.triplanarWeights.z * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
     notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
@@ -440,7 +443,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), triDdx[0], triDdy[0])
                           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), scaleOffset.xy * uvMapping.ddxBase, scaleOffset.xy * uvMapping.ddyBase)
                           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
-    float2 deriv = UnpackDerivativeNormalRGB(packedNormal, scale);
+    float2 deriv = AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_BASE, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
     notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
