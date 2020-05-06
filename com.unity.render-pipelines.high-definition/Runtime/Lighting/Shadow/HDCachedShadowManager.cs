@@ -34,20 +34,22 @@ namespace UnityEngine.Rendering.HighDefinition
             var lights = GameObject.FindObjectsOfType<HDAdditionalLightData>();
             foreach (var light in lights)
             {
-                if (instance.LightIsPendingPlacement(light, light.GetShadowMapType(light.type)))
+                ShadowMapType shadowMapType = light.GetShadowMapType(light.type);
+                if (instance.LightIsPendingPlacement(light, shadowMapType))
                 {
                     if (!headerPrinted)
                     {
                         Debug.Log(" ===== Lights pending placement in the cached shadow atlas: ===== ");
                         headerPrinted = true;
                     }
-                    Debug.Log("\t Name: " + light.name + " Type: " + light.type);
+                    Debug.Log("\t Name: " + light.name + " Type: " + light.type + " Resolution: " + light.GetResolutionFromSettings(shadowMapType, m_InitParams));
                 }
             }
 
             headerPrinted = false;
             foreach (var light in lights)
             {
+                ShadowMapType shadowMapType = light.GetShadowMapType(light.type);
                 if (!(instance.LightIsPendingPlacement(light, light.GetShadowMapType(light.type))) && light.lightIdxForCachedShadows != -1)
                 {
                     if (!headerPrinted)
@@ -55,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.Log("===== Lights placed in cached shadow atlas: ===== ");
                         headerPrinted = true;
                     }
-                    Debug.Log("\t Name: " + light.name + " Type: " + light.type);
+                    Debug.Log("\t Name: " + light.name + " Type: " + light.type + " Resolution: " + light.GetResolutionFromSettings(shadowMapType, m_InitParams));
                 }
             }
         }
