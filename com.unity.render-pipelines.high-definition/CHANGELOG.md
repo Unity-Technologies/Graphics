@@ -504,16 +504,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time.
-- Fixed cubemap thumbnail generation at project load time.
+- Fixed cubemap thumbnail generation at project load time. 
 - Fixed XR culling with multiple cameras
 - Fixed XR single-pass with Mock HMD plugin
 - Fixed sRGB mismatch with XR SDK
 - Fixed an issue where default volume would not update when switching profile.
-- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
 - Fixed an issue where AO override would not override specular occlusion.
 - Fixed an issue where Volume inspector might not refresh correctly in some cases.
 - Fixed render texture with XR
-- Fixed issue with resources being accessed before initialization process has been performed completely.
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
@@ -552,7 +552,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
-- Fixed shader warning on Xbox for ResolveStencilBuffer.compute.
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 - Fixed PBR shader ZTest rendering in deferred.
 - Replaced commands incompatible with async compute in light list build process.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
@@ -568,7 +568,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
-- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
