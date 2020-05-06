@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 inline $precision2 Unity_Voronoi_RandomVector_$precision ($precision2 UV, $precision offset)
 {
     $precision2x2 m = $precision2x2(15.27, 47.63, 99.41, 89.98);
-    UV = frac(sin(mul(UV, m)) * 46839.32);
+    UV = frac(sin(mul(UV, m)));
     return $precision2(sin(UV.y*+offset)*0.5+0.5, cos(UV.x*offset)*0.5+0.5);
 }
 "));

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
@@ -94,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
+        [DebuggerDisplay("RenderPass ({name})")]
         internal abstract class RenderPass
         {
             internal RenderFunc<PassData> GetExecuteDelegate<PassData>()
@@ -103,28 +105,32 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             internal abstract void Release(RenderGraphContext renderGraphContext);
             internal abstract bool HasRenderFunc();
 
-            internal string                           name;
-            internal int                              index;
-            internal ProfilingSampler                 customSampler;
-            internal List<TextureHandle>            resourceReadList = new List<TextureHandle>();
-            internal List<TextureHandle>            resourceWriteList = new List<TextureHandle>();
-            internal List<RendererListHandle>       usedRendererListList = new List<RendererListHandle>();
-            internal bool                             enableAsyncCompute;
-            internal TextureHandle                  depthBuffer { get { return m_DepthBuffer; } }
-            internal TextureHandle[]                colorBuffers { get { return m_ColorBuffers; } }
-            internal int                              colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
+            internal string                     name;
+            internal int                        index;
+            internal ProfilingSampler           customSampler;
+            internal List<TextureHandle>        textureReadList = new List<TextureHandle>();
+            internal List<TextureHandle>        textureWriteList = new List<TextureHandle>();
+            internal List<ComputeBufferHandle>  bufferReadList = new List<ComputeBufferHandle>();
+            internal List<ComputeBufferHandle>  bufferWriteList = new List<ComputeBufferHandle>();
+            internal List<RendererListHandle>   usedRendererListList = new List<RendererListHandle>();
+            internal bool                       enableAsyncCompute;
+            internal TextureHandle              depthBuffer { get { return m_DepthBuffer; } }
+            internal TextureHandle[]            colorBuffers { get { return m_ColorBuffers; } }
+            internal int                        colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
 
-            protected TextureHandle[]               m_ColorBuffers = new TextureHandle[kMaxMRTCount];
-            protected TextureHandle                 m_DepthBuffer;
-            protected int                             m_MaxColorBufferIndex = -1;
+            protected TextureHandle[]           m_ColorBuffers = new TextureHandle[kMaxMRTCount];
+            protected TextureHandle             m_DepthBuffer;
+            protected int                       m_MaxColorBufferIndex = -1;
 
             internal void Clear()
             {
                 name = "";
                 index = -1;
                 customSampler = null;
-                resourceReadList.Clear();
-                resourceWriteList.Clear();
+                textureReadList.Clear();
+                textureWriteList.Clear();
+                bufferReadList.Clear();
+                bufferWriteList.Clear();
                 usedRendererListList.Clear();
                 enableAsyncCompute = false;
 
@@ -142,16 +148,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
                 m_MaxColorBufferIndex = Math.Max(m_MaxColorBufferIndex, index);
                 m_ColorBuffers[index] = resource;
-                resourceWriteList.Add(resource);
+                textureWriteList.Add(resource);
             }
 
             internal void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
             {
                 m_DepthBuffer = resource;
                 if ((flags | DepthAccess.Read) != 0)
-                    resourceReadList.Add(resource);
+                    textureReadList.Add(resource);
                 if ((flags | DepthAccess.Write) != 0)
-                    resourceWriteList.Add(resource);
+                    textureWriteList.Add(resource);
 
             }
         }
@@ -237,6 +243,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
+        {
+            m_Resources.ResetRTHandleReferenceSize(width, height);
+        }
+
+        /// <summary>
         /// Import an external texture to the Render Graph.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
@@ -302,6 +319,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RendererListHandle CreateRendererList(in RendererListDesc desc)
         {
             return m_Resources.CreateRendererList(desc);
+        }
+
+        /// <summary>
+        /// Import an external Compute Buffer to the Render Graph
+        /// </summary>
+        /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
+        /// <returns>A new ComputeBufferHandle.</returns>
+        public ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
+        {
+            return m_Resources.ImportComputeBuffer(computeBuffer);
         }
 
         /// <summary>
@@ -460,18 +487,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void PreRenderPassExecute(int passIndex, in RenderPass pass, RenderGraphContext rgContext)
         {
             // TODO merge clear and setup here if possible
-            m_Resources.CreateAndClearTexturesForPass(rgContext, pass.index, pass.resourceWriteList);
+            m_Resources.CreateAndClearTexturesForPass(rgContext, pass.index, pass.textureWriteList);
             PreRenderPassSetRenderTargets(pass, rgContext);
-            m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.resourceReadList);
+            m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.textureReadList);
         }
 
         void PostRenderPassExecute(int passIndex, in RenderPass pass, RenderGraphContext rgContext)
         {
             if (m_DebugParameters.unbindGlobalTextures)
-                m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, pass.resourceReadList);
+                m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, pass.textureReadList);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
-            m_Resources.ReleaseTexturesForPass(rgContext, pass.index, pass.resourceReadList, pass.resourceWriteList);
+            m_Resources.ReleaseTexturesForPass(rgContext, pass.index, pass.textureReadList, pass.textureWriteList);
             pass.Release(rgContext);
         }
 
