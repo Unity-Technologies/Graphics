@@ -298,6 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxShadowRequests = maxShadowRequests;
         }
 
+        // Keep in sync with both HDShadowSampling.hlsl
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
             switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
