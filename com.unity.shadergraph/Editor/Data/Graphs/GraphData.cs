@@ -788,6 +788,7 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Add(newEdge);
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
+            NodeUtils.ReevaluateNodeForest(toNode);
 
             //Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
@@ -866,15 +867,46 @@ namespace UnityEditor.ShaderGraph
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e as Edge);
 
+            BlockNode b = null;
+            AbstractMaterialNode input = e.inputSlot.node, output = e.outputSlot.node;
+            if(input != null && ShaderGraphPreferences.autoAddRemoveBlocks)
+            {
+                b = input as BlockNode;
+            }
+
             List<IEdge> inputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.inputSlot.node.objectId, out inputNodeEdges))
+            if (m_NodeEdges.TryGetValue(input.objectId, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
             List<IEdge> outputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.outputSlot.node.objectId, out outputNodeEdges))
+            if (m_NodeEdges.TryGetValue(output.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
+            if(b != null)
+            {
+                var activeBlockDescriptors = GetActiveBlocksForAllActiveTargets();
+                if(!activeBlockDescriptors.Contains(b.descriptor))
+                {
+                    var slot = b.FindSlot<MaterialSlot>(0);
+                    if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                    {
+                        RemoveNodeNoValidate(b);
+                        input = null;
+                    }
+                }
+            }
+
+            if(input != null)
+            {
+                NodeUtils.ReevaluateNodeForest(input);
+            }
+
+            if(output != null)
+            {
+                NodeUtils.ReevaluateNodeForest(output);
+            }
+
         }
 
         public AbstractMaterialNode GetNodeFromId(string nodeId)

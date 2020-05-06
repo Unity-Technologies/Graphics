@@ -780,7 +780,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var nodesToUpdate = m_NodeViewHashSet;
             nodesToUpdate.Clear();
-            PooledHashSet<AbstractMaterialNode> asmToUpdate = PooledHashSet<AbstractMaterialNode>.Get();
 
             foreach (var edge in m_Graph.removedEdges)
             {
@@ -788,29 +787,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
-                    var nodeView = (IShaderNodeView)edgeView.output.node;
-                    if (nodeView?.node != null)
-                    {
-                        nodesToUpdate.Add(nodeView);
-                        AbstractMaterialNode n = nodeView.node;
-                        // Update active state for connected Nodes
-                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
-                    }
-                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
-                    if(nodeViewInput?.node != null)
-                    {
-                        nodesToUpdate.Add(nodeViewInput);
-                        AbstractMaterialNode n = nodeViewInput.node;
-
-                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
-                        //if we disconnect a block node that is turned off its possible the target block node is no longer used by the target
-                        if(ShaderGraphPreferences.autoAddRemoveBlocks && n is BlockNode b && b.activeState == AbstractMaterialNode.ActiveState.ExplicitInactive)
-                        {
-                            var activeBlocks = graphView.graph.GetActiveBlocksForAllActiveTargets();
-                            graphView.graph.AddRemoveBlocksFromActiveList(activeBlocks);
-                        }
-                    }
-
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -824,35 +800,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in m_Graph.addedEdges)
             {
                 var edgeView = AddEdge(edge);
-                if (edgeView != null)
-                {
-                   var nodeView = (IShaderNodeView)edgeView.output.node;
-                    if (nodeView?.node != null)
-                    {
-                        nodesToUpdate.Add(nodeView);
-                        AbstractMaterialNode n = nodeView.node;
-                        // Update active state for connected Nodes
-                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
-                    }
-                    var nodeViewInput = (IShaderNodeView)edgeView.input.node;
-                    if(nodeViewInput?.node != null)
-                    {
-                        nodesToUpdate.Add(nodeViewInput);
-                        AbstractMaterialNode n = nodeViewInput.node;
-
-                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
-                    }
-                }
             }
-
-            foreach(var asm in asmToUpdate)
-            {
-                if (graphView.GetNodeByGuid(asm.objectId) is MaterialNodeView nodeView)
-                {
-                    nodesToUpdate.Add(nodeView);
-                }
-            }
-            asmToUpdate.Dispose();
 
             foreach (var node in nodesToUpdate)
             {

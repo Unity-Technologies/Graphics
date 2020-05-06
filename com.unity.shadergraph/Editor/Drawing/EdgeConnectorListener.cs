@@ -22,9 +22,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var draggedPort = (edge.output != null ? edge.output.edgeConnector.edgeDragHelper.draggedPort : null) ?? (edge.input != null ? edge.input.edgeConnector.edgeDragHelper.draggedPort : null);
             m_SearchWindowProvider.connectedPort = (ShaderPort)draggedPort;
+            m_SearchWindowProvider.regenerateEntries = true;
             SearcherWindow.Show(m_editorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(), 
                 item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, position),
                 position, null);
+            m_SearchWindowProvider.regenerateEntries = true;
         }
 
         public void OnDrop(GraphView graphView, Edge edge)
