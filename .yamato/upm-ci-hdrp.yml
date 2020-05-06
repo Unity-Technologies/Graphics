@@ -13,8 +13,8 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
+    image: graphics-foundation/win10-dxr:latest
+    flavor: b1.xlarge
     components:
       - editor
       - il2cpp
@@ -75,7 +75,7 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
