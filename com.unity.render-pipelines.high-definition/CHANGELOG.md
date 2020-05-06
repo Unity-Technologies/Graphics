@@ -118,6 +118,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a DisplayInfo attribute to specify a name override and a display order for Volume Component fields (used only in default inspector for now).
 - Added Min distance to contact shadows.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -536,6 +538,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a regression in the ray traced indirect diffuse due to the new probe system.
 - Fix for range compression factor for probes going negative (now clamped to positive values).
 - Fixed path validation when creating new volume profile (case 1229933)
+- Fixed a bug where Decal Shader Graphs would not recieve reprojected Position, Normal, or Bitangent data. (1239921)
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
@@ -564,6 +567,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Fixed shader warning in PCSS code when using Vulkan.
 - Fixed decal that aren't working without Metal and Ambient Occlusion option enabled.
+- Fixed an error about procedural sky being logged by mistake.
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
+- DXR: Fixed shader compilation error with shader graph and pathtracer
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
+- Fixed a performance issue with stochastic ray traced area shadows.
+- Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fixed flickering of the game/scene view when lookdev is running.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
 
 ### Changed
@@ -688,6 +701,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Update material samples scene visuals
 - Use multi_compile API for deferred compute shader with shadow mask.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
+- Shadowmask and realtime reflectoin probe property are hide in Quality settings
 
 ## [7.1.1] - 2019-09-05
 
