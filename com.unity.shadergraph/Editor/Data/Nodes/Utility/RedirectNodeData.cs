@@ -18,12 +18,12 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Static version for testability
-        public static RedirectNodeData Create(GraphData graph, SlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, Guid groupGuid)
+        public static RedirectNodeData Create(GraphData graph, SlotValueType edgeType, Vector2 absolutePosition, SlotReference inputRef, SlotReference outputRef, GroupData group)
         {
             var nodeData = new RedirectNodeData();
             nodeData.AddSlots(edgeType);
             nodeData.SetPosition(absolutePosition);
-            nodeData.groupGuid = groupGuid;
+            nodeData.group = group;
 
             // Hard-coded for single input-output. Changes would be needed for multi-input redirects
             var nodeInSlotRef = nodeData.GetSlotReference(RedirectNodeData.kInputSlotID);
@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph
         protected override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slotRef = NodeUtils.DepthFirstCollectRedirectNodeFromNode(this);
-            var fromLeftNode = owner.GetNodeFromGuid<AbstractMaterialNode>(slotRef.nodeGuid);
+            var fromLeftNode = slotRef.node;
             if (fromLeftNode is RedirectNodeData)
             {
                 return GetSlotValue(kInputSlotID, generationMode);
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph
 
             bool noInputs = false;
             bool noOutputs = false;
-            var slots = new List<ISlot>();
+            var slots = new List<MaterialSlot>();
 
             GetInputSlots(slots);
             foreach (var inSlot in slots)
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph
 
             if(noInputs && !noOutputs)
             {
-                owner.AddValidationError(guid, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
+                owner.AddValidationError(objectId, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
             }
         }
     }
