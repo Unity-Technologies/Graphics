@@ -51,7 +51,6 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
         InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
     }
 
-
     GroupMemoryBarrierWithGroupSync();
 
     // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
@@ -153,7 +152,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
 
-    // TODO: This can probably done more efficiently.
+    // TODO: Can we be a bit more parallel here? 
     if (threadID == 0)
     {
         float evProcessedSum = 0;

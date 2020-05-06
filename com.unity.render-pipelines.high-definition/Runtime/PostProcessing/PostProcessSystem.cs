@@ -1012,11 +1012,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
 
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
+            m_ExposureVariants[3] = 0;
             if (m_Exposure.histogramUseCurveRemapping.value)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, 0f, 0f));
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
                 m_ExposureVariants[3] = 2;
             }
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);

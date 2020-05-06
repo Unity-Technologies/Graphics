@@ -4432,8 +4432,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                             ComputeBuffer histogramBuffer,
                                             CommandBuffer cmd)
         {
-
-            //parameters.exposureMaterial.set
             // Grab exposure parameters
             var exposureSettings = parameters.hdCamera.volumeStack.GetComponent<Exposure>();
 
