@@ -8,7 +8,6 @@
 #pragma kernel KReduction
 #pragma kernel KReset
 
-TEXTURE2D(_ExposureCurveTexture);
 TEXTURE2D(_InputTexture);
 
 #define PREPASS_TEX_SIZE 1024.0
@@ -128,8 +127,7 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
             case 2u:
             {
                 // Curve remapping
-                float remap = saturate((avgLuminance - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
-                float exposure = SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).x;
+                float exposure = CurveRemap(avgLuminance);
                 exposure = AdaptExposure(exposure - ParamExposureCompensation);
                 _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
                 break;

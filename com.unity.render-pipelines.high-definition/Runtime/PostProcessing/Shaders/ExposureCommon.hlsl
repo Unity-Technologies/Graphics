@@ -8,9 +8,11 @@ TEXTURE2D(_ExposureWeightMask);
 TEXTURE2D_X(_SourceTexture);
 TEXTURE2D(_PreviousExposureTexture);
 RW_TEXTURE2D(float2, _OutputTexture);
+TEXTURE2D(_ExposureCurveTexture);
 
 CBUFFER_START(cb)
 float4 _ExposureParams;
+float4 _ExposureParams2;
 float4 _ProceduralMaskParams;
 float4 _ProceduralMaskParams2;
 float4 _HistogramExposureParams;
@@ -27,8 +29,8 @@ CBUFFER_END
 #define ParamSpeedDarkToLight       _AdaptationParams.y
 #define ParamExposureLimitMin       _ExposureParams.y
 #define ParamExposureLimitMax       _ExposureParams.z
-#define ParamCurveMin               _ExposureParams.y
-#define ParamCurveMax               _ExposureParams.z
+#define ParamCurveMin               _ExposureParams2.x
+#define ParamCurveMax               _ExposureParams2.y
 #define ParamSourceBuffer           _Variants.x
 #define ParamMeteringMode           _Variants.y
 #define ParamAdaptationMode         _Variants.z
@@ -114,4 +116,10 @@ float AdaptExposure(float exposure)
     {
         return exposure;
     }
+}
+
+float CurveRemap(float inEV)
+{
+    float remap = saturate((inEV - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
+    return SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).x;
 }

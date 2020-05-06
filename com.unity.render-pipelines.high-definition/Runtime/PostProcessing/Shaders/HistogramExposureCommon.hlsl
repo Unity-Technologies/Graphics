@@ -1,5 +1,5 @@
 
-#define HISTOGRAM_BINS 128          // IMPORTANT: If this number is changed, the code needs adapting, I tried to add relevant comments to indicate where.
+#define HISTOGRAM_BINS 128
 
 #define _HistogramRangeScale     _HistogramExposureParams.x
 #define _HistogramRangeBias      _HistogramExposureParams.y
@@ -10,6 +10,12 @@
 RWStructuredBuffer<uint> _HistogramBuffer;
 #else
 StructuredBuffer<uint> _HistogramBuffer;
+#endif
+
+#ifdef OUTPUT_DEBUG_DATA
+RW_TEXTURE2D(float2, _ExposureDebugTexture);
+#else
+TEXTURE2D(_ExposureDebugTexture);
 #endif
 
 float UnpackWeight(uint val)

@@ -891,14 +891,43 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 });
 
-                lighting.children.Add(new DebugUI.Foldout
+                var exposureFoldout = new DebugUI.Foldout
                 {
                     displayName = "Exposure ",
-                    children = {
-                        new DebugUI.EnumField { displayName = "Debug Mode", getter = () => (int)data.lightingDebugSettings.exposureDebugMode, setter = value => SetExposureDebugMode((ExposureDebugMode)value), autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.exposureDebugModeEnumIndex, setIndex = value => data.exposureDebugModeEnumIndex = value },
-                        new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value }
+                    children =
+                    {
+                        new DebugUI.EnumField
+                        {
+                            displayName = "Debug Mode",
+                            getter = () => (int) data.lightingDebugSettings.exposureDebugMode,
+                            setter = value => SetExposureDebugMode((ExposureDebugMode) value),
+                            autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug,
+                            getIndex = () => data.exposureDebugModeEnumIndex,
+                            setIndex = value => data.exposureDebugModeEnumIndex = value
+                        }
                     }
-                });
+                };
+
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Show Tonemap curve",
+                            getter = () => data.lightingDebugSettings.showTonemapCurve,
+                            setter = value => data.lightingDebugSettings.showTonemapCurve = value
+                        });
+                }
+
+                exposureFoldout.children.Add(
+                    new DebugUI.FloatField
+                    {
+                        displayName = "Debug Exposure Compensation",
+                        getter = () => data.lightingDebugSettings.debugExposure,
+                        setter = value => data.lightingDebugSettings.debugExposure = value
+                    });
+
+                lighting.children.Add(exposureFoldout);
 
                 lighting.children.Add(new DebugUI.EnumField { displayName = "Debug Mode", getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
                 lighting.children.Add(new DebugUI.BitField { displayName = "Hierarchy Debug Mode", getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
