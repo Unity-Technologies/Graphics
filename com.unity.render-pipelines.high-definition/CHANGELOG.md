@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+
 ### Fixed
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
