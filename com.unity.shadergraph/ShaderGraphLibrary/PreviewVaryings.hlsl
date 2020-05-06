@@ -19,7 +19,7 @@
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
 #endif
-    
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalize(normalWS);
 #endif
@@ -48,7 +48,7 @@
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_BITANGENT_WS
