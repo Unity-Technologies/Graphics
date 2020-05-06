@@ -26,6 +26,40 @@ namespace UnityEngine.Rendering.HighDefinition
         // Cache here to be able to compute resolutions. 
         private HDShadowInitParameters m_InitParams;
 
+        // ------------------------ Debug API -------------------------------
+#if UNITY_EDITOR
+        internal void PrintLightStatusInCachedAtlas()
+        {
+            bool headerPrinted = false;
+            var lights = GameObject.FindObjectsOfType<HDAdditionalLightData>();
+            foreach (var light in lights)
+            {
+                if (instance.LightIsPendingPlacement(light, light.GetShadowMapType(light.type)))
+                {
+                    if (!headerPrinted)
+                    {
+                        Debug.Log(" ===== Lights pending placement in the cached shadow atlas: ===== ");
+                        headerPrinted = true;
+                    }
+                    Debug.Log("\t Name: " + light.name + " Type: " + light.type);
+                }
+            }
+
+            headerPrinted = false;
+            foreach (var light in lights)
+            {
+                if (!(instance.LightIsPendingPlacement(light, light.GetShadowMapType(light.type))) && light.lightIdxForCachedShadows != -1)
+                {
+                    if (!headerPrinted)
+                    {
+                        Debug.Log("===== Lights placed in cached shadow atlas: ===== ");
+                        headerPrinted = true;
+                    }
+                    Debug.Log("\t Name: " + light.name + " Type: " + light.type);
+                }
+            }
+        }
+#endif
         // ------------------------ Public API -------------------------------
 
         /// <summary>
