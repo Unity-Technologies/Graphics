@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18268347, g: 0.2256766, b: 0.2913267, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 11
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -97,10 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: efea1bba44b323347940eef497f68cc7,
-    type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: f5d74b8a3e1400745b53c04bb551f132,
-    type: 2}
+  m_LightingDataAsset: {fileID: 0}
+  m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -120,8 +118,6 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
-    maxJobWorkers: 0
-    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -132,9 +128,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
-      propertyPath: m_Lightmapping
-      value: 2
+    - target: {fileID: 3070620832146786295, guid: 5c0989def095c48009482fe0f881f6b7,
+        type: 3}
+      propertyPath: m_Name
+      value: MixedLightingSpheres
       objectReference: {fileID: 0}
     - target: {fileID: 399354704156738600, guid: 5c0989def095c48009482fe0f881f6b7,
         type: 3}
@@ -191,10 +188,9 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3070620832146786295, guid: 5c0989def095c48009482fe0f881f6b7,
-        type: 3}
-      propertyPath: m_Name
-      value: MixedLightingSpheres
+    - target: {fileID: 815368547, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
+      propertyPath: m_Lightmapping
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5c0989def095c48009482fe0f881f6b7, type: 3}
@@ -251,7 +247,6 @@ MonoBehaviour:
     TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
-    UseHDR: 0
   WaitFrames: 0
 --- !u!20 &1865670500
 Camera:
