@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graph = new GraphData();
             graph.AddNode(node);
+            graph.outputNode = node;
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -186,19 +187,19 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
+        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<string, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
-            if (!unmarkedNodes.ContainsKey(node.guid))
+            if (!unmarkedNodes.ContainsKey(node.objectId))
                 return;
-            foreach (var slot in node.GetInputSlots<ISlot>())
+            foreach (var slot in node.GetInputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var inputNode = edge.outputSlot.node;
                     Visit(outputList, unmarkedNodes, inputNode);
                 }
             }
-            unmarkedNodes.Remove(node.guid);
+            unmarkedNodes.Remove(node.objectId);
             outputList.Add(node);
         }
 
@@ -249,6 +250,8 @@ namespace UnityEditor.ShaderGraph
         /// </returns>
         internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
+            //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
+            name = name.Replace("\"", "_");
             if (!existingNames.Contains(name))
                 return name;
 

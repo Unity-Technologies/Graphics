@@ -161,10 +161,10 @@ namespace UnityEngine.Rendering.HighDefinition
             shadowResolutionDirectional         = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionArea                = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
             shadowResolutionPunctual            = new IntScalableSetting(new []{ 256, 512, 1024, 2048 }, ScalableSettingSchemaId.With4Levels),
-            shadowFilteringQuality              = ShaderConfig.s_DeferredShadowFiltering,
-            supportScreenSpaceShadows   = false,
-            maxScreenSpaceShadowSlots   = 4,
-            screenSpaceShadowBufferFormat   = ScreenSpaceShadowFormat.R16G16B16A16,
+            shadowFilteringQuality              = HDShadowFilteringQuality.Medium,
+            supportScreenSpaceShadows           = false,
+            maxScreenSpaceShadowSlots           = 4,
+            screenSpaceShadowBufferFormat       = ScreenSpaceShadowFormat.R16G16B16A16,
             maxDirectionalShadowMapResolution   = 2048,
             maxAreaShadowMapResolution          = 2048,
             maxPunctualShadowMapResolution      = 2048,
@@ -298,6 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxShadowRequests = maxShadowRequests;
         }
 
+        // Keep in sync with both HDShadowSampling.hlsl
         public static DirectionalShadowAlgorithm GetDirectionalShadowAlgorithm()
         {
             switch (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
