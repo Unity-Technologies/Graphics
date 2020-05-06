@@ -3,6 +3,9 @@ using Unity.Build;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using System.Collections;
+using System.Threading.Tasks;
+using System;
 
 public class SetupGraphicsTestCases : IPrebuildSetup
 {
@@ -54,13 +57,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     [MenuItem("GraphicsTest/PreparePlayerTest")]
     public static void PreparePlayerTest()
     {
-        //Trigger DOTS build config
-        Log("*************** SetupGraphicsTestCases - trigger BuildConfig.Build()");
-        target = EditorUserBuildSettings.activeBuildTarget;
-        FindConfig(target).Build();
-        Log("*************** SetupGraphicsTestCases - Move subscene cache");
-        CreateFolder();
-        CopyFiles();
+        PrepareDelay();
     }
 
     [MenuItem("GraphicsTest/Debug/CreateFolder")]
@@ -108,5 +105,20 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 
         AssetDatabase.Refresh();
         Log("*************** SetupGraphicsTestCases - CopyFile Done");
+    }
+
+    public static async void PrepareDelay()
+    {
+        Debug.Log("Waiting 15 seconds...");
+        await Task.Delay(TimeSpan.FromSeconds(15));
+        Debug.Log("Done!");
+
+        //Trigger DOTS build config
+        Log("*************** SetupGraphicsTestCases - trigger BuildConfig.Build()");
+        target = EditorUserBuildSettings.activeBuildTarget;
+        FindConfig(target).Build();
+        Log("*************** SetupGraphicsTestCases - Move subscene cache");
+        CreateFolder();
+        CopyFiles();
     }
 }
