@@ -47,10 +47,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _PrevInvViewProjMatrix; // non-jittered
 
 #if !USING_STEREO_MATRICES
-        public Vector3 _WorldSpaceCameraPos_Internal;
-        public float   _Pad0;
-        public Vector3 _PrevCamPosRWS_Internal;
-        public float _Pad1;
+        public Vector4 _WorldSpaceCameraPos_Internal;
+        public Vector4 _PrevCamPosRWS_Internal;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
 
@@ -116,17 +114,23 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public Vector3  _Pad2;
+        public float    _Pad0;
+        public float    _Pad1;
+        public float    _Pad2;
         public Vector4  _MipFogParameters;
-        public Vector3  _HeightFogBaseScattering;
+        public Vector4  _HeightFogBaseScattering;
         public float    _HeightFogBaseExtinction;
-        public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
+        public float    _Pad3;
+        public Vector2  _HeightFogExponents; // { 1/H, H }
+        public float    _Pad4;
+        public float    _Pad5;
 
         // VBuffer
         public Vector4  _VBufferViewportSize;           // { w, h, 1/w, 1/h }
-        public Vector4  _VBufferSharedUvScaleAndLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4  _VBufferLightingViewportScale;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4  _VBufferLightingViewportLimit;  // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
         public Vector4  _VBufferDistanceEncodingParams; // See the call site for description
         public Vector4  _VBufferDistanceDecodingParams; // See the call site for description
         public uint     _VBufferSliceCount;
@@ -174,7 +178,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;
         public uint  _ProbeVolumeCount;
-        public float _Pad5;
+        public float _Pad6;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;
@@ -194,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _NumTileClusteredX;
         public uint     _NumTileClusteredY;
         public int      _EnvSliceSize;
-        public float    _Pad6;
+        public float    _Pad7;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
