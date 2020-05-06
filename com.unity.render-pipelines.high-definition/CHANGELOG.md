@@ -119,6 +119,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a DisplayInfo attribute to specify a name override and a display order for Volume Component fields (used only in default inspector for now).
 - Added Min distance to contact shadows.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -570,6 +571,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
+- DXR: Fixed shader compilation error with shader graph and pathtracer
+- Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
+- Fixed a performance issue with stochastic ray traced area shadows.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
