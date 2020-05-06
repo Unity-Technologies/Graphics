@@ -109,8 +109,8 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 
     public static async void PrepareDelay()
     {
-        Debug.Log("Waiting 15 seconds...");
-        await Task.Delay(TimeSpan.FromSeconds(15));
+        Debug.Log("Waiting 1 seconds...");
+        await Task.Delay(TimeSpan.FromSeconds(1));
         Debug.Log("Done!");
 
         //Trigger DOTS build config
