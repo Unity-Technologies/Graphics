@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -41,8 +41,20 @@ Material:
         m_Texture: {fileID: 2800000, guid: 9afbfdeb6447dc74089f286f49995089, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6d6606633ca544168b5beeac9b1a2016_Texture_1:
+        m_Texture: {fileID: 2800000, guid: f23830c1beb532d4a8bf9a720ef56e25, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_D235BA5D_Texture_1:
         m_Texture: {fileID: 2800000, guid: 9f19737ffbb4a694caf1778274c346ab, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_a6c19dee861445d9bdb13e0dbaa46941_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 9f19737ffbb4a694caf1778274c346ab, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f2d3138719e44e8c9bab94a2da845214_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 9afbfdeb6447dc74089f286f49995089, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
