@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
@@ -76,7 +76,9 @@ namespace UnityEditor.ShaderGraph
                 var propNode = node as PropertyNode;
                 var graph = node.owner as GraphData;
 
-                shaderInputPropertyDrawer.GetPropertyData(graph.isSubGraph,
+                shaderInputPropertyDrawer.GetPropertyData(
+                    graph.isSubGraph,
+                    graph,
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),

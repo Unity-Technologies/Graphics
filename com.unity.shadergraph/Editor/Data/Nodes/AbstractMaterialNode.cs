@@ -281,19 +281,21 @@ namespace UnityEditor.ShaderGraph
             if (edges.Any())
             {
                 var fromSocketRef = edges.First().outputSlot;
-                var fromNode = owner.GetNodeFromGuid<AbstractMaterialNode>(fromSocketRef.nodeGuid);
+                var fromNode = fromSocketRef.node;
                 if (fromNode == null)
                     return null;        // this is an error condition... we have an edge that connects to a non-existant node?
 
                 if (fromNode is PropertyNode propNode)
                 {
-                    return owner.properties.FirstOrDefault(x => x.guid == propNode.propertyGuid);      // TODO:  propNode.GetProperty() ?
+                    return propNode.property;
                 }
 
                 if (fromNode is RedirectNodeData redirectNode)
                 {
                     return redirectNode.GetSlotProperty(RedirectNodeData.kInputSlotID);
                 }
+
+                // TODO: what if it's from a subgraph?  should probably disallow that
 
                 return null;
             }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public struct SerializableVirtualTextureLayer
+    public class SerializableVirtualTextureLayer
     {
         public string layerName;
         public string layerRefName;

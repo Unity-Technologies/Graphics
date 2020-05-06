@@ -407,7 +407,7 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
             if (!IsSlotConnected(VirtualTextureInputId))
             {
-                owner.AddValidationError(guid, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+                owner.AddValidationError(objectId, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
             }
         }
 

@@ -474,7 +474,7 @@ namespace UnityEditor.ShaderGraph
                         int argLayerCount = argProp.value.layers.Count;
 
                         if (argLayerCount != paramLayerCount)
-                            owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
                     }
                     break;
                 }

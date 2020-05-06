@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         ShaderInput shaderInput;
 
+        GraphData graphData;
         bool isSubGraph { get ; set;  }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
@@ -52,7 +53,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
         PostChangeValueCallback _postChangeValueCallback;
-        public void GetPropertyData(bool isSubGraph,
+        public void GetPropertyData(
+            bool isSubGraph,
+            GraphData graphData,
             ChangeExposedFieldCallback exposedFieldCallback,
             ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
@@ -62,6 +65,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
+            this.graphData = graphData;
             this._exposedFieldChangedCallback = exposedFieldCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
@@ -530,7 +534,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     string oldLayerName = property.value.layers[index].layerName;
                     if (layerName != oldLayerName)
                     {
-                        var otherPropertyNames = GraphData.BuildPropertyDisplayNameList(property.guid, oldLayerName);
+                        var otherPropertyNames = graphData.BuildPropertyDisplayNameList(property, oldLayerName);
                         layerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", layerName);
                     }
 
@@ -545,7 +549,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                                 if (Regex.IsMatch(name, @"^\d+"))
                                     name = "_" + name;
                                 name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-                                var otherPropertyRefNames = GraphData.BuildPropertyReferenceNameList(property.guid, oldLayerRefName);
+                                var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(property, oldLayerRefName);
                                 layerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", name);
                             }
                         }

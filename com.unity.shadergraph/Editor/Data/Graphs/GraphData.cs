@@ -712,7 +712,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // only ignores names matching ignoreName on properties matching ignoreGuid
-        public List<string> BuildPropertyDisplayNameList(Guid ignoreGuid, string ignoreName)
+        public List<string> BuildPropertyDisplayNameList(AbstractShaderProperty ignoreProperty, string ignoreName)
         {
             List<String> result = new List<String>();
             foreach (var p in properties)
@@ -720,7 +720,7 @@ namespace UnityEditor.ShaderGraph
                 int before = result.Count;
                 p.GetPropertyDisplayNames(result);
 
-                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                if ((p == ignoreProperty) && (ignoreName != null))
                 {
                     // remove ignoreName, if it was just added
                     for (int i = before; i < result.Count; i++)
@@ -738,7 +738,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // only ignores names matching ignoreName on properties matching ignoreGuid
-        public List<string> BuildPropertyReferenceNameList(Guid ignoreGuid, string ignoreName)
+        public List<string> BuildPropertyReferenceNameList(AbstractShaderProperty ignoreProperty, string ignoreName)
         {
             List<String> result = new List<String>();
             foreach (var p in properties)
@@ -746,7 +746,7 @@ namespace UnityEditor.ShaderGraph
                 int before = result.Count;
                 p.GetPropertyReferenceNames(result);
 
-                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                if ((p == ignoreProperty) && (ignoreName != null))
                 {
                     // remove ignoreName, if it was just added
                     for (int i = before; i < result.Count; i++)
@@ -768,7 +768,7 @@ namespace UnityEditor.ShaderGraph
             switch (input)
             {
                 case AbstractShaderProperty property:
-                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(input.guid, input.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, input.displayName), "{0} ({1})", input.displayName);
                     break;
                 case ShaderKeyword keyword:
                     input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName);
