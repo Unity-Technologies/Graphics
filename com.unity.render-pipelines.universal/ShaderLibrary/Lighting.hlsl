@@ -204,7 +204,7 @@ int GetPerObjectLightIndex(uint index)
 #elif !defined(SHADER_API_GLES)
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
-    
+
     // TODO: Can we index a float4? Currently compiler is
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
@@ -438,7 +438,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
         TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
         lightmapUV, transformCoords, normalWS, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON) && defined(UNITY_DOTS_INSTANCING_ENABLED)
-    return SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps), lightmapUV, unity_LightmapIndex, unity_LightmapIndex, transformCoords, encodedLightmap, decodeInstructions);
+    return SampleSingleLightmap(TEXTURE2D_ARRAY_ARGS(unity_Lightmaps, samplerunity_Lightmaps), lightmapUV, unity_LightmapIndex, transformCoords, encodedLightmap, decodeInstructions);
 #elif defined(LIGHTMAP_ON)
     return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmapUV, transformCoords, encodedLightmap, decodeInstructions);
 #else
@@ -449,7 +449,9 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // We either sample GI from baked lightmap or from probes.
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
-#ifdef UNITY_DOTS_SHADER
+#if defined(LIGHTMAP_ON)
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#elif defined(UNITY_DOTS_INSTANCING_ENABLED)
 half3 HackSampleSH(half3 normalWS)
 {
     // Hack SH so that is is valid for hybrid V1
@@ -464,8 +466,6 @@ half3 HackSampleSH(half3 normalWS)
     return max(half3(0, 0, 0), SampleSH9(SHCoefficients, normalWS));
 }
 #define SAMPLE_GI(lmName, shName, normalWSName) HackSampleSH(normalWSName);
-#elif defined(LIGHTMAP_ON)
-#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
@@ -590,7 +590,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
 {
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
