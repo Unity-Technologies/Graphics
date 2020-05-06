@@ -157,14 +157,24 @@ namespace UnityEditor.Graphing
             return nodeList;
         }
 
-        private static bool ValidLeafExists(AbstractMaterialNode node)
+        private static bool ActiveLeafExists(AbstractMaterialNode node)
         {
-            if(!node.isActive)
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
             {
-                return false;
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
             }
 
+
+
             List<AbstractMaterialNode> parentNodes = GetParentNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
             if(parentNodes.Count == 0)
             {
                 return true;
@@ -173,7 +183,7 @@ namespace UnityEditor.Graphing
             bool output = false;
             foreach(var parent in parentNodes)
             {
-                output |= ValidLeafExists(parent);
+                output |= ActiveLeafExists(parent);
                 if(output)
                 {
                     break;
@@ -201,14 +211,22 @@ namespace UnityEditor.Graphing
             return nodeList;
         }
 
-        private static bool ValidRootExists(AbstractMaterialNode node)
+        private static bool ActiveRootExists(AbstractMaterialNode node)
         {
-            if (node is BlockNode block)
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
             {
-                return block.isActive;
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
             }
 
             List<AbstractMaterialNode> childNodes = GetChildNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
             if (childNodes.Count == 0)
             {
                 return true;
@@ -217,7 +235,7 @@ namespace UnityEditor.Graphing
             bool output = false;
             foreach (var child in childNodes)
             {
-                output |= ValidRootExists(child);
+                output |= ActiveRootExists(child);
                 if (output)
                 {
                     break;
@@ -227,11 +245,11 @@ namespace UnityEditor.Graphing
 
         }
 
-        private static void ValidTreeExists(AbstractMaterialNode node, out bool validLeaf, out bool validRoot, out bool validTree)
+        private static void ActiveTreeExists(AbstractMaterialNode node, out bool activeLeaf, out bool activeRoot, out bool activeTree)
         {
-            validLeaf = ValidLeafExists(node);
-            validRoot = ValidRootExists(node);
-            validTree = validRoot && validLeaf;
+            activeLeaf = ActiveLeafExists(node);
+            activeRoot = ActiveRootExists(node);
+            activeTree = activeRoot && activeLeaf;
         }
 
         //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
@@ -240,36 +258,33 @@ namespace UnityEditor.Graphing
         // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
         // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
         // graph instead of just what I have declared as the "local" connected graph
-        public static void UpdateNodeActiveOnEdgeChange(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        public static void ReevaluateNodeForest(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
-            bool originalyActive = node.isActive;
-            ValidTreeExists(node, out bool validLeaf, out bool validRoot, out bool validTree);
-            if ((validTree && !originalyActive) || (!validTree && originalyActive)) 
-            {
-                UpdateForrest(node, validLeaf, validRoot, validTree, changedNodes, changedNodes != null);
-            }
+            UpdateForest(node, changedNodes, changedNodes != null);
         }
 
-        private static void UpdateForrest(AbstractMaterialNode node, bool validLeaf, bool validRoot, bool validTree, PooledHashSet<AbstractMaterialNode> changedNodes, bool getChangedNodes)
+        private static void UpdateForest(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes, bool getChangedNodes)
         {
             if (getChangedNodes)
             {
                 changedNodes.Add(node);
             }
-            List<AbstractMaterialNode> forrest = GetForrest(node);
-            foreach(AbstractMaterialNode n in forrest)
+            List<AbstractMaterialNode> forest = GetForest(node);
+            foreach(AbstractMaterialNode n in forest)
             {
-                ValidTreeExists(n, out bool vl, out bool vr, out bool vt);
-                if(n.isActive != vt && getChangedNodes)
+                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit || n is BlockNode)
+                    continue;
+                ActiveTreeExists(n, out _, out _, out bool at);
+                if(n.isActive != at && getChangedNodes)
                 {
                     changedNodes.Add(n);
                 }
-                n.isActive = vt;
+                n.SetActive(at, false);
             }
         }
 
         //Go to the leaves of the node
-        private static List<AbstractMaterialNode> GetForrest(AbstractMaterialNode node)
+        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> leaves = GetLeaves(node);
             List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();

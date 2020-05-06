@@ -54,5 +54,30 @@ namespace UnityEditor.ShaderGraph
             }
             return output;
         }
+
+        public static NodeTypeCollection operator + (NodeTypeCollection a,
+                                                     NodeTypeCollection b)
+        {
+            NodeTypeCollection output = new NodeTypeCollection()
+            {
+                a
+            };
+            foreach(var nodeType in b)
+            {
+                output.m_Items.Add(nodeType);
+            }
+            return output;
+        }
+
+        public static NodeTypeCollection operator + (NodeTypeCollection a,
+                                                     Type b)
+        {
+            NodeTypeCollection output = new NodeTypeCollection()
+            {
+                a
+            };
+            output.m_Items.Add(b);
+            return output;
+        }
     }
 }

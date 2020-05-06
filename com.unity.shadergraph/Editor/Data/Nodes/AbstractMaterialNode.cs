@@ -165,22 +165,90 @@ namespace UnityEditor.ShaderGraph
         public virtual bool isActive
         {
             get { return m_IsActive; }
-            set 
-            {
-                if(m_IsActive == value)
-                    return;
-                // Update this node
-                m_IsActive = value;
-                Dirty(ModificationScope.Node);
+        }
 
-                // Get all downsteam nodes and update their active state
-                var nodes = ListPool<AbstractMaterialNode>.Get();
-                NodeUtils.DepthFirstCollectNodesFromNode(nodes, this, NodeUtils.IncludeSelf.Include);
-                foreach(var upstreamNode in nodes)
-                {
-                    NodeUtils.UpdateNodeActiveOnEdgeChange(upstreamNode);
-                }
+        public enum ActiveState
+        {
+            Implicit = 0,
+            ExplicitInactive = 1,
+            ExplicitActive = 2
+        }
+
+        private ActiveState m_ActiveState = ActiveState.Implicit;
+        public ActiveState activeState
+        {
+            get => m_ActiveState;
+        }
+
+        public void SetOverrideActiveState(ActiveState overrideState, bool updateConnections = true)
+        {
+            if(m_ActiveState == overrideState)
+            {
+                return;
             }
+
+            m_ActiveState = overrideState;
+            switch (m_ActiveState)
+            {
+                case ActiveState.Implicit:
+                    if (updateConnections)
+                    {
+                        NodeUtils.ReevaluateNodeForest(this);
+                    }
+                    break;
+                case ActiveState.ExplicitInactive:
+                    if(m_IsActive == false)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        m_IsActive = false;
+                        Dirty(ModificationScope.Node);
+                        if (updateConnections)
+                        {
+                            NodeUtils.ReevaluateNodeForest(this);
+                        }
+                        break;
+                    }
+                case ActiveState.ExplicitActive:
+                    if(m_IsActive == true)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        m_IsActive = true;
+                        Dirty(ModificationScope.Node);
+                        if (updateConnections)
+                        {
+                            NodeUtils.ReevaluateNodeForest(this);
+                        }
+                        break;
+                    }
+            }
+        }
+
+        public void SetActive(bool value, bool updateConnections = true)
+        {
+            if (m_IsActive == value)
+                return;
+
+            if(m_ActiveState != ActiveState.Implicit)
+            {
+                Debug.LogError($"Cannot set IsActive on Node {this} when value is explicitly overriden by ActiveState {m_ActiveState}");
+                return;
+            }
+
+            // Update this node
+            m_IsActive = value;
+            Dirty(ModificationScope.Node);
+
+            if (updateConnections)
+            {
+                NodeUtils.ReevaluateNodeForest(this);
+            }
+
         }
 
 

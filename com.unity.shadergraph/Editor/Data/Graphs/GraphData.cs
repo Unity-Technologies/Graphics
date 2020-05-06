@@ -408,6 +408,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
+            ValidateGraph();
         }
 
         public void ClearChanges()
@@ -617,11 +618,13 @@ namespace UnityEditor.ShaderGraph
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.value.isActive = activeBlockDescriptors.Contains(vertexBlock.value.descriptor);
+                vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                       : AbstractMaterialNode.ActiveState.ExplicitInactive);
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.value.isActive = activeBlockDescriptors.Contains(fragmentBlock.value.descriptor);
+                fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
             }
         }
 
@@ -1914,7 +1917,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
             foreach (var node in m_Nodes)
             {
-                NodeUtils.UpdateNodeActiveOnEdgeChange(node);
+                NodeUtils.ReevaluateNodeForest(node);
             }
         }
 

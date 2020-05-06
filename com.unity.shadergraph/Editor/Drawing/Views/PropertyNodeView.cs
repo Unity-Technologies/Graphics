@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
@@ -241,7 +241,7 @@ namespace UnityEditor.ShaderGraph
         {
             //disconnected property nodes are always active
             if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
-                node.isActive = true;
+                node.SetActive(true);
             
             SetActive(node.isActive);
 

@@ -59,6 +59,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+
+        public override NodeTypeCollection allowedNodes => base.allowedNodes + typeof(HDSceneColorNode);
+
         public HDTarget()
         {
             displayName = "HDRP";

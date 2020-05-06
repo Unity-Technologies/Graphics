@@ -794,7 +794,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeView);
                         AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
                     }
                     var nodeViewInput = (IShaderNodeView)edgeView.input.node;
                     if(nodeViewInput?.node != null)
@@ -802,7 +802,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeViewInput);
                         AbstractMaterialNode n = nodeViewInput.node;
 
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
+                        //if we disconnect a block node that is turned off its possible the target block node is no longer used by the target
+                        if(ShaderGraphPreferences.autoAddRemoveBlocks && n is BlockNode b && b.activeState == AbstractMaterialNode.ActiveState.ExplicitInactive)
+                        {
+                            var activeBlocks = graphView.graph.GetActiveBlocksForAllActiveTargets();
+                            graphView.graph.AddRemoveBlocksFromActiveList(activeBlocks);
+                        }
                     }
 
                     edgeView.output.Disconnect(edgeView);
@@ -826,7 +832,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeView);
                         AbstractMaterialNode n = nodeView.node;
                         // Update active state for connected Nodes
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
                     }
                     var nodeViewInput = (IShaderNodeView)edgeView.input.node;
                     if(nodeViewInput?.node != null)
@@ -834,7 +840,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         nodesToUpdate.Add(nodeViewInput);
                         AbstractMaterialNode n = nodeViewInput.node;
 
-                        NodeUtils.UpdateNodeActiveOnEdgeChange(n, asmToUpdate);
+                        NodeUtils.ReevaluateNodeForest(n, asmToUpdate);
                     }
                 }
             }
