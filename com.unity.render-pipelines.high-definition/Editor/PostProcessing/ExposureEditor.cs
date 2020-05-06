@@ -83,10 +83,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (m_MeteringMode.value.intValue == (int) MeteringMode.ProceduralMask)
                 {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Procedural Mask", EditorStyles.miniLabel);
+
+                    var centerValue = m_ProceduralCenter.value.vector2Value;
+                    m_ProceduralCenter.value.vector2Value = new Vector2(Mathf.Clamp01(centerValue.x), Mathf.Clamp01(centerValue.y));
                     PropertyField(m_ProceduralCenter);
+                    var radiiValue = m_ProceduralRadii.value.vector2Value;
+                    m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
                     PropertyField(m_ProceduralRadii);
                     PropertyField(m_ProceduralSoftness);
-
+                    EditorGUILayout.Space();
                 }
 
                 // Temporary hiding the field since we don't support anything but color buffer for now.

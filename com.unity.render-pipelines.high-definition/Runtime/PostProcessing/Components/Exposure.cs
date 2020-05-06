@@ -105,13 +105,18 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
         public BoolParameter histogramUseCurveRemapping = new BoolParameter(false);
 
-
-
-        public Vector2Parameter proceduralCenter = new Vector2Parameter(new Vector2(0.5f, 0.5f));
-
-        public Vector2Parameter proceduralRadii  = new Vector2Parameter(new Vector2(0.15f, 0.15f));
-
-        public FloatParameter   proceduralSoftness = new FloatParameter(0.8f);
+        /// <summary>
+        /// Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)
+        /// </summary>
+        public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
+        /// <summary>
+        /// Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).
+        /// </summary>
+        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
+        /// <summary>
+        /// Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask.
+        /// </summary>
+        public NoInterpMinFloatParameter proceduralSoftness = new NoInterpMinFloatParameter(0.5f, 0.0f);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
