@@ -1,24 +1,3 @@
-VFXMain_Linux_OpenGLCore_Standalone_2020.1:
-    name: VFXMain on Linux_OpenGLCore_Standalone on version 2020.1
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
-      -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGLCoreLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 VFXMain_Linux_OpenGLCore_playmode_2020.1:
     name: VFXMain on Linux_OpenGLCore_playmode on version 2020.1
     agent:
@@ -57,27 +36,6 @@ VFXMain_Linux_OpenGLCore_editmode_2020.1:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
       -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-VFXMain_Linux_OpenGLCore_Standalone_fast-2020.1:
-    name: VFXMain on Linux_OpenGLCore_Standalone on version fast-2020.1
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
-      -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGLCoreLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
@@ -124,27 +82,6 @@ VFXMain_Linux_OpenGLCore_editmode_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-VFXMain_Linux_OpenGLCore_Standalone_trunk:
-    name: VFXMain on Linux_OpenGLCore_Standalone on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
-      -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGLCoreLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 VFXMain_Linux_OpenGLCore_playmode_trunk:
     name: VFXMain on Linux_OpenGLCore_playmode on version trunk
     agent:
@@ -187,27 +124,6 @@ VFXMain_Linux_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-VFXMain_Linux_OpenGLCore_Standalone_fast-trunk:
-    name: VFXMain on Linux_OpenGLCore_Standalone on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
-         rerun: on-new-revision
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
-      -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGLCoreLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 VFXMain_Linux_OpenGLCore_playmode_fast-trunk:
     name: VFXMain on Linux_OpenGLCore_playmode on version fast-trunk
     agent:
@@ -246,28 +162,6 @@ VFXMain_Linux_OpenGLCore_editmode_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
       -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-VFXMain_Linux_OpenGLCore_Standalone_CUSTOM-REVISION:
-    name: VFXMain on Linux_OpenGLCore_Standalone on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: cds-ops/ubuntu-18.04-base:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
-         rerun: always
-    commands:
-      -  sudo -H pip install --upgrade pip
-      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/VisualEffectGraph/utr
-      -  cd TestProjects/VisualEffectGraph && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/VisualEffectGraph && DISPLAY=:0.0 utr/utr --suite=playmode --platform=StandaloneLinux64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildLinuxOpenGLCoreLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results
     artifacts:
         logs:
             paths:
