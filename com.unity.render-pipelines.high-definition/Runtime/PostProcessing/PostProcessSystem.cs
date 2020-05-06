@@ -985,10 +985,22 @@ namespace UnityEngine.Rendering.HighDefinition
             float histBias = -m_Exposure.limitMin.value * histScale;
             Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
             float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
+
+            //// TEST: See if we can track the gameobject
+            //if (m_Exposure.target.value != null)
+            //{
+            //    var transform = m_Exposure.target.value.transform;
+            //    // Transform in screen space
+            //    var screenSpaceLoc = camera.mainViewConstants.viewProjMatrix * transform.position;
+            //    screenSpaceLoc.x /= screenSpaceLoc.w;
+            //    screenSpaceLoc.y /= screenSpaceLoc.w;
+            //    Debug.Log(screenSpaceLoc);
+            //}
+
             Vector4 proceduralParams = new Vector4(m_Exposure.proceduralCenter.value.x,
-                m_Exposure.proceduralCenter.value.y,
-                m_Exposure.proceduralRadii.value.x,
-                m_Exposure.proceduralRadii.value.y) * screenDiagonal;
+                                           m_Exposure.proceduralCenter.value.y,
+                                           m_Exposure.proceduralRadii.value.x,
+                                           m_Exposure.proceduralRadii.value.y) * screenDiagonal;
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, new Vector4(1.0f / m_Exposure.proceduralSoftness.value, 0, 0, 0));
 
