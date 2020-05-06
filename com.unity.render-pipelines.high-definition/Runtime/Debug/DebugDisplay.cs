@@ -1322,11 +1322,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
 
                     // First row for volume info
+                    float timer = 0.0f, refreshRate = 0.2f;
                     var row = new DebugUI.Table.Row()
                     {
                         displayName = "Volume Info",
                         children = { new DebugUI.Value() { displayName = "Interpolated Value",
                             getter = () => {
+                                // This getter is called first at each render
+                                // It is used to update the volumes
+                                if (Time.time - timer < refreshRate)
+                                    return "";
+                                timer = Time.deltaTime;
                                 if (data.volumeDebugSettings.selectedCameraIndex != 0)
                                 {
                                     var newVolumes = data.volumeDebugSettings.GetVolumes();
@@ -1345,6 +1351,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             }
                         } }
                     };
+                    row.opened = true;
 
                     foreach (var volume in volumes)
                     {
@@ -1366,9 +1373,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     // One row per parameter
                     foreach (var f in fields)
                     {
+                        var fieldName = f.Name;
+                        var attr = (DisplayInfoAttribute[])f.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                        if (attr.Length != 0)
+                            fieldName = attr[0].name;
+#if UNITY_EDITOR
+                        // Would be nice to have the equivalent for the runtime debug.
+                        else
+                            fieldName = UnityEditor.ObjectNames.NicifyVariableName(fieldName);
+#endif
+
+
                         row = new DebugUI.Table.Row()
                         {
-                            displayName = f.Name,
+                            displayName = fieldName,
                             children = { makeWidget("Interpolated Value", data.volumeDebugSettings.GetParameter(f)) }
                         };
 

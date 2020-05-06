@@ -32,7 +32,7 @@ auto-version:
     {{ v[0] }}: {{ v[1]}}
 {% endfor -%}
   commands:
-  - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+  - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
   - >
     upm-ci utils auto-version bump
 {% for test in testables -%}
@@ -64,7 +64,7 @@ publish_{{ test.name }}:
     {{ v[0] }}: {{ v[1]}}
     {% endfor %}
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - >
       upm-ci {{ test.type }} publish
       --{{ test.type }}-path {{ test.path }}
@@ -79,6 +79,7 @@ publish_{{ test.name }}:
         frequency: daily
 {% endif -%}
   dependencies:
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}
@@ -111,7 +112,7 @@ promote_{{ test.name }}:
   variables:
     UPMCI_PROMOTION: 1
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - >
       upm-ci {{ test.type }} promote
       --{{ test.type }}-path {{ test.path }}
