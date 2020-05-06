@@ -1,0 +1,65 @@
+editors:
+  - version: 2020.1/staging
+  - version: trunk
+testplatforms:
+  - name: playmode
+    args: --suite=playmode
+  - name: editmode
+    args: --suite=editor --platform=editmode
+  - name: Standalone
+    args: --suite=playmode --platform=Standalone
+win_apis:
+  - name: DX11
+    cmd: -force-d3d11
+  - name: DX12
+    cmd: -force-d3d12
+  - name: GLCore
+    cmd: -force-glcore
+  - name: Vulkan
+    cmd: -force-vulkan
+---
+{% for editor in editors %}
+
+{% for testplatform in testplatforms %}
+{% for win_api in win_apis %}
+Windows64_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
+  name : Test Windows64_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
+  agent:
+    type: Unity::VM::GPU
+    image: slough-ops/gamecode-win10-nvidia436:latest
+    flavor: b1.large
+  commands:
+    - git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
+    - npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple
+    - unity-downloader-cli -u {{ editor.version }} -c editor --wait --published
+
+    {% if testplatform.name == "Standalone" %}
+    - utr\utr {{ testplatform.args }}Windows64 --testproject=TestProjects/UniversalHybridTest --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindows{{ win_api.name }}Linear" --editor-location=.Editor --artifacts_path=upm-ci~/test-results --timeout=1200
+    {% else %}
+    - utr\utr {{ testplatform.args }} --testproject=TestProjects/UniversalHybridTest --extra-editor-arg="{{ win_api.cmd }}" --editor-location=.Editor --artifacts_path=upm-ci~/test-results
+    {% endif %}
+  artifacts:
+    logs:
+      paths:
+        - "**/test-results/**"
+{% endfor %}    
+{% endfor %}
+
+{% endfor %}
+
+All_Win:
+  name: All Win CI
+  dependencies:
+  {% for testplatform in testplatforms %}
+  {% for editor in editors %}
+  {% for win_api in win_apis %}
+  - path: .yamato/upm-ci-universal_hybrid_WIN.yml#Windows64_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+    rerun: always
+  {% endfor %}
+  {% endfor %}
+  {% endfor %}
+  triggers:
+    recurring:
+      - branch: master
+        frequency: daily
