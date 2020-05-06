@@ -40,6 +40,7 @@ public class LowResolutionRequester : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+#if ENABLE_VIRTUALTEXTURES
         if (materialToRequest != null)
         {
             foreach (int prop in properties)
@@ -47,5 +48,6 @@ public class LowResolutionRequester : MonoBehaviour
                 UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(materialToRequest, prop, new Rect(0.0f, 0.0f, 1.0f, 1.0f), firstMipToRequest, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
             }
         }
+#endif
     }
 }
