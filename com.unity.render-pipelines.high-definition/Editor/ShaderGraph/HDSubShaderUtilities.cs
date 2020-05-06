@@ -1336,6 +1336,12 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
+        public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
+        {
+            collector.AddToggleProperty(kTransparentDepthPrepassEnable, prepass);
+            collector.AddToggleProperty(kTransparentDepthPostpassEnable, postpass);
+        }
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
