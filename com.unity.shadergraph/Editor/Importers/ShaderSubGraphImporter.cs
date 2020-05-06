@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph
             ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
             ctx.SetMainObject(graphAsset);
 
-            var metadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
+            var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();
             metadata.hideFlags = HideFlags.HideInHierarchy;
             metadata.assetDependencies = new List<UnityEngine.Object>();
             var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
