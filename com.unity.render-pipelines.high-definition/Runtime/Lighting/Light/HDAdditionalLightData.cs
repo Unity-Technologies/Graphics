@@ -2184,10 +2184,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             //if not parented anymore, refresh it
-            if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null) && m_ChildEmissiveMeshViewer.transform.parent != transform)
+            if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
             {
-                CreateChildEmissiveMeshViewerIfNeeded();
-                UpdateAreaLightEmissiveMesh();
+                if (m_ChildEmissiveMeshViewer.transform.parent != transform)
+                {
+                    CreateChildEmissiveMeshViewerIfNeeded();
+                    UpdateAreaLightEmissiveMesh();
+                }
+                if (m_ChildEmissiveMeshViewer.gameObject.isStatic != gameObject.isStatic)
+                    m_ChildEmissiveMeshViewer.gameObject.isStatic = gameObject.isStatic;
             }
 #endif
 
