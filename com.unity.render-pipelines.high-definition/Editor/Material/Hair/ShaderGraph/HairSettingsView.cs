@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSidedMode != DoubleSidedMode.Disabled, (evt) =>
+            context.AddProperty("Cull Mode", indentLevel + 1, new EnumField(systemData.transparentCullMode) { value = systemData.transparentCullMode }, systemData.surfaceType == SurfaceType.Transparent && systemData.doubleSidedMode == DoubleSidedMode.Disabled, (evt) =>
             {
                 if (Equals(systemData.transparentCullMode, evt.newValue))
                     return;

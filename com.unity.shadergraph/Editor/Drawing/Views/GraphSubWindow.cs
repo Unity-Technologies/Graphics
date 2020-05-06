@@ -17,10 +17,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             dockingLeft = false,
             verticalOffset = 8,
             horizontalOffset = 8,
-            size = new Vector2(300, 300),
         };
         WindowDockingLayout windowDockingLayout { get; set; }
-
 
         protected VisualElement m_MainContainer;
         protected VisualElement m_Root;
@@ -79,6 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             set { m_SubTitleLabel.text = value; }
         }
 
+        // Intended for future handling of docking to sides of the shader graph window
         bool m_Windowed;
         public bool windowed
         {
@@ -142,8 +141,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             m_GraphView = associatedGraphView;
             m_GraphView.Add(this);
 
+            var styleSheet = Resources.Load<StyleSheet>($"Styles/{styleName}");
             // Setup VisualElement from Stylesheet and UXML file
-            styleSheets.Add(Resources.Load<StyleSheet>($"Styles/{styleName}"));
+            styleSheets.Add(styleSheet);
             var uxml = Resources.Load<VisualTreeAsset>($"UXML/{UxmlName}");
             m_MainContainer = uxml.Instantiate();
             m_MainContainer.AddToClassList("mainContainer");
@@ -220,34 +220,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             hierarchy.Add(resizeElement);
         }
 
-        void OnMoved(MouseUpEvent upEvent)
+#region Layout
+        public void ClampToParentLayout(Rect parentLayout)
         {
-            windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
-
-            SerializeLayout();
-        }
-
-        void OnWindowResize(MouseUpEvent upEvent)
-        {
-        }
-
-        void SerializeLayout()
-        {
-            var serializedLayout = JsonUtility.ToJson(windowDockingLayout);
-            EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
-        }
-
-        public void DeserializeLayout()
-        {
-            var serializedLayout = EditorUserSettings.GetConfigValue(layoutKey);
-            if (!string.IsNullOrEmpty(serializedLayout))
-                windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
-            else
-                windowDockingLayout = m_DefaultLayout;
-
-            windowDockingLayout.ApplySize(this);
-            windowDockingLayout.ApplyPosition(this);
         }
 
         public void OnStartResize()
@@ -259,5 +236,38 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }
+
+        public void DeserializeLayout()
+        {
+            var serializedLayout = EditorUserSettings.GetConfigValue(layoutKey);
+            if (!string.IsNullOrEmpty(serializedLayout))
+                windowDockingLayout = JsonUtility.FromJson<WindowDockingLayout>(serializedLayout);
+            else
+                windowDockingLayout = m_DefaultLayout;
+
+            // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
+            windowDockingLayout.ApplySize(this);
+            windowDockingLayout.ApplyPosition(this);
+        }
+
+        void SerializeLayout()
+        {
+            windowDockingLayout.size = layout.size;
+            var serializedLayout = JsonUtility.ToJson(windowDockingLayout);
+            EditorUserSettings.SetConfigValue(layoutKey, serializedLayout);
+        }
+
+        void OnMoved(MouseUpEvent upEvent)
+        {
+            windowDockingLayout.CalculateDockingCornerAndOffset(layout, graphView.layout);
+            windowDockingLayout.ClampToParentWindow();
+
+            SerializeLayout();
+        }
+
+        void OnWindowResize(MouseUpEvent upEvent)
+        {
+        }
     }
+#endregion
 }

@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             clipThresholdSlot.owner = node;
-            return (clipThresholdSlot.isConnected || clipThresholdSlot.value != clipThresholdSlot.defaultValue);
+            return (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f);
         }
 
         public static BlendMode UpgradeLegacyAlphaModeToBlendMode(int alphaMode)

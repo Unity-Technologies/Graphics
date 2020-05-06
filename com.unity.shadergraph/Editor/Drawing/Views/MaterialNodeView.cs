@@ -368,7 +368,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             base.BuildContextualMenu(evt);
         }
-        
+
         void CopyToClipboard(DropdownMenuAction action)
         {
             GUIUtility.systemCopyBuffer = ConvertToShader((GenerationMode) action.userData);
@@ -480,10 +480,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if (propertyDrawer is ShaderGUIOverridePropertyDrawer shaderGuiOverridePropertyDrawer)
-            {
-                shaderGuiOverridePropertyDrawer.GetPropertyData(node);
-            }
         }
 
         private void SetSelfSelected()

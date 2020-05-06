@@ -23,7 +23,15 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - _Texture2DAsset_3389f2c67a024b5a816020ee1990a36c_Out_0:
+        m_Texture: {fileID: 2800000, guid: fcecce6d2c9be8d418a27f0658a2210d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_436BDAD4_Out_0:
+        m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Texture2DAsset_54b07d8b85d54e8481cd12e20afdcbc4_Out_0:
         m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -35,6 +43,7 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -84,4 +93,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4

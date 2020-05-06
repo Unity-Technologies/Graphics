@@ -10,7 +10,8 @@ Material:
   m_Name: 1105_Tr_Add_AlphaClip
   m_Shader: {fileID: -6465566751694194690, guid: a2ce422b94a4fc14cb96e6726fd85a67,
     type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON _BLENDMODE_ADD _ENABLE_FOG_ON_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _ALPHATEST_ON _ALPHATOMASK_ON _BLENDMODE_ADD _ENABLE_FOG_ON_TRANSPARENT
+    _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -84,11 +85,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_5b51e2639d9e42dd8fc2e2d51b70fa42_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_A20C78E9_Texture:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_A20C78E9_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_d2afa83596644bf784b08df576745100_Texture_1:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -128,6 +137,7 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 1
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 1
     - _Anisotropy: 0
     - _BlendMode: 1
     - _CoatMask: 0
@@ -198,6 +208,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
@@ -276,4 +287,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4

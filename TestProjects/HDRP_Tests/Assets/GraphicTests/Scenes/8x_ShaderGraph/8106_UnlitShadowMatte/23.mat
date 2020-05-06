@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -97,11 +97,27 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_073d8ea15520478bac597b82435cda72_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_59b68bd6fc9f4494a1e72f9e7477262b_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_8f0f0c9214f841a998c10c154755b2a4_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_9A9546A1_Texture_1:
         m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_B4F2EFC2_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_e9640f966a53456aa5976d92dfa239f0_Texture_1:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -142,6 +158,7 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -208,6 +225,7 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 0
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0

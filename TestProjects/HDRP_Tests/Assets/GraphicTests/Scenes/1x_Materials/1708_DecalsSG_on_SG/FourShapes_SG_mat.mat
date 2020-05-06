@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -23,7 +23,7 @@ Material:
   m_Name: FourShapes_SG_mat
   m_Shader: {fileID: -6465566751694194690, guid: c50baceb4daa48c4589a61a52a987e05,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -33,6 +33,7 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
+  - RayTracingPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -96,6 +97,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6d9b68203d614a5c82896450617a6d25_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_6f9430e2323a4a6e8e3250a4eb9e3c16_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_7f65b73208fc4b0590eee71eb5728734_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 97a5684bc72c1704fadc965467f242ea, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_87d51703f1f44eab8363f52a07213f6e_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 97a5684bc72c1704fadc965467f242ea, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_8B0BB0E4_Texture_1:
         m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -140,6 +157,7 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -209,7 +227,9 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _RayTracing: 0
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0

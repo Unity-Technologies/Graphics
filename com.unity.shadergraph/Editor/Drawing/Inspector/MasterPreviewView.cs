@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -106,13 +107,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(preview);
 
-            m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
+            m_PreviewResizeBorderFrame = new ResizeBorderFrame(this, this) { name = "resizeBorderFrame" };
             m_PreviewResizeBorderFrame.maintainAspectRatio = true;
             Add(m_PreviewResizeBorderFrame);
 
             m_ExpandedPreviewSize = new Vector2(256f, 256f);
             m_RecalculateLayout = false;
-            previewTextureView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         Image CreatePreview(Texture texture)
@@ -216,13 +217,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
                 return;
 
-            m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
+            m_PreviewTextureView.style.width = evt.newRect.width;
+            m_PreviewTextureView.style.height = evt.newRect.height - 40.0f;
+            m_PreviewManager.ResizeMasterPreview(new Vector2(evt.newRect.width, evt.newRect.width));
         }
 
         void OnScroll(float scrollValue)
         {
             float rescaleAmount = -scrollValue * .03f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
+            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.0f, 5f);
 
             m_PreviewManager.UpdateMasterPreview(ModificationScope.Node);
         }

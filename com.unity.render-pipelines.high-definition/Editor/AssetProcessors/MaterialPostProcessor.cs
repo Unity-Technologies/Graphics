@@ -190,6 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition
              StencilRefactor,
              ZWriteForTransparent,
              RenderQueueUpgrade,
+             ShaderGraphStack,
         };
 
         #region Migrations
@@ -336,6 +337,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }
+
+        static void ShaderGraphStack(Material material, HDShaderUtils.ShaderID id)
+            => HDShaderUtils.ResetMaterialKeywords(material);
 
         #region Serialization_API
         //Methods in this region interact on the serialized material

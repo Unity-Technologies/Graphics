@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -23,7 +23,7 @@ Material:
   m_Name: SLSG_BaseM_2Mb
   m_Shader: {fileID: -6465566751694194690, guid: 5a682f5b16474d04f991850cb6bdbe82,
     type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -353,6 +353,7 @@ Material:
     - _AlphaCutoffPrepass: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 1
     - _AmbientOcclusionMapSamplerSharingOptout: 0
@@ -627,6 +628,7 @@ Material:
     - _Parallax: 0.02
     - _PreRefractionPass: 0
     - _ReceivesSSR: 1
+    - _ReceivesSSRTransparent: 0
     - _RefractionMode: 0
     - _RefractionModel: 0
     - _RefractionSSRayModel: 0
