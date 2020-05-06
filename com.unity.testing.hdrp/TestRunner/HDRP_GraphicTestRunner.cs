@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using NUnit;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -14,8 +15,6 @@ public class HDRP_GraphicTestRunner
 {
     Texture2D backBufferCaptureTexture;
     bool doCapture = false;
-    int w;
-    int h;
 
     GraphicsTestCase m_testCase;
 
@@ -26,6 +25,7 @@ public class HDRP_GraphicTestRunner
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         m_testCase = testCase;
+        // Debug.Log($"Load Scene : {testCase.ScenePath}");
         SceneManager.LoadScene(testCase.ScenePath);
 
         yield return null;
@@ -40,25 +40,13 @@ public class HDRP_GraphicTestRunner
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
 
+        // Setup the temporary texture to copy from the backbuffer and compare
+        // Also set the game view render size
         if (settings.captureFromBackBuffer)
-        {
-            w = settings.ImageComparisonSettings.TargetWidth;
-            h = settings.ImageComparisonSettings.TargetHeight;
-
-            SetViewSize(w, h);
-
-            backBufferCaptureTexture = new Texture2D(
-                w, h,
-                TextureFormat.RGB24,
-                false,
-                true
-                );
-
-            RenderPipelineManager.endCameraRendering += PostRenderCallback;
-        }
+            SetupBackBufferCapture(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
 
         // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
-        for (int i = 0; i < 4; ++i)
+        for (int i = 0; i < 5; ++i)
             yield return null;
 
         Time.captureFramerate = settings.captureFramerate;
@@ -95,18 +83,18 @@ public class HDRP_GraphicTestRunner
         if (settingsSG == null || !settingsSG.compareSGtoBI)
         {
             // Standard Test
-            if (settings.captureFromBackBuffer)
+            if (settings.captureFromBackBuffer) // Using Backbuffer
             {
                 doCapture = true;
-                Debug.Log("doCapture = true");
 
                 while (doCapture) yield return null;
 
-                RenderPipelineManager.endCameraRendering -= PostRenderCallback;
+                ImageAssert.AreEqual(m_testCase.ReferenceImage, backBufferCaptureTexture, settings.ImageComparisonSettings);
 
-                ImageAssert.AreEqual(testCase.ReferenceImage, backBufferCaptureTexture);
+                // Cleanup the capture data
+                CleanBackBufferCapture();
             }
-            else
+            else // Or rendering to a render texture
             {
                 ImageAssert.AreEqual(testCase.ReferenceImage, camera, settings?.ImageComparisonSettings);
             }
@@ -187,32 +175,58 @@ public class HDRP_GraphicTestRunner
         }
     }
 
+    [OneTimeSetUp]
+    public void OneTimeSetUpFunc()
+    {
+        RenderPipelineManager.endCameraRendering += PostRenderCallback;
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDownFunc()
+    {
+        if (backBufferCaptureTexture != null) Object.DestroyImmediate(backBufferCaptureTexture);
+        RenderPipelineManager.endCameraRendering -= PostRenderCallback;
+    }
+
     void PostRenderCallback( ScriptableRenderContext context, Camera cam )
     {
-        Debug.Log("PostRenderCallback");
-
         if ( !doCapture)
             return;
 
-        Debug.Log(camera.name + " vs " + cam.name);
+        if ( camera == null || cam == null || camera != cam) return;
 
-        if (camera != cam) return;
-
-        Debug.Log("ReadPixels");
+        // Debug.Log("Capture Backbuffer");
 
         backBufferCaptureTexture.ReadPixels(
-            new Rect(0, 0, w, h),
+            new Rect(0, 0, backBufferCaptureTexture.width, backBufferCaptureTexture.height),
             0, 0,
             false
             );
 
         backBufferCaptureTexture.Apply();
 
-        ImageAssert.AreEqual(m_testCase.ReferenceImage, backBufferCaptureTexture);
+        // Debug.Log($"imageComparisonSettings before ImageAssert: width {imageComparisonSettings.TargetWidth}, height {imageComparisonSettings.TargetHeight}, pixel corr. threshold {imageComparisonSettings.PerPixelCorrectnessThreshold}, avg. corr. threshold {imageComparisonSettings.AverageCorrectnessThreshold}");
 
         doCapture = false;
+    }
 
-        Debug.Log("Finished Capture");
+    void SetupBackBufferCapture( int width, int height )
+    {
+        SetViewSize(width, height);
+
+        if (backBufferCaptureTexture != null) Object.DestroyImmediate(backBufferCaptureTexture);
+
+        backBufferCaptureTexture = new Texture2D(
+            width, height,
+            TextureFormat.RGB24,
+            false,
+            true
+            );
+    }
+
+    void CleanBackBufferCapture(  )
+    {
+        camera = null;
     }
 
     void SetViewSize( int width, int height)
