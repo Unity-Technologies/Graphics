@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
