@@ -566,7 +566,6 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
-            #define SHADOW_LOW
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"

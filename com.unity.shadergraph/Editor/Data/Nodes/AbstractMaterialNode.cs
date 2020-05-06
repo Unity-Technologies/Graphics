@@ -582,16 +582,16 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public void AddSlot(MaterialSlot slot)
+        public void AddSlot(MaterialSlot slot, bool findPrevInstance = true)
         {
             if(slot == null)
-        {
+            {
                 throw new ArgumentException($"Trying to add null slot to node {this}");
             }
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (foundSlot != null && slot.GetType() == foundSlot.GetType())
+            if (foundSlot != null && slot.GetType() == foundSlot.GetType() && findPrevInstance)
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
@@ -607,7 +607,7 @@ namespace UnityEditor.ShaderGraph
 
             OnSlotsChanged();
 
-            if (foundSlot == null)
+            if (foundSlot == null || foundSlot == slot)
                 return;
 
             slot.CopyValuesFrom(foundSlot);
