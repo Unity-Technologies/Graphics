@@ -21,7 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 LightUnit lightUnit = (commonIESImporter.iesMetaData.IESMaximumIntensityUnit == "Lumens") ? LightUnit.Lumen : LightUnit.Candela;
                 hdLight.SetIntensity(commonIESImporter.iesMetaData.IESMaximumIntensity, lightUnit);
-                hdLight.SetIES(ies);
+                hdLight.IES = ies;
             }
         }
 

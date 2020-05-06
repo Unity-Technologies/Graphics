@@ -40,35 +40,10 @@ float3 SampleCookie2D(float2 coord, float4 scaleOffset, float lod = 0) // TODO: 
 }
 
 // Used by point lights.
-float3 SamplePointCookie(float3 lightToSample, float3 worldPos, float3 forward, PositionInputs posInput, float4 scaleOffset, float lod = 0)
+float3 SamplePointCookie(float3 lightToSample, float3 worldPos, float3 forward, float4 scaleOffset, float lod = 0)
 {
     float2 params = PackNormalOctQuadEncode(lightToSample);
     float2 uv     = saturate(params*0.5f + 0.5f);
 
-    float scale = 1.0f;
-
-    //float d = abs(dot(worldPos - _WorldSpaceCameraPos, lightToSample));
-        //abs(dot(lightToSample, worldPos - _WorldSpaceCameraPos));
-
-    //float dd = posInput.positionWS - _WorldSpaceCameraPos;
-    //float d = dot(dd, dd);
-
-    //float2 ddx_ = scale * uvdx;
-    //float2 ddy_ = scale * uvdy;
-    //float  d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
-
-#if UNITY_REVERSED_Z == 1
-    float d = 1.0f - posInput.linearDepth;
-#else
-    float d = posInput.linearDepth;
-#endif
-        //(posInput.linearDepth - UNITY_NEAR_CLIP_VALUE)/(UNITY_RAW_FAR_CLIP_VALUE - UNITY_NEAR_CLIP_VALUE);
-
-    //float usedLod = max(0.5f*log2(d/15000.0f), 0.0f);
-        //max(0.5 * log2(d) - bias, 0.0);
-    //float usedLod = saturate(smoothstep(0.0f, 1.0f, d))*COOKIE_ATLAS_LAST_VALID_MIP;
-    float usedLod = saturate( 10000000.0f/**( d )*/ )*COOKIE_ATLAS_LAST_VALID_MIP;
-    //COOKIE_ATLAS_LAST_VALID_MIP
-
-    return SampleCookie2D(uv, scaleOffset, usedLod/*lod*/);
+    return SampleCookie2D(uv, scaleOffset, lod);
 }

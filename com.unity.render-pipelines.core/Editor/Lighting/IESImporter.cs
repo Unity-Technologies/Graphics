@@ -5,42 +5,6 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
-    public enum IESLightType
-    {
-        Point,
-        Spot,
-    }
-
-    [System.Serializable]
-    public class IESMetaData
-    {
-        public string FileFormatVersion;
-        public string IESPhotometricType;
-        public float  IESMaximumIntensity;
-        public string IESMaximumIntensityUnit;
-
-        // IES luminaire product information.
-        public string Manufacturer;           // IES keyword MANUFAC
-        public string LuminaireCatalogNumber; // IES keyword LUMCAT
-        public string LuminaireDescription;   // IES keyword LUMINAIRE
-        public string LampCatalogNumber;      // IES keyword LAMPCAT
-        public string LampDescription;        // IES keyword LAMP
-
-        public IESLightType PrefabLightType = IESLightType.Point;
-
-        [Range(1f, 179f)]
-        public float SpotAngle = 120f;
-        [Range(32, 2048)]
-        public int   iesSize = 128;
-        public bool  ApplyLightAttenuation  = true;
-        public bool  UseIESMaximumIntensity = true;
-
-        public TextureImporterCompression CookieCompression = TextureImporterCompression.Uncompressed;
-
-        [Range(-180f, 180f)]
-        public float LightAimAxisRotation = -90f;
-    }
-
     [System.Serializable]
     public class IESImporter
     {
@@ -53,7 +17,7 @@ namespace UnityEditor.Rendering
         {
             Texture cookieTextureCube   = null;
             Texture cookieTexture2D     = null;
-            Texture cylindricalTexture  = null;
+            //Texture cylindricalTexture  = null;
 
             string iesFilePath  = Path.Combine(Path.GetDirectoryName(Application.dataPath), ctx.assetPath);
             string errorMessage = engine.ReadFile(iesFilePath);
@@ -84,11 +48,11 @@ namespace UnityEditor.Rendering
                     ctx.LogImportWarning($"Cannot properly generate IES 2D texture: {warningMessage}");
                 }
 
-                (warningMessage, cylindricalTexture) = engine.GenerateCylindricalTexture(iesMetaData.CookieCompression, iesMetaData.iesSize);
-                if (!string.IsNullOrEmpty(warningMessage))
-                {
-                    ctx.LogImportWarning($"Cannot properly generate IES latitude-longitude texture: {warningMessage}");
-                }
+                //(warningMessage, cylindricalTexture) = engine.GenerateCylindricalTexture(iesMetaData.CookieCompression, iesMetaData.iesSize);
+                //if (!string.IsNullOrEmpty(warningMessage))
+                //{
+                //    ctx.LogImportWarning($"Cannot properly generate IES latitude-longitude texture: {warningMessage}");
+                //}
             }
             else
             {
@@ -97,6 +61,7 @@ namespace UnityEditor.Rendering
 
             string iesFileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
 
+            var iesObject = ScriptableObject.CreateInstance<IESObject>();
             var lightObject = new GameObject(iesFileName);
 
             lightObject.transform.localEulerAngles = new Vector3(90f, 0f, iesMetaData.LightAimAxisRotation);
@@ -106,13 +71,14 @@ namespace UnityEditor.Rendering
             light.intensity = 1f;  // would need a better intensity value formula
             light.range     = 10f; // would need a better range value formula
             light.spotAngle = iesMetaData.SpotAngle;
-            //light.cookie    = (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D;
 
             setupRenderPipelinePrefabLight(engine, light, (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D);
 
+            ctx.AddObjectToAsset("IES", iesObject);
+            ctx.SetMainObject(iesObject);
+
             // The light object will be automatically converted into a prefab.
             ctx.AddObjectToAsset(iesFileName, lightObject);
-            ctx.SetMainObject(lightObject);
 
             if (cookieTextureCube != null)
             {
@@ -124,11 +90,11 @@ namespace UnityEditor.Rendering
                 cookieTexture2D.name = iesFileName + "-2D-IES";
                 ctx.AddObjectToAsset(cookieTexture2D.name, cookieTexture2D);
             }
-            if (cylindricalTexture != null)
-            {
-                cylindricalTexture.name = iesFileName + "-Cylindrical-IES";
-                ctx.AddObjectToAsset(cylindricalTexture.name, cylindricalTexture);
-            }
+            //if (cylindricalTexture != null)
+            //{
+            //    cylindricalTexture.name = iesFileName + "-Cylindrical-IES";
+            //    ctx.AddObjectToAsset(cylindricalTexture.name, cylindricalTexture);
+            //}
         }
     }
 }

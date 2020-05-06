@@ -40,7 +40,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty minFilterSize;
         public SerializedProperty scaleForSoftness;
         public SerializedProperty areaLightCookie; // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
-        public SerializedProperty ies;
+        public SerializedProperty iesPoint;
+        public SerializedProperty iesSpot;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -314,7 +315,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 minFilterSize = o.Find("m_MinFilterSize");
                 scaleForSoftness = o.Find("m_SoftnessScale");
                 areaLightCookie = o.Find("m_AreaLightCookie");
-                ies = o.Find("m_IES");
+                iesPoint = o.Find("m_IESPoint");
+                iesSpot = o.Find("m_IESSpot");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

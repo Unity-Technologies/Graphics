@@ -2744,23 +2744,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
                 case HDLightType.Point:
-                    if (light.cookie != null && hdLightData.IES != null && light.cookie != hdLightData.IES)
-                        m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IES);
+                    if (light.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
+                        m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IESPoint);
                     else if (light?.cookie != null)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie);
-                    else if (hdLightData?.IES != null)
-                        m_TextureCaches.lightCookieManager.ReserveSpaceCube(hdLightData.IES);
+                    else if (hdLightData.IESPoint != null)
+                        m_TextureCaches.lightCookieManager.ReserveSpaceCube(hdLightData.IESPoint);
                     break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
                     //if (hdLightData.spotLightShape != SpotLightShape.Cone)// && (light?.cookie != null || hdLightData?.IES != null))
                     {
-                        if (light.cookie != null && hdLightData.IES != null && light.cookie != hdLightData.IES)
-                            m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IES);
+                        if (light.cookie != null && hdLightData.IESSpot != null && light.cookie != hdLightData.IESSpot)
+                            m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie, hdLightData.IESSpot);
                         else if (light?.cookie != null)
                             m_TextureCaches.lightCookieManager.ReserveSpace(light.cookie);
-                        else if (hdLightData?.IES != null)
-                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IES);
+                        else if (hdLightData.IESSpot != null)
+                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
                         else
                             m_TextureCaches.lightCookieManager.ReserveSpace(Texture2D.whiteTexture);
                     }

@@ -568,21 +568,87 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Optional IES (Cubemap for PointLight, 2D Square texture for Spot)
+        // Optional IES (Cubemap for PointLight)
         [SerializeField, FormerlySerializedAs("ies")]
-        Texture m_IES = null;
+        Texture m_IESPoint;
+        // Optional IES (2D Square texture for Spot)
+        [SerializeField, FormerlySerializedAs("ies")]
+        Texture m_IESSpot;
+
+        /// <summary>
+        /// Get/Set IES texture for Point
+        /// </summary>
+        public Texture IESPoint
+        {
+            get => m_IESPoint;
+            set
+            {
+                if (value.dimension == TextureDimension.Cube)
+                    m_IESPoint = value;
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
+                    m_IESPoint = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get/Set IES texture for Spot.
+        /// </summary>
+        public Texture IESSpot
+        {
+            get => m_IESSpot;
+            set
+            {
+                if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
+                    m_IESSpot = value;
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights (only square images).");
+                    m_IESSpot = null;
+                }
+            }
+        }
+
         /// <summary>
         /// Get/Set IES texture for Point & Spot.
         /// </summary>
         public Texture IES
         {
-            get => m_IES;
+            get
+            {
+                if (type == HDLightType.Point)
+                    return m_IESPoint;
+                else //if (type == HDLightType.Spot)
+                    return m_IESSpot;
+            }
             set
             {
-                if (m_IES == value)
-                    return;
-
-                SetIES(value);
+                if (type == HDLightType.Point && value == null)
+                    m_IESPoint = null;
+                else if (type == HDLightType.Spot && value == null)
+                    m_IESSpot = null;
+                else if (type == HDLightType.Point)
+                {
+                    if (value.dimension == TextureDimension.Cube)
+                        m_IESPoint = value;
+                    else
+                    {
+                        Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
+                        m_IESPoint = null;
+                    }
+                }
+                else if (type == HDLightType.Point)
+                {
+                    if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
+                        m_IESSpot = value;
+                    else
+                    {
+                        Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights (only square images).");
+                        m_IESSpot = null;
+                    }
+                }
             }
         }
 
@@ -2771,36 +2837,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cookie">Cookie texture, must be 2D for Directional, Spot and Area light and Cubemap for Point lights</param>
         public void SetCookie(Texture cookie) => SetCookie(cookie, Vector2.zero);
-
-        /// <summary>
-        /// Set light IES. Note that the texture must have a power of two size.
-        /// </summary>
-        /// <param name="IES">IES texture, must be 2D for Spot, and Cubemap for Point lights</param>
-        public void SetIES(Texture ies)
-        {
-            HDLightType lightType = type;
-            if (lightType == HDLightType.Point)
-            {
-                if (ies.dimension != TextureDimension.Cube)
-                {
-                    Debug.LogError("Texture dimension " + ies.dimension + " is not supported for point lights.");
-                    return;
-                }
-
-                m_IES = ies;
-            }
-            // Only 2D IES are supported for Spot lights
-            else if (lightType == HDLightType.Spot)
-            {
-                if (ies.dimension != TextureDimension.Tex2D)
-                {
-                    Debug.LogError("Texture dimension " + ies.dimension + " is not supported for Spot lights.");
-                    return;
-                }
-
-                m_IES = ies;
-            }
-        }
 
         /// <summary>
         /// Set the spot light angle and inner spot percent. We don't use Light.innerSpotAngle.
