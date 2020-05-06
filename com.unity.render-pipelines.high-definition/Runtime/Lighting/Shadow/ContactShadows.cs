@@ -31,9 +31,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public MinFloatParameter            maxDistance = new MinFloatParameter(50.0f, 0.0f);
         /// <summary>
+        /// The distance from the camera, in meters, at which HDRP begins to fade in Contact Shadows.
+        /// </summary>
+        public MinFloatParameter            minDistance = new MinFloatParameter(0.0f, 0.0f);
+        /// <summary>
         /// The distance, in meters, over which HDRP fades Contact Shadows out when past the Max Distance.
         /// </summary>
         public MinFloatParameter            fadeDistance = new MinFloatParameter(5.0f, 0.0f);
+        /// <summary>
+        /// The distance, in meters, over which HDRP fades Contact Shadows in when past the Min Distance.
+        /// </summary>
+        public MinFloatParameter            fadeInDistance = new MinFloatParameter(0.0f, 0.0f);
         /// <summary>
         /// Controls the number of samples HDRP takes along each contact shadow ray. Increasing this value can lead to higher quality.
         /// </summary>

@@ -48,7 +48,6 @@ Pass
     #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
         #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         #define HAS_LIGHTLOOP
-        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
     #endif
 
     // Dots Instancing
