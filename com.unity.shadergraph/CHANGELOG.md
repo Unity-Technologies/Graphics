@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed 
+- Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
 
 ## [8.1.0] - 2020-04-21
 

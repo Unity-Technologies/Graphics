@@ -335,6 +335,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
+            node.owner.owner.RegisterCompleteObjectUndo("Change Active Master");
             node.owner.activeOutputNodeGuid = node.guid;
         }
 
