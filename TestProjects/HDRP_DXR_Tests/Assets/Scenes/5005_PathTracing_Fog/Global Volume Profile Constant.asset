@@ -23,6 +23,48 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 0
     m_Value: 0
+--- !u!114 &-2490800146801316684
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31394aa05878563408489d5c1688f3a0, type: 3}
+  m_Name: PathTracing
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  layerMask:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 4294967295
+  maximumSamples:
+    m_OverrideState: 1
+    m_Value: 128
+    min: 1
+    max: 4096
+  minimumDepth:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 1
+    max: 10
+  maximumDepth:
+    m_OverrideState: 1
+    m_Value: 4
+    min: 1
+    max: 10
+  maximumIntensity:
+    m_OverrideState: 1
+    m_Value: 10
+    min: 0
+    max: 100
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39,7 +81,7 @@ MonoBehaviour:
   - {fileID: 1484085495701662583}
   - {fileID: -3965229614876563447}
   - {fileID: 6101240749536577297}
-  - {fileID: 3014918763847313413}
+  - {fileID: -2490800146801316684}
 --- !u!114 &1484085495701662583
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -127,51 +169,19 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 100
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0
---- !u!114 &3014918763847313413
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31394aa05878563408489d5c1688f3a0, type: 3}
-  m_Name: PathTracing
-  m_EditorClassIdentifier: 
-  active: 1
-  m_AdvancedMode: 0
-  enable:
-    m_OverrideState: 1
-    m_Value: 1
-  layerMask:
-    m_OverrideState: 1
-    m_Value:
-      serializedVersion: 2
-      m_Bits: 4294967295
-  maximumSamples:
-    m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 4096
-  minimumDepth:
-    m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 10
-  maximumDepth:
-    m_OverrideState: 1
-    m_Value: 4
-    min: 1
-    max: 10
-  maximumIntensity:
-    m_OverrideState: 1
-    m_Value: 10
-    min: 0
-    max: 100
 --- !u!114 &6101240749536577297
 MonoBehaviour:
   m_ObjectHideFlags: 3

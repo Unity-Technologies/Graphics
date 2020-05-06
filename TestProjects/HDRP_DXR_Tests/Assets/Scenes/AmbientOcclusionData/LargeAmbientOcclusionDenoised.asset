@@ -77,8 +77,8 @@ MonoBehaviour:
     min: 0
     max: 50
   sampleCount:
-    m_OverrideState: 0
-    m_Value: 4
+    m_OverrideState: 1
+    m_Value: 16
     min: 1
     max: 64
   denoise:
@@ -146,6 +146,9 @@ MonoBehaviour:
     m_Value: 1
   skyAmbientMode:
     m_OverrideState: 1
+    m_Value: 0
+  fogType:
+    m_OverrideState: 0
     m_Value: 0
 --- !u!114 &6873565285517369310
 MonoBehaviour:

@@ -23,7 +23,7 @@ MonoBehaviour:
   fogType:
     m_OverrideState: 0
     m_Value: 0
---- !u!114 &-627629825505719197
+--- !u!114 &-2584325432177170548
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -47,7 +47,7 @@ MonoBehaviour:
       m_Bits: 4294967295
   maximumSamples:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 128
     min: 1
     max: 4096
   minimumDepth:
@@ -81,7 +81,7 @@ MonoBehaviour:
   - {fileID: 1484085495701662583}
   - {fileID: -3965229614876563447}
   - {fileID: 5102881762881157013}
-  - {fileID: -627629825505719197}
+  - {fileID: -2584325432177170548}
 --- !u!114 &1484085495701662583
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -169,6 +169,16 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 100
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0

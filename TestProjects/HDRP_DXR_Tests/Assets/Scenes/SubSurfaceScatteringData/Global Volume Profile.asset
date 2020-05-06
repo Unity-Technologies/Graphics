@@ -220,6 +220,9 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 1
     min: 0.001
+  weightTextureMask:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
 --- !u!114 &7284140104305853682
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -239,7 +242,7 @@ MonoBehaviour:
     m_Value: 1
   sampleCount:
     m_OverrideState: 1
-    m_Value: 2
+    m_Value: 32
     min: 1
     max: 32
 --- !u!114 &7403965000729074061
