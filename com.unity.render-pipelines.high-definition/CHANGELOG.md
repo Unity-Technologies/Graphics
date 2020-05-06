@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shadowmask and realtime reflection probe property are hide in Quality settings
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 
+### Added
+- Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+
 ## [8.1.0] - 2020-04-21
 
 ### Added
