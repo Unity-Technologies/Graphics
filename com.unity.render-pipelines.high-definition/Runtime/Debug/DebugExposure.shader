@@ -10,8 +10,6 @@ Shader "Hidden/HDRP/DebugExposure"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
-#pragma enable_d3d11_debug_symbols
-
     #pragma vertex Vert
     #pragma target 4.5
     #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
