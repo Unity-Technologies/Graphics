@@ -2193,6 +2193,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 if (m_ChildEmissiveMeshViewer.gameObject.isStatic != gameObject.isStatic)
                     m_ChildEmissiveMeshViewer.gameObject.isStatic = gameObject.isStatic;
+                if (GameObjectUtility.GetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject) != GameObjectUtility.GetStaticEditorFlags(gameObject))
+                    GameObjectUtility.SetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject, GameObjectUtility.GetStaticEditorFlags(gameObject));
             }
 #endif
 
