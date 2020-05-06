@@ -62,8 +62,6 @@ platforms:
   - name: Linux
     os: linux
     apis: 
-      - name: OpenGLCore
-        cmd: -force-glcore
       - name: Vulkan
         cmd: -force-vulkan
     agent_default:
