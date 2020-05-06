@@ -6,6 +6,17 @@ PropertySheet > #content > #header{
     margin-left: 4px;
 }
 
+PropertySheet > #content > #error {
+    -unity-font-style: bold;
+    max-height: 10px;
+    margin-bottom: 15px;
+}
+
+PropertySheet > #content > #error > Label{
+    -unity-font-style: bold;
+    color: yellow;
+}
+
 PropertySheet > #content > #header > Label{
     color: #C1C1C1;
     font-size: 11px;
