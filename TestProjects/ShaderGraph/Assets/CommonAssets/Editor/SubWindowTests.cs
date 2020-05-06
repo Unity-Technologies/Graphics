@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
@@ -196,6 +196,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             // Keep inside the GraphEditor in the same way as expected
             Rect editorViewContainer = m_GraphEditorView.graphView.contentContainer.layout;
+            Rect blackboardRectBefore = blackboardRect;
             if (blackboardRect.x + blackboardRect.width > editorViewContainer.width)
                 blackboardRect.x = editorViewContainer.width - blackboardRect.width;
             if (blackboardRect.y + blackboardRect.height > editorViewContainer.height)
@@ -207,13 +208,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             // Using approximately instead of exact comparisons, which is why we don't use (blackboard.layout == blackboardRect)
             Assert.That(Mathf.Approximately(blackboard.layout.x, blackboardRect.x), "Blackboard did not remember location, x differs: "
-                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect + " blackboardRectPreModification=" + blackboardRectBefore);
             Assert.That(Mathf.Approximately(blackboard.layout.y, blackboardRect.y), "Blackboard did not remember location, y differs: "
-                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect + " blackboardRectPreModification=" + blackboardRectBefore);
             Assert.That(Mathf.Approximately(blackboard.layout.width, blackboardRect.width), "Blackboard did not remember width: "
-                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect + " blackboardRectPreModification=" + blackboardRectBefore);
             Assert.That(Mathf.Approximately(blackboard.layout.height, blackboardRect.height), "Blackboard did not remember height: "
-                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect);
+                + "m_GraphEditorView.layout=" + m_GraphEditorView.layout + " blackboard.layout=" + blackboard.layout + " blackboardRect=" + blackboardRect + " blackboardRectPreModification=" + blackboardRectBefore);
         }
 
     }
