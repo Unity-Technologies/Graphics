@@ -31,8 +31,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         internal delegate void MessageManagerCallback(string message);
 
         // Keyword
-        ReorderableList m_ReorderableList;
-        int m_SelectedIndex;
+        ReorderableList m_KeywordReorderableList;
+        int m_KeywordSelectedIndex;
+
+        //Virtual Texture
+        ReorderableList m_VTReorderableList;
+        int m_VTSelectedIndex;
 
         // Reference Name
         TextField m_ReferenceNameField;
@@ -169,6 +173,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 break;
             case Texture2DArrayShaderProperty texture2DArrayProperty:
                 HandleTexture2DArrayProperty(propertySheet, texture2DArrayProperty);
+                break;
+            case VirtualTextureShaderProperty virtualTextureProperty:
+                HandleVirtualTextureProperty(propertySheet, virtualTextureProperty);
                 break;
             case Texture3DShaderProperty texture3DProperty:
                 HandleTexture3DProperty(propertySheet, texture3DProperty);
@@ -465,7 +472,182 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 out var texture2DArrayField
             ));
         }
+#region VT reorderable list handler
+        void HandleVirtualTextureProperty(PropertySheet propertySheet, VirtualTextureShaderProperty virtualTextureProperty)
+        {
+            var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) {name = "ListContainer"};
+            AddPropertyRowToSheet(propertySheet, container, "Entries");
+        }
 
+        private void OnVTGUIHandler(VirtualTextureShaderProperty property)
+        {
+            if(m_VTReorderableList == null)
+            {
+                VTRecreateList(property);
+                VTAddCallbacks(property);
+            }
+
+            m_VTReorderableList.index = m_VTSelectedIndex;
+            m_VTReorderableList.DoLayoutList();
+        }
+
+        internal void VTRecreateList(VirtualTextureShaderProperty property)
+        {
+            // Create reorderable list from entries
+            m_VTReorderableList = new ReorderableList(property.value.layers, typeof(SerializableVirtualTextureLayer), true, true, true, true);
+        }
+
+        private void VTAddCallbacks(VirtualTextureShaderProperty property)
+        {
+            // Draw Header
+            m_VTReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                int indent = 14;
+                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(displayRect, "Display Name");
+                var referenceRect = new Rect((rect.x) + (rect.width - indent) / 3, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(referenceRect, "Reference Name");
+                var textureRect = new Rect((rect.x) + (rect.width - indent) / 3 * 2, rect.y, (rect.width - indent) / 3, rect.height);
+                EditorGUI.LabelField(textureRect, "Texture Asset");
+            };
+
+            // Draw Element
+            m_VTReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            {
+                SerializableVirtualTextureLayer entry = ((SerializableVirtualTextureLayer)m_VTReorderableList.list[index]);
+                EditorGUI.BeginChangeCheck();
+
+                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
+                var layerRefName = EditorGUI.DelayedTextField( new Rect((rect.x + rect.width) / 3, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerRefName, EditorStyles.label);
+                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture), false);
+
+                SerializableTexture layerTexture = new SerializableTexture();
+                layerTexture.texture = (Texture)selectedObject;
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    //need to sanitize each layer with all existing properties
+                    string oldLayerName = property.value.layers[index].layerName;
+                    if (layerName != oldLayerName)
+                    {
+                        var otherPropertyNames = GraphData.BuildPropertyDisplayNameList(property.guid, oldLayerName);
+                        layerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", layerName);
+                    }
+
+                    string oldLayerRefName = property.value.layers[index].layerRefName;
+                    if (layerRefName != oldLayerRefName)
+                    {
+                        if (!string.IsNullOrEmpty(layerRefName))
+                        {
+                            string name = layerRefName.Trim();
+                            if (!string.IsNullOrEmpty(layerRefName))
+                            {
+                                if (Regex.IsMatch(name, @"^\d+"))
+                                    name = "_" + name;
+                                name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+                                var otherPropertyRefNames = GraphData.BuildPropertyReferenceNameList(property.guid, oldLayerRefName);
+                                layerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", name);
+                            }
+                        }
+                    }
+
+                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerRefName, layerTexture);
+
+                    //DirtyNodes();
+                    this._postChangeValueCallback(true);
+                }
+            };
+
+            // Element height
+            m_VTReorderableList.elementHeightCallback = (int indexer) =>
+            {
+                return m_VTReorderableList.elementHeight;
+            };
+
+            // Can add
+            m_VTReorderableList.onCanAddCallback = (ReorderableList list) =>
+            {
+                return list.count < 4;
+            };
+
+            // Can remove
+            m_VTReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            {
+                return list.count > 1;
+            };
+
+            void AddEntryLamda(ReorderableList list) => VTAddEntry(list, property);
+            void RemoveEntryLamda(ReorderableList list) => VTRemoveEntry(list, property);
+            // Add callback delegates
+            m_VTReorderableList.onSelectCallback += VTSelectEntry;
+            m_VTReorderableList.onAddCallback += AddEntryLamda;
+            m_VTReorderableList.onRemoveCallback += RemoveEntryLamda;
+            m_VTReorderableList.onReorderCallback += VTReorderEntries;
+        }
+
+        private void VTSelectEntry(ReorderableList list)
+        {
+            m_VTSelectedIndex = list.index;
+        }
+
+        private void VTAddEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            this._preChangeValueCallback("Add Virtual Texture Entry");
+
+            int index = VTGetFirstUnusedID(property);
+            if (index <= 0)
+                return; // Error has already occured, don't attempt to add this entry.
+
+            var layerName = "Layer" + index.ToString();
+            // Add new entry
+            property.value.layers.Add(new SerializableVirtualTextureLayer(layerName, layerName, new SerializableTexture()));
+
+            // Update Blackboard & Nodes
+            //DirtyNodes();
+            this._postChangeValueCallback(true);
+            m_VTSelectedIndex = list.list.Count - 1;
+        }
+
+        // Allowed indicies are 1-MAX_ENUM_ENTRIES
+        private int VTGetFirstUnusedID(VirtualTextureShaderProperty property)
+        {
+            List<int> ususedIDs = new List<int>();
+
+            foreach (SerializableVirtualTextureLayer virtualTextureEntry in property.value.layers)
+            {
+                ususedIDs.Add(property.value.layers.IndexOf(virtualTextureEntry));
+            }
+
+            for (int x = 1; x <= 4; x++)
+            {
+                if (!ususedIDs.Contains(x))
+                    return x;
+            }
+
+            Debug.LogError("GetFirstUnusedID: Attempting to get unused ID when all IDs are used.");
+            return -1;
+        }
+
+        private void VTRemoveEntry(ReorderableList list, VirtualTextureShaderProperty property)
+        {
+            this._preChangeValueCallback("Remove Virtual Texture Entry");
+
+            // Remove entry
+            m_VTSelectedIndex = list.index;
+            var selectedEntry = (SerializableVirtualTextureLayer)m_VTReorderableList.list[list.index];
+            property.value.layers.Remove(selectedEntry);
+
+            // Update Blackboard & Nodes
+            //DirtyNodes();
+            this._postChangeValueCallback(true);
+            m_VTSelectedIndex = m_VTSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_VTSelectedIndex;
+        }
+
+        private void VTReorderEntries(ReorderableList list)
+        {
+            this._postChangeValueCallback(true);
+        }
+#endregion
         void HandleTexture3DProperty(PropertySheet propertySheet, Texture3DShaderProperty texture3DShaderProperty)
         {
             var texture3DPropertyDrawer = new Texture3DPropertyDrawer();
@@ -697,7 +879,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             AddPropertyRowToSheet(propertySheet, field, "Default");
 
             // Entries
-            var container = new IMGUIContainer(() => OnGUIHandler()) {name = "ListContainer"};
+            var container = new IMGUIContainer(() => OnKeywordGUIHandler()) {name = "ListContainer"};
             AddPropertyRowToSheet(propertySheet, container, "Entries");
             container.SetEnabled(!keyword.isBuiltIn);
         }
@@ -711,34 +893,34 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             });
         }
 
-        void OnGUIHandler()
+        void OnKeywordGUIHandler()
         {
-            if(m_ReorderableList == null)
+            if(m_KeywordReorderableList == null)
             {
-                RecreateList();
-                AddCallbacks();
+                KeywordRecreateList();
+                KeywordAddCallbacks();
             }
 
-            m_ReorderableList.index = m_SelectedIndex;
-            m_ReorderableList.DoLayoutList();
+            m_KeywordReorderableList.index = m_KeywordSelectedIndex;
+            m_KeywordReorderableList.DoLayoutList();
         }
 
-        internal void RecreateList()
+        internal void KeywordRecreateList()
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
 
             // Create reorderable list from entries
-            m_ReorderableList = new ReorderableList(keyword.entries, typeof(KeywordEntry), true, true, true, true);
+            m_KeywordReorderableList = new ReorderableList(keyword.entries, typeof(KeywordEntry), true, true, true, true);
         }
 
-        void AddCallbacks()
+        void KeywordAddCallbacks()
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
 
             // Draw Header
-            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
+            m_KeywordReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
                 var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 2, rect.height);
@@ -748,9 +930,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+            m_KeywordReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
-                KeywordEntry entry = ((KeywordEntry)m_ReorderableList.list[index]);
+                KeywordEntry entry = ((KeywordEntry)m_KeywordReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
 
                 var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.displayName, EditorStyles.label);
@@ -769,33 +951,33 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) =>
+            m_KeywordReorderableList.elementHeightCallback = (int indexer) =>
             {
-                return m_ReorderableList.elementHeight;
+                return m_KeywordReorderableList.elementHeight;
             };
 
             // Can add
-            m_ReorderableList.onCanAddCallback = (ReorderableList list) =>
+            m_KeywordReorderableList.onCanAddCallback = (ReorderableList list) =>
             {
                 return list.count < 8;
             };
 
             // Can remove
-            m_ReorderableList.onCanRemoveCallback = (ReorderableList list) =>
+            m_KeywordReorderableList.onCanRemoveCallback = (ReorderableList list) =>
             {
                 return list.count > 2;
             };
 
             // Add callback delegates
-            m_ReorderableList.onSelectCallback += SelectEntry;
-            m_ReorderableList.onAddCallback += AddEntry;
-            m_ReorderableList.onRemoveCallback += RemoveEntry;
-            m_ReorderableList.onReorderCallback += ReorderEntries;
+            m_KeywordReorderableList.onSelectCallback += KeywordSelectEntry;
+            m_KeywordReorderableList.onAddCallback += KeywordAddEntry;
+            m_KeywordReorderableList.onRemoveCallback += KeywordRemoveEntry;
+            m_KeywordReorderableList.onReorderCallback += KeywordReorderEntries;
         }
 
-        void SelectEntry(ReorderableList list)
+        void KeywordSelectEntry(ReorderableList list)
         {
-            m_SelectedIndex = list.index;
+            m_KeywordSelectedIndex = list.index;
         }
 
         // Allowed indicies are 1-MAX_ENUM_ENTRIES
@@ -821,7 +1003,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return -1;
         }
 
-        void AddEntry(ReorderableList list)
+        void KeywordAddEntry(ReorderableList list)
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
@@ -841,10 +1023,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // Update GUI
             this._postChangeValueCallback(true);
             this._keywordChangedCallback();
-            m_SelectedIndex = list.list.Count - 1;
+            m_KeywordSelectedIndex = list.list.Count - 1;
         }
 
-        void RemoveEntry(ReorderableList list)
+        void KeywordRemoveEntry(ReorderableList list)
         {
             if(!(shaderInput is ShaderKeyword keyword))
                 return;
@@ -852,8 +1034,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._preChangeValueCallback("Remove Keyword Entry");
 
             // Remove entry
-            m_SelectedIndex = list.index;
-            var selectedEntry = (KeywordEntry)m_ReorderableList.list[list.index];
+            m_KeywordSelectedIndex = list.index;
+            var selectedEntry = (KeywordEntry)m_KeywordReorderableList.list[list.index];
             keyword.entries.Remove(selectedEntry);
 
             // Clamp value within new entry range
@@ -863,10 +1045,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             // Rebuild();
             this._postChangeValueCallback(true);
             this._keywordChangedCallback();
-            m_SelectedIndex = m_SelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_SelectedIndex;
+            m_KeywordSelectedIndex = m_KeywordSelectedIndex >= list.list.Count - 1 ? list.list.Count - 1 : m_KeywordSelectedIndex;
         }
 
-        void ReorderEntries(ReorderableList list)
+        void KeywordReorderEntries(ReorderableList list)
         {
             this._postChangeValueCallback(true);
         }
@@ -874,7 +1056,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         public string GetDuplicateSafeDisplayName(int id, string name)
         {
             name = name.Trim();
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name);
         }
 
@@ -882,7 +1064,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             name = name.Trim();
             name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-            var entryList = m_ReorderableList.list as List<KeywordEntry>;
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name);
         }
     }
