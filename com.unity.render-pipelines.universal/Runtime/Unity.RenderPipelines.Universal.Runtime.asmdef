@@ -3,7 +3,8 @@
     "references": [
         "GUID:d60799ab2a985554ea1a39cd38695018",
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:ab67fb10353d84448ac887a7367cbda8"
+        "GUID:ab67fb10353d84448ac887a7367cbda8",
+        "GUID:7dbf32976982c98448af054f2512cb79"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -17,6 +18,11 @@
             "name": "com.unity.visualeffectgraph",
             "expression": "0.0.1",
             "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.1.0-preview.1",
+            "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
         },
         {
             "name": "com.unity.modules.vr",
