@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowmask UI now correctly showing shadowmask disable
 - Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
 - Fixed a performance issue with stochastic ray traced area shadows.
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
