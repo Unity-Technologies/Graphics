@@ -172,9 +172,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                    var precision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Changed Graph Precision");
+                        graph.concretePrecision = precision;
+
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                         m_ColorManager.SetNodesDirty(nodeList);
                         graph.ValidateGraph();

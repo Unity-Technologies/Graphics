@@ -107,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 - Shader Graph now requests preview shader compilation asynchronously. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed an issue where Shader Graph would not compile master previews after an assembly reload.
+- Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
 - Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
 - Fixed a bug where searcher entries would not repopulate correctly after an undo was perfromed (https://fogbugz.unity3d.com/f/cases/1241018/)
 
