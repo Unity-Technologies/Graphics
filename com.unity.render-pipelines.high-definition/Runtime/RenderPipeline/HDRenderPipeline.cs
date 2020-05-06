@@ -289,6 +289,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool                            m_IsDepthBufferCopyValid;
         RenderTexture                   m_TemporaryTargetForCubemaps;
+        HDCamera                        m_CurrentHDCamera;
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
@@ -575,6 +576,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #endif
+
+        /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
+        {
+            RTHandles.ResetReferenceSize(width, height);
+            HDCamera.ResetAllHistoryRTHandleSystems(width, height);
+            if (m_RenderGraph != null)
+                m_RenderGraph.ResetRTHandleReferenceSize(width, height);
+        }
 
         void InitializeRenderTextures()
         {
@@ -1003,7 +1018,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Dispose of Render Pipeline can be call either by OnValidate() or by OnDisable().
             // Inside an OnValidate() call we can't call a DestroyImmediate().
             // Here we are releasing our singleton to not leak while doing a domain reload.
-            // However this is doing a call to DestroyImmediate(). 
+            // However this is doing a call to DestroyImmediate().
             // To workaround this, and was we only leak with Singleton while doing domain reload (and not in OnValidate)
             // we are detecting if we are in an OnValidate call and releasing the Singleton only if it is not the case.
             if (!m_Asset.isInOnValidateCall)
@@ -1668,6 +1683,14 @@ namespace UnityEngine.Rendering.HighDefinition
                             continue;
                         }
 
+                        // HACK! We render the probe until we know the ambient probe for the associated sky context is ready.
+                        // For one-off rendering the dynamic ambient probe will be set to black until they are not processed, leading to faulty rendering.
+                        // So we enqueue another rendering and then we will not set the probe texture until we have rendered with valid ambient probe.
+                        if (!m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                        {
+                            visibleProbe.ForceRenderingNextUpdate();
+                        }
+
                         hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
 
                         HDAdditionalCameraData hdCam;
@@ -1714,26 +1737,30 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TODO: store DecalCullResult
                         };
 
-                        // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
-                        visibleProbe.realtimeTexture.IncrementUpdateCount();
+                        if (m_SkyManager.HasSetValidAmbientProbe(hdCamera))
+                        {
+                            // As we render realtime texture on GPU side, we must tag the texture so our texture array cache detect that something have change
+                            visibleProbe.realtimeTexture.IncrementUpdateCount();
 
-                        if (cameraSettings.Count > 1)
-                        {
-                            var face = (CubemapFace)j;
-                            request.target = new RenderRequest.Target
+                            if (cameraSettings.Count > 1)
                             {
-                                copyToTarget = visibleProbe.realtimeTexture,
-                                face = face
-                            };
-                        }
-                        else
-                        {
-                            request.target = new RenderRequest.Target
+                                var face = (CubemapFace)j;
+                                request.target = new RenderRequest.Target
+                                {
+                                    copyToTarget = visibleProbe.realtimeTexture,
+                                    face = face
+                                };
+                            }
+                            else
                             {
-                                id = visibleProbe.realtimeTexture,
-                                face = CubemapFace.Unknown
-                            };
+                                request.target = new RenderRequest.Target
+                                {
+                                    id = visibleProbe.realtimeTexture,
+                                    face = CubemapFace.Unknown
+                                };
+                            }
                         }
+
                         renderRequests.Add(request);
 
 
@@ -1956,6 +1983,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
+            m_CurrentHDCamera = hdCamera;
 
             if (m_RayTracingSupported)
             {
@@ -2617,6 +2645,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Otherwise command would not be rendered in order.
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
+
+            m_CurrentHDCamera = null;
         }
 
         struct BlitFinalCameraTextureParameters
@@ -4821,6 +4851,99 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var colorBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
                 VFXManager.SetCameraBuffer(hdCamera.camera, VFXCameraBufferTypes.Color, colorBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
+            }
+        }
+
+        /// <summary>
+        /// Overrides the current camera, changing all the matrices and view parameters for the new one.
+        /// It allows you to render objects from another camera, which can be useful in custom passes for example.
+        /// </summary>
+        internal struct OverrideCameraRendering : IDisposable
+        {
+            CommandBuffer   cmd;
+            Camera          overrideCamera;
+            HDCamera        overrideHDCamera;
+            float           originalAspect;
+
+            /// <summary>
+            /// Overrides the current camera, changing all the matrices and view parameters for the new one.
+            /// </summary>
+            /// <param name="cmd">The current command buffer in use</param>
+            /// <param name="overrideCamera">The camera that will replace the current one</param>
+            /// <example>
+            /// <code>
+            /// using (new HDRenderPipeline.OverrideCameraRendering(cmd, overrideCamera))
+            /// {
+            ///     ...
+            /// }
+            /// </code>
+            /// </example>
+            public OverrideCameraRendering(CommandBuffer cmd, Camera overrideCamera)
+            {
+                this.cmd = cmd;
+                this.overrideCamera = overrideCamera;
+                this.overrideHDCamera = null;
+                this.originalAspect = 0;
+
+                if (!IsContextValid(overrideCamera))
+                    return;
+
+                var hdrp = HDRenderPipeline.currentPipeline;
+                overrideHDCamera = HDCamera.GetOrCreate(overrideCamera);
+
+                // Mark the HDCamera as persistant so it's not deleted because it's camera is disabled.
+                overrideHDCamera.isPersistent = true;
+
+                // We need to patch the pixel rect of the camera because by default the camera size is synchronized 
+                // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
+                // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
+                overrideHDCamera.OverridePixelRect(hdrp.m_CurrentHDCamera.camera.pixelRect);
+                // We also sync the aspect ratio of the camera, this time using the camera instead of HDCamera.
+                // This will update the projection matrix to match the aspect of the current rendering camera.
+                originalAspect = overrideCamera.aspect;
+                overrideCamera.aspect = (float)hdrp.m_CurrentHDCamera.camera.pixelRect.width / (float)hdrp.m_CurrentHDCamera.camera.pixelRect.height;
+
+                // Update HDCamera datas
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
+                // Reset the reference size as it could have been changed by the override camera
+                hdrp.m_CurrentHDCamera.SetReferenceSize();
+                overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
+
+                ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+            }
+
+            bool IsContextValid(Camera overrideCamera)
+            {
+                var hdrp = HDRenderPipeline.currentPipeline;
+
+                if (hdrp.m_CurrentHDCamera == null)
+                {
+                    Debug.LogError("OverrideCameraRendering can only be called inside the render loop !");
+                    return false;
+                }
+
+                if (overrideCamera == hdrp.m_CurrentHDCamera.camera)
+                    return false;
+                
+                return true;
+            }
+
+            /// <summary>
+            /// Reset the camera settings to the original camera
+            /// </summary>
+            void IDisposable.Dispose()
+            {
+                if (!IsContextValid(overrideCamera))
+                    return;
+
+                overrideHDCamera.ResetPixelRect();
+                overrideCamera.aspect = originalAspect;
+
+                var hdrp = HDRenderPipeline.currentPipeline;
+                // Reset the reference size as it could have been changed by the override camera
+                hdrp.m_CurrentHDCamera.SetReferenceSize();
+                hdrp.m_CurrentHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB, hdrp.m_FrameCount);
+                ConstantBuffer.PushGlobal(cmd, hdrp.m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
             }
         }
     }
