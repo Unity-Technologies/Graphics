@@ -19,11 +19,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleProbes.Clear();
         }
 
-        internal void AddRange(IEnumerable<HDProbe> visibleProbes)
+        internal void AddProbe(HDProbe visibleProbes)
         {
             Assert.IsNotNull(m_VisibleProbes);
 
-            m_VisibleProbes.AddRange(visibleProbes);
+            m_VisibleProbes.Add(visibleProbes);
         }
     }
 }

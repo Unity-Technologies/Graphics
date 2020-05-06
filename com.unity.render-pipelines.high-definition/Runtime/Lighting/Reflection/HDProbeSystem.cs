@@ -284,7 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Parameters.maxActivePlanarReflectionProbe + Parameters.maxActiveReflectionProbe
             );
             var indexCount = state.cullingGroup.QueryIndices(true, m_QueryCullResults_Indices, 0);
-            results.AddRange(Enumerable.Range(0, indexCount).Select(i => state.hdProbes[m_QueryCullResults_Indices[i]]));
+            for (var i = 0; i < indexCount; ++i)
+                results.AddProbe(state.hdProbes[m_QueryCullResults_Indices[i]]);
         }
 
         static void RemoveDestroyedProbes(HashSet<HDProbe> probes)
