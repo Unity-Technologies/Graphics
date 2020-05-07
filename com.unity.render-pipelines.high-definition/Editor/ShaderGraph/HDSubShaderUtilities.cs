@@ -65,9 +65,9 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR, bool recieveSSRTransparent = false)
+        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool ssrStencil, bool receiveSSROpaque, bool recieveSSRTransparent)
         {
-            BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
+            BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
-            collector.AddToggleProperty(kReceivesSSR, receiveSSR);
+            collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
             collector.AddToggleProperty(kReceivesSSRTransparent, recieveSSRTransparent);
 
         }
@@ -168,6 +168,12 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_RayTracing", isRayTracing);
         }
         
+        public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
+        {
+            collector.AddToggleProperty(kTransparentDepthPrepassEnable, prepass);
+            collector.AddToggleProperty(kTransparentDepthPostpassEnable, postpass);
+        }
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
