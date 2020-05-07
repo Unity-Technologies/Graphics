@@ -655,7 +655,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewsNeedsRecompile.ExceptWith(previewsToCompile);
 
                 // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
-                var nodesToCompile = previewsToCompile.Select(x => x.shaderData.node);
+                var nodesToCompile = new HashSet<AbstractMaterialNode>();
+                nodesToCompile.UnionWith(previewsToCompile.Select(x => x.shaderData.node));
+                nodesToCompile.Remove(null);
                 m_Messenger.ClearNodesFromProvider(this, nodesToCompile);               // not sure if it needs notification for BlockNodes when master rebuilds?
 
                 // Force async compile on
