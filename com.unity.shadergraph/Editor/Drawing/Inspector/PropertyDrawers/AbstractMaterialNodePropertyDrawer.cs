@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
-    public class NodePropertyDrawer : IPropertyDrawer
+    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer
     {
         public Action inspectorUpdateDelegate { get; set; }
 
@@ -29,7 +29,7 @@ namespace Drawing.Inspector.PropertyDrawers
 
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
-            var defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(attribute.labelName, 0));
+            var defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(attribute.labelName));
             EnumField precisionField = null;
             if(node.canSetPrecision)
             {
@@ -60,7 +60,7 @@ namespace Drawing.Inspector.PropertyDrawers
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {
             return this.CreateGUI(
-                (AbstractMaterialNode) propertyInfo.GetValue(actualObject),
+                (AbstractMaterialNode) actualObject,
                 attribute,
                 out var propertyVisualElement);
         }

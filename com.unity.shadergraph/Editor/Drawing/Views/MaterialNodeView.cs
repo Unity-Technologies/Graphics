@@ -4,17 +4,12 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing.Controls;
-using UnityEngine.Rendering;
 using Data.Interfaces;
 using Drawing.Inspector.PropertyDrawers;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
-using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
 using Node = UnityEditor.Experimental.GraphView.Node;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -33,15 +28,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_PortInputContainer;
-        VisualElement m_SettingsContainer;
-        bool m_ShowSettings = false;
-        VisualElement m_SettingsButton;
-        VisualElement m_Settings;
-        VisualElement m_NodeSettingsView;
 
         MaterialGraphView m_GraphView;
 
-        public string inspectorTitle => $"{node.name} (Node)";
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener, MaterialGraphView graphView)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialNodeView"));
@@ -167,36 +156,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
             }
 
-            m_NodeSettingsView = new NodeSettingsView();
-            m_NodeSettingsView.visible = false;
-            Add(m_NodeSettingsView);
-
-            m_SettingsButton = new VisualElement {name = "settings-button"};
-                m_SettingsButton.Add(new VisualElement {name = "icon"});
-
-            m_Settings = new VisualElement();
-            AddDefaultSettings();
-
-            // Add Node type specific settings
-            var nodeTypeSettings = node as IHasSettings;
-            if (nodeTypeSettings != null)
-                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
-            // Add manipulators
-            m_SettingsButton.AddManipulator(new Clickable(() =>
-                {
-                    UpdateSettingsExpandedState();
-                }));
-
-            if(m_Settings.childCount > 0)
-            {
-                    m_ButtonContainer = new VisualElement {name = "button-container"};
-                m_ButtonContainer.style.flexDirection = FlexDirection.Row;
-                m_ButtonContainer.Add(m_SettingsButton);
-                m_ButtonContainer.Add(m_CollapseButton);
-                m_TitleContainer.Add(m_ButtonContainer);
-            }
-
             // Update active state
             SetActive(node.isActive);
 
@@ -271,17 +230,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Color GetColor()
         {
             return m_TitleContainer.resolvedStyle.borderBottomColor;
-        }
-
-        void OnGeometryChanged(GeometryChangedEvent evt)
-        {
-            // style.positionTop and style.positionLeft are in relation to the parent,
-            // so we translate the layout of the settings button to be in the coordinate
-            // space of the settings view's parent.
-
-            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
-            m_NodeSettingsView.style.top = settingsButtonLayout.yMax - 18f;
-            m_NodeSettingsView.style.left = settingsButtonLayout.xMin - 16f;
         }
 
         void OnSubGraphDoubleClick(MouseDownEvent evt)
@@ -370,41 +318,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             return generator.generatedShader;
         }
 
-        void AddDefaultSettings()
-        {
-            PropertySheet ps = new PropertySheet();
-            bool hasDefaultSettings = false;
-
-            if(node.canSetPrecision)
-            {
-                hasDefaultSettings = true;
-                ps.Add(new PropertyRow(new Label("Precision")), (row) =>
-                {
-                    row.Add(new EnumField(node.precision), (field) =>
-                    {
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (evt.newValue.Equals(node.precision))
-                                return;
-
-                            var editorView = GetFirstAncestorOfType<GraphEditorView>();
-                            var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
-
-                            editorView.colorManager.SetNodesDirty(nodeList);
-                            node.owner.owner.RegisterCompleteObjectUndo("Change precision");
-                            node.precision = (Precision)evt.newValue;
-                            node.owner.ValidateGraph();
-                            editorView.colorManager.UpdateNodeViews(nodeList);
-                            node.Dirty(ModificationScope.Graph);
-                        });
-                    });
-                });
-            }
-
-            if(hasDefaultSettings)
-                m_Settings.Add(ps);
-        }
-
         void SetNodesAsDirty()
         {
             var editorView = GetFirstAncestorOfType<GraphEditorView>();
@@ -419,56 +332,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             editorView.colorManager.UpdateNodeViews(nodeList);
         }
 
-        void RecreateSettings()
-        {
-            m_Settings.RemoveFromHierarchy();
-            m_Settings = new PropertySheet();
-
-            // Add default settings
-            AddDefaultSettings();
-
-            // Add Node type specific settings
-            var nodeTypeSettings = node as IHasSettings;
-            if (nodeTypeSettings != null)
-                m_Settings.Add(nodeTypeSettings.CreateSettingsElement());
-
-            m_NodeSettingsView.Add(m_Settings);
-        }
-
-        void UpdateSettingsExpandedState()
-        {
-            m_ShowSettings = !m_ShowSettings;
-            if (m_ShowSettings)
-            {
-                m_NodeSettingsView.Add(m_Settings);
-                m_NodeSettingsView.visible = true;
-                m_SettingsButton.AddToClassList("clicked");
-                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-                OnGeometryChanged(null);
-            }
-            else
-            {
-                m_Settings.RemoveFromHierarchy();
-                m_NodeSettingsView.visible = false;
-                m_SettingsButton.RemoveFromClassList("clicked");
-                UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
-            }
-        }
-
+        public string inspectorTitle => $"{node.name} (Node)";
 
         public object GetObjectToInspect()
         {
-            return this;
-        }
-
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            return this.GetType().GetProperties();
+            return node;
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
-            if (propertyDrawer is NodePropertyDrawer nodePropertyDrawer)
+            if (propertyDrawer is AbstractMaterialNodePropertyDrawer nodePropertyDrawer)
             {
                 nodePropertyDrawer.GetPropertyData(SetNodesAsDirty, UpdateNodeViews);
             }
@@ -558,8 +431,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Update slots to match node modification
             if (scope == ModificationScope.Topological)
             {
-                RecreateSettings();
-
                 var slots = node.GetSlots<MaterialSlot>().ToList();
 
                 var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
