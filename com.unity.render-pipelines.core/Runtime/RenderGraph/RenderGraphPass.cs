@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
-    [DebuggerDisplay("RenderPass ({name})")]
+    [DebuggerDisplay("RenderPass: {name} ({index})")]
     abstract class RenderGraphPass
     {
         public RenderFunc<PassData> GetExecuteDelegate<PassData>()
@@ -117,6 +117,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
     }
 
+    [DebuggerDisplay("RenderPass: {name} ({index})")]
     internal sealed class RenderGraphPass<PassData> : RenderGraphPass
         where PassData : class, new()
     {

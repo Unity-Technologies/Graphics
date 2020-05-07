@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                   historyRT.referenceSize.y * historyRT.scaleFactor.y);
                     var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);

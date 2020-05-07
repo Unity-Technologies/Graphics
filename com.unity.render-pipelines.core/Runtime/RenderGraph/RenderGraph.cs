@@ -395,18 +395,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             LogPrunedPasses();
         }
 
-        int GetLatestProducerIndex(in ResourceUsageInfo info)
+        int GetLatestProducerIndex(int passIndex, in ResourceUsageInfo info)
         {
-            return info.producers.Count == 0 ? -1 : info.producers[info.producers.Count - 1];
+            // We want to know the highest pass index below the current pass that writes to the resource.
+            int result = -1;
+            foreach(var producer in info.producers)
+            {
+                // producers are by construction in increasing order.
+                if (producer < passIndex)
+                    result = producer;
+                else
+                    return result;
+            }
+
+            return result;
         }
 
         void UpdateResourceSynchronization(ref int lastGraphicsPipeSync, ref int lastComputePipeSync, int currentPassIndex, in ResourceUsageInfo resource)
         {
-            int lastProducer = GetLatestProducerIndex(resource);
+            int lastProducer = GetLatestProducerIndex(currentPassIndex, resource);
             if (lastProducer != -1)
             {
                 RenderGraphPass currentPass = m_RenderPasses[currentPassIndex];
-                PassExecutionInfo currentPassInfo = m_PassExecutionInfo[currentPassIndex];
+                ref PassExecutionInfo currentPassInfo = ref m_PassExecutionInfo[currentPassIndex];
 
                 RenderGraphPass producerPass = m_RenderPasses[lastProducer];
                 //If the passes are on different pipes, we need synchronization.
@@ -542,14 +553,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
                 }
 
+                bool previousPassIsAsync = false;
+
                 using (new ProfilingScope(cmd, pass.customSampler))
                 {
                     LogRenderPassBegin(passIndex);
                     using (new RenderGraphLogIndent(m_Logger))
                     {
-                        PreRenderPassExecute(passIndex, rgContext);
+                        previousPassIsAsync = PreRenderPassExecute(passIndex, previousPassIsAsync, ref rgContext);
                         pass.Execute(rgContext);
-                        PostRenderPassExecute(cmd, passIndex, rgContext);
+                        PostRenderPassExecute(cmd, passIndex, ref rgContext);
                     }
                 }
             }
@@ -667,7 +680,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PreRenderPassExecute(int passIndex, RenderGraphContext rgContext)
+        bool PreRenderPassExecute(int passIndex, bool previousPassIsAsync, ref RenderGraphContext rgContext)
         {
             // TODO RENDERGRAPH merge clear and setup here if possible
             RenderGraphPass pass = m_RenderPasses[passIndex];
@@ -678,12 +691,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             PreRenderPassSetRenderTargets(passIndex, rgContext);
             m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.textureReadList);
 
-            // TODO RENDERGRAPH: See if we can keep the same command buffer between passes on the same pipe (and if that's useful at all)
             if (pass.enableAsyncCompute)
             {
-                // Flush first the current command buffer on the render context.
-                rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
-                rgContext.cmd.Clear();
+                if (!previousPassIsAsync)
+                {
+                    // Flush first the current command buffer on the render context.
+                    rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
+                    rgContext.cmd.Clear();
+                }
 
                 CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
@@ -695,9 +710,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 rgContext.cmd.WaitOnAsyncGraphicsFence(m_PassExecutionInfo[passInfo.syncWithPassIndex].fence);
             }
+
+            return pass.enableAsyncCompute;
         }
 
-        void PostRenderPassExecute(CommandBuffer mainCmd, int passIndex, RenderGraphContext rgContext)
+        void PostRenderPassExecute(CommandBuffer mainCmd, int passIndex, ref RenderGraphContext rgContext)
         {
             RenderGraphPass pass = m_RenderPasses[passIndex];
             ref PassExecutionInfo passInfo = ref m_PassExecutionInfo[passIndex];
