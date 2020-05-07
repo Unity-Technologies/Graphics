@@ -362,7 +362,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
-            int  key  = textureA.GetInstanceID().GetHashCode() + 23*textureB.GetInstanceID().GetHashCode();
+            int  key  = textureA.GetInstanceID().GetHashCode() +
+                        23*textureB.GetInstanceID().GetHashCode() +
+                        23*GetTextureHash(textureA) +
+                        23*GetTextureHash(textureB);
+
+            RenderTexture rtA = textureA as RenderTexture;
+            RenderTexture rtB = textureB as RenderTexture;
+            if (rtA != null)
+                key += 23*rtA.updateCount.GetHashCode();
+            if (rtB != null)
+                key += 23*rtB.updateCount.GetHashCode();
+
             uint uKey = (uint)key;
 
             uint currentKey;

@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering
             string iesFileName = Path.GetFileNameWithoutExtension(ctx.assetPath);
 
             var iesObject = ScriptableObject.CreateInstance<IESObject>();
+            iesObject.iesMetaData = iesMetaData;
             var lightObject = new GameObject(iesFileName);
 
             lightObject.transform.localEulerAngles = new Vector3(90f, 0f, iesMetaData.LightAimAxisRotation);

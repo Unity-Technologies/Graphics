@@ -30,8 +30,9 @@ namespace UnityEditor.Rendering
 
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
-        [Range(32, 2048)]
-        public int   iesSize = 128;
+        [Range(16f, 2048f)]
+        public int  iesSize = 128;
+
         public bool  ApplyLightAttenuation  = true;
         public bool  UseIESMaximumIntensity = true;
 
@@ -39,6 +40,32 @@ namespace UnityEditor.Rendering
 
         [Range(-180f, 180f)]
         public float LightAimAxisRotation = -90f;
+
+        public override int GetHashCode()
+        {
+            int hash = base.GetHashCode();
+
+            hash = hash*23 + FileFormatVersion.GetHashCode();
+            hash = hash*23 + IESPhotometricType.GetHashCode();
+            hash = hash*23 + IESMaximumIntensity.GetHashCode();
+            hash = hash*23 + IESMaximumIntensityUnit.GetHashCode();
+
+            hash = hash*23 + Manufacturer.GetHashCode();
+            hash = hash*23 + LuminaireCatalogNumber.GetHashCode();
+            hash = hash*23 + LuminaireDescription.GetHashCode();
+            hash = hash*23 + LampCatalogNumber.GetHashCode();
+            hash = hash*23 + LampDescription.GetHashCode();
+
+            hash = hash*23 + PrefabLightType.GetHashCode();
+
+            hash = hash*23 + SpotAngle.GetHashCode();
+
+            hash = hash*23 + iesSize.GetHashCode();
+            hash = hash*23 + ApplyLightAttenuation.GetHashCode();
+            hash = hash*23 + UseIESMaximumIntensity.GetHashCode();
+
+            return hash;
+        }
     }
 
     [System.Serializable]
