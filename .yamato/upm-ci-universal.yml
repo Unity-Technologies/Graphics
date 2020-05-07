@@ -183,7 +183,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
         - "**/test-results/**"
     code-coverage:
       paths:
-        -"**/code-coverage/**"
+        - "**/code-coverage/**"
 
 {% endif %}
 
