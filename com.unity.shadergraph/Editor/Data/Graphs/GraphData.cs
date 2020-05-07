@@ -1028,6 +1028,9 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
+            concretePrecision = other.concretePrecision;
+            m_OutputNode = other.m_OutputNode;
+
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
                 foreach (var property in m_Properties.SelectValue())
