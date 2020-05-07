@@ -65,6 +65,21 @@ namespace UnityEngine.Rendering.HighDefinition
         public AnimationCurveParameter curveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -10f, 20f, 20f)); // TODO: Use TextureCurve instead?
 
         /// <summary>
+        /// Specifies a curve that determines for each current exposure value (x-value) what minimum value is allowed to auto-adaptation (y-axis).
+        /// This parameter is only used when <see cref="ExposureMode.CurveMapping"/> is set.
+        /// </summary>
+        [Tooltip("Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.")]
+        public AnimationCurveParameter limitMinCurveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, -10f, 20f, -10f));
+
+        /// <summary>
+        /// Specifies a curve that determines for each current exposure value (x-value) what maximum value is allowed to auto-adaptation (y-axis).
+        /// This parameter is only used when <see cref="ExposureMode.CurveMapping"/> is set.
+        /// </summary>
+        [Tooltip("Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.")]
+        public AnimationCurveParameter limitMaxCurveMap = new AnimationCurveParameter(AnimationCurve.Linear(-10f, 20f, 20f, 20f));
+
+
+        /// <summary>
         /// Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>

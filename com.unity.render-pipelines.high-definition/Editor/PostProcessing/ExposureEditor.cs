@@ -16,7 +16,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_LimitMin;
         SerializedDataParameter m_LimitMax;
         SerializedDataParameter m_CurveMap;
-        
+        SerializedDataParameter m_CurveMin;
+        SerializedDataParameter m_CurveMax;
+
         SerializedDataParameter m_AdaptationMode;
         SerializedDataParameter m_AdaptationSpeedDarkToLight;
         SerializedDataParameter m_AdaptationSpeedLightToDark;
@@ -39,7 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_LimitMin = Unpack(o.Find(x => x.limitMin));
             m_LimitMax = Unpack(o.Find(x => x.limitMax));
             m_CurveMap = Unpack(o.Find(x => x.curveMap));
-            
+            m_CurveMin = Unpack(o.Find(x => x.limitMinCurveMap));
+            m_CurveMax = Unpack(o.Find(x => x.limitMaxCurveMap));
+
             m_AdaptationMode = Unpack(o.Find(x => x.adaptationMode));
             m_AdaptationSpeedDarkToLight = Unpack(o.Find(x => x.adaptationSpeedDarkToLight));
             m_AdaptationSpeedLightToDark = Unpack(o.Find(x => x.adaptationSpeedLightToDark));
@@ -79,14 +83,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 //if (m_LuminanceSource.value.intValue == (int)LuminanceSource.LightingBuffer)
                 //    EditorGUILayout.HelpBox("Luminance source buffer isn't supported yet.", MessageType.Warning);
 
-                if (mode == (int)ExposureMode.CurveMapping)
+                if (mode == (int) ExposureMode.CurveMapping)
+                {
                     PropertyField(m_CurveMap);
-                
-                PropertyField(m_Compensation);
-                PropertyField(m_LimitMin);
-                PropertyField(m_LimitMax);
+                    PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min"));
+                    PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
+                }
+                else if(!(mode == (int)ExposureMode.AutomaticHistogram && m_HistogramCurveRemapping.value.boolValue))
+                {
+                    PropertyField(m_LimitMin);
+                    PropertyField(m_LimitMax);
+                }
 
-                if(mode == (int)ExposureMode.AutomaticHistogram)
+                PropertyField(m_Compensation);
+
+                if (mode == (int)ExposureMode.AutomaticHistogram)
                 {
                     EditorGUILayout.Space();
                     EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
@@ -95,6 +106,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (m_HistogramCurveRemapping.value.boolValue)
                     {
                         PropertyField(m_CurveMap);
+                        PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min"));
+                        PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
                     }
                 }
 
