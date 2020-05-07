@@ -34,7 +34,7 @@ public class LWGraphicsTests
 
         var referenceImage = testCase.ReferenceImage;
         // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
-        Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
+        //Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
 
         XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
         yield return null;
