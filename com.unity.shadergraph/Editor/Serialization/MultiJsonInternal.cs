@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 {
     static class MultiJsonInternal
     {
+        #region Unknown Data Handling
         public class UnknownJsonObject : JsonObject
         {
             public string typeInfo;
@@ -223,6 +224,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
             }
         }
+        #endregion //Unknown Data Handling
 
         static readonly Dictionary<string, Type> k_TypeMap = CreateTypeMap();
 
@@ -329,16 +331,13 @@ namespace UnityEditor.ShaderGraph.Serialization
             s_Entries.Add(new MultiJsonEntry(jsonObject.GetType().FullName, jsonObject.objectId, json));
         }
 
-        public static bool CreateInstance(string typeString, out JsonObject output)
+        public static JsonObject CreateInstance(string typeString)
         {
-            output = null;
             if (!k_TypeMap.TryGetValue(typeString, out var type))
             {
-                output = new UnknownJsonObject(typeString);
-                return false;
+                return new UnknownJsonObject(typeString);
             }
-            output = (JsonObject)Activator.CreateInstance(type, true);
-            return true; 
+            return (JsonObject)Activator.CreateInstance(type, true);
         }
 
         private static FieldInfo s_ObjectIdField =
@@ -361,17 +360,13 @@ namespace UnityEditor.ShaderGraph.Serialization
                     try
                     {
                         JsonObject value = null;
-                        bool tryDeserialize = true;
                         if(index == 0)
                         {
                             value = root;
                         }
                         else
                         {
-                            if(!CreateInstance(entry.type, out value))
-                            {
-                                entries[index] = new MultiJsonEntry(entry.type, entry.id, entry.json, false);
-                            }
+                            value = CreateInstance(entry.type);
                         }
 
                         var id = entry.id;
@@ -386,7 +381,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                         if (rewriteIds || entry.id == null)
                         {
                             id = value.objectId;
-                            entries[index] = new MultiJsonEntry(entry.type, id, entry.json, tryDeserialize);
+                            entries[index] = new MultiJsonEntry(entry.type, id, entry.json);
                             valueMap[id] = value;
                         }
 
@@ -538,13 +533,6 @@ namespace UnityEditor.ShaderGraph.Serialization
                 serializedSet.Clear();
                 isSerializing = false;
             }
-        }
-
-        public static bool TryGetType(string typeName, out Type type)
-        {
-            type = null;
-            return k_TypeMap.TryGetValue(typeName, out type);
-            
         }
     }
 }

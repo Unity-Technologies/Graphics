@@ -167,6 +167,11 @@ namespace UnityEditor.ShaderGraph
             get { return m_IsActive; }
         }
 
+        //There are times when isActive needs to be set to a value explicitly, and
+        //not be changed by active forest parsing (what we do when we need to figure out
+        //what nodes should or should not be active, usually from an edit; see NodeUtils).
+        //In this case, we allow for explicit setting of an active value that cant be overriden.
+        //Implicit implies that active forest parsing can edit the nodes isActive property
         public enum ActiveState
         {
             Implicit = 0,
@@ -193,7 +198,7 @@ namespace UnityEditor.ShaderGraph
                 case ActiveState.Implicit:
                     if (updateConnections)
                     {
-                        NodeUtils.ReevaluateNodeForest(this);
+                        NodeUtils.ReevaluateActivityOfConnectedNodes(this);
                     }
                     break;
                 case ActiveState.ExplicitInactive:
@@ -207,7 +212,7 @@ namespace UnityEditor.ShaderGraph
                         Dirty(ModificationScope.Node);
                         if (updateConnections)
                         {
-                            NodeUtils.ReevaluateNodeForest(this);
+                            NodeUtils.ReevaluateActivityOfConnectedNodes(this);
                         }
                         break;
                     }
@@ -222,7 +227,7 @@ namespace UnityEditor.ShaderGraph
                         Dirty(ModificationScope.Node);
                         if (updateConnections)
                         {
-                            NodeUtils.ReevaluateNodeForest(this);
+                            NodeUtils.ReevaluateActivityOfConnectedNodes(this);
                         }
                         break;
                     }
@@ -246,7 +251,7 @@ namespace UnityEditor.ShaderGraph
 
             if (updateConnections)
             {
-                NodeUtils.ReevaluateNodeForest(this);
+                NodeUtils.ReevaluateActivityOfConnectedNodes(this);
             }
 
         }

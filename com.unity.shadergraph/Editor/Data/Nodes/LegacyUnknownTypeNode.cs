@@ -35,10 +35,6 @@ namespace UnityEditor.ShaderGraph
 
         public override void OnAfterDeserialize(string json)
         {
-            if(MultiJsonInternal.TryGetType(serializedType, out foundType))
-            {
-                Debug.Log("we have to update");
-            }
             base.OnAfterDeserialize(json);
             
         }

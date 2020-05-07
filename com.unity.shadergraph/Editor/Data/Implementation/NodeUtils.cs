@@ -258,21 +258,18 @@ namespace UnityEditor.Graphing
         // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
         // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
         // graph instead of just what I have declared as the "local" connected graph
-        public static void ReevaluateNodeForest(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
-            UpdateForest(node, changedNodes, changedNodes != null);
+            List<AbstractMaterialNode> forest = GetForest(node);
+            ReevaluateActivityOfNodeList(forest, changedNodes);
         }
 
-        private static void UpdateForest(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes, bool getChangedNodes)
+        public static void ReevaluateActivityOfNodeList(IEnumerable<AbstractMaterialNode> nodes, PooledHashSet<AbstractMaterialNode> changedNodes = null)
         {
-            if (getChangedNodes)
+            bool getChangedNodes = changedNodes != null;
+            foreach(AbstractMaterialNode n in nodes)
             {
-                changedNodes.Add(node);
-            }
-            List<AbstractMaterialNode> forest = GetForest(node);
-            foreach(AbstractMaterialNode n in forest)
-            {
-                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit || n is BlockNode)
+                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit)
                     continue;
                 ActiveTreeExists(n, out _, out _, out bool at);
                 if(n.isActive != at && getChangedNodes)
@@ -281,9 +278,10 @@ namespace UnityEditor.Graphing
                 }
                 n.SetActive(at, false);
             }
+
         }
 
-        //Go to the leaves of the node
+        //Go to the leaves of the node, then get all trees with those leaves
         private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> leaves = GetLeaves(node);

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
@@ -67,9 +66,7 @@ namespace UnityEditor.Graphing
         public static JSONSerializedElement Serialize<T>(T item)
         {
             if(item is JsonObject jsonObject)
-            {
                 return new JSONSerializedElement() { JSONnodeData = jsonObject.Serialize() };
-            }
 
             if (item == null)
                 throw new ArgumentNullException("item", "Can not serialize null element");

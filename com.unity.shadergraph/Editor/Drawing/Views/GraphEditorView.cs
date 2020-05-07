@@ -1122,7 +1122,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     userData = edge,
                     output = sourceAnchor,
-                    input = targetAnchor,
+                    input = targetAnchor
                 };
 
                 edgeView.RegisterCallback<MouseDownEvent>(OnMouseDown);

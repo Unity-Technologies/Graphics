@@ -451,6 +451,11 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
+            else if(!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
+            {
+                SetOverrideActiveState(ActiveState.ExplicitInactive);
+                owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
+            }
 
             ValidateShaderStage();
         }

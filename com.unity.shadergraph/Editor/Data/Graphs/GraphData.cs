@@ -299,6 +299,11 @@ namespace UnityEditor.ShaderGraph
         [NonSerialized]
         List<Target> m_ValidTargets = new List<Target>();
 
+        [NonSerialized]
+        List<Target> m_UnsupportedTargets = new List<Target>();
+
+        public List<Target> unsupportedTargets { get => m_UnsupportedTargets; }
+
         int m_ActiveTargetBitmask;
         public int activeTargetBitmask
         {
@@ -408,7 +413,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-            ValidateGraph();
+            NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
         }
 
         public void ClearChanges()
@@ -788,7 +793,7 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Add(newEdge);
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
-            NodeUtils.ReevaluateNodeForest(toNode);
+            NodeUtils.ReevaluateActivityOfConnectedNodes(toNode);
 
             //Debug.LogFormat("Connected edge: {0} -> {1} ({2} -> {3})\n{4}", newEdge.outputSlot.nodeGuid, newEdge.inputSlot.nodeGuid, fromNode.name, toNode.name, Environment.StackTrace);
             return newEdge;
@@ -899,12 +904,12 @@ namespace UnityEditor.ShaderGraph
 
             if(input != null)
             {
-                NodeUtils.ReevaluateNodeForest(input);
+                NodeUtils.ReevaluateActivityOfConnectedNodes(input);
             }
 
             if(output != null)
             {
-                NodeUtils.ReevaluateNodeForest(output);
+                NodeUtils.ReevaluateActivityOfConnectedNodes(output);
             }
 
         }
@@ -1528,8 +1533,9 @@ namespace UnityEditor.ShaderGraph
 
         static T DeserializeLegacy<T>(string typeString, string json) where T : JsonObject
         {
-            bool tryDeserialize = MultiJsonInternal.CreateInstance(typeString, out JsonObject value);
-            if (tryDeserialize != true)
+            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var value = jsonObj as T;
+            if (value == null)
             {
                 Debug.Log($"Cannot create instance for {typeString}");
                 return null;
@@ -1540,8 +1546,9 @@ namespace UnityEditor.ShaderGraph
 
         static AbstractMaterialNode DeserializeLegacy(string typeString, string json)
         {
-            bool tryDeserialize = MultiJsonInternal.CreateInstance(typeString, out JsonObject value);
-            if (tryDeserialize != true)
+            var jsonObj = MultiJsonInternal.CreateInstance(typeString);
+            var value = jsonObj as AbstractMaterialNode;
+            if (value == null)
             {
                 //Special case - want to support nodes of unknwon type for cross pipeline compatability 
                 value = new LegacyUnknownTypeNode(typeString, json);
@@ -1560,18 +1567,16 @@ namespace UnityEditor.ShaderGraph
         {
             if (m_Version == 0)
             {
-                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
-                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
-                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
-                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
-
-
                 var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
                 var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
                 var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
                 var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
                 var groupGuidMap = new Dictionary<string, GroupData>();
+                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
+                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
+                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
                 m_GroupDatas.Clear();
                 m_StickyNoteDatas.Clear();
@@ -1869,6 +1874,7 @@ namespace UnityEditor.ShaderGraph
                 m_Nodes.Add(nodePair.Item2);
                 ReplaceNodeWithNode(nodePair.Item1, nodePair.Item2);
             }
+            updatedNodes.Dispose();
 
             m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
 
@@ -1934,6 +1940,7 @@ namespace UnityEditor.ShaderGraph
 
             foreach(var target in m_ActiveTargets.SelectValue())
             {
+                //need to mark the target as valid just so other logic doesnt break
                 if(target.GetType() == typeof(MultiJsonInternal.UnknownTargetType))
                 {
                     m_ValidTargets.Add(target);
@@ -1946,11 +1953,6 @@ namespace UnityEditor.ShaderGraph
 
             UpdateActiveTargets();
 
-            ValidateGraph();
-            foreach (var node in m_Nodes)
-            {
-                NodeUtils.ReevaluateNodeForest(node);
-            }
         }
 
         private void ReplaceNodeWithNode(LegacyUnknownTypeNode nodeToReplace, AbstractMaterialNode nodeReplacement)

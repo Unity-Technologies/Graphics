@@ -59,8 +59,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode);
 
-        public override NodeTypeCollection allowedNodes => base.allowedNodes + typeof(HDSceneColorNode);
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return s_HDNodeTypes.Contains(nodeType);
+        }
 
         public HDTarget()
         {

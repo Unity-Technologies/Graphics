@@ -62,7 +62,6 @@ namespace UnityEditor.ShaderGraph
 
             if (string.IsNullOrWhiteSpace(entries[0].type))
             {
-                entries.Clear();
                 var minimalGraphData = JsonUtility.FromJson<MinimalGraphData>(textGraph);
                 entries.Clear();
                 foreach (var node in minimalGraphData.m_SerializableNodes)
