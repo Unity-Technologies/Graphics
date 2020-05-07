@@ -215,7 +215,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
   name : Test {{ project.name }} on Linux_Vulkan_{{ testplatform.name }} on version {{ editor.version }}
   agent:
     flavor: {{ platform.flavor }}
-    type: {{ platform.type} }
+    type: {{ platform.type }}
     image: {{ platform.image }} 
   skip_checkout: true
   {% if editor.version == 'CUSTOM-REVISION' %}
