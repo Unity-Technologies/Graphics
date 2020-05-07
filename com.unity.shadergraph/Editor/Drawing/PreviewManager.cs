@@ -26,22 +26,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         Dictionary<string, PreviewRenderData> m_RenderDatas = new Dictionary<string, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node object ID
         PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
 
-        int m_MaxNodesCompiling = 2;                                                                        // max preview shaders we want to async compile at once
+        int m_MaxPreviewsCompiling = 2;                                                                     // max preview shaders we want to async compile at once
 
         // state trackers
         HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed, this node and nodes that read from it are put into NeedRecompile
-        HashSet<AbstractMaterialNode> m_NodesNeedsRecompile = new HashSet<AbstractMaterialNode>();           // nodes we need to recompile the preview shader
-        HashSet<AbstractMaterialNode> m_NodesCompiling = new HashSet<AbstractMaterialNode>();               // nodes currently being compiled
-        HashSet<AbstractMaterialNode> m_NodesToDraw = new HashSet<AbstractMaterialNode>();                  // nodes to rebuild the texture for
+        HashSet<PreviewRenderData> m_PreviewsNeedsRecompile = new HashSet<PreviewRenderData>();             // previews we need to recompile the preview shader
+        HashSet<PreviewRenderData> m_PreviewsCompiling = new HashSet<PreviewRenderData>();                  // previews currently being compiled
+        HashSet<PreviewRenderData> m_PreviewsToDraw = new HashSet<PreviewRenderData>();                     // nodes to rebuild the texture for (because shader compile changed or constant changed)
         HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
-        HashSet<BlockNode> m_Blocks = new HashSet<BlockNode>();                                             // all blocks used for previous generation. this includes temporary blocks.
         bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes
+
+        HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
 
         PreviewSceneResources m_SceneResources;
         Texture2D m_ErrorTexture;
         Vector2? m_NewMasterPreviewSize;
 
-        Identifier m_MasterIdentifier;
+        const AbstractMaterialNode kMasterProxyNode = null;
 
         public PreviewRenderData masterRenderData
         {
@@ -55,7 +56,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Messenger = messenger;
             m_ErrorTexture = GenerateFourSquare(Color.magenta, Color.black);
             m_SceneResources = new PreviewSceneResources();
-            m_MasterIdentifier = new Identifier(0);
 
             foreach (var node in m_Graph.GetNodes<AbstractMaterialNode>())
                 AddPreview(node);
@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PreviewRenderData GetPreviewRenderData(AbstractMaterialNode node)
         {
             PreviewRenderData result = null;
-            if(node == null || node is SubGraphOutputNode)
+            if (node == kMasterProxyNode || node is BlockNode || node == m_Graph.outputNode) // TODO: node is SubGraphOutputNode ??  is there ever more than one?:   Should be caught by m_Graph.outputNode...
             {
                 result = m_MasterRenderData;
             }
@@ -97,30 +97,29 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddMasterPreview()
         {
-            var renderData = new PreviewRenderData
+            m_MasterRenderData = new PreviewRenderData
             {
+                previewName = m_Graph.outputNode?.name ?? "Master",
                 renderTexture =
-                    new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
+                    new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
                         hideFlags = HideFlags.HideAndDontSave
                     },
                 previewMode = PreviewMode.Preview3D,
             };
 
-            m_MasterRenderData = renderData;
-            renderData.renderTexture.width = renderData.renderTexture.height = 400;
-            renderData.renderTexture.Create();
+            m_MasterRenderData.renderTexture.Create();
 
             var shaderData = new PreviewShaderData
             {
-                node = m_Graph.outputNode,
+                node = m_Graph.outputNode,      // can be null, which means to generate with active Target
                 passesCompiling = 0,
                 isOutOfDate = true,
                 hasError = false,
             };
-            renderData.shaderData = shaderData;
+            m_MasterRenderData.shaderData = shaderData;
 
-            m_NodesNeedsRecompile.Add(m_Graph.outputNode);
+            m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
             m_RefreshTimedNodes = true;
         }
 
@@ -129,20 +128,26 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesNeedsRecompile.Add(null);
+                // mark the master preview for recompile if it exists
+                // if not, no need to do it here, because it is always marked for recompile on creation
+                if (m_MasterRenderData != null)
+                    m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
                 m_RefreshTimedNodes = true;
             }
             else if (scope == ModificationScope.Node)
             {
-                m_NodesToDraw.Add(null);
+                m_PreviewsToDraw.Add(m_MasterRenderData);
             }
         }
 
         void AddPreview(AbstractMaterialNode node)
         {
-            if(node is BlockNode)
+            Assert.IsNotNull(node);
+
+            if (node is BlockNode)
             {
                 node.RegisterCallback(OnNodeModified);
+                UpdateMasterPreview(ModificationScope.Topological);
                 return;
             }
 
@@ -153,6 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var renderData = new PreviewRenderData
             {
+                previewName = node.name ?? "UNNAMED NODE",
                 renderTexture =
                     new RenderTexture(200, 200, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
@@ -161,6 +167,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             renderData.renderTexture.Create();
+
+            if (node == null)
+                Debug.Log("node = null");
 
             var shaderData = new PreviewShaderData
             {
@@ -178,22 +187,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_RefreshTimedNodes = true;
             }
-            
-            m_NodesNeedsRecompile.Add(node);
+
+            m_PreviewsNeedsRecompile.Add(renderData);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
         {
+            Assert.IsFalse(node == null);
+
+            PreviewRenderData preview = GetPreviewRenderData(node);
+
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesShaderChanged.Add(node);
+                m_NodesShaderChanged.Add(node);     // this will trigger m_PreviewsShaderChanged downstream
                 m_RefreshTimedNodes = true;
             }
             else if (scope == ModificationScope.Node)
             {
                 // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
-                m_NodesToDraw.Add(node);
+                // should instead flag m_NodesConstantChanged
+                m_PreviewsToDraw.Add(preview);
             }
         }
 
@@ -284,35 +298,18 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             foreach (var node in m_Graph.removedNodes)
             {
-                if(node is BlockNode)
-                {
-                    node.UnregisterCallback(OnNodeModified);
-                    UpdateMasterPreview(ModificationScope.Topological);
-                    continue;
-                }
-
-                DestroyPreview(node.objectId);
+                DestroyPreview(node);
                 m_RefreshTimedNodes = true;
             }
 
             // remove the nodes from the state trackers
             m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
-            m_NodesNeedsRecompile.ExceptWith(m_Graph.removedNodes);
-            m_NodesCompiling.ExceptWith(m_Graph.removedNodes);
-            m_NodesToDraw.ExceptWith(m_Graph.removedNodes);
             m_TimedNodes.ExceptWith(m_Graph.removedNodes);
 
             m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
 
             foreach (var node in m_Graph.addedNodes)
             {
-                if(node is BlockNode)
-                {
-                    node.RegisterCallback(OnNodeModified);
-                    UpdateMasterPreview(ModificationScope.Topological);
-                    continue;
-                }
-
                 AddPreview(node);
                 m_RefreshTimedNodes = true;
             }
@@ -356,19 +353,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // we only collect properties from nodes upstream of something we want to draw
                 // TODO: we could go a step farther and only collect properties from nodes we know have changed their value
                 // but that's not something we currently track...
-                PropagateNodes(m_NodesToDraw, PropagationDirection.Upstream, tempCollectNodes);
 
-                if(m_NodesToDraw.Contains(null))
+                // collect properties from all nodes we need to draw
+                tempCollectNodes.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
+
+                // if we're collecting for master preview, also collect from all of the blocks and their upstream nodes
+                if (m_PreviewsToDraw.Contains(m_MasterRenderData) || tempCollectNodes.Contains(null))
                 {
-                    foreach(var block in m_Blocks)
-                    {
+                    tempCollectNodes.Remove(null);
+                    foreach (var block in m_MasterNodePreviewBlocks)
                         tempCollectNodes.Add(block);
-                    }
                 }
+
+                // and also collect from all nodes upstream
+                PropagateNodes(tempCollectNodes, PropagationDirection.Upstream, tempCollectNodes);
 
                 foreach (var propNode in tempCollectNodes)
                     propNode.CollectPreviewMaterialProperties(tempPreviewProps);
 
+                // also grab all graph properties
                 foreach (var prop in m_Graph.properties)
                     tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
 
@@ -390,10 +393,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 UpdateTimedNodeList();
 
-                PropagateNodes(m_NodesToDraw, PropagationDirection.Downstream, m_NodesToDraw);
-                m_NodesToDraw.UnionWith(m_TimedNodes);
+                // TODO : I don't think we need to propagate draws downstream... ?
+                // We need to propagate constant changes downstream, which then invoke previews to redraw...
+                // PropagateNodes(m_PreviewsToDraw, PropagationDirection.Downstream, m_PreviewsToDraw);
+                {
+                    var nodesToDraw = new HashSet<AbstractMaterialNode>();
+                    nodesToDraw.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
+                    nodesToDraw.Remove(null);
+                    PropagateNodes(nodesToDraw, PropagationDirection.Downstream, nodesToDraw);
 
-                if (m_NodesToDraw.Count <= 0)
+                    nodesToDraw.UnionWith(m_TimedNodes);                                            // TODO: better to track timed previews
+                    m_PreviewsToDraw.UnionWith(nodesToDraw.Select(n => GetPreviewRenderData(n)));
+                }
+
+                if (m_PreviewsToDraw.Count <= 0)
                     return;
 
                 CollectPreviewProperties();
@@ -404,21 +417,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (PrepareNodesMarker.Auto())
                 {
-                    foreach (var node in m_NodesToDraw)
+                    foreach (var preview in m_PreviewsToDraw)
                     {
-                        if (node == null || node is BlockNode || node is SubGraphOutputNode)
-                        {
-                            renderMasterPreview = true;
-                            continue;
-                        }
+                        var node = preview.shaderData.node;
+//                         if (preview == null || node == m_Graph.outputNode || node is BlockNode || node is SubGraphOutputNode)
+//                         {
+//                             renderMasterPreview = true;
+//                             continue;
+//                         }
 
-                        if (!node.hasPreview || !node.previewExpanded)
+                        if ((node != null) && (!node.hasPreview || !node.previewExpanded))
                             continue;
 
-                        var renderData = GetPreviewRenderData(node);
-                        if (renderData == null) // non-active output nodes can have NULL render data (no preview)
+                        var renderData = preview;       // GetPreviewRenderData(node);
+                        if (renderData == null)         // non-active output nodes can have NULL render data (no preview)
                             continue;
-                        
+
                         if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                         {
                             // avoid calling NotifyPreviewChanged repeatedly
@@ -483,7 +497,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         masterRenderData.texture = masterRenderData.renderTexture;
                         m_NewMasterPreviewSize = null;
                     }
-                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
+                    var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh : m_SceneResources.sphere;
                     var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
                     var scale = m_Graph.previewData.scale;
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
@@ -502,7 +516,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (renderMasterPreview)
                     masterRenderData.NotifyPreviewChanged();
 
-                m_NodesToDraw.Clear();
+                m_PreviewsToDraw.Clear();
             }
         }
 
@@ -512,23 +526,34 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Check for shaders that finished compiling and set them to redraw
             using (ProcessCompletedShaderCompilationsMarker.Auto())
-            using (var nodesCompiled = PooledHashSet<AbstractMaterialNode>.Get())
+            using (var previewsCompiled = PooledHashSet<PreviewRenderData>.Get())
             {
-                foreach (var node in m_NodesCompiling)
+                foreach (var preview in m_PreviewsCompiling)
                 {
-                    PreviewRenderData renderData = GetPreviewRenderData(node);
+                    {
+                        var node = preview.shaderData.node;
+                        Assert.IsFalse(node is BlockNode);
+                    }
+
+                    PreviewRenderData renderData = preview;
                     PreviewShaderData shaderData = renderData.shaderData;
-                    Assert.IsTrue(shaderData.passesCompiling > 0);
+
+                    // Assert.IsTrue(shaderData.passesCompiling > 0);
+                    if (shaderData.passesCompiling <= 0)
+                    {
+                        Debug.Log("Zero Passes: " + preview.previewName + " (" + shaderData.passesCompiling + " passes, " + renderData.shaderData.mat.passCount + " mat passes)");
+                    }
 
                     if (shaderData.passesCompiling != renderData.shaderData.mat.passCount)
                     {
                         // attempt to re-kick the compilation a few times
+                        Debug.Log("Rekicking Compiling: " + preview.previewName + " (" + shaderData.passesCompiling + " passes, " + renderData.shaderData.mat.passCount + " mat passes)");
                         compileFailRekicks++;
                         if (compileFailRekicks <= 3)
                         {
                             renderData.shaderData.passesCompiling = 0;
-                            m_NodesNeedsRecompile.Add(node);
-                            nodesCompiled.Add(node);
+                            previewsCompiled.Add(renderData);
+                            m_PreviewsNeedsRecompile.Add(renderData);
                             continue;
                         }
                         else if (compileFailRekicks == 4)
@@ -550,6 +575,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (!allPassesCompiled)
                     {
+                        // keep waiting
                         return;
                     }
 
@@ -559,14 +585,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     renderData.shaderData.isOutOfDate = false;
                     CheckForErrors(renderData.shaderData);
 
-                    nodesCompiled.Add(renderData.shaderData.node);
+                    previewsCompiled.Add(renderData);
 
-                    if(renderData == m_MasterRenderData)
+                    if (renderData == m_MasterRenderData)
                     {
                         // Process preview materials
-                        foreach(var target in m_Graph.activeTargets)
+                        foreach (var target in m_Graph.activeTargets)
                         {
-                            if(target.IsActive())
+                            if (target.IsActive())
                             {
                                 target.ProcessPreviewMaterial(renderData.shaderData.mat);
                             }
@@ -575,10 +601,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 // removed compiled nodes from compiling list
-                m_NodesCompiling.ExceptWith(nodesCompiled);
+                m_PreviewsCompiling.ExceptWith(previewsCompiled);
 
                 // and add them to the draw list
-                m_NodesToDraw.UnionWith(nodesCompiled);
+                m_PreviewsToDraw.UnionWith(previewsCompiled);
             }
         }
 
@@ -587,67 +613,73 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Start compilation for nodes that need to recompile
             using (KickOffShaderCompilationsMarker.Auto())
-            using (var nodesToCompile = PooledHashSet<AbstractMaterialNode>.Get())
+            using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
-                if ((m_NodesCompiling.Count + nodesToCompile.Count < m_MaxNodesCompiling) &&
-                    ((m_NodesNeedsRecompile.Contains(m_Graph.outputNode) && !m_NodesCompiling.Contains(m_Graph.outputNode)) ||
-                    (m_NodesNeedsRecompile.Any(x => x is BlockNode) && !m_NodesCompiling.Any(x => x is BlockNode))) &&
+                if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
-                    var renderData = GetPreviewRenderData(m_MasterRenderData.shaderData.node);
-                    Assert.IsTrue(renderData != null);
-                    nodesToCompile.Add(m_Graph.outputNode);
+                    if (m_MasterRenderData.shaderData.node != m_Graph.outputNode)
+                        Debug.Log("MasterRenderData mismatch! " + m_MasterRenderData.shaderData.node + " != " + m_Graph.outputNode);
+
+                    if (m_PreviewsNeedsRecompile.Contains(m_MasterRenderData) &&
+                        !m_PreviewsCompiling.Contains(m_MasterRenderData))
+                    {
+                        Assert.IsTrue(m_MasterRenderData != null);
+                        previewsToCompile.Add(m_MasterRenderData);
+                        m_PreviewsNeedsRecompile.Remove(m_MasterRenderData);
+                    }
                 }
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                for(int i = 0; i < m_NodesNeedsRecompile.Count(); i++)
+                for(int i = 0; i < m_PreviewsNeedsRecompile.Count(); i++)
                 {
-                    var node = m_NodesNeedsRecompile.ElementAt(i);
-
-                    // Remove BlockNode instances as null gets added to nodesToCompile
-                    if(node == null || node is BlockNode)
-                    {
-                        m_NodesNeedsRecompile.Remove(node);
-                        continue;
-                    }
-
-                    if (m_NodesCompiling.Count + nodesToCompile.Count >= m_MaxNodesCompiling)
+                    if (m_PreviewsCompiling.Count + previewsToCompile.Count >= m_MaxPreviewsCompiling)
                         break;
 
-                    if (node.hasPreview && node.previewExpanded && !m_NodesCompiling.Contains(node))
-                    {
-                        var renderData = GetPreviewRenderData(node);
-                        if (renderData == null) // non-active output nodes can have NULL render data (no preview)
-                            continue;
+                    var preview = m_PreviewsNeedsRecompile.ElementAt(i);
+                    if (preview == m_MasterRenderData) // handled specially above
+                        continue;
 
-                        nodesToCompile.Add(node);
+                    var node = preview.shaderData.node;
+                    Assert.IsFalse((node == null) || (node is BlockNode));
+
+                    if (node.hasPreview && node.previewExpanded && !m_PreviewsCompiling.Contains(preview))
+                    {
+                        previewsToCompile.Add(preview);
                     }
                 }
 
                 // remove the selected nodes from the recompile list
-                m_NodesNeedsRecompile.ExceptWith(nodesToCompile);
+                m_PreviewsNeedsRecompile.ExceptWith(previewsToCompile);
 
                 // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
-                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);
+                var nodesToCompile = previewsToCompile.Select(x => x.shaderData.node);
+                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);               // not sure if it needs notification for BlockNodes when master rebuilds?
 
                 // Force async compile on
                 var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
                 ShaderUtil.allowAsyncCompilation = true;
 
                 // kick async compiles for all nodes in m_NodeToCompile
-                foreach (var node in nodesToCompile)
+                foreach (var preview in previewsToCompile)
                 {
-                    if (node is BlockNode || node == null || node is SubGraphOutputNode)
+                    if (preview == m_MasterRenderData)
                     {
                         UpdateMasterNodeShader();
                         continue;
                     }
 
+                    var node = preview.shaderData.node;
+
+
+                    if (node == null)
+                        Debug.Log("ERROR:  null node preview compilation for node: " + preview.previewName);
+
                     Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode));
 
-                    var renderData = GetPreviewRenderData(node);
+                    var renderData = preview; // GetPreviewRenderData(node);
 
                     // Get shader code and compile
                     var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
@@ -683,23 +715,32 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_NodesShaderChanged.Count > 0)
                 {
-                    // nodes with shader changes cause all downstream nodes to need recompilation
-                    PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, m_NodesNeedsRecompile);
-                    m_NodesShaderChanged.Clear();
+                    // nodes with shader changes cause all downstream nodes to need preview recompilation
+                    using (var nodesToRecompile = PooledHashSet<AbstractMaterialNode>.Get())
+                    {
+                        PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, nodesToRecompile);
+                        foreach (var node in nodesToRecompile)
+                        {
+                            var preview = GetPreviewRenderData(node);
+                            if (preview != null) // non-active output nodes can have NULL render data (no preview)
+                                m_PreviewsNeedsRecompile.Add(preview);
+                        }
+                        m_NodesShaderChanged.Clear();
+                    }
                 }
 
                 // if there's nothing to update, or if too many nodes are still compiling, then just return
-                if ((m_NodesNeedsRecompile.Count == 0) || (m_NodesCompiling.Count >= m_MaxNodesCompiling))
+                if ((m_PreviewsNeedsRecompile.Count == 0) || (m_PreviewsCompiling.Count >= m_MaxPreviewsCompiling))
                     return;
 
-                // flag all nodes in m_NodesNeedRecompile as having out of date textures, and redraw them
-                foreach (var node in m_NodesNeedsRecompile)
+                // flag all nodes in m_PreviewsNeedsRecompile as having out of date textures, and redraw them
+                foreach (var preview in m_PreviewsNeedsRecompile)
                 {
-                    PreviewRenderData previewRendererData = GetPreviewRenderData(node);
-                    if ((previewRendererData != null) && !previewRendererData.shaderData.isOutOfDate)
+                    Assert.IsNotNull(preview);
+                    if (!preview.shaderData.isOutOfDate)
                     {
-                        previewRendererData.shaderData.isOutOfDate = true;
-                        previewRendererData.NotifyPreviewChanged();
+                        preview.shaderData.isOutOfDate = true;
+                        preview.NotifyPreviewChanged();
                     }
                 }
 
@@ -735,12 +776,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
 
-                shaderData.passesCompiling = shaderData.mat.passCount;
-                for (var i = 0; i < shaderData.mat.passCount; i++)
+                if (shaderData.mat.passCount <= 0)
+                    Debug.Log("WTF Zero Passes ON COMPILE: " + shaderData.node.name + " (" + shaderData.passesCompiling + " passes, " + renderData.shaderData.mat.passCount + " mat passes)");
+                else
                 {
-                    ShaderUtil.CompilePass(shaderData.mat, i);
+                    shaderData.passesCompiling = shaderData.mat.passCount;
+                    for (var i = 0; i < shaderData.mat.passCount; i++)
+                    {
+                        ShaderUtil.CompilePass(shaderData.mat, i);
+                    }
+                    m_PreviewsCompiling.Add(renderData);
                 }
-                m_NodesCompiling.Add(shaderData.node);
             }
         }
 
@@ -863,10 +909,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Blocks from the generation include those temporarily created for missing stack blocks
                 // We need to hold on to these to set preview property values during CollectShaderProperties
-                m_Blocks.Clear();
+                m_MasterNodePreviewBlocks.Clear();
                 foreach(var block in generator.blocks)
                 {
-                    m_Blocks.Add(block);
+                    m_MasterNodePreviewBlocks.Add(block);
                 }
             }
 
@@ -905,12 +951,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                 renderData.shaderData.node.UnregisterCallback(OnNodeModified);
         }
 
-        void DestroyPreview(string nodeId)
+        void DestroyPreview(AbstractMaterialNode node)
         {
+            string nodeId = node.objectId;
+
+            if (node is BlockNode)
+            {
+                // block nodes don't have preview render data
+                Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
+                node.UnregisterCallback(OnNodeModified);
+                UpdateMasterPreview(ModificationScope.Topological);
+                return;
+            }
+
             if (!m_RenderDatas.TryGetValue(nodeId, out var renderData))
             {
                 return;
             }
+
+            m_PreviewsNeedsRecompile.Remove(renderData);
+            m_PreviewsCompiling.Remove(renderData);
+            m_PreviewsToDraw.Remove(renderData);
 
             DestroyRenderData(renderData);
             m_RenderDatas.Remove(nodeId);
@@ -950,21 +1011,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class PreviewShaderData
     {
-        public AbstractMaterialNode node { get; set; }
-        public Shader shader { get; set; }
-        public Material mat { get; set; }
-        public string shaderString { get; set; }
-        public int passesCompiling { get; set; }
-        public bool isOutOfDate { get; set; }
-        public bool hasError { get; set; }
+        public AbstractMaterialNode node;
+        public Shader shader;
+        public Material mat;
+        public string shaderString;
+        public int passesCompiling;
+        public bool isOutOfDate;
+        public bool hasError;
     }
 
     class PreviewRenderData
     {
-        public PreviewShaderData shaderData { get; set; }
-        public RenderTexture renderTexture { get; set; }
-        public Texture texture { get; set; }
-        public PreviewMode previewMode { get; set; }
+        public string previewName;
+        public PreviewShaderData shaderData;
+        public RenderTexture renderTexture;
+        public Texture texture;
+        public PreviewMode previewMode;
         public OnPreviewChanged onPreviewChanged;
 
         public void NotifyPreviewChanged()
