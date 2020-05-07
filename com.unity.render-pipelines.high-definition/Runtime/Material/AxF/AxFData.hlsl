@@ -618,6 +618,29 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, inout SurfaceDat
 #endif
 }
 
+bool HasPhongTypeBRDF()
+{
+    uint type = ((_SVBRDF_BRDFType >> 1) & 7);
+    return type == 1 || type == 4;
+}
+
+float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
+{
+    // For Blinn-Phong, AxF encodes specularLobe.xy as log2(shiniExp_xy) so
+    //     shiniExp = exp2(abs(specularLobe.xy))
+    // A good fit for a corresponding Beckmann roughness is
+    //     roughnessBeckmann^2 = 2 /(shiniExp + 2)
+    // See eg
+    // http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+    // http://simonstechblog.blogspot.com/2011/12/microfacet-brdf.html
+
+    // We thus have 
+    //     roughnessBeckmann = sqrt(2) * rsqrt(exp2(abs(specularLobe.xy)) + 2);
+    //     shiniExp = 2 * rcp(max(0.0001,(roughnessBeckmann*roughnessBeckmann))) - 2;
+
+    return (HasPhongTypeBRDF() ? (sqrt(2) * rsqrt(exp2(abs(specularLobe)) + 2)) : specularLobe);
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef _DOUBLESIDED_ON
@@ -633,11 +656,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     InitTextureUVMapping(input, uvMapping);
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
-    //-----------------------------------------------------------------------------
-    // _AXF_BRDF_TYPE_SVBRDF
-    //-----------------------------------------------------------------------------
+    float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
-    float alpha = 1.0;
+#ifdef _ALPHATEST_ON
+    float alphaCutoff = _AlphaCutoff;
+
+    #if SHADERPASS == SHADERPASS_SHADOWS 
+        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+    #else
+        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
+    #endif
+#endif
+
 
     surfaceData.ambientOcclusion = 1.0;
     surfaceData.specularOcclusion = 1.0;
@@ -659,11 +689,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     surfaceData.specularLobe = 0;
 
+    //-----------------------------------------------------------------------------
+    // _AXF_BRDF_TYPE_SVBRDF
+    //-----------------------------------------------------------------------------
+
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
     surfaceData.diffuseColor = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_DiffuseColorMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).xyz;
     surfaceData.specularColor = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, uvMapping).xyz;
-    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, uvMapping).xy;
+    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * AxFGetRoughnessFromSpecularLobeTexture( AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, uvMapping).xy);
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
@@ -726,8 +760,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
-
-    alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
     //-----------------------------------------------------------------------------
     // _AXF_BRDF_TYPE_CAR_PAINT
@@ -806,17 +838,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // cross product to finish building the TBN frame and thus get a frame matching
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
-
-#ifdef _ALPHATEST_ON
-    // TODOTODO: Move alpha test earlier and test.
-    float alphaCutoff = _AlphaCutoff;
-
-    #if SHADERPASS == SHADERPASS_SHADOWS 
-        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-    #else
-        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
-    #endif
-#endif
 
 #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
     // Specular AA for geometric curvature
