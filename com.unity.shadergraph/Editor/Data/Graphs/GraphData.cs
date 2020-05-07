@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.ShaderGraph.Serialization;
 using Edge = UnityEditor.Graphing.Edge;
 
 namespace UnityEditor.ShaderGraph
@@ -15,33 +19,26 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.MaterialGraph")]
     [FormerName("UnityEditor.ShaderGraph.SubGraph")]
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
-    sealed partial class GraphData : ISerializationCallbackReceiver
+    sealed partial class GraphData : JsonObject
     {
+        const int k_CurrentVersion = 1;
+
+        [SerializeField]
+        int m_Version;
+
         public GraphObject owner { get; set; }
 
         #region Input data
 
-        [NonSerialized]
-        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
+        [SerializeField]
+        List<JsonData<AbstractShaderProperty>> m_Properties = new List<JsonData<AbstractShaderProperty>>();
 
-        public IEnumerable<AbstractShaderProperty> properties
-        {
-            get { return m_Properties; }
-        }
+        public DataValueEnumerable<AbstractShaderProperty> properties => m_Properties.SelectValue();
 
         [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+        List<JsonData<ShaderKeyword>> m_Keywords = new List<JsonData<ShaderKeyword>>();
 
-        [NonSerialized]
-        List<ShaderKeyword> m_Keywords = new List<ShaderKeyword>();
-
-        public IEnumerable<ShaderKeyword> keywords
-        {
-            get { return m_Keywords; }
-        }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedKeywords = new List<SerializationHelper.JSONSerializedElement>();
+        public DataValueEnumerable<ShaderKeyword> keywords => m_Keywords.SelectValue();
 
         [NonSerialized]
         List<ShaderInput> m_AddedInputs = new List<ShaderInput>();
@@ -52,9 +49,9 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
-        List<Guid> m_RemovedInputs = new List<Guid>();
+        List<ShaderInput> m_RemovedInputs = new List<ShaderInput>();
 
-        public IEnumerable<Guid> removedInputs
+        public IEnumerable<ShaderInput> removedInputs
         {
             get { return m_RemovedInputs; }
         }
@@ -73,19 +70,16 @@ namespace UnityEditor.ShaderGraph
 
         #region Node data
 
-        [NonSerialized]
-        List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
+        [SerializeField]
+        List<JsonData<AbstractMaterialNode>> m_Nodes = new List<JsonData<AbstractMaterialNode>>();
 
         [NonSerialized]
-        Dictionary<Guid, AbstractMaterialNode> m_NodeDictionary = new Dictionary<Guid, AbstractMaterialNode>();
+        Dictionary<string, AbstractMaterialNode> m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>();
 
         public IEnumerable<T> GetNodes<T>()
         {
-            return m_Nodes.Where(x => x != null).OfType<T>();
+            return m_Nodes.SelectValue().OfType<T>();
         }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
         List<AbstractMaterialNode> m_AddedNodes = new List<AbstractMaterialNode>();
@@ -115,11 +109,11 @@ namespace UnityEditor.ShaderGraph
         #region Group Data
 
         [SerializeField]
-        List<GroupData> m_Groups = new List<GroupData>();
+        List<JsonData<GroupData>> m_GroupDatas = new List<JsonData<GroupData>>();
 
-        public IEnumerable<GroupData> groups
+        public DataValueEnumerable<GroupData> groups
         {
-            get { return m_Groups; }
+            get { return m_GroupDatas.SelectValue(); }
         }
 
         [NonSerialized]
@@ -160,11 +154,11 @@ namespace UnityEditor.ShaderGraph
         public GroupData mostRecentlyCreatedGroup => m_MostRecentlyCreatedGroup;
 
         [NonSerialized]
-        Dictionary<Guid, List<IGroupItem>> m_GroupItems = new Dictionary<Guid, List<IGroupItem>>();
+        Dictionary<JsonRef<GroupData>, List<IGroupItem>> m_GroupItems = new Dictionary<JsonRef<GroupData>, List<IGroupItem>>();
 
         public IEnumerable<IGroupItem> GetItemsInGroup(GroupData groupData)
         {
-            if (m_GroupItems.TryGetValue(groupData.guid, out var nodes))
+            if (m_GroupItems.TryGetValue(groupData, out var nodes))
             {
                 return nodes;
             }
@@ -175,9 +169,9 @@ namespace UnityEditor.ShaderGraph
 
         #region StickyNote Data
         [SerializeField]
-        List<StickyNoteData> m_StickyNotes = new List<StickyNoteData>();
+        List<JsonData<StickyNoteData>> m_StickyNoteDatas = new List<JsonData<StickyNoteData>>();
 
-        public IEnumerable<StickyNoteData> stickyNotes => m_StickyNotes;
+        public DataValueEnumerable<StickyNoteData> stickyNotes => m_StickyNoteDatas.SelectValue();
 
         [NonSerialized]
         List<StickyNoteData> m_AddedStickyNotes = new List<StickyNoteData>();
@@ -198,19 +192,13 @@ namespace UnityEditor.ShaderGraph
 
         #region Edge data
 
-        [NonSerialized]
+        [SerializeField]
         List<Edge> m_Edges = new List<Edge>();
 
-        public IEnumerable<Edge> edges
-        {
-            get { return m_Edges; }
-        }
-
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
+        public IEnumerable<Edge> edges => m_Edges;
 
         [NonSerialized]
-        Dictionary<Guid, List<IEdge>> m_NodeEdges = new Dictionary<Guid, List<IEdge>>();
+        Dictionary<string, List<IEdge>> m_NodeEdges = new Dictionary<string, List<IEdge>>();
 
         [NonSerialized]
         List<IEdge> m_AddedEdges = new List<IEdge>();
@@ -267,49 +255,13 @@ namespace UnityEditor.ShaderGraph
             set => m_ConcretePrecision = value;
         }
 
-        [NonSerialized]
-        Guid m_ActiveOutputNodeGuid;
-
-        public Guid activeOutputNodeGuid
-        {
-            get { return m_ActiveOutputNodeGuid; }
-            set
-            {
-                if (value != m_ActiveOutputNodeGuid)
-                {
-                    m_ActiveOutputNodeGuid = value;
-                    m_OutputNode = null;
-                    didActiveOutputNodeChange = true;
-                    UpdateTargets();
-                }
-            }
-        }
-
         [SerializeField]
-        string m_ActiveOutputNodeGuidSerialized;
-
-        [NonSerialized]
-        private AbstractMaterialNode m_OutputNode;
+        JsonRef<AbstractMaterialNode> m_OutputNode;
 
         public AbstractMaterialNode outputNode
         {
-            get
-            {
-                // find existing node
-                if (m_OutputNode == null)
-                {
-                    if (isSubGraph)
-                    {
-                        m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
-                    }
-                    else
-                    {
-                        m_OutputNode = GetNodeFromGuid(m_ActiveOutputNodeGuid);
-                    }
-                }
-
-                return m_OutputNode;
-            }
+            get => m_OutputNode;
+            set => m_OutputNode = value;
         }
 
         #region Targets
@@ -326,7 +278,7 @@ namespace UnityEditor.ShaderGraph
 
         public GraphData()
         {
-            m_GroupItems[Guid.Empty] = new List<IGroupItem>();
+            m_GroupItems[null] = new List<IGroupItem>();
         }
 
         public void ClearChanges()
@@ -366,7 +318,7 @@ namespace UnityEditor.ShaderGraph
                 // Need to restest Keywords against the variant limit
                 if(node is SubGraphNode subGraphNode &&
                     subGraphNode.asset != null &&
-                    subGraphNode.asset.keywords.Count > 0)
+                    subGraphNode.asset.keywords.Any())
                 {
                     OnKeywordChangedNoValidate();
                 }
@@ -389,12 +341,12 @@ namespace UnityEditor.ShaderGraph
 
         bool AddGroup(GroupData groupData)
         {
-            if (m_Groups.Contains(groupData))
+            if (m_GroupDatas.Contains(groupData))
                 return false;
 
-            m_Groups.Add(groupData);
+            m_GroupDatas.Add(groupData);
             m_AddedGroups.Add(groupData);
-            m_GroupItems.Add(groupData.guid, new List<IGroupItem>());
+            m_GroupItems.Add(groupData, new List<IGroupItem>());
 
             return true;
         }
@@ -407,50 +359,50 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveGroupNoValidate(GroupData group)
         {
-            if (!m_Groups.Contains(group))
+            if (!m_GroupDatas.Contains(group))
                 throw new InvalidOperationException("Cannot remove a group that doesn't exist.");
-            m_Groups.Remove(group);
+            m_GroupDatas.Remove(group);
             m_RemovedGroups.Add(group);
 
-            if (m_GroupItems.TryGetValue(group.guid, out var items))
+            if (m_GroupItems.TryGetValue(group, out var items))
             {
                 foreach (IGroupItem groupItem in items.ToList())
                 {
                     SetGroup(groupItem, null);
                 }
 
-                m_GroupItems.Remove(group.guid);
+                m_GroupItems.Remove(group);
             }
         }
 
         public void AddStickyNote(StickyNoteData stickyNote)
         {
-            if (m_StickyNotes.Contains(stickyNote))
+            if (m_StickyNoteDatas.Contains(stickyNote))
             {
                 throw new InvalidOperationException("Sticky note has already been added to the graph.");
             }
 
-            if (!m_GroupItems.ContainsKey(stickyNote.groupGuid))
+            if (!m_GroupItems.ContainsKey(stickyNote.group))
             {
                 throw new InvalidOperationException("Trying to add sticky note with group that doesn't exist.");
             }
 
-            m_StickyNotes.Add(stickyNote);
+            m_StickyNoteDatas.Add(stickyNote);
             m_AddedStickyNotes.Add(stickyNote);
-            m_GroupItems[stickyNote.groupGuid].Add(stickyNote);
+            m_GroupItems[stickyNote.group].Add(stickyNote);
         }
 
         void RemoveNoteNoValidate(StickyNoteData stickyNote)
         {
-            if (!m_StickyNotes.Contains(stickyNote))
+            if (!m_StickyNoteDatas.Contains(stickyNote))
             {
                 throw new InvalidOperationException("Cannot remove a note that doesn't exist.");
             }
 
-            m_StickyNotes.Remove(stickyNote);
+            m_StickyNoteDatas.Remove(stickyNote);
             m_RemovedNotes.Add(stickyNote);
 
-            if (m_GroupItems.TryGetValue(stickyNote.groupGuid, out var groupItems))
+            if (m_GroupItems.TryGetValue(stickyNote.group, out var groupItems))
             {
                 groupItems.Remove(stickyNote);
             }
@@ -467,38 +419,38 @@ namespace UnityEditor.ShaderGraph
             var groupChange = new ParentGroupChange()
             {
                 groupItem = node,
-                oldGroupGuid = node.groupGuid,
+                oldGroup = node.group,
                 // Checking if the groupdata is null. If it is, then it means node has been removed out of a group.
                 // If the group data is null, then maybe the old group id should be removed
-                newGroupGuid = group?.guid ?? Guid.Empty
+                newGroup = group,
             };
-            node.groupGuid = groupChange.newGroupGuid;
+            node.group = groupChange.newGroup;
 
-            var oldGroupNodes = m_GroupItems[groupChange.oldGroupGuid];
+            var oldGroupNodes = m_GroupItems[groupChange.oldGroup];
             oldGroupNodes.Remove(node);
 
-            m_GroupItems[groupChange.newGroupGuid].Add(node);
+            m_GroupItems[groupChange.newGroup].Add(node);
             m_ParentGroupChanges.Add(groupChange);
         }
 
         void AddNodeNoValidate(AbstractMaterialNode node)
         {
-            if (node.groupGuid != Guid.Empty && !m_GroupItems.ContainsKey(node.groupGuid))
+            if (node.group !=null && !m_GroupItems.ContainsKey(node.group))
             {
                 throw new InvalidOperationException("Cannot add a node whose group doesn't exist.");
             }
             node.owner = this;
             m_Nodes.Add(node);
-            m_NodeDictionary.Add(node.guid, node);
+            m_NodeDictionary.Add(node.objectId, node);
             m_AddedNodes.Add(node);
-            m_GroupItems[node.groupGuid].Add(node);
+            m_GroupItems[node.group].Add(node);
         }
 
         public void RemoveNode(AbstractMaterialNode node)
         {
             if (!node.canDeleteNode)
             {
-                throw new InvalidOperationException($"Node {node.name} ({node.guid}) cannot be deleted.");
+                throw new InvalidOperationException($"Node {node.name} ({node.objectId}) cannot be deleted.");
             }
             RemoveNodeNoValidate(node);
             ValidateGraph();
@@ -506,17 +458,17 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.guid))
+            if (!m_NodeDictionary.ContainsKey(node.objectId))
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
 
             m_Nodes.Remove(node);
-            m_NodeDictionary.Remove(node.guid);
-            messageManager?.RemoveNode(node.guid);
+            m_NodeDictionary.Remove(node.objectId);
+            messageManager?.RemoveNode(node.objectId);
             m_RemovedNodes.Add(node);
 
-            if (m_GroupItems.TryGetValue(node.groupGuid, out var groupItems))
+            if (m_GroupItems.TryGetValue(node.group, out var groupItems))
             {
                 groupItems.Remove(node);
             }
@@ -525,20 +477,20 @@ namespace UnityEditor.ShaderGraph
         void AddEdgeToNodeEdges(IEdge edge)
         {
             List<IEdge> inputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.inputSlot.nodeGuid, out inputEdges))
-                m_NodeEdges[edge.inputSlot.nodeGuid] = inputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.inputSlot.node.objectId, out inputEdges))
+                m_NodeEdges[edge.inputSlot.node.objectId] = inputEdges = new List<IEdge>();
             inputEdges.Add(edge);
 
             List<IEdge> outputEdges;
-            if (!m_NodeEdges.TryGetValue(edge.outputSlot.nodeGuid, out outputEdges))
-                m_NodeEdges[edge.outputSlot.nodeGuid] = outputEdges = new List<IEdge>();
+            if (!m_NodeEdges.TryGetValue(edge.outputSlot.node.objectId, out outputEdges))
+                m_NodeEdges[edge.outputSlot.node.objectId] = outputEdges = new List<IEdge>();
             outputEdges.Add(edge);
         }
 
         IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
-            var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
-            var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
+            var fromNode = fromSlotRef.node;
+            var toNode = toSlotRef.node;
 
             if (fromNode == null || toNode == null)
                 return null;
@@ -552,8 +504,8 @@ namespace UnityEditor.ShaderGraph
             if (dependentNodes.Contains(fromNode))
                 return null;
 
-            var fromSlot = fromNode.FindSlot<ISlot>(fromSlotRef.slotId);
-            var toSlot = toNode.FindSlot<ISlot>(toSlotRef.slotId);
+            var fromSlot = fromNode.FindSlot<MaterialSlot>(fromSlotRef.slotId);
+            var toSlot = toNode.FindSlot<MaterialSlot>(toSlotRef.slotId);
 
             if (fromSlot == null || toSlot == null)
                 return null;
@@ -601,7 +553,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (!node.canDeleteNode)
                 {
-                    throw new InvalidOperationException($"Node {node.name} ({node.guid}) cannot be deleted.");
+                    throw new InvalidOperationException($"Node {node.name} ({node.objectId}) cannot be deleted.");
                 }
             }
 
@@ -650,53 +602,45 @@ namespace UnityEditor.ShaderGraph
             m_Edges.Remove(e as Edge);
 
             List<IEdge> inputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.inputSlot.node.objectId, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
             List<IEdge> outputNodeEdges;
-            if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
+            if (m_NodeEdges.TryGetValue(e.outputSlot.node.objectId, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
             m_RemovedEdges.Add(e);
         }
 
-        public AbstractMaterialNode GetNodeFromGuid(Guid guid)
+        public AbstractMaterialNode GetNodeFromId(string nodeId)
         {
-            AbstractMaterialNode node;
-            m_NodeDictionary.TryGetValue(guid, out node);
+            m_NodeDictionary.TryGetValue(nodeId, out var node);
             return node;
         }
 
-        public bool ContainsNodeGuid(Guid guid)
+        public T GetNodeFromId<T>(string nodeId) where T : class
         {
-            return m_NodeDictionary.ContainsKey(guid);
+            m_NodeDictionary.TryGetValue(nodeId, out var node);
+            return node as T;
         }
 
-        public T GetNodeFromGuid<T>(Guid guid) where T : AbstractMaterialNode
+        public bool ContainsNode(AbstractMaterialNode node)
         {
-            var node = GetNodeFromGuid(guid);
-            if (node is T)
-                return (T)node;
-            return default(T);
+            return m_NodeDictionary.TryGetValue(node.objectId, out var foundNode) && node == foundNode;
         }
 
         public void GetEdges(SlotReference s, List<IEdge> foundEdges)
         {
-            var node = GetNodeFromGuid(s.nodeGuid);
-            if (node == null)
-            {
-                return;
-            }
-            ISlot slot = node.FindSlot<ISlot>(s.slotId);
+            MaterialSlot slot = s.slot;
 
             List<IEdge> candidateEdges;
-            if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
+            if (!m_NodeEdges.TryGetValue(s.node.objectId, out candidateEdges))
                 return;
 
             foreach (var edge in candidateEdges)
             {
                 var cs = slot.isInputSlot ? edge.inputSlot : edge.outputSlot;
-                if (cs.nodeGuid == s.nodeGuid && cs.slotId == s.slotId)
+                if (cs.node == s.node && cs.slotId == s.slotId)
                     foundEdges.Add(edge);
             }
         }
@@ -768,7 +712,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // only ignores names matching ignoreName on properties matching ignoreGuid
-        public List<string> BuildPropertyDisplayNameList(Guid ignoreGuid, string ignoreName)
+        public List<string> BuildPropertyDisplayNameList(AbstractShaderProperty ignoreProperty, string ignoreName)
         {
             List<String> result = new List<String>();
             foreach (var p in properties)
@@ -776,7 +720,7 @@ namespace UnityEditor.ShaderGraph
                 int before = result.Count;
                 p.GetPropertyDisplayNames(result);
 
-                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                if ((p == ignoreProperty) && (ignoreName != null))
                 {
                     // remove ignoreName, if it was just added
                     for (int i = before; i < result.Count; i++)
@@ -794,7 +738,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // only ignores names matching ignoreName on properties matching ignoreGuid
-        public List<string> BuildPropertyReferenceNameList(Guid ignoreGuid, string ignoreName)
+        public List<string> BuildPropertyReferenceNameList(AbstractShaderProperty ignoreProperty, string ignoreName)
         {
             List<String> result = new List<String>();
             foreach (var p in properties)
@@ -802,7 +746,7 @@ namespace UnityEditor.ShaderGraph
                 int before = result.Count;
                 p.GetPropertyReferenceNames(result);
 
-                if ((p.guid == ignoreGuid) && (ignoreName != null))
+                if ((p == ignoreProperty) && (ignoreName != null))
                 {
                     // remove ignoreName, if it was just added
                     for (int i = before; i < result.Count; i++)
@@ -824,10 +768,10 @@ namespace UnityEditor.ShaderGraph
             switch (input)
             {
                 case AbstractShaderProperty property:
-                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(input.guid, input.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeName(BuildPropertyDisplayNameList(property, input.displayName), "{0} ({1})", input.displayName);
                     break;
                 case ShaderKeyword keyword:
-                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.displayName), "{0} ({1})", input.displayName);
+                    input.displayName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.displayName), "{0} ({1})", input.displayName);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -850,10 +794,10 @@ namespace UnityEditor.ShaderGraph
             switch(input)
             {
                 case AbstractShaderProperty property:
-                    property.overrideReferenceName = GraphUtil.SanitizeName(BuildPropertyReferenceNameList(property.guid, property.referenceName), "{0}_{1}", name);
+                    property.overrideReferenceName = GraphUtil.SanitizeName(properties.Where(p => p != property).Select(p => p.referenceName), "{0}_{1}", name);
                     break;
                 case ShaderKeyword keyword:
-                    keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p.guid != input.guid).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
+                    keyword.overrideReferenceName = GraphUtil.SanitizeName(keywords.Where(p => p != input).Select(p => p.referenceName), "{0}_{1}", name).ToUpper();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -865,13 +809,13 @@ namespace UnityEditor.ShaderGraph
             switch(input)
             {
                 case AbstractShaderProperty property:
-                    var propetyNodes = GetNodes<PropertyNode>().Where(x => x.propertyGuid == input.guid).ToList();
-                    foreach (var propNode in propetyNodes)
-                        ReplacePropertyNodeWithConcreteNodeNoValidate(propNode);
+                    var propertyNodes = GetNodes<PropertyNode>().Where(x => x.property == input).ToList();
+                    foreach (var propertyNode in propertyNodes)
+                        ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
                     break;
             }
 
-            RemoveGraphInputNoValidate(input.guid);
+            RemoveGraphInputNoValidate(input);
             ValidateGraph();
         }
 
@@ -930,14 +874,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void RemoveGraphInputNoValidate(Guid guid)
+        void RemoveGraphInputNoValidate(ShaderInput shaderInput)
         {
-            if (m_Properties.RemoveAll(x => x.guid == guid) > 0 ||
-                m_Keywords.RemoveAll(x => x.guid == guid) > 0)
+            if (shaderInput is AbstractShaderProperty property && m_Properties.Remove(property) ||
+                shaderInput is ShaderKeyword keyword && m_Keywords.Remove(keyword))
             {
-                m_RemovedInputs.Add(guid);
-                m_AddedInputs.RemoveAll(x => x.guid == guid);
-                m_MovedInputs.RemoveAll(x => x.guid == guid);
+                m_RemovedInputs.Add(shaderInput);
+                m_AddedInputs.Remove(shaderInput);
+                m_MovedInputs.Remove(shaderInput);
             }
         }
 
@@ -951,7 +895,7 @@ namespace UnityEditor.ShaderGraph
 
         void ReplacePropertyNodeWithConcreteNodeNoValidate(PropertyNode propertyNode, bool deleteNodeIfNoConcreteFormExists = true)
         {
-            var property = properties.FirstOrDefault(x => x.guid == propertyNode.propertyGuid);
+            var property = properties.FirstOrDefault(x => x == propertyNode.property);
             if (property == null)
                 return;
 
@@ -969,7 +913,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             node.drawState = propertyNode.drawState;
-            node.groupGuid = propertyNode.groupGuid;
+            node.group = propertyNode.group;
             AddNodeNoValidate(node);
 
             foreach (var edge in this.GetEdges(slot.slotReference))
@@ -1003,12 +947,12 @@ namespace UnityEditor.ShaderGraph
             //debug view.
             foreach (var edge in edges.ToArray())
             {
-                var outputNode = GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                var inputNode = GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                var outputNode = edge.outputSlot.node;
+                var inputNode = edge.inputSlot.node;
 
                 MaterialSlot outputSlot = null;
                 MaterialSlot inputSlot = null;
-                if (outputNode != null && inputNode != null)
+                if (ContainsNode(outputNode) && ContainsNode(inputNode))
                 {
                     outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId);
                     inputSlot = inputNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
@@ -1035,40 +979,40 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var edge in m_AddedEdges.ToList())
             {
-                if (!ContainsNodeGuid(edge.outputSlot.nodeGuid) || !ContainsNodeGuid(edge.inputSlot.nodeGuid))
+                if (!ContainsNode(edge.outputSlot.node) || !ContainsNode(edge.inputSlot.node))
                 {
-                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.nodeGuid, edge.inputSlot.nodeGuid, Environment.StackTrace);
+                    Debug.LogWarningFormat("Added edge is invalid: {0} -> {1}\n{2}", edge.outputSlot.node.objectId, edge.inputSlot.node.objectId, Environment.StackTrace);
                     m_AddedEdges.Remove(edge);
                 }
             }
 
             foreach (var groupChange in m_ParentGroupChanges.ToList())
             {
-                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNodeGuid(node.guid))
+                if (groupChange.groupItem is AbstractMaterialNode node && !ContainsNode(node))
                 {
                     m_ParentGroupChanges.Remove(groupChange);
                 }
 
-                if (groupChange.groupItem is StickyNoteData stickyNote && !m_StickyNotes.Contains(stickyNote))
+                if (groupChange.groupItem is StickyNoteData stickyNote && !m_StickyNoteDatas.Contains(stickyNote))
                 {
                     m_ParentGroupChanges.Remove(groupChange);
                 }
             }
         }
 
-        public void AddValidationError(Guid id, string errorMessage,
+        public void AddValidationError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Validation: " + errorMessage, severity));
         }
 
-        public void AddSetupError(Guid id, string errorMessage,
+        public void AddSetupError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Setup: " + errorMessage, severity));
         }
 
-        public void AddConcretizationError(Guid id, string errorMessage,
+        public void AddConcretizationError(string id, string errorMessage,
             ShaderCompilerMessageSeverity severity = ShaderCompilerMessageSeverity.Error)
         {
             messageManager?.AddOrAppendError(this, id, new ShaderMessage("Concretization: " + errorMessage, severity));
@@ -1084,25 +1028,22 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
-            using (var removedInputsPooledObject = ListPool<Guid>.GetDisposable())
+            using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
-                var removedInputGuids = removedInputsPooledObject.value;
-                foreach (var property in m_Properties)
-                    removedInputGuids.Add(property.guid);
-                foreach (var keyword in m_Keywords)
-                    removedInputGuids.Add(keyword.guid);
-                foreach (var inputGuid in removedInputGuids)
-                    RemoveGraphInputNoValidate(inputGuid);
+                foreach (var property in m_Properties.SelectValue())
+                    inputsToRemove.Add(property);
+                foreach (var keyword in m_Keywords.SelectValue())
+                    inputsToRemove.Add(keyword);
+                foreach (var input in inputsToRemove)
+                    RemoveGraphInputNoValidate(input);
             }
             foreach (var otherProperty in other.properties)
             {
-                if (!properties.Any(p => p.guid == otherProperty.guid))
-                    AddGraphInput(otherProperty);
+                AddGraphInput(otherProperty);
             }
             foreach (var otherKeyword in other.keywords)
             {
-                if (!keywords.Any(p => p.guid == otherKeyword.guid))
-                    AddGraphInput(otherKeyword);
+                AddGraphInput(otherKeyword);
             }
 
             other.ValidateGraph();
@@ -1114,7 +1055,7 @@ namespace UnityEditor.ShaderGraph
             using (var removedGroupsPooledObject = ListPool<GroupData>.GetDisposable())
             {
                 var removedGroupDatas = removedGroupsPooledObject.value;
-                removedGroupDatas.AddRange(m_Groups);
+                removedGroupDatas.AddRange(m_GroupDatas.SelectValue());
                 foreach (var groupData in removedGroupDatas)
                 {
                     RemoveGroupNoValidate(groupData);
@@ -1124,7 +1065,7 @@ namespace UnityEditor.ShaderGraph
             using (var removedNotesPooledObject = ListPool<StickyNoteData>.GetDisposable())
             {
                 var removedNoteDatas = removedNotesPooledObject.value;
-                removedNoteDatas.AddRange(m_StickyNotes);
+                removedNoteDatas.AddRange(m_StickyNoteDatas.SelectValue());
                 foreach (var groupData in removedNoteDatas)
                 {
                     RemoveNoteNoValidate(groupData);
@@ -1139,12 +1080,11 @@ namespace UnityEditor.ShaderGraph
                     RemoveEdgeNoValidate(edge);
             }
 
-            using (var removedNodesPooledObject = ListPool<Guid>.GetDisposable())
+            using (var nodesToRemove = PooledList<AbstractMaterialNode>.Get())
             {
-                var removedNodeGuids = removedNodesPooledObject.value;
-                removedNodeGuids.AddRange(m_Nodes.Where(n => n != null).Select(n => n.guid));
-                foreach (var nodeGuid in removedNodeGuids)
-                    RemoveNodeNoValidate(m_NodeDictionary[nodeGuid]);
+                nodesToRemove.AddRange(m_Nodes.SelectValue());
+                foreach (var node in nodesToRemove)
+                    RemoveNodeNoValidate(node);
             }
 
             ValidateGraph();
@@ -1161,15 +1101,19 @@ namespace UnityEditor.ShaderGraph
                 AddNodeNoValidate(node);
 
             foreach (var edge in other.edges)
+            {
                 ConnectNoValidate(edge.outputSlot, edge.inputSlot);
+            }
+
+            outputNode = other.outputNode;
 
             ValidateGraph();
         }
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
-            List<IEdge> remappedEdges)
+            List<Edge> remappedEdges)
         {
-            var groupGuidMap = new Dictionary<Guid, Guid>();
+            var groupMap = new Dictionary<GroupData, GroupData>();
             foreach (var group in graphToPaste.groups)
             {
                 var position = group.position;
@@ -1178,9 +1122,7 @@ namespace UnityEditor.ShaderGraph
 
                 GroupData newGroup = new GroupData(group.title, position);
 
-                var oldGuid = group.guid;
-                var newGuid = newGroup.guid;
-                groupGuidMap[oldGuid] = newGuid;
+                groupMap[group] = newGroup;
 
                 AddGroup(newGroup);
                 m_PastedGroups.Add(newGroup);
@@ -1193,61 +1135,68 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
 
                 StickyNoteData pastedStickyNote = new StickyNoteData(stickyNote.title, stickyNote.content, position);
-                if (groupGuidMap.ContainsKey(stickyNote.groupGuid))
+                if (groupMap.ContainsKey(stickyNote.group))
                 {
-                    pastedStickyNote.groupGuid = groupGuidMap[stickyNote.groupGuid];
+                    pastedStickyNote.group = groupMap[stickyNote.group];
                 }
 
                 AddStickyNote(pastedStickyNote);
                 m_PastedStickyNotes.Add(pastedStickyNote);
             }
 
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
+            var edges = graphToPaste.edges.ToList();
             var nodeList = graphToPaste.GetNodes<AbstractMaterialNode>();
             foreach (var node in nodeList)
             {
                 AbstractMaterialNode pastedNode = node;
-
-                var oldGuid = node.guid;
-                var newGuid = node.RewriteGuid();
-                nodeGuidMap[oldGuid] = newGuid;
 
                 // Check if the property nodes need to be made into a concrete node.
                 if (node is PropertyNode propertyNode)
                 {
                     // If the property is not in the current graph, do check if the
                     // property can be made into a concrete node.
-                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    var index = graphToPaste.metaProperties.TakeWhile(x => x != propertyNode.property).Count();
+                    var originalId = graphToPaste.metaPropertyIds.ElementAt(index);
+                    var property = m_Properties.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (property != null)
                     {
-                        // If the property is in the serialized paste graph, make the property node into a concrete node.
-                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
-                        if (pastedGraphMetaProperties.Any())
+                        propertyNode.property = property;
+                    }
+                    else
+                    {
+                        pastedNode = propertyNode.property.ToConcreteNode();
+                        // some property nodes cannot be concretized..  fail to paste them
+                        if (pastedNode == null)
+                            continue;
+                        pastedNode.drawState = node.drawState;
+                        for (var i = 0; i < edges.Count; i++)
                         {
-                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
-                            // some property nodes cannot be concretized..  fail to paste them
-                            if (pastedNode == null)
-                                continue;
-                            pastedNode.drawState = node.drawState;
-                            nodeGuidMap[oldGuid] = pastedNode.guid;
+                            var edge = edges[i];
+                            if (edge.outputSlot.node == node)
+                            {
+                                edges[i] = new Edge(new SlotReference(pastedNode, edge.outputSlot.slotId), edge.inputSlot);
+                            }
+                            else if (edge.inputSlot.node == node)
+                            {
+                                edges[i] = new Edge(edge.outputSlot, new SlotReference(pastedNode, edge.inputSlot.slotId));
+                            }
                         }
                     }
                 }
 
-                AbstractMaterialNode abstractMaterialNode = (AbstractMaterialNode)node;
-
                 // If the node has a group guid and no group has been copied, reset the group guid.
                 // Check if the node is inside a group
-                if (abstractMaterialNode.groupGuid != Guid.Empty)
+                if (node.group != null)
                 {
-                    if (groupGuidMap.ContainsKey(abstractMaterialNode.groupGuid))
+                    if (groupMap.ContainsKey(node.group))
                     {
-                        var absNode = pastedNode as AbstractMaterialNode;
-                        absNode.groupGuid = groupGuidMap[abstractMaterialNode.groupGuid];
+                        var absNode = pastedNode;
+                        absNode.group = groupMap[node.group];
                         pastedNode = absNode;
                     }
                     else
                     {
-                        pastedNode.groupGuid = Guid.Empty;
+                        pastedNode.group = null;
                     }
                 }
 
@@ -1260,17 +1209,18 @@ namespace UnityEditor.ShaderGraph
                 // Check if the keyword nodes need to have their keywords copied.
                 if (node is KeywordNode keywordNode)
                 {
-                    // If the keyword is not in the current graph and is in the serialized paste graph copy it.
-                    if (!keywords.Select(x => x.guid).Contains(keywordNode.keywordGuid))
+                    var index = graphToPaste.metaKeywords.TakeWhile(x => x != keywordNode.keyword).Count();
+                    var originalId = graphToPaste.metaKeywordIds.ElementAt(index);
+                    var keyword = m_Keywords.SelectValue().FirstOrDefault(x => x.objectId == originalId);
+                    if (keyword != null)
                     {
-                        var pastedGraphMetaKeywords = graphToPaste.metaKeywords.Where(x => x.guid == keywordNode.keywordGuid);
-                        if (pastedGraphMetaKeywords.Any())
-                        {
-                            var keyword = pastedGraphMetaKeywords.FirstOrDefault(x => x.guid == keywordNode.keywordGuid);
-                            SanitizeGraphInputName(keyword);
-                            SanitizeGraphInputReferenceName(keyword, keyword.overrideReferenceName);
-                            AddGraphInput(keyword);
-                        }
+                        keywordNode.keyword = keyword;
+                    }
+                    else
+                    {
+                        SanitizeGraphInputName(keywordNode.keyword);
+                        SanitizeGraphInputReferenceName(keywordNode.keyword, keywordNode.keyword.overrideReferenceName);
+                        AddGraphInput(keywordNode.keyword);
                     }
 
                     // Always update Keyword nodes to handle any collisions resolved on the Keyword
@@ -1278,93 +1228,245 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            // only connect edges within pasted elements, discard
-            // external edges.
-            foreach (var edge in graphToPaste.edges)
+            foreach (var edge in edges)
             {
-                var outputSlot = edge.outputSlot;
-                var inputSlot = edge.inputSlot;
-
-                Guid remappedOutputNodeGuid;
-                Guid remappedInputNodeGuid;
-                if (nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid)
-                    && nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid))
+                var newEdge = (Edge)Connect(edge.outputSlot, edge.inputSlot);
+                if (newEdge != null)
                 {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    remappedEdges.Add(Connect(outputSlotRef, inputSlotRef));
+                    remappedEdges.Add(newEdge);
                 }
             }
 
             ValidateGraph();
         }
 
-        public void OnBeforeSerialize()
+        public override void OnBeforeSerialize()
         {
-            var nodes = GetNodes<AbstractMaterialNode>().ToList();
-            nodes.Sort((x1, x2) => x1.guid.CompareTo(x2.guid));
-            m_SerializableNodes = SerializationHelper.Serialize(nodes.AsEnumerable());
             m_Edges.Sort();
-            m_SerializableEdges = SerializationHelper.Serialize<Edge>(m_Edges);
-            m_SerializedProperties = SerializationHelper.Serialize<AbstractShaderProperty>(m_Properties);
-            m_SerializedKeywords = SerializationHelper.Serialize<ShaderKeyword>(m_Keywords);
-            m_ActiveOutputNodeGuidSerialized = m_ActiveOutputNodeGuid == Guid.Empty ? null : m_ActiveOutputNodeGuid.ToString();
+            m_Version = k_CurrentVersion;
         }
 
-        public void OnAfterDeserialize()
+        static JsonObject DeserializeLegacy(string typeString, string json)
         {
-            // have to deserialize 'globals' before nodes
-            m_Properties = SerializationHelper.Deserialize<AbstractShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
-            m_Keywords = SerializationHelper.Deserialize<ShaderKeyword>(m_SerializedKeywords, GraphUtil.GetLegacyTypeRemapping());
-
-            var nodes = SerializationHelper.Deserialize<AbstractMaterialNode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
-
-            m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
-            m_NodeDictionary = new Dictionary<Guid, AbstractMaterialNode>(nodes.Count);
-
-            foreach (var group in m_Groups)
+            var value = MultiJsonInternal.CreateInstance(typeString);
+            if (value == null)
             {
-                m_GroupItems.Add(group.guid, new List<IGroupItem>());
+                Debug.Log($"Cannot create instance for {typeString}");
+                return null;
             }
 
-            foreach (var node in nodes)
+            MultiJsonInternal.Enqueue(value, json);
+
+            return value;
+        }
+
+        public override void OnAfterDeserialize(string json)
+        {
+            if (m_Version == 0)
             {
-                node.owner = this;
-                node.UpdateNodeAfterDeserialization();
-                m_Nodes.Add(node);
-                m_NodeDictionary.Add(node.guid, node);
-                m_GroupItems[node.groupGuid].Add(node);
-            }
+                var graphData0 = JsonUtility.FromJson<GraphData0>(json);
 
-            foreach (var stickyNote in m_StickyNotes)
-            {
-                m_GroupItems[stickyNote.groupGuid].Add(stickyNote);
-            }
+                var nodeGuidMap = new Dictionary<string, AbstractMaterialNode>();
+                var propertyGuidMap = new Dictionary<string, AbstractShaderProperty>();
+                var keywordGuidMap = new Dictionary<string, ShaderKeyword>();
+                var groupGuidMap = new Dictionary<string, GroupData>();
+                var slotsField = typeof(AbstractMaterialNode).GetField("m_Slots", BindingFlags.Instance | BindingFlags.NonPublic);
+                var propertyField = typeof(PropertyNode).GetField("m_Property", BindingFlags.Instance | BindingFlags.NonPublic);
+                var keywordField = typeof(KeywordNode).GetField("m_Keyword", BindingFlags.Instance | BindingFlags.NonPublic);
+                var defaultReferenceNameField = typeof(ShaderInput).GetField("m_DefaultReferenceName", BindingFlags.Instance | BindingFlags.NonPublic);
 
-            m_SerializableNodes = null;
+                m_GroupDatas.Clear();
+                m_StickyNoteDatas.Clear();
 
-            m_Edges = SerializationHelper.Deserialize<Edge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
-            m_SerializableEdges = null;
-            foreach (var edge in m_Edges)
-                AddEdgeToNodeEdges(edge);
-
-            m_OutputNode = null;
-
-            if (!isSubGraph)
-            {
-                if (string.IsNullOrEmpty(m_ActiveOutputNodeGuidSerialized))
+                foreach (var group0 in graphData0.m_Groups)
                 {
-                    var node = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
-                    if (node != null)
+                    var group = new GroupData(group0.m_Title, group0.m_Position);
+                    m_GroupDatas.Add(group);
+                    if (!groupGuidMap.ContainsKey(group0.m_GuidSerialized))
                     {
-                        m_ActiveOutputNodeGuid = node.guid;
+                        groupGuidMap.Add(group0.m_GuidSerialized, group);
                     }
+                    else if (!groupGuidMap[group0.m_GuidSerialized].Equals(group.objectId))
+                    {
+                        Debug.LogError("Group id mismatch");
+                    }
+                }
+
+                foreach (var serializedProperty in graphData0.m_SerializedProperties)
+                {
+                    var property = (AbstractShaderProperty)DeserializeLegacy(serializedProperty.typeInfo.fullName, serializedProperty.JSONnodeData);
+                    if (property == null)
+                    {
+                        continue;
+                    }
+
+                    m_Properties.Add(property);
+
+                    var input0 = JsonUtility.FromJson<ShaderInput0>(serializedProperty.JSONnodeData);
+                    propertyGuidMap[input0.m_Guid.m_GuidSerialized] = property;
+
+                    // Fix up missing reference names
+                    // Properties on Sub Graphs in V0 never have reference names serialized
+                    // To maintain Sub Graph node property mapping we force guid based reference names on upgrade
+                    if (string.IsNullOrEmpty((string)defaultReferenceNameField.GetValue(property)))
+                    {
+                        // ColorShaderProperty is the only Property case where `GetDefaultReferenceName` was overriden
+                        if (MultiJson.ParseType(serializedProperty.typeInfo.fullName) == typeof(ColorShaderProperty))
+                        {
+                            defaultReferenceNameField.SetValue(property, $"Color_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                        else
+                        {
+                            defaultReferenceNameField.SetValue(property, $"{property.concreteShaderValueType}_{GuidEncoder.Encode(Guid.Parse(input0.m_Guid.m_GuidSerialized))}");
+                        }
+                    }
+                }
+
+                foreach (var serializedKeyword in graphData0.m_SerializedKeywords)
+                {
+                    var keyword = (ShaderKeyword)DeserializeLegacy(serializedKeyword.typeInfo.fullName, serializedKeyword.JSONnodeData);
+                    if (keyword == null)
+                    {
+                        continue;
+                    }
+
+                    m_Keywords.Add(keyword);
+
+                    var input0 = JsonUtility.FromJson<ShaderInput0>(serializedKeyword.JSONnodeData);
+                    keywordGuidMap[input0.m_Guid.m_GuidSerialized] = keyword;
+                }
+
+                foreach (var serializedNode in graphData0.m_SerializableNodes)
+                {
+                    var node0 = JsonUtility.FromJson<AbstractMaterialNode0>(serializedNode.JSONnodeData);
+
+                    var node = (AbstractMaterialNode)DeserializeLegacy(serializedNode.typeInfo.fullName, serializedNode.JSONnodeData);
+                    if (node == null)
+                    {
+                        continue;
+                    }
+
+                    nodeGuidMap.Add(node0.m_GuidSerialized, node);
+                    m_Nodes.Add(node);
+
+                    if (!string.IsNullOrEmpty(node0.m_PropertyGuidSerialized) && propertyGuidMap.TryGetValue(node0.m_PropertyGuidSerialized, out var property))
+                    {
+                        propertyField.SetValue(node, (JsonRef<AbstractShaderProperty>)property);
+                    }
+
+                    if (!string.IsNullOrEmpty(node0.m_KeywordGuidSerialized) && keywordGuidMap.TryGetValue(node0.m_KeywordGuidSerialized, out var keyword))
+                    {
+                        keywordField.SetValue(node, (JsonRef<ShaderKeyword>)keyword);
+                    }
+
+                    var slots = (List<JsonData<MaterialSlot>>)slotsField.GetValue(node);
+                    slots.Clear();
+
+                    foreach (var serializedSlot in node0.m_SerializableSlots)
+                    {
+                        var slot = (MaterialSlot)DeserializeLegacy(serializedSlot.typeInfo.fullName, serializedSlot.JSONnodeData);
+                        if (slot == null)
+                        {
+                            continue;
+                        }
+
+                        slots.Add(slot);
+                    }
+
+                    if(!String.IsNullOrEmpty(node0.m_GroupGuidSerialized))
+                    {
+                        if(groupGuidMap.TryGetValue(node0.m_GroupGuidSerialized, out GroupData foundGroup))
+                        {
+                            node.group = foundGroup;
+                        }
+                    }
+                }
+
+                foreach (var stickyNote0 in graphData0.m_StickyNotes)
+                {
+                    var stickyNote = new StickyNoteData(stickyNote0.m_Title, stickyNote0.m_Content, stickyNote0.m_Position);
+                    if(!String.IsNullOrEmpty(stickyNote0.m_GroupGuidSerialized))
+                    {
+                        if(groupGuidMap.TryGetValue(stickyNote0.m_GroupGuidSerialized, out GroupData foundGroup))
+                        {
+                            stickyNote.group = foundGroup;
+                        }
+                    }
+                    stickyNote.theme = stickyNote0.m_Theme;
+                    stickyNote.textSize = stickyNote0.m_TextSize;
+                    m_StickyNoteDatas.Add(stickyNote);
+                }
+
+                var subgraphOuput = GetNodes<SubGraphOutputNode>();
+                isSubGraph = subgraphOuput.Any();
+
+                if (isSubGraph)
+                {
+                    m_OutputNode = subgraphOuput.FirstOrDefault();
+                }
+                else if (!string.IsNullOrEmpty(graphData0.m_ActiveOutputNodeGuidSerialized))
+                {
+                    m_OutputNode = nodeGuidMap[graphData0.m_ActiveOutputNodeGuidSerialized];
                 }
                 else
                 {
-                    m_ActiveOutputNodeGuid = new Guid(m_ActiveOutputNodeGuidSerialized);
+                    m_OutputNode = (AbstractMaterialNode)GetNodes<IMasterNode>().FirstOrDefault();
+                }
+
+                foreach (var serializedElement in graphData0.m_SerializableEdges)
+                {
+                    var edge0 = JsonUtility.FromJson<Edge0>(serializedElement.JSONnodeData);
+                    m_Edges.Add(new Edge(
+                        new SlotReference(
+                            nodeGuidMap[edge0.m_OutputSlot.m_NodeGUIDSerialized],
+                            edge0.m_OutputSlot.m_SlotId),
+                        new SlotReference(
+                            nodeGuidMap[edge0.m_InputSlot.m_NodeGUIDSerialized],
+                            edge0.m_InputSlot.m_SlotId)));
                 }
             }
+
+            m_Version = k_CurrentVersion;
+        }
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            m_NodeDictionary = new Dictionary<string, AbstractMaterialNode>(m_Nodes.Count);
+
+            foreach (var group in m_GroupDatas.SelectValue())
+            {
+                m_GroupItems.Add(group, new List<IGroupItem>());
+            }
+
+            foreach (var node in m_Nodes.SelectValue())
+            {
+                node.owner = this;
+                node.UpdateNodeAfterDeserialization();
+                m_NodeDictionary.Add(node.objectId, node);
+                if (m_GroupItems.TryGetValue(node.group, out var groupItems))
+                {
+                    groupItems.Add(node);
+                }
+                else
+                {
+                    node.group = null;
+                }
+            }
+
+            foreach (var stickyNote in m_StickyNoteDatas.SelectValue())
+            {
+                if (m_GroupItems.TryGetValue(stickyNote.group, out var groupItems))
+                {
+                    groupItems.Add(stickyNote);
+                }
+                else
+                {
+                    stickyNote.group = null;
+                }
+            }
+
+            foreach (var edge in m_Edges)
+                AddEdgeToNodeEdges(edge);
         }
 
         public void OnEnable()
@@ -1405,8 +1507,8 @@ namespace UnityEditor.ShaderGraph
             {
                 if(type.IsAbstract || type.IsGenericType || !type.IsClass)
                     continue;
-                
-                var masterNode = GetNodeFromGuid(m_ActiveOutputNodeGuid) as IMasterNode;
+
+                var masterNode = outputNode as IMasterNode;
                 var target = (Target)Activator.CreateInstance(type);
                 if(!target.isHidden && target.IsValid(masterNode))
                 {

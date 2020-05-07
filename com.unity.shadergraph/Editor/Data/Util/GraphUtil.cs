@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graph = new GraphData();
             graph.AddNode(node);
+            graph.outputNode = node;
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -186,19 +187,19 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
+        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<string, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
-            if (!unmarkedNodes.ContainsKey(node.guid))
+            if (!unmarkedNodes.ContainsKey(node.objectId))
                 return;
-            foreach (var slot in node.GetInputSlots<ISlot>())
+            foreach (var slot in node.GetInputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var inputNode = edge.outputSlot.node;
                     Visit(outputList, unmarkedNodes, inputNode);
                 }
             }
-            unmarkedNodes.Remove(node.guid);
+            unmarkedNodes.Remove(node.objectId);
             outputList.Add(node);
         }
 
@@ -380,26 +381,26 @@ namespace UnityEditor.ShaderGraph
             // Should never be called without a node
             Debug.Assert(node != null);
 
-            List<Guid> visitedNodes = new List<Guid>();
+            HashSet<AbstractMaterialNode> visitedNodes = new HashSet<AbstractMaterialNode>();
             List<NodeType> vtNodes = new List<NodeType>();
             Queue<AbstractMaterialNode> nodeStack = new Queue<AbstractMaterialNode>();
             nodeStack.Enqueue(node);
-            visitedNodes.Add(node.guid);
+            visitedNodes.Add(node);
 
             while (nodeStack.Count > 0)
             {
                 AbstractMaterialNode visit = nodeStack.Dequeue();
 
                 // Flood fill through all the nodes
-                foreach (var slot in visit.GetInputSlots<ISlot>())
+                foreach (var slot in visit.GetInputSlots<MaterialSlot>())
                 {
                     foreach (var edge in visit.owner.GetEdges(slot.slotReference))
                     {
-                        var inputNode = visit.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
-                        if (!visitedNodes.Contains(inputNode.guid))
+                        var inputNode = edge.outputSlot.node;
+                        if (!visitedNodes.Contains(inputNode))
                         {
                             nodeStack.Enqueue(inputNode);
-                            visitedNodes.Add(inputNode.guid);
+                            visitedNodes.Add(inputNode);
                         }
                     }
                 }

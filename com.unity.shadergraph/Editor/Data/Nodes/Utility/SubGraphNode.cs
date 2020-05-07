@@ -106,6 +106,7 @@ namespace UnityEditor.ShaderGraph
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
                 m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
+                m_SubGraph.LoadGraphData();
                 if (m_SubGraph == null)
                 {
                     return;
@@ -438,11 +439,11 @@ namespace UnityEditor.ShaderGraph
                 var assetPath = string.IsNullOrEmpty(subGraphGuid) ? null : AssetDatabase.GUIDToAssetPath(assetGuid);
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    owner.AddValidationError(guid, $"Could not find Sub Graph asset with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not find Sub Graph asset with GUID {assetGuid}.");
                 }
                 else
                 {
-                    owner.AddValidationError(guid, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
                 }
 
                 return;
@@ -451,12 +452,12 @@ namespace UnityEditor.ShaderGraph
             if (asset.isRecursive || owner.isSubGraph && (asset.descendents.Contains(owner.assetGuid) || asset.assetGuid == owner.assetGuid))
             {
                 hasError = true;
-                owner.AddValidationError(guid, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (!asset.isValid)
             {
                 hasError = true;
-                owner.AddValidationError(guid, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
 
             // detect VT layer count mismatches
@@ -473,7 +474,7 @@ namespace UnityEditor.ShaderGraph
                         int argLayerCount = argProp.value.layers.Count;
 
                         if (argLayerCount != paramLayerCount)
-                            owner.AddValidationError(guid, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
                     }
                     break;
                 }

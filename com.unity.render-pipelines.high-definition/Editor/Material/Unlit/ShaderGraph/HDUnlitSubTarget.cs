@@ -367,7 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
+                keywords = CoreKeywords.HDBaseNoCrossFade,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
             };
@@ -484,6 +484,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
+            };
+        }
+        #endregion
+
+#region Defines
+        static class UnlitDefines
+        {
+            public static DefineCollection RaytracingForward = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
+            };
+
+            public static DefineCollection RaytracingIndirect = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingVisibility = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingGBuffer = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
             };
         }
 #endregion
