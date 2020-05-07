@@ -97,6 +97,13 @@ namespace UnityEditor.Graphing
 
         public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper,  params object[] constructorArgs) where T : class
         {
+
+            if (typeof(T) == typeof(JsonObject) || typeof(T).IsSubclassOf(typeof(JsonObject)))
+            {
+                var output = (T)Activator.CreateInstance(typeof(T), constructorArgs);
+                MultiJson.Deserialize(output as JsonObject, item.JSONnodeData);
+                return output;
+            }
             if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
