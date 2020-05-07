@@ -79,9 +79,9 @@ android_apis:
   - name: Vulkan
 testplatforms_for_coverage:
   - name: playmode
-    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+    args: --suite=playmode --enable-code-coverage --coverage-results-path=test-results/coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
   - name: editmode
-    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
+    args: --suite=editor --platform=editmode --enable-code-coverage --coverage-results-path=test-results/coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
 ---
 {% for project in projects %}
 {% for editor in editors %}
