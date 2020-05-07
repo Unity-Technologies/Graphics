@@ -1,4 +1,4 @@
-namespace UnityEditor.ShaderGraph
+espace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class Fields
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
         public static FieldDescriptor IsPreview =             new FieldDescriptor(string.Empty, "isPreview", "SHADERGRAPH_PREVIEW");
         public static FieldDescriptor LodCrossFade =          new FieldDescriptor(string.Empty, "LodCrossFade", "_LODCROSSFADE 1");
         public static FieldDescriptor AlphaToMask =           new FieldDescriptor(string.Empty, "AlphaToMask", "_ALPHATOMASK_ON 1");
-        public static FieldDescriptor ClearCoat =             new FieldDescriptor(string.Empty, "ClearCoat", "_CLEARCOAT");
+        public static FieldDescriptor ClearCoat =             new FieldDescriptor(string.Empty, "ClearCoat", "_CLEARCOAT 1");
 #endregion
     }
 }
