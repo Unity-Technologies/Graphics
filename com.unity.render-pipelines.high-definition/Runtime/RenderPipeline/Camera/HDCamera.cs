@@ -283,6 +283,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal GameObject exposureTarget
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.exposureTarget;
+                }
+
+                return null;
+            }
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;

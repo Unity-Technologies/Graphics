@@ -106,6 +106,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter histogramUseCurveRemapping = new BoolParameter(false);
 
         /// <summary>
+        /// Sets whether the procedural metering mask is centered around the exposure target (to be set on the camera)
+        /// </summary>
+        [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
+        public BoolParameter centerAroundExposureTarget = new BoolParameter(false);
+
+        /// <summary>
         /// Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)
         /// </summary>
         public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
@@ -114,9 +120,21 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
         /// <summary>
+        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// </summary>
+        [Tooltip("All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
+        public FloatParameter maskMinIntensity = new FloatParameter(-30.0f);
+        /// <summary>
+        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// </summary>
+        [Tooltip("All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
+        public FloatParameter maskMaxIntensity = new FloatParameter(30.0f);
+
+        /// <summary>
         /// Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask.
         /// </summary>
         public NoInterpMinFloatParameter proceduralSoftness = new NoInterpMinFloatParameter(0.5f, 0.0f);
+
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.

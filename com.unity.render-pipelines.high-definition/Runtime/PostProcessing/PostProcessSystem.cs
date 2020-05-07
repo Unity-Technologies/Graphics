@@ -805,6 +805,43 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_HistogramBuffer;
         }
 
+        internal void ComputeProceduralMeteringParams(HDCamera camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2)
+        {
+            Vector2 proceduralCenter = m_Exposure.proceduralCenter.value;
+            if (camera.exposureTarget != null)
+            {
+                var transform = camera.exposureTarget.transform;
+                // Transform in screen space
+                Vector3 targetLocation = transform.position;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    targetLocation -= camera.camera.transform.position;
+                }
+                var ndcLoc = camera.mainViewConstants.viewProjMatrix * (targetLocation);
+                ndcLoc.x /= ndcLoc.w;
+                ndcLoc.y /= ndcLoc.w;
+
+                Vector2 targetUV = new Vector2(ndcLoc.x, ndcLoc.y) * 0.5f + new Vector2(0.5f, 0.5f);
+                targetUV.y = 1.0f - targetUV.y;
+
+                proceduralCenter += targetUV;
+            }
+
+            proceduralCenter.x = Mathf.Clamp01(proceduralCenter.x);
+            proceduralCenter.y = Mathf.Clamp01(proceduralCenter.y);
+
+            proceduralCenter.x *= camera.actualWidth;
+            proceduralCenter.y *= camera.actualHeight;
+
+            float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
+
+            proceduralParams1 = new Vector4(proceduralCenter.x, proceduralCenter.y,
+                m_Exposure.proceduralRadii.value.x * screenDiagonal,
+                m_Exposure.proceduralRadii.value.y * screenDiagonal);
+
+            proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUtils.ConvertEvToLuminance(m_Exposure.maskMinIntensity.value), LightUtils.ConvertEvToLuminance(m_Exposure.maskMaxIntensity.value), 0.0f);
+        }
+
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;
@@ -928,13 +965,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
             }
 
-            float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
-            Vector4 proceduralParams = new Vector4(m_Exposure.proceduralCenter.value.x,
-                m_Exposure.proceduralCenter.value.y,
-                m_Exposure.proceduralRadii.value.x,
-                m_Exposure.proceduralRadii.value.y) * screenDiagonal;
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, new Vector4(1.0f / m_Exposure.proceduralSoftness.value, 0,0,0));
+            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture1024);
             cmd.DispatchCompute(cs, kernel, 1024 / 8, 1024 / 8, 1);
@@ -984,25 +1017,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
             float histBias = -m_Exposure.limitMin.value * histScale;
             Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
-            float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
 
-            //// TEST: See if we can track the gameobject
-            //if (m_Exposure.target.value != null)
-            //{
-            //    var transform = m_Exposure.target.value.transform;
-            //    // Transform in screen space
-            //    var screenSpaceLoc = camera.mainViewConstants.viewProjMatrix * transform.position;
-            //    screenSpaceLoc.x /= screenSpaceLoc.w;
-            //    screenSpaceLoc.y /= screenSpaceLoc.w;
-            //    Debug.Log(screenSpaceLoc);
-            //}
-
-            Vector4 proceduralParams = new Vector4(m_Exposure.proceduralCenter.value.x,
-                                           m_Exposure.proceduralCenter.value.y,
-                                           m_Exposure.proceduralRadii.value.x,
-                                           m_Exposure.proceduralRadii.value.y) * screenDiagonal;
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, new Vector4(1.0f / m_Exposure.proceduralSoftness.value, 0, 0, 0));
+            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
 
             ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
             m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram 

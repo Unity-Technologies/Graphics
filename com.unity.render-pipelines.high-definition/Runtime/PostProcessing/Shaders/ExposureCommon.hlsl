@@ -39,6 +39,8 @@ CBUFFER_END
 #define ProceduralCenter           _ProceduralMaskParams.xy     // Transformed in screen space on CPU
 #define ProceduralRadii            _ProceduralMaskParams.zw     
 #define ProceduralSoftness         _ProceduralMaskParams2.x
+#define ProceduralMin              _ProceduralMaskParams2.y
+#define ProceduralMax              _ProceduralMaskParams2.z
 
 
 float GetPreviousExposureEV100()
@@ -46,7 +48,7 @@ float GetPreviousExposureEV100()
     return _PreviousExposureTexture[uint2(0u, 0u)].y;
 }
 
-float WeightSample(uint2 pixel, float2 sourceSize)
+float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
 {
     UNITY_BRANCH
         switch (ParamMeteringMode)
@@ -79,8 +81,7 @@ float WeightSample(uint2 pixel, float2 sourceSize)
             float2 ellipseScale = float2(radius / ProceduralRadii.x, radius / ProceduralRadii.y);
 
             float dist = length(ProceduralCenter * ellipseScale - pixel * ellipseScale);
-            return saturate(1.0 - pow((dist / radius), ProceduralSoftness));
-
+            return (luminance > ProceduralMin && luminance < ProceduralMax) ? saturate(1.0 - pow((dist / radius), ProceduralSoftness)) : 0.0f;
         }
 
         default:
