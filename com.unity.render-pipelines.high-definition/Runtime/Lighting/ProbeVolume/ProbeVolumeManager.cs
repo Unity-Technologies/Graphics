@@ -162,5 +162,82 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.Lightmapping.BakeAsync();
         }
 #endif
+
+        private void adaptiveExample()
+        {
+            ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1204);
+            refvol.SetGridDensity(0.25f, 4);
+
+            ProbeReferenceVolume.Volume vol;
+            vol.X = new Vector3(1.0f, 0.0f, 0.0f);
+            vol.Y = new Vector3(0.0f, 1.0f, 0.0f);
+            vol.Z = new Vector3(0.0f, 0.0f, 1.0f);
+            vol.corner = new Vector3(3.5f, 2.7f, -1.4f);
+
+            ProbeReferenceVolume.SubdivisionDel subdivDel = (List<ProbeReferenceVolume.Brick> inBricks, List<ProbeReferenceVolume.Brick> outBricks) =>
+            {
+                outBricks = inBricks;
+            };
+
+            // get a list of bricks for this volume
+            List<ProbeReferenceVolume.Brick> sortedBricks = new List<ProbeReferenceVolume.Brick>();
+            int numProbes;
+            refvol.CreateBricks(ref vol, subdivDel, sortedBricks, out numProbes);
+
+            // convert the brick data into actual probe positions
+            Vector3[] probePositions = new Vector3[numProbes];
+            refvol.ConvertBricks(sortedBricks, probePositions);
+
+            // call lightmappers fragment API here to bake probes
+            int jobId = 0x0eefbeef;
+            UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(jobId, probePositions);
+
+            // async magic
+
+            // Fetch results from lightmapper
+            var sh        = new Unity.Collections.NativeArray<SphericalHarmonicsL2>(numProbes, Unity.Collections.Allocator.Temp, Unity.Collections.NativeArrayOptions.UninitializedMemory);
+            var validity  = new Unity.Collections.NativeArray<float>(numProbes, Unity.Collections.Allocator.Temp, Unity.Collections.NativeArrayOptions.UninitializedMemory);
+            var octaDepth = new Unity.Collections.NativeArray<float>(numProbes * 8 * 8, Unity.Collections.Allocator.Temp, Unity.Collections.NativeArrayOptions.UninitializedMemory);
+            bool succeeded = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(jobId, sh, validity, octaDepth);
+            Debug.Assert(succeeded);
+
+            // extract L1
+            SphericalHarmonicsL1[] shl1 = new SphericalHarmonicsL1[numProbes];
+            for (int i = 0; i < shl1.Length; i++)
+            {
+                shl1[i].shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]);
+                shl1[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
+                shl1[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
+            }
+
+            // change encoding so L1 is bounded by L0 (this can be folded into the above function
+            for (int i = 0; i < shl1.Length; i++)
+            {
+                // TODO: do the actual calculation, this is just dummy code
+                shl1[i].shAr[1] = shl1[i].shAr[1];
+                shl1[i].shAr[2] = shl1[i].shAr[2];
+                shl1[i].shAr[3] = shl1[i].shAr[3];
+
+                shl1[i].shAg[1] = shl1[i].shAg[1];
+                shl1[i].shAg[2] = shl1[i].shAg[2];
+                shl1[i].shAg[3] = shl1[i].shAg[3];
+
+                shl1[i].shAb[1] = shl1[i].shAb[1];
+                shl1[i].shAb[2] = shl1[i].shAb[2];
+                shl1[i].shAb[3] = shl1[i].shAb[3];
+            }
+
+            // create a data set of textures that contains the encoded SH data            
+            ProbeBrickPool.DataLocation loc = ProbeBrickPool.CreateDataLocation(numProbes, false);
+            ProbeBrickPool.FillDataLocation(ref loc, shl1);
+
+            // figure out a way to compress these textures to BC6 and BC7
+
+            // store this somewhere on disk
+
+            // load it back from disk
+
+            // add it to the refvol
+        }
     }
 }
