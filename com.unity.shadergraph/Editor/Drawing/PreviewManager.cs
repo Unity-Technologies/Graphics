@@ -323,6 +323,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AssignPerMaterialPreviewProperties(Material mat, List<PreviewProperty> perMaterialPreviewProperties)
         {
+            #if ENABLE_VIRTUALTEXTURES
             foreach (var prop in perMaterialPreviewProperties)
             {
                 switch (prop.propType)
@@ -346,7 +347,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
 
                         // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
-#if ENABLE_VIRTUALTEXTURES
                         if (setAnyTextures)
                         {
                             int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
@@ -366,10 +366,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 // This is valid in this case as we're still authoring the material.
                             }
                         }
-#endif // ENABLE_VIRTUALTEXTURES
                         break;
                 }
-            }
+            }   
+        #endif // ENABLE_VIRTUALTEXTURES
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
