@@ -1,4 +1,4 @@
-espace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class Fields
