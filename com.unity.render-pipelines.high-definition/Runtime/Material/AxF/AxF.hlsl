@@ -1177,7 +1177,8 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
         preLightData.iblPerceptualRoughness = PerceptualRoughnessBeckmannToGGX(preLightData.iblPerceptualRoughness);
         break;
 
-    // case 1: // @TODO: Support Blinn-Phong FGD?
+    case 1: //Phong
+    case 4: //Blinn-Phong : just approximate with Cook-Torrance which uses a Beckmann distribution
     case 2:
         GetPreIntegratedFGDCookTorranceAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
         preLightData.specularFGD *= GetPreIntegratedFGDCookTorranceSampleMutiplier();
@@ -1187,8 +1188,6 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     case 3:
         GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
         break;
-
-     // case 4: // @TODO: Support Blinn-Phong FGD?
 
     default:    // Use GGX by default
         GetPreIntegratedFGDGGXAndLambert(NdotV_UnderCoat, preLightData.iblPerceptualRoughness, tempF0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
@@ -1358,14 +1357,6 @@ PreLightData    GetPreLightData(float3 viewWS_Clearcoat, PositionInputs posInput
     case 1: // BLINN-PHONG
     case 4: // PHONG;
     {
-        // According to https://computergraphics.stackexchange.com/questions/1515/what-is-the-accepted-method-of-converting-shininess-to-roughness-and-vice-versa
-        //  float   exponent = 2/roughness^4 - 2;
-        //
-        float   exponent = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
-        float   roughness = pow(max(0.0, 2.0 / (exponent + 2)), 1.0 / 4.0);
-        // todo_modes todo_pseudorefract: cant use undercoat like that
-        //float2  UV = LTCGetSamplingUV(NdotV_UnderCoat, RoughnessToPerceptualRoughness(roughness));
-        float2  UV = LTCGetSamplingUV(NdotV_Clearcoat, RoughnessToPerceptualRoughness(roughness));
         preLightData.ltcTransformSpecular = LTCSampleMatrix(UV, LTC_MATRIX_INDEX_COOK_TORRANCE);
         break;
     }
@@ -1574,7 +1565,8 @@ float3 ComputeWard(float3 H, float LdotH, float NdotL, float NdotV, PreLightData
 
 float3  ComputeBlinnPhong(float3 H, float LdotH, float NdotL, float NdotV, PreLightData preLightData, BSDFData bsdfData)
 {
-    float2  exponents = exp2(bsdfData.roughness.xy);
+    // See AxFGetRoughnessFromSpecularLobeTexture in AxFData
+    float2  exponents = 2 * rcp(max(0.0001,(bsdfData.roughness.xy*bsdfData.roughness.xy))) - 2;
 
     // Evaluate normal distribution function
     float3  tsH = float3(dot(H, bsdfData.tangentWS), dot(H, bsdfData.biTangentWS), dot(H, bsdfData.normalWS));
