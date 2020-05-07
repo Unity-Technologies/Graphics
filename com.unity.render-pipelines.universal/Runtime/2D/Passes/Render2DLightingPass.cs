@@ -11,10 +11,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
         Renderer2DData m_Renderer2DData;
         static readonly ShaderTagId k_CombinedRenderingPassNameOld = new ShaderTagId("Lightweight2D");
         static readonly ShaderTagId k_CombinedRenderingPassName = new ShaderTagId("Universal2D");
-        static readonly ShaderTagId k_UnlitPassName = new ShaderTagId("Universal2DUnlit");
         static readonly ShaderTagId k_NormalsRenderingPassName = new ShaderTagId("NormalsRendering");
         static readonly ShaderTagId k_LegacyPassName = new ShaderTagId("SRPDefaultUnlit");
-        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld, k_UnlitPassName };
+        static readonly List<ShaderTagId> k_ShaderTags = new List<ShaderTagId>() { k_LegacyPassName, k_CombinedRenderingPassName, k_CombinedRenderingPassNameOld };
 
         public Render2DLightingPass(Renderer2DData rendererData)
         {
