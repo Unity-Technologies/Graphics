@@ -638,7 +638,7 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
 
 
-  {% elsif platform.name == "Win" %}
+  {% elsif platform.name == "Win" or platform.name == "UWP" %}
   {% for win_api in win_apis %}
   {% if win_api.name == "Vulkan" %}
   #skip
