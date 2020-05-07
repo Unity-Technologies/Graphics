@@ -531,7 +531,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int hashCode = desc.GetHashCode();
 
             if(resource.rt != null)
-                throw new InvalidOperationException(string.Format("Trying to create an already created texture ({0}). Texture was probably declared for writing more than once.", resource.desc.name));
+                throw new InvalidOperationException(string.Format("Trying to create an already created texture ({0}). Texture was probably declared for writing more than once in the same pass.", resource.desc.name));
 
             resource.rt = null;
             if (!TryGetRenderTarget(hashCode, out resource.rt))

@@ -188,6 +188,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
             }
 
+            // Setup a default exposure textures and clear it to neutral values so that the exposure
+            // multiplier is 1 and thus has no effect
+            // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
+            // neutral exposure texture isn't 0
+            m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                enableRandomWrite: true, name: "Empty EV100 Exposure");
+
+            FillEmptyExposureTexture();
+
             // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
             InitializeNonRenderGraphResources(hdAsset);
         }
@@ -195,6 +204,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Cleanup()
         {
             CleanupNonRenderGraphResources();
+
+            RTHandles.Release(m_EmptyExposureTexture);
+            m_EmptyExposureTexture = null;
 
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.Destroy(m_InternalSpectralLut);
@@ -247,16 +259,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true
             );
 
-            // Setup a default exposure textures and clear it to neutral values so that the exposure
-            // multiplier is 1 and thus has no effect
-            // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
-            // neutral exposure texture isn't 0
-            m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                enableRandomWrite: true, name: "Empty EV100 Exposure"
-            );
-
-            FillEmptyExposureTexture();
-
             // Misc targets
             m_TempTexture1024 = RTHandles.Alloc(
                 1024, 1024, colorFormat: GraphicsFormat.R16G16_SFloat,
@@ -283,13 +285,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Pool.Cleanup();
 
-            RTHandles.Release(m_EmptyExposureTexture);
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
             RTHandles.Release(m_InternalLogLut);
 
-            m_EmptyExposureTexture  = null;
             m_TempTexture1024       = null;
             m_TempTexture32         = null;
             m_AlphaTexture          = null;
@@ -301,11 +301,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
         void CheckRenderTexturesValidity()
         {
-            if (!m_NonRenderGraphResourcesAvailable)
-                return;
-
             if (!m_EmptyExposureTexture.rt.IsCreated())
                 FillEmptyExposureTexture();
+
+            if (!m_NonRenderGraphResourcesAvailable)
+                return;
 
             HDUtils.CheckRTCreated(m_InternalLogLut.rt);
             HDUtils.CheckRTCreated(m_TempTexture1024.rt);

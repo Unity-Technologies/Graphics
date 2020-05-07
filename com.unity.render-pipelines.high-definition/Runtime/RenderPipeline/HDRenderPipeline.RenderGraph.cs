@@ -454,10 +454,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool renderMotionVecForTransparent = NeedMotionVectorForTransparent(hdCamera.frameSettings);
 
-                TextureHandle mrt1;
+                passData.renderTargetCount = 2;
+                passData.renderTarget[0] = builder.WriteTexture(colorBuffer);
+
                 if (renderMotionVecForTransparent)
                 {
-                    mrt1 = motionVectorBuffer;
+                    passData.renderTarget[1] = builder.WriteTexture(motionVectorBuffer);
                     // TODO RENDERGRAPH
                     // WORKAROUND VELOCITY-MSAA
                     // This is a workaround for velocity with MSAA. Currently motion vector resolve is not implemented with MSAA
@@ -470,12 +472,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
-                    mrt1 = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, name = "Transparency Velocity Dummy" });
+                    passData.renderTarget[1] = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, name = "Transparency Velocity Dummy" });
                 }
-
-                passData.renderTargetCount = 2;
-                passData.renderTarget[0] = builder.WriteTexture(colorBuffer);
-                passData.renderTarget[1] = builder.WriteTexture(mrt1);
 
                 if (colorPyramid != null && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Refraction) && !preRefractionPass)
                 {
