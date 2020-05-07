@@ -54,6 +54,7 @@ CBUFFER_START(UnityPerMaterial)
     float4  _MappingMask;
     float   _NormalMipNotchCenter;
     float4  _NormalMipNotchParams;
+    float   _NormalMapFilteringWeight;
 
     // Scale/Offsets:
     float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0

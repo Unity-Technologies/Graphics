@@ -17,6 +17,8 @@ Shader "HDRP/AxF"
 
         _NormalMipNotchCenter("NormalMipNotchCenter", Range(0.0, 1.0)) = 1.0
         _NormalMipNotchParams("NormalMipNotchParams (D,S,R,L)", Vector) = (0, 0, 0, 0)
+        _NormalMapFilteringWeight("Normal Map Filtering Weight", Range(0.0, 10.0)) = 1.0
+        [ToggleUI] _EnableNormalMapFiltering("EnableNormalMapFiltering", Float) = 0.0
 
         // Tilings and offsets
         _Material_SO( "Main Material Tiling & Offset", Vector) = (1, 1, 0, 0)
@@ -177,6 +179,7 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
     #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local _ENABLE_NORMAL_MAP_FILTERING
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
