@@ -26,6 +26,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
             public static GUIContent    normalMipNotchCenterText = new GUIContent("Normal Anti-Moire Notch Center", "0 is near mip, 1 is fartest");
             public static GUIContent    normalMipNotchParamsText = new GUIContent("Normal Anti-Moire Notch Params", "w is strength of effect, set at 0 to disable, xyz are in mip levels: x = notch fade-in width, y = notch plateau width, z = notch fade-out width");
+            public static GUIContent    enableNormalMapFilteringText = new GUIContent("Normal Map Filtering", "Enables normal map filtering - only works with external normal maps ending with _NF in name (for required automatic preprocessing).");
+            public static GUIContent    normalMapFilteringWeightText = new GUIContent("Normal Map Filtering Weight", "Strength of normal map anti-aliasing effect. Should be set to 1.0 to respect preprocessing done on normal map.");
+            public static GUIContent    specularAAThresholdText = new GUIContent("Threshold", "Maximum amount for Specular AA reduction, both for normal map filtering and geometry, if enabled. A value of 0 does not apply reduction, higher values allow higher reduction.");
+            
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
             public static GUIContent    diffuseColorMapText = new GUIContent("Diffuse Color");
@@ -134,6 +138,14 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty  m_NormalMipNotchCenter = null;
         static string               m_NormalMipNotchParamsText = "_NormalMipNotchParams";
         MaterialProperty  m_NormalMipNotchParams = null;
+
+        static string               m_NormalMapFilteringWeightText = "_NormalMapFilteringWeight";
+        MaterialProperty  m_NormalMapFilteringWeight = null;
+
+        static string               m_EnableNormalMapFilteringText = "_EnableNormalMapFiltering";
+        MaterialProperty m_EnableNormalMapFiltering = null;
+        static string               m_SpecularAAThresholdText = "_SpecularAAThreshold";
+        MaterialProperty m_SpecularAAThreshold = null;
 
         MaterialProperty  m_MaterialTilingOffset = null;
         MaterialProperty  m_DiffuseColorMapST = null;
@@ -261,6 +273,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_NormalMipNotchCenter = FindProperty(m_NormalMipNotchCenterText);
             m_NormalMipNotchParams = FindProperty(m_NormalMipNotchParamsText);
+            m_EnableNormalMapFiltering = FindProperty(m_EnableNormalMapFilteringText);
+            m_NormalMapFilteringWeight = FindProperty(m_NormalMapFilteringWeightText);
+            m_SpecularAAThreshold = FindProperty(m_SpecularAAThresholdText);
 
             m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
     
@@ -396,6 +411,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.ShaderProperty(m_NormalMipNotchCenter, Styles.normalMipNotchCenterText);
             materialEditor.ShaderProperty(m_NormalMipNotchParams, Styles.normalMipNotchParamsText);
+            materialEditor.ShaderProperty(m_EnableNormalMapFiltering, Styles.enableNormalMapFilteringText);
+
+            if (m_EnableNormalMapFiltering.floatValue > 0.0)
+            {
+                EditorGUI.indentLevel++;
+                materialEditor.ShaderProperty(m_NormalMapFilteringWeight, Styles.normalMapFilteringWeightText);
+                materialEditor.ShaderProperty(m_SpecularAAThreshold, Styles.specularAAThresholdText);
+                EditorGUI.indentLevel--;
+            }
+
+            EditorGUILayout.Space();
 
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);

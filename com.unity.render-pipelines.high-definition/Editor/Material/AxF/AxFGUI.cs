@@ -60,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // AxF material keywords
         const string kAxF_BRDFType = "_AxF_BRDFType";
         const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
+        const string kEnableNormalMapFiltering = "_EnableNormalMapFiltering";
         const string kSpecularOcclusionMode = "_SpecularOcclusionMode"; // match AdvancedOptionsUIBlock.kSpecularOcclusionMode : TODO move both to HDStringConstants.
 
         const string kMappingMode = "_MappingMode";
@@ -135,6 +136,7 @@ namespace UnityEditor.Rendering.HighDefinition
             bool ssrEnabled = material.HasProperty(kEnableSSR) && material.GetFloat(kEnableSSR) > 0.0f;
             CoreUtils.SetKeyword(material, "_DISABLE_SSR", ssrEnabled == false);
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) > 0.0f);
+            CoreUtils.SetKeyword(material, "_ENABLE_NORMAL_MAP_FILTERING", material.HasProperty(kEnableNormalMapFiltering) && material.GetFloat(kEnableNormalMapFiltering) > 0.0f);
             CoreUtils.SetKeyword(material, "_SPECULAR_OCCLUSION_NONE", material.HasProperty(kSpecularOcclusionMode) && material.GetFloat(kSpecularOcclusionMode) == 0.0f);
 
             BaseLitGUI.SetupStencil(material, receivesSSR: ssrEnabled, useSplitLighting: false);

@@ -18,8 +18,15 @@
 //#define NORMAL_FADE_NOTCH_SMOOTH
 //#define NORMAL_FADE_NOTCH_USES_CUSTOM_LOD
 
-//#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGB
+#define AXF_USES_RG_NORMAL_MAPS // else, RGB
+
+#ifdef AXF_USES_RG_NORMAL_MAPS
 #define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGorAG
+#define AXF_UNPACK_NORMAL_VARIANCE(packedNormal) (packedNormal.z)
+#else
+#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGB
+#define AXF_UNPACK_NORMAL_VARIANCE(packedNormal) (packedNormal.w)
+#endif
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -362,7 +369,8 @@ float NormalNotchGetLod(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleO
 // Also, AxF normal maps are encoded on 3 channels (xyz) but are still tangent space.
 // Make sure useLod is used statically!
 // Note that scaleOffset are the texture specific ones, not the main material ones!
-float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping, bool useNormalFadeNotch = false,
+// Last coordinate is the normal variance if any.
+float4 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, samplerName), float4 scaleOffset, TextureUVMapping uvMapping, bool useNormalFadeNotch = false,
                                              int lodBiasOrGrad = 0, float3 lodOrBias = 0, float3x2 triDdx = (float3x2)0, float3x2 triDdy = (float3x2)0)
 {
     float scale = 1.0;
@@ -378,6 +386,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     float notchLod;
     float mipCnt = GetMipCount(textureName);
     NotchCurve notchCurve = NormalNotchGetCurve(mipCnt);
+    float normalVariance = 0.0;
 
 #ifdef _MAPPING_TRIPLANAR
 
@@ -395,8 +404,9 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), triDdx[0], triDdy[0])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset), scaleOffset.xy * uvMapping.ddxZY, scaleOffset.xy * uvMapping.ddyZY)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvZY, scaleOffset));
+    normalVariance += uvMapping.triplanarWeights.x * AXF_UNPACK_NORMAL_VARIANCE(packedNormal);
     derivXplane = uvMapping.triplanarWeights.x * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
-    
+
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_ZY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
     notchScale = useNormalFadeNotch ? NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve) : 1.0;
     derivXplane *= notchScale;
@@ -406,6 +416,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), triDdx[1], triDdy[1])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset), scaleOffset.xy * uvMapping.ddxXZ, scaleOffset.xy * uvMapping.ddyXZ)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXZ, scaleOffset));
+    normalVariance += uvMapping.triplanarWeights.y * AXF_UNPACK_NORMAL_VARIANCE(packedNormal);
     derivYPlane = uvMapping.triplanarWeights.y * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XZ, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
@@ -417,6 +428,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                    : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), triDdx[2], triDdy[2])
                    : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset), scaleOffset.xy * uvMapping.ddxXY, scaleOffset.xy * uvMapping.ddyXY)
                    : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvXY, scaleOffset));
+    normalVariance += uvMapping.triplanarWeights.z * AXF_UNPACK_NORMAL_VARIANCE(packedNormal);
     derivZPlane = uvMapping.triplanarWeights.z * AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_XY, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
@@ -433,7 +445,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     // We don't need to process further operation on the gradient, but we dont resolve it to a normal immediately:
     // ie by doing return SurfaceGradientResolveNormal(uvMapping.vertexNormalWS, surfaceGrad);
     // This is because we use GetNormalWS() later which with #define SURFACE_GRADIENT, expects a surface gradient.
-    return surfaceGrad;
+    return float4(surfaceGrad, normalVariance);
 
 #else
     // No triplanar: in that case, just sample the texture, but also unpacks it as a surface gradient! See comment above
@@ -443,6 +455,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
                           : useGrad ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), triDdx[0], triDdy[0])
                           : useCachedDdxDdy ? SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset), scaleOffset.xy * uvMapping.ddxBase, scaleOffset.xy * uvMapping.ddyBase)
                           : SAMPLE_TEXTURE2D(textureName, samplerName, AXF_TRANSFORM_TEXUV(uvMapping.uvBase, scaleOffset));
+    normalVariance = AXF_UNPACK_NORMAL_VARIANCE(packedNormal);
     float2 deriv = AXF_DERIVATIVE_NORMAL(packedNormal, scale);
 
     notchLod = NormalNotchGetLod(textureName, samplerName, scaleOffset, uvMapping, mipCnt, /*uvSet*/ UVSET_BASE, lodBiasOrGrad, lodOrBias, triDdx, triDdy);
@@ -450,7 +463,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
 
 #ifndef _MAPPING_PLANAR
     // No planar mapping, in that case, just use the generated (or simply cached if using uv0) TBN:
-    return notchScale * SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS, uvMapping.vertexBitangentWS);
+    return float4(notchScale * SurfaceGradientFromTBN(deriv, uvMapping.vertexTangentWS, uvMapping.vertexBitangentWS), normalVariance);
 #else
     float3 volumeGrad;
 
@@ -463,7 +476,7 @@ float3 AxFSampleTexture2DNormalAsSurfaceGrad(TEXTURE2D_PARAM(textureName, sample
     else if (_MappingMask.z == 1.0) // uvXY
         volumeGrad = float3(deriv.x, deriv.y, 0.0);
 
-    return notchScale * SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad);
+    return float4(notchScale * SurfaceGradientFromVolumeGradient(uvMapping.vertexNormalWS, volumeGrad), normalVariance);
 #endif // if not _MAPPING_PLANAR
 #endif // if triplanar.
 }
@@ -641,6 +654,25 @@ float2 AxFGetRoughnessFromSpecularLobeTexture(float2 specularLobe)
     return (HasPhongTypeBRDF() ? (sqrt(2) * rsqrt(exp2(abs(specularLobe)) + 2)) : specularLobe);
 }
 
+
+float AxFGetBeckmannPerceptualSmoothnessFromRoughness(float roughness)
+{
+    float perceptualSmoothness = RoughnessToPerceptualSmoothness(roughness);
+
+    // Consider everything else from GGX as Beckmann based
+    // (Not true for Blinn-Phong but we convert approximatively elsewhere)
+    return ( ((_SVBRDF_BRDFType >> 1) & 7) == 3 /* GGX */) ? RoughnessToPerceptualSmoothness(GGXRoughnessToBeckmannRoughness(roughness)) : perceptualSmoothness;
+}
+
+float AxFGetRoughnessFromBeckmannPerceptualSmoothness(float perceptualSmoothness)
+{
+    float roughness = PerceptualSmoothnessToRoughness(perceptualSmoothness);
+
+    // Consider everything else from GGX as Beckmann based
+    // (Not true for Blinn-Phong but we convert approximatively elsewhere)
+    return ( ((_SVBRDF_BRDFType >> 1) & 7) == 3 /* GGX */) ? (BeckmannRoughnessToGGXRoughness(roughness)) : roughness;
+}
+
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
 #ifdef _DOUBLESIDED_ON
@@ -668,6 +700,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #endif
 #endif
 
+    float4 gradient = 0;
+    float4 coatGradient = 0;
 
     surfaceData.ambientOcclusion = 1.0;
     surfaceData.specularOcclusion = 1.0;
@@ -736,11 +770,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     notchScale = NormalNotchGetSurfaceGradientFadeScale(notchLod, notchCurve);
     surfaceData.notchScaleDebug = notchScale;
 #endif
+    gradient = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping, useNormalFadeNotch);
+    coatGradient = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false);
 
-    //Normal sampling:
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping, useNormalFadeNotch).xyz, surfaceData.normalWS, doubleSidedConstants);
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
-#endif // use gradients
+    GetNormalWS(input, gradient.xyz, surfaceData.normalWS, doubleSidedConstants);
+    GetNormalWS(input, coatGradient.xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+#endif //#if 0 use gradients
 
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
@@ -757,7 +792,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularLobe = _CarPaint2_CTSpreads.xyz; // We may want to modify these (eg for Specular AA)
 
     surfaceData.normalWS = input.tangentToWorld[2].xyz;
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
+    coatGradient = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping, /*useNormalFadeNotch*/ false);
+    GetNormalWS(input, coatGradient.xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
     SetFlakesSurfaceData(uvMapping, surfaceData);
 
@@ -823,15 +859,37 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
 
+    bool geometricSpecularAAEnabled = false;
+    bool normalMapFilteringEnabled = false;
 #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
+    geometricSpecularAAEnabled = true;
     // Specular AA for geometric curvature
+#endif
+#if defined(_ENABLE_NORMAL_MAP_FILTERING)
+    normalMapFilteringEnabled = true;
+#endif
 
-    surfaceData.specularLobe.x = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.x), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
-    surfaceData.specularLobe.y = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.y), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
+    if (geometricSpecularAAEnabled || normalMapFilteringEnabled)
+    {
+        float geometricVariance = geometricSpecularAAEnabled ? GeometricNormalVariance(input.tangentToWorld[2], _SpecularAAScreenSpaceVariance) : 0.0;
+        float normalMapFilteringVariance = _NormalMapFilteringWeight * (normalMapFilteringEnabled ? DecodeVariance(gradient.w) : 0.0);
+
+        float val;
+
+        val = NormalFiltering(AxFGetBeckmannPerceptualSmoothnessFromRoughness(surfaceData.specularLobe.x), geometricVariance + normalMapFilteringVariance, _SpecularAAThreshold);
+        surfaceData.specularLobe.x = AxFGetRoughnessFromBeckmannPerceptualSmoothness(val);
+
+        val = NormalFiltering(AxFGetBeckmannPerceptualSmoothnessFromRoughness(surfaceData.specularLobe.y), geometricVariance + normalMapFilteringVariance, _SpecularAAThreshold);
+        surfaceData.specularLobe.y = AxFGetRoughnessFromBeckmannPerceptualSmoothness(val);
+
 #if defined(_AXF_BRDF_TYPE_CAR_PAINT)
-    surfaceData.specularLobe.z = PerceptualSmoothnessToRoughness(GeometricNormalFiltering(RoughnessToPerceptualSmoothness(surfaceData.specularLobe.z), input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold));
+        // Useless for car paint, no base normal map anyway.
+        //val = NormalFiltering(AxFGetBeckmannPerceptualSmoothnessFromRoughness(surfaceData.specularLobe.z), geometricVariance + normalMapFilteringVariance, _SpecularAAThreshold);
+        //surfaceData.specularLobe.z = val;
 #endif
-#endif
+        // TODO: coat doesn't display delta / dirac lights for now (like the AxF X-Rite viewer)
+        // so there's no coatroughness in surfaceData
+    }
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
