@@ -55,9 +55,9 @@ testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
   - name: playmode
-    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+    args: --suite=playmode --enable-code-coverage --coverage-results-path=code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
   - name: editmode
-    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
+    args: --suite=editor --platform=editmode --coverage-results-path=code-coverage --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -181,6 +181,9 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     logs:
       paths:
         - "**/test-results/**"
+    code-coverage:
+      paths:
+        -"**/code-coverage/**"
 
 {% endif %}
 
