@@ -23,14 +23,15 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void RegisterPropertyDrawer(Type propertyDrawerType)
         {
-            if(typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
+            if (typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
                 Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
 
             var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
-            if(customAttribute != null)
+            if (customAttribute != null)
                 m_PropertyDrawerList.Add(propertyDrawerType);
             else
-                Debug.Log("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
+                Debug.Log(
+                    "Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
         public InspectorView(GraphView graphView) : base(graphView)
@@ -43,22 +44,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
         }
 
-#region Selection
+        #region Selection
+
         public void Update()
         {
             m_ContentContainer.Clear();
 
-            if(selection.Count == 0)
+            if (selection.Count == 0)
             {
-                ShowGraphSettings(m_ContentContainer);
+                HideWindow();
             }
-            else if(selection.Count == 1)
+            else if (selection.Count == 1)
             {
+                ShowWindow();
                 var inspectable = selection.First() as IInspectable;
                 subTitle = $"{inspectable?.inspectorTitle}.";
             }
-            else if(selection.Count > 1)
+            else if (selection.Count > 1)
             {
+                ShowWindow();
                 subTitle = $"{selection.Count} Objects.";
             }
 
@@ -80,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         void DrawSelection(ISelectable selectable, VisualElement outputVisualElement)
         {
-            if(selectable is IInspectable inspectable)
+            if (selectable is IInspectable inspectable)
             {
                 DrawInspectable(outputVisualElement, inspectable);
             }
@@ -91,12 +95,26 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable,
+                TriggerInspectorUpdate, propertyDrawerToUse);
         }
 
         void TriggerInspectorUpdate()
         {
             Update();
+        }
+
+        public void ToggleGraphSettings()
+        {
+            if (this.style.visibility == Visibility.Hidden)
+            {
+                this.ShowWindow();
+                ShowGraphSettings(m_ContentContainer);
+            }
+            else
+            {
+                this.HideWindow();
+            }
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
