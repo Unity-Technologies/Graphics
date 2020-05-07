@@ -55,9 +55,9 @@ testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
   - name: playmode
-    args: --suite=playmode
+    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
   - name: editmode
-    args: --suite=editor --platform=editmode
+    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -77,6 +77,11 @@ linux_apis:
 android_apis:
   - name: OpenGLES3
   - name: Vulkan
+testplatforms_for_coverage:
+  - name: playmode
+    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+  - name: editmode
+    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
 ---
 {% for project in projects %}
 {% for editor in editors %}
