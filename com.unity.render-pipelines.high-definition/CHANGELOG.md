@@ -693,6 +693,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use multi_compile API for deferred compute shader with shadow mask.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
 
 ## [7.1.1] - 2019-09-05
 
