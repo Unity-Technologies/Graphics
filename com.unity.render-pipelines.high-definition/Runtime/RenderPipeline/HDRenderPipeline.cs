@@ -2543,7 +2543,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if ENABLE_VIRTUALTEXTURES
-            m_VtBufferManager.Resolve(cmd, m_GbufferManager.GetVTFeedbackBuffer(), hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VtBufferManager.Resolve(cmd, m_GbufferManager.GetVTFeedbackBuffer(), hdCamera);
             VirtualTexturing.System.Update();
 #endif
 
@@ -4905,15 +4905,13 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         RTHandle GetVTFeedbackBufferForForward(HDCamera hdCamera)
         {
-            var res = m_VtBufferManager.GetFeedbackBuffer();
-            if (res != null)
-            {
-                return res;
-            }
-            else
-            {
-                return m_GbufferManager.GetVTFeedbackBuffer();
-            }
+            bool msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            if (msaaEnabled) return m_VtBufferManager.FeedbackBufferMsaa;
+
+            var res =  m_GbufferManager.GetVTFeedbackBuffer();
+            if (res != null) return res;
+
+            return m_VtBufferManager.FeedbackBuffer;
         }
 #endif
     }
