@@ -126,8 +126,11 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
             case 2u:
             {
                 // Curve remapping
-                float exposure = CurveRemap(avgLuminance);
+                float minExposure = ParamExposureLimitMin;
+                float maxExposure = ParamExposureLimitMax;
+                float exposure = CurveRemap(avgLuminance, minExposure, maxExposure);
                 exposure = AdaptExposure(exposure - ParamExposureCompensation);
+                exposure = clamp(exposure, minExposure, maxExposure);
                 _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
                 break;
             }
