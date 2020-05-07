@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
         public const bool kHasNativeQuadSupport = false;
 #endif
-        public const int kGBufferAlbedoIndex = 0;
+/*        public const int kGBufferAlbedoIndex = 0;
         public const int kGBufferSpecularMetallicIndex = 1;
         public const int kGBufferNormalSmoothnessIndex = 2;
         public const int kGBufferLightingIndex = 3;
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 case kGBufferDepthIndex:            return GraphicsFormat.R32_SFloat;       // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
                 default:                            return GraphicsFormat.None;
             }
-        }
+        }*/
     }
 
     // Manages tiled-based deferred lights.
@@ -190,9 +190,46 @@ namespace UnityEngine.Rendering.Universal.Internal
         static readonly string k_SetupLightConstants = "Setup Light Constants";
         static readonly float kStencilShapeGuard = 1.06067f; // stencil geometric shapes must be inflated to fit the analytic shapes. 
 
-        public bool accurateGbufferNormals = true;
-        public bool tiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
-        public readonly bool useJobSystem = true;
+        public bool AccurateGbufferNormals
+        {
+            get { return m_AccurateGbufferNormals; }
+            set { m_AccurateGbufferNormals = value; }
+        }
+
+        public bool TiledDeferredShading
+        {
+            get { return m_TiledDeferredShading; }
+            set { m_TiledDeferredShading = value; }
+        }
+
+        public int GBufferAlbedoIndex { get { return 0; } }
+        public int GBufferSpecularMetallicIndex { get { return 1; } }
+        public int GBufferNormalSmoothnessIndex { get { return 2; } }
+        public int GBufferLightingIndex { get { return 3; } }
+        //public int GbufferDepthIndex { get { return useRenderPass ? 4 : -1; } }
+        //public int GBufferSliceCount { get { return useRenderPass ? 5 : 4; } }
+        public int GBufferSliceCount { get { return 4; } }
+
+        public GraphicsFormat GetGBufferFormat(int index)
+        {
+            if (index == GBufferAlbedoIndex)
+                return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
+            else if (index == GBufferSpecularMetallicIndex)
+                return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
+            else if (index == GBufferNormalSmoothnessIndex)
+                return m_AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
+            else if (index == GBufferLightingIndex)
+                return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+//            else if (index == GBufferDepthIndex)
+//                return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
+            else
+                return GraphicsFormat.None;
+        }
+
+        internal bool m_LightCulling = false;
+        internal bool m_AccurateGbufferNormals = true;
+        internal bool m_TiledDeferredShading = true; // <- true: TileDeferred.shader used for some lights (currently: point/spot lights without shadows) - false: use StencilDeferred.shader for all lights
+        internal readonly bool useJobSystem = true;
 
         //
         internal int m_RenderWidth = 0;
@@ -378,7 +415,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderWidth = renderingData.cameraData.cameraTargetDescriptor.width;
             m_RenderHeight = renderingData.cameraData.cameraTargetDescriptor.height;
 
-            if (this.tiledDeferredShading)
+            if (this.TiledDeferredShading)
             {
                 // Precompute tile data again if the camera projection or the screen resolution has changed.
                 if (m_CachedRenderWidth != renderingData.cameraData.cameraTargetDescriptor.width
@@ -425,7 +462,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CommandBufferPool.Release(cmd);
             }
 
-            if (this.tiledDeferredShading)
+            if (this.TiledDeferredShading)
             {
                 // Sort lights front to back.
                 // This allows a further optimisation where per-tile light lists can be more easily trimmed on both ends in the vertex shading instancing the tiles.
@@ -570,7 +607,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_GbufferColorAttachments = gbufferColorAttachments;
             m_DepthTexture = depthTexture;
 
-            m_HasTileVisLights = this.tiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
+            m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
 
         public void OnCameraCleanup(CommandBuffer cmd)
@@ -834,7 +871,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (this.tiledDeferredShading && IsTileLight(vl))
+                if (this.TiledDeferredShading && IsTileLight(vl))
                     ++tileLightOffsets[(int)vl.lightType];
                 else // All remaining lights are processed as stencil volumes.
                     ++stencilVisLightOffsets[(int)vl.lightType];
@@ -864,7 +901,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 VisibleLight vl = visibleLights[visLightIndex];
 
-                if (this.tiledDeferredShading && IsTileLight(vl))
+                if (this.TiledDeferredShading && IsTileLight(vl))
                 {
                     DeferredTiler.PrePunctualLight ppl;
                     ppl.posVS = view.MultiplyPoint(vl.localToWorldMatrix.GetColumn(3)); // By convention, OpenGL RH coordinate space

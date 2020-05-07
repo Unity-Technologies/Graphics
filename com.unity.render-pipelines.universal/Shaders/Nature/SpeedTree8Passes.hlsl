@@ -148,11 +148,7 @@ void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
                 globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
             #endif
 
-            // Disabling "pow(f,e) will not work for negative f"; warnings.
-            #pragma warning (disable : 3571)
             windyPosition = GlobalWind(windyPosition, treePos, true, rotatedWindVector, globalWindTime);
-            #pragma warning (enable : 3571)
-
             input.vertex.xyz = windyPosition;
         }
     #endif
@@ -219,7 +215,7 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();

@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
             using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
             {
-                if (m_DeferredLights.accurateGbufferNormals)
+                if (m_DeferredLights.AccurateGbufferNormals)
                     gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
                 else
                     gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);

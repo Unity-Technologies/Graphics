@@ -23,7 +23,8 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Deferred Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        // Uncomment to expose Deferred Render Asset menu.
+        //[MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Deferred Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
         static void CreateDeferredRendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateDeferredRendererAsset>(), "CustomDeferredRendererData.asset", null, null);

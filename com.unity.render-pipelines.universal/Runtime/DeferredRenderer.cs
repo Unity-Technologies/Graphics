@@ -15,6 +15,12 @@ namespace UnityEngine.Rendering.Universal
         static readonly string k_CreateCameraTextures = "Create Camera Texture";
 
         ColorGradingLutPass m_ColorGradingLutPass;
+        // Forward renderer depth-prepass is used to generate a depth-texture. It is NOT intended to prime the depth buffer and speed up
+        // rendering during the opaque pass. This is because most mobile-platform performs hidden-surface-removal in hardware, so depth-prepass
+        // has no performance gain.
+        // DeferredRenderer employs depth-prepass differently and uses it to prime the depth-buffer. This as advantageous because deferred
+        // renderer has a forward-only pass. Geometry in the forward-only pass are rendered during the depth-prepass, but not rendered
+        // into the gbuffer pass. As such, fill-rate in the gbuffer pass and deferred pass is improved.
         DepthOnlyPass m_DepthPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
@@ -45,7 +51,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraColorTexture;
         RenderTargetHandle m_CameraDepthTexture;
         RenderTargetHandle m_CameraDepthAttachment;
-        RenderTargetHandle[] m_GBufferAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount];
+        RenderTargetHandle[] m_GBufferAttachments;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
@@ -85,8 +91,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
-            m_DeferredLights.accurateGbufferNormals = data.accurateGbufferNormals;
-            m_DeferredLights.tiledDeferredShading = false;
+            //m_DeferredLights.LightCulling = data.lightCulling;
+            m_DeferredLights.AccurateGbufferNormals = data.accurateGbufferNormals;
+            //m_DeferredLights.TiledDeferredShading = data.tiledDeferredShading;
+            m_DeferredLights.TiledDeferredShading = false;
 
             m_PreferDepthPrepass = data.preferDepthPrepass;
 
@@ -168,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
 
-            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.tiledDeferredShading;
+            bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.TiledDeferredShading;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
             if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)

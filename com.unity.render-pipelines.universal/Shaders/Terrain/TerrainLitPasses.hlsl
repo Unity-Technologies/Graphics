@@ -269,7 +269,7 @@ Varyings SplatmapVert(Attributes v)
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
 
-    half3 viewDirWS = GetCameraPositionWS() - Attributes.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
