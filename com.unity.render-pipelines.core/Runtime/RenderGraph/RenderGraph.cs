@@ -143,19 +143,20 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        RenderGraphResourceRegistry     m_Resources;
-        RenderGraphObjectPool           m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderGraphPass>           m_RenderPasses = new List<RenderGraphPass>();
-        List<RendererListHandle>        m_RendererLists = new List<RendererListHandle>();
-        RenderGraphDebugParams          m_DebugParameters = new RenderGraphDebugParams();
-        RenderGraphLogger               m_Logger = new RenderGraphLogger();
-        RenderGraphDefaultResources     m_DefaultResources = new RenderGraphDefaultResources();
+        RenderGraphResourceRegistry         m_Resources;
+        RenderGraphObjectPool               m_RenderGraphPool = new RenderGraphObjectPool();
+        List<RenderGraphPass>               m_RenderPasses = new List<RenderGraphPass>();
+        List<RendererListHandle>            m_RendererLists = new List<RendererListHandle>();
+        RenderGraphDebugParams              m_DebugParameters = new RenderGraphDebugParams();
+        RenderGraphLogger                   m_Logger = new RenderGraphLogger();
+        RenderGraphDefaultResources         m_DefaultResources = new RenderGraphDefaultResources();
+        Dictionary<int, ProfilingSampler>   m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
 
         // Compiled Render Graph info.
-        DynamicArray<ResourceUsageInfo> m_TextureUsageInfo = new DynamicArray<ResourceUsageInfo>();
-        DynamicArray<ResourceUsageInfo> m_BufferUsageInfo = new DynamicArray<ResourceUsageInfo>();
-        DynamicArray<PassExecutionInfo> m_PassExecutionInfo = new DynamicArray<PassExecutionInfo>();
-        Stack<int>                      m_PruningStack = new Stack<int>();
+        DynamicArray<ResourceUsageInfo>     m_TextureUsageInfo = new DynamicArray<ResourceUsageInfo>();
+        DynamicArray<ResourceUsageInfo>     m_BufferUsageInfo = new DynamicArray<ResourceUsageInfo>();
+        DynamicArray<PassExecutionInfo>     m_PassExecutionInfo = new DynamicArray<PassExecutionInfo>();
+        Stack<int>                          m_PruningStack = new Stack<int>();
 
         #region Public Interface
 
@@ -298,13 +299,81 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler = null) where PassData : class, new()
         {
             var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
-            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler);
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler != null ? sampler : GetDefaultProfilingSampler(passName));
 
             passData = renderPass.data;
 
             m_RenderPasses.Add(renderPass);
 
             return new RenderGraphBuilder(renderPass, m_Resources);
+        }
+
+        /// <summary>
+        /// Execute the Render Graph in its current state.
+        /// </summary>
+        /// <param name="renderContext">ScriptableRenderContext used to execute Scriptable Render Pipeline.</param>
+        /// <param name="cmd">Command Buffer used for Render Passes rendering.</param>
+        /// <param name="parameters">Render Graph execution parameters.</param>
+        public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
+        {
+            try
+            {
+                m_Logger.Initialize();
+
+                // Update RTHandleSystem with size for this rendering pass.
+                m_Resources.SetRTHandleReferenceSize(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples);
+
+                LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
+
+                CompileRenderGraph();
+                ExecuteRenderGraph(renderContext, cmd);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Render Graph Execution error");
+                Debug.LogException(e);
+            }
+            finally
+            {
+                ClearCompiledGraph();
+
+                if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
+                    Debug.Log(m_Logger.GetLog());
+
+                m_DebugParameters.logFrameInformation = false;
+                m_DebugParameters.logResources = false;
+            }
+        }
+        #endregion
+
+        #region Internal Interface
+        private RenderGraph()
+        {
+
+        }
+
+        void ClearCompiledGraph()
+        {
+            ClearRenderPasses();
+            m_Resources.Clear();
+            m_DefaultResources.Clear();
+            m_RendererLists.Clear();
+            m_BufferUsageInfo.Clear();
+            m_TextureUsageInfo.Clear();
+            m_PassExecutionInfo.Clear();
+        }
+
+        void InitializeCompilationData()
+        {
+            m_BufferUsageInfo.Resize(m_Resources.GetComputeBufferResourceCount());
+            for (int i = 0; i < m_BufferUsageInfo.size; ++i)
+                m_BufferUsageInfo[i].Reset();
+            m_TextureUsageInfo.Resize(m_Resources.GetTextureResourceCount());
+            for (int i = 0; i < m_TextureUsageInfo.size; ++i)
+                m_TextureUsageInfo[i].Reset();
+            m_PassExecutionInfo.Resize(m_RenderPasses.Count);
+            for (int i = 0; i < m_PassExecutionInfo.size; ++i)
+                m_PassExecutionInfo[i].Reset();
         }
 
         void CountReferences()
@@ -399,7 +468,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             // We want to know the highest pass index below the current pass that writes to the resource.
             int result = -1;
-            foreach(var producer in info.producers)
+            foreach (var producer in info.producers)
             {
                 // producers are by construction in increasing order.
                 if (producer < passIndex)
@@ -568,74 +637,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        /// <summary>
-        /// Execute the Render Graph in its current state.
-        /// </summary>
-        /// <param name="renderContext">ScriptableRenderContext used to execute Scriptable Render Pipeline.</param>
-        /// <param name="cmd">Command Buffer used for Render Passes rendering.</param>
-        /// <param name="parameters">Render Graph execution parameters.</param>
-        public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
-        {
-            try
-            {
-                m_Logger.Initialize();
-
-                // Update RTHandleSystem with size for this rendering pass.
-                m_Resources.SetRTHandleReferenceSize(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples);
-
-                LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
-
-                CompileRenderGraph();
-                ExecuteRenderGraph(renderContext, cmd);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("Render Graph Execution error");
-                Debug.LogException(e);
-            }
-            finally
-            {
-                ClearCompiledGraph();
-
-                if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
-                    Debug.Log(m_Logger.GetLog());
-
-                m_DebugParameters.logFrameInformation = false;
-                m_DebugParameters.logResources = false;
-            }
-        }
-        #endregion
-
-        #region Internal Interface
-        private RenderGraph()
-        {
-
-        }
-
-        void ClearCompiledGraph()
-        {
-            ClearRenderPasses();
-            m_Resources.Clear();
-            m_DefaultResources.Clear();
-            m_RendererLists.Clear();
-            m_BufferUsageInfo.Clear();
-            m_TextureUsageInfo.Clear();
-            m_PassExecutionInfo.Clear();
-        }
-
-        void InitializeCompilationData()
-        {
-            m_BufferUsageInfo.Resize(m_Resources.GetComputeBufferResourceCount());
-            for (int i = 0; i < m_BufferUsageInfo.size; ++i)
-                m_BufferUsageInfo[i].Reset();
-            m_TextureUsageInfo.Resize(m_Resources.GetTextureResourceCount());
-            for (int i = 0; i < m_TextureUsageInfo.size; ++i)
-                m_TextureUsageInfo[i].Reset();
-            m_PassExecutionInfo.Resize(m_RenderPasses.Count);
-            for (int i = 0; i < m_PassExecutionInfo.size; ++i)
-                m_PassExecutionInfo[i].Reset();
-        }
-
         void PreRenderPassSetRenderTargets(int passIndex, RenderGraphContext rgContext)
         {
             var pass = m_RenderPasses[passIndex];
@@ -797,6 +798,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
             }
+        }
+
+        ProfilingSampler GetDefaultProfilingSampler(string name)
+        {
+            int hash = name.GetHashCode();
+            if (!m_DefaultProfilingSamplers.TryGetValue(hash, out var sampler))
+            {
+                sampler = new ProfilingSampler(name);
+                m_DefaultProfilingSamplers.Add(hash, sampler);
+            }
+
+            return sampler;
         }
 
         #endregion
