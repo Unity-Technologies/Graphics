@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
         public const bool kHasNativeQuadSupport = false;
 #endif
-/*        public const int kGBufferAlbedoIndex = 0;
+        public const int kGBufferAlbedoIndex = 0;
         public const int kGBufferSpecularMetallicIndex = 1;
         public const int kGBufferNormalSmoothnessIndex = 2;
         public const int kGBufferLightingIndex = 3;
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 case kGBufferDepthIndex:            return GraphicsFormat.R32_SFloat;       // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
                 default:                            return GraphicsFormat.None;
             }
-        }*/
+        }
     }
 
     // Manages tiled-based deferred lights.

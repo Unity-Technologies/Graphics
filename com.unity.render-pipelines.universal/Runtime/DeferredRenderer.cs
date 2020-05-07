@@ -137,9 +137,10 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTexture.Init("_CameraDepthTexture");
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
 
-            m_GBufferAttachments[0].Init("_GBuffer0");
-            m_GBufferAttachments[1].Init("_GBuffer1");
-            m_GBufferAttachments[2].Init("_GBuffer2");
+            m_GBufferAttachments = new RenderTargetHandle[m_DeferredLights.GBufferSliceCount];
+            m_GBufferAttachments[m_DeferredLights.GBufferAlbedoIndex].Init("_GBuffer0");
+            m_GBufferAttachments[m_DeferredLights.GBufferSpecularMetallicIndex].Init("_GBuffer1");
+            m_GBufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex].Init("_GBuffer2");
 
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
