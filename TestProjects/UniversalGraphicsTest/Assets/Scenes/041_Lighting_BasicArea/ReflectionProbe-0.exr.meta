@@ -4,7 +4,11 @@ TextureImporter:
   fileIDToRecycleName:
     8900000: generatedCubemap
   externalObjects: {}
+<<<<<<< HEAD:TestProjects/UniversalGraphicsTest/Assets/Scenes/041_Lighting_BasicArea/ReflectionProbe-0.exr.meta
   serializedVersion: 5
+=======
+  serializedVersion: 11
+>>>>>>> 38a48aa9e9... Upgrade stereo test suites from LegacyXR to XRSDK (#267):TestProjects/UniversalGfxTestStereo/Assets/Scenes/021_xr_Realtime_ReflectionProbe/ReflectionProbe-0.exr.meta
   mipmaps:
     mipMapMode: 0
     enableMipMap: 1
@@ -22,6 +26,12 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
   isReadable: 0
+<<<<<<< HEAD:TestProjects/UniversalGraphicsTest/Assets/Scenes/041_Lighting_BasicArea/ReflectionProbe-0.exr.meta
+=======
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+>>>>>>> 38a48aa9e9... Upgrade stereo test suites from LegacyXR to XRSDK (#267):TestProjects/UniversalGfxTestStereo/Assets/Scenes/021_xr_Realtime_ReflectionProbe/ReflectionProbe-0.exr.meta
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 1
@@ -56,6 +66,11 @@ TextureImporter:
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+<<<<<<< HEAD:TestProjects/UniversalGraphicsTest/Assets/Scenes/041_Lighting_BasicArea/ReflectionProbe-0.exr.meta
+=======
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+>>>>>>> 38a48aa9e9... Upgrade stereo test suites from LegacyXR to XRSDK (#267):TestProjects/UniversalGfxTestStereo/Assets/Scenes/021_xr_Realtime_ReflectionProbe/ReflectionProbe-0.exr.meta
   platformSettings:
   - serializedVersion: 2
     buildTarget: DefaultTexturePlatform
