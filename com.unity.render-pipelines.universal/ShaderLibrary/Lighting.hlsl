@@ -265,20 +265,6 @@ struct BRDFData
     half roughness2MinusOne;    // roughness^2 - 1.0
 };
 
-BRDFData InitializeBRDFData()
-{
-    BRDFData r;
-    r.diffuse            = 0;
-    r.specular           = 0;
-    r.perceptualRoughness= 0;
-    r.roughness          = 0;
-    r.roughness2         = 0;
-    r.grazingTerm        = 0;
-    r.normalizationTerm  = 0;
-    r.roughness2MinusOne = 0;
-    return r;
-}
-
 half ReflectivitySpecular(half3 specular)
 {
 #if defined(SHADER_API_GLES)
@@ -370,7 +356,7 @@ inline void InitializeBRDFDataClearCoat(half clearCoatStrength, half clearCoatSm
     baseBRDFData.perceptualRoughness = RoughnessToPerceptualRoughness(VarianceToRoughness(sigma * coatRoughnessScale));
 
     // Recompute base material for new roughness, previous computation should be eliminated by the compiler (as it's unused)
-    baseBRDFData.roughness          = max(PerceptualRoughnessToRoughness(baseBRDFData.perceptualRoughness), HALF_MIN);
+    baseBRDFData.roughness          = max(PerceptualRoughnessToRoughness(baseBRDFData.perceptualRoughness), HALF_MIN_SQRT);
     baseBRDFData.roughness2         = max(baseBRDFData.roughness * baseBRDFData.roughness, HALF_MIN);
     baseBRDFData.normalizationTerm  = baseBRDFData.roughness * 4.0h + 2.0h;
     baseBRDFData.roughness2MinusOne = baseBRDFData.roughness2 - 1.0h;
@@ -632,7 +618,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 // Backwards compatiblity
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
-    const BRDFData noClearCoat = InitializeBRDFData();
+    const BRDFData noClearCoat = (BRDFData)0;
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
@@ -691,7 +677,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, hal
 // Backwards compatibility
 half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
-    const BRDFData noClearCoat = InitializeBRDFData();
+    const BRDFData noClearCoat = (BRDFData)0;
     return LightingPhysicallyBased(brdfData, noClearCoat, 0.0, lightColor, lightDirectionWS, lightAttenuation, normalWS, viewDirectionWS);
 }
 
@@ -703,7 +689,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, hal
 // Backwards compatibility
 half3 LightingPhysicallyBased(BRDFData brdfData, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    const BRDFData noClearCoat = InitializeBRDFData();
+    const BRDFData noClearCoat = (BRDFData)0;
     return LightingPhysicallyBased(brdfData, noClearCoat, 0.0, light, normalWS, viewDirectionWS);
 }
 
