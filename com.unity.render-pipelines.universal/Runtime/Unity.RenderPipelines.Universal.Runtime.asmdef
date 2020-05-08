@@ -21,7 +21,7 @@
         },
         {
             "name": "com.unity.adaptiveperformance",
-            "expression": "2.1.0-preview.1",
+            "expression": "2.0.0-preview.5",
             "define": "ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER"
         },
         {
