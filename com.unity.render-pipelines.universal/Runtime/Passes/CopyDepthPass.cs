@@ -15,6 +15,7 @@ namespace UnityEngine.Rendering.Universal.Internal
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        internal bool AllocateRT  { get; set; }
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
@@ -22,6 +23,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
+            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -43,9 +45,12 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
-            cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+            if (this.AllocateRT)
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
+            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
             ConfigureTarget(destination.Identifier());
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>
@@ -120,7 +125,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
 
-            cmd.ReleaseTemporaryRT(destination.id);
+            if (this.AllocateRT)
+                cmd.ReleaseTemporaryRT(destination.id);
             destination = RenderTargetHandle.CameraTarget;
         }
     }
