@@ -97,13 +97,24 @@ namespace UnityEditor.Graphing
 
         public static T Deserialize<T>(JSONSerializedElement item, Dictionary<TypeSerializationInfo, TypeSerializationInfo> remapper,  params object[] constructorArgs) where T : class
         {
-
+            T instance;
             if (typeof(T) == typeof(JsonObject) || typeof(T).IsSubclassOf(typeof(JsonObject)))
             {
-                var output = (T)Activator.CreateInstance(typeof(T), constructorArgs);
-                MultiJson.Deserialize(output as JsonObject, item.JSONnodeData);
-                return output;
+                try
+                {
+                    var culture = CultureInfo.CurrentCulture;
+                    var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+                    instance = Activator.CreateInstance(typeof(T), flags, null, constructorArgs, culture) as T;
+                }
+                catch (Exception e)
+                {
+                    throw new Exception(string.Format("Could not construct instance of: {0}", typeof(T)), e);
+                }
+
+                MultiJson.Deserialize(instance as JsonObject, item.JSONnodeData);
+                return instance;
             }
+
             if (!item.typeInfo.IsValid() || string.IsNullOrEmpty(item.JSONnodeData))
                 throw new ArgumentException(string.Format("Can not deserialize {0}, it is invalid", item));
 
@@ -120,7 +131,6 @@ namespace UnityEditor.Graphing
                     throw new ArgumentException(string.Format("Can not deserialize ({0}), type is invalid", info.fullName));
             }
 
-            T instance;
             try
             {
                 var culture = CultureInfo.CurrentCulture;
@@ -137,6 +147,7 @@ namespace UnityEditor.Graphing
                 JsonUtility.FromJsonOverwrite(item.JSONnodeData, instance);
                 return instance;
             }
+            Debug.Log("UhOh");
             return null;
         }
 

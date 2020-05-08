@@ -62,7 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode)
                                                                        + typeof(DiffusionProfileNode)
                                                                        + typeof(ExposureNode)
-                                                                       + typeof(EmissionNode);
+                                                                       + typeof(EmissionNode)
+                                                                       + typeof(ParallaxOcclusionMappingNode);
 
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
