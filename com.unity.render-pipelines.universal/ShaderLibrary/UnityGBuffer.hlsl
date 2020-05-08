@@ -149,6 +149,7 @@ FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half sm
 #if (defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)) && defined(SHADER_API_MOBILE)
     output.Depth = inputData.positionCS.z;
 #endif
+
     return output;
 }
 

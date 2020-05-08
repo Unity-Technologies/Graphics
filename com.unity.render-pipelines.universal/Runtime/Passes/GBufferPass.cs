@@ -8,15 +8,11 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
-        public static GraphicsFormat[] kGBufferFormats = new GraphicsFormat[5] {
-            GraphicsFormat.R8G8B8A8_SRGB,    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
-            GraphicsFormat.R8G8B8A8_SRGB,    // specular        specular        specular        metallic        (sRGB rendertarget)
-            GraphicsFormat.R8G8B8A8_UNorm,   // encoded-normal  encoded-normal  encoded-normal  smoothness
-            GraphicsFormat.None,             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-            GraphicsFormat.R32_SFloat        // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
-        };
+        RenderTargetHandle[] m_ColorAttachments;
+        RenderTargetHandle m_DepthBufferAttachment;
 
         DeferredLights m_DeferredLights;
+        bool m_HasDepthPrepass;
 
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
@@ -28,6 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
+            m_HasDepthPrepass = false;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 

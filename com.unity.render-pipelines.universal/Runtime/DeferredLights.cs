@@ -186,7 +186,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int GBufferSpecularMetallicIndex { get { return 1; } }
         public int GBufferNormalSmoothnessIndex { get { return 2; } }
         public int GBufferLightingIndex { get { return 3; } }
-
         public int GBufferDepthIndex { get { return 4; }}
         public int GBufferAdditionalDepthIndex { get { return 5; }}
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR

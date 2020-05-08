@@ -22,7 +22,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DeferredLights = deferredLights;
         }
 
-        // ScriptableRenderPass
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             m_DeferredLights.ExecuteDeferredPass(context, ref renderingData);

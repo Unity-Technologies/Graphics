@@ -29,6 +29,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_IsOpaque = opaque;
+
             if (stencilState.enabled)
             {
                 m_RenderStateBlock.stencilReference = stencilReference;
