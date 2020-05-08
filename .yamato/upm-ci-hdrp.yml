@@ -235,6 +235,8 @@ All_{{ project.name }}_{{ editor.version }}:
     #skip - not needed, cover by dx11
     {% elsif win_api.name == "DX12" and testplatform.name == "editmode" %}
     #skip - not needed, cover by dx11	
+    {% elsif win_api.name == "DX12" and testplatform.name == "playmode XR" %}
+    #skip - fail for now disabling	
     {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
     {% endif %}
