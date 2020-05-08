@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-            SubsystemManager.GetInstances(displayList);
+            SubsystemManager.GetSubsystems(displayList);
 
             for (int i = 0; i < displayList.Count; i++)
             {
@@ -161,7 +161,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool RefreshXrSdk()
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            SubsystemManager.GetInstances(displayList);
+            SubsystemManager.GetSubsystems(displayList);
 
             if (displayList.Count > 0)
             {

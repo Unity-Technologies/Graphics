@@ -389,7 +389,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (settings == null)
                 settings = new VirtualTexturingSettingsSRP();
 
-            VirtualTexturing.System.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+            VirtualTexturing.Streaming.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
 
             GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
             for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 gpuCacheSettings[i] = new GPUCacheSetting() { format = srpSetting.format, sizeInMegaBytes = srpSetting.sizeInMegaBytes };
             }
 
-            VirtualTexturing.System.SetGPUCacheSettings(gpuCacheSettings);
+            VirtualTexturing.Streaming.SetGPUCacheSettings(gpuCacheSettings);
 #endif
 
             // Initial state of the RTHandle system.
