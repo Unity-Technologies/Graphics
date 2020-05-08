@@ -231,7 +231,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             // Get temporary render textures
             m_Descriptor = cameraTargetDescriptor;
             FilterMode filterMode = FilterMode.Point;
-            RenderTextureFormat format = RenderTextureFormat.ARGB64;
+            RenderTextureFormat format = RenderTextureFormat.ARGB32;
 
             RenderTextureDescriptor occlusionTex1Descriptor = GetStereoCompatibleDescriptor(m_Descriptor.width / downsampleDivider, m_Descriptor.height / downsampleDivider, format);
             cmd.GetTemporaryRT(s_OcclusionTexture1ID, occlusionTex1Descriptor, filterMode);
