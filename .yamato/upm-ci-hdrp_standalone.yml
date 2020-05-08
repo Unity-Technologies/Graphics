@@ -35,6 +35,8 @@ projects:
 win_apis:
   - name: DX11
     cmd: -force-d3d11
+  - name: DX12
+    cmd: -force-d3d12
   - name: Vulkan
     cmd: -force-vulkan
 mac_apis:
@@ -231,12 +233,8 @@ All_{{ project.name }}_{{ editor.version }}:
   
   {% elsif platform.name == "Win" %}
   {% for win_api in win_apis %}
-  {% if win_api.name == "Vulkan" %}
-  #skip
-  {% else %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
       rerun: {{ editor.rerun_strategy }}
-  {% endif %}
   {% endfor %}
 
   {% else %}
