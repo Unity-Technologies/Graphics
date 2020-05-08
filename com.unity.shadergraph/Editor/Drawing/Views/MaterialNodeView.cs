@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_ConnectorListener = connectorListener;
             node = inNode;
-            viewDataKey = node.guid.ToString();
+            viewDataKey = node.objectId;
             UpdateTitle();
 
             // Add controls container
@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.graph.messageManager?.ClearAllFromProvider(this);
                 if (!validTarget)
                 {
-                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.guid,
+                    m_GraphView.graph.messageManager?.AddOrAppendError(this, node.objectId,
                         new ShaderMessage("The active Master Node is not compatible with the current Render Pipeline," +
                                           " or no Render Pipeline is assigned." +
                                           " Assign a Render Pipeline in the graphics settings that is compatible with this Master Node.",
@@ -313,7 +313,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (evt.target is Node)
             {
                 var isMaster = node is IMasterNode;
-                var isActive = node.guid == node.owner.activeOutputNodeGuid;
+                var isActive = node == node.owner.outputNode;
                 if (isMaster)
                 {
                     evt.menu.AppendAction("Set Active", SetMasterAsActive,
@@ -341,7 +341,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void SetMasterAsActive(DropdownMenuAction action)
         {
-            node.owner.activeOutputNodeGuid = node.guid;
+            node.owner.owner.RegisterCompleteObjectUndo("Change Active Master");
+            node.owner.outputNode = node;
         }
 
         void CopyToClipboard(DropdownMenuAction action)
@@ -360,7 +361,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var mode = (GenerationMode)action.userData;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}{3}.shader", SanitizeName(name),
-                SanitizeName(node.name), node.guid, mode == GenerationMode.Preview ? "-Preview" : "");
+                SanitizeName(node.name), node.objectId, mode == GenerationMode.Preview ? "-Preview" : "");
             if (GraphUtil.WriteToFile(path, ConvertToShader(mode)))
                 GraphUtil.OpenFile(path);
         }
@@ -736,7 +737,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // TODO: Move to new NodeView type when keyword node has unique style
             if(node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keywordGuid);
+                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())
