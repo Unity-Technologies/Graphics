@@ -3,6 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+// keep this file in sync with LitGBufferPass.hlsl
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
