@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
             ShaderData.instance.Dispose();
+            DeferredShaderData.instance.Dispose();
 
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
@@ -229,12 +230,12 @@ namespace UnityEngine.Rendering.Universal
 
             ProfilingSampler sampler = (asset.debugLevel >= PipelineDebugLevel.Profiling) ? new ProfilingSampler(camera.name) : _CameraProfilingSampler;
             CommandBuffer cmd = CommandBufferPool.Get(sampler.name);
-            using (new ProfilingScope(cmd, sampler))
+            using (new ProfilingScope(cmd, sampler)) // Enqueues a "BeginSample" command into the CommandBuffer cmd
             {
                 renderer.Clear(cameraData.renderType);
                 renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
 
-                context.ExecuteCommandBuffer(cmd);
+                context.ExecuteCommandBuffer(cmd); // Send all the commands enqueued so far in the CommandBuffer cmd, to the ScriptableRenderContext context
                 cmd.Clear();
 
 #if UNITY_EDITOR
@@ -250,15 +251,12 @@ namespace UnityEngine.Rendering.Universal
 
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
-            }
+            } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 
             cameraData.xr.EndCamera(cmd, camera);
-
-            context.ExecuteCommandBuffer(cmd);
-            // context submit is required here. Shadow pass is executed out of order
-            // and we need to ensure we submit the shadow pass work before starting the next shadow pass.
-            context.Submit();
+            context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
+            context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
 
             ScriptableRenderer.current = null;
         }
@@ -289,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
             // rendering to screen when rendering it. The last camera in the stack is not
             // necessarily the last active one as it users might disable it.
             int lastActiveOverlayCameraIndex = -1;
-            if (cameraStack != null && cameraStack.Count > 0)
+            if (cameraStack != null)
             {
                 var baseCameraRendererType = baseCameraAdditionalData?.scriptableRenderer.GetType();
 
@@ -536,9 +534,14 @@ namespace UnityEngine.Rendering.Universal
             ///////////////////////////////////////////////////////////////////
             // Settings that control output of the camera                     /
             ///////////////////////////////////////////////////////////////////
+            
+            var renderer = baseAdditionalCameraData?.scriptableRenderer;
+            bool rendererSupportsMSAA = renderer != null && renderer.supportedRenderingFeatures.msaa;
+
             int msaaSamples = 1;
-            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1)
+            if (baseCamera.allowMSAA && settings.msaaSampleCount > 1 && rendererSupportsMSAA)
                 msaaSamples = (baseCamera.targetTexture != null) ? baseCamera.targetTexture.antiAliasing : settings.msaaSampleCount;
+
             cameraData.isHdrEnabled = baseCamera.allowHDR && settings.supportsHDR;
 
             Rect cameraRect = baseCamera.rect;
