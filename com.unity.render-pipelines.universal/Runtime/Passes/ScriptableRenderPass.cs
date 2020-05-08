@@ -94,7 +94,7 @@ namespace UnityEngine.Rendering.Universal
 
         public bool useNativeRenderPass
         {
-            get => this.m_RenderPassDescriptor != default(RenderPassDescriptor);
+            get => m_RenderPassDescriptor.sampleCount != 0; //this should be enough to indicate whether the descriptor was set
         }
         internal int eyeIndex { get; set; }
 
@@ -134,26 +134,6 @@ namespace UnityEngine.Rendering.Universal
             internal int height;
             internal int sampleCount;
             internal bool readOnlyDepth;
-
-            public static bool operator ==(RenderPassDescriptor op1,  RenderPassDescriptor op2)
-            {
-                return op1.Equals(op2);
-            }
-
-            public static bool operator !=(RenderPassDescriptor op1,  RenderPassDescriptor op2)
-            {
-                return !op1.Equals(op2);
-            }
-
-            public override int GetHashCode()
-            {
-                return base.GetHashCode();
-            }
-
-            public override bool Equals(object obj)
-            {
-                return base.Equals(obj);
-            }
         }
 
 

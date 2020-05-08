@@ -39,6 +39,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        public void Setup(AttachmentDescriptor[] gBufferAttachments, DeferredLights deferredLights)
+        {
+            gBufferAttachments[0] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAlbedoIndex];
+            gBufferAttachments[1] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAlbedoIndex];
+            gBufferAttachments[2] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferNormalSmoothnessIndex];
+            gBufferAttachments[3] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferLightingIndex];
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+            gBufferAttachments[4] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAdditionalDepthIndex];
+#endif
+        }
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");

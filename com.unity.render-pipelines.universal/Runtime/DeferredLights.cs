@@ -62,26 +62,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 #else
         public const bool kHasNativeQuadSupport = false;
 #endif
-        public const int kGBufferAlbedoIndex = 0;
-        public const int kGBufferSpecularMetallicIndex = 1;
-        public const int kGBufferNormalSmoothnessIndex = 2;
-        public const int kGBufferLightingIndex = 3;
-        public const int kGBufferDepthIndex = 4;
-
-        public const int kGBufferSliceCount = 4;
-
-        public static GraphicsFormat GetGBufferFormat(int index, bool accurateGbufferNormals = false)
-        {
-            switch(index)
-            {
-                case kGBufferAlbedoIndex:           return GraphicsFormat.R8G8B8A8_SRGB;    // albedo          albedo          albedo          occlusion       (sRGB rendertarget)
-                case kGBufferSpecularMetallicIndex: return GraphicsFormat.R8G8B8A8_SRGB;    // specular        specular        specular        metallic        (sRGB rendertarget)
-                case kGBufferNormalSmoothnessIndex: return GraphicsFormat.R8G8B8A8_UNorm;   // encoded-normal  encoded-normal  encoded-normal  smoothness
-                case kGBufferLightingIndex:         return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-                case kGBufferDepthIndex:            return GraphicsFormat.R32_SFloat;       // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
-                default:                            return GraphicsFormat.None;
-            }
-        }
     }
 
     // Manages tiled-based deferred lights.
@@ -206,9 +186,15 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int GBufferSpecularMetallicIndex { get { return 1; } }
         public int GBufferNormalSmoothnessIndex { get { return 2; } }
         public int GBufferLightingIndex { get { return 3; } }
-        //public int GbufferDepthIndex { get { return useRenderPass ? 4 : -1; } }
-        //public int GBufferSliceCount { get { return useRenderPass ? 5 : 4; } }
+
+        public int GBufferDepthIndex { get { return 4; }}
+        public int GBufferAdditionalDepthIndex { get { return 5; }}
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+        public int GBufferSliceCount { get { return 5; } }
+#else
         public int GBufferSliceCount { get { return 4; } }
+#endif
+        public AttachmentDescriptor[] GBufferDescriptors;
 
         public GraphicsFormat GetGBufferFormat(int index)
         {
@@ -220,8 +206,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return m_AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
             else if (index == GBufferLightingIndex)
                 return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-//            else if (index == GBufferDepthIndex)
-//                return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
+            else if (index == GBufferAdditionalDepthIndex)
+                return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
             else
                 return GraphicsFormat.None;
         }
@@ -280,8 +266,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Hold all shaders for stencil-volume deferred shading.
         Material m_StencilDeferredMaterial;
 
-        // Output lighting result.
-        internal RenderTargetHandle[] m_GbufferColorAttachments;
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle m_DepthTexture;
         //
@@ -310,6 +294,15 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_Tilers = new DeferredTiler[DeferredConfig.kTilerDepth];
             m_TileDataCapacities = new int[DeferredConfig.kTilerDepth];
+
+            GBufferDescriptors = new AttachmentDescriptor[GBufferSliceCount + 1]; // + Depth
+            GBufferDescriptors[0] = new AttachmentDescriptor(GetGBufferFormat(GBufferAlbedoIndex));
+            GBufferDescriptors[1] = new AttachmentDescriptor(GetGBufferFormat(GBufferSpecularMetallicIndex));
+            GBufferDescriptors[2] = new AttachmentDescriptor(GetGBufferFormat(GBufferNormalSmoothnessIndex));
+            GBufferDescriptors[4] = new AttachmentDescriptor(RenderTextureFormat.Depth);
+#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+            GBufferDescriptors[5] = new AttachmentDescriptor(GetGBufferFormat(GBufferAdditionalDepthIndex));
+#endif
 
             // Initialize hierarchical tilers. Next tiler processes 4x4 of the tiles of the previous tiler.
             // Tiler 0 has finest tiles, coarser tilers follow.
@@ -597,16 +590,18 @@ namespace UnityEngine.Rendering.Universal.Internal
             RenderTargetHandle depthCopyTexture,
             RenderTargetHandle depthInfoTexture,
             RenderTargetHandle tileDepthInfoTexture,
-            RenderTargetHandle depthTexture,
-            RenderTargetHandle[] gbufferColorAttachments)
+            AttachmentDescriptor[] deferredInputs,
+            RenderTargetHandle depthTexture)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             m_DepthCopyTexture = depthCopyTexture;
             m_DepthInfoTexture = depthInfoTexture;
             m_TileDepthInfoTexture = tileDepthInfoTexture;
-            m_GbufferColorAttachments = gbufferColorAttachments;
             m_DepthTexture = depthTexture;
-
+            deferredInputs[0] = GBufferDescriptors[0];
+            deferredInputs[1] = GBufferDescriptors[1];
+            deferredInputs[2] = GBufferDescriptors[2];
+            deferredInputs[3] = GBufferDescriptors[GBufferSliceCount];
             m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
 

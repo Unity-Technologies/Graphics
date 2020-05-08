@@ -51,12 +51,16 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_CameraColorTexture;
         RenderTargetHandle m_CameraDepthTexture;
         RenderTargetHandle m_CameraDepthAttachment;
-        RenderTargetHandle[] m_GBufferAttachments;
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
         RenderTargetHandle m_DepthInfoTexture;
         RenderTargetHandle m_TileDepthInfoTexture;
+
+        AttachmentDescriptor m_CameraColorDescriptor;
+        AttachmentDescriptor m_CameraDepthDescriptor;
+        AttachmentDescriptor[] m_GBufferOutputs;
+        AttachmentDescriptor[] m_DeferredInputs;
 
         ForwardLights m_ForwardLights; // Required for transparent pass
         DeferredLights m_DeferredLights;
@@ -137,10 +141,8 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTexture.Init("_CameraDepthTexture");
             m_CameraDepthAttachment.Init("_CameraDepthAttachment");
 
-            m_GBufferAttachments = new RenderTargetHandle[m_DeferredLights.GBufferSliceCount];
-            m_GBufferAttachments[m_DeferredLights.GBufferAlbedoIndex].Init("_GBuffer0");
-            m_GBufferAttachments[m_DeferredLights.GBufferSpecularMetallicIndex].Init("_GBuffer1");
-            m_GBufferAttachments[m_DeferredLights.GBufferNormalSmoothnessIndex].Init("_GBuffer2");
+            m_GBufferOutputs = new AttachmentDescriptor[m_DeferredLights.GBufferSliceCount]; //GBuffer + Lighting
+            m_DeferredInputs = new AttachmentDescriptor[4]; //GBuffer + Depth
 
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
@@ -189,6 +191,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 var cameraTarget = camera.targetTexture;
                 m_ActiveCameraColorAttachment.identifier = new RenderTargetIdentifier(cameraTarget);
+
+                m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
+                m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
+
+                m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+                m_CameraDepthDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), true, false);
+
+                ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
+                    m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
+
                 ConfigureCameraTarget(m_ActiveCameraColorAttachment.identifier , m_ActiveCameraColorAttachment.identifier);
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
@@ -205,14 +217,14 @@ namespace UnityEngine.Rendering.Universal
 
                 // Deferred shading do not try to apply shadow because we don't render any
                 // (m_MainLightShadowCasterPass and m_AdditionalLightsShadowCasterPass are not queued).
-                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false, context, true);
+                EnqueueDeferred(renderingData, requiresDepthPrepass, false, false, context, true);
 
                 //DeferredConfig.kGBufferLightingIndex] is used as output of GBufferPass so continue rendering to it
                 m_DrawSkyboxPass.ConfigureTarget(
-                    m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex],
+                    m_GBufferOutputs[3],
                     ScriptableRenderPass.EmptyAttachment);
                 EnqueueRenderPass(m_DrawSkyboxPass, cameraTargetDescriptor);
-                m_RenderTransparentForwardPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex],
+                m_RenderTransparentForwardPass.ConfigureTarget(m_GBufferOutputs[3],
                     ScriptableRenderPass.EmptyAttachment);
                 EnqueueRenderPass(m_RenderTransparentForwardPass, cameraTargetDescriptor);
                 return;
@@ -253,10 +265,10 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
             }
 
-            var m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
+            m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
             m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
 
-            var m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
             m_CameraDepthDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), true, false);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
@@ -297,7 +309,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context);
+            EnqueueDeferred(renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context);
 
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
 
@@ -466,43 +478,30 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, bool offscreenDepth = false)
+        void EnqueueDeferred(RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, bool offscreenDepth = false)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
-            RenderTargetHandle[] gbufferColorAttachments = new RenderTargetHandle[DeferredConfig.kGBufferSliceCount];
-            AttachmentDescriptor[] gbufferAttachmentDescriptors = new AttachmentDescriptor[DeferredConfig.kGBufferSliceCount + 1];
-
-            for (int gbufferIndex = 0; gbufferIndex < DeferredConfig.kGBufferSliceCount - 1; ++gbufferIndex)
-            {
-                gbufferColorAttachments[gbufferIndex] = m_GBufferAttachments[gbufferIndex];
-                gbufferAttachmentDescriptors[gbufferIndex] = new AttachmentDescriptor(DeferredConfig.GetGBufferFormat(gbufferIndex));
-            }
-
-            gbufferColorAttachments[DeferredConfig.kGBufferLightingIndex] = m_ActiveCameraColorAttachment; // the last slice is the lighting buffer created in DeferredRenderer.cs
-            gbufferAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex] = new AttachmentDescriptor(renderingData.cameraData.cameraTargetDescriptor.graphicsFormat);
-            gbufferAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex].ConfigureTarget(m_ActiveCameraColorAttachment.identifier, false, true);
+            // We set target for non-transient attachments here
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex] = cameraColorTargetDescriptor;
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureTarget(m_ActiveCameraColorAttachment.identifier, false, true);
             //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
-            gbufferAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
-            AttachmentDescriptor depthBufferAttachmentDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            depthBufferAttachmentDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
-            depthBufferAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+            // In case we use additional depth target we are using transient attachment
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex].ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex].ConfigureClear(Color.black, 1.0f, 0);
 
-#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            gbufferAttachmentDescriptors[DeferredConfig.kGBufferDepthIndex] = new AttachmentDescriptor(DeferredConfig.GetGBufferFormat(4));
-#else
-            gbufferAttachmentDescriptors[DeferredConfig.kGBufferDepthIndex] = depthBufferAttachmentDescriptor;
-#endif
 
-            m_GBufferPass.ConfigureTarget(gbufferAttachmentDescriptors, depthBufferAttachmentDescriptor);
+            m_GBufferPass.Setup(m_GBufferOutputs, m_DeferredLights);
+            m_GBufferPass.ConfigureTarget(m_GBufferOutputs, m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex]);
             EnqueueRenderPass(m_GBufferPass, desc);
 
             //Early exit if we are rendering offscreen depth as there is no real need to render lights
             if (offscreenDepth)
                 return;
 
-            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_CameraDepthAttachment, gbufferColorAttachments);
+            m_DeferredLights.Setup(ref renderingData, applyAdditionalShadow ? m_AdditionalLightsShadowCasterPass : null, m_CameraDepthTexture, m_DepthInfoTexture, m_TileDepthInfoTexture, m_DeferredInputs, m_CameraDepthAttachment);
 
             // Note: DeferredRender.Setup is called by UniversalRenderPipeline.RenderSingleCamera (overrides ScriptableRenderer.Setup).
             // At this point, we do not know if m_DeferredLights.m_Tilers[x].m_Tiles actually contain any indices of lights intersecting tiles (If there are no lights intersecting tiles, we could skip several following passes) : this information is computed in DeferredRender.SetupLights, which is called later by UniversalRenderPipeline.RenderSingleCamera (via ScriptableRenderer.Execute).
@@ -522,13 +521,13 @@ namespace UnityEngine.Rendering.Universal
                     EnqueuePass(m_TileDepthRangeExtraPass);
             }
 
-            m_DeferredPass.ConfigureTarget(gbufferAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex], depthBufferAttachmentDescriptor);
-            m_DeferredPass.ConfigureInputAttachment(new[] { gbufferAttachmentDescriptors[0], gbufferAttachmentDescriptors[1], gbufferAttachmentDescriptors[2], gbufferAttachmentDescriptors[4]});
+            m_DeferredPass.ConfigureTarget(m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex], m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex]);
+            m_DeferredPass.ConfigureInputAttachment(m_DeferredInputs);
 
             EnqueueRenderPass(m_DeferredPass, desc);
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
-            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_GBufferPass.colorAttachmentDescriptors[DeferredConfig.kGBufferLightingIndex], depthBufferAttachmentDescriptor);
+            m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex], m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex]);
             EnqueueRenderPass(m_RenderOpaqueForwardOnlyPass, desc);
         }
 
