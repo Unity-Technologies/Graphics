@@ -1150,6 +1150,7 @@ namespace UnityEngine.Rendering.Universal
                 QualitySettings.antiAliasing = msaaSamples;
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
             }
+#endif
         }
 
         internal void ClearAttachmentDescriptors()

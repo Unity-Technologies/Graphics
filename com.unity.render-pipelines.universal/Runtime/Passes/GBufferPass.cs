@@ -12,7 +12,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_DepthBufferAttachment;
 
         DeferredLights m_DeferredLights;
-        bool m_HasDepthPrepass;
 
         ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
         ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
@@ -24,7 +23,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
-            m_HasDepthPrepass = false;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
