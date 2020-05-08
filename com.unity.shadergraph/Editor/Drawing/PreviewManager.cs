@@ -30,11 +30,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // state trackers
         HashSet<AbstractMaterialNode> m_NodesShaderChanged = new HashSet<AbstractMaterialNode>();           // nodes whose shader code has changed, this node and nodes that read from it are put into NeedRecompile
+        HashSet<AbstractMaterialNode> m_NodesPropertyChanged = new HashSet<AbstractMaterialNode>();         // nodes whose property values have changed, the properties will need to be updated and all nodes that use that property re-rendered
+
         HashSet<PreviewRenderData> m_PreviewsNeedsRecompile = new HashSet<PreviewRenderData>();             // previews we need to recompile the preview shader
         HashSet<PreviewRenderData> m_PreviewsCompiling = new HashSet<PreviewRenderData>();                  // previews currently being compiled
-        HashSet<PreviewRenderData> m_PreviewsToDraw = new HashSet<PreviewRenderData>();                     // nodes to rebuild the texture for (because shader compile changed or constant changed)
-        HashSet<AbstractMaterialNode> m_TimedNodes = new HashSet<AbstractMaterialNode>();                   // nodes that are dependent on a time node -- i.e. animated -- need to redraw every frame
-        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes
+        HashSet<PreviewRenderData> m_PreviewsToDraw = new HashSet<PreviewRenderData>();                     // previews to re-render the texture (either because shader compile changed or property changed)
+        HashSet<PreviewRenderData> m_TimedPreviews = new HashSet<PreviewRenderData>();                      // previews that are dependent on a time node -- i.e. animated / need to redraw every frame
+        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes.  ANY topological change should trigger this
 
         HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
 
@@ -99,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_MasterRenderData = new PreviewRenderData
             {
-                previewName = m_Graph.outputNode?.name ?? "Master",
+                previewName = "Master:" + (m_Graph.outputNode?.name ?? ""),
                 renderTexture =
                     new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
@@ -151,10 +153,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            if (node is SubGraphOutputNode && masterRenderData != null)
-            {
-                return;
-            }
+//             if (node is SubGraphOutputNode && masterRenderData != null)
+//             {
+//                 return;
+//             }
 
             var renderData = new PreviewRenderData
             {
@@ -167,9 +169,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             renderData.renderTexture.Create();
-
-            if (node == null)
-                Debug.Log("node = null");
 
             var shaderData = new PreviewShaderData
             {
@@ -189,13 +188,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_PreviewsNeedsRecompile.Add(renderData);
+            m_NodesPropertyChanged.Add(node);
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
         {
             Assert.IsFalse(node == null);
-
-            PreviewRenderData preview = GetPreviewRenderData(node);
 
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
@@ -207,7 +205,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // if we only changed a constant on the node, we don't have to recompile the shader for it, just re-render it with the updated constant
                 // should instead flag m_NodesConstantChanged
-                m_PreviewsToDraw.Add(preview);
+                m_NodesPropertyChanged.Add(node);
             }
         }
 
@@ -304,7 +302,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // remove the nodes from the state trackers
             m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
-            m_TimedNodes.ExceptWith(m_Graph.removedNodes);
+            m_NodesPropertyChanged.ExceptWith(m_Graph.removedNodes);
 
             m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
 
@@ -317,7 +315,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in m_Graph.removedEdges)
             {
                 var node = edge.inputSlot.node;
-                if(node is BlockNode)
+                if ((node is BlockNode) || (node is SubGraphOutputNode))
                 {
                     UpdateMasterPreview(ModificationScope.Topological);
                     continue;
@@ -331,7 +329,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var node = edge.inputSlot.node;
                 if(node != null)
                 {
-                    if(node is BlockNode)
+                    if ((node is BlockNode) || (node is SubGraphOutputNode))
                     {
                         UpdateMasterPreview(ModificationScope.Topological);
                         continue;
@@ -344,31 +342,35 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
-        void CollectPreviewProperties()
+        void CollectPreviewProperties(IEnumerable<AbstractMaterialNode> nodesToCollect)
         {
             using (CollectPreviewPropertiesMarker.Auto())
-            using (var tempCollectNodes = PooledHashSet<AbstractMaterialNode>.Get())
+            // using (var tempCollectNodes = PooledHashSet<AbstractMaterialNode>.Get())
             using (var tempPreviewProps = PooledList<PreviewProperty>.Get())
             {
-                // we only collect properties from nodes upstream of something we want to draw
-                // TODO: we could go a step farther and only collect properties from nodes we know have changed their value
-                // but that's not something we currently track...
+                // we collect ALL properties from nodes upstream of something we want to draw
+
+                // we could only bother to collect from nodes tagged as "m_NodesPropertyChanged"
+                // but we would also have to figure out how to fully populate Material properties on newly created nodes
+                // (shared MaterialPropertyBlock properties would be fine...)
 
                 // collect properties from all nodes we need to draw
-                tempCollectNodes.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
+                // tempCollectNodes.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
 
                 // if we're collecting for master preview, also collect from all of the blocks and their upstream nodes
+                /*
                 if (m_PreviewsToDraw.Contains(m_MasterRenderData) || tempCollectNodes.Contains(null))
                 {
                     tempCollectNodes.Remove(null);
                     foreach (var block in m_MasterNodePreviewBlocks)
                         tempCollectNodes.Add(block);
                 }
+                */
 
                 // and also collect from all nodes upstream
-                PropagateNodes(tempCollectNodes, PropagationDirection.Upstream, tempCollectNodes);
+                // PropagateNodes(tempCollectNodes, PropagationDirection.Upstream, tempCollectNodes);
 
-                foreach (var propNode in tempCollectNodes)
+                foreach (var propNode in nodesToCollect)
                     propNode.CollectPreviewMaterialProperties(tempPreviewProps);
 
                 // also grab all graph properties
@@ -387,52 +389,57 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (RenderPreviewsMarker.Auto())
             using (var renderList2D = PooledList<PreviewRenderData>.Get())
             using (var renderList3D = PooledList<PreviewRenderData>.Get())
+            using (var nodesToDraw = PooledHashSet<AbstractMaterialNode>.Get())
             {
                 if (requestShaders)
                     UpdateShaders();
 
                 UpdateTimedNodeList();
 
-                // TODO : I don't think we need to propagate draws downstream... ?
-                // We need to propagate constant changes downstream, which then invoke previews to redraw...
-                // PropagateNodes(m_PreviewsToDraw, PropagationDirection.Downstream, m_PreviewsToDraw);
+                if (m_NodesPropertyChanged.Count > 0)
                 {
-                    var nodesToDraw = new HashSet<AbstractMaterialNode>();
-                    nodesToDraw.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
-                    nodesToDraw.Remove(null);
-                    PropagateNodes(nodesToDraw, PropagationDirection.Downstream, nodesToDraw);
+                    // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
+                    PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
 
-                    nodesToDraw.UnionWith(m_TimedNodes);                                            // TODO: better to track timed previews
-                    m_PreviewsToDraw.UnionWith(nodesToDraw.Select(n => GetPreviewRenderData(n)));
+                    // master node won't get picked up by the propagation
+                    // but if any block nodes were picked up, flag master instead
+                    if (nodesToDraw.RemoveWhere(n => n is BlockNode) > 0)
+                        m_PreviewsToDraw.Add(m_MasterRenderData);
                 }
+
+                CollectPreviewProperties(m_NodesPropertyChanged);
+                m_NodesPropertyChanged.Clear();
+
+                // timed nodes change every frame, so must be drawn
+                // (m_TimedNodes has been pre-propagated downstream)
+                // HOWEVER they do not need to collect properties. (the only property changing is time..)
+                m_PreviewsToDraw.UnionWith(m_TimedPreviews);
+
+                m_PreviewsToDraw.UnionWith(nodesToDraw.Select(n => GetPreviewRenderData(n)));
+                m_PreviewsToDraw.Remove(null);
 
                 if (m_PreviewsToDraw.Count <= 0)
                     return;
 
-                CollectPreviewProperties();
-
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
-                bool renderMasterPreview = false;
+                m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
 
+                bool renderMasterPreview = false;
                 using (PrepareNodesMarker.Auto())
                 {
                     foreach (var preview in m_PreviewsToDraw)
                     {
-                        var node = preview.shaderData.node;
-//                         if (preview == null || node == m_Graph.outputNode || node is BlockNode || node is SubGraphOutputNode)
-//                         {
-//                             renderMasterPreview = true;
-//                             continue;
-//                         }
+                        if (preview == null)
+                            continue;
 
+                        // early out if the node doesn't have a preview expanded
+                        var node = preview.shaderData.node;
                         if ((node != null) && (!node.hasPreview || !node.previewExpanded))
                             continue;
 
-                        var renderData = preview;       // GetPreviewRenderData(node);
-                        if (renderData == null)         // non-active output nodes can have NULL render data (no preview)
-                            continue;
-
+                        // check that we've got shaders and materials generated
+                        var renderData = preview;
                         if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
                         {
                             // avoid calling NotifyPreviewChanged repeatedly
@@ -444,8 +451,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                             continue;
                         }
 
-                        renderData.shaderData.mat.SetVector("_TimeParameters", timeParameters);
-
                         if (renderData.shaderData.hasError)
                         {
                             renderData.texture = m_ErrorTexture;
@@ -453,7 +458,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                             continue;
                         }
 
-                        if (renderData.previewMode == PreviewMode.Preview2D)
+                        // categorize what kind of render it is
+                        if (node == kMasterProxyNode)
+                            renderMasterPreview = true;
+                        else if (renderData.previewMode == PreviewMode.Preview2D)
                             renderList2D.Add(renderData);
                         else
                             renderList3D.Add(renderData);
@@ -486,7 +494,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 foreach (var renderData in renderList3D)
                     RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
 
-                if (renderMasterPreview && masterRenderData != null && masterRenderData.shaderData.mat != null)
+                if (renderMasterPreview)
                 {
                     if (m_NewMasterPreviewSize.HasValue)
                     {
@@ -603,7 +611,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // removed compiled nodes from compiling list
                 m_PreviewsCompiling.ExceptWith(previewsCompiled);
 
-                // and add them to the draw list
+                // and add them to the draw list to display updated shader (note this will only redraw specifically this node, not any others)
                 m_PreviewsToDraw.UnionWith(previewsCompiled);
             }
         }
@@ -717,7 +725,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (m_NodesShaderChanged.Count > 0)
                 {
-                    // nodes with shader changes cause all downstream nodes to need preview recompilation
+                    // nodes with shader changes cause all downstream nodes to need recompilation
+                    // (since they presumably include the code for these nodes)
                     using (var nodesToRecompile = PooledHashSet<AbstractMaterialNode>.Get())
                     {
                         PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, nodesToRecompile);
@@ -799,13 +808,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             using (UpdateTimedNodeListMarker.Auto())
+            using (var timedNodes = PooledHashSet<AbstractMaterialNode>.Get())
             {
-                m_TimedNodes.Clear();
-                foreach (var timeNode in m_Graph.GetNodes<AbstractMaterialNode>().Where(node => node.RequiresTime()))
+                timedNodes.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>().Where(n => n.RequiresTime()));
+
+                // timed nodes are pre-propagated downstream, to reduce amount of propagation we have to do per frame
+                PropagateNodes(timedNodes, PropagationDirection.Downstream, timedNodes);
+
+                m_TimedPreviews.Clear();
+                foreach (var node in timedNodes)
                 {
-                    m_TimedNodes.Add(timeNode);
+                    var preview = GetPreviewRenderData(node);
+                    if (preview != null)
+                        m_TimedPreviews.Add(preview);
                 }
-                PropagateNodes(m_TimedNodes, PropagationDirection.Downstream, m_TimedNodes);
 
                 m_RefreshTimedNodes = false;
             }
@@ -957,7 +973,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             string nodeId = node.objectId;
 
-            if (node is BlockNode)
+            if ((node is BlockNode) || (node is SubGraphOutputNode))
             {
                 // block nodes don't have preview render data
                 Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
@@ -974,6 +990,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PreviewsNeedsRecompile.Remove(renderData);
             m_PreviewsCompiling.Remove(renderData);
             m_PreviewsToDraw.Remove(renderData);
+            m_TimedPreviews.Remove(renderData);
 
             DestroyRenderData(renderData);
             m_RenderDatas.Remove(nodeId);
