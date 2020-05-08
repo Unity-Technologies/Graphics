@@ -44,6 +44,10 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             output.positionCS = float4(input.positionHCS.xyz, 1.0);
             output.positionCS.y *= _ScaleBiasRT.x;
             output.uv = input.uv;
+
+            // Add a small epsilon to avoid artifacts when reconstructing the normals
+            output.uv += 1.0e-6;
+
             return output;
         }
 
@@ -70,6 +74,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma vertex VertDefault
                 #pragma fragment SSAO
                 #pragma multi_compile_local _RECONSTRUCT_NORMAL_LOW _RECONSTRUCT_NORMAL_MEDIUM _RECONSTRUCT_NORMAL_HIGH
+                #pragma multi_compile_local _ _ORTHOGRAPHIC
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
@@ -127,7 +132,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             HLSLPROGRAM
                 #define SOURCE_DEPTHNORMALS
                 #define BLUR_HORIZONTAL
-                #define BLUR_SAMPLE_CENTER_NORMAL
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
@@ -175,7 +179,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma vertex VertDefault
                 #pragma fragment FragBlur
                 #define BLUR_HORIZONTAL
-                #define BLUR_SAMPLE_CENTER_NORMAL
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
