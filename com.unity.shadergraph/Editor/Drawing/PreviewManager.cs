@@ -85,7 +85,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public PreviewRenderData GetPreviewRenderData(AbstractMaterialNode node)
         {
             PreviewRenderData result = null;
-            if (node == kMasterProxyNode || node is BlockNode || node == m_Graph.outputNode) // TODO: node is SubGraphOutputNode ??  is there ever more than one?:   Should be caught by m_Graph.outputNode...
+            if (node == kMasterProxyNode ||
+                node is BlockNode ||
+                node == m_Graph.outputNode) // the outputNode, if it exists, is mapped to master
             {
                 result = m_MasterRenderData;
             }
@@ -101,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_MasterRenderData = new PreviewRenderData
             {
-                previewName = "Master:" + (m_Graph.outputNode?.name ?? ""),
+                previewName = "Master Preview",
                 renderTexture =
                     new RenderTexture(400, 400, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default)
                     {
@@ -114,7 +116,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var shaderData = new PreviewShaderData
             {
-                node = m_Graph.outputNode,      // can be null, which means to generate with active Target
+                // even though a SubGraphOutputNode can be directly mapped to master (via m_Graph.outputNode)
+                // we always keep master node associated with kMasterProxyNode instead
+                // just easier if the association is always dynamic
+                node = kMasterProxyNode,
                 passesCompiling = 0,
                 isOutOfDate = true,
                 hasError = false,
@@ -122,6 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterRenderData.shaderData = shaderData;
 
             m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
+            m_PreviewsToDraw.Add(m_MasterRenderData);
             m_RefreshTimedNodes = true;
         }
 
@@ -138,7 +144,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (scope == ModificationScope.Node)
             {
-                m_PreviewsToDraw.Add(m_MasterRenderData);
+                if (m_MasterRenderData != null)
+                    m_PreviewsToDraw.Add(m_MasterRenderData);
             }
         }
 
@@ -146,17 +153,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             Assert.IsNotNull(node);
 
+            // BlockNodes have no preview for themselves, but are mapped to the "Master" preview
+            // SubGraphOutput nodes have their own previews, but will use the "Master" preview if they are the m_Graph.outputNode
             if (node is BlockNode)
             {
                 node.RegisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 return;
             }
-
-//             if (node is SubGraphOutputNode && masterRenderData != null)
-//             {
-//                 return;
-//             }
 
             var renderData = new PreviewRenderData
             {
@@ -193,7 +197,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
         {
-            Assert.IsFalse(node == null);
+            Assert.IsNotNull(node);
 
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
@@ -236,6 +240,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
             using (PropagateNodesMarker.Auto())
+            if (sources.Count > 0)
             {
                 // NodeWave represents the list of nodes we still have to process and add to result
                 m_TempNodeWave.Clear();
@@ -316,26 +321,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = edge.inputSlot.node;
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
-                {
                     UpdateMasterPreview(ModificationScope.Topological);
-                    continue;
-                }
-
-                m_NodesShaderChanged.Add(node);
+                else
+                    m_NodesShaderChanged.Add(node);
                 m_RefreshTimedNodes = true;
             }
             foreach (var edge in m_Graph.addedEdges)
             {
                 var node = edge.inputSlot.node;
-                if(node != null)
+                if (node != null)
                 {
                     if ((node is BlockNode) || (node is SubGraphOutputNode))
-                    {
                         UpdateMasterPreview(ModificationScope.Topological);
-                        continue;
-                    }
-                    
-                    m_NodesShaderChanged.Add(node);
+                    else
+                        m_NodesShaderChanged.Add(node);
                     m_RefreshTimedNodes = true;
                 }
             }
@@ -345,35 +344,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         void CollectPreviewProperties(IEnumerable<AbstractMaterialNode> nodesToCollect)
         {
             using (CollectPreviewPropertiesMarker.Auto())
-            // using (var tempCollectNodes = PooledHashSet<AbstractMaterialNode>.Get())
             using (var tempPreviewProps = PooledList<PreviewProperty>.Get())
             {
-                // we collect ALL properties from nodes upstream of something we want to draw
-
-                // we could only bother to collect from nodes tagged as "m_NodesPropertyChanged"
-                // but we would also have to figure out how to fully populate Material properties on newly created nodes
-                // (shared MaterialPropertyBlock properties would be fine...)
-
-                // collect properties from all nodes we need to draw
-                // tempCollectNodes.UnionWith(m_PreviewsToDraw.Select(p => p.shaderData.node));
-
-                // if we're collecting for master preview, also collect from all of the blocks and their upstream nodes
-                /*
-                if (m_PreviewsToDraw.Contains(m_MasterRenderData) || tempCollectNodes.Contains(null))
-                {
-                    tempCollectNodes.Remove(null);
-                    foreach (var block in m_MasterNodePreviewBlocks)
-                        tempCollectNodes.Add(block);
-                }
-                */
-
-                // and also collect from all nodes upstream
-                // PropagateNodes(tempCollectNodes, PropagationDirection.Upstream, tempCollectNodes);
-
+                // collect from all of the changed nodes
                 foreach (var propNode in nodesToCollect)
                     propNode.CollectPreviewMaterialProperties(tempPreviewProps);
 
-                // also grab all graph properties
+                // also grab all graph properties (they are updated every frame)
                 foreach (var prop in m_Graph.properties)
                     tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
 
@@ -383,7 +360,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
-        private static readonly ProfilerMarker PrepareNodesMarker = new ProfilerMarker("PrepareNodesMarker");
         public void RenderPreviews(bool requestShaders = true)
         {
             using (RenderPreviewsMarker.Auto())
@@ -396,77 +372,75 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 UpdateTimedNodeList();
 
-                if (m_NodesPropertyChanged.Count > 0)
-                {
-                    // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
-                    PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
-
-                    // master node won't get picked up by the propagation
-                    // but if any block nodes were picked up, flag master instead
-                    if (nodesToDraw.RemoveWhere(n => n is BlockNode) > 0)
-                        m_PreviewsToDraw.Add(m_MasterRenderData);
-                }
+                // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
+                PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
 
                 CollectPreviewProperties(m_NodesPropertyChanged);
                 m_NodesPropertyChanged.Clear();
 
                 // timed nodes change every frame, so must be drawn
-                // (m_TimedNodes has been pre-propagated downstream)
+                // (m_TimedPreviews has been pre-propagated downstream)
                 // HOWEVER they do not need to collect properties. (the only property changing is time..)
                 m_PreviewsToDraw.UnionWith(m_TimedPreviews);
 
-                m_PreviewsToDraw.UnionWith(nodesToDraw.Select(n => GetPreviewRenderData(n)));
-                m_PreviewsToDraw.Remove(null);
+                ForEachNodesPreview(nodesToDraw, p => m_PreviewsToDraw.Add(p));
 
-                if (m_PreviewsToDraw.Count <= 0)
+                // redraw master when it is resized
+                if (m_NewMasterPreviewSize.HasValue)
+                    m_PreviewsToDraw.Add(m_MasterRenderData);
+
+                // apply filtering to determine what nodes really get drawn
+                bool renderMasterPreview = false;
+                int drawPreviewCount = 0;
+                foreach (var preview in m_PreviewsToDraw)
+                {
+                    Assert.IsNotNull(preview);
+
+                    { // skip if the node doesn't have a preview expanded (unless it's master)
+                        var node = preview.shaderData.node;
+                        if ((node != kMasterProxyNode) && (!node.hasPreview || !node.previewExpanded))
+                            continue;
+                    }
+
+                    // check that we've got shaders and materials generated
+                    // if not ,replace the rendered texture with null
+                    if ((preview.shaderData.shader == null) ||
+                        (preview.shaderData.mat == null))
+                    {
+                        // avoid calling NotifyPreviewChanged repeatedly
+                        if (preview.texture != null)
+                        {
+                            preview.texture = null;
+                            preview.NotifyPreviewChanged();
+                        }
+                        continue;
+                    }
+
+                    // similarly with previews that have a shader error
+                    if (preview.shaderData.hasError)
+                    {
+                        preview.texture = m_ErrorTexture;
+                        preview.NotifyPreviewChanged();
+                        continue;
+                    }
+
+                    // we want to render this thing, now categorize what kind of render it is
+                    if (preview == m_MasterRenderData)
+                        renderMasterPreview = true;
+                    else if (preview.previewMode == PreviewMode.Preview2D)
+                        renderList2D.Add(preview);
+                    else
+                        renderList3D.Add(preview);
+                    drawPreviewCount++;
+                }
+
+                // if we actually don't want to render anything at all, early out here
+                if (drawPreviewCount <= 0)
                     return;
 
                 var time = Time.realtimeSinceStartup;
                 var timeParameters = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
                 m_SharedPreviewPropertyBlock.SetVector("_TimeParameters", timeParameters);
-
-                bool renderMasterPreview = false;
-                using (PrepareNodesMarker.Auto())
-                {
-                    foreach (var preview in m_PreviewsToDraw)
-                    {
-                        if (preview == null)
-                            continue;
-
-                        // early out if the node doesn't have a preview expanded
-                        var node = preview.shaderData.node;
-                        if ((node != null) && (!node.hasPreview || !node.previewExpanded))
-                            continue;
-
-                        // check that we've got shaders and materials generated
-                        var renderData = preview;
-                        if ((renderData.shaderData.shader == null) || (renderData.shaderData.mat == null))
-                        {
-                            // avoid calling NotifyPreviewChanged repeatedly
-                            if (renderData.texture != null)
-                            {
-                                renderData.texture = null;
-                                renderData.NotifyPreviewChanged();
-                            }
-                            continue;
-                        }
-
-                        if (renderData.shaderData.hasError)
-                        {
-                            renderData.texture = m_ErrorTexture;
-                            renderData.NotifyPreviewChanged();
-                            continue;
-                        }
-
-                        // categorize what kind of render it is
-                        if (node == kMasterProxyNode)
-                            renderMasterPreview = true;
-                        else if (renderData.previewMode == PreviewMode.Preview2D)
-                            renderList2D.Add(renderData);
-                        else
-                            renderList3D.Add(renderData);
-                    }
-                }
 
                 EditorUtility.SetCameraAnimateMaterialsTime(m_SceneResources.camera, time);
 
@@ -523,8 +497,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     renderData.NotifyPreviewChanged();
                 if (renderMasterPreview)
                     masterRenderData.NotifyPreviewChanged();
-
-                m_PreviewsToDraw.Clear();
             }
         }
 
@@ -627,13 +599,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
                     ((Shader.globalRenderPipeline != null) && (Shader.globalRenderPipeline.Length > 0)))    // master node requires an SRP
                 {
-                    if (m_MasterRenderData.shaderData.node != m_Graph.outputNode)
-                        Debug.Log("MasterRenderData mismatch! " + m_MasterRenderData.shaderData.node + " != " + m_Graph.outputNode);
-
                     if (m_PreviewsNeedsRecompile.Contains(m_MasterRenderData) &&
                         !m_PreviewsCompiling.Contains(m_MasterRenderData))
                     {
-                        Assert.IsTrue(m_MasterRenderData != null);
                         previewsToCompile.Add(m_MasterRenderData);
                         m_PreviewsNeedsRecompile.Remove(m_MasterRenderData);
                     }
@@ -689,7 +657,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode));
 
-                    var renderData = preview; // GetPreviewRenderData(node);
+                    var renderData = preview;
 
                     // Get shader code and compile
                     var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
@@ -730,12 +698,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     using (var nodesToRecompile = PooledHashSet<AbstractMaterialNode>.Get())
                     {
                         PropagateNodes(m_NodesShaderChanged, PropagationDirection.Downstream, nodesToRecompile);
-                        foreach (var node in nodesToRecompile)
-                        {
-                            var preview = GetPreviewRenderData(node);
-                            if (preview != null) // non-active output nodes can have NULL render data (no preview)
-                                m_PreviewsNeedsRecompile.Add(preview);
-                        }
+                        ForEachNodesPreview(nodesToRecompile, p => m_PreviewsNeedsRecompile.Add(p));
+
                         m_NodesShaderChanged.Clear();
                     }
                 }
@@ -801,6 +765,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
+        private void ForEachNodesPreview(
+            IEnumerable<AbstractMaterialNode> nodes,
+            Action<PreviewRenderData> action)
+        {
+            foreach (var node in nodes)
+            {
+                var preview = GetPreviewRenderData(node);
+                if (preview != null)    // some output nodes may have no preview
+                    action(preview);
+            }
+        }
+
         private static readonly ProfilerMarker UpdateTimedNodeListMarker = new ProfilerMarker("RenderPreviews");
         void UpdateTimedNodeList()
         {
@@ -812,16 +788,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 timedNodes.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>().Where(n => n.RequiresTime()));
 
-                // timed nodes are pre-propagated downstream, to reduce amount of propagation we have to do per frame
+                // we pre-propagate timed nodes downstream, to reduce amount of propagation we have to do per frame
                 PropagateNodes(timedNodes, PropagationDirection.Downstream, timedNodes);
 
                 m_TimedPreviews.Clear();
-                foreach (var node in timedNodes)
-                {
-                    var preview = GetPreviewRenderData(node);
-                    if (preview != null)
-                        m_TimedPreviews.Add(preview);
-                }
+                ForEachNodesPreview(timedNodes, p => m_TimedPreviews.Add(p));
 
                 m_RefreshTimedNodes = false;
             }
@@ -832,13 +803,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
-                var node = renderData.shaderData.node;
-                Assert.IsTrue((node != null && node.hasPreview && node.previewExpanded) || node == masterRenderData?.shaderData?.node);
-
-                if (renderData.shaderData.hasError)
                 {
-                    renderData.texture = m_ErrorTexture;
-                    return;
+                    var node = renderData.shaderData.node;
+                    if (node != kMasterProxyNode)
+                        if (!(node.hasPreview && node.previewExpanded && !renderData.shaderData.hasError))
+                            Assert.IsTrue(false);
                 }
 
                 var previousRenderTexture = RenderTexture.active;
@@ -850,7 +819,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Mesh is invalid for VFXTarget
                 // We should handle this more gracefully
-                if(renderData != m_MasterRenderData || !m_Graph.isVFXTarget)
+                if (renderData != m_MasterRenderData || !m_Graph.isVFXTarget)
                 {
                     m_SceneResources.camera.targetTexture = temp;
                     Graphics.DrawMesh(mesh, transform, renderData.shaderData.mat, 1, m_SceneResources.camera, 0, m_SharedPreviewPropertyBlock, ShadowCastingMode.Off, false, null, false);
@@ -866,6 +835,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 RenderTexture.active = previousRenderTexture;
                 renderData.texture = renderData.renderTexture;
+
+                m_PreviewsToDraw.Remove(renderData);
             }
         }
 
@@ -922,7 +893,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Skip generation for VFXTarget
             if(!m_Graph.isVFXTarget)
             {
-                var generator = new Generator(m_Graph, shaderData?.node, GenerationMode.Preview, "Master");
+                var generator = new Generator(m_Graph, m_Graph.outputNode, GenerationMode.Preview, "Master");
                 shaderData.shaderString = generator.generatedShader;
 
                 // Blocks from the generation include those temporarily created for missing stack blocks
@@ -973,7 +944,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             string nodeId = node.objectId;
 
-            if ((node is BlockNode) || (node is SubGraphOutputNode))
+            if (node is BlockNode)
             {
                 // block nodes don't have preview render data
                 Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
