@@ -16,6 +16,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     delegate void OnPrimaryMasterChanged();
 
+    static class ListSliceUtility
+    {
+        // TODO: non-yield return, struct version of Slice
+        public static IEnumerable<T> Slice<T>(this List<T> list, int start, int end)
+        {
+            for (int i = start; i < end; i++)
+                yield return list[i];
+        }
+    }
+
     class PreviewManager : IDisposable
     {
         GraphData m_Graph;
@@ -36,7 +46,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         HashSet<PreviewRenderData> m_PreviewsCompiling = new HashSet<PreviewRenderData>();                  // previews currently being compiled
         HashSet<PreviewRenderData> m_PreviewsToDraw = new HashSet<PreviewRenderData>();                     // previews to re-render the texture (either because shader compile changed or property changed)
         HashSet<PreviewRenderData> m_TimedPreviews = new HashSet<PreviewRenderData>();                      // previews that are dependent on a time node -- i.e. animated / need to redraw every frame
-        bool m_RefreshTimedNodes;                                                                           // flag to trigger rebuilding the list of timed nodes.  ANY topological change should trigger this
+
+        bool m_TopologyDirty;                                                                               // indicates topology changed, used to rebuild timed node list and preview type (2D/3D) inheritance.
 
         HashSet<BlockNode> m_MasterNodePreviewBlocks = new HashSet<BlockNode>();                            // all blocks used for the most recent master node preview generation. this includes temporary blocks.
 
@@ -128,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
             m_PreviewsToDraw.Add(m_MasterRenderData);
-            m_RefreshTimedNodes = true;
+            m_TopologyDirty = true;
         }
 
         public void UpdateMasterPreview(ModificationScope scope)
@@ -140,7 +151,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // if not, no need to do it here, because it is always marked for recompile on creation
                 if (m_MasterRenderData != null)
                     m_PreviewsNeedsRecompile.Add(m_MasterRenderData);
-                m_RefreshTimedNodes = true;
+                m_TopologyDirty = true;
             }
             else if (scope == ModificationScope.Node)
             {
@@ -186,13 +197,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_RenderDatas.Add(node.objectId, renderData);
             node.RegisterCallback(OnNodeModified);
 
-            if (node.RequiresTime())
-            {
-                m_RefreshTimedNodes = true;
-            }
-
             m_PreviewsNeedsRecompile.Add(renderData);
             m_NodesPropertyChanged.Add(node);
+            m_TopologyDirty = true;
         }
 
         void OnNodeModified(AbstractMaterialNode node, ModificationScope scope)
@@ -203,7 +210,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 scope == ModificationScope.Graph)
             {
                 m_NodesShaderChanged.Add(node);     // this will trigger m_PreviewsShaderChanged downstream
-                m_RefreshTimedNodes = true;
+                m_TopologyDirty = true;
             }
             else if (scope == ModificationScope.Node)
             {
@@ -213,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // temp structures that are kept around statically to avoid GC churn
+        // temp structures that are kept around statically to avoid GC churn (not thread safe)
         static Stack<AbstractMaterialNode> m_TempNodeWave = new Stack<AbstractMaterialNode>();
         static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
 
@@ -269,7 +276,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
+        static void ForeachConnectedNode(AbstractMaterialNode node, PropagationDirection dir, Action<AbstractMaterialNode> action)
         {
             using (var tempEdges = PooledList<IEdge>.Get())
             using (var tempSlots = PooledList<MaterialSlot>.Get())
@@ -284,7 +291,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     // get the edges out of each slot
                     tempEdges.Clear();                            // and here we serialize another list, ouch!
-                    m_Graph.GetEdges(slot.slotReference, tempEdges);
+                    node.owner.GetEdges(slot.slotReference, tempEdges);
                     foreach (var edge in tempEdges)
                     {
                         // We look at each node we feed into.
@@ -302,7 +309,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 DestroyPreview(node);
-                m_RefreshTimedNodes = true;
+                m_TopologyDirty = true;
             }
 
             // remove the nodes from the state trackers
@@ -314,7 +321,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.addedNodes)
             {
                 AddPreview(node);
-                m_RefreshTimedNodes = true;
+                m_TopologyDirty = true;
             }
 
             foreach (var edge in m_Graph.removedEdges)
@@ -324,7 +331,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     UpdateMasterPreview(ModificationScope.Topological);
                 else
                     m_NodesShaderChanged.Add(node);
-                m_RefreshTimedNodes = true;
+                m_TopologyDirty = true;
             }
             foreach (var edge in m_Graph.addedEdges)
             {
@@ -335,7 +342,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         UpdateMasterPreview(ModificationScope.Topological);
                     else
                         m_NodesShaderChanged.Add(node);
-                    m_RefreshTimedNodes = true;
+                    m_TopologyDirty = true;
                 }
             }
         }
@@ -367,10 +374,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var renderList3D = PooledList<PreviewRenderData>.Get())
             using (var nodesToDraw = PooledHashSet<AbstractMaterialNode>.Get())
             {
+                // update topology cached data
+                // including list of time-dependent previews, and the preview mode (2d/3d)
+                UpdateTopology();
+
                 if (requestShaders)
                     UpdateShaders();
-
-                UpdateTimedNodeList();
 
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
@@ -594,6 +603,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Start compilation for nodes that need to recompile
             using (KickOffShaderCompilationsMarker.Auto())
             using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
+            using (var nodesToCompile = PooledHashSet<AbstractMaterialNode>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
@@ -609,17 +619,18 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // add each node to compile list if it needs a preview, is not already compiling, and we have room
                 // (we don't want to double kick compiles, so wait for the first one to get back before kicking another)
-                for(int i = 0; i < m_PreviewsNeedsRecompile.Count(); i++)
+                for (int i = 0; i < m_PreviewsNeedsRecompile.Count(); i++)
                 {
                     if (m_PreviewsCompiling.Count + previewsToCompile.Count >= m_MaxPreviewsCompiling)
                         break;
 
                     var preview = m_PreviewsNeedsRecompile.ElementAt(i);
-                    if (preview == m_MasterRenderData) // handled specially above
+                    if (preview == m_MasterRenderData) // master preview is handled specially above
                         continue;
 
                     var node = preview.shaderData.node;
-                    Assert.IsFalse((node == null) || (node is BlockNode));
+                    Assert.IsNotNull(node);
+                    Assert.IsFalse(node is BlockNode);
 
                     if (node.hasPreview && node.previewExpanded && !m_PreviewsCompiling.Contains(preview))
                     {
@@ -631,10 +642,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_PreviewsNeedsRecompile.ExceptWith(previewsToCompile);
 
                 // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
-                var nodesToCompile = new HashSet<AbstractMaterialNode>();
                 nodesToCompile.UnionWith(previewsToCompile.Select(x => x.shaderData.node));
                 nodesToCompile.Remove(null);
-                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);               // not sure if it needs notification for BlockNodes when master rebuilds?
+                // TODO: not sure if we need to clear BlockNodes when master gets rebuilt?
+                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);
 
                 // Force async compile on
                 var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
@@ -645,39 +656,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (preview == m_MasterRenderData)
                     {
-                        UpdateMasterNodeShader();
+                        CompileMasterNodeShader();
                         continue;
                     }
 
                     var node = preview.shaderData.node;
-
-
-                    if (node == null)
-                        Debug.Log("ERROR:  null node preview compilation for node: " + preview.previewName);
-
-                    Assert.IsFalse(!node.hasPreview && !(node is SubGraphOutputNode));
-
-                    var renderData = preview;
+                    Assert.IsNotNull(node);     // master preview handled above
 
                     // Get shader code and compile
                     var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
-                    BeginCompile(renderData, generator.generatedShader);
-
-                    // Calculate the PreviewMode from upstream nodes
-                    // If any upstream node is 3D that trickles downstream
-                    // TODO: not sure why this code exists here
-                    // it would make more sense in HandleGraphChanges and/or RenderPreview
-                    List<AbstractMaterialNode> upstreamNodes = new List<AbstractMaterialNode>();
-                    NodeUtils.DepthFirstCollectNodesFromNode(upstreamNodes, node, NodeUtils.IncludeSelf.Include);
-                    renderData.previewMode = PreviewMode.Preview2D;
-                    foreach (var pNode in upstreamNodes)
-                    {
-                        if (pNode.previewMode == PreviewMode.Preview3D)
-                        {
-                            renderData.previewMode = PreviewMode.Preview3D;
-                            break;
-                        }
-                    }
+                    BeginCompile(preview, generator.generatedShader);
                 }
 
                 ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
@@ -777,10 +765,173 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static readonly ProfilerMarker UpdateTimedNodeListMarker = new ProfilerMarker("RenderPreviews");
-        void UpdateTimedNodeList()
+        class NodeProcessor
         {
-            if (!m_RefreshTimedNodes)
+            // parameters
+            GraphData graphData;
+            Action<AbstractMaterialNode, IEnumerable<AbstractMaterialNode>> process;
+
+            // node tracking state
+            HashSet<AbstractMaterialNode> processing = new HashSet<AbstractMaterialNode>();
+            HashSet<AbstractMaterialNode> processed = new HashSet<AbstractMaterialNode>();
+
+            // iteration state stack
+            Stack<AbstractMaterialNode> nodeStack = new Stack<AbstractMaterialNode>();
+            Stack<int> childStartStack = new Stack<int>();
+            Stack<int> curChildStack = new Stack<int>();
+            Stack<int> stateStack = new Stack<int>();
+
+            List<AbstractMaterialNode> allChildren = new List<AbstractMaterialNode>();
+
+            public NodeProcessor(GraphData graphData, Action<AbstractMaterialNode, IEnumerable<AbstractMaterialNode>> process)
+            {
+                this.graphData = graphData;
+                this.process = process;
+            }
+
+            public void ProcessInDependencyOrder(AbstractMaterialNode root)
+            {
+                // early out to skip a bit of work
+                if (processed.Contains(root))
+                    return;
+
+                // push root node in the initial state
+                stateStack.Push(0);
+                nodeStack.Push(root);
+
+                while (nodeStack.Count > 0)
+                {
+                    // check the state of the top of the stack
+                    switch (stateStack.Pop())
+                    {
+                        case 0: // node initial state   (valid stacks:  nodeStack)
+                            {
+                                var node = nodeStack.Peek();
+                                if (processed.Contains(node))
+                                {
+                                    // finished with this node, pop it off the stack
+                                    nodeStack.Pop();
+                                    continue;
+                                }
+
+                                if (processing.Contains(node))
+                                {
+                                    // not processed, but still processing.. means there was a circular dependency here
+                                    throw new ArgumentException("ERROR: graph contains circular wire connections");
+                                }
+
+                                processing.Add(node);
+
+                                int childStart = allChildren.Count;
+                                childStartStack.Push(childStart);
+
+                                // add immediate children
+                                ForeachConnectedNode(node, PropagationDirection.Upstream, n => allChildren.Add(n));
+
+                                if (allChildren.Count == childStart)
+                                {
+                                    // no children.. transition to state 2 (all children processed)
+                                    stateStack.Push(2);
+                                }
+                                else
+                                {
+                                    // transition to state 1 (processing children)
+                                    stateStack.Push(1);
+                                    curChildStack.Push(childStart);
+                                }
+                            }
+                            break;
+                        case 1: // processing children (valid stacks:  nodeStack, childStartStack, curChildStack)
+                            {
+                                int curChild = curChildStack.Pop();
+
+                                // first update our state for when we return from the cur child
+                                int nextChild = curChild + 1;
+                                if (nextChild < allChildren.Count)
+                                {
+                                    // we will process the next child
+                                    stateStack.Push(1);
+                                    curChildStack.Push(nextChild);
+                                }
+                                else
+                                {
+                                    // we will be done iterating children, move to state 2
+                                    stateStack.Push(2);
+                                }
+
+                                // then push the current child in state 0 to process it
+                                stateStack.Push(0);
+                                nodeStack.Push(allChildren[curChild]);
+                            }
+                            break;
+                        case 2: // all children processed (valid stacks: nodeStack, childStartStack)
+                            {
+                                // read state, popping all
+                                var node = nodeStack.Pop();
+                                int childStart = childStartStack.Pop();
+
+                                // process node
+                                process(node, allChildren.Slice(childStart, allChildren.Count));
+                                processed.Add(node);
+
+                                // remove the children that were added in state 0
+                                allChildren.RemoveRange(childStart, allChildren.Count - childStart);
+
+                                // terminate node, stacks are popped to state of parent node
+                            }
+                            break;
+                    }
+                }
+            }
+
+            public void ProcessInDependencyOrderRecursive(AbstractMaterialNode node)
+            {
+                if (processed.Contains(node))
+                    return; // already processed
+
+                if (processing.Contains(node))
+                    throw new ArgumentException("ERROR: graph contains circular wire connections");
+
+                processing.Add(node);
+
+                int childStart = allChildren.Count;
+
+                // add immediate children
+                ForeachConnectedNode(node, PropagationDirection.Upstream, n => allChildren.Add(n));
+
+                // process children
+                var children = allChildren.Slice(childStart, allChildren.Count);
+                foreach (var child in children)
+                    ProcessInDependencyOrderRecursive(child);
+
+                // process self
+                process(node, children);
+                processed.Add(node);
+
+                // remove the children
+                allChildren.RemoveRange(childStart, allChildren.Count - childStart);
+            }
+        }
+
+        // Processes all the nodes in the upstream trees of rootNodes
+        // Will only process each node once, even if the trees overlap
+        // Processes a node ONLY after processing all of the nodes in its upstream subtree
+        void ProcessUpstreamNodesInDependencyOrder(
+            IEnumerable<AbstractMaterialNode> rootNodes,                                    // root nodes can share subtrees, but cannot themselves exist in any others subtree
+            Action<AbstractMaterialNode, IEnumerable<AbstractMaterialNode>> process)       // process takes the node and it's list of immediate upstream children as parameters
+        {
+            if (rootNodes.Any())
+            {
+                NodeProcessor processor = new NodeProcessor(rootNodes.First().owner, process);
+                foreach (var node in rootNodes)
+                    processor.ProcessInDependencyOrderRecursive(node);
+            }
+        }
+
+        private static readonly ProfilerMarker UpdateTimedNodeListMarker = new ProfilerMarker("RenderPreviews");
+        void UpdateTopology()
+        {
+            if (!m_TopologyDirty)
                 return;
 
             using (UpdateTimedNodeListMarker.Auto())
@@ -793,9 +944,34 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_TimedPreviews.Clear();
                 ForEachNodesPreview(timedNodes, p => m_TimedPreviews.Add(p));
-
-                m_RefreshTimedNodes = false;
             }
+
+            // Calculate the PreviewMode from upstream nodes
+            ProcessUpstreamNodesInDependencyOrder(
+                // we just pass all the nodes we care about as the roots
+                m_RenderDatas.Values.Select(p => p.shaderData.node).Where(n => n != null),
+                (node, children) =>
+                {
+                    var preview = GetPreviewRenderData(node);
+
+                    // set preview mode based on node
+                    preview.previewMode = node.previewMode;
+
+                    // then 2d upgrades to 3d if any child is 3d
+                    if (preview.previewMode == PreviewMode.Preview2D)
+                    {
+                        foreach (var child in children)
+                        {
+                            if (GetPreviewRenderData(child).previewMode == PreviewMode.Preview3D)
+                            {
+                                preview.previewMode = PreviewMode.Preview3D;
+                                break;
+                            }
+                        }
+                    }
+                });
+
+            m_TopologyDirty = false;
         }
 
         private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
@@ -886,7 +1062,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdateMasterNodeShader()
+        void CompileMasterNodeShader()
         {
             var shaderData = masterRenderData?.shaderData;
             
