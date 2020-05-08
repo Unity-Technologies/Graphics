@@ -230,9 +230,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
-                var desc = cameraData.cameraTargetDescriptor;
                 renderer.Setup(context, ref renderingData);
-                renderingData.cameraData.cameraTargetDescriptor = desc;
                 renderer.Execute(context, ref renderingData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
 

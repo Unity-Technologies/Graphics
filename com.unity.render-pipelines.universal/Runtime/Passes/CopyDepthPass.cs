@@ -4,6 +4,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 {
     /// <summary>
     /// Copy the given depth buffer into the given destination depth buffer.
+    ///
     /// You can use this pass to copy a depth buffer to a destination,
     /// so you can use it later in rendering. If the source texture has MSAA
     /// enabled, the pass uses a custom MSAA resolve. If the source texture

@@ -163,7 +163,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
             // Render the lut
-            cmd.Blit(m_InternalLut.id, m_InternalLut.id, material);
+            Blit(cmd, m_InternalLut.id, m_InternalLut.id, material);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -79,13 +79,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // We need to keep in the pipeline of first render pass to each render target to propertly set load/store actions.
                 // meanwhile we set to load so split screen case works.
                 SetRenderTarget(
-                        cmd,
-                        cameraTarget,
-                        RenderBufferLoadAction.Load,
-                        RenderBufferStoreAction.Store,
-                        ClearFlag.None,
-                        Color.black,
-                        m_TargetDimension);
+                    cmd,
+                    cameraTarget,
+                    RenderBufferLoadAction.Load,
+                    RenderBufferStoreAction.Store,
+                    ClearFlag.None,
+                    Color.black,
+                    m_TargetDimension);
 
                 Camera camera = cameraData.camera;
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);

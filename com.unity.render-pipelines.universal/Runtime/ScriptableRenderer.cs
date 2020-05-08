@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -978,10 +977,6 @@ namespace UnityEngine.Rendering.Universal
             m_InsideStereoRenderBlock = false;
         }
 
-        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetHandle colorAttachment, RenderTargetHandle depthAttachment, ClearFlag clearFlag, Color clearColor)
-        {
-            SetRenderTarget(cmd, colorAttachment.Identifier(), depthAttachment.Identifier(), clearFlag, clearColor);
-        }
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
             m_ActiveColorAttachments[0] = colorAttachment;

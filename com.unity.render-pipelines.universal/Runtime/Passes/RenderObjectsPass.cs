@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_CameraSettings = cameraSettings;
+
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

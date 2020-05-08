@@ -89,7 +89,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
             renderer.EnqueuePass(renderObjectsPass);
         }
-
     }
 }
 

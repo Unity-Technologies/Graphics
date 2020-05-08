@@ -190,7 +190,6 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenDepthTexture)
             {
                 var cameraTarget = camera.targetTexture;
-                m_ActiveCameraColorAttachment.identifier = new RenderTargetIdentifier(cameraTarget);
 
                 m_CameraColorDescriptor = new AttachmentDescriptor(cameraTargetDescriptor.graphicsFormat);
                 m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
@@ -200,8 +199,6 @@ namespace UnityEngine.Rendering.Universal
 
                 ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
                     m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
-
-                ConfigureCameraTarget(m_ActiveCameraColorAttachment.identifier , m_ActiveCameraColorAttachment.identifier);
 
                 for (int i = 0; i < rendererFeatures.Count; ++i)
                 {
@@ -217,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Deferred shading do not try to apply shadow because we don't render any
                 // (m_MainLightShadowCasterPass and m_AdditionalLightsShadowCasterPass are not queued).
-                EnqueueDeferred(renderingData, requiresDepthPrepass, false, false, context, true);
+                EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false, context, true);
 
                 //DeferredConfig.kGBufferLightingIndex] is used as output of GBufferPass so continue rendering to it
                 m_DrawSkyboxPass.ConfigureTarget(
@@ -307,7 +304,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_ColorGradingLutPass);
             }
 
-            EnqueueDeferred(renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context);
+            EnqueueDeferred(ref renderingData, requiresDepthPrepass, mainLightShadows, additionalLightShadows, context);
 
             bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
 
@@ -319,7 +316,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            // This is inserted before m_DrawSkyboxPass or after m_TransparentSettingsPass ...
             if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
             {
                 m_CopyDepthPass.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
@@ -475,13 +471,13 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        void EnqueueDeferred(RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, bool offscreenDepth = false)
+        void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool applyMainShadow, bool applyAdditionalShadow, ScriptableRenderContext context, bool offscreenDepth = false)
         {
             var desc = renderingData.cameraData.cameraTargetDescriptor;
 
             // We set target for non-transient attachments here
             m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex] = cameraColorTargetDescriptor;
-            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureTarget(m_ActiveCameraColorAttachment.identifier, false, true);
+            m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), false, true);
             //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
             m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
