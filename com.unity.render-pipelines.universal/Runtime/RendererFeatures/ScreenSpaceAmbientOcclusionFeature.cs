@@ -57,15 +57,8 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
             m_SSAOPass = new ScreenSpaceAmbientOcclusionPass();
         }
 
-        if (!GetMaterial())
-        {
-            Debug.LogErrorFormat(
-                "{0}.Create(): Missing material. Unable to create the render pass. Check for missing reference in the renderer resources.",
-                GetType().Name);
-        }
-
+        GetMaterial();
         m_SSAOPass.profilerTag = name;
-        m_SSAOPass.material = m_Material;
         m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
     }
 
@@ -108,6 +101,7 @@ public class ScreenSpaceAmbientOcclusionFeature : ScriptableRendererFeature
         }
 
         m_Material = CoreUtils.CreateEngineMaterial(settings.Shader);
+        m_SSAOPass.material = m_Material;
         return m_Material != null;
     }
 

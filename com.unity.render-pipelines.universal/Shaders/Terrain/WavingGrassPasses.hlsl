@@ -162,11 +162,7 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, inputData);
 
-    half occlusion = 1.0;
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        occlusion = SampleOcclusion(uv, input.clipPos);
-    #endif
-
+    half occlusion = SampleScreenSpaceOcclusionTexture(input.clipPos);
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha, occlusion);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
