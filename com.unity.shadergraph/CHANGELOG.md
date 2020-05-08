@@ -99,6 +99,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where adding a " to a property display name would cause shader compilation errors and show all nodes as broken
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 - Fixed a bug where instanced shaders wouldn't compile on PS4.
+- Fixed a bug where switching a Color Nodes' Mode between Default and HDR would cause the Color to be altered incorrectly.
+- Fixed a bug where nodes dealing with matricies would sometimes display a preview, sometimes not.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed NaN issue in triplanar SG node when blend goes to 0.
 - Fixed an issue where Blackboard properties would not duplicate with `Precision` or `Hybrid Instancing` options. 
@@ -106,6 +108,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 - Shader Graph now requests preview shader compilation asynchronously. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed an issue where Shader Graph would not compile master previews after an assembly reload.
+- Fixed a compilation error in preview shaders for nodes requiring view direction.
+- Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
+- Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
+- Fixed a bug where searcher entries would not repopulate correctly after an undo was perfromed (https://fogbugz.unity3d.com/f/cases/1241018/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
