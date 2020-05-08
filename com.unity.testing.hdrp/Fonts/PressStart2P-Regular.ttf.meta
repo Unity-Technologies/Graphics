@@ -8,6 +8,7 @@ TrueTypeFontImporter:
   characterSpacing: 0
   characterPadding: 1
   includeFontData: 1
+  fontName: Press Start 2P
   fontNames:
   - Press Start 2P
   fallbackFontReferences: []
