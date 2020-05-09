@@ -178,7 +178,16 @@ namespace UnityEngine.Rendering.Universal
             SetupPerFrameShaderConstants();
 #if ENABLE_VR && ENABLE_XR_MODULE
             SetupXRStates();
-            if(xrSkipRender && IsGameCamera(cameras[0]))
+            SetupXRStates();
+
+            var camerasAreAllGameCameras = true;
+            for (var index = 0; index < cameras.Length; index++)
+            {
+                var camera = cameras[index];
+                camerasAreAllGameCameras &= IsGameCamera(camera);
+            }
+
+            if(xrSkipRender && camerasAreAllGameCameras)
                 return;
 #endif
 
