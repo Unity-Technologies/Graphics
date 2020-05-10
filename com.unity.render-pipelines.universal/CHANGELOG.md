@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
 - Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
 - Eliminated GC allocations caused by the 2D Renderer.
+- Made the density output of Fog Node to be more consistent with how URP mix fog color. This output can be used to mix material color with fog color by using a Lerp Node to lerp between material color and fog color.
 
 ### Fixed
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
