@@ -20,7 +20,9 @@ MonoBehaviour:
     Downsample: 1
     Intensity: 3
     Radius: 0.05
-    SampleCount: 10
+    SampleCount: 4
+    BlurPassesCount: 3
+    BlurOffset: 0.5
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

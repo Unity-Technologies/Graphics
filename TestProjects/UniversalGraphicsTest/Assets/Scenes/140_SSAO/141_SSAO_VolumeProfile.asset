@@ -22,17 +22,22 @@ MonoBehaviour:
     m_Value: 1
   Intensity:
     m_OverrideState: 1
-    m_Value: 3
+    m_Value: 5
     min: 0
     max: 10
   Radius:
     m_OverrideState: 1
-    m_Value: 0.15
+    m_Value: 0.1
     min: 0
     max: 10
   SampleCount:
     m_OverrideState: 0
     m_Value: 4
+    min: 0
+    max: 12
+  BlurPassesCount:
+    m_OverrideState: 1
+    m_Value: 2
     min: 0
     max: 12
 --- !u!114 &11400000

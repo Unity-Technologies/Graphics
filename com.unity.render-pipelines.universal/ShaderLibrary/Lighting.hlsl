@@ -632,8 +632,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
-    half smoothness, half occlusion, half3 emission, half alpha)
+half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular, half smoothness, half occlusion, half3 emission, half alpha)
 {
 #ifdef _SPECULARHIGHLIGHTS_OFF
     bool specularHighlightsOff = true;
