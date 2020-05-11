@@ -344,7 +344,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);   // We placed all the shadows of the light, hence we can remove the light from pending placement.
                         for (int subIdx = 0; subIdx < m_MaxShadowsPerLight; ++subIdx)
-                            m_RecordsPendingPlacement.Remove(record.shadowIndex);
+                        {
+                            m_RecordsPendingPlacement.Remove(record.shadowIndex + subIdx);
+                        }
                     }
 
                     i += m_MaxShadowsPerLight;  // We will not need to process depending shadows.
@@ -421,7 +423,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (!m_PlacedShadows.ContainsKey(record.shadowIndex)) // If we couldn't place it
                 {
-                    int parentLightIdx = record.shadowIndex / m_MaxShadowsPerLight;
+                    int parentLightIdx = record.shadowIndex - (record.shadowIndex % m_MaxShadowsPerLight);
                     if (!m_RegisteredLightDataPendingPlacement.ContainsKey(parentLightIdx)) // Did not come originally from m_RegisteredLightDataPendingPlacement
                     {
                         if (!m_RecordsPendingPlacement.ContainsKey(record.shadowIndex))
