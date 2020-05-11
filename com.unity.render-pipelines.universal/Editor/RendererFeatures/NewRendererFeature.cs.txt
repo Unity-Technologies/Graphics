@@ -23,8 +23,8 @@ public class #SCRIPTNAME# : ScriptableRendererFeature
         {
         }
 
-        /// Cleanup any allocated resources that were created during the execution of this render pass.
-        public override void FrameCleanup(CommandBuffer cmd)
+        // Cleanup any allocated resources that were created during the execution of this render pass.
+        public override void OnCameraCleanup(CommandBuffer cmd)
         {
         }
     }
