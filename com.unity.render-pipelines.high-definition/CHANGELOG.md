@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Light decomposition lighting debugging modes and support in AOV
 - Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
