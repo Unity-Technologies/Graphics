@@ -18,6 +18,19 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
+        void OnPreprocessAsset()
+        {
+            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            if (isVFX)
+            {
+                VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if (resource == null)
+                    return;
+
+                resource.GetOrCreateGraph().SanitizeForImport();
+            }
+        }
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -665,6 +678,24 @@ namespace UnityEditor.VFX
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
         public static bool explicitCompile { get; set; } = false;
 
+
+        public void SanitizeForImport()
+        {
+            if (!explicitCompile)
+            {
+                HashSet<int> dependentAsset = new HashSet<int>();
+                GetImportDependentAssets(dependentAsset);
+
+                foreach (var instanceID in dependentAsset)
+                {
+                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    {
+                        return;
+                    }
+                }
+            }
+            SanitizeGraph();
+        }
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -680,13 +711,11 @@ namespace UnityEditor.VFX
                     {
                         if (EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
-                            //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
                             return;
                         }
                     }
                 }
-
-                SanitizeGraph();
+                // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
 

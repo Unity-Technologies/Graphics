@@ -68,10 +68,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static SelectedFrameSettings selectedFrameSettings;
 
-#if ENABLE_VIRTUALTEXTURES
-        internal static VirtualTexturingSettingsUI virtualTexturingSettingsUI = new VirtualTexturingSettingsUI();
-#endif
-
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
@@ -104,9 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.chromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
                     ),
                 CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
-#if ENABLE_VIRTUALTEXTURES
-                ,CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
-#endif
             );
 
             // fix init of selection along what is serialized
@@ -357,14 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                bool isDeferredOnly = serialized.renderPipelineSettings.supportedLitShaderMode.intValue == (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
-
-                // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
-                if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)ShaderConfig.s_DeferredShadowFiltering;
-
-                using (new EditorGUI.DisabledScope(isDeferredOnly))
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {
@@ -582,13 +568,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.occlusionMesh, Styles.XROcclusionMesh);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.cameraJitter, Styles.XRCameraJitter);
         }
-
-#if ENABLE_VIRTUALTEXTURES
-        static void Drawer_SectionVTSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-            virtualTexturingSettingsUI.OnGUI(serialized, owner);
-        }
-#endif
 
         static private bool m_ShowDoFLowQualitySection = false;
         static private bool m_ShowDoFMediumQualitySection = false;
@@ -860,10 +839,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
                 if (serialized.renderPipelineSettings.supportRayTracing.boolValue && !UnityEngine.SystemInfo.supportsRayTracing)
                 {
                     EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }
+                --EditorGUI.indentLevel;
             }
 
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
@@ -877,13 +859,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
-            using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.supportVolumetrics.hasMultipleDifferentValues
-                || !serialized.renderPipelineSettings.supportVolumetrics.boolValue))
-            {
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.increaseResolutionOfVolumetrics, Styles.volumetricResolutionContent);
-                --EditorGUI.indentLevel;
-            }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
@@ -1026,6 +1001,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

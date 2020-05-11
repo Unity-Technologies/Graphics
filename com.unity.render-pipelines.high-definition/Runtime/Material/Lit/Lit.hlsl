@@ -1767,7 +1767,12 @@ IndirectLighting EvaluateBSDF_ScreenSpaceReflection(PositionInputs posInput,
     ApplyScreenSpaceReflectionWeight(ssrLighting);
 
     // TODO: we should multiply all indirect lighting by the FGD value only ONCE.
-    lighting.specularReflected = ssrLighting.rgb * preLightData.specularFGD;
+    // In case this material has a clear coat, we shou not be using the specularFGD. The condition for it is a combination
+    // of a materia feature and the coat mask.
+    float clampedNdotV = ClampNdotV(preLightData.NdotV);
+    lighting.specularReflected = ssrLighting.rgb * (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT) ? 
+                                                    lerp(preLightData.specularFGD, F_Schlick(CLEAR_COAT_F0, clampedNdotV), bsdfData.coatMask) 
+                                                    : preLightData.specularFGD);
     reflectionHierarchyWeight  = ssrLighting.a;
 
     return lighting;

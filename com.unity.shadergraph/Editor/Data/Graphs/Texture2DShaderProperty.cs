@@ -24,11 +24,10 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isRenamable => true;
 
         internal string modifiableTagString => modifiable ? "" : "[NonModifiableTextureData]";
-        internal string textureStackTagString => string.IsNullOrEmpty(textureStack) ? "" : "[TextureStack." + textureStack + "]";
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{modifiableTagString}{textureStackTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
+            return $"{hideTagString}{modifiableTagString}[NoScaleOffset]{referenceName}(\"{displayName}\", 2D) = \"{defaultType.ToString().ToLower()}\" {{}}";
         }
 
         internal override string GetPropertyDeclarationString(string delimiter = ";")
@@ -57,15 +56,6 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             get { return m_DefaultType; }
             set { m_DefaultType = value; }
-        }
-
-        [SerializeField]
-        string m_TextureStack;
-
-        public string textureStack
-        {
-            get { return m_TextureStack; }
-            set { m_TextureStack = value; }
         }
 
         internal override AbstractMaterialNode ToConcreteNode()

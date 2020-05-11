@@ -50,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle ReadTexture(TextureHandle input)
         {
-            m_RenderPass.resourceReadList.Add(input);
+            m_RenderPass.textureReadList.Add(input);
             m_Resources.UpdateTextureLastRead(input, m_RenderPass.index);
             return input;
         }
@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(TextureHandle input)
         {
             // TODO: Manage resource "version" for debugging purpose
-            m_RenderPass.resourceWriteList.Add(input);
+            m_RenderPass.textureWriteList.Add(input);
             m_Resources.UpdateTextureFirstWrite(input, m_RenderPass.index);
             return input;
         }
@@ -76,6 +76,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RendererListHandle UseRendererList(RendererListHandle input)
         {
             m_RenderPass.usedRendererListList.Add(input);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Compute Buffer resource to read from during the pass.
+        /// </summary>
+        /// <param name="input">The Compute Buffer resource to read from during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public ComputeBufferHandle ReadComputeBuffer(ComputeBufferHandle input)
+        {
+            m_RenderPass.bufferReadList.Add(input);
+            return input;
+        }
+
+        /// <summary>
+        /// Specify a Compute Buffer resource to write to during the pass.
+        /// </summary>
+        /// <param name="input">The Compute Buffer resource to write to during the pass.</param>
+        /// <returns>An updated resource handle to the input resource.</returns>
+        public ComputeBufferHandle WriteComputeBuffer(ComputeBufferHandle input)
+        {
+            m_RenderPass.bufferWriteList.Add(input);
             return input;
         }
 
