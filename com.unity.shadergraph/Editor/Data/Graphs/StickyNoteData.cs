@@ -1,24 +1,12 @@
-﻿using System;
+using System;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    class StickyNoteData : ISerializationCallbackReceiver, IGroupItem
+    class StickyNoteData : JsonObject, IGroupItem
     {
-        [NonSerialized]
-        Guid m_Guid;
-
-        public Guid guid => m_Guid;
-
-        [SerializeField]
-        string m_GuidSerialized;
-
-        public Guid RewriteGuid()
-        {
-            m_Guid = Guid.NewGuid();
-            return m_Guid;
-        }
 
         [SerializeField]
         string m_Title;
@@ -66,44 +54,29 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        string m_GroupGuidSerialized;
+        JsonRef<GroupData> m_Group = null;
 
-        [NonSerialized]
-        Guid m_GroupGuid;
-
-        public Guid groupGuid
+        public GroupData group
         {
-            get { return m_GroupGuid; }
-            set { m_GroupGuid = value; }
+            get => m_Group;
+            set
+            {
+                if (m_Group == value)
+                    return;
+
+                m_Group = value;
+            }
         }
 
+
+        public StickyNoteData() : base() {}
         public StickyNoteData(string title, string content, Rect position)
         {
-            m_Guid = Guid.NewGuid();
             m_Title = title;
             m_Position = position;
             m_Content = content;
-            m_GroupGuid = Guid.Empty;
         }
 
-        public void OnBeforeSerialize()
-        {
-            m_GuidSerialized = guid.ToString();
-            m_GroupGuidSerialized = groupGuid.ToString();
-        }
-
-        public void OnAfterDeserialize()
-        {
-            if (!string.IsNullOrEmpty(m_GuidSerialized))
-            {
-                m_Guid = new Guid(m_GuidSerialized);
-            }
-
-            if (!string.IsNullOrEmpty(m_GroupGuidSerialized))
-            {
-                m_GroupGuid = new Guid(m_GroupGuidSerialized);
-            }
-        }
     }
 }
 

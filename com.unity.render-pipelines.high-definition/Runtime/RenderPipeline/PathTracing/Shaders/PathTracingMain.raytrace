@@ -6,6 +6,7 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
@@ -15,12 +16,16 @@
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Input(s)
 float4x4 _PixelCoordToViewDirWS;
 int      _RaytracingCameraSkyEnabled;
 float3   _RaytracingCameraClearColor;
+
+// DoF related parameters
+float4   _PathTracedDoFConstants;     // x: aperture radius, y: focus distance, zw: unused
+float4   _InvViewportScaleBias;
 
 // Output(s)
 RWTexture2D<float4> _RadianceTexture;
@@ -66,12 +71,44 @@ void RayGen()
     jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
     jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
 
-    // Compute the ray direction, from those coordinates
-    float3 directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
+    float3 directionWS;
+    float3 cameraPosWS;
+
+    float apertureRadius = _PathTracedDoFConstants.x;
+    if (apertureRadius == 0.0)
+    {
+        // Compute the ray direction from those coordinates (fast path for zero aperture)
+        directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
+        cameraPosWS = _WorldSpaceCameraPos;
+    }
+    else
+    {
+        // Compute the ray origin and direction for a lens with non-zero aperture
+
+        // Apply the inverse viewport transform to go from viewport coordinates to NDC
+        jitteredPixelCoord.xy = jitteredPixelCoord.xy * _InvViewportScaleBias.xy + _InvViewportScaleBias.zw;
+
+        // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
+        float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
+        float r2 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 107);
+        float2 uv = apertureRadius * SampleDiskUniform(r1, r2);
+
+        // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
+        float focusDistance = _PathTracedDoFConstants.y;
+        float3 focusPoint = _WorldSpaceCameraPos - _ViewMatrix[2] * focusDistance;
+        cameraPosWS = _WorldSpaceCameraPos + _ViewMatrix[0] * uv.x + _ViewMatrix[1] * uv.y;
+
+        // Create the new view matrix 
+        float3 newForward = normalize(focusPoint - cameraPosWS);
+        float3 newRight = cross(newForward, _ViewMatrix[1]);
+        float3x3 newViewMatrix = GetLocalFrame(newForward, newRight);
+
+        directionWS = normalize(mul(jitteredPixelCoord, newViewMatrix));
+    }
 
     // Create the ray descriptor for this pixel
     RayDesc rayDescriptor;
-    rayDescriptor.Origin = _WorldSpaceCameraPos;
+    rayDescriptor.Origin = cameraPosWS;
     rayDescriptor.Direction = directionWS;
     rayDescriptor.TMin = _RaytracingCameraNearPlane;
     rayDescriptor.TMax = FLT_INF;

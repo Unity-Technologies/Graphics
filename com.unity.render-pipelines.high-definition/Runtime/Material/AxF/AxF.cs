@@ -44,6 +44,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
+
+            [SurfaceDataAttributes("Specular Occlusion")]
+            public float specularOcclusion;
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
             [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3  normalWS;
@@ -64,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  fresnelF0;
 
             [SurfaceDataAttributes("Specular Lobe")]
-            public Vector2  specularLobe;
+            public Vector3  specularLobe; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
 
             [SurfaceDataAttributes("Height")]
             public float    height_mm;
@@ -102,6 +109,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1250)]
         public struct BSDFData
         {
+            public float ambientOcclusion;
+            public float specularOcclusion;
+
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3  normalWS;
             [SurfaceDataAttributes("", true)]
@@ -113,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  diffuseColor;
             public Vector3  specularColor;
             public Vector3  fresnelF0;
-            public Vector2  roughness;
+            public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
 
             // Car Paint Variables

@@ -10,7 +10,8 @@ class ScreenSpaceAmbientOcclusionVolume : VolumeComponent
     public BoolParameter Downsample            = new BoolParameter(true);
     public ClampedFloatParameter Intensity     = new ClampedFloatParameter(0f, 0f, 10f, false);
     public ClampedFloatParameter Radius        = new ClampedFloatParameter(0.05f, 0f, 10.0f, false);
-    public ClampedIntParameter SampleCount     = new ClampedIntParameter(8, 0, 12, false);
+    public ClampedIntParameter SampleCount     = new ClampedIntParameter(4, 0, 12, false);
+    public ClampedIntParameter BlurPassesCount = new ClampedIntParameter(3, 0, 12, false);
 
     // Classes
     [Serializable]

@@ -3,6 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
+// keep this file in sync with LitGBufferPass.hlsl
+
 struct Attributes
 {
     float4 positionOS   : POSITION;
@@ -48,7 +50,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 #endif
 
     half3 viewDirWS = SafeNormalize(input.viewDirWS);
-#ifdef _NORMALMAP 
+#ifdef _NORMALMAP
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
     inputData.normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
@@ -86,12 +88,13 @@ Varyings LitPassVertex(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
-    
+
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-    float3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
 

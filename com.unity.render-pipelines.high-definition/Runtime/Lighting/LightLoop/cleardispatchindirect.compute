@@ -4,6 +4,7 @@
 
 RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 
 #ifdef PLATFORM_LANE_COUNT
