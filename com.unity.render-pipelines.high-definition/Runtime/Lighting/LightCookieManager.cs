@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return Vector4.zero;
 
-            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie.GetInstanceID().GetHashCode() + 23*ies.GetInstanceID().GetHashCode()) && !m_NoMoreSpace)
+            if (!m_CookieAtlas.IsCached(out var scaleBias, m_CookieAtlas.GetTextureID(cookie, ies)) && !m_NoMoreSpace)
                 Debug.LogError($"2D Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, ies, false))
@@ -253,7 +253,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 GPUArithmetic.ComputeOperation(multiplied, tex0, cmd, GPUArithmetic.Operation.Add);
                 GPUArithmetic.ComputeOperation(multiplied, tex1, cmd, GPUArithmetic.Operation.Mult);
 
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, multiplied, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: cookie.GetInstanceID().GetHashCode() + ies.GetInstanceID().GetHashCode());
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, multiplied, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
 
                 RTHandlesDeleter.ScheduleRelease(tex0);
                 RTHandlesDeleter.ScheduleRelease(tex1);
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return Vector4.zero;
 
-            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie.GetInstanceID()) && !m_NoMoreSpace)
+            if (!m_CookieAtlas.IsCached(out var scaleBias, m_CookieAtlas.GetTextureID(cookie)) && !m_NoMoreSpace)
                 Debug.LogError($"2D Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, false))
@@ -290,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie);
                 Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie));
             }
 
             return scaleBias;
@@ -307,7 +307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(cookieA.GetInstanceID().GetHashCode() + 23*cookieB.GetInstanceID().GetHashCode(), width, height))
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), width, height))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(cookie.GetInstanceID(), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookie), projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -351,7 +351,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(cookieA.GetInstanceID().GetHashCode() + 23*cookieB.GetInstanceID().GetHashCode(), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Generate the mips
                 Texture filteredProjected = FilterAreaLightTexture(cmd, projectedCookie);
-                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID());
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie));
 
                 RTHandlesDeleter.ScheduleRelease(projectedCookie);
             }
@@ -441,7 +441,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Generate the mips
                 Texture filteredProjected = FilterAreaLightTexture(cmd, projectedCookie);
-                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: cookie.GetInstanceID().GetHashCode() + ies.GetInstanceID().GetHashCode());
+                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
 
                 RTHandlesDeleter.ScheduleRelease(projectedCookie, 64);
                 RTHandlesDeleter.ScheduleRelease(projectedIES,    64);

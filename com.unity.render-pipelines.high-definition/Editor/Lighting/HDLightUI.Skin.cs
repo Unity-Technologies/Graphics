@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
             public readonly GUIContent colorTemperature = new GUIContent("Temperature", "Specifies a temperature (in Kelvin) HDRP uses to correlate a color for the Light. For reference, White is 6500K.");
             public readonly GUIContent areaLightCookie = new GUIContent("Cookie", "Cookie mask currently assigned to the area light.");
-            public readonly GUIContent iesTexture = new GUIContent("IES", "IES Texture (Point: Cube, Spot: Texture2D).");
+            public readonly GUIContent iesTexture = new GUIContent("IES Profile", "IES Profile (Support: Point, Spot, Rectangular-Area Lights).");
             public readonly GUIContent cookieTextureTypeError = new GUIContent("HDRP does not support the Cookie Texture type, only Default is supported.", EditorGUIUtility.IconContent("console.warnicon").image);
             public readonly string cookieNonPOT = "HDRP does not support non power of two cookie textures.";
             public readonly string cookieTooSmall = "Min texture size for cookies is 2x2 pixels.";

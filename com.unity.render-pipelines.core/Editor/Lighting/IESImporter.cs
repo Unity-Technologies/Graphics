@@ -17,7 +17,6 @@ namespace UnityEditor.Rendering
         {
             Texture cookieTextureCube   = null;
             Texture cookieTexture2D     = null;
-            //Texture cylindricalTexture  = null;
 
             string iesFilePath  = Path.Combine(Path.GetDirectoryName(Application.dataPath), ctx.assetPath);
             string errorMessage = engine.ReadFile(iesFilePath);
@@ -41,18 +40,14 @@ namespace UnityEditor.Rendering
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES Cube texture: {warningMessage}");
                 }
+                cookieTextureCube.IncrementUpdateCount();
 
                 (warningMessage, cookieTexture2D) = engine.Generate2DCookie(iesMetaData.CookieCompression, iesMetaData.SpotAngle, iesMetaData.iesSize, iesMetaData.ApplyLightAttenuation);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES 2D texture: {warningMessage}");
                 }
-
-                //(warningMessage, cylindricalTexture) = engine.GenerateCylindricalTexture(iesMetaData.CookieCompression, iesMetaData.iesSize);
-                //if (!string.IsNullOrEmpty(warningMessage))
-                //{
-                //    ctx.LogImportWarning($"Cannot properly generate IES latitude-longitude texture: {warningMessage}");
-                //}
+                cookieTexture2D.IncrementUpdateCount();
             }
             else
             {
@@ -91,11 +86,6 @@ namespace UnityEditor.Rendering
                 cookieTexture2D.name = iesFileName + "-2D-IES";
                 ctx.AddObjectToAsset(cookieTexture2D.name, cookieTexture2D);
             }
-            //if (cylindricalTexture != null)
-            //{
-            //    cylindricalTexture.name = iesFileName + "-Cylindrical-IES";
-            //    ctx.AddObjectToAsset(cylindricalTexture.name, cylindricalTexture);
-            //}
         }
     }
 }

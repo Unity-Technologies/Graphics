@@ -730,7 +730,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
 
-            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot)
+            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || serialized.type == HDLightType.Area)
             {
                 EditorGUI.BeginChangeCheck();
                 UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
@@ -741,20 +741,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     SerializedProperty pointTex = serialized.iesPoint;
                     SerializedProperty spotTex  = serialized.iesSpot;
-                    string guid;
-                    long   localID;
-                    AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
-                    string path = AssetDatabase.GUIDToAssetPath(guid);
-                    UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
-                    foreach (var subAsset in textures)
+                    if (iesAsset == null)
                     {
-                        if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
+                        pointTex.objectReferenceValue = null;
+                        spotTex .objectReferenceValue = null;
+                    }
+                    else
+                    {
+                        string guid;
+                        long localID;
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+                        foreach (var subAsset in textures)
                         {
-                            pointTex.objectReferenceValue = subAsset;
-                        }
-                        else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
-                        {
-                            spotTex.objectReferenceValue = subAsset;
+                            if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
+                            {
+                                pointTex.objectReferenceValue = subAsset;
+                            }
+                            else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
+                            {
+                                spotTex.objectReferenceValue = subAsset;
+                            }
                         }
                     }
                     serialized.iesPoint.serializedObject.ApplyModifiedProperties();

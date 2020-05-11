@@ -16,15 +16,6 @@ namespace UnityEditor.Rendering
         const float k_HalfPi = 0.5f * Mathf.PI;
         const float k_TwoPi  = 2.0f * Mathf.PI;
 
-        // k_MinTextureSize should be 32, but using a larger value to minimize Unity's issue with cubemap cookies made from low-resolution latitude-longitude images.
-        // When used, such a cubemap cookie North-South axis is visually tilted compared to its point light Y axis.
-        // In other words, when the light Y rotation is modified, the cookie highlights and shadows wriggles on the floor and walls.
-        const int k_MinTextureSize =  256; // power of two >= 32
-        const int k_MaxTextureSize = 2048; // power of two <= 2048
-
-        const int k_CylindricalTextureHeight = 256;                            // for 180 latitudinal degrees
-        const int k_CylindricalTextureWidth  = 2 * k_CylindricalTextureHeight; // for 360 longitudinal degrees
-
         IESReader m_IesReader = new IESReader();
 
         public string FileFormatVersion { get => m_IesReader.FileFormatVersion; }
@@ -89,11 +80,7 @@ namespace UnityEditor.Rendering
         public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression, int textureSize)
         {
             int width  = 2*textureSize;
-                //Mathf.NextPowerOfTwo(Mathf.Clamp(textureSize, k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
-                //Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinHorizontalSampleCount(), k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
             int height = 2*textureSize;
-                //Mathf.NextPowerOfTwo(Mathf.Clamp(textureSize, k_MinTextureSize, k_MaxTextureSize)); // for 360 longitudinal degrees
-                //Mathf.NextPowerOfTwo(Mathf.Clamp(m_IesReader.GetMinVerticalSampleCount(),   k_MinTextureSize, k_MaxTextureSize)); // for 180 latitudinal degrees
 
             NativeArray<Color32> colorBuffer;
 
@@ -137,8 +124,8 @@ namespace UnityEditor.Rendering
 
         public (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
         {
-            int width =  2*textureSize;// k_CylindricalTextureWidth;  // for 360 longitudinal degrees
-            int height = textureSize;// k_CylindricalTextureHeight; // for 180 latitudinal degrees
+            int width  = 2*textureSize;
+            int height = textureSize;
 
             NativeArray<Color32> colorBuffer;
 
@@ -200,8 +187,8 @@ namespace UnityEditor.Rendering
 
         NativeArray<Color32> BuildTypeACylindricalTexture(int width, int height)
         {
-            float stepU = 360f / (width - 1);
-            float stepV = 180f / (height - 1);
+            float stepU = 360f/(width - 1);
+            float stepV = 180f/(height - 1);
 
             var textureBuffer = new NativeArray<Color32>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 

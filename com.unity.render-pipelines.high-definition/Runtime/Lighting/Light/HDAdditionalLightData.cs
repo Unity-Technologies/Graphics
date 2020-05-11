@@ -569,10 +569,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Optional IES (Cubemap for PointLight)
-        [SerializeField, FormerlySerializedAs("ies")]
+        [SerializeField, FormerlySerializedAs("iespoint")]
         Texture m_IESPoint;
-        // Optional IES (2D Square texture for Spot)
-        [SerializeField, FormerlySerializedAs("ies")]
+        // Optional IES (2D Square texture for Spot or rectangular light)
+        [SerializeField, FormerlySerializedAs("iesspot")]
         Texture m_IESSpot;
 
         /// <summary>
@@ -594,7 +594,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Get/Set IES texture for Spot.
+        /// Get/Set IES texture for Spot or rectangular light.
         /// </summary>
         public Texture IESSpot
         {
@@ -605,49 +605,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_IESSpot = value;
                 else
                 {
-                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights (only square images).");
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
                     m_IESSpot = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get/Set IES texture for Point & Spot.
-        /// </summary>
-        public Texture IES
-        {
-            get
-            {
-                if (type == HDLightType.Point)
-                    return m_IESPoint;
-                else //if (type == HDLightType.Spot)
-                    return m_IESSpot;
-            }
-            set
-            {
-                if (type == HDLightType.Point && value == null)
-                    m_IESPoint = null;
-                else if (type == HDLightType.Spot && value == null)
-                    m_IESSpot = null;
-                else if (type == HDLightType.Point)
-                {
-                    if (value.dimension == TextureDimension.Cube)
-                        m_IESPoint = value;
-                    else
-                    {
-                        Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
-                        m_IESPoint = null;
-                    }
-                }
-                else if (type == HDLightType.Point)
-                {
-                    if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
-                        m_IESSpot = value;
-                    else
-                    {
-                        Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights (only square images).");
-                        m_IESSpot = null;
-                    }
                 }
             }
         }
@@ -2624,9 +2583,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
 
+            Texture usedTexture = null;
+            // For now do not support mixed of them
+            if (IESSpot != null)
+                usedTexture = IESSpot;
+            else
+                usedTexture = areaLightCookie;
+
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
+            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", usedTexture);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null != null);
         }
 
         void UpdateRectangleLightBounds()

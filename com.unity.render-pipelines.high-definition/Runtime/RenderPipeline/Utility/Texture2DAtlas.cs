@@ -270,14 +270,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (allocated)
             {
                 BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), true); // texture is up to date
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
             }
 
             return allocated;
         }
 
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
-            => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
+            => AllocateTextureWithoutBlit(GetTextureID(texture), width, height, ref scaleOffset);
 
         public virtual bool AllocateTextureWithoutBlit(int instanceId, int width, int height, ref Vector4 scaleOffset)
         {
@@ -297,11 +297,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public int GetTextureID(Texture texture)
+        {
+            return texture.GetInstanceID().GetHashCode() + 23*GetTextureHash(texture);
+        }
+
+        public int GetTextureID(Texture textureA, Texture textureB)
+        {
+            return textureA.GetInstanceID().GetHashCode() +
+                   23*textureB.GetInstanceID().GetHashCode() +
+                   23 *GetTextureHash(textureA) +
+                   23*GetTextureHash(textureB);
+        }
+
         public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
-            => IsCached(out scaleOffset, textureA.GetInstanceID().GetHashCode() + 23*textureB.GetInstanceID().GetHashCode());
+            => IsCached(out scaleOffset, GetTextureID(textureA, textureB));
 
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
-            => IsCached(out scaleOffset, texture.GetInstanceID());
+            => IsCached(out scaleOffset, GetTextureID(texture));
 
         public bool IsCached(out Vector4 scaleOffset, int id)
             => m_AllocationCache.TryGetValue(id, out scaleOffset);
@@ -319,6 +332,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + texture.filterMode.GetHashCode();
                 hash = hash * 23 + texture.anisoLevel.GetHashCode();
                 hash = hash * 23 + texture.mipmapCount.GetHashCode();
+                hash = hash * 23 + texture.updateCount.GetHashCode();
             }
 
             return hash;
@@ -327,8 +341,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
-            int             key = texture.GetInstanceID();
-            int             textureHash = GetTextureHash(texture);
+            int             key = GetTextureID(texture);
+            int             textureHash = GetTextureID(texture);
 
             // Update the render texture if needed
             if (rt != null)
@@ -362,10 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
-            int  key  = textureA.GetInstanceID().GetHashCode() +
-                        23*textureB.GetInstanceID().GetHashCode() +
-                        23*GetTextureHash(textureA) +
-                        23*GetTextureHash(textureB);
+            int key = GetTextureID(textureA, textureB);
 
             RenderTexture rtA = textureA as RenderTexture;
             RenderTexture rtB = textureB as RenderTexture;
@@ -411,7 +422,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (updateIfNeeded && NeedsUpdate(newTexture))
                 {
                     BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
-                    MarkGPUTextureValid(newTexture.GetInstanceID(), blitMips); // texture is up to date
+                    MarkGPUTextureValid(GetTextureID(newTexture), blitMips); // texture is up to date
                 }
                 return true;
             }

@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+- Added IES Profile support for Point, Spot and Rectangular-Area lights
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
