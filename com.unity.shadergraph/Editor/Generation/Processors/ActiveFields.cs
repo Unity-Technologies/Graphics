@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 
-namespace Data.Util
+namespace UnityEditor.ShaderGraph.Internal
 {
     internal interface IActiveFields: KeywordDependentCollection.IInstance, KeywordDependentCollection.ISet<IActiveFields>
     {

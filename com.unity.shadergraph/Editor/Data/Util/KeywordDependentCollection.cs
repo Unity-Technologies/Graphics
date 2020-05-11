@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Data.Util
+namespace UnityEditor.ShaderGraph.Internal
 {
     public static class KeywordDependentCollection
     {
