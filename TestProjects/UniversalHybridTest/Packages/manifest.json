@@ -1,5 +1,4 @@
 {
-  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
   "dependencies": {
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.ide.rider": "1.2.1",
@@ -50,5 +49,7 @@
   "testables": [
     "com.unity.testframework.graphics",
     "com.unity.rendering.hybrid"
-  ]
+  ],
+  "useSatSolver": true,
+  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates"
 }
