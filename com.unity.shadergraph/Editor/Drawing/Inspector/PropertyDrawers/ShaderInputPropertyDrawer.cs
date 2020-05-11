@@ -405,7 +405,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     {
                         this._preChangeValueCallback("Change Color Mode");
                         colorProperty.colorMode = (ColorMode)newValue;
-                        this._postChangeValueCallback(true);
+                        this._postChangeValueCallback(true, ModificationScope.Graph);
                     },
                     colorProperty.colorMode,
                     "Mode",
