@@ -9,19 +9,17 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDLitSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
-        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<HDLitData>
+    sealed class HDLitSubTarget : HDSubTarget, ILegacyTarget,
+        IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<HDLitData>
     {
-        const string kAssetGuid = "caab952c840878340810cca27417971c";
+        const string kAssetGuid = "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
 
-        public HDLitSubTarget()
-        {
-            displayName = "Lit";
-        }
+        public HDLitSubTarget() => displayName = "Lit";
 
         // Render State
         string renderType => HDRenderTypeTags.HDLitShader.ToString();
@@ -57,17 +55,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Material Data
-        SystemData m_SystemData;
         BuiltinData m_BuiltinData;
         LightingData m_LightingData;
         HDLitData m_LitData;
 
         // Interface Properties
-        SystemData IRequiresData<SystemData>.data
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
         BuiltinData IRequiresData<BuiltinData>.data
         {
             get => m_BuiltinData;
@@ -85,11 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public SystemData systemData
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
         public BuiltinData builtinData
         {
             get => m_BuiltinData;
@@ -105,8 +92,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_LitData;
             set => m_LitData = value;
         }
-
-        public override bool IsActive() => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
@@ -128,20 +113,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            base.GetFields(ref context);
+
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
-
-            // Features
-            context.AddField(Fields.LodCrossFade,                           systemData.supportLodCrossFade);
-
-            // Surface Type
-            context.AddField(Fields.SurfaceOpaque,                          systemData.surfaceType == SurfaceType.Opaque);
-            context.AddField(Fields.SurfaceTransparent,                     systemData.surfaceType != SurfaceType.Opaque);
 
             // Structs
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
 
-            // Dots
-            context.AddField(HDFields.DotsInstancing,                       systemData.dotsInstancing);
             context.AddField(HDFields.DotsProperties,                       context.hasDotsProperties);
 
             // Material
@@ -154,13 +132,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                                 (litData.materialType == HDLitData.MaterialType.Translucent));
             context.AddField(HDFields.Translucent,                          litData.materialType == HDLitData.MaterialType.Translucent);
 
-            // Blend Mode
-            context.AddField(Fields.BlendAdd,                               systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
-            context.AddField(Fields.BlendAlpha,                             systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
-            context.AddField(Fields.BlendPremultiply,                       systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
-
-            // Double Sided
-            context.AddField(HDFields.DoubleSided,                          systemData.doubleSidedMode != DoubleSidedMode.Disabled);
             context.AddField(HDFields.DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
             context.AddField(HDFields.DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
 
@@ -188,16 +159,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 
             // AlphaTest
-            // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,                              systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow) ||
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass) || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
                                                                                 !(lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
             context.AddField(HDFields.DoAlphaTestShadow,                    systemData.alphaTest && lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
-            context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
 
             // Misc
             context.AddField(Fields.AlphaToMask,                            systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
@@ -220,8 +186,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.BackLightingGI,                       context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
             context.AddField(HDFields.DepthOffset,                          builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
             context.AddField(HDFields.TransparentBackFace,                  systemData.surfaceType != SurfaceType.Opaque && lightingData.backThenFrontRendering);
-            context.AddField(HDFields.TransparentDepthPrePass,              systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,             systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);
         }
 
@@ -366,10 +330,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDLitGUI.SetupMaterialKeywordsAndPass(material);
         }
 
-        int ComputeMaterialNeedsUpdateHash()
+        protected override int ComputeMaterialNeedsUpdateHash()
         {
-            int hash = 0;
-            hash |= (systemData.alphaTest ? 0 : 1) << 0;
+            int hash = base.ComputeMaterialNeedsUpdateHash();
             hash |= (lightingData.alphaTestShadow ? 0 : 1) << 1;
             hash |= (lightingData.receiveSSR ? 0 : 1) << 2;
             hash |= (litData.receiveSSRTransparent ? 0 : 1) << 3;
@@ -377,28 +340,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hash;
         }
 
-        public override object saveContext
-        {
-            get
-            {
-                int hash = ComputeMaterialNeedsUpdateHash();
-                bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
-                if (needsUpdate)
-                    systemData.materialNeedsUpdateHash = hash;
-
-                return new HDSaveContext{ updateMaterials = needsUpdate };
-            }
-        }
-
-        // IHasMetaData
-        public string identifier => "HDLitSubTarget";
-
-        public ScriptableObject GetMetadataObject()
-        {
-            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
-            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Lit;
-            return hdMetadata;
-        }
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
