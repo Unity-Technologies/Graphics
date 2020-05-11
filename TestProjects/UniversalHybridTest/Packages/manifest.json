@@ -8,7 +8,7 @@
     "com.unity.platforms.windows": "0.3.0-preview.1",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.universal": "file:../../../com.unity.render-pipelines.universal",
-    "com.unity.rendering.hybrid": "0.4.2-preview.14",
+    "com.unity.rendering.hybrid": "0.5.0-preview.6",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.13",
     "com.unity.test-framework.build": "0.0.1-preview.12",
