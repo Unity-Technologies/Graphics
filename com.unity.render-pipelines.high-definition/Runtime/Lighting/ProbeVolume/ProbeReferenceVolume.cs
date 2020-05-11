@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
-            Matrix4x4 m = GetRefSpaceToWS;
+            Matrix4x4 m = GetRefSpaceToWS();
             int posIdx = 0;
 
             foreach( var b in bricks)
