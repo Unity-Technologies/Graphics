@@ -7,12 +7,6 @@ All_Universal_2020.1:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_2020.1
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_2020.1
-         rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_2020.1
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_2020.1
@@ -33,12 +27,6 @@ All_Universal_fast-2020.1:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-2020.1
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_fast-2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_fast-2020.1
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_fast-2020.1
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_fast-2020.1
          rerun: on-new-revision
@@ -61,12 +49,6 @@ All_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_trunk
-         rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_trunk
@@ -88,12 +70,6 @@ All_Universal_fast-trunk:
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_fast-trunk
-         rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_fast-trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_fast-trunk
@@ -114,12 +90,6 @@ All_Universal_CUSTOM-REVISION:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_CUSTOM-REVISION
          rerun: always

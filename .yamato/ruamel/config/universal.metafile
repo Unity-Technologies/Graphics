@@ -113,12 +113,12 @@ all:
         - Standalone
         - editmode
         - playmode
-    - platform_name: Win
-      api_name: DX12
-      test_platform_names:
-        - Standalone
-        - editmode
-        - playmode
+    #- platform_name: Win
+    #  api_name: DX12
+    #  test_platform_names:
+    #    - Standalone
+    #    - editmode
+    #    - playmode
     - platform_name: Win
       api_name: Vulkan
       test_platform_names:
