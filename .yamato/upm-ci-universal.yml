@@ -459,7 +459,7 @@ All_{{ project.name }}_{{ editor.version }}:
   dependencies:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
-  {% if platform.name == "OSX_OpenGLCore" %}
+  {% if platform.name == "OSX_OpenGLCore" and testplatform.name == "Standalone" %}
 
   {% if testplatform.name == "editmode" %}
     - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
