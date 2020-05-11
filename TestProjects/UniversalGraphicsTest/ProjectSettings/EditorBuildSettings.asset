@@ -221,4 +221,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/122_RenderUICustomRendererFXAA.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 1
+    path: Assets/Scenes/126_ShadowFading.unity
+    guid: 137382e53d5a3714088dc0496a166199
   m_configObjects: {}
