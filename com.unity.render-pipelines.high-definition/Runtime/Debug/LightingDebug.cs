@@ -315,6 +315,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float                debugExposure = 0.0f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurve = true;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 centerHistogramAroundMiddleGrey = true;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;

@@ -35,8 +35,9 @@ Shader "Hidden/HDRP/DebugExposure"
     float4 _ShoSegmentA;
     float4 _ShoSegmentB;
 
-    #define _DrawTonemapCurve   _ExposureDebugParams.x
-    #define _TonemapType        _ExposureDebugParams.y
+    #define _DrawTonemapCurve               _ExposureDebugParams.x
+    #define _TonemapType                    _ExposureDebugParams.y
+    #define _CenterAroundTargetExposure     _ExposureDebugParams.y
 
 
     struct Attributes
@@ -94,6 +95,11 @@ Shader "Hidden/HDRP/DebugExposure"
     float GetEVAtLocation(float2 uv)
     {
         return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4));
+    }
+
+    float GetHistogramBinUV()
+    {
+        return 0.0f;
     }
 
     // Returns true if it drew the location of the indicator.
