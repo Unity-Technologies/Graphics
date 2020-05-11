@@ -26,7 +26,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
 #endif
 
-    surfaceDescription.Color *= unpacked.color;
+    surfaceDescription.Color *= unpacked.color * unity_Tint;
 
     return surfaceDescription.Color;
 }

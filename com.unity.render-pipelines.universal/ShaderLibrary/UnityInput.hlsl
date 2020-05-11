@@ -118,6 +118,10 @@ real4 unity_SHBr;
 real4 unity_SHBg;
 real4 unity_SHBb;
 real4 unity_SHC;
+
+// 2D block features
+float4 unity_Tint;
+
 CBUFFER_END
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
