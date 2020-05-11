@@ -556,7 +556,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Set up UnityPerView CBuffer.
-        internal void SetupGlobalParams(CommandBuffer cmd, int frameCount)
+        public void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
                 && antialiasing == AntialiasingMode.TemporalAntialiasing
