@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.Universal
         public const int lwrpAssetCreateMenuPriorityGroup2 = CoreUtils.assetCreateMenuPriority1 + 50;
         public const int lwrpAssetCreateMenuPriorityGroup3 = lwrpAssetCreateMenuPriorityGroup2 + 50;
 
-        public enum Unit { Metric, Percent }
+        internal enum Unit { Metric, Percent }
 
         internal class Styles
         {
