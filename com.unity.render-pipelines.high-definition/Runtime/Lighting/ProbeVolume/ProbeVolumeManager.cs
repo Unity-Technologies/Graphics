@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
             vol.Z = new Vector3(0.0f, 0.0f, 1.0f);
             vol.corner = new Vector3(3.5f, 2.7f, -1.4f);
 
-            ProbeReferenceVolume.SubdivisionDel subdivDel = (List<ProbeReferenceVolume.Brick> inBricks, List<ProbeReferenceVolume.Brick> outBricks) =>
+            ProbeReferenceVolume.SubdivisionDel subdivDel = (Matrix4x4 GetRefSpaceToWS, List<ProbeReferenceVolume.Brick> inBricks, List<ProbeReferenceVolume.Brick> outBricks) =>
             {
                 outBricks = inBricks;
             };

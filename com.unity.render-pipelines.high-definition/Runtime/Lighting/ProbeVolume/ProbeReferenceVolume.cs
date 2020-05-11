@@ -57,8 +57,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float brickSize( int subdivisionLevel) { return m_MinBrickSize * cellSize(subdivisionLevel); }
         internal float minBrickSize() { return m_MinBrickSize; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
+        private Matrix4x4 GetRefSpaceToWS() { return Matrix4x4.TRS(m_Position, m_Rotation, Vector3.one); }
 
-        internal delegate void SubdivisionDel(List<Brick> inBricks, List<Brick> outBricks);
+        internal delegate void SubdivisionDel(Matrix4x4 refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks);
 
         internal void CreateBricks(ref Volume volume, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
@@ -67,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TmpBricks.Clear();
             // rasterize bricks according to the coarsest grid
             Rasterize(vol, m_TmpBricks);
-            subdivider(m_TmpBricks, outSortedBricks);
+            subdivider(GetRefSpaceToWS(), m_TmpBricks, outSortedBricks);
             // sort from larger to smaller bricks
             outSortedBricks.Sort( (Brick lhs, Brick rhs) =>
             {
@@ -88,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
-            Matrix4x4 m = Matrix4x4.TRS(m_Position, m_Rotation, Vector3.one);
+            Matrix4x4 m = GetRefSpaceToWS;
             int posIdx = 0;
 
             foreach( var b in bricks)
