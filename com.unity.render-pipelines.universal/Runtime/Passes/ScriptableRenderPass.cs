@@ -94,25 +94,26 @@ namespace UnityEngine.Rendering.Universal
 
         public bool useNativeRenderPass
         {
-            get => m_RenderPassDescriptor.sampleCount != 0; //this should be enough to indicate whether the descriptor was set
+            get => m_RenderPassDescriptor.sampleCount != 0; // This should be enough to indicate whether the descriptor was set
         }
         internal int eyeIndex { get; set; }
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
-        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
-        internal AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
-        internal AttachmentDescriptor[] m_InputAttachmentDescriptors;
         internal NativeArray<int> m_ColorBindings;
         internal NativeArray<int> m_InputBindings;
+
+        RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] { BuiltinRenderTextureType.CameraTarget };
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
-        internal AttachmentDescriptor m_DepthAttachmentDescriptor;
+
+        AttachmentDescriptor[] m_ColorAttachmentDescriptors = new AttachmentDescriptor[8];
+        AttachmentDescriptor[] m_InputAttachmentDescriptors;
+        AttachmentDescriptor m_DepthAttachmentDescriptor;
         RenderPassDescriptor m_RenderPassDescriptor;
+
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
-
-        public static AttachmentDescriptor EmptyAttachment = new AttachmentDescriptor();
 
         public ScriptableRenderPass()
         {
@@ -124,7 +125,6 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            EmptyAttachment.ConfigureTarget(BuiltinRenderTextureType.None, false, false);
             eyeIndex = 0;
         }
 
@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_ColorAttachmentDescriptors[0] = attachment;
             for (int i = 1; i < m_ColorAttachmentDescriptors.Length; ++i)
-                m_ColorAttachmentDescriptors[i] = EmptyAttachment;
+                m_ColorAttachmentDescriptors[i] = RenderingUtils.emptyAttachment;
             m_ColorBindings = new NativeArray<int>(attachment.format != RenderTextureFormat.Depth ? 1 : 0, Allocator.Temp);
         }
 
@@ -223,7 +223,7 @@ namespace UnityEngine.Rendering.Universal
         }
         public void ConfigureTarget(AttachmentDescriptor[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, EmptyAttachment);
+            ConfigureTarget(colorAttachments, RenderingUtils.emptyAttachment);
         }
         /// <summary>
         /// Configures clearing for the render targets for this render pass. Call this inside Configure.

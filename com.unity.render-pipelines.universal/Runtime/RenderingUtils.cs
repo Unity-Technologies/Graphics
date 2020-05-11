@@ -78,6 +78,15 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        static AttachmentDescriptor s_EmptyAttachment = new AttachmentDescriptor(GraphicsFormat.None);
+        internal static AttachmentDescriptor emptyAttachment
+        {
+            get
+            {
+                return s_EmptyAttachment;
+            }
+        }
+
         static Material s_ErrorMaterial;
         static Material errorMaterial
         {
@@ -229,6 +238,11 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
+        /// <summary>
+        /// Return the number of AttachmentDescriptors actually referring to color attachments
+        /// </summary>
+        /// <param name="attachments"></param>
+        /// <returns></returns>
         internal static int GetValidColorAttachmentCount(AttachmentDescriptor[] attachments)
         {
             int nonNullAttachments = 0;
@@ -236,7 +250,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 foreach (var handle in attachments)
                 {
-                    if (handle.loadStoreTarget != 0 && handle != ScriptableRenderPass.EmptyAttachment && handle.format != RenderTextureFormat.Depth)
+                    if (handle.loadStoreTarget != 0 && handle != RenderingUtils.emptyAttachment && handle.format != RenderTextureFormat.Depth)
                         ++nonNullAttachments;
                     else
                         return nonNullAttachments; // break on first failure
@@ -244,6 +258,7 @@ namespace UnityEngine.Rendering.Universal
             }
             return nonNullAttachments;
         }
+
         /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
@@ -271,6 +286,12 @@ namespace UnityEngine.Rendering.Universal
         }
 
         //TODO: what should we do about Transient attachments? Currently can only exclude them from this.
+        /// <summary>
+        /// Return true if non-transient value can be found in source
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         internal static bool Contains(AttachmentDescriptor[] source, AttachmentDescriptor value)
         {
             foreach (var identifier in source)
@@ -283,24 +304,22 @@ namespace UnityEngine.Rendering.Universal
             return false;
         }
 
-        internal static bool Contains(List<AttachmentDescriptor> source, AttachmentDescriptor value)
-        {
-            foreach (var identifier in source)
-            {
-                bool isTransient = identifier.loadAction == RenderBufferLoadAction.DontCare &&
-                                   identifier.storeAction == RenderBufferStoreAction.DontCare;
-                if (identifier == value && !isTransient)
-                    return true;
-            }
-            return false;
-        }
-
+        /// <summary>
+        /// Return true if the attachment is a transient resource
+        /// </summary>
+        /// <param name="attachment"></param>
+        /// <returns></returns>
         internal static bool IsAttachmentTransient(AttachmentDescriptor attachment)
         {
             return attachment.loadAction == RenderBufferLoadAction.DontCare &&
                    attachment.storeAction == RenderBufferStoreAction.DontCare;
         }
 
+        /// <summary>
+        /// Return the index of depth attachment in the array used for RenderPass
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         internal static int GetDepthAttachmentIndex(NativeArray<AttachmentDescriptor> source)
         {
             for (int i = 0; i < source.Length; ++i)
@@ -327,6 +346,12 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
+        /// <summary>
+        /// Return the index where value was found source. Otherwise, return -1. (without recurring to Linq)
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         internal static int IndexOf(AttachmentDescriptor[] source, AttachmentDescriptor value)
         {
             for (int i = 0; i < source.Length; ++i)
@@ -337,15 +362,6 @@ namespace UnityEngine.Rendering.Universal
             return -1;
         }
 
-        internal static int IndexOf(List<AttachmentDescriptor> source, AttachmentDescriptor value)
-        {
-            for (int i = 0; i < source.Count; ++i)
-            {
-                if (source[i] == value)
-                    return i;
-            }
-            return -1;
-        }
         /// <summary>
         /// Return the number of RenderTargetIdentifiers in "source" that are valid (not 0) and different from "value" (without recurring to Linq)
         /// </summary>

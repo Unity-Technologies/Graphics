@@ -882,9 +882,7 @@ namespace UnityEngine.Rendering.Universal
 
                 for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                 {
-                    if (rp.colorAttachmentDescriptors[i].loadStoreTarget == BuiltinRenderTextureType.None //First invalid means we are done with the attachments
-                        && rp.colorAttachmentDescriptors[i].storeAction != RenderBufferStoreAction.DontCare //This also checks whether it's a transient texture
-                        && rp.colorAttachmentDescriptors[i].loadAction != RenderBufferLoadAction.DontCare)
+                    if (rp.colorAttachmentDescriptors[i] == RenderingUtils.emptyAttachment)
                         break;
 
                     var isTransient = RenderingUtils.IsAttachmentTransient(rp.colorAttachmentDescriptors[i]);
@@ -1152,7 +1150,7 @@ namespace UnityEngine.Rendering.Universal
         {
             for (int i = 0; i < m_AttachmentDescriptorList.Length; i++)
             {
-                m_AttachmentDescriptorList[i] = ScriptableRenderPass.EmptyAttachment;
+                m_AttachmentDescriptorList[i] = RenderingUtils.emptyAttachment;
             }
         }
     }

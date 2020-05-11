@@ -205,6 +205,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return m_AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
             else if (index == GBufferLightingIndex)
                 return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+//            else if (index == GBufferDepthIndex)      // We use RenderTextureFormat.Depth for it, not sure how to set via GraphicsFormat
+//                return GraphicsFormat.None;
             else if (index == GBufferAdditionalDepthIndex)
                 return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
             else

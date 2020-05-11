@@ -219,10 +219,10 @@ namespace UnityEngine.Rendering.Universal
                 //DeferredConfig.kGBufferLightingIndex] is used as output of GBufferPass so continue rendering to it
                 m_DrawSkyboxPass.ConfigureTarget(
                     m_GBufferOutputs[3],
-                    ScriptableRenderPass.EmptyAttachment);
+                    RenderingUtils.emptyAttachment);
                 EnqueueRenderPass(m_DrawSkyboxPass, cameraTargetDescriptor);
                 m_RenderTransparentForwardPass.ConfigureTarget(m_GBufferOutputs[3],
-                    ScriptableRenderPass.EmptyAttachment);
+                    RenderingUtils.emptyAttachment);
                 EnqueueRenderPass(m_RenderTransparentForwardPass, cameraTargetDescriptor);
                 return;
             }
