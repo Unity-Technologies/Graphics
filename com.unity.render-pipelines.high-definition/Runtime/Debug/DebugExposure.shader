@@ -396,6 +396,10 @@ Shader "Hidden/HDRP/DebugExposure"
         float3 outputColor = 0;
         float ev = GetEVAtLocation(uv);
 
+        int2 unormCoord = input.positionCS.xy;
+        int2 textLocation = _MousePixelCoord.xy;
+
+
         float evInRange = (ev - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
         if (ev < ParamExposureLimitMax && ev > ParamExposureLimitMin)
@@ -419,7 +423,6 @@ Shader "Hidden/HDRP/DebugExposure"
         float extremeMargin = 5 * _ScreenSize.z * _RTHandleScale.x;
         DrawHeatSideBar(uv, sidebarBottomLeft, endPointSidebar, indicatorEVRange, 0.66f, sidebarSize, extremeMargin, outputColor);
 
-        int2 unormCoord = input.positionCS.xy;
 
         // Label bar
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
@@ -449,7 +452,7 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
-        int2 textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
+        textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
         textLocation = _MousePixelCoord.xy;
         DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
@@ -502,6 +505,74 @@ Shader "Hidden/HDRP/DebugExposure"
 
         DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, float3(0.125,0.125,0.125), 0.4f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
 
+        float currExposure = _ExposureTexture[int2(0, 0)].y;
+        float targetExposure = _ExposureDebugTexture[int2(0, 0)].x;
+
+        uint2 unormCoord = input.positionCS.xy;
+        int2 textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
+        DrawCharacter('C', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('u', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('n', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('E', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(currExposure, float3(1.0f, 1.0f, 1.0f), unormCoord, 3, textLocation, outputColor.rgb);
+        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        DrawCharacter('T', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('a', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('g', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('E', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(targetExposure, float3(1.0f, 1.0f, 1.0f), unormCoord, 3, textLocation, outputColor.rgb);
+        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5f, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        DrawCharacter('E', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('C', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('o', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('m', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 8);
+        DrawCharacter('p', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 8);
+        DrawCharacter('n', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('a', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('i', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('n', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', float3(1.0f, 1.0f, 1.0f), unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(ParamExposureCompensation, float3(1.0f, 1.0f, 1.0f), unormCoord, 3, textLocation, outputColor.rgb);
 
         return outputColor;
     }
