@@ -316,14 +316,6 @@ inline void InitializeBRDFData(half3 albedo, half metallic, half3 specular, half
 #endif
 }
 
-// Approximation of ConvertF0ForAirInterfaceToF0ForClearCoat15
-half3 ConvertF0ForAirInterfaceToF0ForClearCoat15Fast(half3 f0)
-{
-    // Approximation of iorTof0(f0ToIor(f0), 1.5)
-    // This assumes that the clear coat layer has an IOR of 1.5
-    return saturate(f0 * (f0 * 0.526868h + 0.529324h) - 0.0482256h);
-}
-
 half3 ConvertF0ForClearCoat15(half3 f0)
 {
 #if defined(SHADER_API_MOBILE)
@@ -606,8 +598,9 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatStrength, coatIndirectSpecular, fresnelTerm);
 
-    // Blend with base layer using khronos glTF recommended way
-    // NOTE: fresnelTerm is pow4 instead of pow5, but should be OKish to reuse (as it's only used as blend weight)
+    // Blend with base layer using khronos glTF recommended way using NoV
+    // Smooth surface & "ambiguous" lighting
+    // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
     return color * (1.0 - coatFresnel * clearCoatStrength) + coatColor;
 #else
@@ -663,8 +656,10 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, hal
 
     // Mix clear coat and base layer using khronos glTF recommended formula
     // https://github.com/KhronosGroup/glTF/blob/master/extensions/2.0/Khronos/KHR_materials_clearcoat/README.md
+    // Use NoV for direct too instead of LoH as an optimization (NoV is light invariant).
     half NoV = saturate(dot(normalWS, viewDirectionWS));
-    // Match the GI/Env fresnelTerm (Pow4 vs Pow5) for consistent clear coat blend
+    // Use slightly simpler fresnelTerm (Pow4 vs Pow5) as a small optimization.
+    // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
 
     brdf = brdf * (1.0 - clearCoatStrength * coatFresnel) + brdfCoat * clearCoatStrength;
