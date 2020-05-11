@@ -314,7 +314,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
-        public bool                 showTonemapCurve = true;
+        public bool                 showTonemapCurveAlongHistogramView = true;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;

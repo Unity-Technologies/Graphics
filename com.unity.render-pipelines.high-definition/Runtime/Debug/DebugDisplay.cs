@@ -914,8 +914,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebugUI.BoolField()
                         {
                             displayName = "Show Tonemap curve",
-                            getter = () => data.lightingDebugSettings.showTonemapCurve,
-                            setter = value => data.lightingDebugSettings.showTonemapCurve = value
+                            getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
+                            setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
                         });
                 }
 
