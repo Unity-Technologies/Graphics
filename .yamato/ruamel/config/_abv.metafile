@@ -6,21 +6,12 @@ editors:
   - version: CUSTOM-REVISION
 projects:
   - name: Universal
-    folder: UniversalGraphicsTest
   - name: Universal_Stereo
-    folder: UniversalGfxTestStereo
   - name: ShaderGraph
-    folder: ShaderGraph
   - name: ShaderGraph_Stereo
-    folder: ShaderGraphUniversalStereo
   - name: HDRP
-    folder: HDRP_Tests
-  - name: HDRP_Standalone
-    folder: HDRP_RuntimeTests
   - name: VFXMain
-    folder: VisualEffectGraph
   - name: VFX_LWRP
-    folder: VisualEffectGraph_LWRP
 test_platforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
