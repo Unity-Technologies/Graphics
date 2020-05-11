@@ -25,6 +25,8 @@ platforms:
     apis:
       - name: DX11
         cmd: -force-d3d11
+      - name: DX12
+        cmd: -force-d3d12
       - name: Vulkan
         cmd: -force-vulkan
     agent_default:
@@ -54,23 +56,9 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX
-    os: macos
-    apis:
-      - name: OpenGLCore
-        cmd:
-    agent_default:
-      type: Unity::VM::osx
-      image: buildfarm/mac:stable
-      flavor: m1.mac
-    components:
-      - editor
-      - il2cpp 
   - name: Linux
     os: linux
     apis: 
-      - name: OpenGLCore
-        cmd: -force-glcore
       - name: Vulkan
         cmd: -force-vulkan
     agent_default:
