@@ -32,10 +32,7 @@ void InitializeData(inout SpeedTreeVertexInput input, out half2 outUV, out half 
 #ifdef ENABLE_WIND
     if (_WindQuality * _WindEnabled > 0)
     {
-        // Disabling "pow(f,e) will not work for negative f"; warnings.
-        #pragma warning (disable : 3571)
         billboardPos = GlobalWind(billboardPos, worldPos, true, _ST_WindVector.xyz, input.texcoord1.w);
-        #pragma warning (enable : 3571)
     }
 #endif
 
@@ -84,7 +81,7 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
         output.normalWS.xyz = TransformObjectToWorldNormal(input.normal);
