@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: bf5610306df67d447872e40b24704603,
+  m_LightingDataAsset: {fileID: 112000004, guid: bf5610306df67d447872e40b24704603,
     type: 2}
   m_LightingSettings: {fileID: 631066512}
 --- !u!196 &4
@@ -1525,6 +1525,11 @@ PrefabInstance:
       propertyPath: captureFromBackBuffer
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: waitForFrameCountMultiple
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &1113227903
@@ -1586,7 +1591,7 @@ MonoBehaviour:
   m_MaxSmoothness: 0.99
   m_ApplyRangeAttenuation: 1
   m_DisplayAreaLightEmissiveMesh: 1
-  m_AreaLightCookie: {fileID: 2800000, guid: 8db46df5babbac2498a7ada8644601cf, type: 3}
+  m_AreaLightCookie: {fileID: 2800000, guid: 979383c107ed8194688bbee5b21fae49, type: 3}
   m_AreaLightShadowCone: 120
   m_UseScreenSpaceShadows: 0
   m_InteractsWithSky: 1

@@ -49,6 +49,13 @@ public class HDRP_GraphicTestRunner
         for (int i = 0; i < 5; ++i)
             yield return null;
 
+        if (settings.waitForFrameCountMultiple)
+        {
+            // Get HDRP instance
+            var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            while (hdrp.GetFrameCount() % settings.frameCountMultiple != 0) yield return null;
+        }
+
         Time.captureFramerate = settings.captureFramerate;
 
         if (XRSystem.testModeEnabled)
