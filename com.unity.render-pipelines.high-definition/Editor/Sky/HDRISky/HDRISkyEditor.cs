@@ -35,6 +35,9 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_RectLightShadow;
         SerializedDataParameter m_ShadowTint;
 
+        GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
+        int[]           m_DistortionModeValues = { 1, 0 };
+
         RTHandle m_IntensityTexture;
         Material m_IntegrateHDRISkyMaterial; // Compute the HDRI sky intensity in lux for the skybox
         Texture2D m_ReadBackTexture;
@@ -146,7 +149,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUI.indentLevel++;
 
-                PropertyField(m_Procedural, new GUIContent("Procedural distortion"));
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    DrawOverrideCheckbox(m_Procedural);
+                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
+                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(new GUIContent("Distortion Mode"), (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
+                }
+
                 if (!m_Procedural.value.boolValue)
                 {
                     EditorGUI.indentLevel++;
