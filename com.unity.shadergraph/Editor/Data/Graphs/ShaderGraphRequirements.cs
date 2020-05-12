@@ -144,7 +144,6 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
             newReqs.m_RequiresVertexID = other.m_RequiresVertexID | m_RequiresVertexID;
 
-
             newReqs.m_RequiresMeshUVs = new List<UVChannel>();
             if (m_RequiresMeshUVs != null)
                 newReqs.m_RequiresMeshUVs.AddRange(m_RequiresMeshUVs);
@@ -161,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Internal
             NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
             NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
             NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
-            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
+            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition(stageCapability));
             bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());

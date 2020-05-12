@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireVertexIDExtensions
     {
-        public static bool RequiresVertexID(this ISlot slot)
+        public static bool RequiresVertexID(this MaterialSlot slot)
         {
             var mayRequireVertexID = slot as IMayRequireVertexID;
             return mayRequireVertexID != null && mayRequireVertexID.RequiresVertexID();

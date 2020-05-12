@@ -31,7 +31,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -233,7 +233,7 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library

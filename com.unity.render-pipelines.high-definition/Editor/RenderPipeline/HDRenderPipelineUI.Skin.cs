@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent materialSectionTitle = EditorGUIUtility.TrTextContent("Material");
             public static readonly GUIContent postProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
+            public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
             public static readonly GUIContent postProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
@@ -109,6 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
+            public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");

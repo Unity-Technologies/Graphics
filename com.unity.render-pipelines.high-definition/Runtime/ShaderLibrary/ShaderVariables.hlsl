@@ -224,7 +224,7 @@ float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
     // To handle camera relative rendering we substract the camera position in the model matrix
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos.xyz;
 #endif
     return modelMatrix;
 }
