@@ -320,7 +320,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_LastCustomSensorSizeValue = cam.sensorSize.vector2Value;
                     }
 
-                    if (newFilmGateIndex != k_CustomPresetIndex)
+                    if (newFilmGateIndex < k_CustomPresetIndex)
                     {
                         cam.sensorSize.vector2Value = k_ApertureFormatValues[newFilmGateIndex];
                     }
