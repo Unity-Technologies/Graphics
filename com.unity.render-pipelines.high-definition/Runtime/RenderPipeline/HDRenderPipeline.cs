@@ -3877,7 +3877,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.IsTransparentSSREnabled())
                     {
-                        // But we also need to bind the normal buffer for objects that will recieve SSR
+                        // But we also need to bind the normal buffer for objects that will receive SSR
                         CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
                     }
                     else
