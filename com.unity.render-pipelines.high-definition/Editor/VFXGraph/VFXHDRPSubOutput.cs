@@ -44,6 +44,18 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override IEnumerable<int> GetFilteredOutEnumerators(string name)
+        {
+            switch (name)
+            {
+                case "opaqueRenderQueue":
+                    return new int[] { (int)OpaqueRenderQueue.Raytracing };
+                case "transparentRenderQueue":
+                    return new int[] { (int)TransparentRenderQueue.Raytracing };
+            }
+            return null;
+        }
+
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
