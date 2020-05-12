@@ -252,10 +252,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (serialized.proxyVolume.objectReferenceValue != null)
                 {
                     var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
-                    if (proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
-                        && proxy.proxyVolume.shape != ProxyShape.Infinite)
+                    var proxyShape = proxy.proxyVolume.shape;
+                    var influenceShape = serialized.probeSettings.influence.shape;
+                    if ((proxyShape == ProxyShape.Convex && influenceShape.GetEnumValue<InfluenceShape>() != InfluenceShape.Box) ||
+                        (proxyShape <= ProxyShape.Sphere && proxyShape != influenceShape.GetEnumValue<ProxyShape>()))
                         EditorGUILayout.HelpBox(
-                            k_ProxyInfluenceShapeMismatchHelpBoxText,
+                            k_ProxyInfluenceShapeMismatchHelpBoxText[(int)proxyShape],
                             MessageType.Error,
                             true
                             );
@@ -417,15 +419,17 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void Drawer_DifferentShapeError(SerializedHDProbe serialized, Editor owner)
         {
             var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
-            if (proxy != null
-                && proxy.proxyVolume.shape != serialized.probeSettings.influence.shape.GetEnumValue<ProxyShape>()
-                && proxy.proxyVolume.shape != ProxyShape.Infinite)
+            if (proxy != null)
             {
-                EditorGUILayout.HelpBox(
-                    k_ProxyInfluenceShapeMismatchHelpBoxText,
-                    MessageType.Error,
-                    true
-                    );
+                var proxyShape = proxy.proxyVolume.shape;
+                var influenceShape = serialized.probeSettings.influence.shape;
+                if ((proxyShape == ProxyShape.Convex && influenceShape.GetEnumValue<InfluenceShape>() != InfluenceShape.Box) ||
+                    (proxyShape <= ProxyShape.Sphere && proxyShape != influenceShape.GetEnumValue<ProxyShape>()))
+                    EditorGUILayout.HelpBox(
+                        k_ProxyInfluenceShapeMismatchHelpBoxText[(int)proxyShape],
+                        MessageType.Error,
+                        true
+                        );
             }
         }
 

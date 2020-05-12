@@ -9,7 +9,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         const string k_NoProxyHelpBoxText = "Influence shape will be used as Projection shape too.";
         const string k_NoProxyInfiniteHelpBoxText = "Projection will be at infinite.";
-        const string k_ProxyInfluenceShapeMismatchHelpBoxText = "Proxy volume and influence volume have different shapes, this is not supported.";
+        const string k_ProxyInfluenceShapeMismatchBaseText = "Proxy volume and influence volume have incompatible shapes.";
+        static readonly string[] k_ProxyInfluenceShapeMismatchHelpBoxText = {
+            k_ProxyInfluenceShapeMismatchBaseText + "\nBox proxy must have a box-shaped influence volume.",
+            k_ProxyInfluenceShapeMismatchBaseText + "\nSphere proxy must have a sphere-shaped influence volume.",
+            k_ProxyInfluenceShapeMismatchBaseText + "\nConvex proxy must have a box-shaped influence volume."
+        };
 
         internal static readonly GUIContent k_ProxySettingsHeader = EditorGUIUtility.TrTextContent("Projection Settings");
         internal static readonly GUIContent k_InfluenceVolumeHeader = EditorGUIUtility.TrTextContent("Influence Volume");

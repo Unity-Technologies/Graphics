@@ -140,6 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Light Loop
         public const int s_MaxEnv2DLight = 32;
+        public const int s_MaxConvexProxyPlanes = 32;
 
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
@@ -151,6 +152,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public fixed float _Env2DCaptureForward[s_MaxEnv2DLight * 4];
         [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
         public fixed float _Env2DAtlasScaleOffset[s_MaxEnv2DLight * 4];
+        [HLSLArray(s_MaxEnv2DLight, typeof(Vector4))]
+        public fixed float _ConvexProxyPlanesAtlas[s_MaxConvexProxyPlanes * 4];
 
         public uint     _DirectionalLightCount;
         public uint     _PunctualLightCount;

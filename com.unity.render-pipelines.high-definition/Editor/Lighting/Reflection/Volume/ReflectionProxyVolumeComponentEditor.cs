@@ -12,6 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         HierarchicalSphere m_SphereHandle;
         HierarchicalBox m_BoxHandle;
+        ConvexVolume m_ConvexVolume;
         SerializedReflectionProxyVolumeComponent m_SerializedData;
         ReflectionProxyVolumeComponent[] m_TypedTargets;
 
@@ -27,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 monoHandle = false
             };
+            m_ConvexVolume = new ConvexVolume(k_HandleColor);
         }
 
         public override void OnInspectorGUI()
@@ -40,7 +42,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnSceneGUI()
         {
-
             for (int i = 0; i < m_TypedTargets.Length; ++i)
             {
                 var comp = m_TypedTargets[i];
@@ -76,6 +77,21 @@ namespace UnityEditor.Rendering.HighDefinition
                                 tr.position = tr.rotation * m_SphereHandle.center;
                                 prox.sphereRadius = m_SphereHandle.radius;
                             }
+                            break;
+                        case ProxyShape.Convex:
+                            m_ConvexVolume.center = Quaternion.Inverse(tr.rotation) * tr.position;
+                            m_ConvexVolume.planes = prox.planes;
+                            m_ConvexVolume.selected = prox.selected;
+                            EditorGUI.BeginChangeCheck();
+                            m_ConvexVolume.DrawHull();
+                            m_ConvexVolume.DrawHandle();
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObjects(new Object[] { tr, comp }, "Update Proxy Volume Size");
+                                prox.planes = m_ConvexVolume.planes;
+                            }
+                            if (m_ConvexVolume.selected != prox.selected)
+                                prox.selected = m_ConvexVolume.selected;
                             break;
                         case ProxyShape.Infinite:
                             break;

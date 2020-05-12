@@ -36,6 +36,7 @@
 #define ENVSHAPETYPE_BOX (1)
 #define ENVSHAPETYPE_SPHERE (2)
 #define ENVSHAPETYPE_SKY (3)
+#define ENVSHAPETYPE_CONVEX (4)
 
 //
 // UnityEngine.Rendering.HighDefinition.EnvConstants:  static fields

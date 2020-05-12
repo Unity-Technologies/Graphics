@@ -41,6 +41,22 @@ float IntersectBoxProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
     return projectionDistance;
 }
 
+float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
+{
+    float projectionDistance = FLT_MAX;
+    int firstPlane = (int)lightData.proxyExtents.x;
+    int lastPlane = firstPlane + (int)lightData.proxyExtents.y;
+
+    for (int i = firstPlane; i < lastPlane; i++)
+    {
+        float4 plane = _ConvexProxyPlanesAtlas[i];
+        float t = (plane.w - dot(positionPS, plane.xyz)) / dot(dirPS, plane.xyz);
+        if (t > 0) projectionDistance = min(projectionDistance, t);
+    }
+
+    return projectionDistance;
+}
+
 float InfluenceSphereWeight(EnvLightData lightData, float3 normalWS, float3 positionWS, float3 positionLS, float3 dirLS)
 {
     float lengthPositionLS = length(positionLS);

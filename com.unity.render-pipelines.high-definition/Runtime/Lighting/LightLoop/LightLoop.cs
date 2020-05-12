@@ -362,12 +362,18 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBuffer    envLightData { get; private set; }
             public ComputeBuffer    decalData { get; private set; }
 
+            public Vector4[]    convexProxyPlanes { get; private set; }
+            public int          nextIndex;
+
             public void Initialize(int directionalCount, int punctualCount, int areaLightCount, int envLightCount, int decalCount)
             {
                 directionalLightData = new ComputeBuffer(directionalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DirectionalLightData)));
                 lightData = new ComputeBuffer(punctualCount + areaLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightData)));
                 envLightData = new ComputeBuffer(envLightCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(EnvLightData)));
                 decalData = new ComputeBuffer(decalCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
+
+                convexProxyPlanes = new Vector4[32];
+                nextIndex = 0;
             }
 
             public void Cleanup()
@@ -1008,6 +1014,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ContactShadowIndex = 0;
 
             m_TextureCaches.NewFrame();
+
+            m_LightLoopLightData.nextIndex = 0;
 
             m_WorldToViewMatrices.Clear();
             int viewCount = hdCamera.viewCount;
@@ -1764,6 +1772,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
+            var proxyExtents = probe.proxyExtents;
+            EnvShapeType envShape = probe.influenceVolume.envShape;
             Vector4 atlasScaleOffset = Vector4.zero;
 
             // 31 bits index, 1 bit cache type
@@ -1823,6 +1833,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
                         capturePosition = cameraPositionSettings.position;
 
+                        if (probe.proxyVolume != null && probe.proxyVolume.proxyVolume.shape == ProxyShape.Convex)
+                        {
+                            Vector4[] planes = probe.proxyVolume.proxyVolume.planes;
+                            for (int i = 0; i < planes.Length; i++)
+                            {
+                                Vector3 plane = planes[i];
+                                plane = plane.normalized;
+                                m_LightLoopLightData.convexProxyPlanes[m_LightLoopLightData.nextIndex + i] = new Vector4(plane.x, plane.y, plane.z, planes[i].w);
+                            }
+                            proxyExtents = new Vector3(m_LightLoopLightData.nextIndex, planes.Length, 0);
+                            envShape = EnvShapeType.Convex;
+                            m_LightLoopLightData.nextIndex += planes.Length;
+                        }
+
                         break;
                     }
             }
@@ -1832,14 +1856,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = probe.lightLayersAsUInt;
-            envLightData.influenceShapeType = influence.envShape;
+            envLightData.influenceShapeType = envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
             envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
-            switch (influence.envShape)
+            switch (influence.shape)
             {
-                case EnvShapeType.Box:
+                case InfluenceShape.Box:
                     envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
                     envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
                     envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
@@ -1847,12 +1871,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     envLightData.boxSideFadePositive = influence.boxSideFadePositive;
                     envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
                     break;
-                case EnvShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
                     envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
+                    throw new ArgumentOutOfRangeException("Unknown InfluenceShape");
             }
 
             envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
@@ -1865,8 +1889,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;
-            envLightData.proxyExtents = probe.proxyExtents;
             envLightData.minProjectionDistance = probe.isProjectionInfinite ? 65504f : 0;
+            envLightData.proxyExtents = proxyExtents;
             envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
             envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
@@ -3438,6 +3462,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int j = 0; j < 4; ++j)
                     cb._Env2DAtlasScaleOffset[i * 4 + j] = m_TextureCaches.env2DAtlasScaleOffset[i][j];
             }
+
+            // Convex proxy volumes
+            for (int i = 0; i < ShaderVariablesGlobal.s_MaxConvexProxyPlanes; ++i)
+                for (int j = 0; j < 4; ++j)
+                    cb._ConvexProxyPlanesAtlas[i * 4 + j] = m_LightLoopLightData.convexProxyPlanes[i][j];
 
             // Light info
             cb._PunctualLightCount = (uint)m_lightList.punctualLightCount;

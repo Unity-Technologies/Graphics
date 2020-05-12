@@ -235,9 +235,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float fov = 0;
 
 
-            switch (envShape)
+            switch (shape)
             {
-                case EnvShapeType.Box:
+                default:
+                case InfluenceShape.Box:
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, -boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, -boxSize.y, +boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+boxSize.x, +boxSize.y, -boxSize.z)));
@@ -247,16 +248,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, -boxSize.z)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-boxSize.x, +boxSize.y, +boxSize.z)));
                     break;
-                case EnvShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+sphereRadius * 2, 0, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-sphereRadius * 2, 0, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, +sphereRadius * 2, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, -sphereRadius * 2, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, +sphereRadius * 2)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, -sphereRadius * 2)));
-                    break;
-                default:
-                    fov = 90;
                     break;
             }
 

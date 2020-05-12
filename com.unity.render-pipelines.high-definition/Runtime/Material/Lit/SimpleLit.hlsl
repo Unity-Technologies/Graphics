@@ -309,7 +309,7 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     {
         weight = InfluenceSphereWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
-    else if (influenceShapeType == ENVSHAPETYPE_BOX)
+    else if (influenceShapeType == ENVSHAPETYPE_BOX || influenceShapeType == ENVSHAPETYPE_CONVEX)
     {
         weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }

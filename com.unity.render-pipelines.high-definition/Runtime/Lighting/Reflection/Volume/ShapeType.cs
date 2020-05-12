@@ -20,6 +20,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Box,
         /// <summary>A Sphere shape.</summary>
         Sphere,
+        /// <summary>A convex volume.</summary>
+        Convex,
         /// <summary>A sphere at the infinity.</summary>
         Infinite
     }

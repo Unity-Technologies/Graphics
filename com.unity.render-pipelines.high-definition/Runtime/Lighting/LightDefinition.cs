@@ -180,7 +180,8 @@ namespace UnityEngine.Rendering.HighDefinition
         None,
         Box,
         Sphere,
-        Sky
+        Sky,
+        Convex,
     };
 
     [GenerateHLSL]
