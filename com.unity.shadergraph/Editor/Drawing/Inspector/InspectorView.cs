@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
- using Data.Interfaces;
  using UnityEditor.Experimental.GraphView;
  using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
  using UnityEditor.ShaderGraph.Drawing.Views;

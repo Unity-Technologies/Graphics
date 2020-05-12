@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Data.Interfaces;
 using UnityEditor;
 using UnityEditor.Graphing.Util;
 using UnityEditor.Rendering;
