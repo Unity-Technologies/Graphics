@@ -276,6 +276,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
+#if ENABLE_VIRTUALTEXTURES
+            [Reload("Runtime/VirtualTexturing/Shaders/DownsampleVTFeedback.compute")]
+            public ComputeShader VTFeedbackDownsample;
+#endif
 
             // Accumulation
             [Reload("Runtime/RenderPipeline/Accumulation/Shaders/Accumulation.compute")]

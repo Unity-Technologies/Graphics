@@ -193,5 +193,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackClear,
+#endif
     }
 }
