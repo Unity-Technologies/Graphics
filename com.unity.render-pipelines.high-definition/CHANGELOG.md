@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
 - Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
