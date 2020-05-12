@@ -251,4 +251,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/127_DynamicScaling_DOF.unity
     guid: 069f595c511c463418479db2f730eec1
+  - enabled: 1
+    path: Assets/Scenes/130_UnityMatrixIVP.unity
+    guid: 716466bc92f8e4eeeb3c138524b04021
   m_configObjects: {}
