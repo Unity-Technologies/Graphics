@@ -145,5 +145,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
         }
+
+        public bool supportsVirtualTexturing => false;
     }
 }

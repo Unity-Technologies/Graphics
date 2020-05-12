@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 - Added support for AxF measurements importing into texture resources tilings.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
