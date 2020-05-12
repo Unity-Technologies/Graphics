@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.Universal
             internal int height;
             internal int sampleCount;
             internal bool readOnlyDepth;
+            internal bool readOnlyStencil;
         }
 
 
@@ -255,12 +256,13 @@ namespace UnityEngine.Rendering.Universal
             m_InputBindings = new NativeArray<int>(inputs.Length, Allocator.Temp);
         }
 
-        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = true)
+        internal void ConfigureRenderPassDescriptor(int width, int height, int sampleCount, bool readOnlyDepth = false, bool readOnlyStencil = false)
         {
             m_RenderPassDescriptor.width = width;
             m_RenderPassDescriptor.height = height;
             m_RenderPassDescriptor.sampleCount = sampleCount;
             m_RenderPassDescriptor.readOnlyDepth = readOnlyDepth;
+            m_RenderPassDescriptor.readOnlyStencil = readOnlyStencil;
         }
 
         /// <summary>

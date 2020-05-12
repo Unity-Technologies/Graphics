@@ -519,7 +519,7 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredPass.ConfigureTarget(m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex], m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex]);
             m_DeferredPass.ConfigureInputAttachment(m_DeferredInputs);
 
-            EnqueueRenderPass(m_DeferredPass, desc);
+            EnqueueRenderPass(m_DeferredPass, desc, true, false);
 
             // Must explicitely set correct depth target to the transparent pass (it will bind a different depth target otherwise).
             m_RenderOpaqueForwardOnlyPass.ConfigureTarget(m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex], m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferDepthIndex]);

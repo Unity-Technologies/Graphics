@@ -507,9 +507,9 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public void EnqueueRenderPass(ScriptableRenderPass pass, RenderTextureDescriptor passDescriptor,
-            bool readOnlyDepth = true)
+            bool readOnlyDepth = false, bool readOnlyStencil = false)
         {
-            pass.ConfigureRenderPassDescriptor(passDescriptor.width, passDescriptor.height, passDescriptor.msaaSamples, readOnlyDepth);
+            pass.ConfigureRenderPassDescriptor(passDescriptor.width, passDescriptor.height, passDescriptor.msaaSamples, readOnlyDepth, readOnlyStencil);
             EnqueuePass(pass);
         }
 
@@ -647,7 +647,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (renderPass.hasInputAttachment)
-                        context.BeginSubPass(renderPass.m_ColorBindings, renderPass.m_InputBindings, descriptor.readOnlyDepth);
+                        context.BeginSubPass(renderPass.m_ColorBindings, renderPass.m_InputBindings, descriptor.readOnlyDepth, descriptor.readOnlyStencil);
                     else
                         context.BeginSubPass(renderPass.m_ColorBindings);
 
