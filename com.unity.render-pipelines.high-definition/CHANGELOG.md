@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
+- Fix issue with corrupted values with Layer Lit when using multiply mode for vertex color
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
