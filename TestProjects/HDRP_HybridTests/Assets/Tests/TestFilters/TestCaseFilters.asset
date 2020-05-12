@@ -15,16 +15,16 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 102900000, guid: a2cac163dced9ff449791e3f3d7d9786, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 2
     Reason: Not working
   - FilteredScene: {fileID: 102900000, guid: 91e6f83f2ef325942a9bda99b9791a26, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 2
     Reason: Not working
   - FilteredScene: {fileID: 102900000, guid: ccc6574d127601342bc2c74c39694b04, type: 3}
     ColorSpace: 1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 2
     Reason: Not working
