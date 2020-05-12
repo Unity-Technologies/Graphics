@@ -43,8 +43,10 @@ TEXTURE2D_X(_GBufferTexture0);
 TEXTURE2D_X(_GBufferTexture1);
 TEXTURE2D_X(_GBufferTexture2);
 TEXTURE2D_X(_GBufferTexture3); // Bake lighting and/or emissive
-TEXTURE2D_X(_GBufferTexture4); // Light layer or shadow mask
-TEXTURE2D_X(_GBufferTexture5); // shadow mask
+TEXTURE2D_X(_GBufferTexture4); // VTFeedbakc or Light layer or shadow mask
+TEXTURE2D_X(_GBufferTexture5); // Light layer or shadow mask
+TEXTURE2D_X(_GBufferTexture6); // shadow mask
+
 
 TEXTURE2D_X(_LightLayersTexture);
 #ifdef SHADOWS_SHADOWMASK
@@ -58,13 +60,22 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 // Definition
 //-----------------------------------------------------------------------------
 
+#ifdef UNITY_VIRTUAL_TEXTURING
+#define OUT_GBUFFER_VTFEEDBACK outGBuffer4
+#define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer5
+#define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer6
+#else
+#define OUT_GBUFFER_OPTIONAL_SLOT_1 outGBuffer4
+#define OUT_GBUFFER_OPTIONAL_SLOT_2 outGBuffer5
+#endif
+
 #if defined(LIGHT_LAYERS) && defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
-#define OUT_GBUFFER_SHADOWMASK outGBuffer5
+#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
+#define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_2
 #elif defined(LIGHT_LAYERS)
-#define OUT_GBUFFER_LIGHT_LAYERS outGBuffer4
+#define OUT_GBUFFER_LIGHT_LAYERS OUT_GBUFFER_OPTIONAL_SLOT_1
 #elif defined(SHADOWS_SHADOWMASK)
-#define OUT_GBUFFER_SHADOWMASK outGBuffer4
+#define OUT_GBUFFER_SHADOWMASK OUT_GBUFFER_OPTIONAL_SLOT_1
 #endif
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN))
@@ -530,6 +541,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 #if GBUFFERMATERIAL_COUNT > 5
                         , out GBufferType5 outGBuffer5
 #endif
+#if GBUFFERMATERIAL_COUNT > 6
+                        , out GBufferType5 outGBuffer6
+#endif
                         )
 {
     // RT0 - 8:8:8:8 sRGB
@@ -670,6 +684,10 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
 
 #ifdef SHADOWS_SHADOWMASK
     OUT_GBUFFER_SHADOWMASK = BUILTIN_DATA_SHADOW_MASK;
+#endif
+
+#ifdef UNITY_VIRTUAL_TEXTURING
+    OUT_GBUFFER_VTFEEDBACK = builtinData.vtPackedFeedback;
 #endif
 }
 
