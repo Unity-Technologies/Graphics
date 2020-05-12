@@ -176,25 +176,19 @@ namespace UnityEngine.Rendering.Universal
             GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
             GraphicsSettings.useScriptableRenderPipelineBatching = asset.useSRPBatcher;
             SetupPerFrameShaderConstants();
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             SetupXRStates();
-            SetupXRStates();
-
-            var camerasAreAllGameCameras = true;
-            for (var index = 0; index < cameras.Length; index++)
-            {
-                var camera = cameras[index];
-                camerasAreAllGameCameras &= IsGameCamera(camera);
-            }
-
-            if(xrSkipRender && camerasAreAllGameCameras)
-                return;
 #endif
 
             SortCameras(cameras);
             for (int i = 0; i < cameras.Length; ++i)
             {
                 var camera = cameras[i];
+#if ENABLE_VR && ENABLE_XR_MODULE
+                if (IsStereoEnabled(camera) && xrSkipRender)
+                    continue;
+#endif
                 if (IsGameCamera(camera))
                 {
                     RenderCameraStack(renderContext, camera);
