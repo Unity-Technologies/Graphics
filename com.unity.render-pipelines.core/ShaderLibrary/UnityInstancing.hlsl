@@ -401,8 +401,6 @@
         #define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
         #define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
 
-        #endif
-
     #else
 
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
