@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public class ProbeVolumeDebugDrawing
+    internal class ProbeVolumeDebugDrawing
     {
         private static ProbeVolumeDebugDrawing _instance;
 
@@ -21,19 +21,19 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Settings
-        public bool DrawProbes { get; set; }
-        public bool DrawBricks { get; set; }
-        public bool DrawReferenceVolume { get; set; }
+        internal bool DrawProbes { get; set; }
+        internal bool DrawBricks { get; set; }
 
-        // Probe rendering
+        // Debug rendering
         private bool probesDirty;
         private Stack<ProbeBatch> instanceData;
         private Mesh debugMesh;
+        private float largestBrickSize;
 
         private ProbeVolumeDebugDrawing()
         {
             SceneView.duringSceneGui += OnSceneGUI;
-            probesDirty = true;
+            Dirty();
         }
 
         ~ProbeVolumeDebugDrawing()
@@ -41,27 +41,31 @@ namespace UnityEngine.Rendering.HighDefinition
             SceneView.duringSceneGui -= OnSceneGUI;
         }
 
-        public void Dirty()
+        internal void Dirty()
         {
             probesDirty = true;
+
+            var bricks = ProbeVolumeManager.manager.bricks;
+            if (bricks != null && bricks.Count > 0)
+                largestBrickSize = bricks.Max(x => x.size);
         }
 
         private void OnSceneGUI(SceneView sv)
         {
-            var pos = ProbeVolumeManager.manager.positioning;
+            var refVol = ProbeVolumeManager.manager.refVol;
+            if (refVol == null)
+                return;
 
-            if (DrawReferenceVolume)
-            {
-                Handles.color = Color.red;
-                Handles.DrawWireCube(pos.ReferenceBounds.center, pos.ReferenceBounds.size);
-            }
-            if (DrawBricks && pos.Bricks != null)
+            if (DrawBricks && ProbeVolumeManager.manager.bricks != null)
             {
                 Handles.color = Color.blue;
-                foreach (ProbeVolumeBrick b in pos.Bricks)
+                Handles.matrix = ProbeVolumeManager.manager.refVol.GetRefSpaceToWS();
+
+                foreach (ProbeReferenceVolume.Brick b in ProbeVolumeManager.manager.bricks)
                 {
-                    Vector3 scaledSize = new Vector3(b.size, b.size, b.size) * pos.MinCellSize;
-                    Vector3 scaledPos = pos.GridToWorld(b.Position) + scaledSize / 2;
+                    float minCellSize = ProbeVolumeManager.manager.refVol.minBrickSize();
+                    Vector3 scaledSize = Vector3.one * Mathf.Pow(3, b.size) * minCellSize;
+                    Vector3 scaledPos = (Vector3)b.Position * minCellSize + scaledSize / 2;
 
                     Handles.DrawWireCube(scaledPos, scaledSize);
                 }
@@ -100,24 +104,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void UpdateInstancedProbes()
         {
-            var pos = ProbeVolumeManager.manager.positioning;
-            var probes = pos.ProbePositions;
-
-            if (probes == null)
-                return;
+            var probePositions = ProbeVolumeManager.manager.probePositions;
+            var bricks = ProbeVolumeManager.manager.bricks;
 
             if (debugMesh == null)
                 debugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
-
-            float largestBrickSize = Mathf.Log(pos.Bricks.Max(x => x.size), 3);
 
             instanceData = new Stack<ProbeBatch>();
             for (int k = 0; k < (int)largestBrickSize + 1; k++)
             {
                 int j = 0;
-                for (int i = 0; i < probes.Length; i++)
+                for (int i = 0; i < probePositions.Length; i++)
                 {
-                    float size = Mathf.Log(pos.Bricks[i / 64].size, 3);
+                    float size = bricks[i / 64].size;
                     if (size != k)
                         continue;
 
@@ -128,11 +127,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             matrix = new List<Matrix4x4>(),
                             material = new Material(Shader.Find("HDRP/Unlit")) { enableInstancing = true }
                         };
-                        batch.material.SetColor("_UnlitColor", Color.Lerp(Color.red, Color.green, k / largestBrickSize));
+                        if (largestBrickSize == 0)
+                        {
+                            batch.material.SetColor("_UnlitColor", Color.Lerp(Color.red, Color.green, 1));
+                        }
+                        else
+                        {
+                            batch.material.SetColor("_UnlitColor", Color.Lerp(Color.red, Color.green, k / largestBrickSize));
+                        }
                         instanceData.Push(batch);
                     }
 
-                    Matrix4x4 mat = Matrix4x4.TRS(probes[i], Quaternion.identity, Vector3.one * (0.3f * (size + 1)));
+                    Matrix4x4 mat = Matrix4x4.TRS(probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (size + 1)));
                     instanceData.Peek().matrix.Add(mat);
 
                     j++;
@@ -145,18 +151,21 @@ namespace UnityEngine.Rendering.HighDefinition
         // Struct for instanced rendering of probes
         private struct ProbeBatch
         {
-            public List<Matrix4x4> matrix;
-            public Material material;
+            internal List<Matrix4x4> matrix;
+            internal Material material;
         }
     }
 
-    public class ProbeVolumeDebugDrawingWindow : EditorWindow
+    internal class ProbeVolumeDebugDrawingWindow : EditorWindow
     {
+        private float selectedMinCellSize;
+
         private void OnEnable()
         {
             this.titleContent.text = "Probe Volume Debug";
             this.maxSize = new Vector2(200, 100);
-            this.minSize = this.maxSize;   
+            this.minSize = this.maxSize;
+            this.selectedMinCellSize = 5f;
         }
 
         void OnGUI()
@@ -166,18 +175,17 @@ namespace UnityEngine.Rendering.HighDefinition
             var drawing = ProbeVolumeDebugDrawing.drawing;
             drawing.DrawProbes = EditorGUILayout.Toggle("Draw probes", drawing.DrawProbes);
             drawing.DrawBricks = EditorGUILayout.Toggle("Draw bricks", drawing.DrawBricks);
-            drawing.DrawReferenceVolume = EditorGUILayout.Toggle("Draw reference volume", drawing.DrawReferenceVolume);
 
-            var pos = ProbeVolumeManager.manager.positioning;
-            pos.MinCellSize = EditorGUILayout.FloatField("Min cell size", pos.MinCellSize);
-            if (pos.MinCellSize < 0.5f)
+            selectedMinCellSize = EditorGUILayout.FloatField("Min cell size", selectedMinCellSize);
+            if (selectedMinCellSize < 0.5f)
             {
-                pos.MinCellSize = 0.5f;
+                selectedMinCellSize = 0.5f;
             }
 
             if (GUILayout.Button("Build grid"))
             {
-                ProbeVolumeManager.manager.positioning.BuildBrickStructure();
+                ProbeVolumeManager.manager.BuildBrickStructure(selectedMinCellSize);
+                ProbeVolumeDebugDrawing.drawing.Dirty();
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -187,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
      
         [MenuItem("Window/Rendering/Probe Volume Debug")]
-        public static void ShowWindow()
+        internal static void ShowWindow()
         {
             EditorWindow.GetWindow<ProbeVolumeDebugDrawingWindow>();
         }

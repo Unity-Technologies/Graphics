@@ -20,14 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public ProbeVolumePositioning positioning;
-
         private ProbeVolumeManager()
         {
             volumes = new List<ProbeVolume>();
             volumesSelected = new List<ProbeVolume>();
-
-            positioning = new ProbeVolumePositioning();
 
         #if UNITY_EDITOR
             SubscribeBakingAPI();
@@ -161,23 +157,44 @@ namespace UnityEngine.Rendering.HighDefinition
 
             UnityEditor.Lightmapping.BakeAsync();
         }
+
+        // TODO: Obviously don't store these fields here
+        // Cached fields currently used for debug rendering 
+        internal ProbeReferenceVolume refVol;
+        internal List<ProbeReferenceVolume.Brick> bricks;
+        internal Vector3[] probePositions;
+
+        // This method build a brick structure of all user placed probe volumes and populates the above fields
+        internal void BuildBrickStructure(float minCellSize)
+        {
+            refVol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024);
+            refVol.SetGridDensity(minCellSize, 4);
+
+            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubDivideBricks;
+
+            // get a list of bricks for this volume
+            bricks = new List<ProbeReferenceVolume.Brick>();
+            foreach (ProbeVolume volume in volumes)
+            {
+                var vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
+
+                refVol.CreateBricks(ref vol, subdivDel, bricks, out int numProbes);
+            }
+
+            // convert the brick data into actual probe positions
+            probePositions = new Vector3[bricks.Count * 64];
+            refVol.ConvertBricks(bricks, probePositions);
+        }
 #endif
 
-        private void adaptiveExample()
+        internal void AdaptiveExample()
         {
-            ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1204);
+            ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024);
             refvol.SetGridDensity(0.25f, 4);
 
-            ProbeReferenceVolume.Volume vol;
-            vol.X = new Vector3(1.0f, 0.0f, 0.0f);
-            vol.Y = new Vector3(0.0f, 1.0f, 0.0f);
-            vol.Z = new Vector3(0.0f, 0.0f, 1.0f);
-            vol.corner = new Vector3(3.5f, 2.7f, -1.4f);
+            ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * 5));
 
-            ProbeReferenceVolume.SubdivisionDel subdivDel = (Matrix4x4 GetRefSpaceToWS, List<ProbeReferenceVolume.Brick> inBricks, List<ProbeReferenceVolume.Brick> outBricks) =>
-            {
-                outBricks = inBricks;
-            };
+            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubDivideBricks;
 
             // get a list of bricks for this volume
             List<ProbeReferenceVolume.Brick> sortedBricks = new List<ProbeReferenceVolume.Brick>();
