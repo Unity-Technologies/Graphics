@@ -76,7 +76,11 @@ namespace UnityEditor.ShaderGraph.Internal
         // the more complex interface for complex properties (defaulted for simple properties)
         internal virtual void AppendPropertyBlockStrings(ShaderStringBuilder builder)
         {
-            builder.AppendLine(GetPropertyBlockString());
+            var propertyBlockString = GetPropertyBlockString();
+            if (propertyBlockString != string.Empty)
+            {
+                builder.AppendLine(propertyBlockString);
+            }
         }
 
         // the simple interface for simple properties
