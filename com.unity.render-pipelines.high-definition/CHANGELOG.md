@@ -665,6 +665,7 @@ The version number for this package has increased due to a version update of a r
 - Fix Wizard load when none selected for RenderPipelineAsset
 - Fixed issue with unclear naming of debug menu for decals.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 
 ### Changed
 - Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
