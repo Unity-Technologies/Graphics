@@ -605,6 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
+        public static readonly int _InputTextureMSAA               = Shader.PropertyToID("_InputTextureMSAA");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
         public static readonly int _SourceTexture                  = Shader.PropertyToID("_SourceTexture");
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");
