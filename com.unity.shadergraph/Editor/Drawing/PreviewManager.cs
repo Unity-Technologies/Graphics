@@ -170,6 +170,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 node.RegisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
+                m_NodesPropertyChanged.Add(node);
                 return;
             }
 
