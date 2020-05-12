@@ -282,13 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
                     float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-#endif
-                        // We need to check if something invalidated the history buffers
-                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                    // We need to check if something invalidated the history buffers
+                    historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                     reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, outputTexture, reflectionHistory, intermediateBuffer0, historyValidity: historyValidity);
@@ -338,13 +333,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedReflection, ReflectionHistoryBufferAllocatorFunction, 1);
 
                     float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-#endif
-                        // We need to check if something invalidated the history buffers
-                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                    // We need to check if something invalidated the history buffers
+                    historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
                     reflectionDenoiser.DenoiseBuffer(cmd, hdCamera, settings.denoiserRadius.value, intermediateBuffer0, reflectionHistory, outputTexture, historyValidity: historyValidity);

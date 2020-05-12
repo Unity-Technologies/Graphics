@@ -237,11 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.subFrameCount = (uint)m_PathTracingSettings.maximumSamples.value;
             }
 
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-			if (Application.isPlaying)
-            	m_SubFrameManager.subFrameCount = 1;
-#endif
-
             uint currentIteration = m_SubFrameManager.iteration;
             if (currentIteration < m_SubFrameManager.subFrameCount)
             {

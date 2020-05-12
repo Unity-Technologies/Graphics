@@ -356,13 +356,8 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
 
             float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-            if (Application.isPlaying)
-                historyValidity = 0.0f;
-            else
-#endif
-                // We need to check if something invalidated the history buffers
-                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+            // We need to check if something invalidated the history buffers
+            historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
             // Apply the temporal denoiser
             HDTemporalFilter temporalFilter = GetTemporalFilter();

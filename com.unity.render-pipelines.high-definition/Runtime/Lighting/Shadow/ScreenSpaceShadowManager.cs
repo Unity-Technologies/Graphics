@@ -413,13 +413,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 || !hdCamera.ValidShadowHistory(m_CurrentSunLightAdditionalLightData, dirShadowIndex, GPULightType.Directional))
                                 historyValidity = 0.0f;
 
-                        #if UNITY_HDRP_DXR_TESTS_DEFINE
-                            if (Application.isPlaying)
-                                historyValidity = 0.0f;
-                            else
-                        #endif
-                                // We need to check if something invalidated the history buffers
-                                historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                            // We need to check if something invalidated the history buffers
+                            historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                             // Apply the temporal denoiser
                             HDTemporalFilter temporalFilter = GetTemporalFilter();
@@ -670,11 +665,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeVectorParam(m_ScreenSpaceShadowsFilterCS, HDShaderIDs._DenoisingHistoryMaskUn, m_ShadowChannelMask2);
 
                     float historyValidity = 1.0f;
-                #if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-                #endif
                     // We need to check if something invalidated the history buffers
                     historyValidity = ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
@@ -853,13 +843,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         || !hdCamera.ValidShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType))
                         historyValidity = 0.0f;
 
-                #if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-                #endif
-                        // We need to check if something invalidated the history buffers
-                        historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                    // We need to check if something invalidated the history buffers
+                    historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     // Apply the temporal denoiser
                     HDTemporalFilter temporalFilter = GetTemporalFilter();

@@ -370,13 +370,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Check if we need to invalidate the history
                     float historyValidity = 1.0f;
-#if UNITY_HDRP_DXR_TESTS_DEFINE
-                    if (Application.isPlaying)
-                        historyValidity = 0.0f;
-                    else
-#endif
-                        // We need to check if something invalidated the history buffers
-                         historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+                    // We need to check if something invalidated the history buffers
+                     historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
 
                     // Apply temporal filtering to the buffer
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
