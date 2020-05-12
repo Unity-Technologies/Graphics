@@ -124,6 +124,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
@@ -193,6 +194,10 @@ namespace UnityEditor.ShaderGraph
                 foreach (var output in outputSlots)
                     arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
 
+                // Vt Feedback arguments
+                foreach (var output in asset.vtFeedbackVariables)
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float)} {output}_out");
+
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
                     , asset.functionName
@@ -215,6 +220,11 @@ namespace UnityEditor.ShaderGraph
                     foreach (var slot in outputSlots)
                     {
                         sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
+                    }
+
+                    foreach (var slot in asset.vtFeedbackVariables)
+                    {
+                        sb.AppendLine($"{slot}_out = {slot};");
                     }
                 }
             });
