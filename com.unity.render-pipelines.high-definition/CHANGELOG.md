@@ -706,6 +706,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
 - Improved performance of reflection probe management when using a lot of probes.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 
 ## [7.1.1] - 2019-09-05
 
