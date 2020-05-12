@@ -583,6 +583,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
 - Fixed transparent motion vectors not working when in MSAA.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
