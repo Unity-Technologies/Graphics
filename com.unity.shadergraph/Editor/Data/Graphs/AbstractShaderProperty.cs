@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Internal
             set => m_Hidden = value;
         }
 
-        internal string hideTagString => hidden ? "[HideInInspector]" : "";
+        internal string hideTagString => !generatePropertyBlock || hidden ? "[HideInInspector]" : "";
 
         // simple properties use a single reference name; this function covers that case
         // complex properties can override this function to produce multiple reference names

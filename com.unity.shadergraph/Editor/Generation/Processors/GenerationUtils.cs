@@ -615,7 +615,7 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("Properties");
             using (sb.BlockScope())
             {
-                foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
+                foreach (var prop in propertyCollector.properties)
                 {
                     prop.AppendPropertyBlockStrings(sb);
                 }
