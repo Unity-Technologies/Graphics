@@ -62,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
             "Custom"
         };
 
+        static readonly int k_CustomPresetIndex = k_ApertureFormatNames.Length - 1;
+
         static readonly Vector2[] k_ApertureFormatValues =
         {
             new Vector2(4.8f, 3.5f),
@@ -75,6 +77,9 @@ namespace UnityEditor.Rendering.HighDefinition
             new Vector2(70f, 51f),
             new Vector2(70.41f, 52.63f)
         };
+
+        // Saves the value of the sensor size when the user switches from "custom" size to a preset.
+        static Vector2 s_LastCustomSensorSizeValue;
 
         static bool s_FovChanged;
         static float s_FovLastValue;
@@ -298,14 +303,33 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUI.BeginChangeCheck();
-                int filmGateIndex = Array.IndexOf(k_ApertureFormatValues, new Vector2((float)Math.Round(cam.sensorSize.vector2Value.x, 3), (float)Math.Round(cam.sensorSize.vector2Value.y, 3)));
-                if (filmGateIndex == -1)
-                    filmGateIndex = EditorGUILayout.Popup(cameraTypeContent, k_ApertureFormatNames.Length - 1, k_ApertureFormatNames);
-                else
-                    filmGateIndex = EditorGUILayout.Popup(cameraTypeContent, filmGateIndex, k_ApertureFormatNames);
 
-                if (EditorGUI.EndChangeCheck() && filmGateIndex < k_ApertureFormatValues.Length)
-                    cam.sensorSize.vector2Value = k_ApertureFormatValues[filmGateIndex];
+                int oldFilmGateIndex = Array.IndexOf(k_ApertureFormatValues, new Vector2((float)Math.Round(cam.sensorSize.vector2Value.x, 3), (float)Math.Round(cam.sensorSize.vector2Value.y, 3)));
+
+                // If it is not one of the preset sizes, set it to custom
+                oldFilmGateIndex = (oldFilmGateIndex == -1) ? k_CustomPresetIndex: oldFilmGateIndex;
+
+                // Get the new user selection
+                int newFilmGateIndex = EditorGUILayout.Popup(cameraTypeContent, oldFilmGateIndex, k_ApertureFormatNames);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    // When switching from custom to a preset, save the last custom value (to display again, in case the user switches back to custom)
+                    if (oldFilmGateIndex == k_CustomPresetIndex)
+                    {
+                        s_LastCustomSensorSizeValue = cam.sensorSize.vector2Value;
+                    }
+
+                    if (newFilmGateIndex < k_ApertureFormatValues.Length)
+                    {
+                        cam.sensorSize.vector2Value = k_ApertureFormatValues[newFilmGateIndex];
+                    }
+                    else
+                    {
+                        // The user switched back to custom, so display the old value
+                        cam.sensorSize.vector2Value = s_LastCustomSensorSizeValue;
+                    }
+                }
 
                 EditorGUILayout.PropertyField(cam.sensorSize, sensorSizeContent);
                 EditorGUILayout.PropertyField(p.iso, isoContent);
