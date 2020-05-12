@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float minCellSize = ProbeVolumeManager.manager.refVol.minBrickSize();
                     Vector3 scaledSize = Vector3.one * Mathf.Pow(3, b.size) * minCellSize;
-                    Vector3 scaledPos = (Vector3)b.Position * minCellSize + scaledSize / 2;
+                    Vector3 scaledPos = (Vector3)b.position * minCellSize + scaledSize / 2;
 
                     Handles.DrawWireCube(scaledPos, scaledSize);
                 }

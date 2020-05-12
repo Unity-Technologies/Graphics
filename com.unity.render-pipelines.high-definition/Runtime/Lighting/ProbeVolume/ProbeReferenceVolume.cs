@@ -58,16 +58,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct Brick
         {
-            internal int x, y, z;
+            internal Vector3Int position;
             internal int size;
-
-            internal Vector3Int Position { get { return new Vector3Int(x, y, z); } }
 
             internal Brick(Vector3Int position, int size)
             {
-                this.x = position.x;
-                this.y = position.y;
-                this.z = position.z;
+                this.position = position;
                 this.size = size;
             }
         }
@@ -118,12 +114,12 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (lhs.size != rhs.size)
                     return lhs.size > rhs.size ? -1 : 1;
-                if (lhs.z != rhs.z)
-                    return lhs.z < rhs.z ? -1 : 1;
-                if (lhs.y != rhs.y)
-                    return lhs.y < rhs.y ? -1 : 1;
-                if (lhs.x != rhs.x)
-                    return lhs.x < rhs.x ? -1 : 1;
+                if (lhs.position.z != rhs.position.z)
+                    return lhs.position.z < rhs.position.z ? -1 : 1;
+                if (lhs.position.y != rhs.position.y)
+                    return lhs.position.y < rhs.position.y ? -1 : 1;
+                if (lhs.position.x != rhs.position.x)
+                    return lhs.position.x < rhs.position.x ? -1 : 1;
 
                 return 0;
             });
@@ -138,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 0; i < bricks.Count; i++)
             {
-                Vector3 origin = bricks[i].Position;
+                Vector3 origin = bricks[i].position;
                 float size = cellSize(bricks[i].size);
 
                 for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)

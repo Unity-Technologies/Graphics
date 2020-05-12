@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector3Int offset = Position3D(3, 3, b) * thirdSize;
 
-                        var child = new Brick(brick.Position + offset, thirdSubDivLevel);
+                        var child = new Brick(brick.position + offset, thirdSubDivLevel);
                         if (ShouldKeepBrick(child))
                         {
                             result.Add(child);
@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             float minCellSize = ProbeVolumeManager.manager.refVol.minBrickSize();
             Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.size) * minCellSize;
-            Vector3 scaledPos = (Vector3)brick.Position * minCellSize + scaledSize / 2;
+            Vector3 scaledPos = (Vector3)brick.position * minCellSize + scaledSize / 2;
             Bounds bounds = new Bounds(scaledPos, scaledSize);
 
             bool result = false;
