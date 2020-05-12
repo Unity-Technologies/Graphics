@@ -14,8 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // For surface option shader graph we only want all unlit features but alpha clip, back then front rendering and SSR
         const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
-            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass
-            ^ SurfaceOptionUIBlock.Features.ShowPrePassAndPostPass;
+            ^ SurfaceOptionUIBlock.Features.ShowAfterPostProcessPass;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
