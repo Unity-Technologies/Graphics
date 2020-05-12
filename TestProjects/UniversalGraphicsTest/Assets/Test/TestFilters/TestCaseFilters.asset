@@ -61,7 +61,8 @@ MonoBehaviour:
     GraphicsDevice: 21
     XrSdk: None
     StereoModes: 0
-    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was 0.000877162092f'
+    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was
+      0.000877162092f'
   - FilteredScene: {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -216,3 +217,59 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: OSX Standalone won't work with back buffer capture
+  - FilteredScene: {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (008)
+  - FilteredScene: {fileID: 102900000, guid: 0a89803a0d2352245a452c202f9a67d1, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (109)
+  - FilteredScene: {fileID: 102900000, guid: f5310a9ab278ec748b2091bf7ba966a7, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (117)
+  - FilteredScene: {fileID: 102900000, guid: e1fb4b913911b734b88f86697de1b94a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (118)
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (119)
+  - FilteredScene: {fileID: 102900000, guid: 9aa9851df0da149c9a83a0f26072e234, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked issue (123)
+  - FilteredScene: {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked issue (124)
+  - FilteredScene: {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: iOS tracked regression (125)
