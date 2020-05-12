@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
@@ -78,8 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             new Vector2(70.41f, 52.63f)
         };
 
-        // Saves the value of the sensor size when the user switches from "custom" size to a preset.
-        static Vector2 s_LastCustomSensorSizeValue;
+        // Saves the value of the sensor size when the user switches from "custom" size to a preset per camera.
+        static Dictionary<Camera, Vector2> s_PerCameraSensorSizeHistory = new Dictionary<Camera, Vector2>();
 
         static bool s_FovChanged;
         static float s_FovLastValue;
@@ -317,7 +318,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // When switching from custom to a preset, save the last custom value (to display again, in case the user switches back to custom)
                     if (oldFilmGateIndex == k_CustomPresetIndex)
                     {
-                        s_LastCustomSensorSizeValue = cam.sensorSize.vector2Value;
+                        s_PerCameraSensorSizeHistory[(Camera)p.serializedObject.targetObject] = cam.sensorSize.vector2Value;
                     }
 
                     if (newFilmGateIndex < k_CustomPresetIndex)
@@ -326,8 +327,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        // The user switched back to custom, so display the old value
-                        cam.sensorSize.vector2Value = s_LastCustomSensorSizeValue;
+                        // The user switched back to custom, so display the old value, if we have a valid history for this camera
+                        Vector2 defaultValue; 
+                        if (s_PerCameraSensorSizeHistory.TryGetValue((Camera)p.serializedObject.targetObject, out defaultValue))
+                        {
+                            cam.sensorSize.vector2Value = defaultValue;
+                        }
+                        else
+                        {
+                            cam.sensorSize.vector2Value = new Vector2(36.0f, 24.0f); // this is the value new cameras are created with
+                        }
                     }
                 }
 
