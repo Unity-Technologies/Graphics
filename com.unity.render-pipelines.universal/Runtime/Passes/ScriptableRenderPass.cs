@@ -47,34 +47,9 @@ namespace UnityEngine.Rendering.Universal
             get => m_ColorAttachments[0];
         }
 
-        public AttachmentDescriptor[] colorAttachmentDescriptors
-        {
-            get => m_ColorAttachmentDescriptors;
-        }
-
-        public AttachmentDescriptor colorAttachmentDescriptor
-        {
-            get => m_ColorAttachmentDescriptors[0];
-        }
-
-        public AttachmentDescriptor[] inputAttachmentDescriptors
-        {
-            get => m_InputAttachmentDescriptors;
-        }
-
-        public AttachmentDescriptor depthAttachmentDescriptor
-        {
-            get => m_DepthAttachmentDescriptor;
-        }
-
         public RenderTargetIdentifier depthAttachment
         {
             get => m_DepthAttachment;
-        }
-
-        internal RenderPassDescriptor renderPassDescriptor
-        {
-            get => m_RenderPassDescriptor;
         }
 
         public ClearFlag clearFlag
@@ -87,15 +62,41 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-        public bool hasInputAttachment
+        internal AttachmentDescriptor[] colorAttachmentDescriptors
+        {
+            get => m_ColorAttachmentDescriptors;
+        }
+
+        internal AttachmentDescriptor colorAttachmentDescriptor
+        {
+            get => m_ColorAttachmentDescriptors[0];
+        }
+
+        internal AttachmentDescriptor[] inputAttachmentDescriptors
+        {
+            get => m_InputAttachmentDescriptors;
+        }
+
+        internal AttachmentDescriptor depthAttachmentDescriptor
+        {
+            get => m_DepthAttachmentDescriptor;
+        }
+
+        internal RenderPassDescriptor renderPassDescriptor
+        {
+            get => m_RenderPassDescriptor;
+        }
+
+        internal bool hasInputAttachment
         {
             get => inputAttachmentDescriptors.Length > 0;
         }
 
-        public bool useNativeRenderPass
+        internal bool useNativeRenderPass
         {
             get => m_RenderPassDescriptor.sampleCount != 0; // This should be enough to indicate whether the descriptor was set
         }
+
         internal int eyeIndex { get; set; }
 
         internal bool overrideCameraTarget { get; set; }

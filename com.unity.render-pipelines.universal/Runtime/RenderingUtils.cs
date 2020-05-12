@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.Universal
 
         //TODO: what should we do about Transient attachments? Currently can only exclude them from this.
         /// <summary>
-        /// Return true if non-transient value can be found in source
+        /// Return true if value can be found in source (without recurring to Linq)
         /// </summary>
         /// <param name="source"></param>
         /// <param name="value"></param>
@@ -296,9 +296,7 @@ namespace UnityEngine.Rendering.Universal
         {
             foreach (var identifier in source)
             {
-                bool isTransient = identifier.loadAction == RenderBufferLoadAction.DontCare &&
-                                   identifier.storeAction == RenderBufferStoreAction.DontCare;
-                if (identifier == value && !isTransient)
+                if (identifier == value)
                     return true;
             }
             return false;

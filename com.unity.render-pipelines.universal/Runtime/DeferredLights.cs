@@ -205,8 +205,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return m_AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm;
             else if (index == GBufferLightingIndex)
                 return GraphicsFormat.None;             // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
-//            else if (index == GBufferDepthIndex)      // We use RenderTextureFormat.Depth for it, not sure how to set via GraphicsFormat
-//                return GraphicsFormat.None;
+            else if (index == GBufferDepthIndex)
+                return GraphicsFormatUtility.GetGraphicsFormat(RenderTextureFormat.Depth, true);
             else if (index == GBufferAdditionalDepthIndex)
                 return GraphicsFormat.R32_SFloat;     // Optional: some mobile platforms are faster reading back depth as color instead of real depth.
             else
@@ -297,12 +297,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_TileDataCapacities = new int[DeferredConfig.kTilerDepth];
 
             GBufferDescriptors = new AttachmentDescriptor[GBufferSliceCount + 1]; // + Depth
-            GBufferDescriptors[0] = new AttachmentDescriptor(GetGBufferFormat(GBufferAlbedoIndex));
-            GBufferDescriptors[1] = new AttachmentDescriptor(GetGBufferFormat(GBufferSpecularMetallicIndex));
-            GBufferDescriptors[2] = new AttachmentDescriptor(GetGBufferFormat(GBufferNormalSmoothnessIndex));
-            GBufferDescriptors[4] = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            GBufferDescriptors[GBufferAlbedoIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferAlbedoIndex));
+            GBufferDescriptors[GBufferSpecularMetallicIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferSpecularMetallicIndex));
+            GBufferDescriptors[GBufferNormalSmoothnessIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferNormalSmoothnessIndex));
+            // Skipping GBufferDescriptors[GBufferLightingIndex] as it's set in EnqueueDeferred as active camera color descriptor
+            GBufferDescriptors[GBufferDepthIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferDepthIndex));
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            GBufferDescriptors[5] = new AttachmentDescriptor(GetGBufferFormat(GBufferAdditionalDepthIndex));
+            GBufferDescriptors[GBufferAdditionalDepthIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferAdditionalDepthIndex));
 #endif
 
             // Initialize hierarchical tilers. Next tiler processes 4x4 of the tiles of the previous tiler.
@@ -599,9 +600,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_DepthInfoTexture = depthInfoTexture;
             m_TileDepthInfoTexture = tileDepthInfoTexture;
             m_DepthTexture = depthTexture;
-            deferredInputs[0] = GBufferDescriptors[0];
-            deferredInputs[1] = GBufferDescriptors[1];
-            deferredInputs[2] = GBufferDescriptors[2];
+            deferredInputs[0] = GBufferDescriptors[GBufferAlbedoIndex];
+            deferredInputs[1] = GBufferDescriptors[GBufferSpecularMetallicIndex];
+            deferredInputs[2] = GBufferDescriptors[GBufferNormalSmoothnessIndex];
+            // Passing the last element of GBufferDescriptors for it to be the correct depth input
             deferredInputs[3] = GBufferDescriptors[GBufferSliceCount];
             m_HasTileVisLights = this.TiledDeferredShading && CheckHasTileLights(ref renderingData.lightData.visibleLights);
         }
