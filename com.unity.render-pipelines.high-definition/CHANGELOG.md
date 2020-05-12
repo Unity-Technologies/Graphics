@@ -120,6 +120,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for Depth of Field in path tracing (by sampling the lens aperture).
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
+- Added support for AxF measurements importing into texture resources tilings.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 
@@ -706,6 +708,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Use multi_compile API for deferred compute shader with shadow mask.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
+- Improved performance of reflection probe management when using a lot of probes.
 - Ignoring the disable SSR flags for recursive rendering.
 
 ## [7.1.1] - 2019-09-05
