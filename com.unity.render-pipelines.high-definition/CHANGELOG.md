@@ -581,6 +581,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
 - Fixed transparent motion vectors not working when in MSAA.
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
