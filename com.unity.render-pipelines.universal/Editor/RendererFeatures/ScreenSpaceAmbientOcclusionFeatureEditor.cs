@@ -11,14 +11,14 @@ namespace UnityEditor.Experimental.Rendering.Universal
     {
         internal class Styles
         {
-            public static GUIContent UseVolumes = new GUIContent("Use Volumes", "Enable this if the settings should be controlled by a volume override.");
-            public static GUIContent DownSample = new GUIContent("Downsample", "Controls whether the resulting SSAO texture is downsampled to half size or not.");
+            public static GUIContent UseVolumes = new GUIContent("Use Volumes", "Enable this option to use the settings from a volume override.");
+            public static GUIContent DownSample = new GUIContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
             //public static GUIContent DepthSource = new GUIContent("Depth Source", "");
-            public static GUIContent NormalQuality = new GUIContent("Normal Quality", "Controls the quality of computing the reconstructed normal.");
-            public static GUIContent Intensity = new GUIContent("Intensity", "The degree of darkness added by ambient occlusion.");
-            public static GUIContent Radius = new GUIContent("Radius", "Radius of sample points, which affects extent of darkened areas.");
-            public static GUIContent SampleCount = new GUIContent("Sample Count", "The number of sample points, which affects quality and performance.");
-            public static GUIContent BlurPassesCount = new GUIContent("Blur Passes", "The number of render passes for blurring.");
+            public static GUIContent NormalQuality = new GUIContent("Normal Quality", "The options in this field define the number of depth texture samples that Unity takes when computing the normals. Low: 1 sample, Medium: 5 samples, High: 9 samples.");
+            public static GUIContent Intensity = new GUIContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
+            public static GUIContent Radius = new GUIContent("Radius", "The radius around a given point, where Unity calculates and applies the effect.");
+            public static GUIContent SampleCount = new GUIContent("Sample Count", "The number of samples that Unity takes when calculating the obscurance value. Higher values have high performance impact.");
+            public static GUIContent BlurPassesCount = new GUIContent("Blur Passes", "The number of render passes for blurring the SSAO effect texture.");
         }
 
         // Serialized Properties
