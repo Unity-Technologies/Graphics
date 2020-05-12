@@ -622,17 +622,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
                 }
 
-                bool previousPassIsAsync = false;
-
-                using (new ProfilingScope(cmd, pass.customSampler))
+                LogRenderPassBegin(passIndex);
+                using (new RenderGraphLogIndent(m_Logger))
                 {
-                    LogRenderPassBegin(passIndex);
-                    using (new RenderGraphLogIndent(m_Logger))
-                    {
-                        previousPassIsAsync = PreRenderPassExecute(passIndex, previousPassIsAsync, ref rgContext);
-                        pass.Execute(rgContext);
-                        PostRenderPassExecute(cmd, passIndex, ref rgContext);
-                    }
+                    PreRenderPassExecute(passIndex, ref rgContext);
+                    pass.Execute(rgContext);
+                    PostRenderPassExecute(cmd, passIndex, ref rgContext);
                 }
             }
         }
@@ -681,26 +676,43 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        bool PreRenderPassExecute(int passIndex, bool previousPassIsAsync, ref RenderGraphContext rgContext)
+        void PushKickAsyncJobMarker(in RenderGraphContext rgContext, RenderGraphPass pass)
+        {
+            //var sampler = GetDefaultProfilingSampler($"Kick Async Job: {pass.name}");
+            //sampler.Begin(rgContext.cmd);
+            //sampler.End(rgContext.cmd);
+            var name = $"Kick Async Job: {pass.name}";
+            rgContext.cmd.BeginSample(name);
+            rgContext.cmd.EndSample(name);
+        }
+
+        void PreRenderPassExecute(int passIndex, ref RenderGraphContext rgContext)
         {
             // TODO RENDERGRAPH merge clear and setup here if possible
             RenderGraphPass pass = m_RenderPasses[passIndex];
             PassExecutionInfo passInfo = m_PassExecutionInfo[passIndex];
+
+            // TODO RENDERGRAPH remove this when we do away with auto global texture setup
+            // (can't put it in the profiling scope otherwise it might be executed on compute queue which is not possible for global sets)
+            m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.textureReadList);
+
+            //// Just mark the place where we kick the async job on graphics pipe.
+            //if (pass.enableAsyncCompute)
+            //    PushKickAsyncJobMarker(rgContext, pass);
+
+            pass.customSampler?.Begin(rgContext.cmd);
+
             foreach (var texture in passInfo.textureCreateList)
                 m_Resources.CreateAndClearTexture(rgContext, texture);
 
             PreRenderPassSetRenderTargets(passIndex, rgContext);
-            m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.textureReadList);
+
+            // Flush first the current command buffer on the render context.
+            rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
+            rgContext.cmd.Clear();
 
             if (pass.enableAsyncCompute)
             {
-                if (!previousPassIsAsync)
-                {
-                    // Flush first the current command buffer on the render context.
-                    rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
-                    rgContext.cmd.Clear();
-                }
-
                 CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
                 asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
                 rgContext.cmd = asyncCmd;
@@ -711,8 +723,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 rgContext.cmd.WaitOnAsyncGraphicsFence(m_PassExecutionInfo[passInfo.syncWithPassIndex].fence);
             }
-
-            return pass.enableAsyncCompute;
         }
 
         void PostRenderPassExecute(CommandBuffer mainCmd, int passIndex, ref RenderGraphContext rgContext)
@@ -733,6 +743,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             if (m_DebugParameters.unbindGlobalTextures)
                 m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, m_RenderPasses[passIndex].textureReadList);
+
+            pass.customSampler?.End(rgContext.cmd);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
 
