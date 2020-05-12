@@ -780,6 +780,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ViewPortSize                   = Shader.PropertyToID("_ViewPortSize");
         public static readonly int _ViewportScaleBias              = Shader.PropertyToID("_ViewportScaleBias");
         public static readonly int _SourceSize                     = Shader.PropertyToID("_SourceSize");
+        public static readonly int _SourceScaleFactor              = Shader.PropertyToID("_SourceScaleFactor");
 
         // Probe Volumes
         public static readonly int _ProbeVolumeAtlasSH             = Shader.PropertyToID("_ProbeVolumeAtlasSH");
