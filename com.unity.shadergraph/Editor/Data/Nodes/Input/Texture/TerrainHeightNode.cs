@@ -131,57 +131,67 @@ namespace UnityEditor.ShaderGraph
             bool heightAboveOutputConnected = IsSlotConnected(HeightAboveTerrainOutputId);
             bool positionOutputConnected = IsSlotConnected(WorldPositionOutputId);
             bool outputConnected = heightOutputConnected || heightAboveOutputConnected || positionOutputConnected;
-            bool feedbackConnected = IsSlotConnected(FeedbackSlotId);
+            bool feedbackConnected = IsSlotConnected(FeedbackSlotId) && !explicitMip; // TODO can we do feedback for explicit mip?  maybe, as long as it's pixel shader...
 
-            if (outputConnected || feedbackConnected)
-            {
-                string result;
-                if (explicitMip)
-                {
-                    result = string.Format("StackInfo {0}_info = PrepareStackLod(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0}, {2});"
-                            , stackName
-                            , GetSlotValue(WorldPosInputId, generationMode)
-                            , GetSlotValue(MipLevelInputId, generationMode));
-                }
-                else
-                {
-                    result = string.Format("StackInfo {0}_info = PrepareStack(({1}).xz * {0}_WorldToUVTransform.xy + {0}_WorldToUVTransform.zw, {0});"
-                            , stackName
-                            , GetSlotValue(WorldPosInputId, generationMode));
-                }
-                sb.AppendLine(result);
-            }
+            if (!outputConnected && !feedbackConnected)
+                return;
+
+            sb.AppendLine($"$precision2 {stackName}_heightUV = ({GetSlotValue(WorldPosInputId, generationMode)}).xz * {stackName}_WorldToUVTransform.xy + {stackName}_WorldToUVTransform.zw;");
+
+            string prepareStackInfo;
+            if (explicitMip)
+                prepareStackInfo = $"StackInfo {stackName}_info = PrepareStackLod({stackName}_heightUV, {stackName}, {GetSlotValue(MipLevelInputId, generationMode)});";
+            else
+                prepareStackInfo = $"StackInfo {stackName}_info = PrepareStack({stackName}_heightUV, {stackName});";
 
             if (outputConnected)
             {
-                var heightId = GetTerrainHeightLayerName();
-                string resultHeight = string.Format("$precision {1} = {3}({0}_info, {2}).r * {0}_HeightTransform.x + {0}_HeightTransform.y;"
-                        , stackName
-                        , GetVariableNameForSlot(WorldHeightOutputId)
-                        , heightId
-                        , explicitMip ? "SampleStackLod" : "SampleStack");
-                sb.AppendLine(resultHeight);
-            }
+                var outputVarName = GetVariableNameForSlot(WorldHeightOutputId);
+                // stackinfo is needed for feedback. Don't do dynamic branching.
+                if (feedbackConnected)
+                {
+                    sb.AppendLine($"{prepareStackInfo}");
+                    sb.AppendLine($"$precision {outputVarName} = any(abs({stackName}_heightUV - {stackName}_UVClipRect.xy) > {stackName}_UVClipRect.zw) ? 0.0f : {(explicitMip ? "SampleStackLod" : "SampleStack")}({stackName}_info, {GetTerrainHeightLayerName()}).r * {stackName}_HeightDecoder.x + {stackName}_HeightDecoder.y;");
+                }
+                else
+                {
+                    sb.AppendLine($"$precision {outputVarName};");
+                    sb.AppendLine($"UNITY_BRANCH if (any(abs({stackName}_heightUV - {stackName}_UVClipRect.xy) > {stackName}_UVClipRect.zw))");
+                    sb.AppendLine($"    {outputVarName} = 0.0f;");
+                    sb.AppendLine("else {");
+                    sb.IncreaseIndent();
 
-            if (heightAboveOutputConnected)
+                    sb.AppendLine($"{prepareStackInfo}");
+                    sb.AppendLine($"{outputVarName} = {(explicitMip ? "SampleStackLod" : "SampleStack")}({stackName}_info, {GetTerrainHeightLayerName()}).r * {stackName}_HeightDecoder.x + {stackName}_HeightDecoder.y;");
+
+                    sb.DecreaseIndent();
+                    sb.AppendLine("}");
+                }
+
+                if (heightAboveOutputConnected)
+                {
+                    string resultDelta = string.Format("$precision {0} = {1}.y - {2};"
+                            , GetVariableNameForSlot(HeightAboveTerrainOutputId)
+                            , GetSlotValue(WorldPosInputId, generationMode)
+                            , outputVarName);
+                    sb.AppendLine(resultDelta);
+                }
+
+                if (positionOutputConnected)
+                {
+                    string resultPos = string.Format("$precision3 {0} = $precision3({2}.x, {1}, {2}.z);"
+                            , GetVariableNameForSlot(WorldPositionOutputId)
+                            , outputVarName
+                            , GetSlotValue(WorldPosInputId, generationMode));
+                    sb.AppendLine(resultPos);
+                }
+            }
+            else
             {
-                string resultDelta = string.Format("$precision {0} = {1}.y - {2};"
-                        , GetVariableNameForSlot(HeightAboveTerrainOutputId)
-                        , GetSlotValue(WorldPosInputId, generationMode)
-                        , GetVariableNameForSlot(WorldHeightOutputId));
-                sb.AppendLine(resultDelta);
+                sb.AppendLine($"{prepareStackInfo}");
             }
 
-            if (positionOutputConnected)
-            {
-                string resultPos = string.Format("$precision3 {0} = $precision3({2}.x, {1}, {2}.z);"
-                        , GetVariableNameForSlot(WorldPositionOutputId)
-                        , GetVariableNameForSlot(WorldHeightOutputId)
-                        , GetSlotValue(WorldPosInputId, generationMode));
-                sb.AppendLine(resultPos);
-            }
-
-            if (feedbackConnected && !explicitMip)      // TODO can we do feedback for explicit mip?  maybe, as long as it's pixel shader...
+            if (feedbackConnected)
             {
                 //TODO: Investigate if the feedback pass can use halfs
                 string feedBackCode = string.Format("float4 {0} = GetResolveOutput({1}_info);",
@@ -216,7 +226,13 @@ namespace UnityEditor.ShaderGraph
 
             properties.AddShaderProperty(new StackShaderProperty()
             {
-                overrideReferenceName = "float4 " + stackName + "_HeightTransform",
+                overrideReferenceName = "float4 " + stackName + "_HeightDecoder",
+                m_Batchable = true
+            });
+
+            properties.AddShaderProperty(new StackShaderProperty()
+            {
+                overrideReferenceName = "float4 " + stackName + "_UVClipRect",
                 m_Batchable = true
             });
 
