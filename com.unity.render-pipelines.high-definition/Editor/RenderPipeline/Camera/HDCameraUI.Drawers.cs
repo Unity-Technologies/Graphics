@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
@@ -80,7 +80,8 @@ namespace UnityEditor.Rendering.HighDefinition
         };
 
         // Saves the value of the sensor size when the user switches from "custom" size to a preset per camera.
-        static Dictionary<Camera, Vector2> s_PerCameraSensorSizeHistory = new Dictionary<Camera, Vector2>();
+        // We use a ConditionalWeakTable instead of a Dictionary to avoid keeping alive (with strong references) deleted cameras
+        static ConditionalWeakTable<Camera, object> s_PerCameraSensorSizeHistory = new ConditionalWeakTable<Camera, object>();
 
         static bool s_FovChanged;
         static float s_FovLastValue;
@@ -315,10 +316,21 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (EditorGUI.EndChangeCheck())
                 {
-                    // When switching from custom to a preset, save the last custom value (to display again, in case the user switches back to custom)
+                    // Retrieve the previous custom size value, if one exists for this camera
+                    object previousCustomValue;
+                    s_PerCameraSensorSizeHistory.TryGetValue((Camera)p.serializedObject.targetObject, out previousCustomValue);
+
+                    // When switching from custom to a preset, update the last custom value (to display again, in case the user switches back to custom)
                     if (oldFilmGateIndex == k_CustomPresetIndex)
                     {
-                        s_PerCameraSensorSizeHistory[(Camera)p.serializedObject.targetObject] = cam.sensorSize.vector2Value;
+                        if (previousCustomValue == null)
+                        {
+                            s_PerCameraSensorSizeHistory.Add((Camera)p.serializedObject.targetObject, cam.sensorSize.vector2Value);
+                        }
+                        else
+                        {
+                            previousCustomValue = cam.sensorSize.vector2Value;
+                        }
                     }
 
                     if (newFilmGateIndex < k_CustomPresetIndex)
@@ -327,11 +339,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                     else
                     {
-                        // The user switched back to custom, so display the old value, if we have a valid history for this camera
-                        Vector2 defaultValue; 
-                        if (s_PerCameraSensorSizeHistory.TryGetValue((Camera)p.serializedObject.targetObject, out defaultValue))
+                        // The user switched back to custom, so display by deafulr the previous custom value
+                        if (previousCustomValue != null)
                         {
-                            cam.sensorSize.vector2Value = defaultValue;
+                            cam.sensorSize.vector2Value = (Vector2)previousCustomValue;
                         }
                         else
                         {
