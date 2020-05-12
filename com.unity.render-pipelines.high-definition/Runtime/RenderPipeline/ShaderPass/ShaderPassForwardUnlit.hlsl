@@ -24,7 +24,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+void Frag(PackedVaryingsToPS packedInput,
+    out float4 outResult : SV_Target0
+#ifdef UNITY_VIRTUAL_TEXTURING
+    ,out float4 outVTFeedback : SV_Target1
+#endif
+)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -93,5 +98,9 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 
 #endif
 
-    return outColor;
+    outResult = outColor;
+
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = builtinData.vtPackedFeedback;
+#endif
 }
