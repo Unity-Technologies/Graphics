@@ -10,7 +10,11 @@ namespace UnityEngine.TestTools.Graphics
         {
             AssetBundle referenceImagesBundle = null;
 
-            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
+            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}",
+                Application.streamingAssetsPath,
+                UseGraphicsTestCasesAttribute.ColorSpace.ToString().ToLower(),
+                UseGraphicsTestCasesAttribute.Platform.ToString().ToLower(),
+                UseGraphicsTestCasesAttribute.GraphicsDevice.ToString().ToLower());
             if (File.Exists(referenceImagesBundlePath))
                 referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
 
@@ -37,7 +41,11 @@ namespace UnityEngine.TestTools.Graphics
 
             AssetBundle referenceImagesBundle = null;
 
-            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
+            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}",
+                Application.streamingAssetsPath,
+                UseGraphicsTestCasesAttribute.ColorSpace.ToString().ToLower(),
+                UseGraphicsTestCasesAttribute.Platform.ToString().ToLower(),
+                UseGraphicsTestCasesAttribute.GraphicsDevice.ToString().ToLower());
             if (File.Exists(referenceImagesBundlePath))
                 referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
 
