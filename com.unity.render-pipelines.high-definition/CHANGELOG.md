@@ -584,6 +584,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vectors not working when in MSAA.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed truncation warnings in shaders with WorldSpaceCameraPos and PrevCamPosRWS
 
 ### Changed
 - Improve MIP selection for decals on Transparents
