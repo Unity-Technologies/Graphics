@@ -3878,7 +3878,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.IsTransparentSSREnabled())
                     {
-                        // But we also need to bind the normal buffer for objects that will recieve SSR
+                        // But we also need to bind the normal buffer for objects that will receive SSR
                         CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
                     }
                     else
@@ -4165,27 +4165,38 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.IsTransparentSSREnabled())
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
-
-            // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
-            // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareForTransparentSsr)))
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            if (usesRaytracedReflections)
             {
-                // Clear the SSR lighting buffer (not sure it is required)
-                CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
-                CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
+                hdCamera.xr.StartSinglePass(cmd);
+                RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount, true);
+                hdCamera.xr.StopSinglePass(cmd);
             }
-
-            // Evaluate the screen space reflection for the transparent pixels
-            var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-            var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), true);
-            RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
-
-            // If color pyramid was not valid, we bind a black texture
-            if (!hdCamera.colorPyramidHistoryIsValid)
+            else
             {
-                cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
-                hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
+
+                // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
+                // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareForTransparentSsr)))
+                {
+                    // Clear the SSR lighting buffer (not sure it is required)
+                    CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
+                    CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
+                }
+
+                // Evaluate the screen space reflection for the transparent pixels
+                var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), true);
+                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
+
+                // If color pyramid was not valid, we bind a black texture
+                if (!hdCamera.colorPyramidHistoryIsValid)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
+                    hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                }
             }
 
             // Push our texture to the debug menu
