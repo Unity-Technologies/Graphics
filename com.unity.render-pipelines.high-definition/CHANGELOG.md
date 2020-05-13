@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 - Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
