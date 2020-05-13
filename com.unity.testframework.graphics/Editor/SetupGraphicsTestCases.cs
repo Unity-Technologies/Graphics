@@ -106,14 +106,52 @@ namespace UnityEditor.TestTools.Graphics
 
             var sceneIndex = 0;
             var totalScenes = EditorBuildSettings.scenes.Length;
-            
-            foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+
+            string[] filterGUIDs = AssetDatabase.FindAssets("t:TestFilters");
+
+            List<TestFilters> filters = new List<TestFilters>();
+            foreach (var filterGUID in filterGUIDs)
+            {
+                string filterPath = AssetDatabase.GUIDToAssetPath(filterGUID);
+                filters.Add(AssetDatabase.LoadAssetAtPath(filterPath, typeof(TestFilters)) as TestFilters);
+            }
+            // Disabling scenes directly in EditorBuildSettings.scenes does not work
+            // As a solution - disabling scenes in temporary variable and then assigning it back to EditorBuildSettings.scenes
+            EditorBuildSettingsScene[] scenes = EditorBuildSettings.scenes;
+
+            foreach( EditorBuildSettingsScene scene in scenes)
             {
                 if (!scene.enabled) continue;
 
+                if (filters.Count > 0)
+                {
+                    // Right now leaving only single filter available per project.
+                    var filtersForScene = filters.First().filters.Where(f => AssetDatabase.GetAssetPath(f.FilteredScene) == scene.path);
+                    bool enableScene = true;
+                    string filterReasons = "";
+
+                    foreach (var filter in filtersForScene)
+                    {
+                        if ((filter.BuildPlatform == buildPlatform || filter.BuildPlatform == BuildTarget.NoTarget) &&
+                            (filter.GraphicsDevice == graphicsDevices.First() || filter.GraphicsDevice == GraphicsDeviceType.Null) &&
+                            (filter.ColorSpace == colorSpace || filter.ColorSpace == ColorSpace.Uninitialized))
+                        {
+                            // Adding reasons in case when same test is ignored several times
+                            filterReasons += filter.Reason + "\n";
+                            enableScene = false;
+                        }
+                    }
+                    scene.enabled = enableScene;
+                    if (!enableScene)
+                    {
+                        Debug.Log(string.Format("Removed scene {0} from build settings because {1}", Path.GetFileNameWithoutExtension(scene.path), filterReasons));
+                        continue;
+                    }
+                }
+
                 SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
                 var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
-                
+
                 // if we successfully retrieved the names of the selected scenes, we filter using this list
                 if (selectedScenes.Length > 0 && !selectedScenes.Contains(sceneAsset.name))
                     continue;
@@ -141,8 +179,9 @@ namespace UnityEditor.TestTools.Graphics
 
                 sceneIndex++;
             }
-            
+
             EditorUtility.ClearProgressBar();
+            EditorBuildSettings.scenes = scenes;
 
             if (!IsBuildingForEditorPlaymode)
                 new CreateSceneListFileFromBuildSettings().Setup();
@@ -169,7 +208,7 @@ namespace UnityEditor.TestTools.Graphics
                 );
 
                 dynamic testRunnerFilterArray = getSelectedTestsAsFilterMethod.Invoke(playModeListGUIValue, new object[] { selectedItems });
-                
+
                 var testNamesField = testRunnerFilterArray[0].GetType().GetField("testNames", BindingFlags.Instance | BindingFlags.Public);
 
                 List< string > testNames = new List<string>();
