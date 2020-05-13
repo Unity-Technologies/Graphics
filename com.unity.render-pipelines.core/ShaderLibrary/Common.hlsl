@@ -686,36 +686,37 @@ TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min))
 // Texture utilities
 // ----------------------------------------------------------------------------
 
-float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale)
+float ComputeTextureLOD(float2 uvdx, float2 uvdy, float2 scale, float bias = 0.0)
 {
     float2 ddx_ = scale * uvdx;
     float2 ddy_ = scale * uvdy;
-    float d = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
+    float  d    = max(dot(ddx_, ddx_), dot(ddy_, ddy_));
 
-    return max(0.5 * log2(d), 0.0);
+    return max(0.5 * log2(d) - bias, 0.0);
 }
 
-float ComputeTextureLOD(float2 uv)
+float ComputeTextureLOD(float2 uv, float bias = 0.0)
 {
     float2 ddx_ = ddx(uv);
     float2 ddy_ = ddy(uv);
 
-    return ComputeTextureLOD(ddx_, ddy_, 1.0);
+    return ComputeTextureLOD(ddx_, ddy_, 1.0, bias);
 }
 
 // x contains width, w contains height
-float ComputeTextureLOD(float2 uv, float2 texelSize)
+float ComputeTextureLOD(float2 uv, float2 texelSize, float bias = 0.0)
 {
     uv *= texelSize;
 
-    return ComputeTextureLOD(uv);
+    return ComputeTextureLOD(uv, bias);
 }
 
 // LOD clamp is optional and happens outside the function.
-float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale, float bias = 0.0)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
-    return 0.5 * log2(d * (scale * scale));
+
+    return max(0.5f * log2(d * (scale * scale)) - bias, 0.0);
 }
 
 
@@ -1012,6 +1013,12 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
     return hpositionWS.xyz / hpositionWS.w;
 }
 
+float3 ComputeWorldSpacePosition(float4 positionCS, float4x4 invViewProjMatrix)
+{
+    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    return hpositionWS.xyz / hpositionWS.w;
+}
+
 // ----------------------------------------------------------------------------
 // PositionInputs
 // ----------------------------------------------------------------------------
@@ -1103,37 +1110,6 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
     // 'depthOffsetVS' applies in the direction away from the camera.
     posInput.linearDepth += depthOffsetVS * abs(dot(V, viewForwardDir));
 }
-
-// ----------------------------------------------------------------------------
-// Terrain/Brush heightmap encoding/decoding
-// ----------------------------------------------------------------------------
-
-#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-
-real4 PackHeightmap(real height)
-{
-    uint a = (uint)(65535.0 * height);
-    return real4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0;
-}
-
-real UnpackHeightmap(real4 height)
-{
-    return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
-}
-
-#else
-
-real4 PackHeightmap(real height)
-{
-    return real4(height, 0, 0, 0);
-}
-
-real UnpackHeightmap(real4 height)
-{
-    return height.r;
-}
-
-#endif
 
 // ----------------------------------------------------------------------------
 // Misc utilities
@@ -1258,5 +1234,8 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 {
     return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
 }
+
+// These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
+TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
 #endif // UNITY_COMMON_INCLUDED

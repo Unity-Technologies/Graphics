@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
@@ -522,7 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target50) },
-            { Pragma.Raytracing("test") },
+            { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
     }
@@ -534,6 +534,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static KeywordCollection HDBase = new KeywordCollection
         {
             { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
+            { CoreKeywordDescriptors.SurfaceTypeTransparent },
+            { CoreKeywordDescriptors.BlendMode },
+            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
+            { CoreKeywordDescriptors.FogOnTransparent },
+            { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
+        };
+
+        public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
+        {
             { CoreKeywordDescriptors.SurfaceTypeTransparent },
             { CoreKeywordDescriptors.BlendMode },
             { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
@@ -578,14 +587,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
         {
-            { HDBase },
-            { CoreKeywordDescriptors.DiffuseLightingOnly },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
 
         public static KeywordCollection RaytracingGBufferForward = new KeywordCollection
         {
-            { HDBase },
+            { HDBaseNoCrossFade },
             { Lightmaps },
         };
     }
@@ -630,6 +638,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // CorePregraph
         const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
         const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
@@ -666,7 +675,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         // Public Pregraph Function
         public const string kCommonLighting = "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl";
-        public const string kShadowContext = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowContext.hlsl";
         public const string kHDShadow = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/HDShadow.hlsl";
         public const string kLightLoopDef = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl";
         public const string kPunctualLightCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl";
@@ -697,6 +705,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kCommon, IncludeLocation.Pregraph },
+            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
@@ -866,15 +875,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Shadows Shadowmask",
             referenceName = "SHADOWS_SHADOWMASK",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
-        public static KeywordDescriptor DiffuseLightingOnly = new KeywordDescriptor()
-        {
-            displayName = "Diffuse Lighting Only",
-            referenceName = "DIFFUSE_LIGHTING_ONLY",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

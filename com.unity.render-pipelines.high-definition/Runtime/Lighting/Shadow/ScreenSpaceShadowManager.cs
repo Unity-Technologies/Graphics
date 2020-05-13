@@ -203,6 +203,22 @@ namespace UnityEngine.Rendering.HighDefinition
             // Directional shadow material
             s_ScreenSpaceShadowsMat = CoreUtils.CreateEngineMaterial(screenSpaceShadowsShader);
 
+            switch (m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality)
+            {
+                case HDShadowFilteringQuality.Low:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_LOW");
+                    break;
+                case HDShadowFilteringQuality.Medium:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
+                    break;
+                case HDShadowFilteringQuality.High:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_HIGH");
+                    break;
+                default:
+                    s_ScreenSpaceShadowsMat.EnableKeyword("SHADOW_MEDIUM");
+                    break;
+            }            
+
             // Allocate the final result texture
             int numShadowTextures = Math.Max((int)Math.Ceiling(m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots / 4.0f), 1);
             GraphicsFormat graphicsFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.hdShadowInitParams.screenSpaceShadowBufferFormat;
