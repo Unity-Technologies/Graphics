@@ -297,6 +297,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        protected int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+                hash = 23*hash + texture.graphicsFormat.GetHashCode();
+                hash = 23*hash + texture.wrapMode.GetHashCode();
+                hash = 23*hash + texture.width.GetHashCode();
+                hash = 23*hash + texture.height.GetHashCode();
+                hash = 23*hash + texture.filterMode.GetHashCode();
+                hash = 23*hash + texture.anisoLevel.GetHashCode();
+                hash = 23*hash + texture.mipmapCount.GetHashCode();
+                hash = 23*hash + texture.updateCount.GetHashCode();
+            }
+
+            return hash;
+        }
+
         public int GetTextureID(Texture texture)
         {
             return texture.GetInstanceID().GetHashCode() + 23*GetTextureHash(texture);
@@ -306,7 +325,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return textureA.GetInstanceID().GetHashCode() +
                    23*textureB.GetInstanceID().GetHashCode() +
-                   23 *GetTextureHash(textureA) +
+                   23*GetTextureHash(textureA) +
                    23*GetTextureHash(textureB);
         }
 
@@ -318,25 +337,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool IsCached(out Vector4 scaleOffset, int id)
             => m_AllocationCache.TryGetValue(id, out scaleOffset);
-
-        protected int GetTextureHash(Texture texture)
-        {
-            int hash = texture.GetHashCode();
-
-            unchecked
-            {
-                hash = hash * 23 + texture.graphicsFormat.GetHashCode();
-                hash = hash * 23 + texture.wrapMode.GetHashCode();
-                hash = hash * 23 + texture.width.GetHashCode();
-                hash = hash * 23 + texture.height.GetHashCode();
-                hash = hash * 23 + texture.filterMode.GetHashCode();
-                hash = hash * 23 + texture.anisoLevel.GetHashCode();
-                hash = hash * 23 + texture.mipmapCount.GetHashCode();
-                hash = hash * 23 + texture.updateCount.GetHashCode();
-            }
-
-            return hash;
-        }
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
@@ -379,9 +379,10 @@ namespace UnityEngine.Rendering.HighDefinition
             int key = GetTextureID(textureA, textureB);
 
             RenderTexture rtA = textureA as RenderTexture;
-            RenderTexture rtB = textureB as RenderTexture;
             if (rtA != null)
                 key += 23*rtA.updateCount.GetHashCode();
+
+            RenderTexture rtB = textureB as RenderTexture;
             if (rtB != null)
                 key += 23*rtB.updateCount.GetHashCode();
 

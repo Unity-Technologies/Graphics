@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (Is2D(texture))
             {
                 Blit2DTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : /*texture.GetInstanceID()*/GetTextureID(texture), blitMips);
             }
         }
 
@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (Is2D(texture))
             {
                 BlitOctahedralTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : /*texture.GetInstanceID()*/GetTextureID(texture), blitMips);
             }
         }
 
@@ -133,7 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ReserveSpace(Texture texture)
         {
-            m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
+            m_RequestedTextures[/*texture.GetInstanceID()*/GetTextureID(texture)] = new Vector2Int(texture.width, texture.height);
 
             // new texture
             if (!IsCached(out _, texture))
