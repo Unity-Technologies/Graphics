@@ -58,6 +58,17 @@ namespace UnityEditor.ShaderGraph
                 case KeywordType.Boolean:
                 {
                     // Boolean type has preset slots
+                    PooledList<MaterialSlot> temp = PooledList<MaterialSlot>.Get();
+                    GetInputSlots(temp);
+                    if(temp.Any())
+                    {
+                        temp.Dispose();
+                        break;
+                    }
+                    else
+                    {
+                        temp.Dispose();
+                    }
                     AddSlot(new DynamicVectorMaterialSlot(OutputSlotId, "Out", "Out", SlotType.Output, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(1, "On", "On", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(2, "Off", "Off", SlotType.Input, Vector4.zero));
