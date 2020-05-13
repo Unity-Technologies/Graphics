@@ -19,7 +19,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Helper class to manage editor preferences with local caching.
-        // Only supports bools, floats and ints/enums for now.
+        // Only supports bools, floats and ints/enums, so we keep it local for now.
         class CachedEditorPref<T>
         {
             T m_Storage;
@@ -37,7 +37,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Creates a cached editor preference using the specified key and default value
-            // Only supports floats, ints/enum or bools, so keeping it local for now
             public CachedEditorPref(string key, T dafaultValue)
             {
                 m_Key = key;
