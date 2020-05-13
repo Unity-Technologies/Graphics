@@ -15,12 +15,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             while (level.Count != 0)
             {
-                level = SubDivideLevel(level);
+                level = SubDivideLevel(refSpaceToWS, level);
                 outBricks.AddRange(level);
             }
         }
 
-        private static List<Brick> SubDivideLevel(List<Brick> level)
+        private static List<Brick> SubDivideLevel(Matrix4x4 refSpaceToWS, List<Brick> level)
         {
             List<Brick> result = new List<Brick>();
 
@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3Int offset = Position3D(3, 3, b) * thirdSize;
 
                         var child = new Brick(brick.position + offset, thirdSubDivLevel);
-                        if (ShouldKeepBrick(child))
+                        if (ShouldKeepBrick(refSpaceToWS, child))
                         {
                             result.Add(child);
                         }
@@ -51,18 +51,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: Add subdivision criteria here,
         // currently just keeps subdividing inside probe volumes
-        internal static bool ShouldKeepBrick(Brick brick)
+        internal static bool ShouldKeepBrick(Matrix4x4 refSpaceToWS, Brick brick)
         {
-            return IntersectsProbeVolume(brick);
+            return IntersectsProbeVolume(refSpaceToWS, brick);
         }
 
         // TODO: Full OBB-OBB collision, perhaps using SAT
         // TODO: Take refvol translation and rotation into account
-        internal static bool IntersectsProbeVolume(Brick brick)
+        internal static bool IntersectsProbeVolume(Matrix4x4 refSpaceToWS, Brick brick)
         {
-            float minCellSize = ProbeVolumeManager.manager.refVol.minBrickSize();
-            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.size) * minCellSize;
-            Vector3 scaledPos = (Vector3)brick.position * minCellSize + scaledSize / 2;
+            Vector3 scaledSize = refSpaceToWS.lossyScale * Mathf.Pow(3, brick.size);
+            Vector3 scaledPos = refSpaceToWS.MultiplyPoint(brick.position) + scaledSize / 2;
             Bounds bounds = new Bounds(scaledPos, scaledSize);
 
             bool result = false;

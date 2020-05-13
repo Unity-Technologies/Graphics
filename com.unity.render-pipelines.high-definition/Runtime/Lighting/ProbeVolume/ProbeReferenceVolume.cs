@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float brickSize( int subdivisionLevel) { return m_MinBrickSize * cellSize(subdivisionLevel); }
         internal float minBrickSize() { return m_MinBrickSize; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
-        internal Matrix4x4 GetRefSpaceToWS() { return Matrix4x4.TRS(m_Position, m_Rotation, Vector3.one); }
+        internal Matrix4x4 GetRefSpaceToWS() { return Matrix4x4.TRS(m_Position, m_Rotation, Vector3.one * minBrickSize()); }
 
         internal delegate void SubdivisionDel(Matrix4x4 refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks);
 
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
-            Matrix4x4 m = GetRefSpaceToWS() * Matrix4x4.Scale(Vector3.one * minBrickSize());
+            Matrix4x4 m = GetRefSpaceToWS();
             int posIdx = 0;
 
             for (int i = 0; i < bricks.Count; i++)
@@ -164,7 +164,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Matrix4x4 m = GetRefSpaceToWS().inverse;
 
-            // Handle translation and rotation
+            // Handle TRS
             outVolume.Corner = m.MultiplyPoint(inVolume.Corner);
             outVolume.X = m.MultiplyVector(inVolume.X);
             outVolume.Y = m.MultiplyVector(inVolume.Y);
@@ -175,8 +175,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Calculate bounding box for volume in refvol space
             var AABB = volume.CalculateAABB();
-            AABB.center /= minBrickSize();
-            AABB.size /= minBrickSize();
 
             // Calculate smallest brick size capable of covering shortest AABB dimension
             float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
