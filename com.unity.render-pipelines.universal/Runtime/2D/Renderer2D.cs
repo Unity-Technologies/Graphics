@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool stackHasPostProcess = renderingData.postProcessingEnabled;
             bool lastCameraInStack = cameraData.resolveFinalTarget;
             var colorTextureFilterMode = FilterMode.Bilinear;
-            var postProcessFeatureSet = UniversalRenderPipeline.asset.postProcessingFeatureSet; 
+            bool usingPPV2 = UniversalRenderPipeline.asset.postProcessingFeatureSet == PostProcessingFeatureSet.PostProcessingV2;
 
             PixelPerfectCamera ppc = null;
             bool ppcUsesOffscreenRT = false;
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
-            if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && postProcessFeatureSet == PostProcessingFeatureSet.Integrated)
+            if (!usingPPV2 && stackHasPostProcess && cameraData.renderType == CameraRenderType.Base)
             {
                 m_ColorGradingLutPass.Setup(k_ColorGradingLutHandle);
                 EnqueuePass(m_ColorGradingLutPass);
@@ -184,32 +184,37 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // and only upscale the low-res RT to fullscreen when blitting it to camera target. Also, final post processing pass is not run in this case,
             // so FXAA is not supported (you don't want to apply FXAA when everything is intentionally pixelated).
             bool requireFinalPostProcessPass =
-                lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
+                !usingPPV2 && lastCameraInStack && !ppcUpscaleRT && stackHasPostProcess && cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
             if (cameraData.postProcessEnabled)
             {
                 RenderTargetHandle postProcessDestHandle =
                     lastCameraInStack && !ppcUpscaleRT && !requireFinalPostProcessPass ? RenderTargetHandle.CameraTarget : k_AfterPostProcessColorHandle;
 
-                m_PostProcessPass.Setup(
-                    cameraTargetDescriptor,
-                    colorTargetHandle,
-                    postProcessDestHandle,
-                    depthTargetHandle,
-                    k_ColorGradingLutHandle,
-                    requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
+#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
+                if (usingPPV2)
+                {
+                    m_PostProcessPassCompat.Setup(cameraTargetDescriptor, colorTargetHandle, postProcessDestHandle);
+                    EnqueuePass(m_PostProcessPassCompat);
+                }
+                else
+#endif
+                {
+                    m_PostProcessPass.Setup(
+                        cameraTargetDescriptor,
+                        colorTargetHandle,
+                        postProcessDestHandle,
+                        depthTargetHandle,
+                        k_ColorGradingLutHandle,
+                        requireFinalPostProcessPass,
+                        postProcessDestHandle == RenderTargetHandle.CameraTarget
+                    );
 
-                EnqueuePass(m_PostProcessPass);
+                    EnqueuePass(m_PostProcessPass);
+                }
+                
                 colorTargetHandle = postProcessDestHandle;
             }
-#if POST_PROCESSING_STACK_2_0_0_OR_NEWER
-            else if (postProcessEnabled && postProcessFeatureSet == PostProcessingFeatureSet.PostProcessingV2)
-            {
-                m_PostProcessPassCompat.Setup(cameraData.cameraTargetDescriptor, m_ColorTargetHandle, m_ColorTargetHandle);
-                EnqueuePass(m_PostProcessPassCompat);
-            }
-#endif
 
             if (requireFinalPostProcessPass)
             {
