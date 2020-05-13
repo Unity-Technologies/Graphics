@@ -1138,6 +1138,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }
+
+            // Update info about current target mid gray
+            TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;
+            switch(requestedMidGray)
+            {
+                case TargetMidGray.Grey125:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+                case TargetMidGray.Grey14:
+                    ColorUtils.s_LightMeterCalibrationConstant = 14.0f;
+                    break;
+                case TargetMidGray.Grey18:
+                    ColorUtils.s_LightMeterCalibrationConstant = 18.0f;
+                    break;
+                default:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+            }
         }
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)

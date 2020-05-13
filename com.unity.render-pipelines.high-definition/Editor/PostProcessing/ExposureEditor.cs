@@ -26,6 +26,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HistogramPercentages;
         SerializedDataParameter m_HistogramCurveRemapping;
 
+        SerializedDataParameter m_TargetMidGray;
+
+        static readonly string[] s_MidGrayNames = {"Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
+
+        public override bool hasAdvancedMode => true;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -49,6 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HistogramPercentages = Unpack(o.Find(x => x.histogramPercentages));
             m_HistogramCurveRemapping = Unpack(o.Find(x => x.histogramUseCurveRemapping));
 
+            m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
         }
 
         public override void OnInspectorGUI()
@@ -107,6 +114,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_AdaptationSpeedDarkToLight, EditorGUIUtility.TrTextContent("Speed Dark to Light"));
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
+                }
+
+                if(isInAdvancedMode)
+                {
+                    EditorGUILayout.Space();
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        // Override checkbox
+                        DrawOverrideCheckbox(m_TargetMidGray);
+
+                        // Property
+                        using (new EditorGUI.DisabledScope(!m_TargetMidGray.overrideState.boolValue))
+                        {
+                            // Default unity field
+                            m_TargetMidGray.value.intValue = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."),
+                                                                                    m_TargetMidGray.value.intValue, s_MidGrayNames);
+                        }
+                    }
                 }
             }
         }

@@ -53,7 +53,7 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
 
     float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx);
 
-    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4));
+    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4), MeterCalibrationConstant);
     _OutputTexture[posInputs.positionSS] = float2(logLuma, weight);
 }
 

@@ -8,6 +8,12 @@ namespace UnityEngine.Rendering
     public static class ColorUtils
     {
         /// <summary>
+        /// Calibration constant (K) used for our virtual reflected light meter. Modifying this will lead to a change on how average scene luminance
+        /// gets mapped to exposure. 
+        /// </summary>
+        static public float s_LightMeterCalibrationConstant = 12.5f;
+
+        /// <summary>
         /// An analytical model of chromaticity of the standard illuminant, by Judd et al.
         /// http://en.wikipedia.org/wiki/Standard_illuminant#Illuminant_series_D
         /// Slightly modifed to adjust it with the D65 white point (x=0.31271, y=0.32902).
@@ -244,13 +250,14 @@ namespace UnityEngine.Rendering
         /// <returns>An exposure value, in EV100.</returns>
         public static float ComputeEV100FromAvgLuminance(float avgLuminance)
         {
-            // We later use the middle gray at 12.7% in order to have
+            // The middle grey used will be determined by the s_LightMeterCalibrationConstant.
+            // The suggested (ISO 2720) range  is 10.64 to 13.4. Common values used by
+            // manufacturers range from 11.37 to 14. Ref: https://en.wikipedia.org/wiki/Light_meter
+            // The default is 12.5% as it is the closest to 12.7% in order to have
             // a middle gray at 18% with a sqrt(2) room for specular highlights
-            // But here we deal with the spot meter measuring the middle gray
-            // which is fixed at 12.5 for matching standard camera
-            // constructor settings (i.e. calibration constant K = 12.5)
-            // Reference: http://en.wikipedia.org/wiki/Film_speed
-            const float K = 12.5f; // Reflected-light meter calibration constant
+            // Note that this gives equivalent results as using an incident light meter
+            // with a calibration constant of C=314. 
+            float K = s_LightMeterCalibrationConstant; 
             return Mathf.Log(avgLuminance * 100f / K, 2f);
         }
 

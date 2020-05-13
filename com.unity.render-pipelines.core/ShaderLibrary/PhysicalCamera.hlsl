@@ -21,6 +21,13 @@ float ComputeEV100(float aperture, float shutterSpeed, float ISO)
     return log2((aperture * aperture) / shutterSpeed * 100.0 / ISO);
 }
 
+// Note that the different name from ComputeEV100FromAvgLuminance is to avoid issues with shader compiler 
+float ComputeEV100FromAvgLuminance(float avgLuminance, float calibrationConstant)
+{
+    const float K = calibrationConstant;
+    return log2(avgLuminance * 100.0 / K);
+}
+
 float ComputeEV100FromAvgLuminance(float avgLuminance)
 {
     // We later use the middle gray at 12.7% in order to have
@@ -30,7 +37,7 @@ float ComputeEV100FromAvgLuminance(float avgLuminance)
     // constructor settings (i.e. calibration constant K = 12.5)
     // Reference: http://en.wikipedia.org/wiki/Film_speed
     const float K = 12.5; // Reflected-light meter calibration constant
-    return log2(avgLuminance * 100.0 / K);
+    return ComputeEV100FromAvgLuminance(avgLuminance, K);
 }
 
 float ConvertEV100ToExposure(float EV100)

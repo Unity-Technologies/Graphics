@@ -1,3 +1,6 @@
+#ifndef EXPOSURE_COMMON_INCLUDED
+#define EXPOSURE_COMMON_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PhysicalCamera.hlsl"
@@ -29,6 +32,7 @@ CBUFFER_END
 #define ParamExposureLimitMax       _ExposureParams.z
 #define ParamCurveMin               _ExposureParams2.x
 #define ParamCurveMax               _ExposureParams2.y
+#define MeterCalibrationConstant    _ExposureParams2.w
 #define ParamSourceBuffer           _Variants.x
 #define ParamMeteringMode           _Variants.y
 #define ParamAdaptationMode         _Variants.z
@@ -106,3 +110,4 @@ float CurveRemap(float inEV)
     float remap = saturate((inEV - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
     return SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).x;
 }
+#endif
