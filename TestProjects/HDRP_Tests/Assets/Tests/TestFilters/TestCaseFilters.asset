@@ -307,3 +307,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash on Yamato
