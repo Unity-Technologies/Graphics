@@ -141,6 +141,9 @@ EditorBuildSettings:
     path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
     guid: 5b672860fdf88f84fa93bf94214514f1
   - enabled: 1
+    path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
+    guid: cc33ef2ea5450204ab4fab18d90afaec
+  - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1

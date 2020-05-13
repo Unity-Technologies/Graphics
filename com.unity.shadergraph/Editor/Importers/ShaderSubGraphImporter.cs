@@ -76,6 +76,16 @@ namespace UnityEditor.ShaderGraph
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
             ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
             ctx.SetMainObject(graphAsset);
+
+            var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();
+            metadata.hideFlags = HideFlags.HideInHierarchy;
+            metadata.assetDependencies = new List<UnityEngine.Object>();
+            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
+            foreach (string dependency in deps)
+            {
+                metadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+            }
+            ctx.AddObjectToAsset("Metadata", metadata);
         }
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)

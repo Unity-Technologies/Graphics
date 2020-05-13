@@ -147,6 +147,13 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
             }
+            metadata.assetDependencies = new List<UnityEngine.Object>();
+            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
+            foreach (string dependency in deps)
+            {
+                metadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+            }
+
             ctx.AddObjectToAsset("Metadata", metadata);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
