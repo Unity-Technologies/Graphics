@@ -280,16 +280,50 @@ namespace UnityEditor.ShaderGraph
             if (inputSlot == null)
                 return string.Empty;
 
-            var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
+            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
+            var edges = owner.GetEdges(inputSlot.slotReference);
 
             if (edges.Any())
             {
-                var fromSocketRef = edges[0].outputSlot;
+                var fromSocketRef = edges.First().outputSlot;
                 var fromNode = fromSocketRef.node;
                 return fromNode.GetOutputForSlot(fromSocketRef, inputSlot.concreteValueType, generationMode);
             }
 
             return inputSlot.GetDefaultValue(generationMode);
+        }
+
+        public AbstractShaderProperty GetSlotProperty(int inputSlotId)
+        {
+            var inputSlot = FindSlot<MaterialSlot>(inputSlotId);
+            if (inputSlot == null)
+                return null;
+
+            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
+            var edges = owner.GetEdges(inputSlot.slotReference);
+            if (edges.Any())
+            {
+                var fromSocketRef = edges.First().outputSlot;
+                var fromNode = fromSocketRef.node;
+                if (fromNode == null)
+                    return null;        // this is an error condition... we have an edge that connects to a non-existant node?
+
+                if (fromNode is PropertyNode propNode)
+                {
+                    return propNode.property;
+                }
+
+                if (fromNode is RedirectNodeData redirectNode)
+                {
+                    return redirectNode.GetSlotProperty(RedirectNodeData.kInputSlotID);
+                }
+
+                // TODO: what if it's from a subgraph?  should probably disallow that
+
+                return null;
+            }
+
+            return null;
         }
 
         protected virtual string GetOutputForSlot(SlotReference fromSocketRef,  ConcreteSlotValueType valueType, GenerationMode generationMode)
@@ -606,7 +640,7 @@ namespace UnityEditor.ShaderGraph
             return defaultVariableName;
         }
 
-        public void AddSlot(MaterialSlot slot)
+        public void AddSlot(MaterialSlot slot, bool findPrevInstance = true)
         {
             if(slot == null)
             {
@@ -615,7 +649,7 @@ namespace UnityEditor.ShaderGraph
             var foundSlot = FindSlot<MaterialSlot>(slot.id);
 
             // Try to keep the existing instance to avoid unnecessary changes to file
-            if (foundSlot != null && slot.GetType() == foundSlot.GetType())
+            if (foundSlot != null && slot.GetType() == foundSlot.GetType() && findPrevInstance)
             {
                 foundSlot.displayName = slot.RawDisplayName();
                 foundSlot.CopyDefaultValue(slot);
@@ -631,7 +665,7 @@ namespace UnityEditor.ShaderGraph
 
             OnSlotsChanged();
 
-            if (foundSlot == null)
+            if (foundSlot == null || foundSlot == slot)
                 return;
 
             slot.CopyValuesFrom(foundSlot);

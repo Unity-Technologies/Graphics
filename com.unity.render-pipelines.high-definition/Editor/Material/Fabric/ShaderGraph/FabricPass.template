@@ -284,6 +284,10 @@ Pass
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+#endif
+
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);

@@ -126,7 +126,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
-                shaderInputPropertyDrawer.GetPropertyData(m_Graph.isSubGraph,
+                shaderInputPropertyDrawer.GetPropertyData(
+                    m_Graph.isSubGraph,
+                    m_Graph,
                     ChangeExposedField,
                     ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),

@@ -349,7 +349,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
-        void CollectPreviewProperties(IEnumerable<AbstractMaterialNode> nodesToCollect)
+        void CollectPreviewProperties(IEnumerable<AbstractMaterialNode> nodesToCollect, PooledList<PreviewProperty> perMaterialPreviewProperties)
         {
             using (CollectPreviewPropertiesMarker.Auto())
             using (var tempPreviewProps = PooledList<PreviewProperty>.Get())
@@ -363,8 +363,68 @@ namespace UnityEditor.ShaderGraph.Drawing
                     tempPreviewProps.Add(prop.GetPreviewMaterialProperty());
 
                 foreach (var previewProperty in tempPreviewProps)
+                {
                     previewProperty.SetValueOnMaterialPropertyBlock(m_SharedPreviewPropertyBlock);
+
+                    // virtual texture assignments must be pushed to the materials themselves (MaterialPropertyBlocks not supported)
+                    if ((previewProperty.propType == PropertyType.VirtualTexture) &&
+                        (previewProperty.vtProperty?.value?.layers != null))
+                    {
+                        perMaterialPreviewProperties.Add(previewProperty);
+                    }
+                }
             }
+        }
+
+        void AssignPerMaterialPreviewProperties(Material mat, List<PreviewProperty> perMaterialPreviewProperties)
+        {
+            #if ENABLE_VIRTUALTEXTURES
+            foreach (var prop in perMaterialPreviewProperties)
+            {
+                switch (prop.propType)
+                {
+                    case PropertyType.VirtualTexture:
+
+                        // setup the VT textures on the material
+                        bool setAnyTextures = false;
+                        var vt = prop.vtProperty.value;
+                        for (int layer = 0; layer < vt.layers.Count; layer++)
+                        {
+                            if (vt.layers[layer].layerTexture.texture != null)
+                            {
+                                int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
+                                if (propIndex != -1)
+                                {
+                                    mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
+                                    setAnyTextures = true;
+                                }
+                            }
+                        }
+
+                        // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
+                        if (setAnyTextures)
+                        {
+                            int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
+                            try
+                            {
+                                // Ensure we always request the mip sized 256x256
+                                int width, height;
+                                UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                                int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
+                                const int baseMip = 8;
+                                int mip = Math.Max(textureMip - baseMip, 0);
+                                UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                            }
+                            catch (InvalidOperationException)
+                            {
+                                // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
+                                // This is valid in this case as we're still authoring the material.
+                            }
+                        }
+                        break;
+                }
+            }   
+        #endif // ENABLE_VIRTUALTEXTURES
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
@@ -374,6 +434,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             using (var renderList2D = PooledList<PreviewRenderData>.Get())
             using (var renderList3D = PooledList<PreviewRenderData>.Get())
             using (var nodesToDraw = PooledHashSet<AbstractMaterialNode>.Get())
+            using (var perMaterialPreviewProperties = PooledList<PreviewProperty>.Get())
             {
                 // update topology cached data
                 // including list of time-dependent previews, and the preview mode (2d/3d)
@@ -385,7 +446,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
 
-                CollectPreviewProperties(m_NodesPropertyChanged);
+                CollectPreviewProperties(m_NodesPropertyChanged, perMaterialPreviewProperties);
                 m_NodesPropertyChanged.Clear();
 
                 // timed nodes change every frame, so must be drawn
@@ -426,7 +487,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         continue;
                     }
 
-                    // similarly with previews that have a shader error
+
                     if (preview.shaderData.hasError)
                     {
                         preview.texture = m_ErrorTexture;
@@ -441,7 +502,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         renderList2D.Add(preview);
                     else
                         renderList3D.Add(preview);
-                    drawPreviewCount++;
                 }
 
                 // if we actually don't want to render anything at all, early out here
@@ -468,7 +528,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.orthographic = true;
 
                 foreach (var renderData in renderList2D)
-                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity);
+                    RenderPreview(renderData, m_SceneResources.quad, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 // Render 3D previews
                 m_SceneResources.camera.transform.position = -Vector3.forward * 5;
@@ -476,7 +536,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SceneResources.camera.orthographic = false;
 
                 foreach (var renderData in renderList3D)
-                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity);
+                    RenderPreview(renderData, m_SceneResources.sphere, Matrix4x4.identity, perMaterialPreviewProperties);
 
                 if (renderMasterPreview)
                 {
@@ -495,7 +555,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                     previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
 
-                    RenderPreview(masterRenderData, mesh, previewTransform);
+                    RenderPreview(masterRenderData, mesh, previewTransform, perMaterialPreviewProperties);
                 }
 
                 m_SceneResources.light0.enabled = false;
@@ -975,17 +1035,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TopologyDirty = false;
         }
 
-        private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
-        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform)
+       private static readonly ProfilerMarker RenderPreviewMarker = new ProfilerMarker("RenderPreview");
+        void RenderPreview(PreviewRenderData renderData, Mesh mesh, Matrix4x4 transform, PooledList<PreviewProperty> perMaterialPreviewProperties)
         {
             using (RenderPreviewMarker.Auto())
             {
-                {
+                {   // TODO: Remove
                     var node = renderData.shaderData.node;
                     if (node != kMasterProxyNode)
                         if (!(node.hasPreview && node.previewExpanded && !renderData.shaderData.hasError))
                             Assert.IsTrue(false);
                 }
+
+                AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
 
@@ -1003,7 +1065,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 var previousUseSRP = Unsupported.useScriptableRenderPipeline;
-                Unsupported.useScriptableRenderPipeline = renderData == m_MasterRenderData;
+                Unsupported.useScriptableRenderPipeline = (renderData == m_MasterRenderData);
                 m_SceneResources.camera.Render();
                 Unsupported.useScriptableRenderPipeline = previousUseSRP;
 
@@ -1026,7 +1088,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // issue a dummy SRP render to force SRP initialization, use the master node texture
             PreviewRenderData renderData = m_MasterRenderData;
-
             var previousRenderTexture = RenderTexture.active;
 
             //Temp workaround for alpha previews...

@@ -1,0 +1,672 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
+using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
+
+namespace UnityEditor.ShaderGraph
+{
+    [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition, IHasSettings
+    {
+        public const string DefaultNodeTitle = "Sample Virtual Texture";
+
+        public const int kMaxLayers = 4;
+
+        // input slots
+        public const int UVInputId = 0;
+        public const int VirtualTextureInputId = 1;
+        public const int LODInputId = 2;
+        public const int BiasInputId = 3;
+        public const int DxInputId = 4;
+        public const int DyInputId = 5;
+
+        // output slots
+        [NonSerialized]
+        public readonly int[] OutputSlotIds = { 11, 12, 13, 14 };
+
+        const string UVInputName = "UV";
+        const string VirtualTextureInputName = "VT";
+        const string LODSlotName = "Lod";
+        const string BiasSlotName = "Bias";
+        const string DxSlotName = "Dx";
+        const string DySlotName = "Dy";
+
+        static string[] OutputSlotNames = { "Out", "Out2", "Out3", "Out4" };
+
+        public override bool hasPreview { get { return false; } }
+
+        // Keep these in sync with "VirtualTexturing.hlsl"
+        public enum LodCalculation
+        {
+            [InspectorName("Automatic")]
+            VtLevel_Automatic = 0,
+            [InspectorName("Lod Level")]
+            VtLevel_Lod = 1,
+            [InspectorName("Lod Bias")]
+            VtLevel_Bias = 2,
+            [InspectorName("Derivatives")]
+            VtLevel_Derivatives = 3
+        }
+
+        public enum AddressMode
+        {
+            [InspectorName("Wrap")]
+            VtAddressMode_Wrap = 0,
+            [InspectorName("Clamp")]
+            VtAddressMode_Clamp = 1,
+            [InspectorName("Udim")]
+            VtAddressMode_Udim = 2
+        }
+
+        public enum FilterMode
+        {
+            [InspectorName("Anisotropic")]
+            VtFilter_Anisotropic = 0
+        }
+
+        public enum UvSpace
+        {
+            [InspectorName("Regular")]
+            VtUvSpace_Regular = 0,
+            [InspectorName("Pre Transformed")]
+            VtUvSpace_PreTransformed = 1
+        }
+
+        public enum QualityMode
+        {
+            [InspectorName("Low")]
+            VtSampleQuality_Low = 0,
+            [InspectorName("High")]
+            VtSampleQuality_High = 1
+        }
+
+        [SerializeField]
+        LodCalculation m_LodCalculation = LodCalculation.VtLevel_Automatic;
+        public LodCalculation lodCalculation
+        {
+            get
+            {
+                return m_LodCalculation;
+            }
+            set
+            {
+                if (m_LodCalculation == value)
+                    return;
+
+                m_LodCalculation = value;
+                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
+            }
+        }
+
+        [SerializeField]
+        QualityMode m_SampleQuality = QualityMode.VtSampleQuality_High;
+        public QualityMode sampleQuality
+        {
+            get
+            {
+                return m_SampleQuality;
+            }
+            set
+            {
+                if (m_SampleQuality == value)
+                    return;
+
+                m_SampleQuality = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_NoFeedback;
+        public bool noFeedback
+        {
+            get
+            {
+                return m_NoFeedback;
+            }
+            set
+            {
+                if (m_NoFeedback == value)
+                    return;
+
+                m_NoFeedback = value;
+                UpdateNodeAfterDeserialization();       // rebuilds all slots
+                Dirty(ModificationScope.Topological);   // slots ShaderStageCapability could have changed, so trigger Topo change
+            }
+        }
+
+        [SerializeField]
+        protected TextureType[] m_TextureTypes = { TextureType.Default, TextureType.Default, TextureType.Default, TextureType.Default };
+
+        // We have one normal/object space field for all layers for now, probably a nice compromise
+        // between lots of settings and user flexibility?
+        [SerializeField]
+        private NormalMapSpace m_NormalMapSpace = NormalMapSpace.Tangent;
+        public NormalMapSpace normalMapSpace
+        {
+            get { return m_NormalMapSpace; }
+            set
+            {
+                if (m_NormalMapSpace == value)
+                    return;
+
+                m_NormalMapSpace = value;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        /*
+            The panel behind the cogwheel node settings
+        */
+        class SampleVirtualTextureNodeSettingsView : VisualElement
+        {
+            SampleVirtualTextureNode m_Node;
+            public SampleVirtualTextureNodeSettingsView(SampleVirtualTextureNode node)
+            {
+                m_Node = node;
+
+                PropertySheet ps = new PropertySheet();
+
+                ps.Add(new PropertyRow(new Label("Lod Mode")), (row) =>
+                {
+                    row.Add(new UIElements.EnumField(m_Node.lodCalculation), (field) =>
+                    {
+                        field.value = m_Node.lodCalculation;
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (m_Node.lodCalculation == (LodCalculation)evt.newValue)
+                                return;
+
+                            m_Node.owner.owner.RegisterCompleteObjectUndo("Lod Mode Change");
+                            m_Node.lodCalculation = (LodCalculation)evt.newValue;
+                        });
+                    });
+                });
+
+                ps.Add(new PropertyRow(new Label("Quality")), (row) =>
+                {
+                    row.Add(new UIElements.EnumField(m_Node.sampleQuality), (field) =>
+                    {
+                        field.value = m_Node.sampleQuality;
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (m_Node.sampleQuality == (QualityMode)evt.newValue)
+                                return;
+
+                            m_Node.owner.owner.RegisterCompleteObjectUndo("Quality Change");
+                            m_Node.sampleQuality = (QualityMode)evt.newValue;
+                        });
+                    });
+                });
+
+                ps.Add(new PropertyRow(new Label("No Feedback")), (row) =>
+                {
+                    row.Add(new UnityEngine.UIElements.Toggle(), (field) =>
+                    {
+                        field.value = m_Node.noFeedback;
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (m_Node.noFeedback == evt.newValue)
+                                return;
+
+                            m_Node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
+                            m_Node.noFeedback = evt.newValue;
+                        });
+                    });
+                });
+
+                var vtProperty = m_Node.GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty == null)
+                {
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Please connect a VirtualTexture property to configure texture sampling type.")));
+                }
+                else
+                {
+                    int numLayers = vtProperty.value.layers.Count;
+
+                    for (int i = 0; i < numLayers; i++)
+                    {
+                        int currentIndex = i;   // to make lambda by-ref capturing happy
+                        ps.Add(new PropertyRow(new Label("Layer " + (i + 1) + " Type")), (row) =>
+                        {
+                            row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
+                            {
+                                field.value = m_Node.m_TextureTypes[i];
+                                field.RegisterValueChangedCallback(evt =>
+                                {
+                                    if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
+                                        return;
+
+                                    m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
+                                    m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
+                                    m_Node.Dirty(ModificationScope.Graph);
+                                });
+                            });
+                        });
+                    }
+                }
+
+                ps.Add(new PropertyRow(new Label("Normal Space")), (row) =>
+                {
+                    row.Add(new UIElements.EnumField(m_Node.normalMapSpace), (field) =>
+                    {
+                        field.value = m_Node.normalMapSpace;
+                        field.RegisterValueChangedCallback(evt =>
+                        {
+                            if (m_Node.normalMapSpace == (NormalMapSpace)evt.newValue)
+                                return;
+
+                            m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Map space Change");
+                            m_Node.normalMapSpace = (NormalMapSpace)evt.newValue;
+                        });
+                    });
+                });
+
+                // display warning if the current master node doesn't support virtual texturing
+                //TODO: Fix the fact bool passing that happened with master nodes to now happen with targets/subtargets
+ //               if (!m_Node.owner.isSubGraph)
+ //               {
+ //                   bool supportedByMasterNode = m_Node.owner.GetNodes<IMasterNode>().FirstOrDefault()?.supportsVirtualTexturing ?? false;
+ //                   if (!supportedByMasterNode)
+ //                       ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support Virtual Texturing, this node will do regular 2D sampling.")));
+ //               }
+
+                // display warning if the current render pipeline doesn't support virtual texturing
+                IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
+                if (vtRp == null)
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline does not support Virtual Texturing, this node will do regular 2D sampling.")));
+                else if (vtRp.virtualTexturingEnabled == false)
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline has disabled Virtual Texturing, this node will do regular 2D sampling.")));
+                else
+                {
+#if !ENABLE_VIRTUALTEXTURES
+                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.")));
+#endif
+                }
+
+                Add(ps);
+            }
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            return new SampleVirtualTextureNodeSettingsView(this);
+        }
+
+        public SampleVirtualTextureNode() : this(false, false)
+        { }
+
+        public SampleVirtualTextureNode(bool isLod = false, bool noResolve = false)
+        {
+            name = "Sample Virtual Texture";
+            UpdateNodeAfterDeserialization();
+        }
+
+        private int outputLayerSlotCount = 0;
+        public override void Setup()
+        {
+            // the default is to show all 4 slots, so we don't lose any existing connections
+            int layerCount = kMaxLayers;
+            var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+            if (vtProperty != null)
+            {
+                layerCount = vtProperty?.value?.layers?.Count ?? kMaxLayers;
+            }
+            if (outputLayerSlotCount != layerCount)
+                UpdateLayerOutputSlots(layerCount);
+        }
+
+        // rebuilds the number of output slots, and also updates their ShaderStageCapability
+        void UpdateLayerOutputSlots(int layerCount, List<int> usedSlots = null)
+        {
+            for (int i = 0; i < kMaxLayers; i++)
+            {
+                int outputID = OutputSlotIds[i];
+                Vector4MaterialSlot outputSlot = FindSlot<Vector4MaterialSlot>(outputID);
+                if (i < layerCount)
+                {
+                    // add or update it
+                    if (outputSlot == null)
+                    {
+                        string outputName = OutputSlotNames[i];
+                        outputSlot = new Vector4MaterialSlot(outputID, outputName, outputName, SlotType.Output, Vector4.zero, (noFeedback && m_LodCalculation == LodCalculation.VtLevel_Lod) ? ShaderStageCapability.All : ShaderStageCapability.Fragment);
+                        AddSlot(outputSlot);
+                    }
+                    else
+                    {
+                        outputSlot.stageCapability = (noFeedback && m_LodCalculation == LodCalculation.VtLevel_Lod) ? ShaderStageCapability.All : ShaderStageCapability.Fragment;
+                    }
+                    if (usedSlots != null)
+                        usedSlots.Add(outputID);
+                }
+                else
+                {
+                    // remove it
+                    if (outputSlot != null)
+                        RemoveSlot(OutputSlotIds[i]);
+                }
+            }
+            outputLayerSlotCount = layerCount;
+        }
+
+        public override void UpdateNodeAfterDeserialization()
+        {
+            List<int> usedSlots = new List<int>();
+
+            AddSlot(new UVMaterialSlot(UVInputId, UVInputName, UVInputName, UVChannel.UV0));
+            usedSlots.Add(UVInputId);
+
+            AddSlot(new VirtualTextureInputMaterialSlot(VirtualTextureInputId, VirtualTextureInputName, VirtualTextureInputName));
+            usedSlots.Add(VirtualTextureInputId);
+
+            // at this point we can't tell how many output slots we will have (because we can't find the VT property yet)
+            // so, we create all of the possible output slots, so any edges created will connect properly
+            // then we can trim down the set of slots later..
+            UpdateLayerOutputSlots(kMaxLayers, usedSlots);
+
+            // Create slots
+
+            if (m_LodCalculation == LodCalculation.VtLevel_Lod)
+            {
+                var slot = new Vector1MaterialSlot(LODInputId, LODSlotName, LODSlotName, SlotType.Input, 0.0f, ShaderStageCapability.All, LODSlotName);
+                AddSlot(slot);
+                usedSlots.Add(LODInputId);
+            }
+
+            if (m_LodCalculation == LodCalculation.VtLevel_Bias)
+            {
+                var slot = new Vector1MaterialSlot(BiasInputId, BiasSlotName, BiasSlotName, SlotType.Input, 0.0f, ShaderStageCapability.Fragment, BiasSlotName);
+                AddSlot(slot);
+                usedSlots.Add(BiasInputId);
+            }
+
+            if (m_LodCalculation == LodCalculation.VtLevel_Derivatives)
+            {
+                var slot1 = new Vector2MaterialSlot(DxInputId, DxSlotName, DxSlotName, SlotType.Input, Vector2.one, ShaderStageCapability.All, DxSlotName);
+                var slot2 = new Vector2MaterialSlot(DyInputId, DySlotName, DySlotName, SlotType.Input, Vector2.one, ShaderStageCapability.All, DySlotName);
+                AddSlot(slot1);
+                AddSlot(slot2);
+                usedSlots.Add(DxInputId);
+                usedSlots.Add(DyInputId);
+            }
+
+            RemoveSlotsNameNotMatching(usedSlots, true);
+        }
+
+        const string k_NoPropertyConnected = "A VirtualTexture property must be connected to the VT slot";
+        public override void ValidateNode()
+        {
+            base.ValidateNode();
+            if (!IsSlotConnected(VirtualTextureInputId))
+            {
+                owner.AddValidationError(objectId, k_NoPropertyConnected, ShaderCompilerMessageSeverity.Error);
+            }
+        }
+
+        public string GetFeedbackVariableName()
+        {
+            return GetVariableNameForNode() + "_fb";
+        }
+
+        void AppendVtParameters(ShaderStringBuilder sb, string uvExpr, string lodExpr, string dxExpr, string dyExpr, AddressMode address, FilterMode filter, LodCalculation lod, UvSpace space, QualityMode quality)
+        {
+            sb.AppendLine("VtInputParameters vtParams;");
+            sb.AppendLine("vtParams.uv = " + uvExpr + ";");
+            sb.AppendLine("vtParams.lodOrOffset = " + lodExpr + ";");
+            sb.AppendLine("vtParams.dx = " + dxExpr + ";");
+            sb.AppendLine("vtParams.dy = " + dyExpr + ";");
+            sb.AppendLine("vtParams.addressMode = " + address + ";");
+            sb.AppendLine("vtParams.filterMode = " + filter + ";");
+            sb.AppendLine("vtParams.levelMode = " + lod + ";");
+            sb.AppendLine("vtParams.uvMode = " + space + ";");
+            sb.AppendLine("vtParams.sampleQuality = " + quality + ";");
+
+            sb.AppendLine("#if defined(SHADER_STAGE_RAY_TRACING)");
+            sb.AppendLine("if (vtParams.levelMode == VtLevel_Automatic || vtParams.levelMode == VtLevel_Bias)");
+            using (sb.BlockScope())
+            {
+                sb.AppendLine("vtParams.levelMode = VtLevel_Lod;");
+                sb.AppendLine("vtParams.lodOrOffset = 0.0f;");
+            }
+            sb.AppendLine("#endif");
+        }
+
+        void AppendVtSample(ShaderStringBuilder sb, string propertiesName, string vtInputVariable, string infoVariable, int layerIndex, string outputVariableName)
+        {
+            sb.AppendIndentation();
+            sb.Append(outputVariableName); sb.Append(" = ");
+            sb.Append("SampleVTLayer(");
+            sb.Append(propertiesName);          sb.Append(", ");
+            sb.Append(vtInputVariable);         sb.Append(", ");
+            sb.Append(infoVariable);            sb.Append(", ");
+            sb.Append(layerIndex.ToString());   sb.Append(");");
+            sb.AppendNewLine();
+        }
+
+        // Node generations
+        string GetFunctionName()
+        {
+            return GetVariableNameForNode();
+        }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            string functionName = GetFunctionName();
+
+            registry.ProvideFunction(functionName, s =>
+            {
+                if (IsSlotConnected(VirtualTextureInputId))
+                {
+                    var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                    int layerCount = vtProperty.value.layers.Count;
+
+                    var layerOutputVariableNames = new List<string>();
+                    var layerOutputLayerIndex = new List<int>();
+
+                    for (int layer = 0; layer < layerCount; layer++)
+                    {
+                        if (IsSlotConnected(OutputSlotIds[layer]))
+                        {
+                            layerOutputVariableNames.Add("Layer"+layer);
+                            layerOutputLayerIndex.Add(layer);
+                        }
+                    }
+
+                    if (layerOutputVariableNames.Count > 0)
+                    {
+                        string lodExpr = "0.0f";
+                        string dxExpr = "0.0f";
+                        string dyExpr = "0.0f";
+
+                        // function header
+                        s.AppendIndentation();
+                        s.Append("float4 ");
+                        s.Append(functionName);
+                        s.Append("(float2 uv");
+                        switch (lodCalculation)
+                        {
+                            case LodCalculation.VtLevel_Lod:
+                                s.Append(", float lod");
+                                lodExpr = "lod";
+                                break;
+                            case LodCalculation.VtLevel_Bias:
+                                s.Append(", float bias");
+                                lodExpr = "bias";
+                                break;
+                            case LodCalculation.VtLevel_Derivatives:
+                                s.Append(", float2 dx, float2 dy");
+                                dxExpr = "dx";
+                                dyExpr = "dy";
+                                break;
+                        }
+                        s.Append(", VTProperty vtProperty");
+                        for (int i = 0; i < layerOutputVariableNames.Count; i++)
+                        {
+                            s.Append(", out float4 " + layerOutputVariableNames[i]);
+                        }
+                        s.Append(")");
+                        s.AppendNewLine();
+
+                        // function body
+                        using (s.BlockScope())
+                        {
+                            AppendVtParameters(
+                                s,
+                                "uv",
+                                lodExpr,
+                                dxExpr,
+                                dyExpr,
+                                AddressMode.VtAddressMode_Wrap,
+                                FilterMode.VtFilter_Anisotropic,
+                                m_LodCalculation,
+                                UvSpace.VtUvSpace_Regular,
+                                m_SampleQuality);
+
+                            s.AppendLine("StackInfo info = PrepareVT(vtProperty, vtParams);");
+
+                            for (int i = 0; i < layerOutputVariableNames.Count; i++)
+                            {
+                                // sample virtual texture layer
+                                int layer = layerOutputLayerIndex[i];
+                                string layerOutputVariable = layerOutputVariableNames[i];
+                                AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
+
+                                // apply normal conversion code, if necessary
+                                if (m_TextureTypes[layer] == TextureType.Normal)
+                                {
+                                    s.AppendIndentation();
+                                    s.Append(layerOutputVariable);
+                                    s.Append(".rgb = ");
+                                    if (normalMapSpace == NormalMapSpace.Tangent)
+                                        s.Append("UnpackNormalmapRGorAG(");
+                                    else
+                                        s.Append("UnpackNormalRGB(");
+                                    s.Append(layerOutputVariable);
+                                    s.Append(");");
+                                    s.AppendNewLine();
+                                }
+                            }
+
+                            s.AppendLine("return GetResolveOutput(info);");
+                        }
+                    }
+                }
+            });
+        }
+
+        public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
+        {
+            if (IsSlotConnected(VirtualTextureInputId))
+            {
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                int layerCount = vtProperty.value.layers.Count;
+
+                var layerOutputVariables = new List<string>();
+                for (int i = 0; i < layerCount; i++)
+                {
+                    if (IsSlotConnected(OutputSlotIds[i]))
+                    {
+                        // declare output variables up front
+                        string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
+                        sb.AppendLine("$precision4 " + layerOutputVariable + ";");
+                        layerOutputVariables.Add(layerOutputVariable);
+                    }
+                }
+
+                if (layerOutputVariables.Count > 0)
+                {
+                    // assign feedback variable
+                    sb.AppendIndentation();
+                    if (!noFeedback)
+                    {
+                        sb.Append("float4 ");
+                        sb.Append(GetFeedbackVariableName());
+                        sb.Append(" = ");
+                    }
+                    sb.Append(GetFunctionName());
+                    sb.Append("(");
+                    sb.Append(GetSlotValue(UVInputId, generationMode));
+                    switch (lodCalculation)
+                    {
+                        case LodCalculation.VtLevel_Lod:
+                        case LodCalculation.VtLevel_Bias:
+                            sb.Append(", ");
+                            sb.Append((lodCalculation == LodCalculation.VtLevel_Lod) ? GetSlotValue(LODInputId, generationMode) : GetSlotValue(BiasInputId, generationMode));
+                            break;
+                        case LodCalculation.VtLevel_Derivatives:
+                            sb.Append(", ");
+                            sb.Append(GetSlotValue(DxInputId, generationMode));
+                            sb.Append(", ");
+                            sb.Append(GetSlotValue(DyInputId, generationMode));
+                            break;
+                    }
+                    sb.Append(", ");
+                    sb.Append(vtProperty.referenceName);
+                    foreach (string layerOutputVariable in layerOutputVariables)
+                    {
+                        sb.Append(", ");
+                        sb.Append(layerOutputVariable);
+                    }
+                    sb.Append(");");
+                    sb.AppendNewLine();
+                }
+            }
+            else
+            {
+                // set all outputs to zero
+                for (int i = 0; i < kMaxLayers; i++)
+                {
+                    if (IsSlotConnected(OutputSlotIds[i]))
+                    {
+                        // declare output variables up front
+                        string layerOutputVariable = GetVariableNameForSlot(OutputSlotIds[i]);
+                        sb.AppendLine("$precision4 " + layerOutputVariable + " = 0;");
+                    }
+                }
+                // TODO: should really just disable feedback in this case (need different feedback interface to do this)
+                sb.AppendLine("$precision4 " + GetFeedbackVariableName() + " = 1;");
+            }
+        }
+
+        public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
+        {
+            // this adds default properties for all of our unconnected inputs
+            base.CollectShaderProperties(properties, generationMode);
+        }
+
+        public bool RequiresMeshUV(Internal.UVChannel channel, ShaderStageCapability stageCapability)
+        {
+            using (var tempSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(tempSlots);
+                foreach (var slot in tempSlots)
+                {
+                    if (slot.RequiresMeshUV(channel))
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        public bool RequiresTime()
+        {
+            // HACK: This ensures we repaint in shadergraph so data that gets streamed in also becomes visible.
+            return true;
+        }
+
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All)
+        {
+            // Feedback dithering requires screen position (and only works in Pixel Shader currently)
+            return stageCapability.HasFlag(ShaderStageCapability.Fragment) && !noFeedback;
+        }
+    }
+}

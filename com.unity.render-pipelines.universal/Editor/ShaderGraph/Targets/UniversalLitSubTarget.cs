@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
@@ -223,6 +223,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.Forward },
+                    { LitPasses.GBuffer },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.Meta },
@@ -235,12 +236,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 get
                 {
                     var forward = LitPasses.Forward;
+                    var gbuffer = LitPasses.GBuffer;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
                     var meta = LitPasses.Meta;
                     var _2d = LitPasses._2D;
 
                     forward.pragmas = CorePragmas.DOTSForward;
+                    gbuffer.pragmas = CorePragmas.DOTSGBuffer;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
@@ -253,6 +256,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         passes = new PassCollection
                         {
                             { forward },
+                            { gbuffer },
                             { shadowCaster },
                             { depthOnly },
                             { meta },
@@ -293,6 +297,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Forward,
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+            };
+
+            public static PassDescriptor GBuffer = new PassDescriptor
+            {
+                // Definition
+                displayName = "Universal GBuffer",
+                referenceName = "SHADERPASS_GBUFFER",
+                lightMode = "UniversalGBuffer",
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.GBuffer,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.GBufferLit,
+                pragmas = CorePragmas.GBuffer,
+                keywords = LitKeywords.GBuffer,
+                includes = LitIncludes.GBuffer,
             };
 
             public static PassDescriptor Meta = new PassDescriptor()
@@ -392,6 +423,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
+            public static FieldCollection GBuffer = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
+                StructFields.Varyings.viewDirectionWS,
+                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.sh,
+                UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
             public static FieldCollection Meta = new FieldCollection()
             {
                 StructFields.Attributes.uv1,                            // needed for meta vertex position
@@ -403,6 +447,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #region Keywords
         static class LitKeywords
         {
+            public static KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+            {
+                displayName = "GBuffer normal octaedron encoding",
+                referenceName = "_GBUFFER_NORMALS_OCT",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.MultiCompile,
+                scope = KeywordScope.Global,
+            };
+
             public static KeywordCollection Forward = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
@@ -413,6 +466,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
+            };
+
+            public static KeywordCollection GBuffer = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.MainLightShadowsCascade },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { GBufferNormalsOct },
             };
 
             public static KeywordCollection Meta = new KeywordCollection
@@ -428,6 +492,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             const string kShadows = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/MetaInput.hlsl";
             const string kForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
+            const string kPBRGBufferPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
             const string k2DPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/PBR2DPass.hlsl";
 
@@ -441,6 +507,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kForwardPass, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection GBuffer = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { kShadows, IncludeLocation.Pregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kGBuffer, IncludeLocation.Postgraph },
+                { kPBRGBufferPass, IncludeLocation.Postgraph },
             };
 
             public static IncludeCollection Meta = new IncludeCollection
