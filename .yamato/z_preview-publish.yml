@@ -73,7 +73,6 @@ publish_{{ test.name }}:
         paths:
             - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/z_preview-publish.yml#wait_for_nightly
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}
