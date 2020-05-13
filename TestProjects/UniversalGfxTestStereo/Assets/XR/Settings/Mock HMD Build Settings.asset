@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8bf066bf8a4947a1be502d267edb82f, type: 3}
   m_Name: Mock HMD Build Settings
   m_EditorClassIdentifier: 
-  renderMode: 0
+  renderMode: 1
