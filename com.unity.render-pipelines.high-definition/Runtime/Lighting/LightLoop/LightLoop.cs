@@ -1504,13 +1504,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (lightData.lightType == GPULightType.Rectangle &&
                             (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
                         {
+                            Texture emissveTexture = null;
+
                             lightData.cookieMode = CookieMode.Clamp;
                             if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
                             else if (additionalLightData.IESSpot != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
+                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
                             else if (additionalLightData.areaLightCookie != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
+                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
+                            else
+                                emissveTexture = null;
+
+                            additionalLightData.areaLightEmissive = emissveTexture;
                         }
                         break;
                 }
@@ -1525,13 +1531,19 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (lightData.lightType == GPULightType.Rectangle &&
                 (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
             {
+                Texture emissveTexture = null;
+
                 lightData.cookieMode = CookieMode.Clamp;
                 if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
                 else if (additionalLightData.IESSpot != null)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
+                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
                 else if (additionalLightData.areaLightCookie != null)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
+                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
+                else
+                    emissveTexture = null;
+
+                additionalLightData.areaLightEmissive = emissveTexture;
             }
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));
@@ -2777,7 +2789,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Only rectangle can have cookies
                     if (hdLightData.areaLightShape == AreaLightShape.Rectangle)
                     {
-                        if (hdLightData.IESSpot != null)
+                        if (hdLightData.IESSpot != null && hdLightData.areaLightCookie != null && hdLightData.IESSpot != hdLightData.areaLightCookie)
+                            m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
+                        else if (hdLightData.IESSpot != null)
                             m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
                         else
                             m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);

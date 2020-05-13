@@ -303,6 +303,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             unchecked
             {
+                hash = 23*hash + texture.GetInstanceID().GetHashCode();
                 hash = 23*hash + texture.graphicsFormat.GetHashCode();
                 hash = 23*hash + texture.wrapMode.GetHashCode();
                 hash = 23*hash + texture.width.GetHashCode();
@@ -311,6 +312,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = 23*hash + texture.anisoLevel.GetHashCode();
                 hash = 23*hash + texture.mipmapCount.GetHashCode();
                 hash = 23*hash + texture.updateCount.GetHashCode();
+
+                RenderTexture rt = texture as RenderTexture;
+                if (rt != null)
+                    hash = 23*hash + rt.updateCount.GetHashCode();
             }
 
             return hash;
@@ -318,15 +323,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public int GetTextureID(Texture texture)
         {
-            return texture.GetInstanceID().GetHashCode() + 23*GetTextureHash(texture);
+            return GetTextureHash(texture);
         }
 
         public int GetTextureID(Texture textureA, Texture textureB)
         {
-            return textureA.GetInstanceID().GetHashCode() +
-                   23*textureB.GetInstanceID().GetHashCode() +
-                   23*GetTextureHash(textureA) +
-                   23*GetTextureHash(textureB);
+            return GetTextureHash(textureA) + 23*GetTextureHash(textureB);
         }
 
         public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
@@ -342,7 +344,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            int             textureHash = key;
+            uint            textureHash = (uint)key;
 
             // Update the render texture if needed
             if (rt != null)
@@ -350,19 +352,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
-                    if (rt.updateCount != updateCount)
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                    if (rt.updateCount != textureHash)
                         return true;
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
+                    m_IsGPUTextureUpToDate[key] = textureHash;
                 }
             }
             // In case the texture settings/import settings have changed, we need to update it
             else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
             {
-                m_TextureHashes[key] = textureHash;
+                m_TextureHashes[key] = key;
                 return true;
             }
             // For regular textures, values == 0 means that their GPU data needs to be updated (either because
@@ -376,7 +378,39 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
-            return NeedsUpdate(textureA, needMips) || NeedsUpdate(textureB, needMips);
+            RenderTexture rtA = textureA as RenderTexture;
+            RenderTexture rtB = textureB as RenderTexture;
+            int key = GetTextureID(textureA, textureB);
+            uint textureHash = (uint)key;
+
+            // Update the render texture if needed
+            if (rtA != null || rtB != null)
+            {
+                uint currentHash;
+                if (m_IsGPUTextureUpToDate.TryGetValue(key, out currentHash))
+                {
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                    if (textureHash != currentHash)
+                        return true;
+                }
+                else
+                {
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                }
+            }
+            // In case the texture settings/import settings have changed, we need to update it
+            else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            {
+                m_TextureHashes[key] = key;
+                return true;
+            }
+            // For regular textures, values == 0 means that their GPU data needs to be updated (either because
+            // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
+            // are valid for the texture if we need them
+            else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
+                return value == 0 || (needMips && value == 1);
+
+            return false;
         }
 
         public virtual bool AddTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture)

@@ -568,11 +568,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        public Texture m_AreaLightEmissive = null;
+
+        // Internal texture used for emissive for rectangular area lights
+        public Texture areaLightEmissive
+        {
+            get => m_AreaLightEmissive;
+            set
+            {
+                if (value.dimension == TextureDimension.Tex2D)
+                {
+                    m_AreaLightEmissive = value;
+                    UpdateAllLightValues();
+                }
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for Rectangular-Area Light.");
+                    m_AreaLightEmissive = null;
+                }
+            }
+        }
+
         // Optional IES (Cubemap for PointLight)
-        [SerializeField, FormerlySerializedAs("iespoint")]
+        [SerializeField]
         Texture m_IESPoint;
         // Optional IES (2D Square texture for Spot or rectangular light)
-        [SerializeField, FormerlySerializedAs("iesspot")]
+        [SerializeField]
         Texture m_IESSpot;
 
         /// <summary>
@@ -584,7 +606,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 if (value.dimension == TextureDimension.Cube)
+                {
                     m_IESPoint = value;
+                    UpdateAllLightValues();
+                }
                 else
                 {
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
@@ -602,7 +627,10 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
+                {
                     m_IESSpot = value;
+                    UpdateAllLightValues();
+                }
                 else
                 {
                     Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
@@ -2669,16 +2697,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
 
-            Texture usedTexture = null;
-            // For now do not support mixed of them
-            if (IESSpot != null)
-                usedTexture = IESSpot;
-            else
-                usedTexture = areaLightCookie;
-
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", usedTexture);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", usedTexture != null);
+            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", m_AreaLightEmissive);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", m_AreaLightEmissive != null);
         }
 
         void UpdateRectangleLightBounds()

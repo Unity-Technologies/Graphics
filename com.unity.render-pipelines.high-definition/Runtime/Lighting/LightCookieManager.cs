@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -47,6 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly int        cookieAtlasLastValidMip;
         readonly GraphicsFormat cookieFormat;
 
+        private Dictionary<int, RTHandle> m_AreaLightTextureEmissive = new Dictionary<int, RTHandle>();
         public LightCookieManager(HDRenderPipelineAsset hdAsset, int maxCacheSize)
         {
             // Keep track of the render pipeline asset
@@ -101,6 +103,15 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CookieAtlas.Release();
                 m_CookieAtlas = null;
+            }
+
+            if (m_AreaLightTextureEmissive != null)
+            {
+                foreach (var cur in m_AreaLightTextureEmissive)
+                {
+                    RTHandles.Release(cur.Value);
+                }
+                m_AreaLightTextureEmissive = null;
             }
         }
 
@@ -272,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return scaleBias;
         }
 
-        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies, ref Texture emissive)
         {
             int width  = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
@@ -283,11 +294,15 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
                 Debug.LogError($"Area Light cookie texture {cookie} & {ies} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
+            int currentID = m_CookieAtlas.GetTextureID(cookie, ies);
             if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
             {
                 RTHandle multiplied = RTHandles.Alloc(  width, height,
                                                         colorFormat: cookieFormat,
                                                         enableRandomWrite: true);
+
+                // TODO: we don't need to allocate two temp RT, we can use the atlas as temp render texture
+                // it will avoid additional copy of the whole mip chain into the atlas.
                 RTHandle tex0;
                 RTHandle tex1;
                 if (cookie.width*cookie.height > ies.width*ies.height)
@@ -305,22 +320,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 GPUArithmetic.ComputeOperation(multiplied, tex0, cmd, GPUArithmetic.Operation.Add);
                 GPUArithmetic.ComputeOperation(multiplied, tex1, cmd, GPUArithmetic.Operation.Mult);
 
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, multiplied, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
-
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, multiplied);
                 Vector4 sourceScaleOffset = new Vector4(multiplied.rt.width/(float)atlasTexture.rt.width, multiplied.rt.height/(float)atlasTexture.rt.height, 0, 0);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
 
                 RTHandlesDeleter.ScheduleRelease(tex0);
                 RTHandlesDeleter.ScheduleRelease(tex1);
-                RTHandlesDeleter.ScheduleRelease(multiplied);
+
+                RTHandle existingTexture;
+                if (m_AreaLightTextureEmissive.TryGetValue(currentID, out existingTexture))
+                {
+                    RTHandlesDeleter.ScheduleRelease(existingTexture);
+                }
+                m_AreaLightTextureEmissive[currentID] = multiplied;
             }
+
+            emissive = m_AreaLightTextureEmissive[currentID];
 
             return scaleBias;
         }
 
-        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie)
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, ref Texture emissive)
         {
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return Vector4.zero;
@@ -328,13 +349,34 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
                 Debug.LogError($"Area Light cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
+            int currentID = m_CookieAtlas.GetTextureID(cookie);
+            RTHandle existingTexture;
             if (m_CookieAtlas.NeedsUpdate(cookie, true))
             {
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie);
                 Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
-                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie));
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
+
+                if (m_AreaLightTextureEmissive.TryGetValue(currentID, out existingTexture))
+                {
+                    RTHandlesDeleter.ScheduleRelease(existingTexture);
+                }
+                RTHandle stored = RTHandles.Alloc(  cookie.width, cookie.height,
+                                                    autoGenerateMips: false,
+                                                    useMipMap: true,
+                                                    colorFormat: cookieFormat,
+                                                    enableRandomWrite: true);
+                int mipMapCount = stored.rt.mipmapCount;// 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(cookie.width, cookie.height), 2));
+                for (int k = 0; k < mipMapCount; ++k)
+                {
+                    cmd.CopyTexture(filteredAreaLight, 0, k, 0, 0, (int)(sourceScaleOffset.x*atlasTexture.rt.width), (int)(sourceScaleOffset.y*atlasTexture.rt.height),
+                                    stored, 0, k, 0, 0);
+                }
+                m_AreaLightTextureEmissive[currentID] = stored;
             }
+
+            emissive = m_AreaLightTextureEmissive[currentID];
 
             return scaleBias;
         }
