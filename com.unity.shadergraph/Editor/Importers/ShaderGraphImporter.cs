@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
     // This ifdef can be removed once V2 is the only option.
     [ScriptedImporter(101, Extension, 3)]
 #else
-    [ScriptedImporter(33, Extension, 3)]
+    [ScriptedImporter(34, Extension, 3)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -173,7 +173,7 @@ Shader ""Hidden/GraphErrorShader2""
                 var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
-                sourceAssetDependencyPaths = generator.assetDependencyPaths;
+                sourceAssetDependencyPaths.AddRange(generator.assetDependencyPaths);
 
                 if (graph.messageManager.AnyError())
                 {
