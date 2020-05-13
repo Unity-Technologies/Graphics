@@ -49,8 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lastTime = Time.time;
 
                 float rot = -Mathf.Deg2Rad*scrollDirection.value;
-                bool upperOnly = upperHemisphereOnly.value || procedural.value;
-                return new Vector4(upperOnly ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                return new Vector4(upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
         }
 
         /// <summary>
