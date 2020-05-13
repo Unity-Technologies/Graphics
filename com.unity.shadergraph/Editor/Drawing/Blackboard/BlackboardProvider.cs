@@ -256,7 +256,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
-            var selection = new List<ISelectable>(blackboard.selection);
+            var selection = new List<ISelectable>();
+            if (blackboard.selection != null)
+            {
+                selection.AddRange(blackboard.selection);
+            }
 
             foreach (var inputGuid in m_Graph.removedInputs)
             {
