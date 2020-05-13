@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some shader warnings
 - Fixed Sample Flipbbook Texture File Names
 - height of initial event name.
+- fix colorfield height.
 
 ## [7.3.0] - 2020-03-11
 ### Fixed
