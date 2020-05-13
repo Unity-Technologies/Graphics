@@ -382,7 +382,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAMotionVector)))
                 {
-                    CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT, m_CameraDepthStencilBuffer);
+                    CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT);
                     Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
                     cmd.DrawProcedural(Matrix4x4.identity, m_MotionVectorResolve, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
                 }
