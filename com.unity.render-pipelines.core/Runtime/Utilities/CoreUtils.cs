@@ -579,7 +579,7 @@ namespace UnityEngine.Rendering
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
             => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
-
+            
         /// <summary>
         /// Generate a name based on render texture parameters.
         /// </summary>
@@ -1062,7 +1062,7 @@ namespace UnityEngine.Rendering
             #if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
             #else
-                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)                    
             #endif
                     {
                         animateMaterials = true;
