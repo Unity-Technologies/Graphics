@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Don't lose SRP output specific data when SRP package is not present
 - Support of flag settings in model inspector
 - height of initial event name.
+- fix colorfield height.
 
 ## [7.1.1] - 2019-09-05
 ### Added
