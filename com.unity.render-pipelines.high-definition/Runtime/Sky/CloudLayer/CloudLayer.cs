@@ -20,9 +20,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
 
-        /// <summary>Enable to have cloud motion.</summary>
-        [Tooltip("Enable or disable cloud motion.")]
-        public BoolParameter            enableCloudMotion   = new BoolParameter(false);
+        /// <summary>Enable to have cloud distortion.</summary>
+        [Tooltip("Enable or disable cloud distortion.")]
+        public BoolParameter            enableDistortion    = new BoolParameter(false);
         /// <summary>Enable to have a simple, procedural distorsion.</summary>
         [Tooltip("If enabled, the clouds will be distorted by a constant wind.")]
         public BoolParameter            procedural          = new BoolParameter(true);
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyMaterial.SetTexture(HDShaderIDs._CloudMap, layer.cloudMap.value);
                 skyMaterial.SetVector(HDShaderIDs._CloudParam, cloudParam);
 
-                if (layer.enableCloudMotion.value == true)
+                if (layer.enableDistortion.value == true)
                 {
                     skyMaterial.EnableKeyword("USE_CLOUD_MOTION");
                     if (layer.procedural.value == true)
@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.value.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + enableCloudMotion.value.GetHashCode();
+                hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
                 hash = hash * 23 + windDirection.value.GetHashCode();
                 hash = hash * 23 + windForce.value.GetHashCode();
@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + enableCloudMotion.overrideState.GetHashCode();
+                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
                 hash = hash * 23 + windDirection.overrideState.GetHashCode();
                 hash = hash * 23 + windForce.overrideState.GetHashCode();
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
-                hash = hash * 23 + enableCloudMotion.GetHashCode();
+                hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();
                 hash = hash * 23 + scrollSpeed.GetHashCode();

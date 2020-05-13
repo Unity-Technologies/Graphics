@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_CloudMap                  = Unpack(o.Find(x => x.cloudMap));
 
-            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableCloudMotion));
+            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
             m_Procedural                = Unpack(o.Find(x => x.procedural));
             m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
             m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
