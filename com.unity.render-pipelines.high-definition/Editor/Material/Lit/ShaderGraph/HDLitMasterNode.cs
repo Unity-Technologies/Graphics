@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ReceivesSSRTransparent = true;
+        bool m_ReceivesSSRTransparent = false;
         public ToggleData receiveSSRTransparent
         {
             get { return new ToggleData(m_ReceivesSSRTransparent); }
@@ -1109,7 +1109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Ideally we do this another way but HDLit needs this for conditional pragmas
             var shaderProperties = new PropertyCollector();
             owner.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
-            bool hasDotsProperties = shaderProperties.GetDotsInstancingPropertiesCount(GenerationMode.ForReals) > 0;
+            bool hasDotsProperties = shaderProperties.DotsInstancingProperties(GenerationMode.ForReals).Any();
 
             return new ConditionalField[]
             {
@@ -1340,7 +1340,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn, receiveSSRTransparent.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), surfaceType == SurfaceType.Opaque ? receiveSSR.isOn : receiveSSRTransparent.isOn, receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
@@ -1356,6 +1356,7 @@ namespace UnityEditor.Rendering.HighDefinition
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
             HDSubShaderUtilities.AddRayTracingProperty(collector, rayTracing.isOn);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }
@@ -1379,5 +1380,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
         }
+
+        public bool supportsVirtualTexturing => true;
     }
 }
