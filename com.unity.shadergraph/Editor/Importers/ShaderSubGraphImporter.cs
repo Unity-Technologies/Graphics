@@ -226,7 +226,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots);
+            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

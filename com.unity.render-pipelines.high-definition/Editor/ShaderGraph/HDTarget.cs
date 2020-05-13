@@ -59,6 +59,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode)
+                                                                       + typeof(DiffusionProfileNode)
+                                                                       + typeof(ExposureNode)
+                                                                       + typeof(EmissionNode)
+                                                                       + typeof(ParallaxOcclusionMappingNode);
+
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return s_HDNodeTypes.Contains(nodeType);
+        }
+
         public HDTarget()
         {
             displayName = "HDRP";

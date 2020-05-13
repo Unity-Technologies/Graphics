@@ -135,8 +135,217 @@ namespace UnityEditor.Graphing
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include)
+            if (includeSelf == IncludeSelf.Include && node.isActive)
                 nodeList.Add(node);
+        }
+
+        private static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var outputNode = ((Edge)edge).outputSlot.node;
+                    if (outputNode != null)
+                    {
+                        nodeList.Add(outputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveLeafExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+
+
+            List<AbstractMaterialNode> parentNodes = GetParentNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if(parentNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach(var parent in parentNodes)
+            {
+                output |= ActiveLeafExists(parent);
+                if(output)
+                {
+                    break;
+                }
+            }
+            return output;
+        }
+
+
+        private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = ((Edge)edge).inputSlot.node;
+                    if (inputNode != null)
+                    {
+                        nodeList.Add(inputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveRootExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+            List<AbstractMaterialNode> childNodes = GetChildNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if (childNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach (var child in childNodes)
+            {
+                output |= ActiveRootExists(child);
+                if (output)
+                {
+                    break;
+                }
+            }
+            return output;
+
+        }
+
+        private static void ActiveTreeExists(AbstractMaterialNode node, out bool activeLeaf, out bool activeRoot, out bool activeTree)
+        {
+            activeLeaf = ActiveLeafExists(node);
+            activeRoot = ActiveRootExists(node);
+            activeTree = activeRoot && activeLeaf;
+        }
+
+        //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
+        // and a valid downstream output path, or "leaf" and "root". If this changes the node's active state, then anything connected may
+        // change as well, so update the "forrest" or all connectected trees of this nodes leaves.
+        // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
+        // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
+        // graph instead of just what I have declared as the "local" connected graph
+        public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            List<AbstractMaterialNode> forest = GetForest(node);
+            ReevaluateActivityOfNodeList(forest, changedNodes);
+        }
+
+        public static void ReevaluateActivityOfNodeList(IEnumerable<AbstractMaterialNode> nodes, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            bool getChangedNodes = changedNodes != null;
+            foreach(AbstractMaterialNode n in nodes)
+            {
+                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit)
+                    continue;
+                ActiveTreeExists(n, out _, out _, out bool at);
+                if(n.isActive != at && getChangedNodes)
+                {
+                    changedNodes.Add(n);
+                }
+                n.SetActive(at, false);
+            }
+
+        }
+
+        //Go to the leaves of the node, then get all trees with those leaves
+        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> leaves = GetLeaves(node);
+            List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
+            foreach(var leaf in leaves)
+            {
+                if(!forrest.Contains(leaf))
+                {
+                    forrest.Add(leaf);
+                }
+                foreach(var child in GetChildNodesRecursive(leaf))
+                {
+                    if(!forrest.Contains(child))
+                    {
+                        forrest.Add(child);
+                    }
+                }
+            }
+            return forrest;
+        }
+
+        private static List<AbstractMaterialNode> GetChildNodesRecursive(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
+            List<AbstractMaterialNode> children = GetChildNodes(node);
+            foreach(var child in children)
+            {
+                if(!output.Contains(child))
+                {
+                    output.Add(child);
+                }
+                foreach(var descendent in GetChildNodesRecursive(child))
+                {
+                    if(!output.Contains(descendent))
+                    {
+                        output.Add(descendent);
+                    }
+                }
+            }
+            return output;
+        }
+
+        private static List<AbstractMaterialNode> GetLeaves(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> parents = GetParentNodes(node);
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
+            if(parents.Count == 0)
+            {
+                output.Add(node);
+            }
+            else
+            {
+                foreach(var parent in parents)
+                {
+                    foreach(var leaf in GetLeaves(parent))
+                    {
+                        if(!output.Contains(leaf))
+                        {
+                            output.Add(leaf);
+                        }
+                    }
+                }
+            }
+            return output;
         }
 
         public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
@@ -166,32 +375,6 @@ namespace UnityEditor.Graphing
             // No more nodes downstream from here
             if(!hasDownstream)
                 nodeList.Add(node);
-        }
-
-        public static void UpdateNodeActiveOnEdgeChange(AbstractMaterialNode node)
-        {
-            if(node == null)
-                return;
-
-            // Get downstream node of the output node
-            var nodes = ListPool<AbstractMaterialNode>.Get();
-            NodeUtils.GetDownsteamNodesForNode(nodes, node);
-
-            // If the only downstream node is this node
-            // This is the end of the chain and should always be active
-            if(nodes.Count == 1 && nodes[0] == node && !(node is BlockNode))
-            {
-                node.isActive = true;
-            }
-            else
-            {
-                // If any downstream nodes are active
-                // then this node is also active
-                if(nodes.Any(x => x.isActive))
-                    node.isActive = true;
-                else
-                    node.isActive = false;
-            }
         }
 
         public static void CollectNodeSet(HashSet<AbstractMaterialNode> nodeSet, MaterialSlot slot)

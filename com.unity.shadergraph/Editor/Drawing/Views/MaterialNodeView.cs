@@ -225,23 +225,52 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Setup
             var disabledString = "disabled";
+            var portDisabledString = "inactive";
             var inputViews = m_PortInputContainer.Children().OfType<PortInputView>();
 
             if (!state)
             {
                 // Add elements to disabled class list
                 AddToClassList(disabledString);
-                foreach(var inputView in inputViews)
+                foreach (var inputView in inputViews)
+                {
                     inputView.AddToClassList(disabledString);
+                }
+                var inputPorts = inputContainer.Children().OfType<ShaderPort>();
+                foreach (var port in inputPorts)
+                {
+                    port.AddToClassList(portDisabledString);
+                }
+                var outputPorts = outputContainer.Children().OfType<ShaderPort>();
+                foreach (var port in outputPorts)
+                {
+                    port.AddToClassList(portDisabledString);
+                }
             }
             else
             {
                 // Remove elements from disabled class list
                 RemoveFromClassList(disabledString);
-                foreach(var inputView in inputViews)
+                foreach (var inputView in inputViews)
+                {
                     inputView.RemoveFromClassList(disabledString);
+                }
+
+                var inputPorts = inputContainer.Children().OfType<ShaderPort>();
+                foreach (var port in inputPorts)
+                {
+                    port.RemoveFromClassList(portDisabledString);
+                }
+                var outputPorts = outputContainer.Children().OfType<ShaderPort>();
+                foreach (var port in outputPorts)
+                {
+                    port.RemoveFromClassList(portDisabledString);
+                }
+
             }
         }
+
+
 
         public void ClearMessage()
         {

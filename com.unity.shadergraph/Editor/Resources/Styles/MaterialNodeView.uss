@@ -190,5 +190,13 @@ MaterialNodeView > #disabledOverlay {
 }
 
 MaterialNodeView.disabled #disabledOverlay {
-    background-color: rgba(32, 32, 32, 0.75);
+    background-color: rgba(32, 32, 32, 0.5);
+}
+
+MaterialNodeView.disabled:hover #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
+}
+
+MaterialNodeView.disabled:checked #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
 }

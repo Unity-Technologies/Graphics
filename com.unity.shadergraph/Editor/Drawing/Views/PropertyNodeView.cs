@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
@@ -241,8 +241,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnModified(ModificationScope scope)
         {
-            SetActive(node.isActive);
+            //disconnected property nodes are always active
+            if (!node.IsSlotConnected(PropertyNode.OutputSlotId))
+                node.SetActive(true);
             
+            SetActive(node.isActive);
+
             if (scope == ModificationScope.Graph)
             {
                 // changing the icon to be exposed or not
