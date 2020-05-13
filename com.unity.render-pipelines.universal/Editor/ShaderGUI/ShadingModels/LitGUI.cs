@@ -54,10 +54,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 "A multi-layer material feature which simulates a thin layer of coating on top of the surface material." +
                 "\nPerformance cost is considerable as the specular component is evaluated twice, once per layer.");
 
-            public static GUIContent clearCoatStrengthText   = new GUIContent("Strength",
-                "Specifies the strength of the coat blending." +
-                "\nActs as a multiplier of the clear coat map strength value or as a direct strength value if no map is specified." +
-                "\nThe map specifies clear coat strength in the red channel and clear coat smoothness in the green channel.");
+            public static GUIContent clearCoatMaskText   = new GUIContent("Mask",
+                "Specifies the amount of the coat blending." +
+                "\nActs as a multiplier of the clear coat map mask value or as a direct mask value if no map is specified." +
+                "\nThe map specifies clear coat mask in the red channel and clear coat smoothness in the green channel.");
 
             public static GUIContent clearCoatSmoothnessText = new GUIContent("Smoothness",
                 "Specifies the smoothness of the coating." +
@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             public MaterialProperty clearCoat;  // Enable/Disable dummy property
             public MaterialProperty clearCoatMap;
-            public MaterialProperty clearCoatStrength;
+            public MaterialProperty clearCoatMask;
             public MaterialProperty clearCoatSmoothness;
 
             public LitProperties(MaterialProperty[] properties)
@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                 clearCoat           = BaseShaderGUI.FindProperty("_ClearCoat", properties, false);
                 clearCoatMap        = BaseShaderGUI.FindProperty("_ClearCoatMap", properties, false);
-                clearCoatStrength   = BaseShaderGUI.FindProperty("_ClearCoatStrength", properties, false);
+                clearCoatMask       = BaseShaderGUI.FindProperty("_ClearCoatMask", properties, false);
                 clearCoatSmoothness = BaseShaderGUI.FindProperty("_ClearCoatSmoothness", properties, false);
             }
         }
@@ -143,7 +143,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if(EditorGUI.EndChangeCheck())
             {
                 if(coatEnabled)
-                    material.SetFloat("_ClearCoat", 0);
+                    material.SetFloat("_ClearCoat", 0); // Toggle off
                 else
                     material.SetFloat("_ClearCoat", 1);
 
@@ -152,16 +152,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             EditorGUI.BeginDisabledGroup(!coatEnabled);
             {
-                 materialEditor.TexturePropertySingleLine(Styles.clearCoatStrengthText, properties.clearCoatMap, properties.clearCoatStrength);
-                if (properties.clearCoatStrength.floatValue >= 0.0)
-                {
-                        EditorGUI.indentLevel += 2;
+                materialEditor.TexturePropertySingleLine(Styles.clearCoatMaskText, properties.clearCoatMap, properties.clearCoatMask);
 
-                        // Texture and HDR color controls
-                        materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+                EditorGUI.indentLevel += 2;
 
-                    EditorGUI.indentLevel -= 2;
-                }
+                    // Texture and HDR color controls
+                    materialEditor.ShaderProperty(properties.clearCoatSmoothness , Styles.clearCoatSmoothnessText);
+
+                EditorGUI.indentLevel -= 2;
             }
             EditorGUI.EndDisabledGroup();
         }
@@ -272,8 +270,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }
 
-            // Clear coat keywords are independent, i.e. _CLEARCOATMAP implies _CLEARCOAT, but not the otherway around.
-            // It is this way to remove possiblity of invalid combinations
+            // Clear coat keywords are independent to remove possiblity of invalid combinations.
             if (ClearCoatEnabled(material))
             {
                 var hasMap = material.HasProperty("_ClearCoatMap") && material.GetTexture("_ClearCoatMap") != null;

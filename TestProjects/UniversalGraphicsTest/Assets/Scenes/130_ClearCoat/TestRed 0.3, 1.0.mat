@@ -70,6 +70,7 @@ Material:
     - _Blend: 0
     - _BumpScale: 1
     - _ClearCoat: 1
+    - _ClearCoatMask: 0.3
     - _ClearCoatSmoothness: 1
     - _ClearCoatStrength: 0.3
     - _Cull: 2

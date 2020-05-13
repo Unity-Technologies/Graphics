@@ -325,7 +325,7 @@ half3 ConvertF0ForClearCoat15(half3 f0)
 #endif
 }
 
-inline void InitializeBRDFDataClearCoat(half clearCoatStrength, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
+inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmoothness, inout BRDFData baseBRDFData, out BRDFData outBRDFData)
 {
     // Calculate Roughness of Clear Coat layer
     outBRDFData.diffuse             = kDielectricSpec.aaa; // 1 - kDielectricSpec
@@ -341,7 +341,7 @@ inline void InitializeBRDFDataClearCoat(half clearCoatStrength, half clearCoatSm
 // Relatively small effect, cut it for lower quality
 #if !defined(SHADER_API_MOBILE)
     // Modify Roughness of base layer using coat IOR
-    half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatStrength);
+    half ieta                        = lerp(1.0h, CLEAR_COAT_IETA, clearCoatMask);
     half coatRoughnessScale          = Sq(ieta);
     half sigma                       = RoughnessToVariance(PerceptualRoughnessToRoughness(baseBRDFData.perceptualRoughness));
 
@@ -355,7 +355,7 @@ inline void InitializeBRDFDataClearCoat(half clearCoatStrength, half clearCoatSm
 #endif
 
     // Darken/saturate base layer using coat to surface reflectance (vs. air to surface)
-    baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatStrength);
+    baseBRDFData.specular = lerp(baseBRDFData.specular, ConvertF0ForClearCoat15(baseBRDFData.specular), clearCoatMask);
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
 }
 
@@ -374,10 +374,10 @@ half3 EnvironmentBRDF(BRDFData brdfData, half3 indirectDiffuse, half3 indirectSp
 }
 
 // Environment BRDF without diffuse for clear coat
-half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatStrength, half3 indirectSpecular, half fresnelTerm)
+half3 EnvironmentBRDFClearCoat(BRDFData brdfData, half clearCoatMask, half3 indirectSpecular, half fresnelTerm)
 {
     float surfaceReduction = 1.0 / (brdfData.roughness2 + 1.0);
-    return indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm) * clearCoatStrength;
+    return indirectSpecular * EnvironmentBRDFSpecular(brdfData, fresnelTerm) * clearCoatMask;
 }
 
 
@@ -580,7 +580,7 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return min(bakedGI, realtimeShadow);
 }
 
-half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatStrength,
+half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
     half3 bakedGI, half occlusion,
     half3 normalWS, half3 viewDirectionWS)
 {
@@ -596,13 +596,13 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, occlusion);
     // TODO: "grazing term" causes problems on full roughness
-    half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatStrength, coatIndirectSpecular, fresnelTerm);
+    half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
     // Blend with base layer using khronos glTF recommended way using NoV
     // Smooth surface & "ambiguous" lighting
     // NOTE: fresnelTerm (above) is pow4 instead of pow5, but should be ok as blend weight.
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * fresnelTerm;
-    return color * (1.0 - coatFresnel * clearCoatStrength) + coatColor;
+    return color * (1.0 - coatFresnel * clearCoatMask) + coatColor;
 #else
     return color;
 #endif
@@ -640,7 +640,7 @@ half3 LightingSpecular(half3 lightColor, half3 lightDir, half3 normal, half3 vie
     return lightColor * specularReflection;
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatStrength, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatMask, half3 lightColor, half3 lightDirectionWS, half lightAttenuation, half3 normalWS, half3 viewDirectionWS)
 {
     half NdotL = saturate(dot(normalWS, lightDirectionWS));
     half3 radiance = lightColor * (lightAttenuation * NdotL);
@@ -662,7 +662,7 @@ half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, hal
     // It is matching fresnel used in the GI/Env, so should produce a consistent clear coat blend (env vs. direct)
     half coatFresnel = kDielectricSpec.x + kDielectricSpec.a * Pow4(1.0 - NoV);
 
-    brdf = brdf * (1.0 - clearCoatStrength * coatFresnel) + brdfCoat * clearCoatStrength;
+    brdf = brdf * (1.0 - clearCoatMask * coatFresnel) + brdfCoat * clearCoatMask;
 #endif // _CLEARCOAT
 #endif // _SPECULARHIGHLIGHTS_OFF
 
@@ -676,9 +676,9 @@ half3 LightingPhysicallyBased(BRDFData brdfData, half3 lightColor, half3 lightDi
     return LightingPhysicallyBased(brdfData, noClearCoat, 0.0, lightColor, lightDirectionWS, lightAttenuation, normalWS, viewDirectionWS);
 }
 
-half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatStrength, Light light, half3 normalWS, half3 viewDirectionWS)
+half3 LightingPhysicallyBased(BRDFData brdfData, BRDFData brdfDataClearCoat, half clearCoatMask, Light light, half3 normalWS, half3 viewDirectionWS)
 {
-    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, clearCoatStrength, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
+    return LightingPhysicallyBased(brdfData, brdfDataClearCoat, clearCoatMask, light.color, light.direction, light.distanceAttenuation * light.shadowAttenuation, normalWS, viewDirectionWS);
 }
 
 // Backwards compatibility
@@ -719,16 +719,16 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     BRDFData brdfDataClearCoat;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
-    InitializeBRDFDataClearCoat(surfaceData.clearCoatStrength, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
+    InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
 #endif
 
     Light mainLight = GetMainLight(inputData.shadowCoord);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatStrength,
+    half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
-    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, surfaceData.clearCoatStrength,
+    color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      mainLight,
                                      inputData.normalWS, inputData.viewDirectionWS);
 
@@ -761,7 +761,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     s.occlusion           = occlusion;
     s.emission            = emission;
     s.alpha               = alpha;
-    s.clearCoatStrength   = 0.0;
+    s.clearCoatMask       = 0.0;
     s.clearCoatSmoothness = 1.0;
     return UniversalFragmentPBR(inputData, s);
 }

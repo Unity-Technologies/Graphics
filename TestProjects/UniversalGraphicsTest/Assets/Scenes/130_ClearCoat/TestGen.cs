@@ -14,7 +14,7 @@ public class TestGen : MonoBehaviour
 
         gos = new GameObject[xCount * yCount];
 
-        float strength   = 1;
+        float mask       = 1;
         float smoothness = 1;
         for(var y = 0; y < yCount; y++)
         {
@@ -23,13 +23,13 @@ public class TestGen : MonoBehaviour
                 int i = y * yCount + x;
                 if(y == 0)
                 {
-                    strength = x / (float)(xCount - 1);
+                    mask = x / (float)(xCount - 1);
                     smoothness = 1;
                 }
                 else
                 {
                     smoothness = x / (float)(xCount - 1);
-                    strength = 1;
+                    mask = 1;
                 }
 
                 GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -42,7 +42,7 @@ public class TestGen : MonoBehaviour
 
                 material.SetFloat("_ClearCoat", 1.0f);
                 material.EnableKeyword("_CLEARCOAT");
-                material.SetFloat("_ClearCoatStrength", strength);
+                material.SetFloat("_ClearCoatMask", mask);
                 material.SetFloat("_ClearCoatSmoothness", smoothness);
                 gos[i] = go;
             }

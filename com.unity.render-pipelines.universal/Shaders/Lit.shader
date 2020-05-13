@@ -34,7 +34,7 @@ Shader "Universal Render Pipeline/Lit"
 
         _ClearCoat("Clear Coat", Float) = 0.0
         _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
-        _ClearCoatStrength("Clear Coat Strength", Range(0.0, 1.0)) = 0.0
+        _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
         _ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0
 
         // Blending state

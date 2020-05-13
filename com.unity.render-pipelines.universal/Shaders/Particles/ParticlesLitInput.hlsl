@@ -82,6 +82,7 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
 #endif
 
+    outSurfaceData = (SurfaceData)0;
     outSurfaceData.albedo = albedo.rgb;
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     outSurfaceData.normalTS = normalTS;
@@ -92,9 +93,6 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
 
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
     outSurfaceData.alpha = albedo.a;
-
-    outSurfaceData.clearCoatStrength = 0.0h;
-    outSurfaceData.clearCoatSmoothness = 0.0h;
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED

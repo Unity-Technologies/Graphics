@@ -14,7 +14,7 @@ struct SurfaceData
     half3 emission;
     half  occlusion;
     half  alpha;
-    half  clearCoatStrength;
+    half  clearCoatMask;
     half  clearCoatSmoothness;
 };
 
