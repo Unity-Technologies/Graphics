@@ -250,11 +250,12 @@ bool ShouldFlipDebugTexture()
 
 void IncrementVertexDensityCounter(float4 positionCS)
 {
-    float2 ndc = positionCS.xy / positionCS.w * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    positionCS.xyz /= positionCS.w;
+    float3 ndc = float3(positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5, positionCS.z);
     // If vertex is in viewport
-    if (all(ndc > 0.0) && positionCS.w > 0.0)
+    if (all(ndc == saturate(ndc)))
     {
-        uint2 pixel = (uint2)(ndc * _ScreenSize.xy);
+        uint2 pixel = (uint2)(ndc.xy * _ScreenSize.xy);
         InterlockedAdd(_DebugVertexDensityUAV[COORD_TEXTURE2D_X(pixel)], 1);
     }
 }
