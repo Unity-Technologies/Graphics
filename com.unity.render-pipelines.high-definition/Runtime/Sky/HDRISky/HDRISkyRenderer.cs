@@ -144,7 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_SkyHDRIMaterial.DisableKeyword("USE_FLOWMAP");
 
                 float rot = -Mathf.Deg2Rad*hdriSky.scrollDirection.value;
-                Vector4 flowmapParam = new Vector4(hdriSky.upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                bool upperHemisphereOnly = hdriSky.upperHemisphereOnly.value || hdriSky.procedural.value;
+                Vector4 flowmapParam = new Vector4(upperHemisphereOnly ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
 
                 m_SkyHDRIMaterial.SetVector(HDShaderIDs._FlowmapParam, flowmapParam);
 

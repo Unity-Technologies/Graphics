@@ -572,7 +572,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         public int maximumLODLevelQualityLevel;
 
-        /// <summary>Stores SssQualityMode on disk.<summary>
+        /// <summary>Stores SssQualityMode on disk.</summary>
         [SerializeField]
         public SssQualityMode sssQualityMode;
         /// <summary>Stores SssQualityLevel on disk.</summary>
@@ -765,7 +765,8 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LowResTransparent] &= renderPipelineSettings.lowresTransparentSettings.enabled;
 
-            bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= SystemInfo.supportsAsyncCompute;
+            // NOTE: We currently disable async compute on D3D12 for an issue we have with constant buffer update. TODO We need to renable it when case 1238431 is resolved
+            bool async = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AsyncCompute] &= (SystemInfo.supportsAsyncCompute && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.LightListAsync] &= async;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSRAsync] &= (async && !rayTracingActive);
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAOAsync] &= (async && !rayTracingActive);
