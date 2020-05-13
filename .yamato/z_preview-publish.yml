@@ -103,6 +103,14 @@ wait_for_nightly:
   name: "z_Wait for nightly"
   dependencies:
     - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
+  {% for test in testables -%}
+    - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
+  {% for editor in editors -%}
+  {% for platform in platforms -%}
+    - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
+  {% endfor -%}
+  {% endfor -%}
+  {% endfor -%}
     
 
 {% for test in testables -%}
