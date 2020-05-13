@@ -364,6 +364,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
         public static readonly int _InvOmegaP = Shader.PropertyToID("_InvOmegaP");
+        public static readonly int _DistortionParam = Shader.PropertyToID("_DistortionParam");
         public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
         public static readonly int _BackplateParameters0 = Shader.PropertyToID("_BackplateParameters0");
         public static readonly int _BackplateParameters1 = Shader.PropertyToID("_BackplateParameters1");
@@ -372,6 +373,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _BackplateShadowFilter = Shader.PropertyToID("_BackplateShadowFilter");
         public static readonly int _SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
+
+        public static readonly int _Flowmap = Shader.PropertyToID("_Flowmap");
+        public static readonly int _FlowmapParam = Shader.PropertyToID("_FlowmapParam");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");
         public static readonly int _Source = Shader.PropertyToID("_Source");
@@ -611,6 +615,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
+        public static readonly int _InputTextureMSAA               = Shader.PropertyToID("_InputTextureMSAA");
         public static readonly int _OutputTexture                  = Shader.PropertyToID("_OutputTexture");
         public static readonly int _SourceTexture                  = Shader.PropertyToID("_SourceTexture");
         public static readonly int _InputHistoryTexture            = Shader.PropertyToID("_InputHistoryTexture");

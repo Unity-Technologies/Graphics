@@ -1,6 +1,10 @@
 #ifndef UNIVERSAL_PIPELINE_CORE_INCLUDED
 #define UNIVERSAL_PIPELINE_CORE_INCLUDED
 
+// VT is not supported in URP (for now) this ensures any shaders using the VT
+// node work by falling to regular texture sampling.
+#define FORCE_VIRTUAL_TEXTURING_OFF 1
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
