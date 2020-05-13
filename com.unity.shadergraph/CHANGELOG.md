@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the functions in the `Normal From Height` node to avoid NaN outputs.
 - Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
+- Moved all code to be under Unity specific namespaces.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
