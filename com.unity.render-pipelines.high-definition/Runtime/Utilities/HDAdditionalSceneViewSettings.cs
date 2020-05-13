@@ -98,7 +98,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static bool sceneViewStopNaNs
         {
-            // We update the Editor prefs only when writing. Reading goes through the cached local var to ensure that reads have no overhead.
             get => s_SceneViewStopNaNs.value;
             set => s_SceneViewStopNaNs.value = value;
         }
