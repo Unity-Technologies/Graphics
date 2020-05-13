@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62df9b4638bed4b5686466de1f45958f, type: 3}
+  m_Name: TestCaseFilters
+  m_EditorClassIdentifier: 
+  filters:
+  - FilteredScene: {fileID: 102900000, guid: 2d287b701f8e1bf429c14805ac505eb9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 5
+    GraphicsDevice: 4
+    Reason: Test filter 31
+  - FilteredScene: {fileID: 102900000, guid: 375d3d0d24cdfe14aa69d3d595acb1c3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 5
+    GraphicsDevice: 4
+    Reason: Test filter 32
+  - FilteredScene: {fileID: 102900000, guid: ff592545ad5dd744893d54a73f85b2cc, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 5
+    GraphicsDevice: 4
+    Reason: Test filter 33
+  - FilteredScene: {fileID: 102900000, guid: e346f8573410f414ea2a8a4740526c88, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 5
+    GraphicsDevice: 4
+    Reason: Test filter 34
+  - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 4
+    Reason: Should not be filtered out for win
