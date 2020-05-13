@@ -38,7 +38,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { LitPasses.MotionVectors },
                     { LitPasses.DistortionVectors, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { LitPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { LitPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { LitPasses.Forward },
                     { LitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                     { LitPasses.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },

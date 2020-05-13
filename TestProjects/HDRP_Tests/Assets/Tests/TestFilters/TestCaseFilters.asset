@@ -314,3 +314,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Crash on Yamato
+  - FilteredScene: {fileID: 102900000, guid: c64196eb7ce78e84bb835b2ea858ee19, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
