@@ -58,8 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct Brick
         {
-            internal Vector3Int position;
-            internal int size;
+            internal Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
+            internal int size;              // size as factor covered elementary cells
 
             internal Brick(Vector3Int position, int size)
             {
@@ -68,38 +68,57 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private Quaternion      m_Rotation;
-        private Vector3         m_Position;
+        internal struct RefVolTransform
+        {
+            public Matrix4x4   refSpaceToWS;
+            public Vector3     posWS;
+            public Quaternion  rot;
+            public float       scale;
+        }
+
+        private RefVolTransform m_Transform;
         private int             m_MaxSubdivision;
-        private float           m_MinBrickSize;
         private ProbeBrickPool  m_Pool;
         private List<Brick>     m_TmpBricks  = new List<Brick>();
         private List<Chunk>     m_TmpSrcChunks = new List<Chunk>();
         private List<Chunk>     m_TmpDstChunks = new List<Chunk>();
+        private float[]         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
 
         // index related
         Texture3D indexTex;
 
         internal ProbeReferenceVolume(int AllocationSize, int MemoryBudget)
         {
-            m_Rotation = Quaternion.identity;
-            m_Position = Vector3.zero;
+            m_Transform.posWS = Vector3.zero;
+            m_Transform.rot = Quaternion.identity;
+            m_Transform.scale = 1.0f;
+            m_Transform.refSpaceToWS = Matrix4x4.identity;
+
             m_Pool = new ProbeBrickPool(AllocationSize, MemoryBudget);
+
+            // initialize offsets
+            m_PositionOffsets[0] = 0.0f;
+            float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
+            for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
+                m_PositionOffsets[i] = i * probeDelta;
+            m_PositionOffsets[m_PositionOffsets.Length-1] = 1.0f;
         }
 
         internal void SetGridDensity(float minBrickSize, int maxSubdivision)
         {
-            m_MinBrickSize = minBrickSize;
             m_MaxSubdivision = System.Math.Min(maxSubdivision, kMaxSubdivisionLevels);
+
+            m_Transform.scale = minBrickSize;
+            m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
         internal int   cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
-        internal float brickSize( int subdivisionLevel) { return m_MinBrickSize * cellSize(subdivisionLevel); }
-        internal float minBrickSize() { return m_MinBrickSize; }
+        internal float brickSize( int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
+        internal float minBrickSize() { return m_Transform.scale; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
-        internal Matrix4x4 GetRefSpaceToWS() { return Matrix4x4.TRS(m_Position, m_Rotation, Vector3.one * minBrickSize()); }
+        internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
 
-        internal delegate void SubdivisionDel(Matrix4x4 refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks);
+        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks);
 
         internal void CreateBricks(ref Volume volume, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
@@ -108,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TmpBricks.Clear();
             // rasterize bricks according to the coarsest grid
             Rasterize(vol, m_TmpBricks);
-            subdivider(GetRefSpaceToWS(), m_TmpBricks, outSortedBricks);
+            subdivider(m_Transform, m_TmpBricks, outSortedBricks);
             // sort from larger to smaller bricks
             outSortedBricks.Sort( (Brick lhs, Brick rhs) =>
             {
@@ -132,18 +151,26 @@ namespace UnityEngine.Rendering.HighDefinition
             Matrix4x4 m = GetRefSpaceToWS();
             int posIdx = 0;
 
-            for (int i = 0; i < bricks.Count; i++)
+            foreach (var b in bricks)
             {
-                Vector3 origin = bricks[i].position;
-                float size = cellSize(bricks[i].size);
+                Vector3 offset = b.position;
+                offset = m.MultiplyPoint(offset);
+                float scale = cellSize(b.size);
+                Vector3 X = m.GetColumn(0) * scale;
+                Vector3 Y = m.GetColumn(1) * scale;
+                Vector3 Z = m.GetColumn(2) * scale;
 
                 for (int z = 0; z < ProbeBrickPool.kBrickProbeCountPerDim; z++)
                 {
+                    float zoff = m_PositionOffsets[z];
                     for (int y = 0; y < ProbeBrickPool.kBrickProbeCountPerDim; y++)
                     {
+                        float yoff = m_PositionOffsets[y];
                         for (int x = 0; x < ProbeBrickPool.kBrickProbeCountPerDim; x++)
                         {
-                            outProbePositions[posIdx++] = m.MultiplyPoint(origin + new Vector3(x, y, z) * (size / 3f));
+                            float xoff = m_PositionOffsets[x];
+                            outProbePositions[posIdx] = offset + xoff * X + yoff * Y + zoff * Z;
+                            posIdx++;
                         }
                     }
                 }

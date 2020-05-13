@@ -6,21 +6,22 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     using Brick = ProbeReferenceVolume.Brick;
     using Volume = ProbeReferenceVolume.Volume;
+    using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal static class ProbeVolumePositioning
     {
-        internal static void SubDivideBricks(Matrix4x4 refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks)
+        internal static void SubDivideBricks(RefTrans refTrans, List<Brick> inBricks, List<Brick> outBricks)
         {
             List<Brick> level = new List<Brick>(inBricks);
 
             while (level.Count != 0)
             {
-                level = SubDivideLevel(refSpaceToWS, level);
+                level = SubDivideLevel(ref refTrans, level);
                 outBricks.AddRange(level);
             }
         }
 
-        private static List<Brick> SubDivideLevel(Matrix4x4 refSpaceToWS, List<Brick> level)
+        private static List<Brick> SubDivideLevel(ref RefTrans refTrans, List<Brick> level)
         {
             List<Brick> result = new List<Brick>();
 
@@ -38,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3Int offset = Position3D(3, 3, b) * thirdSize;
 
                         var child = new Brick(brick.position + offset, thirdSubDivLevel);
-                        if (ShouldKeepBrick(refSpaceToWS, child))
+                        if (ShouldKeepBrick(ref refTrans, child))
                         {
                             result.Add(child);
                         }
@@ -51,17 +52,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // TODO: Add subdivision criteria here,
         // currently just keeps subdividing inside probe volumes
-        internal static bool ShouldKeepBrick(Matrix4x4 refSpaceToWS, Brick brick)
+        internal static bool ShouldKeepBrick(ref RefTrans refTrans, Brick brick)
         {
-            return IntersectsProbeVolume(refSpaceToWS, brick);
+            return IntersectsProbeVolume(ref refTrans, brick);
         }
 
         // TODO: Full OBB-OBB collision, perhaps using SAT
         // TODO: Take refvol translation and rotation into account
-        internal static bool IntersectsProbeVolume(Matrix4x4 refSpaceToWS, Brick brick)
+        internal static bool IntersectsProbeVolume(ref RefTrans refTrans, Brick brick)
         {
-            Vector3 scaledSize = refSpaceToWS.lossyScale * Mathf.Pow(3, brick.size);
-            Vector3 scaledPos = refSpaceToWS.MultiplyPoint(brick.position) + scaledSize / 2;
+            Vector3 scaledSize = refTrans.scale * Mathf.Pow(3, brick.size) * Vector3.one;
+            Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position) + scaledSize / 2;
             Bounds bounds = new Bounds(scaledPos, scaledSize);
 
             bool result = false;
