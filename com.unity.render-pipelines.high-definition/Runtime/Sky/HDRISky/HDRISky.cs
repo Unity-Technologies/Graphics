@@ -86,11 +86,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.value.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
-                hash = hash * 23 + enableCloudMotion.value.GetHashCode();
+                hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + windDirection.value.GetHashCode();
-                hash = hash * 23 + windForce.value.GetHashCode();
+                hash = hash * 23 + scrollDirection.value.GetHashCode();
+                hash = hash * 23 + scrollSpeed.value.GetHashCode();
 
                 hash = hash * 23 + enableBackplate.value.GetHashCode();
                 hash = hash * 23 + backplateType.value.GetHashCode();
@@ -108,11 +108,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hash = hdriSky.value != null ? hash * 23 + hdriSky.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
-                hash = hash * 23 + enableCloudMotion.overrideState.GetHashCode();
+                hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + windDirection.overrideState.GetHashCode();
-                hash = hash * 23 + windForce.overrideState.GetHashCode();
+                hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
+                hash = hash * 23 + scrollSpeed.overrideState.GetHashCode();
 
                 hash = hash * 23 + enableBackplate.overrideState.GetHashCode();
                 hash = hash * 23 + backplateType.overrideState.GetHashCode();
