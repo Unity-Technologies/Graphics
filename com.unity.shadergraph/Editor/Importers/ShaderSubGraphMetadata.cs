@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-    class ShaderGraphMetadata : ScriptableObject
+    class ShaderSubGraphMetadata : ScriptableObject
     {
-        public string outputNodeTypeName;
         public List<Object> assetDependencies;
     }
 }
