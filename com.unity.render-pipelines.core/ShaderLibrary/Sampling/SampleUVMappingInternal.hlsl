@@ -33,6 +33,9 @@ real4 ADD_FUNC_SUFFIX(SampleUVMapping)(TEXTURE2D_PARAM(textureName, samplerName)
 #if defined(UNITY_NO_DXT5nm)
 #define UNPACK_NORMAL_FUNC UnpackNormalRGB
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGB
+#elif defined(SHADER_API_MOBILE)
+#define UNPACK_NORMAL_FUNC UnpackNormalmapAG
+#define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalAG
 #else
 #define UNPACK_NORMAL_FUNC UnpackNormalmapRGorAG
 #define UNPACK_DERIVATIVE_FUNC UnpackDerivativeNormalRGorAG

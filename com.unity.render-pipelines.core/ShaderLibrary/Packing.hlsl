@@ -202,6 +202,8 @@ real3 UnpackNormal(real4 packedNormal)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGBNoScale(packedNormal);
+#elif defined(SHADER_API_MOBILE)
+    return UnpackNormalmapAG(packedNormal, 1.0);
 #else
     // Compiler will optimize the scale away
     return UnpackNormalmapRGorAG(packedNormal, 1.0);
@@ -212,6 +214,8 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
 #if defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);
+#elif defined(SHADER_API_MOBILE)
+    return UnpackNormalmapAG(packedNormal, bumpScale);
 #else
     return UnpackNormalmapRGorAG(packedNormal, bumpScale);
 #endif
