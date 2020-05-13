@@ -353,18 +353,7 @@
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
     #endif
 
-    // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
     #if defined(UNITY_DOTS_INSTANCING_ENABLED)
-        #undef UNITY_MATRIX_M
-        #undef UNITY_MATRIX_I_M
-        #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_WorldToObject))
-        #else
-            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_ObjectToWorld)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_WorldToObject)
-        #endif
-
         UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
         UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
         UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
@@ -400,6 +389,13 @@
         #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
         #define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
         #define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
+
+        // Redirect GetRawUnityObjectToWorld etc to load from DOTS instancing buffers, which should also make UNITY_MATRIX_M work correctly
+        float4x4 GetRawUnityObjectToWorldDotsInstanced() { return UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_ObjectToWorld); }
+        float4x4 GetRawUnityWorldToObjectDotsInstanced() { return UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_WorldToObject); }
+
+        #define GetRawUnityObjectToWorld GetRawUnityObjectToWorldDotsInstanced
+        #define GetRawUnityWorldToObject GetRawUnityWorldToObjectDotsInstanced
 
     #else
 
