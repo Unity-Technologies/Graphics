@@ -1124,6 +1124,27 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
+        public static bool IsLightOverlapDebugEnabled(Camera camera)
+        {
+            bool enabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "LightOverlap" mode is enabled for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == camera && sv.cameraMode.drawMode == UnityEditor.DrawCameraMode.LightOverlap)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return enabled;
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 
