@@ -217,37 +217,6 @@ real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 #endif
 }
 
-// ----------------------------------------------------------------------------
-// Terrain/Brush heightmap encoding/decoding
-// ----------------------------------------------------------------------------
-
-#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
-
-real4 PackHeightmap(real height)
-{
-    uint a = (uint)(65535.0 * height);
-    return real4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0;
-}
-
-real UnpackHeightmap(real4 height)
-{
-    return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
-}
-
-#else
-
-real4 PackHeightmap(real height)
-{
-    return real4(height, 0, 0, 0);
-}
-
-real UnpackHeightmap(real4 height)
-{
-    return height.r;
-}
-
-#endif
-
 //-----------------------------------------------------------------------------
 // HDR packing
 //-----------------------------------------------------------------------------

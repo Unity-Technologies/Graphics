@@ -353,50 +353,17 @@
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
     #endif
 
+    // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
     #if defined(UNITY_DOTS_INSTANCING_ENABLED)
-        UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
-        UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-        UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_LODFade)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_WorldTransformParams)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_RenderingLayer)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_LightmapST)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_DynamicLightmapST)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHAr)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHAg)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHAb)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHBr)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHBg)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHBb)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_SHC)
-        UNITY_DOTS_INSTANCED_PROP(float4, unity_ProbesOcclusion)
-        UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousM)
-        UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousMI)
-        UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
-
-        #define unity_LODFade               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LODFade)
-        #define unity_WorldTransformParams  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_WorldTransformParams)
-        #define unity_RenderingLayer        UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_RenderingLayer)
-        #define unity_LightmapST            UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_LightmapST)
-        #define unity_DynamicLightmapST     UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_DynamicLightmapST)
-        #define unity_SHAr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAr)
-        #define unity_SHAg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAg)
-        #define unity_SHAb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHAb)
-        #define unity_SHBr                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBr)
-        #define unity_SHBg                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBg)
-        #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
-        #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
-        #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-        #define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
-        #define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
-
-        // Redirect GetRawUnityObjectToWorld etc to load from DOTS instancing buffers, which should also make UNITY_MATRIX_M work correctly
-        float4x4 GetRawUnityObjectToWorldDotsInstanced() { return UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_ObjectToWorld); }
-        float4x4 GetRawUnityWorldToObjectDotsInstanced() { return UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_WorldToObject); }
-
-        #define GetRawUnityObjectToWorld GetRawUnityObjectToWorldDotsInstanced
-        #define GetRawUnityWorldToObject GetRawUnityWorldToObjectDotsInstanced
-
+        #undef UNITY_MATRIX_M
+        #undef UNITY_MATRIX_I_M
+        #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject))
+        #else
+            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+        #endif
     #else
 
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
