@@ -592,6 +592,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with sceneview camera settings not being saved after Editor restart.
 - Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
 - Fixed a null ref exception when running playmode tests with the render pipeline debug window opened.
+- Fixed some GCAlloc in the debug window.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
