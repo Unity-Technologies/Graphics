@@ -33,5 +33,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Ray Length. This defines the maximal travel distance of rays.")]
         public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0f, 50f);
+
+        /// <summary>
+        /// Minmal smoothness for reflection rays. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.
+        /// </summary>
+        [Tooltip("Minmal Smoothness for Reflection. If the surface has a smoothness value below this threshold, a reflection ray will not be case and it will fallback on other techniques.")]
+        public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
     }
 }
