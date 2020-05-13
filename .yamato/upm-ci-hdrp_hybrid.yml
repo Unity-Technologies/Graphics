@@ -75,7 +75,8 @@ linux_apis:
 {{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : Test {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
-    flavor: b1.large
+    flavor: b1.xlarge
+    model: rtx2080
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
   skip_checkout: true
@@ -139,10 +140,10 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
-    flavor: {{ platform.flavor }}
+    flavor: b1.xlarge
   variables:
     UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     {% if editor.version == 'CUSTOM-REVISION' %}
