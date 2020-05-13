@@ -672,7 +672,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
-        bool m_ReceivesSSRTransparent = true;
+        bool m_ReceivesSSRTransparent = false;
         public ToggleData receiveSSRTransparent
         {
             get { return new ToggleData(m_ReceivesSSRTransparent); }
