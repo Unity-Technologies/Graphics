@@ -37,7 +37,7 @@ Shader "Universal Render Pipeline/Unlit"
             Name "Unlit"
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
 
             #pragma vertex vert
             #pragma fragment frag
@@ -113,7 +113,7 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -142,7 +142,7 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta

@@ -34,7 +34,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex vert
@@ -149,7 +149,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -178,7 +178,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -199,7 +199,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles glcore
+            #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
             #pragma vertex vert
