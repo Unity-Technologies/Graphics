@@ -14,11 +14,14 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_UpperHemisphereOnly;
         SerializedDataParameter m_CloudMap;
 
-        SerializedDataParameter m_EnableCloudMotion;
+        SerializedDataParameter m_EnableDistortion;
         SerializedDataParameter m_Procedural;
         SerializedDataParameter m_Flowmap;
         SerializedDataParameter m_ScrollDirection;
         SerializedDataParameter m_ScrollSpeed;
+
+        GUIContent[]    m_DistortionModes = { new GUIContent("Procedural"), new GUIContent("Flowmap") };
+        int[]           m_DistortionModeValues = { 1, 0 };
 
         public override void OnEnable()
         {
@@ -29,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_CloudMap                  = Unpack(o.Find(x => x.cloudMap));
 
-            m_EnableCloudMotion         = Unpack(o.Find(x => x.enableDistortion));
+            m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
             m_Procedural                = Unpack(o.Find(x => x.procedural));
             m_Flowmap                   = Unpack(o.Find(x => x.flowmap));
             m_ScrollDirection           = Unpack(o.Find(x => x.scrollDirection));
@@ -56,12 +59,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_UpperHemisphereOnly);
 
-            PropertyField(m_EnableCloudMotion, new GUIContent("Cloud Motion"));
-            if (m_EnableCloudMotion.value.boolValue)
+            PropertyField(m_EnableDistortion);
+            if (m_EnableDistortion.value.boolValue)
             {
                 EditorGUI.indentLevel++;
 
-                PropertyField(m_Procedural, new GUIContent("Procedural distortion"));
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    DrawOverrideCheckbox(m_Procedural);
+                    using (new EditorGUI.DisabledScope(!m_Procedural.overrideState.boolValue))
+                        m_Procedural.value.boolValue = EditorGUILayout.IntPopup(new GUIContent("Distortion Mode"), (int)m_Procedural.value.intValue, m_DistortionModes, m_DistortionModeValues) == 1;
+                }
+
                 if (!m_Procedural.value.boolValue)
                 {
                     EditorGUI.indentLevel++;

@@ -49,7 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lastTime = Time.time;
 
                 float rot = -Mathf.Deg2Rad*scrollDirection.value;
-                return new Vector4(upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                bool upperOnly = upperHemisphereOnly.value || procedural.value;
+                return new Vector4(upperOnly ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
         }
 
         /// <summary>
@@ -99,16 +100,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
                 hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
-                hash = hash * 23 + windDirection.value.GetHashCode();
-                hash = hash * 23 + windForce.value.GetHashCode();
+                hash = hash * 23 + scrollDirection.value.GetHashCode();
+                hash = hash * 23 + scrollSpeed.value.GetHashCode();
 
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
                 hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
-                hash = hash * 23 + windDirection.overrideState.GetHashCode();
-                hash = hash * 23 + windForce.overrideState.GetHashCode();
+                hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
+                hash = hash * 23 + scrollSpeed.overrideState.GetHashCode();
 #else
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;

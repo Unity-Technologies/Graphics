@@ -34,9 +34,9 @@ Only the red and green channel are used and they represent respectively horizont
 | ----------------------------- | ------------------------------------------------------------ |
 | **Enable**                    | Enables the cloud layer. |
 | **Cloud Map*                  | Assign a Texture that HDRP uses to render the cloud layer. Refer to the section [Customizing the Cloud Map](#CustomizingCloudMap) for more details. |
-| **Upper Hemisphere Only**     | Check the box if the cloud layer is to be applied above the horizon only. |
-| **Cloud Motion**              | Enable or disable cloud motion using UV distortion. |
-| - **Procedural distortion**   | Check the box to distort the clouds using a uniform wind direction. |
-| -- **Flowmap**                | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the clouds. Only available if **Procedural is unchecked. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details. |
+| **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
+| **Enable Distortion**         | Enable or disable cloud motion using UV distortion. |
+| - **Distortion Mode**         | Use the drop-down to select the method that HDRP uses to calculate the cloud distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds with a user provided flowmap. |
+| -- **Flowmap**                | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion Mode** drop-down. |
 | - **Scroll direction**        | Use the slider to set the scrolling direction for the distortion. |
 | - **Scroll speed**            | Modify the speed at which HDRP scrolls the distortion texture. |
