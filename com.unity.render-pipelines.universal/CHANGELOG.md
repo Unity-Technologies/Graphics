@@ -183,6 +183,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
 - Fixed an issue with reflections when using an orthographic camera [case 1209255](https://issuetracker.unity3d.com/issues/urp-weird-reflections-when-using-lit-material-and-a-camera-with-orthographic-projection)
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed an issue where Stencil settings wasn't serialized properly in sub object [case 1241218](https://issuetracker.unity3d.com/issues/stencil-overrides-in-urp-7-dot-3-1-render-objects-does-not-save-or-apply)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
