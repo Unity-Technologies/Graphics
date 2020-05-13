@@ -58,11 +58,11 @@ namespace UnityEngine.Rendering.HighDefinition
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("HD Render Pipeline", EditorStyles.boldLabel);
 
-            sceneViewAntialiasing = (AntialiasingMode)EditorGUILayout.EnumPopup(Styles.AAMode, s_SceneViewAntialiasing);
+            sceneViewAntialiasing = (AntialiasingMode)EditorGUILayout.EnumPopup(Styles.AAMode, sceneViewAntialiasing);
             if (sceneViewAntialiasing == AntialiasingMode.TemporalAntialiasing)
                 EditorGUILayout.HelpBox(Styles.HelpBox, MessageType.Info);
 
-            sceneViewStopNaNs = EditorGUILayout.Toggle(Styles.StopNaNs, s_SceneViewStopNaNs);
+            sceneViewStopNaNs = EditorGUILayout.Toggle(Styles.StopNaNs, sceneViewStopNaNs);
         }
 
         static T GetOrCreatePref<T>(string key, T defaultValue)
