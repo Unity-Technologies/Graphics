@@ -49,8 +49,10 @@ namespace UnityEngine.Rendering.HighDefinition
         static HDAdditionalSceneViewSettings()
         {
             SceneViewCameraWindow.additionalSettingsGui += DoAdditionalSettings;
-            sceneViewAntialiasing = GetOrCreatePref<AntialiasingMode>(k_SceneViewAntialiasingKey, AntialiasingMode.None);
-            sceneViewStopNaNs = GetOrCreatePref<bool>(k_SceneViewStopNaNsKey, false);
+
+            // Initialize the scene view settings from the saved editor preferences (or register new preferences if necessary) 
+            sceneViewAntialiasing = GetOrCreatePref<AntialiasingMode>(k_SceneViewAntialiasingKey, s_SceneViewAntialiasing);
+            sceneViewStopNaNs = GetOrCreatePref<bool>(k_SceneViewStopNaNsKey, s_SceneViewStopNaNs);
         }
 
         static void DoAdditionalSettings(SceneView sceneView)
