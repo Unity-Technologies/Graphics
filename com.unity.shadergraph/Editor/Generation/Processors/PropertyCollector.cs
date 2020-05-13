@@ -228,6 +228,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+
             foreach (var prop in properties.OfType<Texture3DShaderProperty>())
             {
                 if (prop.referenceName != null)

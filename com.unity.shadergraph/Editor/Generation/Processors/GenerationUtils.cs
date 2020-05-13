@@ -620,6 +620,10 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine(prop.GetPropertyBlockString());
                 }
 
+                sb.AppendLine(Texture2DArrayShaderProperty.kLightmapsArray.GetPropertyBlockString());
+                sb.AppendLine(Texture2DArrayShaderProperty.kLightmapsIndirectionArray.GetPropertyBlockString());
+                sb.AppendLine(Texture2DArrayShaderProperty.kShadowMasksArray.GetPropertyBlockString());
+
                 // Keywords use hardcoded state in preview
                 // Do not add them to the Property Block
                 if(mode == GenerationMode.Preview)
@@ -708,7 +712,7 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                             surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "Out");
-                        
+
                     }
                     else
                     {
