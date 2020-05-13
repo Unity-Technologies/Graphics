@@ -1,49 +1,49 @@
 # Arbitrary Output Variables
 
-Arbitrary Output Variables (AOVs) are additional images that an HDRP camera can generate. Typically they are used to output additional information per pixel, which can be used later for compositing or additional image processing (such as denoising).
+Arbitrary Output Variables (AOVs) are additional images that an [HDRP Camera](HDRP-Camera.md) can generate. They can output additional information per pixel, which you can use later for compositing or additional image processing (such as denoising).
 
-Here is an example of three AOVs, containing from left to right the Albedo, Normal and Object ID of each pixel:
+Here is an example of three AOVs, containing from left to right the Albedo, Normal, and Object ID of each pixel:
 
 ![](Images/aov_example.png)
 
-In HDRP you can access and configure AOVs in the following ways:
-- Using the [HDRP Compositor Tool](Compositor-Main).
-- Using the Unity Recorder and the AOV Recorder Package.
-- Using the scripting API to setup a custom AOV request in any HDRP Camera of your scene.
+In HDRP, you can access and configure AOVs in the following ways:
+- Using the [HDRP Compositor tool](Compositor-Main).
+- Using the [Unity Recorder](https://docs.unity3d.com/Packages/com.unity.recorder@latest/index.html) and the [AOV Recorder](https://docs.unity3d.com/Packages/com.unity.aovrecorder@latest/index.html) packages.
+- Using the scripting API to set up a custom AOV request in any HDRP Camera in your Scene.
 
-The first two options offer a limited selection of AOVs in their User Interface, while the third option allows much more flexibility on the nature of data that will be outputted.
+The first two options offer a limited selection of AOVs in their User Interface, while the third option allows for much more flexibility on what data an HDRP Camera can output.
 
-## Material Property AOVs
-Here is a list of material properties that can be outputted using the AOV API.
+## Material property AOVs
+Here is the list of Material properties that you can access with the AOV API.
 
-| Material Property | Description               |
+| Material property | Description               |
 |-------------------|---------------------------|
-| Normal            | Output the surface albedo |
-| Albedo            | Output the surface normal |
-| Smoothness        | Output the surface smoothness |
-| Ambient Occlusion | Output the ambient occlusion (N/A for AxF) |
-| Specular          | Output the surface specularity |
-| Alpha             | Output the surface alpha (pixel coverage) |
+| **Normal**        | Outputs the surface albedo. |
+| **Albedo**        | Outputs the surface normal. |
+| **Smoothness**    | Outputs the surface smoothness. |
+| **Ambient Occlusion** | Outputs the ambient occlusion (N/A for AxF). |
+| **Specular**      | Outputs the surface specularity. |
+| **Alpha**         | Outputs the surface alpha (pixel coverage). |
 
-## Lighting Selection with AOVs
-AOVs can also be used to output the contribution from a selected list of lights, or they can be used to output only specific components of the lighting.
+## Lighting selection with AOVs
+You can use AOVs to output the contribution from a selected list of [Lights](Light-Component.md), or you can use them to output only specific components of the lighting.
 
-| Lighting Property | Description               |
+| Lighting property | Description               |
 |-------------------|---------------------------|
-| DiffuseOnly        | Render only diffuse lighting (direct and indirect) |
-| SpecularOnly       | Render only specular lighting (direct and indirect) |
-| DirectDiffuseOnly  | Render only direct diffuse lighting |
-| DirectSpecularOnly  | Render only direct specular lighting |
-| IndirectDiffuseOnly  | Render only indirect diffuse lighting |
-| ReflectionOnly  | Render only reflections |
-| RefractionOnly  | Render only refractions |
-| EmissiveOnly  | Render only emissive lighting |
+| **DiffuseOnly**    | Renders only diffuse lighting (direct and indirect). |
+| **SpecularOnly**   | Renders only specular lighting (direct and indirect). |
+| **DirectDiffuseOnly** | Renders only direct diffuse lighting. |
+| **DirectSpecularOnly** | Renders only direct specular lighting. |
+| **IndirectDiffuseOnly** | Renders only indirect diffuse lighting. |
+| **ReflectionOnly** | Renders only reflections. |
+| **RefractionOnly** | Renders only refractions. |
+| **EmissiveOnly** | Renders only emissive lighting. |
 
 ## Custom Pass AOVs
-Finally, AOVs can also be used to output the results of [custom passes](Custom-Pass). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that is computed in custom passes, such as the Object ID of the scene objects.
+Finally, you can use AOVs to output the results of [custom passes](Custom-Pass.md). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that custom passes compute, such as the Object ID of the Scene GameObjects.
 
 ## Scripting API
-When the following example script is attached to an HDRP camera, it will request to output albedo AOVs and will save the resulting frames to disk as a sequence of .png images.
+The following example script outputs albedo AOVs from an HDRP Camera and saves the resulting frames to disk as a sequence of .png images. To use the example script, attach it to an HDRP Camera and enter Play Mode.
 ```
 using UnityEngine;
 using UnityEngine.Rendering;
