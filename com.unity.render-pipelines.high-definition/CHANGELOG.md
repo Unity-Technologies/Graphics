@@ -589,6 +589,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 - Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
