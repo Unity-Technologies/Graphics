@@ -721,6 +721,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
 - Improved performance of reflection probe management when using a lot of probes.
 - Ignoring the disable SSR flags for recursive rendering.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 
 ## [7.1.1] - 2019-09-05
 
