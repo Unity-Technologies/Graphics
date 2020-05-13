@@ -337,8 +337,8 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
