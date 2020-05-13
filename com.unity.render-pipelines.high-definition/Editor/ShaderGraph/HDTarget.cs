@@ -638,6 +638,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // CorePregraph
         const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
         const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
@@ -704,6 +705,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kCommon, IncludeLocation.Pregraph },
+            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
