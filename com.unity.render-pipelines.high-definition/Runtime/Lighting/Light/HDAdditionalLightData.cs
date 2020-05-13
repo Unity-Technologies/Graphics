@@ -2592,7 +2592,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the cookie (if there is one) and raise or remove the shader feature
             emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", usedTexture);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null != null);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null || IESPoint != null);
         }
 
         void UpdateRectangleLightBounds()
