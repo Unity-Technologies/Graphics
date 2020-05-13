@@ -716,7 +716,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     // NOTE: can modify alpha
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
-    BRDFData brdfDataClearCoat;
+    BRDFData brdfDataClearCoat = (BRDFData)0;
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
     // base brdfData is modified here, rely on the compiler to eliminate dead computation by InitializeBRDFData()
     InitializeBRDFDataClearCoat(surfaceData.clearCoatMask, surfaceData.clearCoatSmoothness, brdfData, brdfDataClearCoat);
@@ -737,7 +737,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     for (uint lightIndex = 0u; lightIndex < pixelLightCount; ++lightIndex)
     {
         Light light = GetAdditionalLight(lightIndex, inputData.positionWS);
-        color += LightingPhysicallyBased(brdfData, light, inputData.normalWS, inputData.viewDirectionWS);
+        color += LightingPhysicallyBased(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask, light, inputData.normalWS, inputData.viewDirectionWS);
     }
 #endif
 
