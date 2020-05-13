@@ -585,6 +585,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
 - Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
