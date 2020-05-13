@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   filters:
   - FilteredScene: {fileID: 102900000, guid: 2d287b701f8e1bf429c14805ac505eb9, type: 3}
-    ColorSpace: -1
+    ColorSpace: 1
     BuildPlatform: 5
     GraphicsDevice: 4
     Reason: Test filter 31
@@ -24,13 +24,13 @@ MonoBehaviour:
     GraphicsDevice: 4
     Reason: Test filter 32
   - FilteredScene: {fileID: 102900000, guid: ff592545ad5dd744893d54a73f85b2cc, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 5
+    ColorSpace: 1
+    BuildPlatform: 19
     GraphicsDevice: 4
     Reason: Test filter 33
   - FilteredScene: {fileID: 102900000, guid: e346f8573410f414ea2a8a4740526c88, type: 3}
     ColorSpace: -1
-    BuildPlatform: 5
+    BuildPlatform: 19
     GraphicsDevice: 4
     Reason: Test filter 34
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
