@@ -69,7 +69,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-#if HYBRID_RENDERER_0_5_0_OR_NEWER
+#if HYBRID_RENDERER_0_6_0_OR_NEWER
             properties.AddShaderProperty(new Vector1ShaderProperty()
             {
                 displayName = "Skin Matrix Index Offset",
@@ -151,7 +151,7 @@ namespace UnityEditor.ShaderGraph
                     sb.AppendLine("{");
                     using (sb.IndentScope())
                 {
-#if HYBRID_RENDERER_0_5_0_OR_NEWER
+#if HYBRID_RENDERER_0_6_0_OR_NEWER
                         sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + asint(_SkinMatrixIndex)];");
 #else
                         sb.AppendLine("$precision3x4 skinMatrix = _SkinMatrices[indices[i] + (int)_SkinMatricesOffset];");
