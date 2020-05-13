@@ -586,6 +586,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
 - Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
+- Fixed thin refraction mode not working properly.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
