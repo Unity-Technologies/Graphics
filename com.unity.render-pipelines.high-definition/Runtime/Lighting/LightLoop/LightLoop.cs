@@ -1505,11 +1505,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
                         {
                             lightData.cookieMode = CookieMode.Clamp;
-                            if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null)
+                            if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
                                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                             else if (additionalLightData.IESSpot != null)
                                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
-                            else
+                            else if (additionalLightData.areaLightCookie != null)
                                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
                         }
                         break;
@@ -1526,11 +1526,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
             {
                 lightData.cookieMode = CookieMode.Clamp;
-                if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null)
+                if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
                     lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                 else if (additionalLightData.IESSpot != null)
                     lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
-                else
+                else if (additionalLightData.areaLightCookie != null)
                     lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie);
             }
 

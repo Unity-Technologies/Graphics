@@ -40,7 +40,7 @@ float3 SampleCookie2D(float2 coord, float4 scaleOffset, float lod = 0) // TODO: 
 }
 
 // Used by point lights.
-float3 SamplePointCookie(float3 lightToSample, float3 worldPos, float3 forward, float4 scaleOffset, float lod = 0)
+float3 SamplePointCookie(float3 lightToSample, float4 scaleOffset, float lod = 0)
 {
     float2 params = PackNormalOctQuadEncode(lightToSample);
     float2 uv     = saturate(params*0.5f + 0.5f);

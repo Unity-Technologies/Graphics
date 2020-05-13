@@ -12,13 +12,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         public UnityEditor.Rendering.IESImporterEditor iesImporterEditor = new UnityEditor.Rendering.IESImporterEditor();
 
-        //internal void LayoutRenderPipelineUseIesMaximumIntensity(SerializedProperty useIESMaximumIntensityProp)
-        //{
-        //    // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
-        //
-        //    EditorGUILayout.PropertyField(useIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
-        //}
-
         internal void SetupRenderPipelinePreviewCamera(Camera camera)
         {
             HDAdditionalCameraData hdCamera = camera.gameObject.AddComponent<HDAdditionalCameraData>();
@@ -83,11 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor);//,
-                //delegate ()
-                //{
-                //    LayoutRenderPipelineUseIesMaximumIntensity();
-                //});
+            iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor);
 
             base.ApplyRevertGUI();
         }

@@ -52,14 +52,9 @@ namespace UnityEditor.Rendering
         // https://seblagarde.wordpress.com/2014/11/05/ies-light-format-specification-and-reader/
         public string ReadFile(string iesFilePath)
         {
-            // Uncomment the next line to enable the generation of a log file.
-            // using (var logWriter = File.CreateText(iesFilePath.Replace(".ies", ".log")))
 
             using (var iesReader = File.OpenText(iesFilePath))
             {
-                // Uncomment the next line when the generation of a log file is enabled.
-                // logWriter.AutoFlush = true;
-
                 string versionLine = iesReader.ReadLine();
 
                 if (versionLine == null)
@@ -143,8 +138,6 @@ namespace UnityEditor.Rendering
                 var      iesDataTokenEnumerator = iesDataTokens.GetEnumerator();
                 string   iesDataToken;
 
-                // The next line is an example of log writing when the generation of a log file is enabled.
-                // logWriter.WriteLine($"{iesDataTokens.Length} IES data tokens");
 
                 if (iesDataTokens.Length == 1 && string.IsNullOrWhiteSpace(iesDataTokens[0]))
                 {
