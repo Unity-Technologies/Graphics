@@ -29,9 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock m_MPBFilterAreaLights = new MaterialPropertyBlock();
 
         readonly ComputeShader m_ProjectCubeTo2D;
-        readonly int m_KernalEquirectangular;
         readonly int m_KernalFastOctahedral;
-        readonly int m_KernalOctahedralConformalQuincuncial;
 
         RenderTexture m_TempRenderTexture0 = null;
         RenderTexture m_TempRenderTexture1 = null;
@@ -63,9 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ProjectCubeTo2D = hdResources.shaders.projectCubeTo2DCS;
 
-            m_KernalEquirectangular                 = m_ProjectCubeTo2D.FindKernel("CSMainEquirectangular");
-            m_KernalFastOctahedral                  = m_ProjectCubeTo2D.FindKernel("CSMainFastOctahedral");
-            m_KernalOctahedralConformalQuincuncial  = m_ProjectCubeTo2D.FindKernel("CSMainOctahedralConformalQuincuncial");
+            m_KernalFastOctahedral = m_ProjectCubeTo2D.FindKernel("CSMainFastOctahedral");
 
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
@@ -222,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 Fetch2DCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
             int width  = (int)Mathf.Max(cookie.width, ies.height);
-            int height = (int)Mathf.Min(cookie.width, ies.height);
+            int height = (int)Mathf.Max(cookie.width, ies.height);
 
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return Vector4.zero;
@@ -247,7 +243,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     tex0 = RTHandles.Alloc(ies);
                     tex1 = RTHandles.Alloc(cookie);
                 }
-                //GPUArithmetic.ComputeOperation(multiplied, multiplied, new Vector4(0, 0, 0, 0), cmd, GPUArithmetic.Operation.Add);
                 cmd.SetRenderTarget(multiplied);
                 cmd.ClearRenderTarget(false, true, Color.black);
                 GPUArithmetic.ComputeOperation(multiplied, tex0, cmd, GPUArithmetic.Operation.Add);
@@ -273,6 +268,54 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_CookieAtlas.NeedsUpdate(cookie, false))
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, cookie, new Vector4(1, 1, 0, 0), blitMips: false);
+
+            return scaleBias;
+        }
+
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        {
+            int width  = (int)Mathf.Max(cookie.width, ies.height);
+            int height = (int)Mathf.Max(cookie.width, ies.height);
+
+            if (width < k_MinCookieSize || height < k_MinCookieSize)
+                return Vector4.zero;
+
+            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
+                Debug.LogError($"Area Light cookie texture {cookie} & {ies} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+
+            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            {
+                RTHandle multiplied = RTHandles.Alloc(  width, height,
+                                                        colorFormat: cookieFormat,
+                                                        enableRandomWrite: true);
+                RTHandle tex0;
+                RTHandle tex1;
+                if (cookie.width*cookie.height > ies.width*ies.height)
+                {
+                    tex0 = RTHandles.Alloc(cookie);
+                    tex1 = RTHandles.Alloc(ies);
+                }
+                else
+                {
+                    tex0 = RTHandles.Alloc(ies);
+                    tex1 = RTHandles.Alloc(cookie);
+                }
+                cmd.SetRenderTarget(multiplied);
+                cmd.ClearRenderTarget(false, true, Color.black);
+                GPUArithmetic.ComputeOperation(multiplied, tex0, cmd, GPUArithmetic.Operation.Add);
+                GPUArithmetic.ComputeOperation(multiplied, tex1, cmd, GPUArithmetic.Operation.Mult);
+
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, multiplied, new Vector4(1, 1, 0, 0), blitMips: false, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+
+                // Generate the mips
+                Texture filteredAreaLight = FilterAreaLightTexture(cmd, multiplied);
+                Vector4 sourceScaleOffset = new Vector4(multiplied.rt.width/(float)atlasTexture.rt.width, multiplied.rt.height/(float)atlasTexture.rt.height, 0, 0);
+                m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+
+                RTHandlesDeleter.ScheduleRelease(tex0);
+                RTHandlesDeleter.ScheduleRelease(tex1);
+                RTHandlesDeleter.ScheduleRelease(multiplied);
+            }
 
             return scaleBias;
         }
@@ -364,12 +407,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         projectionSize,
                                         colorFormat: cookieFormat,
                                         enableRandomWrite: true);
-            int usedKernel;
-
-            //usedKernel = m_KernalEquirectangular;
-            usedKernel = m_KernalFastOctahedral;
-            //usedKernel = m_KernalOctahedralConformalQuincuncial;
-
+            int usedKernel = m_KernalFastOctahedral;
 
             float invSize = 1.0f/((float)projectionSize);
 

@@ -1506,7 +1506,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             lightData.cookieMode = CookieMode.Clamp;
                             if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                             else if (additionalLightData.IESSpot != null)
                                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
                             else
@@ -1527,7 +1527,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 lightData.cookieMode = CookieMode.Clamp;
                 if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
+                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot);
                 else if (additionalLightData.IESSpot != null)
                     lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot);
                 else
@@ -3540,7 +3540,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_TextureCaches.lightCookieManager.atlasTexture);
-            //cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_TextureCaches.lightCookieManager.cubeCache);
             cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_TextureCaches.reflectionProbeCache.GetTexCache());
             cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache());
 

@@ -63,12 +63,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     public enum IESMode
     {
-        /// <summary>Square Equirectangular Projection.</summary>
-        Equirectangular,
+        /// <summary>IES Disabled.</summary>
+        None,
         /// <summary>Fast Octahedral Projection.</summary>
-        FastOctahedral,
-        /// <summary>Conformal Octahedral Quincuncial Projection.</summary>
-        ConformalOctahedralQuincuncial,
+        FastOctahedral
     }
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.

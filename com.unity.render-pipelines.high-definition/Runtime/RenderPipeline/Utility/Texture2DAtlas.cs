@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            int             textureHash = GetTextureID(texture);
+            int             textureHash = key;
 
             // Update the render texture if needed
             if (rt != null)
@@ -376,31 +376,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
-            int key = GetTextureID(textureA, textureB);
-
-            RenderTexture rtA = textureA as RenderTexture;
-            if (rtA != null)
-                key += 23*rtA.updateCount.GetHashCode();
-
-            RenderTexture rtB = textureB as RenderTexture;
-            if (rtB != null)
-                key += 23*rtB.updateCount.GetHashCode();
-
-            uint uKey = (uint)key;
-
-            uint currentKey;
-            if (m_IsGPUTextureUpToDate.TryGetValue(key, out currentKey))
-            {
-                m_IsGPUTextureUpToDate[key] = uKey;
-                if (uKey != currentKey)
-                    return true;
-            }
-            else
-            {
-                m_IsGPUTextureUpToDate[key] = uKey;
-            }
-
-            return false;
+            return NeedsUpdate(textureA, needMips) || NeedsUpdate(textureB, needMips);
         }
 
         public virtual bool AddTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture)

@@ -2270,7 +2270,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
                 && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
                 m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
-            
+
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)
             {
@@ -2678,7 +2678,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set the cookie (if there is one) and raise or remove the shader feature
             emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", usedTexture);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null || IESPoint != null);
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", usedTexture != null);
         }
 
         void UpdateRectangleLightBounds()

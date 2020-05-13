@@ -140,8 +140,6 @@ void RayGenAreaShadows()
     LightLoopContext context;
     // Given that the approximation used for LTC is completely different from what we would get from a real integration, we only rely on the not textured intensity.
     // To acheive that, we set cookie index to -1 so that the evaluatebsdf_rect function to not use any cookie. We also keep track of that cookie value to restore it after the evaluation.
-    int cookieIndex = 0;
-    int cookieMode = lightData.cookieMode;
     DirectLighting lighting = EvaluateBSDF_Rect(context, viewWS, posInput, preLightData, lightData, bsdfData, builtinData);
     lighting.diffuse = lighting.diffuse * bsdfData.diffuseColor;
 
