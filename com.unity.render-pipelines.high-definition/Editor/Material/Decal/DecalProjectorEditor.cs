@@ -125,9 +125,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void OnDisable()
         {
-            foreach (var decalProjector in targets)
+            foreach (DecalProjector decalProjector in targets)
             {
-                (decalProjector as DecalProjector).OnMaterialChange -= RequireUpdateMaterialEditor;
+                if (decalProjector != null)
+                    decalProjector.OnMaterialChange -= RequireUpdateMaterialEditor;
             }
             s_Owner = null;
         }
