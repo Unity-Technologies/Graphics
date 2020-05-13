@@ -42,7 +42,7 @@ You can use AOVs to output the contribution from a selected list of [Lights](Lig
 ## Custom Pass AOVs
 Finally, you can use AOVs to output the results of [custom passes](Custom-Pass.md). In particular, you can output the cumulative results of all custom passes that are active on every custom pass injection point. This can be useful to output arbitrary information that custom passes compute, such as the Object ID of the Scene GameObjects.
 
-## Scripting API
+## Scripting API example
 The following example script outputs albedo AOVs from an HDRP Camera and saves the resulting frames to disk as a sequence of .png images. To use the example script, attach it to an HDRP Camera and enter Play Mode.
 ```
 using UnityEngine;
