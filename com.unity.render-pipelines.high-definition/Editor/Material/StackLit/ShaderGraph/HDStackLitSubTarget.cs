@@ -295,7 +295,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = StackLitDefines.RaytracingVisibility,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingVisibility },
             };
