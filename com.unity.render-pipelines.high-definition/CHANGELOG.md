@@ -595,6 +595,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some GCAlloc in the debug window.
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
 - Fixed thin refraction mode not working properly.
+- Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169) 
 
 ### Changed
 - Improve MIP selection for decals on Transparents
