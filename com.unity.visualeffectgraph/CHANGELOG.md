@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Sample Flipbbook Texture File Names
 - height of initial event name.
 - fix colorfield height.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
 
 ## [7.3.0] - 2020-03-11
 ### Fixed
