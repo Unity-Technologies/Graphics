@@ -3,6 +3,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
+
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
@@ -686,7 +688,7 @@ namespace UnityEditor.Rendering.LookDev
             {
                 // Print an error and close the Lookdev window (to avoid spamming the console)
                 Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
-                    + (UnityEngine.Rendering.RenderPipelineManager.currentPipeline == null ? "No SRP in use" : UnityEngine.Rendering.RenderPipelineManager.currentPipeline.ToString()));
+                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
                 LookDev.Close();
                 return;
             }
