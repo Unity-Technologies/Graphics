@@ -26,5 +26,18 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+* Node Library
+  * Context
+  * Operator
+    * Math
+      * [Sawtooth Wave](Operator-SawtoothWave.md)
+      * [Sine Wave](Operator-SineWave.md)
+      * [Square Wave](Operator-SquareWave.md)
+      * [Triangle Wave](Operator-TriangleWave.md)
+    * Sampling
+      * [Load Texture2D](Operator-LoadTexture2D.md)
+      * [Load Texture3D](Operator-LoadTexture3D.md)
+  * System
+  * Misc
 * Reference
   * [Standard Attributes](Reference-Attributes.md)
