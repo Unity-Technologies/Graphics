@@ -237,6 +237,9 @@ All_{{ project.name }}_{{ editor.version }}:
     #skip - not needed, cover by dx11	
     {% else %}
     - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+      {% if win_api.name == "DX12" and testplatform.name == "playmode" %}
+       - .yamato/upm-ci-hdrp_dxr.yml#HDRP_DXR_Win_DX12_playmode_{{ editor.version }}
+      {% endif %}
     {% endif %}
   {% endfor %}
 
