@@ -1473,7 +1473,11 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
 
-            if (lightComponent != null)
+            if (lightComponent != null && additionalLightData != null &&
+                (
+                    ((lightType == HDLightType.Spot || (lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle)) && (lightComponent.cookie != null || additionalLightData.IESSpot)) ||
+                    (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint))
+                ))
             {
                 switch (lightType)
                 {
@@ -1483,41 +1487,32 @@ namespace UnityEngine.Rendering.HighDefinition
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie, additionalLightData.IESSpot);
                         else if (lightComponent.cookie != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
-                        else if (additionalLightData.IESSpot != null)
+                        else //if (additionalLightData.IESSpot != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.IESSpot);
-                        else
-                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
                         break;
                     case HDLightType.Point:
-                        if (additionalLightData.IESPoint != null || lightComponent.cookie != null)
-                        {
-                            lightData.cookieMode = CookieMode.Repeat;
-                            if (additionalLightData.IESPoint != null && lightComponent.cookie != null && additionalLightData.IESPoint != lightComponent.cookie)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
-                            else if (lightComponent.cookie != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
-                            else if (additionalLightData.IESPoint != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
-                        }
+                        lightData.cookieMode = CookieMode.Repeat;
+                        if (additionalLightData.IESPoint != null && lightComponent.cookie != null && additionalLightData.IESPoint != lightComponent.cookie)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
+                        else if (lightComponent.cookie != null)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
+                        else //if (additionalLightData.IESPoint != null)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
                         break;
                     case HDLightType.Area:
-                        if (lightData.lightType == GPULightType.Rectangle &&
-                            (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
-                        {
-                            Texture emissveTexture = null;
+                        Texture emissveTexture = null;
 
-                            lightData.cookieMode = CookieMode.Clamp;
-                            if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
-                            else if (additionalLightData.IESSpot != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
-                            else if (additionalLightData.areaLightCookie != null)
-                                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
-                            else
-                                emissveTexture = null;
+                        lightData.cookieMode = CookieMode.Clamp;
+                        if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
+                        else if (additionalLightData.IESSpot != null)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
+                        else if (additionalLightData.areaLightCookie != null)
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
+                        else
+                            emissveTexture = null;
 
-                            additionalLightData.areaLightEmissive = emissveTexture;
-                        }
+                        additionalLightData.areaLightEmissive = emissveTexture;
                         break;
                 }
             }

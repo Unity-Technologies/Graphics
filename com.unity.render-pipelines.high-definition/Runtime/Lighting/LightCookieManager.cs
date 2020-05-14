@@ -370,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 int mipMapCount = stored.rt.mipmapCount;// 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(cookie.width, cookie.height), 2));
                 for (int k = 0; k < mipMapCount; ++k)
                 {
-                    cmd.CopyTexture(filteredAreaLight, 0, k, 0, 0, (int)(sourceScaleOffset.x*atlasTexture.rt.width), (int)(sourceScaleOffset.y*atlasTexture.rt.height),
+                    cmd.CopyTexture(filteredAreaLight, 0, k, 0, 0, (int)(sourceScaleOffset.x*atlasTexture.rt.width)/(k+1), (int)(sourceScaleOffset.y*atlasTexture.rt.height)/(k+1),
                                     stored, 0, k, 0, 0);
                 }
                 m_AreaLightTextureEmissive[currentID] = stored;
@@ -480,7 +480,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
                 Debug.LogError($"Cube cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
 
-            if (m_CookieAtlas.NeedsUpdate(cookie, false))
+            if (m_CookieAtlas.NeedsUpdate(cookie, true))
             {
                 Vector4 sourceScaleOffset = new Vector4(projectionSize/(float)atlasTexture.rt.width, projectionSize/(float)atlasTexture.rt.height, 0, 0);
 
