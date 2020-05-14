@@ -55,9 +55,9 @@ testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
   - name: playmode
-    args: --suite=playmode --enable-code-coverage --coverage-results-path=code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateBadgeReport;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=code-coverage
   - name: editmode
-    args: --suite=editor --platform=editmode --coverage-results-path=code-coverage --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
+    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor' --coverage-results-path=code-coverage
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
