@@ -540,6 +540,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix reflection hierarchy for CARPAINT in AxF.
 - Fix precise fresnel for delta lights for SVBRDF in AxF.
 - Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed MSAA depth resolve when there is no motion vectors
 - Fixed various object leaks in HDRP.
 - Fixed compile error with XR SubsystemManager.
 - Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
