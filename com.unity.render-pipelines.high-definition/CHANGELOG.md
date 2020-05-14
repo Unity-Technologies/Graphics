@@ -599,6 +599,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed over consumption of GPU memory by the Physically Based Sky.
 - Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 - Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
