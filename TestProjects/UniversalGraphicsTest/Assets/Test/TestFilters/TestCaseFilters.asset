@@ -161,3 +161,38 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 27e9bb11ee6914e44bf36ad688926b50, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 736a5167224854841be61166040606c6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
