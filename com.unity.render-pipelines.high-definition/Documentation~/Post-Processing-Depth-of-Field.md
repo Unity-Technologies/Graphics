@@ -9,8 +9,7 @@ The Depth Of Field component applies a depth of field effect, which simulates th
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Depth Of Field**. HDRP now applies **Depth Of Field** to any Camera this Volume affects.
 
-Depth Of Field includes [more options](More-Options.html) that you must manually expose.
-
+Depth Of Field includes properties that you define in the quality presets (**Project Settings > Quality > HDRP > Post-processing quality settings**). You can override these properties locally when using the Custom quality option. In this case, more options will appear in the UI.   
 
 ## Properties
 
@@ -19,6 +18,7 @@ Depth Of Field includes [more options](More-Options.html) that you must manually
 | **Property**       | **Description**                                              |
 | ------------------ | ------------------------------------------------------------ |
 | **Focus Mode**     | Use the drop-down to select the mode that HDRP uses to set the focus for the depth of field effect.<br />&#8226; **Off**: Select this option to disable depth of field.<br />&#8226; **Use Physical Camera**: Select this option to use the physical [Camera](HDRP-Camera.html) to set focusing properties for the depth of field effect. For information on what Camera properties affect depth of field, see [Physical Camera settings](#PhysicalCameraSettings).<br />&#8226; **Manual**: Select this option to use custom values to set the focus of the depth of field effect. |
+| **Quality** | Select one of the **Low**, **Medium** or **High** quality presets or **Custom** quality to override some or all the settings localy.|
 | **Focus Distance** | Set the distance to the focus point from the Camera.<br />This property only appears when you select **Use Physical Camera** from the **Focus Mode** drop-down. |
 
 ### Near Blur
