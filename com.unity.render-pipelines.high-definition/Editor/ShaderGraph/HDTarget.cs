@@ -522,7 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static PragmaCollection RaytracingBasic = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target50) },
-            { Pragma.Raytracing("test") },
+            { Pragma.Raytracing("surface_shader") },
             { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
     }
@@ -596,6 +596,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDBaseNoCrossFade },
             { Lightmaps },
         };
+
+        public static KeywordCollection RaytracingVisiblity = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.TransparentColorShadow },
+        };
+        
     }
 #endregion
 
@@ -638,6 +645,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         // CorePregraph
         const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
         const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
         const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
         const string kShaderPass = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
@@ -704,6 +712,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kCommon, IncludeLocation.Pregraph },
+            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
             { kShaderVariables, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
@@ -1044,6 +1053,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local
+        };
+
+        public static KeywordDescriptor TransparentColorShadow = new KeywordDescriptor()
+        {
+            displayName = "Transparent Color Shadow",
+            referenceName = "TRANSPARENT_COLOR_SHADOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
 #endregion

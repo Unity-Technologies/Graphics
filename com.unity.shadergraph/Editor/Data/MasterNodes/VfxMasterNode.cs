@@ -177,5 +177,7 @@ namespace UnityEditor.ShaderGraph
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
+
+        public bool supportsVirtualTexturing => false;
     }
 }
