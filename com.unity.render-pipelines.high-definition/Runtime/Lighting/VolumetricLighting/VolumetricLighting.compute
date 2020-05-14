@@ -28,10 +28,12 @@
     #define VBUFFER_VOXEL_SIZE 8
 #endif
 
-#define GROUP_SIZE_1D         8
-#define SUPPORT_LOCAL_LIGHTS  1 // Local lights contribute to fog lighting
-#define SHADOW_USE_DEPTH_BIAS 0
-#define PREFER_HALF           0
+#define PREFER_HALF            0
+#define GROUP_SIZE_1D          8
+#define SUPPORT_LOCAL_LIGHTS   1 // Local lights contribute to fog lighting
+#define SHADOW_USE_DEPTH_BIAS  0 // Too expensive
+#define SHADOW_USE_NORMAL_BIAS 0 // There may be no geometry along the ray, and even if there is geometry along the ray,
+                                 // it only occupies certain slices, and may not have a normal G-buffer to sample.
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
