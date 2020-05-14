@@ -103,6 +103,46 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        float ConvertEmissionUnit(float value, EmissiveIntensityUnit fromUnit, EmissiveIntensityUnit toUnit)
+        {
+            //if (fromUnit == toUnit)
+            //    return value;
+            //if (toUnit == EmissiveIntensityUnit.EV100)
+            //    return LightUtils.ConvertEvToLuminance(value);
+
+            return value;
+        }
+
+        void UpdateEmissiveColorAndIntensity()
+        {
+            materialEditor.serializedObject.ApplyModifiedProperties();
+            foreach(Material target in materials)
+            {
+                if (target.HasProperty(kEmissiveColorLDR) && target.HasProperty(kEmissiveIntensity) && target.HasProperty(kEmissiveColor))
+                {
+                    target.SetColor(kEmissiveColor, target.GetColor(kEmissiveColorLDR) * target.GetFloat(kEmissiveIntensity));
+                }
+            }
+            materialEditor.serializedObject.Update();
+        }
+
+        void UpdateEmissionUnit(float newUnitFloat)
+        {
+            foreach (Material target in materials)
+            {
+                if (target.HasProperty(kEmissiveIntensityUnit) && target.HasProperty(kEmissiveIntensity))
+                {
+                    var oldUnit = target.GetFloat(kEmissiveIntensityUnit);
+                    if (oldUnit != newUnitFloat)
+                    {
+                        target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
+                        target.SetFloat(kEmissiveIntensity, target.GetFloat(kEmissiveIntensity));
+                    }
+                }
+            }
+            materialEditor.serializedObject.Update();
+        }
+
         void DrawEmissionGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -120,35 +160,88 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 EditorGUI.BeginChangeCheck();
+                DoEmissiveTextureProperty(emissiveColorLDR);
+                // Normalize all emissive colors for each target separately
+                foreach (Material material in materials)
                 {
-                    DoEmissiveTextureProperty(emissiveColorLDR);
-                    emissiveColorLDR.colorValue = NormalizeEmissionColor(ref updateEmissiveColor, emissiveColorLDR.colorValue);
+                    if (material.HasProperty(kEmissiveColorLDR))
+                        material.SetColor(kEmissiveColorLDR, NormalizeEmissionColor(ref updateEmissiveColor, material.GetColor(kEmissiveColorLDR)));
+                }
+                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
+                    UpdateEmissiveColorAndIntensity();
 
+
+                // Note that if units are mixed we don't allow changing the intensity.
+                float newUnitFloat;
+                float newIntensity = emissiveIntensity.floatValue;
+                bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
+                bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
+                bool intensityChanged = false;
+                bool unitChanged = false;
+                EditorGUI.BeginChangeCheck();
+                {
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
+                        EditorGUI.showMixedValue = intensityIsMixed;
 
                         if (unit == EmissiveIntensityUnit.Nits)
                         {
                             using (var change = new EditorGUI.ChangeCheckScope())
                             {
                                 materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                if (change.changed)
-                                    emissiveIntensity.floatValue = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
+                                intensityChanged = change.changed;
+                                if (intensityChanged)
+                                    newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
                             }
                         }
                         else
                         {
-                            float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                            evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                            evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
-                            emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                            float value = emissiveIntensity.floatValue;
+                            if (!intensityIsMixed)
+                            {
+                                float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                                evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
+                                emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
+                            }
+                            else
+                            {
+                                using (var change = new EditorGUI.ChangeCheckScope())
+                                {
+                                    newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
+                                    intensityChanged = change.changed;
+                                }
+                            }
                         }
-                        emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                        EditorGUI.showMixedValue = false;
+
+                        EditorGUI.showMixedValue = emissiveIntensityUnit.hasMixedValue;
+                        using (var change = new EditorGUI.ChangeCheckScope())
+                        {
+                            newUnitFloat = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
+                            unitChanged = change.changed;
+                        }
+                        EditorGUI.showMixedValue = false;
                     }
                 }
+
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                    emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
+                {
+                    if(unitChanged)
+                    {
+                        if (unitIsMixed)
+                            UpdateEmissionUnit(newUnitFloat);
+                        else
+                            emissiveIntensityUnit.floatValue = newUnitFloat;
+                    }
+
+                    // We don't allow changes on intensity if units are mixed
+                    if (intensityChanged && intensityChanged && !unitIsMixed)
+                        emissiveIntensity.floatValue = newIntensity;
+
+                    UpdateEmissiveColorAndIntensity();
+                }
             }
 
             materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
