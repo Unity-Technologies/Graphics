@@ -997,7 +997,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ScreenSpaceShadowsUnion.Clear();
         }
 
-        void LightLoopNewFrame(HDCamera hdCamera)
+        void LightLoopNewFrame(CommandBuffer cmd, HDCamera hdCamera)
         {
             var frameSettings = hdCamera.frameSettings;
 
@@ -1014,6 +1014,13 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
             {
                 m_WorldToViewMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
+
+            // Clear the cookie atlas if needed at the beginning of the frame.
+            if (m_DebugDisplaySettings.data.lightingDebugSettings.clearCookieAtlas)
+            {
+                m_TextureCaches.lightCookieManager.ResetAllocator();
+                m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
             }
         }
 
@@ -4060,12 +4067,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
                 }
-            }
-
-            if (lightingDebug.clearCookieAtlas)
-            {
-                parameters.cookieManager.ResetAllocator();
-                parameters.cookieManager.ClearAtlasTexture(cmd);
             }
 
             if (lightingDebug.displayCookieAtlas)
