@@ -50,4 +50,3 @@ To add, remove, or duplicate environments, use the toolbar at the bottom of the 
 To import an HDRI Texture into the Unity Editor, load an **.hdr** or **.exr** file into your Unity Project like you would any other image. In the Texture Importer Inspector window, set **Texture Type** to **Default**, set **Texture Shape** to **Cube**, and set **Convolution Type** to **None**.
 
 When you want to test an HDRI Texture Asset or a skybox cube map Material, drag and drop it into the Look Dev view.
-
