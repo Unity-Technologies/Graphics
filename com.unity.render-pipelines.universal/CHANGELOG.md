@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
+- The 2D Renderer now supports camera stacking.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
