@@ -256,6 +256,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+
+
         internal Color backgroundColorHDR
         {
             get
@@ -865,9 +868,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
-            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            if ( (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+                || (m_PreviousClearColorMode != clearColorMode))
             {
                 resetPostProcessingHistory = true;
+                m_PreviousClearColorMode = clearColorMode;
             }
         }
 
