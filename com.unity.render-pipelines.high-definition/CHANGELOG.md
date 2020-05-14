@@ -597,6 +597,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed thin refraction mode not working properly.
 - Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169) 
 - Fixed over consumption of GPU memory by the Physically Based Sky.
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
