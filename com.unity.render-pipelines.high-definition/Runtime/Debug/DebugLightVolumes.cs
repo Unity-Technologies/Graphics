@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DebugLightVolumesTextureShaderID = Shader.PropertyToID("_DebugLightVolumesTexture");
         public static readonly int _ColorGradientTextureShaderID = Shader.PropertyToID("_ColorGradientTexture");
         public static readonly int _MaxDebugLightCountShaderID = Shader.PropertyToID("_MaxDebugLightCount");
+        public static readonly int _BorderRadiusShaderID = Shader.PropertyToID("_BorderRadius");
 
         // Render target array for the prepass
         RenderTargetIdentifier[] m_RTIDs = new RenderTargetIdentifier[2];
@@ -83,13 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader    debugLightVolumeCS;
             public int              debugLightVolumeKernel;
             public int              maxDebugLightCount;
+            public float            borderRadius;
             public Texture2D        colorGradientTexture;
+            public bool             lightOverlapEnabled;
         }
 
         public RenderLightVolumesParameters PrepareLightVolumeParameters(HDCamera hdCamera, LightingDebugSettings lightDebugSettings, CullingResults cullResults)
         {
             var parameters = new RenderLightVolumesParameters();
-            bool useColorAndEdge = lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge || CoreUtils.IsLightOverlapDebugEnabled(hdCamera.camera);
+            bool lightOverlapEnabled = CoreUtils.IsLightOverlapDebugEnabled(hdCamera.camera);
+            bool useColorAndEdge = lightDebugSettings.lightVolumeDebugByCategory == LightVolumeDebug.ColorAndEdge || lightOverlapEnabled;
 
             parameters.hdCamera = hdCamera;
             parameters.cullResults = cullResults;
@@ -97,7 +101,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugLightVolumeCS = m_DebugLightVolumeCompute;
             parameters.debugLightVolumeKernel = useColorAndEdge ? m_DebugLightVolumeColorsKernel : m_DebugLightVolumeGradientKernel;
             parameters.maxDebugLightCount = (int)lightDebugSettings.maxDebugLightCount;
+            parameters.borderRadius = lightOverlapEnabled ? 0.5f : 1f;
             parameters.colorGradientTexture = m_ColorGradientTexture;
+            parameters.lightOverlapEnabled = lightOverlapEnabled;
 
             return parameters;
         }
@@ -112,13 +118,12 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 RTHandle destination,
                                                 MaterialPropertyBlock mpb)
         {
-            // Set the render target array
-            CoreUtils.SetRenderTarget(cmd, accumulationMRT, depthBuffer);
 
-            bool isLightOverlapDebugEnabled = CoreUtils.IsLightOverlapDebugEnabled(parameters.hdCamera.camera);
-
-            if (isLightOverlapDebugEnabled)
+            if (parameters.lightOverlapEnabled)
             {
+                // We only need the accumulation buffer, not the color (we only disply the outline of the light shape in this mode).
+                CoreUtils.SetRenderTarget(cmd, accumulationMRT[0], depthBuffer);
+
                 // The cullresult doesn't contains overlapping lights so we use a custom list
                 foreach (var overlappingHDLight in HDAdditionalLightData.s_overlappingHDLights)
                 {
@@ -127,6 +132,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
+                // Set the render target array
+                CoreUtils.SetRenderTarget(cmd, accumulationMRT, depthBuffer);
+
                 // First of all let's do the regions for the light sources (we only support Punctual and Area)
                 int numLights = parameters.cullResults.visibleLights.Length;
                 for (int lightIdx = 0; lightIdx < numLights; ++lightIdx)
@@ -141,7 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // When we enable the light overlap mode we hide probes as they can't be baked in shadow masks
-                if (!isLightOverlapDebugEnabled)
+                if (!parameters.lightOverlapEnabled)
                 {
                     // Now let's do the same but for reflection probes
                     int numProbes = parameters.cullResults.visibleReflectionProbes.Length;
@@ -181,6 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(parameters.debugLightVolumeCS, parameters.debugLightVolumeKernel, _DebugLightVolumesTextureShaderID, debugLightVolumesTexture);
             cmd.SetComputeTextureParam(parameters.debugLightVolumeCS, parameters.debugLightVolumeKernel, _ColorGradientTextureShaderID, parameters.colorGradientTexture);
             cmd.SetComputeIntParam(parameters.debugLightVolumeCS, _MaxDebugLightCountShaderID, parameters.maxDebugLightCount);
+            cmd.SetComputeFloatParam(parameters.debugLightVolumeCS, _BorderRadiusShaderID, parameters.borderRadius);
 
             // Texture dimensions
             int texWidth = parameters.hdCamera.actualWidth; // m_ColorAccumulationBuffer.rt.width;
