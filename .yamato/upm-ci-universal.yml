@@ -55,9 +55,9 @@ testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
   - name: playmode
-    args: --suite=playmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateBadgeReport;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=code-coverage
+    args: --suite=playmode 
   - name: editmode
-    args: --suite=editor --platform=editmode --enable-code-coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;generateBadgeReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor' --coverage-results-path=code-coverage
+    args: --suite=editor --platform=editmode
 projects:
   - name: Universal
     folder: UniversalGraphicsTest
@@ -77,11 +77,19 @@ linux_apis:
 android_apis:
   - name: OpenGLES3
   - name: Vulkan
-testplatforms_for_coverage:
+code_coverage_args:
   - name: playmode
-    args: --suite=playmode --enable-code-coverage --coverage-results-path=test-results/coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+    args:
+      - --enable-code-coverage
+      - --coverage-results-path
+      - 'code-coverage'
+      - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime
   - name: editmode
-    args: --suite=editor --platform=editmode --enable-code-coverage --coverage-results-path=test-results/coverage --code-coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
+    args:
+      - --enable-code-coverage
+      - --coverage-results-path
+      - 'code-coverage'
+      - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor
 ---
 {% for project in projects %}
 {% for editor in editors %}
@@ -152,6 +160,8 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
 
 {% else %}
 
+{% for code_coverage_arg in code_coverage_args %}
+{% if code_coverage_arg.name == testplatform.name %}
 {{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}:
   name : {{ project.name }} on Win_{{ win_api.name }}_{{ testplatform.name }} on version {{ editor.version }}
   agent:
@@ -173,7 +183,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
 
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
-    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    - cd TestProjects/{{ project.folder }} && utr\utr {{ testplatform.args }} --extra-editor-arg="{{ win_api.cmd }}" --testproject=. --editor-location=.Editor --artifacts_path=test-results {% for arg in code_coverage_arg.args %}--extra-editor-arg="{{ arg }}" {% endfor %}
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
       rerun: {{ editor.rerun_strategy }}
@@ -184,7 +194,8 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     code-coverage:
       paths:
         - "**/code-coverage/**"
-
+{% endif %}
+{% endfor %}
 {% endif %}
 
 
