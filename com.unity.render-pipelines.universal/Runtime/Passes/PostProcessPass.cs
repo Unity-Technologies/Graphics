@@ -240,6 +240,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bool tempTarget2Used = false;
             int source = m_Source.id;
             int destination = -1;
+            bool isSceneViewCamera = cameraData.isSceneViewCamera;
 
             // Utilities to simplify intermediate target management
             int GetSource() => source;
@@ -257,7 +258,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // Avoid using m_Source.id as new destination, it may come with a depth buffer that we don't want, may have MSAA that we don't want etc
                     cmd.GetTemporaryRT(ShaderConstants._TempTarget2, GetStereoCompatibleDescriptor(), FilterMode.Bilinear);
                     destination = ShaderConstants._TempTarget2;
-                    tempTarget2Used = true; 
+                    tempTarget2Used = true;
                 }
 
                 return destination;
@@ -291,7 +292,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Depth of Field
-            if (m_DepthOfField.IsActive() && !cameraData.isSceneViewCamera)
+            if (m_DepthOfField.IsActive() && !isSceneViewCamera)
             {
                 var markerName = m_DepthOfField.mode.value == DepthOfFieldMode.Gaussian
                     ? URPProfileId.GaussianDepthOfField
@@ -305,7 +306,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Motion blur
-            if (m_MotionBlur.IsActive() && !cameraData.isSceneViewCamera)
+            if (m_MotionBlur.IsActive() && !isSceneViewCamera)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.MotionBlur)))
                 {
@@ -316,7 +317,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Panini projection is done as a fullscreen pass after all depth-based effects are done
             // and before bloom kicks in
-            if (m_PaniniProjection.IsActive() && !cameraData.isSceneViewCamera)
+            if (m_PaniniProjection.IsActive() && !isSceneViewCamera)
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.PaniniProjection)))
                 {
@@ -340,7 +341,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 // Setup other effects constants
-                SetupLensDistortion(m_Materials.uber, cameraData.isSceneViewCamera);
+                SetupLensDistortion(m_Materials.uber, isSceneViewCamera);
                 SetupChromaticAberration(m_Materials.uber);
                 SetupVignette(m_Materials.uber);
                 SetupColorGrading(cmd, ref renderingData, m_Materials.uber);
