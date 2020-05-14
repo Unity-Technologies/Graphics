@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 
 ## [7.3.0] - 2020-03-11
 
