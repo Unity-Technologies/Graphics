@@ -103,16 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        float ConvertEmissionUnit(float value, EmissiveIntensityUnit fromUnit, EmissiveIntensityUnit toUnit)
-        {
-            //if (fromUnit == toUnit)
-            //    return value;
-            //if (toUnit == EmissiveIntensityUnit.EV100)
-            //    return LightUtils.ConvertEvToLuminance(value);
-
-            return value;
-        }
-
         void UpdateEmissiveColorAndIntensity()
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
@@ -132,12 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (target.HasProperty(kEmissiveIntensityUnit) && target.HasProperty(kEmissiveIntensity))
                 {
-                    var oldUnit = target.GetFloat(kEmissiveIntensityUnit);
-                    if (oldUnit != newUnitFloat)
-                    {
-                        target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
-                        target.SetFloat(kEmissiveIntensity, target.GetFloat(kEmissiveIntensity));
-                    }
+                    target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
                 }
             }
             materialEditor.serializedObject.Update();
@@ -170,8 +155,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     UpdateEmissiveColorAndIntensity();
 
-
-                // Note that if units are mixed we don't allow changing the intensity.
                 float newUnitFloat;
                 float newIntensity = emissiveIntensity.floatValue;
                 bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
@@ -225,7 +208,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUI.showMixedValue = false;
                     }
                 }
-
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                 {
                     if(unitChanged)
