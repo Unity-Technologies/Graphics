@@ -257,9 +257,15 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+
+            Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
-        void OnDisable() => OnClosedInternal?.Invoke();
+        void OnDisable()
+        {
+            Undo.undoRedoPerformed -= FullRefreshEnvironmentList;
+            OnClosedInternal?.Invoke();
+        }
 
         void CreateToolbar()
         {
