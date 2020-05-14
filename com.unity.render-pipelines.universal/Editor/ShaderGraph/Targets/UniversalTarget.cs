@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection GBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
