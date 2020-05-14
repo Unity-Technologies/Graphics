@@ -8,7 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             materialEditor.PropertiesDefaultGUI(props);
-            
+
             EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
 
             // Make sure all selected materials are initialized.
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props), 0);
         }
     }
 }

@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph
                 suffix = "_ON";
             }
 
-            return $"{keywordType.ToString()}_{GuidEncoder.Encode(guid)}{suffix}".ToUpper();
+            return $"{keywordType.ToString()}_{objectId}{suffix}".ToUpper();
         }
 
         public string GetPropertyBlockString()
