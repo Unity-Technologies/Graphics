@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
 - Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fix issue with corrupted values with Layer Lit when using multiply mode for vertex color
 - Fixed transparent motion vectors not working when in MSAA.
 
 ### Changed
