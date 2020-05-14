@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection GBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
@@ -353,12 +353,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
         const string kDepthOnlyPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DepthOnlyPass.hlsl";
         const string kShadowCasterPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
+        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
 
         public static IncludeCollection CorePregraph = new IncludeCollection
         {
             { kColor, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
+            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
         };
 
         public static IncludeCollection ShaderGraphPregraph = new IncludeCollection
