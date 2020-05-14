@@ -377,6 +377,39 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_AlphaTestDepthPrepass;
+
+        public ToggleData alphaTestDepthPrepass
+        {
+            get { return new ToggleData(m_AlphaTestDepthPrepass); }
+            set
+            {
+                if (m_AlphaTestDepthPrepass == value.isOn)
+                    return;
+                m_AlphaTestDepthPrepass = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+        [SerializeField]
+        bool m_AlphaTestDepthPostpass;
+
+        public ToggleData alphaTestDepthPostpass
+        {
+            get { return new ToggleData(m_AlphaTestDepthPostpass); }
+            set
+            {
+                if (m_AlphaTestDepthPostpass == value.isOn)
+                    return;
+                m_AlphaTestDepthPostpass = value.isOn;
+                UpdateNodeAfterDeserialization();
+                Dirty(ModificationScope.Topological);
+            }
+        }
+
+
+        [SerializeField]
         int m_SortPriority;
 
         public int sortPriority
@@ -634,6 +667,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ReceiveSSR == value.isOn)
                     return;
                 m_ReceiveSSR = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_ReceivesSSRTransparent = false;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -1470,6 +1517,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.DistortionReplace,            distortionMode == DistortionMode.Replace),
                 new ConditionalField(HDFields.TransparentDistortion,        surfaceType != SurfaceType.Opaque && distortion.isOn),
 
+                // Transparency
+                new ConditionalField(HDFields.TransparentDepthPrePass,              surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+                new ConditionalField(HDFields.TransparentDepthPostPass,             surfaceType != SurfaceType.Opaque && alphaTestDepthPrepass.isOn),
+
                 // Base Parametrization
                 // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
                 // and metallic, we still need to know the baseParametrization in the template to translate into the
@@ -1489,6 +1540,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.EnergyConservingSpecular,     energyConservingSpecular.isOn),
                 new ConditionalField(HDFields.DisableDecals,                !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                   !receiveSSR.isOn),
+                new ConditionalField(HDFields.DisableSSRTransparent,        !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,            addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.BentNormal,                   IsSlotConnected(BentNormalSlotId) &&
                                                                                 pass.pixelPorts.Contains(BentNormalSlotId)),
@@ -1747,7 +1799,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), surfaceType == SurfaceType.Opaque ? receiveSSR.isOn : receiveSSRTransparent.isOn, receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
@@ -1762,6 +1814,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, false, false);
 
             base.CollectShaderProperties(collector, generationMode);
         }

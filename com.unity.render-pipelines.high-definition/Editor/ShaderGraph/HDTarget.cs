@@ -596,6 +596,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { HDBaseNoCrossFade },
             { Lightmaps },
         };
+
+        public static KeywordCollection RaytracingVisiblity = new KeywordCollection
+        {
+            { HDBaseNoCrossFade },
+            { CoreKeywordDescriptors.TransparentColorShadow },
+        };
+        
     }
 #endregion
 
@@ -1046,6 +1053,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local
+        };
+
+        public static KeywordDescriptor TransparentColorShadow = new KeywordDescriptor()
+        {
+            displayName = "Transparent Color Shadow",
+            referenceName = "TRANSPARENT_COLOR_SHADOW",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global
         };
     }
 #endregion
