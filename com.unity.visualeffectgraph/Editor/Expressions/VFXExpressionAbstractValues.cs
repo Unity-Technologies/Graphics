@@ -275,7 +275,7 @@ namespace UnityEditor.VFX
         {
             if (value == null)
             {
-                value = (int)0;
+                m_Content = (int)0;
                 return;
             }
             if (value is UnityObject obj)
