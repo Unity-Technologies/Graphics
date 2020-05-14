@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's layout vanishing on domain reload.
 - Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 - Fixed division by zero in `V_SmithJointGGX` function.
+- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
