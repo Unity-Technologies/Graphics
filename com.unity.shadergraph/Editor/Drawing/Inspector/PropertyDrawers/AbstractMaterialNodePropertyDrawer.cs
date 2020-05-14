@@ -29,10 +29,11 @@ namespace Drawing.Inspector.PropertyDrawers
 
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
-            var defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(attribute.labelName));
+            VisualElement defaultRow = null;
             EnumField precisionField = null;
             if(node.canSetPrecision)
             {
+                defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(attribute.labelName));
                 precisionField = new EnumField(node.precision);
                 var propertyRow = new PropertyRow(new Label("Precision"));
                 propertyRow.Add(precisionField, (field) =>

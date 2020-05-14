@@ -1338,17 +1338,7 @@ namespace UnityEditor.ShaderGraph
             var activeBlocks = GetActiveBlocksForAllActiveTargets();
             UpdateActiveBlocks(activeBlocks);
             ValidateGraph();
-
-            // TODO: Internal inspector must repaint here
-            // TODO: Check with Sai that it does...
-            if(onUndoPerformed != null)
-                onUndoPerformed();
         }
-
-        // TODO: Temporary hack to repaint inspector on Undo
-        // TODO: Make sure this is handled properly by InspectorView then removed
-        public delegate void OnUndoPerformed();
-        public OnUndoPerformed onUndoPerformed;
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<AbstractMaterialNode> remappedNodes,
             List<Edge> remappedEdges)

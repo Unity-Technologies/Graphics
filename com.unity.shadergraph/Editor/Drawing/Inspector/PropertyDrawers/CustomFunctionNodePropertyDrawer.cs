@@ -16,8 +16,16 @@ namespace Drawing.Inspector.PropertyDrawers
             out VisualElement propertyVisualElement)
         {
             var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel(attribute.labelName));
-            propertySheet.Add(new ReorderableSlotListView(node, SlotType.Input));
-            propertySheet.Add(new ReorderableSlotListView(node, SlotType.Output));
+            var inputListView = new ReorderableSlotListView(node, SlotType.Input);
+            inputListView.OnAddCallback += list => inspectorUpdateDelegate();
+            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
+            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            propertySheet.Add(inputListView);
+            var outputListView = new ReorderableSlotListView(node, SlotType.Output);
+            outputListView.OnAddCallback += list => inspectorUpdateDelegate();
+            outputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
+            outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            propertySheet.Add(outputListView);
             propertySheet.Add(new HlslFunctionView(node));
             propertyVisualElement = propertySheet;
             return propertySheet;
