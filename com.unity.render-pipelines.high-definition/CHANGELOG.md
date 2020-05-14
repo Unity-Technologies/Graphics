@@ -74,6 +74,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
