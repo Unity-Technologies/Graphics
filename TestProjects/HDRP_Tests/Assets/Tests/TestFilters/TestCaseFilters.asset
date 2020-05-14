@@ -215,14 +215,14 @@ MonoBehaviour:
     GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: instable
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: 
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
