@@ -719,7 +719,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
 
-            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || serialized.areaLightShape == AreaLightShape.Rectangle)
+            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
             {
                 EditorGUI.BeginChangeCheck();
                 UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
