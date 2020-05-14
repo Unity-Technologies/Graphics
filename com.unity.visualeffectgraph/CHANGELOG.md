@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support of flag settings in model inspector
 - height of initial event name.
 - fix colorfield height.
+- fix for capacity change for locked asset.
 - fix null value not beeing assignable to slot.
 
 ## [7.1.1] - 2019-09-05
