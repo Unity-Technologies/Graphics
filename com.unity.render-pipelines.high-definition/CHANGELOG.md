@@ -69,6 +69,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
+- Fixed over consumption of GPU memory by the Physically Based Sky.
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
 - Fixed an issue where asset preview could be rendered white because of static lighting sky.
 - Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
 
