@@ -335,8 +335,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // For planar reflection we only convolve with the GGX filter, otherwise it would be too expensive
                 GraphicsFormat planarProbeCacheFormat = lightLoopSettings.planarReflectionCacheCompressed ? GraphicsFormat.RGB_BC6H_SFloat : GraphicsFormat.R16G16B16A16_SFloat;
                 int reflectionPlanarResolution = (int)lightLoopSettings.planarReflectionAtlasSize;
-                if (PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, reflectionPlanarResolution, planarProbeCacheFormat) > k_MaxCacheSize)
-                    reflectionPlanarResolution = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(k_MaxCacheSize, planarProbeCacheFormat);
                 reflectionPlanarProbeCache = new PlanarReflectionProbeCache(defaultResources, (IBLFilterGGX)iBLFilterBSDFArray[0], reflectionPlanarResolution, planarProbeCacheFormat, true);
             }
 
