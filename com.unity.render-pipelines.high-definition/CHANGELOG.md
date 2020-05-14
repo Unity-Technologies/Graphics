@@ -595,6 +595,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some GCAlloc in the debug window.
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
 - Fixed thin refraction mode not working properly.
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
