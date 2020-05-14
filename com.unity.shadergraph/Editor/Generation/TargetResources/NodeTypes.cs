@@ -148,7 +148,8 @@ namespace UnityEditor.ShaderGraph
                 typeof(Texture2DPropertiesNode ),
                 typeof(Texture2DArrayAssetNode ),
                 typeof(Texture2DAssetNode ),
-                typeof(Texture3DAssetNode )
+                typeof(Texture3DAssetNode ),
+                typeof(SampleVirtualTextureNode ),
             };
 
             public static NodeTypeCollection All = new NodeTypeCollection()
