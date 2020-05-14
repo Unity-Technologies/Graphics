@@ -1,8 +1,4 @@
-#if ETC1_EXTERNAL_ALPHA
-    TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
-    half _EnableAlphaTexture;
-#endif
-    half4 _RendererColor;
+half4 _RendererColor;
 
 PackedVaryings vert(Attributes input)
 {
@@ -20,11 +16,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-
-#if ETC1_EXTERNAL_ALPHA
-    if (_EnableAlphaTexture > 0)
-        surfaceDescription.Color.a = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, unpacked.texCoord0.xy).r;
-#endif
 
     surfaceDescription.Color *= unpacked.color * _RendererColor;
 
