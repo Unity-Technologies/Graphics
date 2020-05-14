@@ -173,6 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   HDStructFields.AttributesMesh.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   HDStructFields.AttributesMesh.indices),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                      HDStructFields.AttributesMesh.vertexID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
@@ -212,6 +213,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
 
             new FieldDependency(HDFields.DepthOffset,                                                HDStructFields.FragInputs.positionRWS),
+
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.BoneWeights,                   StructFields.SurfaceDescriptionInputs.BoneIndices),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.BoneIndices,                   StructFields.SurfaceDescriptionInputs.BoneWeights),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexID,                      StructFields.SurfaceDescriptionInputs.VertexID),
         };
 
         public static DependencyCollection Default = new DependencyCollection

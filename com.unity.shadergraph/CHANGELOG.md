@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added AlphaToMask render state.
 - Added a field to the Master Nodes that overrides the generated shader's ShaderGUI, which determines how a Material that uses a Shader Graph looks.
 - Added Redirect Nodes. You can now double-click an edge to add a control point that allows you to route edges around other nodes and connect multiple output edges.
+- Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
 
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
 - Updated the dependent version of `Searcher` to 4.2.0. 
+- Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -111,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 - Shader Graph now requests preview shader compilation asynchronously. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed an issue where Shader Graph would not compile master previews after an assembly reload.
+- Fixed issue where `Linear Blend Skinning` node could not be converted to Sub Graph [1227087](https://issuetracker.unity3d.com/issues/shadergraph-linear-blend-skinning-node-reports-an-error-and-prevents-shader-compilation-when-used-within-a-sub-graph)
 - Fixed a compilation error in preview shaders for nodes requiring view direction.
 - Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
 - Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
