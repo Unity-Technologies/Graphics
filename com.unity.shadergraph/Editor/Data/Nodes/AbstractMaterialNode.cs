@@ -33,7 +33,7 @@ namespace UnityEditor.ShaderGraph
 
         [NonSerialized]
         bool m_IsActive = true;
-        
+
         [SerializeField]
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
@@ -98,7 +98,6 @@ namespace UnityEditor.ShaderGraph
 
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Float;
 
-        [Inspectable("Precision", ConcretePrecision.Float)]
         public ConcretePrecision concretePrecision
         {
             get => m_ConcretePrecision;
@@ -260,11 +259,11 @@ namespace UnityEditor.ShaderGraph
         public virtual bool isValid
         {
             get { return m_IsValid; }
-            set 
+            set
             {
                 if(m_IsValid == value)
                     return;
-                
+
                 m_IsValid = value;
             }
         }

@@ -11,7 +11,7 @@ ResizableElement
 
 ResizableElement #right
 {
-    width: 12px;
+    width: 4px;
     flex-direction: column;
     align-items: stretch;
 }

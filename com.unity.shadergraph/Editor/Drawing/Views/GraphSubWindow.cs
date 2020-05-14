@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, ISelection, IResizable
+    class GraphSubWindow : GraphElement, IResizable
     {
         Dragger m_Dragger;
 
@@ -56,14 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
-        // ISelection implementation
-        public List<ISelectable> selection
-        {
-            get
-            {
-                return graphView?.selection;
-            }
-        }
+        public List<ISelectable> selection => graphView?.selection;
 
         public override string title
         {
@@ -187,26 +180,24 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
             RegisterCallback<MouseDownEvent>(e =>
             {
-                if (e.button == (int)MouseButton.LeftMouse)
-                    ClearSelection();
                 // prevent ContentDragger manipulator
                 e.StopPropagation();
             });
         }
 
-        public virtual void AddToSelection(ISelectable selectable)
+        protected void ShowWindow()
         {
-            graphView?.AddToSelection(selectable);
+            this.style.visibility = Visibility.Visible;
+            contentContainer.MarkDirtyRepaint();
         }
 
-        public virtual void RemoveFromSelection(ISelectable selectable)
+        protected void HideWindow()
         {
-            graphView?.RemoveFromSelection(selectable);
-        }
-
-        public virtual void ClearSelection()
-        {
-            graphView?.ClearSelection();
+            this.style.visibility = Visibility.Hidden;
+            this.m_ScrollView.showVertical = false;
+            this.m_ScrollView.showHorizontal = false;
+            contentContainer.Clear();
+            contentContainer.MarkDirtyRepaint();
         }
 
         void BuildManipulators()
@@ -225,6 +216,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             windowDockingLayout.CalculateDockingCornerAndOffset(layout, parentLayout);
             windowDockingLayout.ClampToParentWindow();
+            windowDockingLayout.ApplyPosition(this);
+            SerializeLayout();
         }
 
         public void OnStartResize()
@@ -246,6 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 windowDockingLayout = m_DefaultLayout;
 
             // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
+            windowDockingLayout.size = layout.size;
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
