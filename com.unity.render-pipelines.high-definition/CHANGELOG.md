@@ -319,6 +319,7 @@ The version number for this package has increased due to a version update of a r
 - Fix Inf source in LTC for area lights.
 - Fix supported Mac platform detection to handle new major version (11.0) properly
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.
