@@ -1,21 +1,31 @@
-﻿void BuildInputData(Varyings input, float3 normal, out InputData inputData)
+void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
     inputData.positionWS = input.positionWS;
-#ifdef _NORMALMAP
-	inputData.normalWS = normal;
-#else
-    inputData.normalWS = input.normalWS;
-#endif
+
+    #ifdef _NORMALMAP
+        #if _NORMAL_DROPOFF_TS
+            // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
+            float crossSign = (input.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
+            float3 bitangent = crossSign * cross(input.normalWS.xyz, input.tangentWS.xyz);
+            inputData.normalWS = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS.xyz));
+        #elif _NORMAL_DROPOFF_OS
+            inputData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+        #elif _NORMAL_DROPOFF_WS
+            inputData.normalWS = surfaceDescription.NormalWS;
+        #endif
+    #else
+        inputData.normalWS = input.normalWS;
+    #endif
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = SafeNormalize(input.viewDirectionWS);
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        inputData.shadowCoord = input.shadowCoord;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #else
+        inputData.shadowCoord = float4(0, 0, 0, 0);
+    #endif
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
@@ -44,19 +54,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
-    #if _NORMAL_DROPOFF_TS
-        // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
-        float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
-        float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
-        float3 normal = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(unpacked.tangentWS.xyz, bitangent, unpacked.normalWS.xyz));
-    #elif _NORMAL_DROPOFF_OS
-        float3 normal = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
-    #elif _NORMAL_DROPOFF_WS
-        float3 normal = surfaceDescription.NormalWS;
-    #endif
-
     InputData inputData;
-    BuildInputData(unpacked, normal, inputData);
+    BuildInputData(unpacked, surfaceDescription, inputData);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
