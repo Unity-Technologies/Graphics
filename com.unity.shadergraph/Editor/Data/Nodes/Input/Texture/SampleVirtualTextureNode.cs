@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
-    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition, IHasSettings
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
