@@ -1,4 +1,4 @@
-**Guide** : https://github.com/Unity-Technologies/Graphics/blob/pr-template-correction/.github/pr-read.png.md
+**Guide** : https://github.com/Unity-Technologies/Graphics/blob/master/.github/pr-read.png.md
 
 **Display Addon** : https://userstyles.org/styles/182991/unity-graphics-pr-readme
 
