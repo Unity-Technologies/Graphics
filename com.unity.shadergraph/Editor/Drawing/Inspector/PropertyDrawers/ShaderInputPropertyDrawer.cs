@@ -32,8 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         // Keyword
         ReorderableList m_ReorderableList;
         int m_SelectedIndex;
-        private static GUIStyle greyLabel;
-
+        static GUIStyle greyLabel;
 
         // Reference Name
         TextField m_ReferenceNameField;
