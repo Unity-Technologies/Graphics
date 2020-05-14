@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - fix colorfield height.
 - fix for capacity change for locked asset.
 - fix null value not beeing assignable to slot.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
