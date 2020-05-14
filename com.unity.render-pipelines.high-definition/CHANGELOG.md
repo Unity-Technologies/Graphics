@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
