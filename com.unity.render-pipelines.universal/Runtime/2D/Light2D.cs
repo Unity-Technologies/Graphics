@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bool inCurrentPrefabStage = true;
 #if UNITY_EDITOR
                     // If we found the first global light in our prefab stage
-                    inCurrentPrefabStage = PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage();
+                    inCurrentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
 #endif
 
                     if (inCurrentPrefabStage)
