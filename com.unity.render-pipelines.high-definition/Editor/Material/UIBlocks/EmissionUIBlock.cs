@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void UpdateEmissiveColorAndIntensity()
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
-            foreach(Material target in materials)
+            foreach (Material target in materials)
             {
                 if (target.HasProperty(kEmissiveColorLDR) && target.HasProperty(kEmissiveIntensity) && target.HasProperty(kEmissiveColor))
                 {
@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // We don't allow changes on intensity if units are mixed
-                    if (intensityChanged && intensityChanged && !unitIsMixed)
+                    if (intensityChanged && !unitIsMixed)
                         emissiveIntensity.floatValue = newIntensity;
 
                     UpdateEmissiveColorAndIntensity();
