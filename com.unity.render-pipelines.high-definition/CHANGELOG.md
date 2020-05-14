@@ -122,6 +122,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a function (HDRenderPipeline.ResetRTHandleReferenceSize) to reset the reference size of RTHandle systems.
 - Added support for AxF measurements importing into texture resources tilings.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
+- Added a flow map parameter to HDRI Sky
+- Implemented ray traced reflections for transparent objects.
+- Add a new parameter to control reflections in recursive rendering.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -581,6 +584,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
 - Fixed transparent motion vectors not working when in MSAA.
+- Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
+- Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
+- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
+- Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
+- Fixed a null ref exception when running playmode tests with the render pipeline debug window opened.
+- Fixed some GCAlloc in the debug window.
+- Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
+- Fixed thin refraction mode not working properly.
 - Fixed taaFrameIndex and XR tests 4052 and 4053
 
 ### Changed
@@ -707,6 +721,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
 - Improved performance of reflection probe management when using a lot of probes.
+- Ignoring the disable SSR flags for recursive rendering.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 
 ## [7.1.1] - 2019-09-05
 

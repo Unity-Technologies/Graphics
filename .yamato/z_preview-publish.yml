@@ -72,14 +72,8 @@ publish_{{ test.name }}:
     packages:
         paths:
             - "upm-ci~/packages/*.tgz"
-{% if publishing.auto_publish == "true" -%}
-  triggers:
-    recurring:
-      - branch: "{{ repo.branches.integration }}"
-        frequency: daily
-{% endif -%}
   dependencies:
-    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
+    - .yamato/z_preview-publish.yml#wait_for_nightly
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}
@@ -87,18 +81,36 @@ publish_{{ test.name }}:
 {% for editor in editors -%}
 {% for platform in platforms -%}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-# Disabled for linux since it requires GPUs
-# {% if platform.os != "linux" -%}
-# {% if test.standalone == "true" -%}
-# {% for backend in scripting_backends -%}
-    # - .yamato/package-test.yml#{{ test.name }}:{{ platform.os }}:{{ editor.version }}:standalone:{{ backend }}
-# {% endfor -%}
-# {% endif -%} # test.standalone
-# {% endif -%} # platform.os
 {% endfor -%}
 {% endfor -%}
 {% endif -%} # publish_source
 {% endfor -%}
+
+publish_all_preview:
+  name: "Publish all preview packages - nightly"
+  {% if publishing.auto_publish == "true" %}
+  triggers:
+    recurring:
+      - branch: "{{ repo.branches.integration }}"
+        frequency: daily
+  {% endif %}
+  dependencies:
+    {% for test in testables %}
+    - .yamato/z_preview-publish.yml#publish_{{ test.name }}
+    {% endfor %}
+
+wait_for_nightly:
+  name: "z_Wait for nightly"
+  dependencies:
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
+  {% for test in testables %}
+    - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
+  {% for editor in editors %}
+  {% for platform in platforms %}
+    - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
+  {% endfor %}
+  {% endfor %}
+  {% endfor %}
     
 
 {% for test in testables -%}
