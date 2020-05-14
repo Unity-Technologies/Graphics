@@ -236,7 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // We will need to invest time to understand what is happening
             // For now priority is to enable Yamato platform automation
             // This mean that cubemap icon will render incorrectly on anything but D3D11
-            if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11)
+            if(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D11 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                 m_PreviewUtility.camera.Render();
 
             var outTexture = m_PreviewUtility.EndStaticPreview();
