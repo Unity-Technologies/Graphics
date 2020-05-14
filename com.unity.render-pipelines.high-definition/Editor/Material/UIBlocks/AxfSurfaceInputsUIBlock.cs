@@ -24,8 +24,16 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent    planarSpaceText = new GUIContent("Planar Space");
 
             public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
-            public static GUIContent    normalMipNotchCenterText = new GUIContent("Normal Anti-Moire Notch Center", "0 is near mip, 1 is fartest");
-            public static GUIContent    normalMipNotchParamsText = new GUIContent("Normal Anti-Moire Notch Params", "w is strength of effect, set at 0 to disable, xyz are in mip levels: x = notch fade-in width, y = notch plateau width, z = notch fade-out width");
+
+            public static GUIContent    texAntiMoireNotchModeText = new GUIContent("Enable Texture Anti-Moire", "Notch curve based anti-moire algorithm available to normal maps or all maps");
+            public static GUIContent    texAntiMoireNotchLodIntoFadeCurveSrcText = new GUIContent("Fade From Lod Curve", "Anti-Moire Source Curve: None (dont use anti-moire), Curve A, Curve B");
+            public static GUIContent    texAntiMoireNotchLodIntoBiasCurveSrcText = new GUIContent("Bias From Lod Curve", "Anti-Moire Source Curve: None (dont use anti-moire), Curve A, Curve B");
+            public static GUIContent    mipNotchCurveACenterText = new GUIContent("Mip Notch Curve A Center", "0 is near mip, 1 is fartest");
+            public static GUIContent    mipNotchCurveAParamsText = new GUIContent("Mip Notch Curve A Params", "w is strength of effect, set at 0 to disable, xyz are in mip levels: x = notch fade-in width, y = notch plateau width, z = notch fade-out width");
+            public static GUIContent    mipNotchCurveBCenterText = new GUIContent("Mip Notch Curve B Center", "0 is near mip, 1 is fartest");
+            public static GUIContent    mipNotchCurveBParamsText = new GUIContent("Mip Notch Curve B Params", "w is strength of effect, set at 0 to disable, xyz are in mip levels: x = notch fade-in width, y = notch plateau width, z = notch fade-out width");
+            public static GUIContent    lodIntoFadeEnable = new GUIContent("Mip Notch Curve Center", "0 is near mip, 1 is fartest");
+
             public static GUIContent    enableNormalMapFilteringText = new GUIContent("Normal Map Filtering", "Enables normal map filtering - only works with external normal maps ending with _NF in name (for required automatic preprocessing).");
             public static GUIContent    normalMapFilteringWeightText = new GUIContent("Normal Map Filtering Weight", "Strength of normal map anti-aliasing effect. Should be set to 1.0 to respect preprocessing done on normal map.");
             public static GUIContent    specularAAThresholdText = new GUIContent("Threshold", "Maximum amount for Specular AA reduction, both for normal map filtering and geometry, if enabled. A value of 0 does not apply reduction, higher values allow higher reduction.");
@@ -134,10 +142,35 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_PlanarSpaceText = "_PlanarSpace";
         MaterialProperty  m_PlanarSpace = null;
 
-        static string               m_NormalMipNotchCenterText = "_NormalMipNotchCenter";
-        MaterialProperty  m_NormalMipNotchCenter = null;
-        static string               m_NormalMipNotchParamsText = "_NormalMipNotchParams";
-        MaterialProperty  m_NormalMipNotchParams = null;
+        static string               m_TexAntiMoireNotchModeText = "_TexAntiMoireNotchMode"; // ui only
+        static string               m_MipNotchCurveACenterText = "_MipNotchCurveACenter";
+        static string               m_MipNotchCurveAParamsText = "_MipNotchCurveAParams";
+        static string               m_MipNotchCurveBCenterText = "_MipNotchCurveBCenter";
+        static string               m_MipNotchCurveBParamsText = "_MipNotchCurveBParams";
+
+        static string               lodIntoBiasPropNameSuffix = "_LodIntoBias";
+        static string               lodIntoFadePropNameSuffix = "_LodIntoFade";
+
+        MaterialProperty  m_TexAntiMoireNotchMode = null;
+        MaterialProperty  m_MipNotchCurveACenter = null;
+        MaterialProperty  m_MipNotchCurveAParams  = null;
+        MaterialProperty  m_MipNotchCurveBCenter = null;
+        MaterialProperty  m_MipNotchCurveBParams  = null;
+        MaterialProperty  m_DiffuseColorMap_LodIntoBias = null;
+        MaterialProperty  m_SpecularColorMap_LodIntoBias = null;
+        MaterialProperty  m_SpecularLobeMap_LodIntoBias = null;
+        MaterialProperty  m_FresnelMap_LodIntoBias = null;
+        MaterialProperty  m_AnisoRotationMap_LodIntoBias = null;
+        MaterialProperty  m_HeightMap_LodIntoBias = null;
+        MaterialProperty  m_ClearcoatColorMap_LodIntoBias = null;
+        MaterialProperty  m_ClearcoatIORMap_LodIntoBias = null;
+        MaterialProperty  m_CarPaint2_BTFFlakeMap_LodIntoBias = null;
+        MaterialProperty  m_NormalMap_LodIntoBias = null;
+        MaterialProperty  m_NormalMap_LodIntoFade = null;
+        MaterialProperty  m_ClearcoatNormalMap_LodIntoBias = null;
+        MaterialProperty  m_ClearcoatNormalMap_LodIntoFade = null;
+
+
 
         static string               m_NormalMapFilteringWeightText = "_NormalMapFilteringWeight";
         MaterialProperty  m_NormalMapFilteringWeight = null;
@@ -176,8 +209,8 @@ namespace UnityEditor.Rendering.HighDefinition
         MaterialProperty  m_SVBRDF_BRDFType;
         static string               m_SVBRDF_BRDFVariantsText = "_SVBRDF_BRDFVariants";
         MaterialProperty  m_SVBRDF_BRDFVariants;
-        static string               m_SVBRDF_HeightMapMaxMMText = "_SVBRDF_HeightMapMaxMM";
-        MaterialProperty  m_SVBRDF_HeightMapMaxMM;
+        static string               m_HeightMapMaxMMText = "_SVBRDF_HeightMapMaxMM";
+        MaterialProperty  m_HeightMapMaxMM;
 
         // Regular maps
         static string               m_DiffuseColorMapText = "_SVBRDF_DiffuseColorMap";
@@ -271,8 +304,25 @@ namespace UnityEditor.Rendering.HighDefinition
             m_MappingMask = FindProperty(m_MappingMaskText);
             m_PlanarSpace = FindProperty(m_PlanarSpaceText);
 
-            m_NormalMipNotchCenter = FindProperty(m_NormalMipNotchCenterText);
-            m_NormalMipNotchParams = FindProperty(m_NormalMipNotchParamsText);
+            m_TexAntiMoireNotchMode = FindProperty(m_TexAntiMoireNotchModeText);
+            m_MipNotchCurveACenter = FindProperty(m_MipNotchCurveACenterText);
+            m_MipNotchCurveAParams  = FindProperty(m_MipNotchCurveAParamsText);
+            m_MipNotchCurveBCenter = FindProperty(m_MipNotchCurveBCenterText);
+            m_MipNotchCurveBParams  = FindProperty(m_MipNotchCurveBParamsText);
+            m_DiffuseColorMap_LodIntoBias = FindProperty(m_DiffuseColorMapText + lodIntoBiasPropNameSuffix);
+            m_SpecularColorMap_LodIntoBias = FindProperty(m_SpecularColorMapText + lodIntoBiasPropNameSuffix);
+            m_SpecularLobeMap_LodIntoBias = FindProperty(m_SpecularLobeMapText + lodIntoBiasPropNameSuffix);
+            m_FresnelMap_LodIntoBias = FindProperty(m_FresnelMapText + lodIntoBiasPropNameSuffix);
+            m_AnisoRotationMap_LodIntoBias = FindProperty(m_AnisoRotationMapText + lodIntoBiasPropNameSuffix);
+            m_HeightMap_LodIntoBias = FindProperty(m_HeightMapText + lodIntoBiasPropNameSuffix);
+            m_ClearcoatColorMap_LodIntoBias = FindProperty(m_ClearcoatColorMapText + lodIntoBiasPropNameSuffix);
+            m_ClearcoatIORMap_LodIntoBias = FindProperty(m_ClearcoatIORMapText + lodIntoBiasPropNameSuffix);
+            m_CarPaint2_BTFFlakeMap_LodIntoBias = FindProperty(m_CarPaint2_BTFFlakeMapText + lodIntoBiasPropNameSuffix);
+            m_NormalMap_LodIntoBias = FindProperty(m_NormalMapText + lodIntoBiasPropNameSuffix);
+            m_NormalMap_LodIntoFade = FindProperty(m_NormalMapText + lodIntoFadePropNameSuffix);
+            m_ClearcoatNormalMap_LodIntoBias = FindProperty(m_ClearcoatNormalMapText + lodIntoBiasPropNameSuffix);
+            m_ClearcoatNormalMap_LodIntoFade = FindProperty(m_ClearcoatNormalMapText + lodIntoFadePropNameSuffix);
+
             m_EnableNormalMapFiltering = FindProperty(m_EnableNormalMapFilteringText);
             m_NormalMapFilteringWeight = FindProperty(m_NormalMapFilteringWeightText);
             m_SpecularAAThreshold = FindProperty(m_SpecularAAThresholdText);
@@ -300,7 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // SVBRDF
             m_SVBRDF_BRDFType = FindProperty(m_SVBRDF_BRDFTypeText);
             m_SVBRDF_BRDFVariants = FindProperty(m_SVBRDF_BRDFVariantsText);
-            m_SVBRDF_HeightMapMaxMM = FindProperty(m_SVBRDF_HeightMapMaxMMText);
+            m_HeightMapMaxMM = FindProperty(m_HeightMapMaxMMText);
 
             // Regular maps
             m_DiffuseColorMap = FindProperty(m_DiffuseColorMapText);
@@ -409,10 +459,22 @@ namespace UnityEditor.Rendering.HighDefinition
 
             materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
 
-            materialEditor.ShaderProperty(m_NormalMipNotchCenter, Styles.normalMipNotchCenterText);
-            materialEditor.ShaderProperty(m_NormalMipNotchParams, Styles.normalMipNotchParamsText);
-            materialEditor.ShaderProperty(m_EnableNormalMapFiltering, Styles.enableNormalMapFilteringText);
+            materialEditor.ShaderProperty(m_TexAntiMoireNotchMode, Styles.texAntiMoireNotchModeText);
+            AxFTexAntiMoireNotchMode texAntiMoireNotchMode = (AxFTexAntiMoireNotchMode) m_TexAntiMoireNotchMode.floatValue;
 
+            bool texAntiMoireAllMaps = (texAntiMoireNotchMode == AxFTexAntiMoireNotchMode.AllMaps);
+            bool texAntiMoireEnabled = (texAntiMoireNotchMode != AxFTexAntiMoireNotchMode.Disabled);
+            if (texAntiMoireEnabled)
+            {
+                EditorGUI.indentLevel++;
+                materialEditor.ShaderProperty(m_MipNotchCurveACenter, Styles.mipNotchCurveACenterText);
+                materialEditor.ShaderProperty(m_MipNotchCurveAParams, Styles.mipNotchCurveAParamsText);
+                materialEditor.ShaderProperty(m_MipNotchCurveBCenter, Styles.mipNotchCurveBCenterText);
+                materialEditor.ShaderProperty(m_MipNotchCurveBParams, Styles.mipNotchCurveBParamsText);
+                EditorGUI.indentLevel--;
+            }
+
+            materialEditor.ShaderProperty(m_EnableNormalMapFiltering, Styles.enableNormalMapFilteringText);
             if (m_EnableNormalMapFiltering.floatValue > 0.0)
             {
                 EditorGUI.indentLevel++;
@@ -469,12 +531,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Regular maps
-                    materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap, m_SpecularColorMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap, m_SpecularLobeMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST, texAntiMoireAllMaps ? m_DiffuseColorMap_LodIntoBias : null);
+                    //materialEditor.TexturePropertyTwoLines(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST,
+                    //                                       texAntiMoireAllMaps? Styles.texAntiMoireNotchLodIntoBiasCurveSrcText : null, texAntiMoireAllMaps? m_DiffuseColorMap_LodIntoBias : null);
+                    materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap, m_SpecularColorMapST, texAntiMoireAllMaps ? m_SpecularColorMap_LodIntoBias : null);
+                    materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap, m_SpecularLobeMapST, texAntiMoireAllMaps ? m_SpecularLobeMap_LodIntoBias : null);
                     m_SpecularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_SpecularLobeMapScale.floatValue);
-                    materialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap, m_FresnelMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap, m_FresnelMapST, texAntiMoireAllMaps ? m_FresnelMap_LodIntoBias : null);
                     materialEditor.TexturePropertySingleLine(Styles.normalMapText, m_NormalMap, m_NormalMapST);
+                    if (texAntiMoireEnabled)
+                    {
+                        materialEditor.ShaderProperty(m_NormalMap_LodIntoFade, Styles.texAntiMoireNotchLodIntoFadeCurveSrcText, 1);
+                        materialEditor.ShaderProperty(m_NormalMap_LodIntoBias, Styles.texAntiMoireNotchLodIntoBiasCurveSrcText, 1);
+                    }
 
                     // Alpha
                     materialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap, m_AlphaMapST);
@@ -486,8 +555,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (useHeightMap)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap, m_HeightMapST);
-                        materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
+                        materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap, m_HeightMapST, texAntiMoireAllMaps ? m_HeightMap_LodIntoBias : null);
+                        materialEditor.ShaderProperty(m_HeightMapMaxMM, "Max Displacement (mm)");
                         --EditorGUI.indentLevel;
                     }
 
@@ -496,7 +565,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap, m_AnisoRotationMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap, m_AnisoRotationMapST, texAntiMoireAllMaps ? m_AnisoRotationMap_LodIntoBias : null);
                         --EditorGUI.indentLevel;
                     }
 
@@ -505,12 +574,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST, texAntiMoireAllMaps ? m_ClearcoatColorMap_LodIntoBias : null);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
+                        if (texAntiMoireEnabled)
+                        {
+                            materialEditor.ShaderProperty(m_ClearcoatNormalMap_LodIntoFade, Styles.texAntiMoireNotchLodIntoFadeCurveSrcText, 1);
+                            materialEditor.ShaderProperty(m_ClearcoatNormalMap_LodIntoBias, Styles.texAntiMoireNotchLodIntoBiasCurveSrcText, 1);
+                        }
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                         // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
                         // is given by a scalar value.
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap, m_ClearcoatIORMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap, m_ClearcoatIORMapST, texAntiMoireAllMaps ? m_ClearcoatIORMap_LodIntoBias : null);
                         --EditorGUI.indentLevel;
                     }
 
@@ -552,8 +626,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
 
-                    //materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST, texAntiMoireAllMaps ? m_CarPaint2_BTFFlakeMap_LodIntoBias : null);
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
                     m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
@@ -569,7 +642,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_CarPaint2_CTF0s.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTF0sText, m_CarPaint2_CTF0s.vectorValue);
                     m_CarPaint2_CTCoeffs.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTCoeffsText, m_CarPaint2_CTCoeffs.vectorValue);
                     m_CarPaint2_CTSpreads.vectorValue = EditorGUILayout.Vector3Field(Styles.CarPaintCTSpreadsText, m_CarPaint2_CTSpreads.vectorValue);
-                    materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
+                    materialEditor.ShaderProperty(m_HeightMapMaxMM, "Max Displacement (mm)");
 
                     // Clearcoat
                     clearcoat = EditorGUILayout.Toggle("Enable Clearcoat", clearcoat);
@@ -577,10 +650,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         ++EditorGUI.indentLevel;
 //                        materialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
                         materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-
+                        if (texAntiMoireEnabled)
+                        {
+                            materialEditor.ShaderProperty(m_ClearcoatNormalMap_LodIntoFade, Styles.texAntiMoireNotchLodIntoFadeCurveSrcText, 1);
+                            materialEditor.ShaderProperty(m_ClearcoatNormalMap_LodIntoBias, Styles.texAntiMoireNotchLodIntoBiasCurveSrcText, 1);
+                        }
 //                        materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
                         m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                         --EditorGUI.indentLevel;

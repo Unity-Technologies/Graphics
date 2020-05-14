@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
             public Vector2  flakesDdyXY;
             [SurfaceDataAttributes("Normal anti moire fade notch debug")]
-            public float    notchScaleDebug;
+            public float    normalFadeNotchScaleDebug;
 
             // BTF Variables
 

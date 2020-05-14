@@ -109,7 +109,7 @@ struct SurfaceData
     float2 flakesDdyXZ;
     float2 flakesDdxXY;
     float2 flakesDdyXY;
-    float notchScaleDebug;
+    float normalFadeNotchScaleDebug;
     float3 clearcoatColor;
     float3 clearcoatNormalWS;
     float clearcoatIOR;
@@ -231,7 +231,7 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = float3(surfacedata.flakesDdyXY, 0.0);
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_NORMAL_ANTI_MOIRE_FADE_NOTCH_DEBUG:
-            result = surfacedata.notchScaleDebug.xxx;
+            result = surfacedata.normalFadeNotchScaleDebug.xxx;
             break;
         case DEBUGVIEW_AXF_SURFACEDATA_CLEARCOAT_COLOR:
             result = surfacedata.clearcoatColor;

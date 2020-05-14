@@ -52,9 +52,40 @@ SAMPLER(sampler_SVBRDF_ClearcoatIORMap);
 CBUFFER_START(UnityPerMaterial)
 
     float4  _MappingMask;
-    float   _NormalMipNotchCenter;
-    float4  _NormalMipNotchParams;
+    float   _MipNotchCurveACenter;
+    float4  _MipNotchCurveAParams;
+    float   _MipNotchCurveBCenter;
+    float4  _MipNotchCurveBParams;
     float   _NormalMapFilteringWeight;
+
+    float   _SVBRDF_DiffuseColorMap_LodIntoBias;
+    float   _SVBRDF_SpecularColorMap_LodIntoBias;
+    float   _SVBRDF_SpecularLobeMap_LodIntoBias;
+    float   _SVBRDF_FresnelMap_LodIntoBias;
+    float   _SVBRDF_AnisoRotationMap_LodIntoBias;
+    float   _SVBRDF_HeightMap_LodIntoBias;
+    float   _SVBRDF_ClearcoatColorMap_LodIntoBias;
+    float   _SVBRDF_ClearcoatIORMap_LodIntoBias;
+    float   _CarPaint2_BTFFlakeMap_LodIntoBias;
+    float   _SVBRDF_NormalMap_LodIntoBias;
+    float   _SVBRDF_NormalMap_LodIntoFade;
+    float   _ClearcoatNormalMap_LodIntoBias;
+    float   _ClearcoatNormalMap_LodIntoFade;
+    float   _SVBRDF_AlphaMap_LodIntoBias; // unused
+
+    // Texel sizes to help custom LOD calculations:
+    float4  _SVBRDF_DiffuseColorMap_TexelSize;
+    float4  _SVBRDF_SpecularColorMap_TexelSize;
+    float4  _SVBRDF_NormalMap_TexelSize;
+    float4  _SVBRDF_SpecularLobeMap_TexelSize;
+    float4  _SVBRDF_AlphaMap_TexelSize;   // unused
+    float4  _SVBRDF_FresnelMap_TexelSize;
+    float4  _SVBRDF_AnisoRotationMap_TexelSize;
+    float4  _SVBRDF_HeightMap_TexelSize;
+    float4  _SVBRDF_ClearcoatColorMap_TexelSize;
+    float4  _ClearcoatNormalMap_TexelSize;
+    float4  _SVBRDF_ClearcoatIORMap_TexelSize;
+    float4  _CarPaint2_BTFFlakeMap_TexelSize;
 
     // Scale/Offsets:
     float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0

@@ -15,8 +15,31 @@ Shader "HDRP/AxF"
         // UI Only:
         [Enum(World, 0, Local, 1)] _PlanarSpace("Planar/Triplanar space", Float) = 0
 
-        _NormalMipNotchCenter("NormalMipNotchCenter", Range(0.0, 1.0)) = 1.0
-        _NormalMipNotchParams("NormalMipNotchParams (D,S,R,L)", Vector) = (0, 0, 0, 0)
+        // Anti-Moire Notch curves:
+        _MipNotchCurveACenter("MipNotchCurveACenter", Range(0.0, 1.0)) = 1.0
+        _MipNotchCurveAParams("MipNotchCurveAParams (D,S,R,L)", Vector) = (0, 0, 0, 0)
+        _MipNotchCurveBCenter("MipNotchCurveBCenter", Range(0.0, 1.0)) = 1.0
+        _MipNotchCurveBParams("MipNotchCurveBParams (D,S,R,L)", Vector) = (0, 0, 0, 0)
+        // Anti-Moire enable:
+        //UI only:
+        [Enum(Disabled, 0, NormalMaps, 1, AllMaps, 2)] _TexAntiMoireNotchMode("Enable Texture Anti-Moire", Float) = 0
+
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_DiffuseColorMap_LodIntoBias("DiffuseColorMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_SpecularColorMap_LodIntoBias("SpecularColorMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_SpecularLobeMap_LodIntoBias("SpecularLobeMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_FresnelMap_LodIntoBias("FresnelMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_AnisoRotationMap_LodIntoBias("AnisoRotationMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_HeightMap_LodIntoBias("HeightMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_ClearcoatColorMap_LodIntoBias("ClearcoatColorMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_ClearcoatIORMap_LodIntoBias("ClearcoatIORMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _CarPaint2_BTFFlakeMap_LodIntoBias("CarPaint2_BTFFlakeMap Lod Into Bias Notch Curve", Float) = 0
+        // Alpha map doesn't need that algo, it can use MSAA
+        // Only normal maps have lod into fade:
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_NormalMap_LodIntoBias("NormalMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _SVBRDF_NormalMap_LodIntoFade("NormalMap Lod Into Fade Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _ClearcoatNormalMap_LodIntoBias("ClearcoatNormalMap Lod Into Bias Notch Curve", Float) = 0
+        [Enum(None, 0, CurveA, 1, CurveB, 2)] _ClearcoatNormalMap_LodIntoFade("ClearcoatNormalMap Lod Into Fade Notch Curve", Float) = 0
+
         _NormalMapFilteringWeight("Normal Map Filtering Weight", Range(0.0, 10.0)) = 1.0
         [ToggleUI] _EnableNormalMapFiltering("EnableNormalMapFiltering", Float) = 0.0
 
@@ -169,6 +192,7 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
     #pragma shader_feature_local _ _REQUIRE_UV1 _REQUIRE_UV2 _REQUIRE_UV3
     #pragma shader_feature_local _ _PLANAR_LOCAL
+    #pragma shader_feature_local _ _TEX_ANTI_MOIRE_NOTCH_NORMALMAPS _TEX_ANTI_MOIRE_NOTCH_ALLMAPS
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON

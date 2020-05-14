@@ -27,6 +27,13 @@ namespace UnityEditor.Rendering.HighDefinition
         Triplanar,
     }
 
+    internal enum AxFTexAntiMoireNotchMode
+    {
+        Disabled,
+        NormalMaps,
+        AllMaps
+    }
+
     /// <summary>
     /// GUI for HDRP AxF materials
     /// </summary>
@@ -66,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kMappingMode = "_MappingMode";
         const string kMappingMask = "_MappingMask";
         const string kPlanarSpace = "_PlanarSpace";
+        const string kTexAntiMoireNotchMode = "_TexAntiMoireNotchMode"; // ui only
 
         static public Vector4 AxFMappingModeToMask(AxFMappingMode mappingMode)
         {
@@ -129,6 +137,10 @@ namespace UnityEditor.Rendering.HighDefinition
             CoreUtils.SetKeyword(material, "_REQUIRE_UV1", mappingMode == AxFMappingMode.UV1);
             CoreUtils.SetKeyword(material, "_REQUIRE_UV2", mappingMode == AxFMappingMode.UV2);
             CoreUtils.SetKeyword(material, "_REQUIRE_UV3", mappingMode == AxFMappingMode.UV3);
+
+            AxFTexAntiMoireNotchMode texAntiMoireNotchMode = (AxFTexAntiMoireNotchMode)material.GetFloat(kTexAntiMoireNotchMode);
+            CoreUtils.SetKeyword(material, "_TEX_ANTI_MOIRE_NOTCH_NORMALMAPS", texAntiMoireNotchMode == AxFTexAntiMoireNotchMode.NormalMaps);
+            CoreUtils.SetKeyword(material, "_TEX_ANTI_MOIRE_NOTCH_ALLMAPS", texAntiMoireNotchMode == AxFTexAntiMoireNotchMode.AllMaps);
 
             // Keywords for opt-out of decals and SSR:
             bool decalsEnabled = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
