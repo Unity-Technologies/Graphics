@@ -569,6 +569,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
