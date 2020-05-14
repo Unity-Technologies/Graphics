@@ -28,10 +28,13 @@
     #define VBUFFER_VOXEL_SIZE 8
 #endif
 
-#define GROUP_SIZE_1D         8
-#define SUPPORT_LOCAL_LIGHTS  1 // Local lights contribute to fog lighting
-#define SHADOW_USE_DEPTH_BIAS 0
-#define PREFER_HALF           0
+#define PREFER_HALF             0
+#define GROUP_SIZE_1D           8
+#define SUPPORT_LOCAL_LIGHTS    1 // Local lights contribute to fog lighting
+#define SHADOW_USE_DEPTH_BIAS   0 // Too expensive
+#define SHADOW_LOW                // Too expensive
+#define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
+#define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin walls. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -56,8 +59,6 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyCommon.hlsl"
 
-// Use low quality shadow when doing volumetric
-#define SHADOW_LOW
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
@@ -149,9 +150,13 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         // Is it worth sampling the shadow map?
         if ((light.volumetricLightDimmer > 0) && (light.volumetricShadowDimmer > 0))
         {
-            // Pass the light direction as the normal to avoid issues with shadow biasing code.
-            // TODO: does it make sense?
-            float3 shadowN = L;
+            #if SHADOW_VIEW_BIAS
+                // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
+                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                float3 shadowN = -ray.jitterDirWS;
+            #else
+                float3 shadowN = 0; // No bias
+            #endif // SHADOW_VIEW_BIAS
 
             context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
                                                                   posInput.positionSS, posInput.positionWS, shadowN,
@@ -182,9 +187,13 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
             lightColor.a *= light.volumetricLightDimmer;
             lightColor.rgb *= lightColor.a; // Composite
 
-            // Pass the light direction as the normal to avoid issues with shadow biasing code.
-            // TODO: does it make sense?
-            float3 shadowN = L;
+            #if SHADOW_VIEW_BIAS
+                // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
+                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                float3 shadowN = -ray.jitterDirWS;
+            #else
+                float3 shadowN = 0; // No bias
+            #endif // SHADOW_VIEW_BIAS
 
             // This code works for both surface reflection and thin object transmission.
             DirectionalShadowType shadow = EvaluateShadow_Directional(context, posInput, light, unused, shadowN);
@@ -298,9 +307,13 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 lightColor.a *= light.volumetricLightDimmer;
                 lightColor.rgb *= lightColor.a; // Composite
 
-                // Pass the light direction as the normal to avoid issues with shadow biasing code.
-                // TODO: does it make sense?
-                float3 shadowN = L;
+            #if SHADOW_VIEW_BIAS
+                // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
+                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                float3 shadowN = -ray.jitterDirWS;
+            #else
+                float3 shadowN = 0; // No bias
+            #endif // SHADOW_VIEW_BIAS
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
                 lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
@@ -379,9 +392,13 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
                 lightColor.a *= light.volumetricLightDimmer;
                 lightColor.rgb *= lightColor.a; // Composite
 
-                // Pass the light direction as the normal to avoid issues with shadow biasing code.
-                // TODO: does it make sense?
-                float3 shadowN = L;
+            #if SHADOW_VIEW_BIAS
+                // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
+                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                float3 shadowN = -ray.jitterDirWS;
+            #else
+                float3 shadowN = 0; // No bias
+            #endif // SHADOW_VIEW_BIAS
 
                 float shadow = EvaluateShadow_Punctual(context, posInput, light, unused, shadowN, L, distances);
                 lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);

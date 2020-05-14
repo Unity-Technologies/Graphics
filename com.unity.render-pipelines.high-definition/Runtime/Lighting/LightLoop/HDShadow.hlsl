@@ -3,8 +3,12 @@
 
 #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
 
-#ifndef SHADOW_USE_DEPTH_BIAS
-#define SHADOW_USE_DEPTH_BIAS                   1   // Enable clip space z biasing
+#ifndef SHADOW_AUTO_FLIP_NORMAL   // If (NdotL < 0), we flip the normal to correctly bias lit back-faces (used for transmission)
+#define SHADOW_AUTO_FLIP_NORMAL 1 // Externally define as 0 to disable
+#endif
+
+#ifndef SHADOW_USE_DEPTH_BIAS     // Enable clip space z biasing
+#define SHADOW_USE_DEPTH_BIAS   1 // Externally define as 0 to disable
 #endif
 
 #if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
@@ -16,8 +20,9 @@
 // normalWS is the vertex normal if available or shading normal use to bias the shadow position
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
 {
-    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+#if SHADOW_AUTO_FLIP_NORMAL
     normalWS *= FastSign(dot(normalWS, L));
+#endif
 #if defined(SHADOW_LOW) || defined(SHADOW_MEDIUM)
     return EvalShadow_CascadedDepth_Dither(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
 #else
@@ -31,8 +36,9 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
 
-    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+#if SHADOW_AUTO_FLIP_NORMAL
     normalWS *= FastSign(dot(normalWS, L));
+#endif
 
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
@@ -57,7 +63,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     // TODO: if on the light type to retrieve the good shadow data
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-    
+
     if (pointLight)
     {
         sd.shadowToWorld = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].shadowToWorld;
@@ -66,7 +72,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
         sd.rot1 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot1;
         sd.rot2 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot2;
     }
-    
+
     return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
 }
 
