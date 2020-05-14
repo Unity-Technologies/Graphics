@@ -19,7 +19,7 @@ namespace UnityEngine.VFX.Utility
 
         public override bool IsValid(VisualEffect component)
         {
-            return component.HasVector3(m_Property);
+            return Target != null && component.HasVector3(m_Property);
         }
 
         public override void UpdateBinding(VisualEffect component)
