@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     static class ListSliceUtility
     {
-        // TODO: non-yield return, struct version of Slice
+        // Ideally, we should build a non-yield return, struct version of Slice
         public static IEnumerable<T> Slice<T>(this List<T> list, int start, int end)
         {
             for (int i = start; i < end; i++)
@@ -502,6 +502,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         renderList2D.Add(preview);
                     else
                         renderList3D.Add(preview);
+                    drawPreviewCount++;
                 }
 
                 // if we actually don't want to render anything at all, early out here
@@ -664,7 +665,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Start compilation for nodes that need to recompile
             using (KickOffShaderCompilationsMarker.Auto())
             using (var previewsToCompile = PooledHashSet<PreviewRenderData>.Get())
-            using (var nodesToCompile = PooledHashSet<AbstractMaterialNode>.Get())
             {
                 // master node compile is first in the priority list, as it takes longer than the other previews
                 if ((m_PreviewsCompiling.Count + previewsToCompile.Count < m_MaxPreviewsCompiling) &&
@@ -699,37 +699,42 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                // remove the selected nodes from the recompile list
-                m_PreviewsNeedsRecompile.ExceptWith(previewsToCompile);
-
-                // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
-                nodesToCompile.UnionWith(previewsToCompile.Select(x => x.shaderData.node));
-                nodesToCompile.Remove(null);
-                // TODO: not sure if we need to clear BlockNodes when master gets rebuilt?
-                m_Messenger.ClearNodesFromProvider(this, nodesToCompile);
-
-                // Force async compile on
-                var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
-                ShaderUtil.allowAsyncCompilation = true;
-
-                // kick async compiles for all nodes in m_NodeToCompile
-                foreach (var preview in previewsToCompile)
+                if (previewsToCompile.Count >= 0)
+                using (var nodesToCompile = PooledHashSet<AbstractMaterialNode>.Get())
                 {
-                    if (preview == m_MasterRenderData)
+                    // remove the selected nodes from the recompile list
+                    m_PreviewsNeedsRecompile.ExceptWith(previewsToCompile);
+
+                    // Reset error states for the UI, the shader, and all render data for nodes we're recompiling
+                    nodesToCompile.UnionWith(previewsToCompile.Select(x => x.shaderData.node));
+                    nodesToCompile.Remove(null);
+
+                    // TODO: not sure if we need to clear BlockNodes when master gets rebuilt?
+                    m_Messenger.ClearNodesFromProvider(this, nodesToCompile);
+
+                    // Force async compile on
+                    var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                    ShaderUtil.allowAsyncCompilation = true;
+
+                    // kick async compiles for all nodes in m_NodeToCompile
+                    foreach (var preview in previewsToCompile)
                     {
-                        CompileMasterNodeShader();
-                        continue;
+                        if (preview == m_MasterRenderData)
+                        {
+                            CompileMasterNodeShader();
+                            continue;
+                        }
+
+                        var node = preview.shaderData.node;
+                        Assert.IsNotNull(node); // master preview is handled above
+
+                        // Get shader code and compile
+                        var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
+                        BeginCompile(preview, generator.generatedShader);
                     }
 
-                    var node = preview.shaderData.node;
-                    Assert.IsNotNull(node);     // master preview handled above
-
-                    // Get shader code and compile
-                    var generator = new Generator(node.owner, node, GenerationMode.Preview, $"hidden/preview/{node.GetVariableNameForNode()}");
-                    BeginCompile(preview, generator.generatedShader);
+                    ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
                 }
-
-                ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
             }
         }
 
@@ -1040,13 +1045,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             using (RenderPreviewMarker.Auto())
             {
-                {   // TODO: Remove
-                    var node = renderData.shaderData.node;
-                    if (node != kMasterProxyNode)
-                        if (!(node.hasPreview && node.previewExpanded && !renderData.shaderData.hasError))
-                            Assert.IsTrue(false);
-                }
-
                 AssignPerMaterialPreviewProperties(renderData.shaderData.mat, perMaterialPreviewProperties);
 
                 var previousRenderTexture = RenderTexture.active;
