@@ -133,4 +133,4 @@
 #define GATHER_BLUE_TEXTURE2D(textureName, samplerName, coord2)           textureName.GatherBlue(samplerName, coord2)
 #define GATHER_ALPHA_TEXTURE2D(textureName, samplerName, coord2)          textureName.GatherAlpha(samplerName, coord2)
 
-#define API_SUPPORTS_RENDER_PASS
+#define PLATFORM_SUPPORTS_NATIVE_RENDERPASS

@@ -185,7 +185,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 
 
-#if defined(API_SUPPORTS_RENDER_PASS)
+#if defined(PLATFORM_SUPPORTS_NATIVE_RENDERPASS)
 //entry point
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT(idx, type) UNITY_DECLARE_FRAMEBUFFER_INPUT_##type(idx)
 #define UNITY_DECLARE_FRAMEBUFFER_INPUT_MS(idx, type) UNITY_DECLARE_FRAMEBUFFER_INPUT_##type##_MS(idx)
