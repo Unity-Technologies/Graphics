@@ -40,7 +40,13 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
 
             uint w;
             uint h;
-#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#if defined(SHADER_API_GLCORE)
+            // GetDimensions will use textureQueryLevels in OpenGL and that's not
+            // supported in OpenGL 4.1 or below. In that case we use _MainTex_TexelSize
+            // which is fine as we don't support dynamic scaling in OpenGL.
+            w = _MainTex_TexelSize.z;
+            h = _MainTex_TexelSize.w;
+#elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
             uint x;
             _CameraDepthTexture.GetDimensions(w, h, x);
 #else
@@ -305,7 +311,7 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
     // SM3.5 fallbacks - needed because of the use of Gather
     SubShader
     {
-        Tags { "RenderPipeline" = "LightweightPipeline" }
+        Tags { "RenderPipeline" = "UniversalPipeline" }
         LOD 100
         ZTest Always ZWrite Off Cull Off
 
