@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
