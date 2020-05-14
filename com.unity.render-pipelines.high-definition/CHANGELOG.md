@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where asset preview could be rendered white because of static lighting sky.
 - Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
 - Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
