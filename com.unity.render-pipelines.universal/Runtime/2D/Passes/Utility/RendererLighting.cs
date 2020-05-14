@@ -107,7 +107,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
-            descriptor.msaaSamples = 1;
+            descriptor.msaaSamples = s_RenderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        static private void RenderShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
+        static private void RenderShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
@@ -272,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 ReleaseShadowRenderTexture(cmdBuffer);
-                cmdBuffer.SetRenderTarget(renderTexture);
+                cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
             }
         }
 
@@ -291,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
                         {
-                            RenderShadows(cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture);
+                            RenderShadows(cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
                             renderedAnyLight = true;
 
@@ -326,7 +326,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -345,7 +345,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
-                                    RenderShadows(cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture);
+                                    RenderShadows(cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
 
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
@@ -484,10 +484,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
+        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
         {
             var cmd = CommandBufferPool.Get("Clear Normals");
-            cmd.SetRenderTarget(s_NormalsTarget.Identifier());
+            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
             cmd.ClearRenderTarget(true, true, k_NormalClearColor);
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -533,7 +533,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget, uint blendStylesUsed)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
@@ -549,6 +549,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmdBuffer,
                     layerToRender,
                     renderTarget,
+                    depthTarget,
                     Light2D.GetLightsByBlendStyle(i)                  
                 );
 
