@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAssetSmallCookieAtlas
   m_EditorClassIdentifier: 
-  m_Version: 14
+  m_Version: 15
   m_ObsoleteFrameSettings:
     overrides: 0
     enableShadow: 0
@@ -157,7 +157,7 @@ MonoBehaviour:
   m_DefaultLookDevProfile: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 65899829919581
+      data1: 136268574097245
       data2: 4539628425396027392
     lodBias: 1
     lodBiasMode: 0
@@ -165,10 +165,13 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 69344385302301
+      data1: 139713129479965
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -176,10 +179,13 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 69696415080221
+      data1: 140065159257885
       data2: 4539628424389459968
     lodBias: 1
     lodBiasMode: 0
@@ -187,6 +193,9 @@ MonoBehaviour:
     maximumLODLevel: 0
     maximumLODLevelMode: 0
     maximumLODLevelQualityLevel: 0
+    sssQualityMode: 0
+    sssQualityLevel: 0
+    sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderPipelineSettings:
     supportShadowMask: 1
@@ -194,9 +203,11 @@ MonoBehaviour:
     supportSSRTransparent: 0
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    increaseSssSampleCount: 0
+    sssSampleBudget:
+      m_Values: 140000002800000050000000
+      m_SchemaId:
+        m_Id: With3Levels
     supportVolumetrics: 1
-    increaseResolutionOfVolumetrics: 0
     supportLightLayers: 0
     lightLayerName0: Light Layer default
     lightLayerName1: Light Layer 1
@@ -220,7 +231,15 @@ MonoBehaviour:
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
+    supportProbeVolume: 0
     supportRayTracing: 1
+    supportedRayTracingMode: 3
+    probeVolumeSettings:
+      atlasWidth: 128
+      atlasHeight: 128
+      atlasDepth: 512
+      atlasOctahedralDepthWidth: 2048
+      atlasOctahedralDepthHeight: 2048
     lightLoopSettings:
       cookieAtlasSize: 1024
       cookieFormat: 74
@@ -228,9 +247,9 @@ MonoBehaviour:
       cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 8192
+      planarReflectionAtlasSize: 1024
       reflectionProbeCacheSize: 64
-      reflectionCubemapSize: 256
+      reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
       planarReflectionCacheCompressed: 0
       skyReflectionSize: 256
