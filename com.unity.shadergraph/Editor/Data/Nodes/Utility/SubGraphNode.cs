@@ -107,6 +107,11 @@ namespace UnityEditor.ShaderGraph
 
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
+                if (string.IsNullOrEmpty(assetPath))
+                {
+                    // error will be printed by validation code in this case
+                    return;
+                }
                 m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
                 m_SubGraph.LoadGraphData();
                 if (m_SubGraph == null)
