@@ -16,6 +16,15 @@
             "file_exclude_patterns": ["*.meta"]
         },
         {
+            "name": "HDRPConfig",
+            "path": "./com.unity.render-pipelines.high-definition-config",
+            "folder_exclude_patterns":
+            [
+                "Documentation~/Images"
+            ],
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
             "name": "URP",
             "path": "./com.unity.render-pipelines.universal",
             "folder_exclude_patterns":
