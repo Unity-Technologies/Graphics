@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vectors not working when in MSAA.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
