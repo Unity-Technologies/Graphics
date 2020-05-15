@@ -166,7 +166,8 @@ namespace UnityEngine.Rendering.Universal
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            ApplyAdaptivePerformance(ref cameraData);
+            if (asset.useAdaptivePerformance)
+                ApplyAdaptivePerformance(ref cameraData);
 #endif
             RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
         }
@@ -215,7 +216,8 @@ namespace UnityEngine.Rendering.Universal
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                ApplyAdaptivePerformance(ref renderingData);
+                if (asset.useAdaptivePerformance)
+                    ApplyAdaptivePerformance(ref renderingData);
 #endif
 
                 renderer.Setup(context, ref renderingData);
@@ -309,7 +311,8 @@ namespace UnityEngine.Rendering.Universal
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            ApplyAdaptivePerformance(ref baseCameraData);
+            if (asset.useAdaptivePerformance)
+                ApplyAdaptivePerformance(ref baseCameraData);
 #endif
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
             EndCameraRendering(context, baseCamera);
