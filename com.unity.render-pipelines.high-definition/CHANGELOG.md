@@ -591,6 +591,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fixed issue with sceneview camera settings not being saved after Editor restart.
 - Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
+- Fixed various multi-editing issues when changing Emission parameters.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
