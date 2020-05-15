@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
                 if (removeInput)
-                    compilerDataList[i] = compilserDataList[--inputShaderVariantCount];
+                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else
                     ++i;
             }
