@@ -865,7 +865,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void RemoveEdgeNoValidate(IEdge e)
+        void RemoveEdgeNoValidate(IEdge e, bool reevaluateActivity = true)
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
@@ -902,14 +902,17 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            if(input != null)
+            if (reevaluateActivity)
             {
-                NodeUtils.ReevaluateActivityOfConnectedNodes(input);
-            }
+                if (input != null)
+                {
+                    NodeUtils.ReevaluateActivityOfConnectedNodes(input);
+                }
 
-            if(output != null)
-            {
-                NodeUtils.ReevaluateActivityOfConnectedNodes(output);
+                if (output != null)
+                {
+                    NodeUtils.ReevaluateActivityOfConnectedNodes(output);
+                }
             }
 
         }
@@ -1269,7 +1272,7 @@ namespace UnityEditor.ShaderGraph
                     || inputSlot == null)
                 {
                     //orphaned edge
-                    RemoveEdgeNoValidate(edge);
+                    RemoveEdgeNoValidate(edge, false);
                 }
             }
         }
