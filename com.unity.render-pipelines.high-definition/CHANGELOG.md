@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.4.0] - 2020-05-22
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.

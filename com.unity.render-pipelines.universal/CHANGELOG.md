@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.4.0] - 2020-05-22
 
 ### Added
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
+- The 2D Renderer now supports camera stacking.
 
 ### Fixed
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
@@ -33,11 +34,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 - Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)
 - Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
 - Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
 - Fixed an issue that caused memory allocations when sorting cameras. [case 1226448](https://issuetracker.unity3d.com/issues/2d-renderer-using-more-than-one-camera-that-renders-out-to-a-render-texture-creates-gc-alloc-every-frame)
- Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
+- Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
 
 ## [7.3.0] - 2020-03-11
 
