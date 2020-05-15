@@ -79,6 +79,8 @@ all_project_ci_nightly_{{ editor.version }}:
       rerun: always
     - path: .yamato/upm-ci-universal.yml#Universal_Android_Vulkan_{{ editor.version }}
       rerun: always
+    - path: .yamato/upm-ci-universal.yml#Universal_iPhone_Metal_{{ editor.version }}
+      rerun: always
     - path: .yamato/upm-ci-hdrp_hybrid.yml#All_HDRP_Hybrid_{{ editor.version }}
       rerun: always
     - path: .yamato/upm-ci-universal_hybrid.yml#All_Universal_Hybrid_{{ editor.version }}
