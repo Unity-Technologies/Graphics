@@ -242,4 +242,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
+  - enabled: 1
+    path: Assets/Scenes/127_ClearRenderTexture.unity
+    guid: ecb4f57b7a1788b4b85f618d4cbc6677
+  - enabled: 1
+    path: Assets/Scenes/130_UnityMatrixIVP.unity
+    guid: 716466bc92f8e4eeeb3c138524b04021
   m_configObjects: {}
