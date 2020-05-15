@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using Data.Interfaces;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
+using Drawing.Views;
+using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -13,16 +13,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
         public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
-        public delegate void PostTargetSettingsChangedCallback();
 
-        PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
         ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
 
-        public void GetPropertyData(
-            PostTargetSettingsChangedCallback postChangeValueCallback,
-            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+        public void GetPropertyData(ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
         {
-            m_postChangeTargetSettingsCallback = postChangeValueCallback;
             m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
         }
 

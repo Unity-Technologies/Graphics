@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Visual Effect")]
-    sealed class VfxMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, IMayRequirePosition
+    sealed class VfxMasterNode : AbstractMaterialNode, IMasterNode, IMayRequirePosition
     {
         const string BaseColorSlotName = "Base Color";
         const string MetallicSlotName = "Metallic";

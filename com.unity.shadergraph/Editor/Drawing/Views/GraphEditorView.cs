@@ -181,8 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     GUILayout.Space(6);
                     if (GUILayout.Button("Graph Settings", EditorStyles.toolbarButton))
                     {
-                        if (m_InspectorView != null)
-                            m_InspectorView.ToggleGraphSettings();
+                        m_InspectorView?.ShowGraphSettings();
                     }
 
                     GUILayout.FlexibleSpace();
@@ -350,7 +349,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
             m_GraphView.Add(m_InspectorView);
-            m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -589,7 +587,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews();
             m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
-            if(wasUndoRedoPerformed)
+            if(wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();
 

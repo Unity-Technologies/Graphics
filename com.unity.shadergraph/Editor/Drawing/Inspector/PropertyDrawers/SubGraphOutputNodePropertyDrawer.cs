@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using Data.Interfaces;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
@@ -9,13 +10,17 @@ using UnityEngine.UIElements;
 namespace Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SubGraphOutputNode))]
-    public class SubGraphOutputNodePropertyDrawer
+    public class SubGraphOutputNodePropertyDrawer : IPropertyDrawer
     {
         VisualElement CreateGUI(SubGraphOutputNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)
         {
             var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel(attribute.labelName));
-            propertySheet.Add(new ReorderableSlotListView(node, SlotType.Input));
+            var inputListView = new ReorderableSlotListView(node, SlotType.Input);
+            inputListView.OnAddCallback += list => inspectorUpdateDelegate();
+            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
+            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            propertySheet.Add(inputListView);
             propertyVisualElement = propertySheet;
             return propertySheet;
         }
