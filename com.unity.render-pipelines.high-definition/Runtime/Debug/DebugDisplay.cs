@@ -913,9 +913,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
                         {
-                            displayName = "Show Tonemap curve",
+                            displayName = "Show Tonemap Curve",
                             getter = () => data.lightingDebugSettings.showTonemapCurve,
                             setter = value => data.lightingDebugSettings.showTonemapCurve = value
+                        });
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Center Around Exposure",
+                            getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
+                            setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
                 }
 
