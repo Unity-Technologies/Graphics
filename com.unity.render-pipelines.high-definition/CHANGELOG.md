@@ -86,6 +86,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
