@@ -163,11 +163,11 @@ namespace UnityEngine.Rendering.Universal
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
+            cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
         }
 
         public RenderTargetIdentifier cameraColorTarget

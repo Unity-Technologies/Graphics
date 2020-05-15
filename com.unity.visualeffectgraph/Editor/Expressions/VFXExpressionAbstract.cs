@@ -76,13 +76,14 @@ namespace UnityEditor.VFX
         [Flags]
         public enum Flags
         {
-            None =          0,
-            Value =         1 << 0, // Expression is a value, get/set can be called on it
-            Foldable =      1 << 1, // Expression is not a constant but can be folded anyway
-            Constant =      1 << 2, // Expression is a constant, it can be folded
-            InvalidOnGPU =  1 << 3, // Expression can be evaluated on GPU
-            InvalidOnCPU =  1 << 4, // Expression can be evaluated on CPU
-            PerElement =    1 << 5, // Expression is per element
+            None =            0,
+            Value =           1 << 0, // Expression is a value, get/set can be called on it
+            Foldable =        1 << 1, // Expression is not a constant but can be folded anyway
+            Constant =        1 << 2, // Expression is a constant, it can be folded
+            InvalidOnGPU =    1 << 3, // Expression can be evaluated on GPU
+            InvalidOnCPU =    1 << 4, // Expression can be evaluated on CPU
+            InvalidConstant = 1 << 5, // Expression can be folded (for UI) but constant folding is forbidden
+            PerElement =      1 << 6, // Expression is per element
             NotCompilableOnCPU = InvalidOnCPU | PerElement //Helper to filter out invalid expression on CPU
         }
 
@@ -130,6 +131,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
+                case VFXValueType.Mesh: return "Buffer<float>";
                 case VFXValueType.Boolean: return "bool";
             }
             throw new NotImplementedException(type.ToString());
@@ -192,11 +194,24 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
                 case VFXValueType.Matrix4x4:
+                case VFXValueType.Mesh:
                 case VFXValueType.Boolean:
                     return true;
             }
 
             return false;
+        }
+
+        public static bool IsTypeConstantFoldable(VFXValueType type)
+        {
+            switch (type)
+            {
+                //Mesh API can modify the vertex count & layout.
+                //Thus, all mesh related expression should never been constant folded while generating code.
+                case VFXValueType.Mesh:
+                    return false;
+            }
+            return true;
         }
 
         public static bool IsTexture(VFXValueType type)
@@ -212,6 +227,11 @@ namespace UnityEditor.VFX
             }
 
             return false;
+        }
+
+        public static bool IsBufferOnGPU(VFXValueType type)
+        {
+            return type == VFXValueType.Mesh || type == VFXValueType.Buffer;
         }
 
         public static bool IsUniform(VFXValueType type)
@@ -516,9 +536,13 @@ namespace UnityEditor.VFX
                 foreach (var parent in m_Parents)
                 {
                     foldable &= parent.Is(Flags.Foldable);
-                    m_Flags |= (parent.m_Flags & (Flags.NotCompilableOnCPU));
+
+                    const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant;
+                    m_Flags |= parent.m_Flags & propagatedFlags;
+                    
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;
