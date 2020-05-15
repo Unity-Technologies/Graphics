@@ -922,9 +922,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 exposureFoldout.children.Add(
                     new DebugUI.FloatField
                     {
-                        displayName = "Debug Exposure Compensation",
-                        getter = () => data.lightingDebugSettings.debugExposure,
-                        setter = value => data.lightingDebugSettings.debugExposure = value
+                        displayName = "Debug Lens Attenuation",
+                        getter = () => Mathf.Clamp01(data.lightingDebugSettings.debugLensAttenuation),
+                        setter = value => data.lightingDebugSettings.debugLensAttenuation = Mathf.Clamp01(value),
+                        min = () => 0.1f,
+                        max = () => 0.78f
+
                     });
 
                 lighting.children.Add(exposureFoldout);

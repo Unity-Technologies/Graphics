@@ -172,7 +172,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
         exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure), exposure);
+        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
 #ifdef OUTPUT_DEBUG_DATA
         _ExposureDebugTexture[uint2(0, 0)] = float2(avgEV - ParamExposureCompensation, 0.0f);
 #endif

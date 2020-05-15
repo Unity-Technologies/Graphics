@@ -21,22 +21,23 @@ float4 _AdaptationParams;
 uint4 _Variants;
 CBUFFER_END
 
-#define ParamEV100                  _ExposureParams.y
-#define ParamExposureCompensation   _ExposureParams.x
-#define ParamAperture               _ExposureParams.y
-#define ParamShutterSpeed           _ExposureParams.z
-#define ParamISO                    _ExposureParams.w
-#define ParamSpeedLightToDark       _AdaptationParams.x
-#define ParamSpeedDarkToLight       _AdaptationParams.y
-#define ParamExposureLimitMin       _ExposureParams.y
-#define ParamExposureLimitMax       _ExposureParams.z
-#define ParamCurveMin               _ExposureParams2.x
-#define ParamCurveMax               _ExposureParams2.y
-#define MeterCalibrationConstant    _ExposureParams2.w
-#define ParamSourceBuffer           _Variants.x
-#define ParamMeteringMode           _Variants.y
-#define ParamAdaptationMode         _Variants.z
-#define ParamEvaluateMode           _Variants.w
+#define ParamEV100                      _ExposureParams.y
+#define ParamExposureCompensation       _ExposureParams.x
+#define ParamAperture                   _ExposureParams.y
+#define ParamShutterSpeed               _ExposureParams.z
+#define ParamISO                        _ExposureParams.w
+#define ParamSpeedLightToDark           _AdaptationParams.x
+#define ParamSpeedDarkToLight           _AdaptationParams.y
+#define ParamExposureLimitMin           _ExposureParams.y
+#define ParamExposureLimitMax           _ExposureParams.z
+#define ParamCurveMin                   _ExposureParams2.x
+#define ParamCurveMax                   _ExposureParams2.y
+#define LensImperfectionExposureScale   _ExposureParams2.z
+#define MeterCalibrationConstant        _ExposureParams2.w
+#define ParamSourceBuffer               _Variants.x
+#define ParamMeteringMode               _Variants.y
+#define ParamAdaptationMode             _Variants.z
+#define ParamEvaluateMode               _Variants.w
 
 float GetPreviousExposureEV100()
 {
@@ -83,7 +84,7 @@ float SampleLuminance(float2 uv)
     if (ParamSourceBuffer == 1)
     {
         // Color buffer
-        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
+        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100(), LensImperfectionExposureScale);
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         return Luminance(color / prevExposure);
     }

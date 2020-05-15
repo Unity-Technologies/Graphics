@@ -7,6 +7,7 @@
 #pragma kernel KPrePass
 #pragma kernel KReduction
 #pragma kernel KReset
+#pragma enable_d3d11_debug_symbols
 
 TEXTURE2D(_InputTexture);
 
@@ -22,7 +23,7 @@ void KFixedExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     float ev100 = ParamEV100;
     ev100 -= ParamExposureCompensation;
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -34,7 +35,7 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     float ev100 = ComputeEV100(ParamAperture, ParamShutterSpeed, ParamISO);
     ev100 -= ParamExposureCompensation;
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -120,7 +121,7 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
                 // Automatic
                 float exposure = AdaptExposure(avgLuminance - ParamExposureCompensation);
                 exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             case 2u:
@@ -128,7 +129,7 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
                 // Curve remapping
                 float exposure = CurveRemap(avgLuminance);
                 exposure = AdaptExposure(exposure - ParamExposureCompensation);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             default:

@@ -21,7 +21,6 @@ float ComputeEV100(float aperture, float shutterSpeed, float ISO)
     return log2((aperture * aperture) / shutterSpeed * 100.0 / ISO);
 }
 
-// Note that the different name from ComputeEV100FromAvgLuminance is to avoid issues with shader compiler 
 float ComputeEV100FromAvgLuminance(float avgLuminance, float calibrationConstant)
 {
     const float K = calibrationConstant;
@@ -40,16 +39,22 @@ float ComputeEV100FromAvgLuminance(float avgLuminance)
     return ComputeEV100FromAvgLuminance(avgLuminance, K);
 }
 
-float ConvertEV100ToExposure(float EV100)
+float ConvertEV100ToExposure(float EV100, float exposureScale)
 {
     // Compute the maximum luminance possible with H_sbs sensitivity
     // maxLum = 78 / ( S * q ) * N^2 / t
     //        = 78 / ( S * q ) * 2^ EV_100
-    //        = 78 / (100 * 0.65) * 2^ EV_100
-    //        = 1.2 * 2^ EV
+    //        = 78 / (100 * s_LensAttenuation) * 2^ EV_100
+    //        = exposureScale * 2^ EV
     // Reference: http://en.wikipedia.org/wiki/Film_speed
-    float maxLuminance = 1.2 * pow(2.0, EV100);
+    float maxLuminance = exposureScale * pow(2.0, EV100);
     return 1.0 / maxLuminance;
+}
+
+float ConvertEV100ToExposure(float EV100)
+{
+    const float exposureScale = 1.2;
+    return ConvertEV100ToExposure(EV100, exposureScale);
 }
 
 float ComputeISO(float aperture, float shutterSpeed, float targetEV100)
