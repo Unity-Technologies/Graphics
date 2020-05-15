@@ -34,7 +34,8 @@
 #define SHADOW_USE_DEPTH_BIAS   0 // Too expensive
 #define SHADOW_LOW                // Too expensive
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
-#define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin walls. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
+#define SHADOW_VIEW_BIAS        0 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
+#define USE_DEPTH_BUFFER        1 // Sample the depth buffer to prevent leaks through thin geometry
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -84,6 +85,7 @@ struct JitteredRay
     float3 jitterDirWS;
     float3 xDirDerivWS;
     float3 yDirDerivWS;
+    float  geomDist;
 };
 
 struct VoxelLighting
@@ -91,6 +93,11 @@ struct VoxelLighting
     float3 radianceComplete;
     float3 radianceNoPhase;
 };
+
+bool IsInRange(float x, float2 range)
+{
+    return clamp(x, range.x, range.y) == x;
+}
 
 float ComputeHistoryWeight()
 {
@@ -491,7 +498,17 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
-        float dt = t1 - t0;
+
+    #if USE_DEPTH_BUFFER
+        bool containsOpaqueGeometry = IsInRange(ray.geomDist, float2(t0, t1));
+
+        if (containsOpaqueGeometry)
+        {
+            t1 = min(t1, ray.geomDist); // Only render up to the opaque surface
+        }
+    #endif
+
+        float dt = max(t1 - t0, FLT_EPS); // In case the geometry is at the distance t0
 
         // Accurately compute the center of the voxel in the log space. It's important to perform
         // the inversion exactly, since the accumulated value of the integral is stored at the center.
@@ -660,17 +677,6 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     uint2 groupOffset = groupId * GROUP_SIZE_1D;
     uint2 voxelCoord  = groupOffset + groupThreadId;
-#ifdef VL_PRESET_OPTIMAL
-    // The entire thread group is within the same light tile.
-    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
-#else
-    // No compile-time optimizations, no scalarization.
-    // If _VBufferVoxelSize is not a power of 2 or > TILE_SIZE_BIG_TILE, a voxel may straddle
-    // a tile boundary. This means different voxel subsamples may belong to different tiles.
-    // We accept this error, and simply use the coordinates of the center of the voxel.
-    uint2 tileCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize / TILE_SIZE_BIG_TILE);
-#endif
-    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
     // Reminder: our voxels are sphere-capped right frustums (truncated right pyramids).
     // The curvature of the front and back faces is quite gentle, so we can use
@@ -682,6 +688,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     float3 F = GetViewForwardDir();
     float3 U = GetViewUpDir();
+    float3 R = cross(F, U);
 
     float2 centerCoord = voxelCoord + float2(0.5, 0.5);
 
@@ -704,11 +711,44 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 #ifdef ENABLE_REPROJECTION
     ray.jitterDirWS = normalize(ray.centerDirWS + _VBufferSampleOffset.x * ray.xDirDerivWS
                                                 + _VBufferSampleOffset.y * ray.yDirDerivWS);
+
+    // We would like to determine the screen pixel (at the full resolution) which
+    // the jittered ray corresponds to. The exact solution can be obtained by intersecting
+    // the ray with the screen plane, e.i. (ViewSpace(jitterDirWS).z = 1). That's a little expensive.
+    // So, as an approximation, we ignore the curvature of the frustum.
+    // Note that GetPositionInput() will add 0.5 (transform to the node-centered primal grid).
+    voxelCoord += _VBufferSampleOffset.xy;
 #else
     ray.jitterDirWS = ray.centerDirWS;
 #endif
 
+    // Approximate; see the comment above.
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize);
+
+#ifdef VL_PRESET_OPTIMAL
+    // The entire thread group is within the same light tile.
+    uint2 tileCoord = groupOffset * VBUFFER_VOXEL_SIZE / TILE_SIZE_BIG_TILE;
+#else
+    // No compile-time optimizations, no scalarization.
+    uint2 tileCoord = pixelCoord / TILE_SIZE_BIG_TILE;
+#endif
+    uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
+
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
+
+    ray.geomDist = FLT_INF;
+
+#if USE_DEPTH_BUFFER
+    float deviceDepth = LoadCameraDepth(pixelCoord);
+
+    if (deviceDepth > 0) // Skip the skybox
+    {
+        // Doesn't work with tilt shift, etc.
+        float linearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);
+        // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
+        ray.geomDist = linearDepth * rcp(dot(ray.jitterDirWS, F));
+    }
+#endif
 
     // TODO
     LightLoopContext context;
