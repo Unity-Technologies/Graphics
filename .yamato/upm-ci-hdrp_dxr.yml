@@ -1,6 +1,4 @@
 editors:
-  - version: 2020.1
-  - version: fast-2020.1
   - version: trunk
   - version: fast-trunk
 platforms:
