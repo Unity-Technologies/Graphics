@@ -10,13 +10,4 @@ NOTE: Projects that you make with HDRP are not compatible with the Universal Ren
 
 This documentation contains the information you need to create applications using HDRP; including information on Lighting, Materials and Shaders, Cameras, and debugging.
 
-HRDP is only supported on the following platforms: 
-
-* Windows and Windows Store, with DirectX 11 or DirectX 12 and Shader Model 5.0
-* Modern consoles (Sony PS4 and Microsoft Xbox One)
-* MacOS using Metal graphics
-* Linux and Windows platforms with Vulkan
-
-**HDRP does not support OpenGL or OpenGL ES devices.**
-
-**Note: HDRP only works on these platforms if the device used supports Compute Shaders.**
+For information on platform support and system requirements, see [System Requirements](System-Requirements.md).
