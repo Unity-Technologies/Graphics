@@ -14,12 +14,12 @@ class ABV_AllProjectCiJob():
         # define dependencies
         dependencies = [{
             'path': f'{packages_filepath()}#{package_job_id_test_all(editor["version"])}',
-            'rerun': 'always'}]
+            'rerun': editor["rerun_strategy"]}]
 
         for project in projects:
             dependencies.append({
                 'path': f'{project_filepath_all(project["name"])}#{project_job_id_all(project["name"], editor["version"])}',
-                'rerun': 'always'})
+                'rerun': editor["rerun_strategy"]})
 
         # construct job
         job = YMLJob()

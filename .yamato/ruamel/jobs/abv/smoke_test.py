@@ -17,7 +17,7 @@ class ABV_SmokeTestJob():
         # define dependencies
         dependencies = [{
                     'path':f'{editor_filepath()}#{editor_job_id(editor["version"], "windows")}',
-                    'rerun': 'on-new-revision'}]
+                    'rerun': editor["rerun_strategy"]}]
 
 
         # define commands

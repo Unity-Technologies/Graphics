@@ -16,7 +16,7 @@ class ABV_AllSmokeTestsJob():
         for test_platform in test_platforms:
             dependencies.append({
                 'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
-                'rerun': 'on-new-revision'
+                'rerun': editor["rerun_strategy"]
             })
 
         # construct job

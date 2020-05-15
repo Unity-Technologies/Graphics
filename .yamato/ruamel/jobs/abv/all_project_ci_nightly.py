@@ -16,23 +16,23 @@ class ABV_AllProjectCiNightlyJob():
         # define dependencies
         dependencies = [{
                 'path': f'{abv_filepath()}#{abv_job_id_all_project_ci(editor["version"])}',
-                'rerun': 'always'}]
+                'rerun': editor["rerun_strategy"]}]
 
         for test_platform in test_platforms: # TODO replace with all_smoke_tests if rerun strategy can override lower level ones
             dependencies.append({
                 'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
-                'rerun': 'always'})
+                'rerun': editor["rerun_strategy"]})
 
         for a in nightly_additions:
             if a["all"] == True:
                 dependencies.append({
                     'path': f'{project_filepath_all(a["project_name"])}#{project_job_id_all(a["project_name"], editor["version"])}',
-                    'rerun': 'always'})
+                    'rerun': editor["rerun_strategy"]})
             else:
                 for tp_name in a["test_platform_names"]:
                     dependencies.append({
                         'path': f'{project_filepath_specific(a["project_name"], a["platform_name"], a["api_name"])}#{project_job_id_test(a["project_name"], a["platform_name"], a["api_name"], tp_name, editor["version"])}',
-                        'rerun': 'always'})
+                        'rerun': editor["rerun_strategy"]})
             
         # construct job
         job = YMLJob()

@@ -13,7 +13,7 @@ smoke_test_Standalone_2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -33,7 +33,7 @@ smoke_test_playmode_2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -53,7 +53,7 @@ smoke_test_editmode_2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -62,11 +62,11 @@ all_smoke_tests_2020.1:
     name: All Smoke Tests - 2020.1
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_playmode_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_editmode_2020.1
-         rerun: on-new-revision
+         rerun: always
 all_project_ci_2020.1:
     name: _ABV for SRP repository - 2020.1
     dependencies:
@@ -145,7 +145,7 @@ smoke_test_Standalone_fast-2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -165,7 +165,7 @@ smoke_test_playmode_fast-2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -185,7 +185,7 @@ smoke_test_editmode_fast-2020.1:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -194,11 +194,11 @@ all_smoke_tests_fast-2020.1:
     name: All Smoke Tests - fast-2020.1
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_playmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_editmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
 all_project_ci_fast-2020.1:
     name: _ABV for SRP repository - fast-2020.1
     dependencies:
@@ -256,7 +256,7 @@ smoke_test_Standalone_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -276,7 +276,7 @@ smoke_test_playmode_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -296,7 +296,7 @@ smoke_test_editmode_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -305,11 +305,11 @@ all_smoke_tests_trunk:
     name: All Smoke Tests - trunk
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
-         rerun: on-new-revision
+         rerun: always
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
     dependencies:
@@ -388,7 +388,7 @@ smoke_test_Standalone_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -408,7 +408,7 @@ smoke_test_playmode_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -428,7 +428,7 @@ smoke_test_editmode_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -437,11 +437,11 @@ all_smoke_tests_fast-trunk:
     name: All Smoke Tests - fast-trunk
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_playmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_editmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
 all_project_ci_fast-trunk:
     name: _ABV for SRP repository - fast-trunk
     dependencies:
@@ -498,7 +498,7 @@ smoke_test_Standalone_CUSTOM-REVISION:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -519,7 +519,7 @@ smoke_test_playmode_CUSTOM-REVISION:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -540,7 +540,7 @@ smoke_test_editmode_CUSTOM-REVISION:
       -  cd TestProjects/SRP_SmokeTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: on-new-revision
+         rerun: always
     artifacts:
         logs:
             paths:
@@ -549,11 +549,11 @@ all_smoke_tests_CUSTOM-REVISION:
     name: All Smoke Tests - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_CUSTOM-REVISION
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_playmode_CUSTOM-REVISION
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/_abv.yml#smoke_test_editmode_CUSTOM-REVISION
-         rerun: on-new-revision
+         rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 all_project_ci_CUSTOM-REVISION:

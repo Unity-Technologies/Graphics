@@ -24,7 +24,7 @@ class ABV_TrunkVerificationJob():
                 else:
                     dependencies.append({
                         'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
-                        'rerun': 'always'
+                        'rerun': editor["rerun_strategy"]
                     })
         
 
