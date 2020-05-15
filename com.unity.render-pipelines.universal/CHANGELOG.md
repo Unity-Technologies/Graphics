@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with NullReferenceException happening with URP shaders
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 
 ## [8.1.0] - 2020-04-21
 
