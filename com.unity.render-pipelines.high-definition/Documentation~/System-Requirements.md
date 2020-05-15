@@ -8,8 +8,8 @@ The following table shows the compatibility of the High Definition Render Pipeli
 
 | **Package version** | **Minimum Unity version** | **Maximum Unity version** |
 | ------------------- | ------------------------- | ------------------------- |
-| 9.x                 | 2020.2                    | 2020.2                    |
-| 8.x                 | 2020.1                    | 2020.1                    |
+| 10.x                | 2020.2                    | 2020.2                    |
+| 8.x / 9.x-preview   | 2020.1                    | 2020.1                    |
 | 7.x                 | 2019.3                    | 2019.4                    |
 | 6.x                 | 2019.2                    | 2019.2                    |
 
