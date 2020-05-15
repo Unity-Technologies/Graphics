@@ -504,7 +504,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
 - Fixed issue with unclear naming of debug menu for decals.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
 - Fixed ray tracing with VR single-pass
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
@@ -596,6 +596,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
 - Fixed thin refraction mode not working properly.
 - Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169) 
+- Fixed over consumption of GPU memory by the Physically Based Sky.
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fixed an issue where asset preview could be rendered white because of static lighting sky.
+- Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
+- Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
