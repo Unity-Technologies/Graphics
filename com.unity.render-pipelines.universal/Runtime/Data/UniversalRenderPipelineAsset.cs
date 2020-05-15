@@ -155,6 +155,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
 
+        // Adaptive performance settings
+        [SerializeField] bool m_UseAdaptivePerformance = false;
+
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
@@ -616,6 +619,12 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ColorGradingLutSize; }
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
+        }
+
+        public bool useAdaptivePerformance
+        {
+            get { return m_UseAdaptivePerformance; }
+            set { m_UseAdaptivePerformance = value; }
         }
 
         public override Material defaultMaterial
