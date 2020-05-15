@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBuffer = new PassDescriptor
             {
                 // Definition
-                displayName = "Universal GBuffer",
+                displayName = "GBuffer",
                 referenceName = "SHADERPASS_GBUFFER",
                 lightMode = "UniversalGBuffer",
 
