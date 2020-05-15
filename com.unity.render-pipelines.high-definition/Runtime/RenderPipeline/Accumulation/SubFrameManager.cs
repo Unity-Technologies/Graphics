@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         public void ResetIteration()
         {
-            accumulatedWeight = 0;
+            accumulatedWeight = 0.0f;
             currentIteration = 0;
         }
 
