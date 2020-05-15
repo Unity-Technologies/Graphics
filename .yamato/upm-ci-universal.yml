@@ -82,12 +82,14 @@ code_coverage_args:
     args:
       - --enable-code-coverage
       - --coverage-results-path=code-coverage
-      - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime
+      - --code-coverage-options
+      - 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
   - name: editmode
     args:
       - --enable-code-coverage
       - --coverage-results-path=code-coverage
-      - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor
+      - --code-coverage-options
+      - 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
 ---
 {% for project in projects %}
 {% for editor in editors %}
