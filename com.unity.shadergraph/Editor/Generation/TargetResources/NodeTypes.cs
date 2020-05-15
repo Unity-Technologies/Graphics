@@ -348,7 +348,8 @@ namespace UnityEditor.ShaderGraph
                 typeof(CustomFunctionNode),
                 typeof(KeywordNode),
                 typeof(PreviewNode),
-                typeof(SubGraphNode)
+                typeof(SubGraphNode),
+                typeof(RedirectNodeData)
             };
 
             public static NodeTypeCollection All = new NodeTypeCollection()
