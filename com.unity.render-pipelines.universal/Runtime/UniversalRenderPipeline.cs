@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             ApplyAdaptivePerformance(ref cameraData);
 #endif
             RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
@@ -214,7 +214,7 @@ namespace UnityEngine.Rendering.Universal
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
 
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 ApplyAdaptivePerformance(ref renderingData);
 #endif
 
@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             ApplyAdaptivePerformance(ref baseCameraData);
 #endif
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
@@ -809,7 +809,7 @@ namespace UnityEngine.Rendering.Universal
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
 
-#if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
+#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
         static void ApplyAdaptivePerformance(ref CameraData cameraData)
         {
             var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
