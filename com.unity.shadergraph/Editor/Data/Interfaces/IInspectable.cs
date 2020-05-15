@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using Data.Interfaces;
 using Drawing.Inspector;
@@ -12,6 +12,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         string inspectorTitle { get; }
 
         // This function should return the underlying data object that user wishes to expose to the Inspector
+        // In the case of data properties like Integers/Floats etc this is the object that contains the properties
+        // In the case of complex types like GraphData this is the GraphData itself, its up to the PropertyDrawer to define what it needs
         object GetObjectToInspect();
 
         // This function should return the property information of whatever object has been marked up for metadata gathering by the inspector
