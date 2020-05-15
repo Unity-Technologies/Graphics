@@ -1,5 +1,6 @@
 #pragma kernel FilterPlanarReflection
-#pragma kernel DownScaleReflection
+#pragma kernel DownScale
+#pragma kernel DepthConversion
 
 #pragma only_renderers d3d11
 // #pragma enable_d3d11_debug_symbols
@@ -33,10 +34,16 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
     float3 _CaptureCameraPositon;
     // The mip index of the source data
     int _SourceMipIndex;
-    // Inverse view projection of the capture camera
+    // Inverse view projection of the capture camera (oblique)
     float4x4 _CaptureCameraIVP;
+    // Inverse view projection of the capture camera (non oblique)
+    float4x4 _CaptureCameraIVP_NO;
+    // View projection of the capture camera (non oblique)
+    float4x4 _CaptureCameraVP_NO;
     // Given that sometimes our writing texture can be bigger than the current target, we need to apply a scale factor before using the sampling intrinsic
     float _RTScaleFactor;
+    // Far plane of the capture camera
+    float _CaptureCameraFarPlane;
 CBUFFER_END
 
 // Output buffer of our filtering code
@@ -68,20 +75,17 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     // Compute the pixel position to process
     int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
 
-    // Fetch the depth value for the current pixel. It would be great to use sample instead, but oblique matrices prevent us from doing it.
-    float centerDepthValue = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord, _SourceMipIndex).x;
-
     // Compute the coordinates that shall be used for sampling
     float2 sampleCoords = (currentCoord << (int)(_SourceMipIndex)) * _CaptureBaseScreenSize.zw * _RTScaleFactor;
 
+    // Fetch the depth value for the current pixel.
+    float centerDepthValue = SAMPLE_TEXTURE2D_LOD(_DepthTextureMipChain, s_trilinear_clamp_sampler, sampleCoords, _SourceMipIndex).x;
+
     // Compute the world position of the tapped pixel
-    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP, 0, 0);
-    
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP_NO, 0, 0);
+
     // Compute the direction to the reflection pixel
-    float3 rayDirection = normalize(centralPosInput.positionWS - _CaptureCameraPositon);
-    // For obliques matrices, when the depth is equal to zero (aka far plane), the position generated ends-up behind the camera. Frankly, I am not sure
-    // why but by inverting it we get the "correct result"
-    rayDirection = centerDepthValue == 0.0 ? -rayDirection : rayDirection;
+    const float3 rayDirection = normalize(centralPosInput.positionWS - _CaptureCameraPositon);
 
     // Compute the position on the plane we shall be integrating from
     float t = -1.0;
@@ -130,15 +134,8 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
 RW_TEXTURE2D(float4, _HalfResReflectionBuffer);
 RW_TEXTURE2D(float, _HalfResDepthBuffer);
 
-// Use to compute the gauassian weight for our blur
-float gaussianWeight(float radius, float sigma)
-{
-    float k = radius / sigma;
-    return exp(-(k * k));
-}
-
 [numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
-void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -149,7 +146,6 @@ void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     float3 averageColor = 0.0;
     float sumW = 0.0;
     const float radius = 2;
-    const float sigma = radius * 0.75;
     for (int y = -radius; y <= radius; ++y)
     {
         for (int x = -radius; x <= radius; ++x)
@@ -158,7 +154,7 @@ void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
             float r = sqrt(x * x + y * y);
             // If the pixel is outside the current screen size, its weight becomes zero
             float weight =  tapCoord.x > _CaptureCurrentScreenSize.x ||  tapCoord.x < 0 
-                            || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : gaussianWeight(r, sigma);
+                            || tapCoord.y > _CaptureCurrentScreenSize.y ||  tapCoord.y < 0 ? 0.0 : 1.0;
             averageColor += LOAD_TEXTURE2D_LOD(_ReflectionColorMipChain, tapCoord, _SourceMipIndex).xyz * weight;
             sumW += weight;
         }
@@ -166,6 +162,39 @@ void DownScaleReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     // Normalize and output
     _HalfResReflectionBuffer[currentCoord] = float4(averageColor / sumW, 1.0);
 
-    // Experimentally, picking d0 instead of the average (when possible, not always due to oblique matrix projection) doesn't introduce major artifacts
-    _HalfResDepthBuffer[currentCoord] = LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x;
+    // We average the 4 depths and move on
+    _HalfResDepthBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x 
+                                        + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(0,1), _SourceMipIndex).x
+                                        + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(1,0), _SourceMipIndex).x
+                                        + LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2 + uint2(1,1), _SourceMipIndex).x) * 0.25;
+}
+
+// Initial depth buffer (oblique)
+TEXTURE2D(_DepthTextureOblique);
+// Converted depth values (non oblique)
+RW_TEXTURE2D(float, _DepthTextureNonOblique);
+
+[numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
+void DepthConversion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // Compute the pixel position to process
+    int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
+
+    // Fetch the depth value for the current pixel. It would be great to use sample instead, but oblique matrices prevent us from doing it.
+    float centerDepthValue = LOAD_TEXTURE2D_LOD(_DepthTextureOblique, currentCoord, 0).x;
+
+    // Compute the world position of the tapped pixel
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP, 0, 0);
+
+    // For some reason, with oblique matrices, when the point is on the background the reconstructed position ends up behind the camera and at the worng position
+    float3 rayDirection = normalize(_CaptureCameraPositon - centralPosInput.positionWS);
+    rayDirection = centerDepthValue == 0.0 ? -rayDirection : rayDirection;
+    // Adjust the position
+    centralPosInput.positionWS = centerDepthValue == 0.0 ? _CaptureCameraPositon + rayDirection * _CaptureCameraFarPlane : centralPosInput.positionWS;
+
+    // Re-do the projeciton, but this time without the oblique part and export it
+    float4 hClip = mul(_CaptureCameraVP_NO, float4(centralPosInput.positionWS, 1.0));
+    _DepthTextureNonOblique[currentCoord] = saturate(hClip.z / hClip.w);
 }

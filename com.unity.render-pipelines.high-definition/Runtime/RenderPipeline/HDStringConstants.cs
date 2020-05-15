@@ -264,6 +264,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ThetaValuesTexture = Shader.PropertyToID("_ThetaValuesTexture");
         public static readonly int _CaptureCameraFOV = Shader.PropertyToID("_CaptureCameraFOV");
         public static readonly int _RTScaleFactor = Shader.PropertyToID("_RTScaleFactor");
+        public static readonly int _CaptureCameraVP_NO = Shader.PropertyToID("_CaptureCameraVP_NO");
+        public static readonly int _CaptureCameraFarPlane = Shader.PropertyToID("_CaptureCameraFarPlane");
+        public static readonly int _DepthTextureOblique = Shader.PropertyToID("_DepthTextureOblique");
+        public static readonly int _DepthTextureNonOblique = Shader.PropertyToID("_DepthTextureNonOblique");
+        public static readonly int _CaptureCameraIVP_NO = Shader.PropertyToID("_CaptureCameraIVP_NO");
         
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");

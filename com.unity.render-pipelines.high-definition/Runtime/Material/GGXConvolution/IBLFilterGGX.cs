@@ -17,12 +17,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Planar reflection filtering
         ComputeShader m_PlanarReflectionFilteringCS;
-        int           m_PlanarReflectionFilteringKernel = -1;
+        int           m_PlanarReflectionDepthConversionKernel = -1;
         int           m_PlanarReflectionDownScaleKernel = -1;
+        int           m_PlanarReflectionFilteringKernel = -1;
         RTHandle      m_PlanarReflectionFilterTex0;
         RTHandle      m_PlanarReflectionFilterTex1;
         RTHandle      m_PlanarReflectionFilterDepthTex0;
         RTHandle      m_PlanarReflectionFilterDepthTex1;
+        const int     k_DefaultPlanarResolution = 512;
         // Intermediate variables
         Vector4 currentScreenSize = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -74,8 +76,9 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_PlanarReflectionFilteringCS)
             {
                 m_PlanarReflectionFilteringCS     = m_RenderPipelineResources.shaders.planarReflectionFilteringCS;
+                m_PlanarReflectionDepthConversionKernel = m_PlanarReflectionFilteringCS.FindKernel("DepthConversion");
+                m_PlanarReflectionDownScaleKernel = m_PlanarReflectionFilteringCS.FindKernel("DownScale");
                 m_PlanarReflectionFilteringKernel = m_PlanarReflectionFilteringCS.FindKernel("FilterPlanarReflection");
-                m_PlanarReflectionDownScaleKernel = m_PlanarReflectionFilteringCS.FindKernel("DownScaleReflection");
             }
 
             for (int i = 0; i < 6; ++i)
@@ -83,11 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var lookAt = Matrix4x4.LookAt(Vector3.zero, CoreUtils.lookAtList[i], CoreUtils.upVectorList[i]);
                 m_faceWorldToViewMatrixMatrices[i] = lookAt * Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)); // Need to scale -1.0 on Z to match what is being done in the camera.wolrdToCameraMatrix API. ...
             }
-
-            m_PlanarReflectionFilterTex0 = RTHandles.Alloc(512, 512, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: true, name: "PlanarReflectionTextureIntermediate0");
-            m_PlanarReflectionFilterTex1 = RTHandles.Alloc(512, 512, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "PlanarReflectionTextureIntermediate1");
-            m_PlanarReflectionFilterDepthTex0 = RTHandles.Alloc(512, 512, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: true, name: "PlanarReflectionTextureIntermediateDepth0");
-            m_PlanarReflectionFilterDepthTex1 = RTHandles.Alloc(512, 512, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "PlanarReflectionTextureIntermediateDepth1");
         }
 
         void InitializeGgxIblSampleData(CommandBuffer cmd)
@@ -101,9 +99,13 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_convolveMaterial);
             CoreUtils.Destroy(m_GgxIblSampleData);
             RTHandles.Release(m_PlanarReflectionFilterTex0);
+            m_PlanarReflectionFilterTex0 = null;
             RTHandles.Release(m_PlanarReflectionFilterTex1);
+            m_PlanarReflectionFilterTex1 = null;
             RTHandles.Release(m_PlanarReflectionFilterDepthTex0);
+            m_PlanarReflectionFilterDepthTex0 = null;
             RTHandles.Release(m_PlanarReflectionFilterDepthTex1);
+            m_PlanarReflectionFilterDepthTex1 = null;
         }
 
         void FilterCubemapCommon(CommandBuffer cmd,
@@ -195,8 +197,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CheckIntermediateTexturesSize(int texWidth, int texHeight)
         {
-            if (m_PlanarReflectionFilterTex0.rt.width < texWidth)
+            // If the first texture is not the right size
+            if (m_PlanarReflectionFilterTex0 == null || m_PlanarReflectionFilterTex0.rt.width < texWidth)
             {
+                // We re-allocate them all
                 RTHandles.Release(m_PlanarReflectionFilterTex0);
                 RTHandles.Release(m_PlanarReflectionFilterTex1);
                 RTHandles.Release(m_PlanarReflectionFilterDepthTex0);
@@ -208,17 +212,36 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildColorAndDepthMipChain(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture sourceDepth)
+        void BuildColorAndDepthMipChain(CommandBuffer cmd, RenderTexture sourceColor, RenderTexture sourceDepth, ref PlanarTextureFilteringParameters planarTextureFilteringParameters)
         {
-            // The first level can be copied straight away in the mip chain
+            int currentTexWidth = sourceColor.width;
+            int currentTexHeight = sourceColor.height;
+
+            // The first color level can be copied straight away in the mip chain, nothing special to be done
             cmd.CopyTexture(sourceColor, 0, 0, 0, 0, sourceColor.width, sourceColor.height, m_PlanarReflectionFilterTex0, 0, 0, 0, 0);
-            cmd.CopyTexture(sourceDepth, 0, 0, 0, 0, sourceColor.width, sourceColor.height, m_PlanarReflectionFilterDepthTex0, 0, 0, 0, 0);
+
+            // For depth it is a bit trickier, we want to convert the depth from oblique space to non-oblique space due to the poor interpolation properties of the oblique matrix
+            cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraPositon, planarTextureFilteringParameters.captureCameraPosition);
+            cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraVP_NO, planarTextureFilteringParameters.captureCameraVP_NonOblique);
+            cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraIVP, planarTextureFilteringParameters.captureCameraIVP);
+            currentScreenSize.Set(currentTexWidth, currentTexHeight, 1.0f / currentTexWidth, 1.0f / currentTexHeight);
+            cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCurrentScreenSize, currentScreenSize);
+            cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraFarPlane, planarTextureFilteringParameters.captureFarPlane);
+            
+            // Input textures
+            cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, HDShaderIDs._DepthTextureOblique, sourceDepth);
+
+            // Output textures
+            cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, HDShaderIDs._DepthTextureNonOblique, m_PlanarReflectionFilterDepthTex0);
+
+            // Compute the dispatch parameters and evaluate the new mip
+            int tileSize = 8;
+            int numTilesXHR = (currentTexWidth + (tileSize - 1)) / tileSize;
+            int numTilesYHR = (currentTexHeight + (tileSize - 1)) / tileSize;
+            cmd.DispatchCompute(m_PlanarReflectionFilteringCS, m_PlanarReflectionDepthConversionKernel, numTilesXHR, numTilesYHR, 1);
 
             // Move to the next mip and build the chain
-            int tileSize = 8;
             int currentMipSource = 0;
-            int texWidth = sourceColor.width;
-            int texHeight = sourceColor.height;
             int texWidthHalf = sourceColor.width >> 1;
             int texHeightHalf = sourceColor.height >> 1;
 
@@ -235,7 +258,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Output textures
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDownScaleKernel, HDShaderIDs._DepthTextureMipChain, m_PlanarReflectionFilterDepthTex0);
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionDownScaleKernel, HDShaderIDs._HalfResDepthBuffer, m_PlanarReflectionFilterDepthTex1);
-                currentScreenSize.Set(texWidth, texHeight, 1.0f / texWidth, 1.0f / texHeight);
+                currentScreenSize.Set(currentTexWidth, currentTexHeight, 1.0f / currentTexWidth, 1.0f / currentTexHeight);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCurrentScreenSize, currentScreenSize);
 
                 // Compute the dispatch parameters and evaluate the new mip
@@ -248,8 +271,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.CopyTexture(m_PlanarReflectionFilterDepthTex1, 0, 0, 0, 0, texWidthHalf, texHeightHalf, m_PlanarReflectionFilterDepthTex0, 0, currentMipSource + 1, 0, 0);
 
                 // Update the parameters for the next mip
-                texWidth = texWidth >> 1;
-                texHeight = texHeight >> 1;
+                currentTexWidth = currentTexWidth >> 1;
+                currentTexHeight = currentTexHeight >> 1;
                 texWidthHalf = texWidthHalf >> 1;
                 texHeightHalf = texHeightHalf >> 1;
                 currentMipSource++;
@@ -261,17 +284,17 @@ namespace UnityEngine.Rendering.HighDefinition
             // First we need to make sure that our intermediate textures are the big enough to do our process (these textures are squares)
             CheckIntermediateTexturesSize(source.width, source.height);
 
-            // First we need to build a mip chain (one for color, one for depth) that we will sample later on in the process
-            BuildColorAndDepthMipChain(cmd, source, planarTextureFilteringParameters.captureCameraDepthBuffer);
+            // Then we need to build a mip chain (one for color, one for depth) that we will sample later on in the process
+            BuildColorAndDepthMipChain(cmd, source, planarTextureFilteringParameters.captureCameraDepthBuffer, ref planarTextureFilteringParameters);
 
             // Init the mip descent
             int texWidth = source.width;
             int texHeight = source.height;
 
-            // First we need to copy the Mip0 (that matches perfectly smooth surface)
+            // First we need to copy the Mip0 (that matches perfectly smooth surface), no processing to be done on it
             cmd.CopyTexture(m_PlanarReflectionFilterTex0, 0, 0, 0, 0, texWidth, texHeight, target, 0, 0, 0, 0);
 
-            // Prepare the parameters for the build
+            // Initialize the parameters for the descent
             int mipIndex = 1;
             int tileSize = 8;
             float roughnessStep = RoughnessStep(texWidth);
@@ -301,7 +324,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._ReflectionPlaneNormal, planarTextureFilteringParameters.probeNormal);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._ReflectionPlanePosition, planarTextureFilteringParameters.probePosition);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraPositon, planarTextureFilteringParameters.captureCameraPosition);
-                cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraIVP, planarTextureFilteringParameters.captureCameraIVP);
+                cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraIVP_NO, planarTextureFilteringParameters.captureCameraIVP_NonOblique);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraFOV, planarTextureFilteringParameters.captureFOV * Mathf.PI / 180.0f);
 
                 // Set output textures
