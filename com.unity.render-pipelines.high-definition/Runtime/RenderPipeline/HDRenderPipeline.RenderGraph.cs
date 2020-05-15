@@ -137,10 +137,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, shadowResult, cullingResults);
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector))
-                {
-                    prepassOutput.motionVectorsBuffer = ResolveMotionVector(m_RenderGraph, hdCamera, prepassOutput.motionVectorsBuffer);
-                }
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
@@ -993,48 +989,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class ResolveMotionVectorData
-        {
-            public TextureHandle input;
-            public TextureHandle output;
-            public Material resolveMaterial;
-            public int passIndex;
-        }
-
-        TextureHandle ResolveMotionVector(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
-            {
-                using (var builder = renderGraph.AddRenderPass<ResolveMotionVectorData>("ResolveMotionVector", out var passData))
-                {
-                    var outputDesc = renderGraph.GetTextureDesc(input);
-                    outputDesc.enableMSAA = false;
-                    outputDesc.enableRandomWrite = true;
-                    outputDesc.bindTextureMS = false;
-                    outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
-
-                    passData.input = builder.ReadTexture(input);
-                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(outputDesc), 0);
-                    passData.resolveMaterial = m_MotionVectorResolve;
-                    passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
-
-                    builder.SetRenderFunc(
-                        (ResolveColorData data, RenderGraphContext context) =>
-                        {
-                            var res = context.resources;
-                            var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
-                            mpb.SetTexture(HDShaderIDs._MotionVectorTextureMS, res.GetTexture(data.input));
-                            context.cmd.DrawProcedural(Matrix4x4.identity, data.resolveMaterial, data.passIndex, MeshTopology.Triangles, 3, 1, mpb);
-                        });
-
-                    return passData.output;
-                }
-            }
-            else
-            {
-                return input;
-            }
-        }
 #if UNITY_EDITOR
         class RenderGizmosPassData
         {
