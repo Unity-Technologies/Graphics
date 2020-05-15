@@ -232,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewUtility.ambientColor = Color.black;
             m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
             m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, previewMaterial, 0);
-            // TODO: For now the following line is D3D11 only as it cause out of memory on both DX12 and Vulkan API.
+            // TODO: For now the following line is D3D11 + Metal only as it cause out of memory on both DX12 and Vulkan API.
             // We will need to invest time to understand what is happening
             // For now priority is to enable Yamato platform automation
             // This mean that cubemap icon will render incorrectly on anything but D3D11
