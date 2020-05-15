@@ -158,6 +158,15 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
             }
+			var sgMetadata = ScriptableObject.CreateInstance<ShaderGraphMetadata>();
+            sgMetadata.hideFlags = HideFlags.HideInHierarchy;
+            sgMetadata.assetDependencies = new List<UnityEngine.Object>();
+            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
+            foreach (string dependency in deps)
+            {
+                sgMetadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+            }
+
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
             {
