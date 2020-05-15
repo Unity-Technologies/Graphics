@@ -81,14 +81,12 @@ code_coverage_args:
   - name: playmode
     args:
       - --enable-code-coverage
-      - --coverage-results-path
-      - 'code-coverage'
+      - --coverage-results-path=code-coverage
       - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime
   - name: editmode
     args:
       - --enable-code-coverage
-      - --coverage-results-path
-      - 'code-coverage'
+      - --coverage-results-path=code-coverage
       - --code-coverage-options=enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor
 ---
 {% for project in projects %}
