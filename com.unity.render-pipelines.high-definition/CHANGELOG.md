@@ -603,6 +603,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where asset preview could be rendered white because of static lighting sky.
 - Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
+- Fixed various multi-editing issues when changing Emission parameters.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
