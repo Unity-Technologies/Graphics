@@ -41,6 +41,7 @@
 #define FLT_MAX  3.402823466e+38 // Maximum representable floating-point number
 #define HALF_EPS 4.8828125e-4    // 2^-11, machine epsilon: 1 + EPS = 1 (half of the ULP for 1.0f)
 #define HALF_MIN 6.103515625e-5  // 2^-14, the same value for 10, 11 and 16-bit: https://www.khronos.org/opengl/wiki/Small_Float_Formats
+#define HALF_MIN_SQRT 0.0078125
 #define HALF_MAX 65504.0
 #define UINT_MAX 0xFFFFFFFFu
 
@@ -49,13 +50,13 @@
 
 #define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
     float  FunctionName(float  Parameter1) { FunctionBody; } \
-    int    FunctionName(int  Parameter1) { FunctionBody; } 
+    int    FunctionName(int  Parameter1) { FunctionBody; }
 #else
 
 #define GENERATE_INT_FLOAT_1_ARG(FunctionName, Parameter1, FunctionBody) \
     float  FunctionName(float  Parameter1) { FunctionBody; } \
     uint   FunctionName(uint  Parameter1) { FunctionBody; } \
-    int    FunctionName(int  Parameter1) { FunctionBody; } 
+    int    FunctionName(int  Parameter1) { FunctionBody; }
 
 #endif
 
@@ -227,11 +228,11 @@
 #define GET_TEXELSIZE_NAME(name) (name##_TexelSize)
 
 #if UNITY_REVERSED_Z
-# define COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, zDevice)      (shadowMapDepth >  zDevice) 
-# define COMPARE_DEVICE_DEPTH_CLOSEREQUAL(shadowMapDepth, zDevice) (shadowMapDepth >= zDevice) 
+# define COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, zDevice)      (shadowMapDepth >  zDevice)
+# define COMPARE_DEVICE_DEPTH_CLOSEREQUAL(shadowMapDepth, zDevice) (shadowMapDepth >= zDevice)
 #else
-# define COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, zDevice)      (shadowMapDepth <  zDevice) 
-# define COMPARE_DEVICE_DEPTH_CLOSEREQUAL(shadowMapDepth, zDevice) (shadowMapDepth <= zDevice) 
+# define COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, zDevice)      (shadowMapDepth <  zDevice)
+# define COMPARE_DEVICE_DEPTH_CLOSEREQUAL(shadowMapDepth, zDevice) (shadowMapDepth <= zDevice)
 #endif
 
 #endif // UNITY_MACROS_INCLUDED

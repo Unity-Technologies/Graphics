@@ -11,9 +11,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
-// 2^-7 == sqrt(HALF_MIN), Ensure HALF_MIN after x^2 (e.g. roughness computation)
-#define HALF_MIN_SQRT 0.0078125
-
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
