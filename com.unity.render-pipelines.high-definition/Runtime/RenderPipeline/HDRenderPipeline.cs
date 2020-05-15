@@ -2068,7 +2068,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Do anything we need to do upon a new frame.
             // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
-            LightLoopNewFrame(hdCamera);
+            LightLoopNewFrame(cmd, hdCamera);
 
             // Apparently scissor states can leak from editor code. As it is not used currently in HDRP (apart from VR). We disable scissor at the beginning of the frame.
             cmd.DisableScissorRect();
@@ -2077,7 +2077,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
             ApplyDebugDisplaySettings(hdCamera, cmd);
-            m_SkyManager.UpdateCurrentSkySettings(hdCamera);
 
             SetupCameraProperties(hdCamera, renderContext, cmd);
 
@@ -2515,6 +2514,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector))
                 {
                     m_SharedRTManager.ResolveMotionVectorTexture(cmd, hdCamera);
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_SharedRTManager.GetMotionVectorsBuffer());
                 }
 
                 // We push the motion vector debug texture here as transparent object can overwrite the motion vector texture content.
@@ -2922,6 +2922,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdProbeCullState = HDProbeSystem.PrepareCull(camera);
 
                 // We need to set the ambient probe here because it's passed down to objects during the culling process.
+                skyManager.UpdateCurrentSkySettings(hdCamera);
                 skyManager.SetupAmbientProbe(hdCamera);
 
                 using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.CullResultsCull)))
@@ -2937,7 +2938,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe) && hdProbeCullState.cullingGroup != null)
                     HDProbeSystem.QueryCullResults(hdProbeCullState, ref cullingResults.hdProbeCullingResults);
                 else
                     cullingResults.hdProbeCullingResults = default;
@@ -3877,7 +3878,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.IsTransparentSSREnabled())
                     {
-                        // But we also need to bind the normal buffer for objects that will recieve SSR
+                        // But we also need to bind the normal buffer for objects that will receive SSR
                         CoreUtils.SetRenderTarget(cmd, m_SharedRTManager.GetPrepassBuffersRTI(hdCamera.frameSettings), m_SharedRTManager.GetDepthStencilBuffer());
                     }
                     else
@@ -4164,27 +4165,38 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.IsTransparentSSREnabled())
                 return;
 
-            BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
-
-            // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
-            // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareForTransparentSsr)))
+            var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+            if (usesRaytracedReflections)
             {
-                // Clear the SSR lighting buffer (not sure it is required)
-                CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
-                CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
+                hdCamera.xr.StartSinglePass(cmd);
+                RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount, true);
+                hdCamera.xr.StopSinglePass(cmd);
             }
-
-            // Evaluate the screen space reflection for the transparent pixels
-            var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
-            var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), true);
-            RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
-
-            // If color pyramid was not valid, we bind a black texture
-            if (!hdCamera.colorPyramidHistoryIsValid)
+            else
             {
-                cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
-                hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                BuildCoarseStencilAndResolveIfNeeded(hdCamera, cmd);
+
+                // Before doing anything, we need to clear the target buffers and rebuild the depth pyramid for tracing
+                // NOTE: This is probably something we can avoid if we read from the depth buffer and traced on the pyramid without the transparent objects
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareForTransparentSsr)))
+                {
+                    // Clear the SSR lighting buffer (not sure it is required)
+                    CoreUtils.SetRenderTarget(cmd, m_SsrLightingTexture, ClearFlag.Color, Color.clear);
+                    CoreUtils.SetRenderTarget(cmd, m_SsrHitPointTexture, ClearFlag.Color, Color.clear);
+                }
+
+                // Evaluate the screen space reflection for the transparent pixels
+                var previousColorPyramid = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                var parameters = PrepareSSRParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo(), true);
+                RenderSSR(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetDepthTexture(), m_SsrHitPointTexture, m_SharedRTManager.GetStencilBuffer(), TextureXR.GetBlackTexture(), previousColorPyramid, m_SsrLightingTexture, cmd, renderContext);
+
+                // If color pyramid was not valid, we bind a black texture
+                if (!hdCamera.colorPyramidHistoryIsValid)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, TextureXR.GetClearTexture());
+                    hdCamera.colorPyramidHistoryIsValid = true; // For the next frame...
+                }
             }
 
             // Push our texture to the debug menu
@@ -4969,7 +4981,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Mark the HDCamera as persistant so it's not deleted because it's camera is disabled.
                 overrideHDCamera.isPersistent = true;
 
-                // We need to patch the pixel rect of the camera because by default the camera size is synchronized 
+                // We need to patch the pixel rect of the camera because by default the camera size is synchronized
                 // with the game view and so it breaks in the scene view. Note that we can't use Camera.pixelRect here
                 // because when we assign it, the change is not instantaneous and is not reflected in pixelWidth/pixelHeight.
                 overrideHDCamera.OverridePixelRect(hdrp.m_CurrentHDCamera.camera.pixelRect);
@@ -4999,7 +5011,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (overrideCamera == hdrp.m_CurrentHDCamera.camera)
                     return false;
-                
+
                 return true;
             }
 
