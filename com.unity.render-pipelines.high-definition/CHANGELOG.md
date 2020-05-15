@@ -49,6 +49,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
 - Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed issue with sceneview camera settings not being saved after Editor restart.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fixed the light overlap scene view draw mode (wasn't working at all).
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
@@ -122,10 +127,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
-- Fixed issue with sceneview camera settings not being saved after Editor restart.
-- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
-- Fixed the light overlap scene view draw mode (wasn't working at all).
-- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
