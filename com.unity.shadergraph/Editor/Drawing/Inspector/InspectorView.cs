@@ -13,7 +13,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     class InspectorView : GraphSubWindow
     {
-        // References
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions

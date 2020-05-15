@@ -23,9 +23,20 @@ namespace UnityEditor.ShaderGraph.Drawing
     [Serializable]
     class FloatingWindowsLayout
     {
-        public WindowDockingLayout previewLayout = new WindowDockingLayout();
-        public WindowDockingLayout blackboardLayout = new WindowDockingLayout();
-        public Vector2 masterPreviewSize = new Vector2(200, 200);
+        public WindowDockingLayout previewLayout = new WindowDockingLayout
+        {
+            dockingTop = false,
+            dockingLeft = false,
+            verticalOffset = 8,
+            horizontalOffset = 8
+        };
+        public WindowDockingLayout blackboardLayout = new WindowDockingLayout
+        {
+            dockingTop = true,
+            dockingLeft = true,
+            verticalOffset = 8,
+            horizontalOffset = 8
+        };
     }
 
     [Serializable]
@@ -63,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal UserViewSettings viewSettings { get => m_UserViewSettings; }
 
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
-        FloatingWindowsLayout m_FloatingWindowsLayout;
+        FloatingWindowsLayout m_FloatingWindowsLayout = new FloatingWindowsLayout();
 
         public Action saveRequested { get; set; }
 
@@ -120,38 +131,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/GraphEditorView"));
             previewManager = new PreviewManager(graph, messageManager);
             previewManager.onPrimaryMasterChanged = OnPrimaryMasterChanged;
+            previewManager.RenderPreviews(false);
 
             var serializedSettings = EditorUserSettings.GetConfigValue(k_UserViewSettings);
             m_UserViewSettings = JsonUtility.FromJson<UserViewSettings>(serializedSettings) ?? new UserViewSettings();
+
             m_ColorManager = new ColorManager(m_UserViewSettings.colorProvider);
-
-            string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
-            if (!string.IsNullOrEmpty(serializedWindowLayout))
-            {
-                m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
-            }
-            else
-            {
-                m_FloatingWindowsLayout = new FloatingWindowsLayout
-                {
-                    blackboardLayout =
-                    {
-                        dockingTop = true,
-                        dockingLeft = true,
-                        verticalOffset = 8,
-                        horizontalOffset = 8,
-                        size = new Vector2(200, 400)
-                    }
-                };
-            }
-
-            if (m_FloatingWindowsLayout.masterPreviewSize.x > 0f && m_FloatingWindowsLayout.masterPreviewSize.y > 0f)
-            {
-                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
-            }
-
-            previewManager.RenderPreviews(false);
             var colorProviders = m_ColorManager.providerNames.ToArray();
+
             var toolbar = new IMGUIContainer(() =>
                 {
                     GUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -244,11 +231,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
 
-                m_BlackboardProvider = new BlackboardProvider(graph);
-                m_GraphView.Add(m_BlackboardProvider.blackboard);
+                string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
+                if (!string.IsNullOrEmpty(serializedWindowLayout))
+                {
+                    m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
+                }
 
+                CreateBlackboard();
                 CreateMasterPreview();
-                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector();
 
                 UpdateSubWindowsVisibility();
@@ -346,6 +336,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.groupTitleChanged = null;
             m_GraphView.elementsAddedToGroup = null;
             m_GraphView.elementsRemovedFromGroup = null;
+        }
+
+        void CreateBlackboard()
+        {
+            m_BlackboardProvider = new BlackboardProvider(m_Graph);
+            m_GraphView.Add(m_BlackboardProvider.blackboard);
         }
 
         void CreateMasterPreview()
@@ -1137,12 +1133,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ApplyMasterPreviewLayout()
         {
+            // If a preview size was loaded in from saved user settings use that
+            if (m_FloatingWindowsLayout.previewLayout.size.x > 0f && m_FloatingWindowsLayout.previewLayout.size.y > 0f)
+            {
+                previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.previewLayout.size);
+            }
+            else // Use default specified in the stylesheet for master preview
+            {
+                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.layout.size;
+            }
+
             m_FloatingWindowsLayout.previewLayout.ApplyPosition(m_MasterPreviewView);
 
-            previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
-
-            m_MasterPreviewView.previewTextureView.style.width = m_FloatingWindowsLayout.masterPreviewSize.x;
-            m_MasterPreviewView.previewTextureView.style.height = m_FloatingWindowsLayout.masterPreviewSize.y;
+            m_MasterPreviewView.style.width = m_FloatingWindowsLayout.previewLayout.size.x;
+            m_MasterPreviewView.style.height = m_FloatingWindowsLayout.previewLayout.size.y;
             m_MasterPreviewView.RegisterCallback<GeometryChangedEvent>(SerializeMasterPreviewLayout);
         }
 
@@ -1153,6 +1157,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ApplyBlackboardLayout()
         {
+            // If a blackboard size was loaded in from saved user settings use that
+            if (m_FloatingWindowsLayout.blackboardLayout.size.x > 0f && m_FloatingWindowsLayout.blackboardLayout.size.y > 0f)
+            {
+                blackboardProvider.blackboard.style.width = m_FloatingWindowsLayout.blackboardLayout.size.x;
+                blackboardProvider.blackboard.style.height = m_FloatingWindowsLayout.blackboardLayout.size.y;
+            }
+            else // Use default specified in the stylesheet for blackboard
+            {
+                m_FloatingWindowsLayout.blackboardLayout.size = blackboardProvider.blackboard.layout.size;
+            }
+
             // Restore blackboard layout, and make sure that it remains in the view.
             Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
 
@@ -1186,9 +1201,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.blackboardLayout.CalculateDockingCornerAndOffset(m_BlackboardProvider.blackboard.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.blackboardLayout.ClampToParentWindow();
 
+            m_InspectorView.ClampToParentLayout(m_GraphView.layout);
+
             if (m_MasterPreviewView.expanded)
             {
-                m_FloatingWindowsLayout.masterPreviewSize = m_MasterPreviewView.previewTextureView.layout.size;
+                m_FloatingWindowsLayout.previewLayout.size = m_MasterPreviewView.previewTextureView.layout.size;
             }
 
             string serializedWindowLayout = JsonUtility.ToJson(m_FloatingWindowsLayout);
