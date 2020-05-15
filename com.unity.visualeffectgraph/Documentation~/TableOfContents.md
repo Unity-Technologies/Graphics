@@ -34,6 +34,10 @@
       * [Sine Wave](Operator-SineWave.md)
       * [Square Wave](Operator-SquareWave.md)
       * [Triangle Wave](Operator-TriangleWave.md)
+    * Noise
+      * [Cellular Noise](Operator-CellularNoise.md)
+      * [Perlin Noise](Operator-PerlinNoise.md)
+      * [Value Noise](Operator-ValueNoise.md)
     * Sampling
       * [Load Texture2D](Operator-LoadTexture2D.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
