@@ -1,4 +1,4 @@
-editors:
+override_editors:
   - version: trunk
 publishing:
   auto_publish: true

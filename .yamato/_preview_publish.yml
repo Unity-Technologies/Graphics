@@ -38,82 +38,26 @@ wait_for_nightly:
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_nightly_trunk
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_mac_2020.1
-      -  .yamato/_packages.yml#test_core_win_2020.1
-      -  .yamato/_packages.yml#test_core_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_core_win_fast-2020.1
       -  .yamato/_packages.yml#test_core_mac_trunk
       -  .yamato/_packages.yml#test_core_win_trunk
-      -  .yamato/_packages.yml#test_core_mac_fast-trunk
-      -  .yamato/_packages.yml#test_core_win_fast-trunk
-      -  .yamato/_packages.yml#test_core_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_core_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_mac_2020.1
-      -  .yamato/_packages.yml#test_universal_win_2020.1
-      -  .yamato/_packages.yml#test_universal_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_universal_win_fast-2020.1
       -  .yamato/_packages.yml#test_universal_mac_trunk
       -  .yamato/_packages.yml#test_universal_win_trunk
-      -  .yamato/_packages.yml#test_universal_mac_fast-trunk
-      -  .yamato/_packages.yml#test_universal_win_fast-trunk
-      -  .yamato/_packages.yml#test_universal_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_universal_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_mac_2020.1
-      -  .yamato/_packages.yml#test_hdrp_win_2020.1
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_hdrp_win_fast-2020.1
       -  .yamato/_packages.yml#test_hdrp_mac_trunk
       -  .yamato/_packages.yml#test_hdrp_win_trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_hdrp_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_mac_2020.1
-      -  .yamato/_packages.yml#test_shadergraph_win_2020.1
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-2020.1
       -  .yamato/_packages.yml#test_shadergraph_mac_trunk
       -  .yamato/_packages.yml#test_shadergraph_win_trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_shadergraph_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_mac_2020.1
-      -  .yamato/_packages.yml#test_vfx_win_2020.1
-      -  .yamato/_packages.yml#test_vfx_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_vfx_win_fast-2020.1
       -  .yamato/_packages.yml#test_vfx_mac_trunk
       -  .yamato/_packages.yml#test_vfx_win_trunk
-      -  .yamato/_packages.yml#test_vfx_mac_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_win_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_vfx_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_mac_2020.1
-      -  .yamato/_packages.yml#test_config_win_2020.1
-      -  .yamato/_packages.yml#test_config_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_config_win_fast-2020.1
       -  .yamato/_packages.yml#test_config_mac_trunk
       -  .yamato/_packages.yml#test_config_win_trunk
-      -  .yamato/_packages.yml#test_config_mac_fast-trunk
-      -  .yamato/_packages.yml#test_config_win_fast-trunk
-      -  .yamato/_packages.yml#test_config_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_config_win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_mac_2020.1
-      -  .yamato/_packages.yml#test_lwrp_win_2020.1
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_lwrp_win_fast-2020.1
       -  .yamato/_packages.yml#test_lwrp_mac_trunk
       -  .yamato/_packages.yml#test_lwrp_win_trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_win_CUSTOM-REVISION
 publish_core:
     name: '[core] Candidates Publish'
     agent:
@@ -123,16 +67,8 @@ publish_core:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_core_mac_2020.1
-      -  .yamato/_packages.yml#test_core_win_2020.1
-      -  .yamato/_packages.yml#test_core_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_core_win_fast-2020.1
       -  .yamato/_packages.yml#test_core_mac_trunk
       -  .yamato/_packages.yml#test_core_win_trunk
-      -  .yamato/_packages.yml#test_core_mac_fast-trunk
-      -  .yamato/_packages.yml#test_core_win_fast-trunk
-      -  .yamato/_packages.yml#test_core_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_core_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -170,16 +106,8 @@ publish_universal:
     dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_universal_mac_2020.1
-      -  .yamato/_packages.yml#test_universal_win_2020.1
-      -  .yamato/_packages.yml#test_universal_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_universal_win_fast-2020.1
       -  .yamato/_packages.yml#test_universal_mac_trunk
       -  .yamato/_packages.yml#test_universal_win_trunk
-      -  .yamato/_packages.yml#test_universal_mac_fast-trunk
-      -  .yamato/_packages.yml#test_universal_win_fast-trunk
-      -  .yamato/_packages.yml#test_universal_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_universal_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -217,16 +145,8 @@ publish_hdrp:
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_hdrp_mac_2020.1
-      -  .yamato/_packages.yml#test_hdrp_win_2020.1
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_hdrp_win_fast-2020.1
       -  .yamato/_packages.yml#test_hdrp_mac_trunk
       -  .yamato/_packages.yml#test_hdrp_win_trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_hdrp_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -264,16 +184,8 @@ publish_shadergraph:
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_shadergraph_mac_2020.1
-      -  .yamato/_packages.yml#test_shadergraph_win_2020.1
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-2020.1
       -  .yamato/_packages.yml#test_shadergraph_mac_trunk
       -  .yamato/_packages.yml#test_shadergraph_win_trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_shadergraph_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -311,16 +223,8 @@ publish_vfx:
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_vfx_mac_2020.1
-      -  .yamato/_packages.yml#test_vfx_win_2020.1
-      -  .yamato/_packages.yml#test_vfx_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_vfx_win_fast-2020.1
       -  .yamato/_packages.yml#test_vfx_mac_trunk
       -  .yamato/_packages.yml#test_vfx_win_trunk
-      -  .yamato/_packages.yml#test_vfx_mac_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_win_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_vfx_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -358,16 +262,8 @@ publish_config:
     dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_config_mac_2020.1
-      -  .yamato/_packages.yml#test_config_win_2020.1
-      -  .yamato/_packages.yml#test_config_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_config_win_fast-2020.1
       -  .yamato/_packages.yml#test_config_mac_trunk
       -  .yamato/_packages.yml#test_config_win_trunk
-      -  .yamato/_packages.yml#test_config_mac_fast-trunk
-      -  .yamato/_packages.yml#test_config_win_fast-trunk
-      -  .yamato/_packages.yml#test_config_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_config_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -405,16 +301,8 @@ publish_lwrp:
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_lwrp_mac_2020.1
-      -  .yamato/_packages.yml#test_lwrp_win_2020.1
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-2020.1
-      -  .yamato/_packages.yml#test_lwrp_win_fast-2020.1
       -  .yamato/_packages.yml#test_lwrp_mac_trunk
       -  .yamato/_packages.yml#test_lwrp_win_trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_win_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight

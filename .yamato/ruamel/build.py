@@ -40,6 +40,10 @@ def dump_yml(filepath, yml_dict):
     with open(os.path.join(save_dir,filepath), 'w') as f:
         yaml.dump(yml_dict, f)
 
+def get_editors(metafile):
+    override_editors = metafile.get("override_editors", None)
+    return override_editors if override_editors is not None else editors
+
 def create_project_specific_jobs(metafile_name):
 
     metafile = load_yml(metafile_name)
@@ -49,7 +53,7 @@ def create_project_specific_jobs(metafile_name):
         for api in platform['apis']:
 
             yml = {}
-            for editor in editors:
+            for editor in get_editors(metafile):
                 for test_platform in metafile['test_platforms']:
 
                     if test_platform["name"].lower() == 'standalone':
@@ -75,7 +79,7 @@ def create_project_all_jobs(metafile_name):
     metafile = load_yml(metafile_name)
 
     yml = {}
-    for editor in editors:
+    for editor in get_editors(metafile):
         job = Project_AllJob(metafile["project"]["name"], editor, metafile["all"]["dependencies"])
         yml[job.job_id] = job.yml
 
@@ -90,7 +94,7 @@ def create_editor_job(metafile_name):
 
     yml = {}
     for platform in metafile["platforms"]:
-        for editor in editors:
+        for editor in get_editors(metafile):
             job = Editor_PrimingJob(platform, editor, metafile["agent"])
             yml[job.job_id] = job.yml
 
@@ -108,7 +112,7 @@ def create_package_jobs(metafile_name):
         job = Package_PublishJob(package, metafile["agent_win"], metafile["platforms"])
         yml[job.job_id] = job.yml
 
-    for editor in editors:
+    for editor in get_editors(metafile):
         for platform in metafile["platforms"]:
             for package in metafile["packages"]:
                 job = Package_TestJob(package, platform, editor)
@@ -117,7 +121,7 @@ def create_package_jobs(metafile_name):
                 job = Package_TestDependenciesJob(package, platform, editor)
                 yml[job.job_id] = job.yml
 
-    for editor in editors:
+    for editor in get_editors(metafile):
         job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_win"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
@@ -131,7 +135,7 @@ def create_abv_jobs(metafile_name):
     metafile = load_yml(metafile_name)
     yml = {}
 
-    for editor in editors:
+    for editor in get_editors(metafile):
         for test_platform in metafile['test_platforms']:
             job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
             yml[job.job_id] = job.yml
@@ -162,13 +166,13 @@ def create_preview_publish_jobs(metafile_name):
     job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  editors, metafile["platforms"])
+    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  get_editors(metafile), metafile["platforms"])
     yml[job.job_id] = job.yml
 
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(metafile["agent_win"], package, target_branch, metafile["publishing"]["auto_publish"], editors, metafile["platforms"])
+            job = PreviewPublish_PublishJob(metafile["agent_win"], package, target_branch, metafile["publishing"]["auto_publish"], get_editors(metafile), metafile["platforms"])
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(metafile["agent_win"], package)
@@ -185,7 +189,7 @@ def create_template_jobs(metafile_name):
         yml[job.job_id] = job.yml
 
 
-    for editor in editors:
+    for editor in get_editors(metafile):
         for platform in metafile["platforms"]:
             for template in metafile["templates"]:
                 job = Template_TestJob(template, platform, editor)
@@ -194,7 +198,7 @@ def create_template_jobs(metafile_name):
                 job = Template_TestDependenciesJob(template, platform, editor)
                 yml[job.job_id] = job.yml
 
-    for editor in editors:
+    for editor in get_editors(metafile):
         job = Template_AllTemplateCiJob(metafile["templates"], metafile["agent_win"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
