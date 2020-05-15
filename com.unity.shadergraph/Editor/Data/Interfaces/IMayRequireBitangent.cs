@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
 
     static class MayRequireBitangentExtensions
     {
-        public static NeededCoordinateSpace RequiresBitangent(this ISlot slot)
+        public static NeededCoordinateSpace RequiresBitangent(this MaterialSlot slot)
         {
             var mayRequireBitangent = slot as IMayRequireBitangent;
             return mayRequireBitangent != null ? mayRequireBitangent.RequiresBitangent() : NeededCoordinateSpace.None;

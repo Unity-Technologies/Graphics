@@ -232,7 +232,11 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewUtility.ambientColor = Color.black;
             m_PreviewUtility.BeginStaticPreview(new Rect(0, 0, width, height));
             m_PreviewUtility.DrawMesh(sphereMesh, Matrix4x4.identity, previewMaterial, 0);
-            m_PreviewUtility.camera.Render();
+            // TODO: For now we comment this line as it cause out of memory on both DX12 and Vulkan API.
+            // We will need to invest time to understand what is happening
+            // For now priority is to enable Yamato platform automation
+            // This mean that cubemap icon will render incorrectly
+            //m_PreviewUtility.camera.Render();
 
             var outTexture = m_PreviewUtility.EndStaticPreview();
 
