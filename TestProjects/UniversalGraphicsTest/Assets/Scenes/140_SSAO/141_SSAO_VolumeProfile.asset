@@ -14,15 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
-  NormalQuality:
-    m_OverrideState: 0
+  Quality:
+    m_OverrideState: 1
+    m_Value: 3
+  NormalSamples:
+    m_OverrideState: 1
     m_Value: 1
   Downsample:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   Intensity:
     m_OverrideState: 1
-    m_Value: 5
+    m_Value: 3
     min: 0
     max: 10
   Radius:
@@ -31,14 +34,14 @@ MonoBehaviour:
     min: 0
     max: 10
   SampleCount:
-    m_OverrideState: 0
-    m_Value: 4
+    m_OverrideState: 1
+    m_Value: 7
     min: 0
     max: 12
-  BlurPassesCount:
+  BlurPasses:
     m_OverrideState: 1
-    m_Value: 2
-    min: 0
+    m_Value: 3
+    min: 2
     max: 12
 --- !u!114 &11400000
 MonoBehaviour:

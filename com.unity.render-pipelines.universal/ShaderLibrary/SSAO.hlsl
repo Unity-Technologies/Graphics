@@ -55,24 +55,11 @@ float2 GetScreenSpacePosition(float2 uv)
 }
 
 // Sample point picker
-float3 PickSamplePoint(float2 uv, float randAddon, float index)
+float3 PickSamplePoint(float2 uv, float randAddon, int index)
 {
     float2 positionSS = GetScreenSpacePosition(uv);
-    float gn = InterleavedGradientNoise(positionSS, index);
-    return SampleSphereUniform(frac(gn), (gn * PI));
-}
-
-// Boundary check for depth sampler
-// (returns a very large value if it lies out of bounds)
-float CheckBounds(float2 uv, float d)
-{
-    float ob = any(uv < 0.0) + any(uv > 1.0);
-    #if defined(UNITY_REVERSED_Z)
-        ob += (d <= 0.00001);
-    #else
-        ob += (d >= 0.99999);
-    #endif
-    return ob * 1e8;
+    float noise = InterleavedGradientNoise(positionSS, index);
+    return SampleSphereUniform(frac(noise), (noise * PI));
 }
 
 float SampleAndGetLinearDepth(float2 uv)
@@ -83,7 +70,7 @@ float SampleAndGetLinearDepth(float2 uv)
     #else
         float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
     #endif
-    return linearDepth + CheckBounds(uv, linearDepth);
+    return linearDepth;
 }
 
 float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
@@ -222,9 +209,9 @@ float4 SSAO(Varyings input) : SV_Target
         // Reproject the sample point
         float3 spos_s1 = mul(camProj, vpos_s1);
         #if defined(_ORTHOGRAPHIC)
-            float2 uv_s1_01 = (spos_s1.xy + 1.0) * 0.5;
+            float2 uv_s1_01 = clamp((spos_s1.xy + 1.0) * 0.5, 0.0, 1.0);
         #else
-            float2 uv_s1_01 = (spos_s1.xy * rcp(vpos_s1.z) + 1.0) * 0.5;
+            float2 uv_s1_01 = clamp((spos_s1.xy * rcp(vpos_s1.z) + 1.0) * 0.5, 0.0, 1.0);
         #endif
 
         // Depth at the sample point
@@ -251,13 +238,12 @@ float4 SSAO(Varyings input) : SV_Target
 
 half4 KawaseBlur(Varyings input) : SV_Target
 {
-    half sum = 0.0;
-    sum  = 4.0 * SAMPLE_BASEMAP_R(input.uv                  );
-    sum +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xy );
-    sum +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xw );
-    sum +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zy );
-    sum +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zw );
-    sum *= 0.125; // Divide by 8
+    half sum  = 4.0 * SAMPLE_BASEMAP_R(input.uv                 );
+    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xy);
+    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xw);
+    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zy);
+    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zw);
+    sum      *= 0.125; // Divide by 8
 
     return half4(sum, sum, sum, 1.0);
 }

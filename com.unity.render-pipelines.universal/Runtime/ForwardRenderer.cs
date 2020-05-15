@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.Universal
             // TODO: Temporary code to force a depth prepass for SSAO until we've exposed render feature requirements!
             for (int i = 0; i < rendererFeatures.Count; ++i)
             {
-                if (rendererFeatures[i].GetType() != typeof(ScreenSpaceAmbientOcclusionFeature))
+                if (rendererFeatures[i].GetType() != typeof(ScreenSpaceAmbientOcclusion))
                 {
                     continue;
                 }
