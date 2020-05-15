@@ -1,4 +1,4 @@
-﻿Varyings BuildVaryings(Attributes input)
+Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
 

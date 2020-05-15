@@ -208,6 +208,19 @@ namespace UnityEngine.Rendering.Universal
 
     internal static class ShaderPropertyId
     {
+        public static readonly int glossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
+        public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
+        
+        public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
+        public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");
+        public static readonly int ambientGroundColor = Shader.PropertyToID("unity_AmbientGround");
+
+        public static readonly int time = Shader.PropertyToID("_Time");
+        public static readonly int sinTime = Shader.PropertyToID("_SinTime");
+        public static readonly int cosTime = Shader.PropertyToID("_CosTime");
+        public static readonly int deltaTime = Shader.PropertyToID("unity_DeltaTime");
+        public static readonly int timeParameters = Shader.PropertyToID("_TimeParameters");
+        
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int screenParams = Shader.PropertyToID("_ScreenParams");

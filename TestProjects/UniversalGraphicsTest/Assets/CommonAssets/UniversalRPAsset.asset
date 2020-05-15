@@ -41,6 +41,27 @@ MonoBehaviour:
   m_AdditionalLightsPerObjectLimit: 8
   m_AdditionalLightShadowsSupported: 1
   m_AdditionalLightsShadowmapResolution: 512
+  m_SSAOParametersLow:
+    Downsample: 1
+    NormalSamples: 0
+    Intensity: 1
+    Radius: 0.1
+    SampleCount: 4
+    BlurPasses: 3
+  m_SSAOParametersMedium:
+    Downsample: 1
+    NormalSamples: 1
+    Intensity: 1
+    Radius: 0.1
+    SampleCount: 7
+    BlurPasses: 3
+  m_SSAOParametersHigh:
+    Downsample: 0
+    NormalSamples: 2
+    Intensity: 1
+    Radius: 0.1
+    SampleCount: 10
+    BlurPasses: 3
   m_ShadowDistance: 50
   m_ShadowCascades: 2
   m_Cascade2Split: 0.25

@@ -141,9 +141,7 @@
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools
-  * Look Dev
-    * [Look Dev Window](Look-Dev)
-    * [Environment Library](Look-Dev-Environment-Library)
+  * [Look Dev](Look-Dev)
   * [Compositor](Compositor-Main)
     * [User Guide](Compositor-User-Guide)
     * [User Options](Compositor-User-Options)
