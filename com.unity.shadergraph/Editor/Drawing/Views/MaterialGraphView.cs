@@ -52,12 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public object GetObjectToInspect()
         {
-            return this.graph;
-        }
-
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            return this.GetType().GetProperties();
+            return graph;
         }
 
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)

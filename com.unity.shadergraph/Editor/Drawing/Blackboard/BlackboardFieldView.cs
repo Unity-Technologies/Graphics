@@ -144,11 +144,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            return GetType().GetProperties();
-        }
-
         void ChangeExposedField(bool newValue)
         {
             m_Input.generatePropertyBlock = newValue;

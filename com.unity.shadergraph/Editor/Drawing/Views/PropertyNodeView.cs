@@ -63,12 +63,6 @@ namespace UnityEditor.ShaderGraph
             return property;
         }
 
-        public PropertyInfo[] GetPropertyInfo()
-        {
-            // The AbstractShaderProperty is declared as private here so we're specifying the NonPublic flag
-            return this.GetType().GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
-        }
-
         public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
