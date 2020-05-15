@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -69,6 +69,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.GBuffer,
                 includes = PBRIncludes.GBuffer,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor META = new PassDescriptor()
@@ -228,6 +230,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.Forward,
                 keywords = PBRKeywords.Forward,
                 includes = PBRIncludes.Forward,
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion

@@ -71,18 +71,15 @@ namespace UnityEngine.Rendering.Universal
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
-            // unity_MatrixInvVP is not set by cmd.SetViewProjectionMatrices, we set it here
-            Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
-            Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
-
-            cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, viewMatrix);
-
+            
             if (setInverseMatrices)
             {
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                
+                Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
+                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
             // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
@@ -166,11 +163,11 @@ namespace UnityEngine.Rendering.Universal
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
+            cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
         }
 
         public RenderTargetIdentifier cameraColorTarget
