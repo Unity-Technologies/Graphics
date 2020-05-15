@@ -233,7 +233,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                m_GraphView = new MaterialGraphView(graph) { name = "GraphView", viewDataKey = "MaterialGraphView" };
+                m_GraphView = new MaterialGraphView(graph, () => { })
+                    { name = "GraphView", viewDataKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, 8);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
@@ -248,7 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 CreateMasterPreview();
                 // When Matt integrates his stacks work, the inspector will need to trigger preview updates
-                CreateInspector(() => { });
+                CreateInspector();
 
                 UpdateSubWindowsVisibility();
 
@@ -359,9 +360,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_MasterPreviewView.previewResizeBorderFrame.OnResizeFinished += UpdateSerializedWindowLayout;
         }
 
-        void CreateInspector(Action previewUpdateDelegate)
+        void CreateInspector()
         {
-            m_InspectorView = new InspectorView(graphView, previewUpdateDelegate);
+            m_InspectorView = new InspectorView(graphView);
             m_GraphView.Add(m_InspectorView);
             m_GraphView.OnSelectionChange += selectedObjects => m_InspectorView.Update();
         }
