@@ -62,7 +62,7 @@ namespace UnityEditor.ShaderGraph
 
         [Serializable]
         class AssetReference
-            {
+        {
             public long fileID = default;
             public string guid = default;
             public int type = default;
@@ -106,6 +106,7 @@ namespace UnityEditor.ShaderGraph
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
                 m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
+                m_SubGraph.LoadGraphData();
                 if (m_SubGraph == null)
                 {
                     return;
@@ -197,7 +198,7 @@ namespace UnityEditor.ShaderGraph
                 prop.ValidateConcretePrecision(asset.graphPrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
 
-                switch(prop)
+                switch (prop)
                 {
                     case Texture2DShaderProperty texture2DProp:
                         arguments.Add(string.Format("TEXTURE2D_ARGS({0}, sampler{0}), {0}_TexelSize", GetSlotValue(inSlotId, generationMode, prop.concretePrecision)));
@@ -222,6 +223,13 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var outSlot in asset.outputs)
                 arguments.Add(GetVariableNameForSlot(outSlot.id));
+
+            foreach (var feedbackSlot in asset.vtFeedbackVariables)
+            {
+                string feedbackVar = GetVariableNameForNode() + "_" + feedbackSlot;
+                sb.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), feedbackVar);
+                arguments.Add(feedbackVar);
+            }
 
             sb.AppendLine("{0}({1});", asset.functionName, arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
         }
@@ -278,7 +286,7 @@ namespace UnityEditor.ShaderGraph
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(valueType, id, prop.displayName, prop.referenceName, SlotType.Input, Vector4.zero, ShaderStageCapability.All);
 
                 // Copy defaults
-                switch(prop.concreteShaderValueType)
+                switch (prop.concreteShaderValueType)
                 {
                     case ConcreteSlotValueType.Matrix4:
                         {
@@ -397,8 +405,9 @@ namespace UnityEditor.ShaderGraph
 
             foreach (var slot in asset.outputs)
             {
-                AddSlot(MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
-                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage));
+                var newSlot = MaterialSlot.CreateMaterialSlot(slot.valueType, slot.id, slot.RawDisplayName(),
+                    slot.shaderOutputName, SlotType.Output, Vector4.zero, outputStage, slot.hidden);
+                AddSlot(newSlot);
                 validNames.Add(slot.id);
             }
 
@@ -430,11 +439,11 @@ namespace UnityEditor.ShaderGraph
                 var assetPath = string.IsNullOrEmpty(subGraphGuid) ? null : AssetDatabase.GUIDToAssetPath(assetGuid);
                 if (string.IsNullOrEmpty(assetPath))
                 {
-                    owner.AddValidationError(guid, $"Could not find Sub Graph asset with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not find Sub Graph asset with GUID {assetGuid}.");
                 }
                 else
                 {
-                    owner.AddValidationError(guid, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
+                    owner.AddValidationError(objectId, $"Could not load Sub Graph asset at \"{assetPath}\" with GUID {assetGuid}.");
                 }
 
                 return;
@@ -443,12 +452,32 @@ namespace UnityEditor.ShaderGraph
             if (asset.isRecursive || owner.isSubGraph && (asset.descendents.Contains(owner.assetGuid) || asset.assetGuid == owner.assetGuid))
             {
                 hasError = true;
-                owner.AddValidationError(guid, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
             else if (!asset.isValid)
             {
                 hasError = true;
-                owner.AddValidationError(guid, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+                owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
+            }
+
+            // detect VT layer count mismatches
+            foreach (var paramProp in asset.inputs)
+            {
+                if (paramProp is VirtualTextureShaderProperty vtProp)
+                {
+                    int paramLayerCount = vtProp.value.layers.Count;
+
+                    var argSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(paramProp.guid.ToString())];      // yikes
+                    var argProp = GetSlotProperty(argSlotId) as VirtualTextureShaderProperty;
+                    if (argProp != null)
+                    {
+                        int argLayerCount = argProp.value.layers.Count;
+
+                        if (argLayerCount != paramLayerCount)
+                            owner.AddValidationError(objectId, $"Input \"{paramProp.displayName}\" has different number of layers from the connected property \"{argProp.displayName}\"");
+                    }
+                    break;
+                }
             }
 
             ValidateShaderStage();
@@ -488,7 +517,7 @@ namespace UnityEditor.ShaderGraph
             foreach (var property in asset.nodeProperties)
             {
                 properties.Add(property.GetPreviewMaterialProperty());
-        }
+            }
         }
 
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
