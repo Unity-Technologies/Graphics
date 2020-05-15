@@ -8,9 +8,9 @@ Universal_Stereo_Win_Standalone_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_2020.1
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -31,7 +31,7 @@ Build_Universal_Stereo_Win_Player_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -54,7 +54,7 @@ Universal_Stereo_Win_playmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -74,7 +74,7 @@ Universal_Stereo_Win_editmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -94,9 +94,9 @@ Universal_Stereo_Win_Standalone_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -117,7 +117,7 @@ Build_Universal_Stereo_Win_Player_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -140,7 +140,7 @@ Universal_Stereo_Win_playmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -160,7 +160,7 @@ Universal_Stereo_Win_editmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -180,9 +180,9 @@ Universal_Stereo_Win_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -203,7 +203,7 @@ Build_Universal_Stereo_Win_Player_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -226,7 +226,7 @@ Universal_Stereo_Win_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -246,7 +246,7 @@ Universal_Stereo_Win_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -266,9 +266,9 @@ Universal_Stereo_Win_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Player_fast-trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -289,7 +289,7 @@ Build_Universal_Stereo_Win_Player_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -312,7 +312,7 @@ Universal_Stereo_Win_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -332,7 +332,7 @@ Universal_Stereo_Win_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGfxTestStereo/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade

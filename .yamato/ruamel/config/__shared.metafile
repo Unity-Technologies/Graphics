@@ -1,0 +1,16 @@
+editors:
+  - version: 2020.1
+    rerun_strategy: always
+    cmd: -u 2020.1/staging
+  - version: fast-2020.1
+    rerun_strategy: always
+    cmd: -u 2020.1/staging --fast
+  - version: trunk
+    rerun_strategy: always
+    cmd: -u trunk
+  - version: fast-trunk
+    rerun_strategy: always
+    cmd: -u trunk --fast
+  - version: CUSTOM-REVISION
+    rerun_strategy: always
+    cmd: -u $CUSTOM_REVISION

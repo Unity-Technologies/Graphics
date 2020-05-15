@@ -2,38 +2,38 @@ All_VFXMain_2020.1:
     name: All VFXMain CI - 2020.1
     dependencies:
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_2020.1
-         rerun: on-new-revision
+         rerun: always
 All_VFXMain_fast-2020.1:
     name: All VFXMain CI - fast-2020.1
     dependencies:
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
 All_VFXMain_trunk:
     name: All VFXMain CI - trunk
     dependencies:
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_trunk
-         rerun: on-new-revision
+         rerun: always
 All_VFXMain_fast-trunk:
     name: All VFXMain CI - fast-trunk
     dependencies:
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
 All_VFXMain_CUSTOM-REVISION:
     name: All VFXMain CI - CUSTOM-REVISION
     dependencies:

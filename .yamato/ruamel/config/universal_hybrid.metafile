@@ -1,17 +1,6 @@
 project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
-editors:
-  - version: 2020.1
-    rerun_strategy: on-new-revision
-  - version: fast-2020.1
-    rerun_strategy: on-new-revision
-  - version: trunk
-    rerun_strategy: on-new-revision
-  - version: fast-trunk
-    rerun_strategy: on-new-revision
-  - version: CUSTOM-REVISION
-    rerun_strategy: always
 test_platforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone

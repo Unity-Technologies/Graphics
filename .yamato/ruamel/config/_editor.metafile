@@ -1,14 +1,3 @@
-editors:
-  - version: trunk
-    cmd: -u trunk
-  - version: fast-trunk
-    cmd: -u trunk --fast
-  - version: 2020.1
-    cmd: -u 2020.1/staging
-  - version: fast-2020.1
-    cmd: -u 2020.1/staging --fast
-  - version: CUSTOM-REVISION
-    cmd: -u $CUSTOM_REVISION
 platforms:
   # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
   # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests

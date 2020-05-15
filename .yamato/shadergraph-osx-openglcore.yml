@@ -8,7 +8,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -28,7 +28,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -48,7 +48,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -68,7 +68,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -88,7 +88,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -108,7 +108,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -128,7 +128,7 @@ ShaderGraph_OSX_OpenGLCore_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -148,7 +148,7 @@ ShaderGraph_OSX_OpenGLCore_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade

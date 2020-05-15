@@ -8,9 +8,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:android
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_2020.1
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -38,7 +38,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:android
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -64,9 +64,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:android
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -94,7 +94,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:android
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -120,9 +120,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:android
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -150,7 +150,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:android
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -176,9 +176,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:android
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_fast-trunk
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
@@ -206,7 +206,7 @@ Build_Universal_Hybrid_Android_Vulkan_Player_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:android
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade

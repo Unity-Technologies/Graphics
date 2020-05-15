@@ -1,8 +1,3 @@
-editors:
-  - version: trunk
-  - version: 2020.1
-  - version: fast-trunk
-  - version: fast-2020.1
 templates:
   - name: HDRP Template
     id: hdrp_template

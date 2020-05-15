@@ -8,7 +8,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -29,7 +29,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -50,7 +50,7 @@ Universal_Hybrid_Linux_Vulkan_editmode_2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -71,7 +71,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -92,7 +92,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -113,7 +113,7 @@ Universal_Hybrid_Linux_Vulkan_editmode_fast-2020.1:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-2020.1:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -134,7 +134,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -155,7 +155,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -176,7 +176,7 @@ Universal_Hybrid_Linux_Vulkan_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -197,7 +197,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -218,7 +218,7 @@ Universal_Hybrid_Linux_Vulkan_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -239,7 +239,7 @@ Universal_Hybrid_Linux_Vulkan_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
-         rerun: on-new-revision
+         rerun: always
     commands:
       -  sudo -H pip install --upgrade pip
       -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade

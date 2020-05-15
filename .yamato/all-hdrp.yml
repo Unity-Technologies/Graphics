@@ -2,46 +2,46 @@ All_HDRP_2020.1:
     name: All HDRP CI - 2020.1
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode XR_2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_2020.1
-         rerun: on-new-revision
+         rerun: always
 All_HDRP_fast-2020.1:
     name: All HDRP CI - fast-2020.1
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode XR_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_fast-2020.1
-         rerun: on-new-revision
+         rerun: always
 All_HDRP_trunk:
     name: All HDRP CI - trunk
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode XR_trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_trunk
-         rerun: on-new-revision
+         rerun: always
 All_HDRP_fast-trunk:
     name: All HDRP CI - fast-trunk
     dependencies:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode XR_fast-trunk
-         rerun: on-new-revision
+         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_fast-trunk
-         rerun: on-new-revision
+         rerun: always
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:

@@ -28,6 +28,7 @@ from jobs.templates.template_test_dependencies import Template_TestDependenciesJ
 from jobs.templates.test_all import Template_AllTemplateCiJob
 
 save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+editors = []
 
 def load_yml(filepath):
     with open(filepath) as f:
@@ -47,7 +48,7 @@ def create_project_specific_jobs(metafile_name):
         for api in platform['apis']:
 
             yml = {}
-            for editor in metafile['editors']:
+            for editor in editors:
                 for test_platform in metafile['test_platforms']:
 
                     if test_platform["name"].lower() == 'standalone':
@@ -73,7 +74,7 @@ def create_project_all_jobs(metafile_name):
     metafile = load_yml(metafile_name)
 
     yml = {}
-    for editor in metafile['editors']:
+    for editor in editors:
         job = Project_AllJob(metafile["project"]["name"], editor, metafile["all"]["dependencies"])
         yml[job.job_id] = job.yml
 
@@ -88,7 +89,7 @@ def create_editor_job(metafile_name):
 
     yml = {}
     for platform in metafile["platforms"]:
-        for editor in metafile["editors"]:
+        for editor in editors:
             job = Editor_PrimingJob(platform, editor, metafile["agent"])
             yml[job.job_id] = job.yml
 
@@ -106,7 +107,7 @@ def create_package_jobs(metafile_name):
         job = Package_PublishJob(package, metafile["agent_win"], metafile["platforms"])
         yml[job.job_id] = job.yml
 
-    for editor in metafile["editors"]:
+    for editor in editors:
         for platform in metafile["platforms"]:
             for package in metafile["packages"]:
                 job = Package_TestJob(package, platform, editor)
@@ -115,7 +116,7 @@ def create_package_jobs(metafile_name):
                 job = Package_TestDependenciesJob(package, platform, editor)
                 yml[job.job_id] = job.yml
 
-    for editor in metafile["editors"]:
+    for editor in editors:
         job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_win"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
@@ -129,7 +130,7 @@ def create_abv_jobs(metafile_name):
     metafile = load_yml(metafile_name)
     yml = {}
 
-    for editor in metafile["editors"]:
+    for editor in editors:
         for test_platform in metafile['test_platforms']:
             job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
             yml[job.job_id] = job.yml
@@ -160,13 +161,13 @@ def create_preview_publish_jobs(metafile_name):
     job = PreviewPublish_PublishAllPreviewJob(metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  metafile["editors"], metafile["platforms"])
+    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  editors, metafile["platforms"])
     yml[job.job_id] = job.yml
 
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(metafile["agent_win"], package, metafile["integration_branch"], metafile["publishing"]["auto_publish"], metafile["editors"], metafile["platforms"])
+            job = PreviewPublish_PublishJob(metafile["agent_win"], package, metafile["integration_branch"], metafile["publishing"]["auto_publish"], editors, metafile["platforms"])
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(metafile["agent_win"], package)
@@ -183,7 +184,7 @@ def create_template_jobs(metafile_name):
         yml[job.job_id] = job.yml
 
 
-    for editor in metafile["editors"]:
+    for editor in editors:
         for platform in metafile["platforms"]:
             for template in metafile["templates"]:
                 job = Template_TestJob(template, platform, editor)
@@ -192,7 +193,7 @@ def create_template_jobs(metafile_name):
                 job = Template_TestDependenciesJob(template, platform, editor)
                 yml[job.job_id] = job.yml
 
-    for editor in metafile["editors"]:
+    for editor in editors:
         job = Template_AllTemplateCiJob(metafile["templates"], metafile["agent_win"], metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
@@ -206,6 +207,11 @@ if __name__== "__main__":
     yaml = ruamel.yaml.YAML()
     yaml.width = 4096
     yaml.indent(offset=2, mapping=4, sequence=5)
+
+
+    # parse shared file
+    shared = load_yml('config/__shared.metafile')
+    editors = shared['editors']
 
 
     # clear directory from existing yml files, not to have old duplicates etc
