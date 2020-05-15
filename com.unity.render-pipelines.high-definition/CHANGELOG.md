@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 - Fixed various multi-editing issues when changing Emission parameters.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
