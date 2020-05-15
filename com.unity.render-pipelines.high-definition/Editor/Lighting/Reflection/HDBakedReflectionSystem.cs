@@ -471,8 +471,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             // Or we delete all assets
                             || !deleteUnusedOnly)
                         {
+                            // If the buffer is full we empty it and then push again the element we were trying to
+                            // push but failed.
                             if (!buffer.TryPush(files[fileI]))
+                            {
                                 DeleteAllAssetsIn(ref buffer);
+                                buffer.TryPush(files[fileI]);
+                            }
                         }
                     }
                 }
@@ -489,6 +494,9 @@ namespace UnityEditor.Rendering.HighDefinition
             while (queue.TryPop(out string path))
                 AssetDatabase.DeleteAsset(path);
             AssetDatabase.StopAssetEditing();
+
+            // Clear the queue so that can be filled again.
+            queue.Clear();
         }
 
         internal static void Checkout(string targetFile)

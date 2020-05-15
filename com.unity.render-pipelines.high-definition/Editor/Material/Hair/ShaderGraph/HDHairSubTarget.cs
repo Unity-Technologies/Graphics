@@ -36,7 +36,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HairPasses.DepthForwardOnly },
                     { HairPasses.MotionVectors },
                     { HairPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { HairPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
+                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { HairPasses.ForwardOnly },
                     { HairPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 },
@@ -210,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = HairRenderStates.TransparentDepthPrePass,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -343,7 +351,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 defines = HairDefines.RaytracingVisibility,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
@@ -491,6 +499,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPrepassSlotId,
                 HairMasterNode.DepthOffsetSlotId,
+                HairMasterNode.NormalSlotId,
+                HairMasterNode.SmoothnessSlotId,
             };
 
             public static int[] FragmentTransparentBackface = new int[]
@@ -562,6 +572,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskMV,
                     Ref = CoreRenderStates.Uniforms.stencilRefMV,
+                    Comp = "Always",
+                    Pass = "Replace",
+                }) },
+            };
+
+            public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
+            {
+                { RenderState.Blend(Blend.One, Blend.Zero) },
+                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Stencil(new StencilDescriptor()
+                {
+                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
