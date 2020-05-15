@@ -20,6 +20,8 @@ from jobs.abv.trunk_verification import ABV_TrunkVerificationJob
 from jobs.preview_publish.pb_publish import PreviewPublish_PublishJob
 from jobs.preview_publish.pb_promote import PreviewPublish_PromoteJob
 from jobs.preview_publish.pb_auto_version import PreviewPublish_AutoVersionJob
+from jobs.preview_publish.pb_publish_all_preview import PreviewPublish_PublishAllPreviewJob
+from jobs.preview_publish.pb_wait_for_nightly import PreviewPublish_WaitForNightlyJob
 from jobs.templates.template_pack import Template_PackJob
 from jobs.templates.template_test import Template_TestJob
 from jobs.templates.template_test_dependencies import Template_TestDependenciesJob
@@ -155,7 +157,14 @@ def create_preview_publish_jobs(metafile_name):
     job = PreviewPublish_AutoVersionJob(metafile["agent_ubuntu"], metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_version"])
     yml[job.job_id] = job.yml
 
+    job = PreviewPublish_PublishAllPreviewJob(metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_publish"])
+    yml[job.job_id] = job.yml
+
+    job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  metafile["editors"], metafile["platforms"])
+    yml[job.job_id] = job.yml
+
     for package in metafile["packages"]:
+
         if package["publish_source"] == True:
             job = PreviewPublish_PublishJob(metafile["agent_win"], package, metafile["integration_branch"], metafile["publishing"]["auto_publish"], metafile["editors"], metafile["platforms"])
             yml[job.job_id] = job.yml

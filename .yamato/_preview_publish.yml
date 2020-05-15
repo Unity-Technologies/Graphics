@@ -19,6 +19,45 @@ auto-version:
         branches:
             only:
               -  master
+publish_all_preview:
+    name: Publish all preview packages - nightly
+    dependencies:
+      -  .yamato/_preview_publish.yml#publish_core
+      -  .yamato/_preview_publish.yml#publish_universal
+      -  .yamato/_preview_publish.yml#publish_hdrp
+      -  .yamato/_preview_publish.yml#publish_shadergraph
+      -  .yamato/_preview_publish.yml#publish_vfx
+      -  .yamato/_preview_publish.yml#publish_config
+      -  .yamato/_preview_publish.yml#publish_lwrp
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: daily
+wait_for_nightly:
+    name: Wait for nightly
+    dependencies:
+      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_packages.yml#pack_core
+      -  .yamato/_packages.yml#test_core_mac_trunk
+      -  .yamato/_packages.yml#test_core_win_trunk
+      -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_packages.yml#test_universal_mac_trunk
+      -  .yamato/_packages.yml#test_universal_win_trunk
+      -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_packages.yml#test_hdrp_mac_trunk
+      -  .yamato/_packages.yml#test_hdrp_win_trunk
+      -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
+      -  .yamato/_packages.yml#test_shadergraph_win_trunk
+      -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_packages.yml#test_vfx_mac_trunk
+      -  .yamato/_packages.yml#test_vfx_win_trunk
+      -  .yamato/_packages.yml#pack_config
+      -  .yamato/_packages.yml#test_config_mac_trunk
+      -  .yamato/_packages.yml#test_config_win_trunk
+      -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_packages.yml#test_lwrp_mac_trunk
+      -  .yamato/_packages.yml#test_lwrp_win_trunk
 publish_core:
     name: '[core] Candidates Publish'
     agent:
@@ -27,7 +66,7 @@ publish_core:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_core_mac_trunk
       -  .yamato/_packages.yml#test_core_win_trunk
     commands:
@@ -66,7 +105,7 @@ publish_universal:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_universal_mac_trunk
       -  .yamato/_packages.yml#test_universal_win_trunk
     commands:
@@ -105,7 +144,7 @@ publish_hdrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_hdrp_mac_trunk
       -  .yamato/_packages.yml#test_hdrp_win_trunk
     commands:
@@ -144,7 +183,7 @@ publish_shadergraph:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_shadergraph_mac_trunk
       -  .yamato/_packages.yml#test_shadergraph_win_trunk
     commands:
@@ -183,7 +222,7 @@ publish_vfx:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_vfx_mac_trunk
       -  .yamato/_packages.yml#test_vfx_win_trunk
     commands:
@@ -222,7 +261,7 @@ publish_config:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_config_mac_trunk
       -  .yamato/_packages.yml#test_config_win_trunk
     commands:
@@ -261,7 +300,7 @@ publish_lwrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_preview_publish.yml#wait_for_nightly
       -  .yamato/_packages.yml#test_lwrp_mac_trunk
       -  .yamato/_packages.yml#test_lwrp_win_trunk
     commands:

@@ -98,3 +98,9 @@ def pb_job_id_publish(package_name):
 
 def pb_job_id_promote(package_name):
     return f'promote_{package_name}'
+
+def pb_job_id_wait_for_nightly():
+    return f'wait_for_nightly'
+
+def pb_job_id_publish_all_preview():
+    return f'publish_all_preview'

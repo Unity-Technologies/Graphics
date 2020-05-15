@@ -18,7 +18,7 @@ class PreviewPublish_PublishJob():
         # define dependencies
         dependencies = [
             f'{packages_filepath()}#{package_job_id_pack(package["name"])}',
-            f'{abv_filepath()}#{abv_job_id_all_project_ci_nightly("trunk")}']
+            f'{pb_filepath()}#{pb_job_id_wait_for_nightly()}']
         for editor in editors:
             for platform in platforms:
                 dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], editor["version"])}')
