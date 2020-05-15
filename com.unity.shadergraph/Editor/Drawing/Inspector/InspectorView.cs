@@ -22,17 +22,40 @@ using System.Reflection;
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
 
-        void RegisterPropertyDrawer(Type propertyDrawerType)
+        void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
-            if (typeof(IPropertyDrawer).IsAssignableFrom(propertyDrawerType) == false)
+            if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
                 Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
 
-            var customAttribute = propertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
-            if (customAttribute != null)
-                m_PropertyDrawerList.Add(propertyDrawerType);
+            var newPropertyDrawerAttribute = newPropertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
+
+            if (newPropertyDrawerAttribute != null)
+            {
+                foreach (var existingPropertyDrawerType in m_PropertyDrawerList)
+                {
+                    var existingPropertyDrawerAttribute = existingPropertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
+                    if (newPropertyDrawerAttribute.propertyType.IsSubclassOf(existingPropertyDrawerAttribute.propertyType))
+                    {
+                        // Derived types need to be at start of list
+                        m_PropertyDrawerList.Insert(0, newPropertyDrawerType);
+                        return;
+                    }
+
+                    if (existingPropertyDrawerAttribute.propertyType.IsSubclassOf(newPropertyDrawerAttribute.propertyType))
+                    {
+                        // Add new base class type to end of list
+                        m_PropertyDrawerList.Add(newPropertyDrawerType);
+                        // Shift already added existing type to the beginning of the list
+                        m_PropertyDrawerList.Remove(existingPropertyDrawerType);
+                        m_PropertyDrawerList.Insert(0, existingPropertyDrawerType);
+                        return;
+                    }
+                }
+
+                m_PropertyDrawerList.Add(newPropertyDrawerType);
+            }
             else
-                Debug.Log(
-                    "Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
+                Debug.Log("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
         public InspectorView(GraphView graphView, Action updatePreviewDelegate) : base(graphView)
@@ -98,8 +121,7 @@ using System.Reflection;
             IInspectable inspectable,
             IPropertyDrawer propertyDrawerToUse = null)
         {
-            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable,
-                TriggerInspectorUpdate, propertyDrawerToUse);
+            InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
         }
 
         void TriggerInspectorUpdate()
@@ -150,7 +172,7 @@ using System.Reflection;
             if (dataObject == null)
                 throw new NullReferenceException("DataObject returned by Inspectable is null!");
 
-            var properties = inspectable.GetPropertyInfo();
+            var properties = inspectable.GetType().GetProperties(BindingFlags.Default | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (properties == null)
                 throw new NullReferenceException("PropertyInfos returned by Inspectable is null!");
 
@@ -160,7 +182,7 @@ using System.Reflection;
                 if (attribute == null)
                     continue;
 
-                var propertyType = propertyInfo.PropertyType;
+                var propertyType = propertyInfo.GetGetMethod(true).Invoke(inspectable, new object[] {}).GetType();
 
                 if (IsPropertyTypeHandled(propertyDrawerList, propertyType, out var propertyDrawerTypeToUse))
                 {
@@ -176,7 +198,9 @@ using System.Reflection;
             }
         }
 
-        static bool IsPropertyTypeHandled(List<Type> propertyDrawerList, Type typeOfProperty,
+        static bool IsPropertyTypeHandled(
+            List<Type> propertyDrawerList,
+            Type typeOfProperty,
             out Type propertyDrawerToUse)
         {
             propertyDrawerToUse = null;
@@ -194,6 +218,7 @@ using System.Reflection;
                 // Generics and Enumerable types are handled here
                 else if (typeHandledByPropertyDrawer.propertyType.IsAssignableFrom(typeOfProperty))
                 {
+                    // Before returning it, check for a more appropriate type further
                     propertyDrawerToUse = propertyDrawerType;
                     return true;
                 }
@@ -204,7 +229,6 @@ using System.Reflection;
                     return true;
                 }
             }
-
             return false;
         }
     }

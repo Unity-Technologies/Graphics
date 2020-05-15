@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         [Serializable]
         public class MinimalCustomFunctionNode : IHasDependencies
@@ -315,15 +315,6 @@ namespace UnityEditor.ShaderGraph
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
             }
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
-            ps.Add(new ReorderableSlotListView(this, SlotType.Output));
-            ps.Add(new HlslFunctionView(this));
-            return ps;
         }
 
         public static string UpgradeFunctionSource(string functionSource)

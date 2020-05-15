@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
+    class SubGraphOutputNode : AbstractMaterialNode
     {
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
         static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
@@ -112,13 +112,6 @@ namespace UnityEditor.ShaderGraph
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
-            return ps;
         }
 
         public override bool canDeleteNode => false;
