@@ -29,6 +29,7 @@ from jobs.templates.test_all import Template_AllTemplateCiJob
 
 save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 editors = []
+target_branch = ''
 
 def load_yml(filepath):
     with open(filepath) as f:
@@ -138,11 +139,11 @@ def create_abv_jobs(metafile_name):
         job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editors"])
+        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editors"], target_branch)
         yml[job.job_id] = job.yml
 
         if editor["version"] in metafile["nightly_config"]["allowed_editors"]:
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"], metafile["nightly_config"])
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"], metafile["nightly_config"], target_branch)
             yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["projects"], metafile["test_platforms"])
@@ -155,10 +156,10 @@ def create_preview_publish_jobs(metafile_name):
     metafile = load_yml(metafile_name)
     yml = {}
 
-    job = PreviewPublish_AutoVersionJob(metafile["agent_ubuntu"], metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_version"])
+    job = PreviewPublish_AutoVersionJob(metafile["agent_ubuntu"], metafile["packages"], target_branch, metafile["publishing"]["auto_version"])
     yml[job.job_id] = job.yml
 
-    job = PreviewPublish_PublishAllPreviewJob(metafile["packages"],  metafile["integration_branch"], metafile["publishing"]["auto_publish"])
+    job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
     yml[job.job_id] = job.yml
 
     job = PreviewPublish_WaitForNightlyJob(metafile["packages"],  editors, metafile["platforms"])
@@ -167,7 +168,7 @@ def create_preview_publish_jobs(metafile_name):
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(metafile["agent_win"], package, metafile["integration_branch"], metafile["publishing"]["auto_publish"], editors, metafile["platforms"])
+            job = PreviewPublish_PublishJob(metafile["agent_win"], package, target_branch, metafile["publishing"]["auto_publish"], editors, metafile["platforms"])
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(metafile["agent_win"], package)
@@ -212,6 +213,7 @@ if __name__== "__main__":
     # parse shared file
     shared = load_yml('config/__shared.metafile')
     editors = shared['editors']
+    target_branch = shared['target_branch']
 
 
     # clear directory from existing yml files, not to have old duplicates etc

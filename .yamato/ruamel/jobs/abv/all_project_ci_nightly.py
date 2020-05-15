@@ -4,14 +4,14 @@ from ..shared.yml_job import YMLJob
 
 class ABV_AllProjectCiNightlyJob():
     
-    def __init__(self, editor, projects, test_platforms, nightly_config):
+    def __init__(self, editor, projects, test_platforms, nightly_config, target_branch):
         if editor["version"] not in nightly_config["allowed_editors"]:
             raise Exception(f'Tried to construct nightly with PR trigger for version {editor["version"]}')
         self.job_id = abv_job_id_all_project_ci_nightly(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config["additional_jobs"]).get_yml()
+        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config["additional_jobs"], target_branch).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms, nightly_additions):  # only run for 2020.1 and trunk
+    def get_job_definition(self, editor, projects, test_platforms, nightly_additions, target_branch):  # only run for 2020.1 and trunk
 
         # define dependencies
         dependencies = [{
@@ -39,5 +39,5 @@ class ABV_AllProjectCiNightlyJob():
         job.set_name(f'_Nightly ABV against { editor["version"] }')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["version"])
-        job.add_trigger_recurrent('master','0 * * ?')
+        job.add_trigger_recurrent(target_branch,'0 * * ?')
         return job

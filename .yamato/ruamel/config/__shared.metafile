@@ -14,3 +14,4 @@ editors:
   - version: CUSTOM-REVISION
     rerun_strategy: always
     cmd: -u $CUSTOM_REVISION
+target_branch: master

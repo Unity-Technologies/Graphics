@@ -5,12 +5,12 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class PreviewPublish_AutoVersionJob():
     
-    def __init__(self, agent, packages, integration_branch, auto_version):
+    def __init__(self, agent, packages, target_branch, auto_version):
         self.job_id = pb_job_id_auto_version()
-        self.yml = self.get_job_definition(agent, packages, integration_branch, auto_version).get_yml()
+        self.yml = self.get_job_definition(agent, packages, target_branch, auto_version).get_yml()
 
 
-    def get_job_definition(self, agent, packages, integration_branch, auto_version):
+    def get_job_definition(self, agent, packages, target_branch, auto_version):
         bump_packages_args = " ".join([f'--{package["type"]}-path {package["path"]}' for package in packages])
 
         # construct job
@@ -25,6 +25,6 @@ class PreviewPublish_AutoVersionJob():
                 f'upm-ci utils auto-version commit --push'])
         job.add_artifacts_packages()
         if auto_version is True:
-            job.add_trigger_integration_branch(integration_branch)
+            job.add_trigger_integration_branch(target_branch)
         return job
     
