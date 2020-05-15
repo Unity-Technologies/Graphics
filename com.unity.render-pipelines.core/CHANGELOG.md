@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed copy/pasting of Volume Components when loading a new scene
 - Fix LookDev's camera button layout.
 - Fix LookDev's layout vanishing on domain reload.
+- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 
 ## [7.3.0] - 2020-03-11
 
