@@ -39,9 +39,8 @@ namespace UnityEditor.VFX.UI
             s_Instance.DoPaste(viewController, center, data, view, groupNode, nodesInTheSameOrder);
         }
 
-
         public static void PasteBlocks(VFXViewController viewController, object data, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder)
-        {    
+        {
             if (s_Instance == null)
                 s_Instance = new VFXPaste();
 
@@ -106,12 +105,12 @@ namespace UnityEditor.VFX.UI
             {
                 view.ClearSelection();
 
-                foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => m_NodesInTheSameOrder.Any(u=> u.model == t.controller.model)).ToList())
+                foreach (var uiBlock in targetContext.Query().OfType<VFXBlockUI>().Where(t => m_NodesInTheSameOrder.Any(u => u.model == t.controller.model)).ToList())
                     view.AddToSelection(uiBlock);
             }
         }
 
-        private int PasteBlocks(VFXViewController viewController, Node[] blocks, VFXContext targetModelContext, int targetIndex,List<VFXBlockController> blocksInTheSameOrder = null)
+        private int PasteBlocks(VFXViewController viewController, Node[] blocks, VFXContext targetModelContext, int targetIndex, List<VFXBlockController> blocksInTheSameOrder = null)
         {
             newControllers.Clear();
             m_NodesInTheSameOrder = new VFXNodeID[blocks.Length];
@@ -133,15 +132,15 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            var targetContextController = viewController.GetRootNodeController(targetModelContext, 0)as VFXContextController;
+            var targetContextController = viewController.GetRootNodeController(targetModelContext, 0) as VFXContextController;
             targetContextController.ApplyChanges();
 
-            if ( blocksInTheSameOrder != null)
+            if (blocksInTheSameOrder != null)
             {
                 blocksInTheSameOrder.Clear();
                 for (int i = 0; i < m_NodesInTheSameOrder.Length; ++i)
                 {
-                    blocksInTheSameOrder.Add(m_NodesInTheSameOrder[i].model != null ? targetContextController.blockControllers.First(t=>t.model == m_NodesInTheSameOrder[i].model as VFXBlock): null);
+                    blocksInTheSameOrder.Add(m_NodesInTheSameOrder[i].model != null ? targetContextController.blockControllers.First(t => t.model == m_NodesInTheSameOrder[i].model as VFXBlock) : null);
                 }
             }
 
@@ -300,9 +299,9 @@ namespace UnityEditor.VFX.UI
             {
                 controller.graph.AddChild(newNode);
 
-                m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(newNode,0);
+                m_NodesInTheSameOrder[node.indexInClipboard] = new VFXNodeID(newNode, 0);
             }
-                
+
 
             return newNode;
         }
@@ -330,7 +329,7 @@ namespace UnityEditor.VFX.UI
 
             var slotContainer = model as IVFXSlotContainer;
             var inputSlots = slotContainer.inputSlots;
-            for (int i = 0; i < node.inputSlots.Length && i< inputSlots.Count; ++i)
+            for (int i = 0; i < node.inputSlots.Length && i < inputSlots.Count; ++i)
             {
                 if (inputSlots[i].name == node.inputSlots[i].name)
                 {
@@ -734,7 +733,7 @@ namespace UnityEditor.VFX.UI
                                 p.m_Max = parameter.max;
                             }
                             p.SetSettingValue("m_Exposed", parameter.exposed);
-                            if(viewController.model.visualEffectObject is VisualEffectSubgraphOperator)
+                            if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator)
                                 p.isOutput = parameter.isOutput;
                             p.SetSettingValue("m_ExposedName", parameter.name); // the controller will take care or name unicity later
                             p.tooltip = parameter.tooltip;

@@ -1,4 +1,3 @@
-
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -13,16 +12,16 @@ namespace UnityEditor.VFX
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected VisualEffectSubgraphBlock m_Subgraph;
-        
+
         VFXModel[] m_SubChildren;
         VFXBlock[] m_SubBlocks;
         VFXGraph m_UsedSubgraph;
 
         public VisualEffectSubgraphBlock subgraph
         {
-            get {
-
-                if(! isValid )
+            get
+            {
+                if (!isValid)
                     return null;
 
                 return m_Subgraph;
@@ -33,9 +32,9 @@ namespace UnityEditor.VFX
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
-            get {
-
-                if(m_isInOnEnable) // Recreate copy cannot be called in OnEnable because the subgraph my not have been enabled itself so in OnEnable send back the previous input properties
+            get
+            {
+                if (m_isInOnEnable) // Recreate copy cannot be called in OnEnable because the subgraph my not have been enabled itself so in OnEnable send back the previous input properties
                 {
                     if (subgraph != null)
                     {
@@ -66,7 +65,7 @@ namespace UnityEditor.VFX
             return param.isOutput;
         }
 
-        IEnumerable<VFXParameter> GetParameters(Func<VFXParameter,bool> predicate)
+        IEnumerable<VFXParameter> GetParameters(Func<VFXParameter, bool> predicate)
         {
             if (m_SubChildren == null) return Enumerable.Empty<VFXParameter>();
             return m_SubChildren.OfType<VFXParameter>().Where(t => predicate(t)).OrderBy(t => t.order);
@@ -84,6 +83,7 @@ namespace UnityEditor.VFX
         {
             Invalidate(this, cause);
         }
+
         public override IEnumerable<VFXAttributeInfo> attributes
         {
             get
@@ -126,7 +126,7 @@ namespace UnityEditor.VFX
 
             var context = graph.children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
 
-            if( context == null)
+            if (context == null)
             {
                 m_SubChildren = null;
                 m_SubBlocks = null;
@@ -134,13 +134,13 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            foreach ( var child in graph.children.Where(t=> t is VFXOperator || t is VFXParameter))
+            foreach (var child in graph.children.Where(t => t is VFXOperator || t is VFXParameter))
             {
                 dependencies.Add(child);
                 child.CollectDependencies(dependencies);
             }
 
-            foreach( var block in context.children)
+            foreach (var block in context.children)
             {
                 dependencies.Add(block);
                 block.CollectDependencies(dependencies);
@@ -152,23 +152,23 @@ namespace UnityEditor.VFX
             m_SubBlocks = m_SubChildren.OfType<VFXBlock>().ToArray();
             foreach (var child in m_SubChildren)
                 child.onInvalidateDelegate += SubChildrenOnInvalidate;
-            foreach(var child in copy)
+            foreach (var child in copy)
             {
                 child.hideFlags = HideFlags.HideAndDontSave;
             }
 
             foreach (var subgraphBlocks in m_SubBlocks.OfType<VFXSubgraphBlock>())
                 subgraphBlocks.RecreateCopy();
-            SyncSlots(VFXSlot.Direction.kInput,true);
+            SyncSlots(VFXSlot.Direction.kInput, true);
         }
-        
+
         public void PatchInputExpressions()
         {
             if (m_SubChildren == null) return;
 
             var inputExpressions = new List<VFXExpression>();
 
-            foreach (var slot in inputSlots.SelectMany(t=>t.GetExpressionSlots()))
+            foreach (var slot in inputSlots.SelectMany(t => t.GetExpressionSlots()))
             {
                 inputExpressions.Add(slot.GetExpression());
             }
@@ -199,7 +199,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return m_SubBlocks == null || !isActive ? Enumerable.Empty<VFXBlock>() : (m_SubBlocks.SelectMany(t => t is VFXSubgraphBlock ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Repeat(t, 1)));
+                return m_SubBlocks == null || !isActive? Enumerable.Empty<VFXBlock>() : (m_SubBlocks.SelectMany(t => t is VFXSubgraphBlock ? (t as VFXSubgraphBlock).recursiveSubBlocks : Enumerable.Repeat(t, 1)));
             }
         }
         public override bool isValid
@@ -212,7 +212,7 @@ namespace UnityEditor.VFX
                 VFXGraph subGraph = m_Subgraph.GetResource().GetOrCreateGraph();
                 VFXBlockSubgraphContext blockContext = subGraph.children.OfType<VFXBlockSubgraphContext>().First();
                 VFXContext parent = GetParent();
-                if (parent == null )
+                if (parent == null)
                     return true;
                 if (blockContext == null)
                     return false;
@@ -221,7 +221,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return (subgraph != null) ? subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType:VFXContextType.All; } }
+        public override VFXContextType compatibleContexts { get { return (subgraph != null) ? subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().compatibleContextType : VFXContextType.All; } }
         public override VFXDataType compatibleData { get { return (subgraph != null) ? subgraph.GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().First().ownedType : VFXDataType.Particle | VFXDataType.SpawnEvent; } }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX
 
             foreach (var child in m_SubChildren)
             {
-                if( ! (child is VFXParameter) )
+                if (!(child is VFXParameter))
                 {
                     objs.Add(child);
 
@@ -261,7 +261,6 @@ namespace UnityEditor.VFX
                 }
                 else if (m_UsedSubgraph != null)
                     RecreateCopy();
-
             }
 
             base.Invalidate(model, cause);

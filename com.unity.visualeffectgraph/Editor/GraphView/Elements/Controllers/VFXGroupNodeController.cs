@@ -234,7 +234,7 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
                 oneFound = true;
             }
-            if(oneFound)
+            if (oneFound)
                 Modified();
         }
 

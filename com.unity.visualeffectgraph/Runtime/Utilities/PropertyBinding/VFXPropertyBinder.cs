@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 namespace UnityEngine.VFX.Utility
 {
     /// <summary>
-    /// A Behaviour that controls binding between Visual Effect Properties, and other scene values, through the use of VFXBinderBase 
+    /// A Behaviour that controls binding between Visual Effect Properties, and other scene values, through the use of VFXBinderBase
     /// </summary>
     [RequireComponent(typeof(VisualEffect))]
     [DefaultExecutionOrder(1)]
@@ -40,11 +40,11 @@ namespace UnityEngine.VFX.Utility
         {
             if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
-            for (int i = 0; i < m_Bindings.Count; i++ )
+            for (int i = 0; i < m_Bindings.Count; i++)
             {
                 var binding = m_Bindings[i];
 
-                if(binding == null)
+                if (binding == null)
                 {
                     Debug.LogWarning(string.Format("Parameter binder at index {0} of GameObject {1} is null or missing", i, gameObject.name));
                     continue;

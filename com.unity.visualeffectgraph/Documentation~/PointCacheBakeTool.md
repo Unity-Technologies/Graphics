@@ -1,7 +1,7 @@
 <div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 
 
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Experimental:</b> This Feature is currently experimental and is subject to change in later major versions.</div>
+<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Experimental:</b> This feature is currently experimental and is subject to change in later major versions. To use this feature, enable <b>Experimental Operators/Blocks</b> in the <b>Visual Effects</b> tab of your Project's Preferences.</div>
 # Point Cache Bake Tool
 
 The Point Cache Bake Tool is an Utility Window that enables generating [Point Cache](PointCaches.md) Assets from Geometric Data or Textures. It provides basic functionality to scatter points and get attributes from the inputs.
@@ -23,7 +23,7 @@ The tool window prompts with two **Bake Modes** at the top :
 
 ![](Images/PCacheToolMesh.png)
 
-When using Mesh baking mode. The window displays the following Mesh Baking properties : 
+When using Mesh baking mode. The window displays the following Mesh Baking properties :
 
 * **Mesh** (Mesh) : The Mesh object to use for the Baking
 * **Distribution** (Enum): The Point Scattering technique used.
@@ -52,7 +52,7 @@ After Setting a Mesh into the Mesh Property, The following UI becomes visible:
 
 
 
-When using Texture baking mode. The window displays the following Mesh Baking properties : 
+When using Texture baking mode. The window displays the following Mesh Baking properties :
 
 - **Texture** (Texture) : The 2D Texture object to use for the Baking
 - **Decimation Threshold** (Enum): The decimation threshold mode used.
@@ -73,4 +73,3 @@ After Setting a Texture into the Mesh Property, The following UI becomes visible
   - Width: the width (in pixels) of the texture
   - Height: the height (in pixels) of the texture
   - Pixels Count : the number pixels (width * height) of the texture
-
