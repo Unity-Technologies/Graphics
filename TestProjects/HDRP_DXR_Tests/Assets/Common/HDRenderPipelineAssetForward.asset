@@ -202,6 +202,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
+    supportSSGI: 1
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -359,6 +360,18 @@ MonoBehaviour:
       AODirectionCount: 010000000200000004000000
       ContactShadowSampleCount: 060000000a00000010000000
       SSRMaxRaySteps: 100000002000000040000000
+      SSGIRaySteps: 100000002000000040000000
+      SSGIResolution: 000101
+      SSGIRadius:
+      - 2
+      - 3
+      - 10
+      SSGIFullResolution: 000101
+      SSGIClampValue:
+      - 2
+      - 2
+      - 3
+      SSGIFilterRadius: 020000000300000004000000
   allowShaderVariantStripping: 1
   enableSRPBatcher: 1
   shaderVariantLogLevel: 0

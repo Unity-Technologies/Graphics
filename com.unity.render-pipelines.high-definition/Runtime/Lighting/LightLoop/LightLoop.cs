@@ -121,6 +121,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
+
+        // Indirect diffuse flags
+        public static int k_IndirectDiffuseFlagOff = 0x00;
+        public static int k_ScreenSpaceIndirectDiffuseFlag = 0x01;
+        public static int k_RayTracedIndirectDiffuseFlag = 0x02;
     }
 
     [GenerateHLSL]

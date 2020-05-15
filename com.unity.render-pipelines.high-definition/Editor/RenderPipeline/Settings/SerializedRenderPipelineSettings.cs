@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSRTransparent;
         public SerializedProperty supportSSAO;
+        public SerializedProperty supportSSGI;
         public SerializedProperty supportSubsurfaceScattering;
         public SerializedScalableSetting sssSampleBudget;
         [FormerlySerializedAs("supportVolumetric")]
@@ -84,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSRTransparent           = root.Find((RenderPipelineSettings s) => s.supportSSRTransparent);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
+            supportSSGI                     = root.Find((RenderPipelineSettings s) => s.supportSSGI);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
