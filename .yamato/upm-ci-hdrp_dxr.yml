@@ -1,8 +1,6 @@
 editors:
   - version: 2020.1
   - version: fast-2020.1
-  - version: trunk
-  - version: fast-trunk
 platforms:
   - name: Win
     os: windows
@@ -91,7 +89,7 @@ All_{{ project.name }}:
   {% for platform in platforms %}
   {% for testplatform in testplatforms %}
   {% for win_api in win_apis %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_trunk
+    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_Win_{{ win_api.name }}_{{ testplatform.name }}_2020.1
   {% endfor %}
   {% endfor %}
   {% endfor %}

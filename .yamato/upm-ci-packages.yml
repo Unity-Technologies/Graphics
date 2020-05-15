@@ -1,7 +1,5 @@
 editors:
-  - version: trunk
   - version: 2020.1
-  - version: fast-trunk
   - version: fast-2020.1
   - version: CUSTOM-REVISION
 packages:
@@ -198,8 +196,8 @@ publish_{{ package.id }}:
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ package.id }}
 {% for platform in platforms %}
-# just using trunk for if a publish is happening
-    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_trunk
+# just using non-fast for if a publish is happening
+    - .yamato/upm-ci-packages.yml#test_{{ package.id}}_{{ platform.name }}_2020.1
 {% endfor %}
 {% endfor %}
 

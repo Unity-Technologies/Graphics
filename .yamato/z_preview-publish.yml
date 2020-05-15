@@ -102,7 +102,7 @@ publish_all_preview:
 wait_for_nightly:
   name: "z_Wait for nightly"
   dependencies:
-    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_2020.1
   {% for test in testables %}
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
   {% for editor in editors %}
