@@ -47,7 +47,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/019_xr_Particles_AlphaBlend.unity
     guid: f5b47e7b559724329bbd9f437a652f52
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/020_xr_Lighting_ReflectionProbe.unity
     guid: 0feef353efdf045989e9c2b501774338
   - enabled: 1
