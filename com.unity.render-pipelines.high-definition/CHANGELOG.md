@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
 - Fixed an issue where asset preview could be rendered white because of static lighting sky.
 - Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
@@ -93,7 +95,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
-- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -106,7 +107,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
 - Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
-- Shadowmask and realtime reflection probe property are hide in Quality settings
 
 ## [8.0.1] - 2020-02-25
 
