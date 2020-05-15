@@ -61,7 +61,7 @@ ResizableElement #middle #middle-center
 
 ResizableElement #middle #bottom-resize
 {
-    height: 12px;
+    height: 4px;
     cursor: resize-vertical;
 }
 

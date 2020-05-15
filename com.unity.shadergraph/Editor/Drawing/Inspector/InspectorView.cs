@@ -15,6 +15,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
     {
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
+        List<ISelectable> m_CachedSelectionList = new List<ISelectable>();
+        bool isShowingGraphSettings { get; set; }
+
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
         protected override string windowTitle => "Inspector";
@@ -54,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_PropertyDrawerList.Add(newPropertyDrawerType);
             }
             else
-                Debug.Log("Attempted to register a property drawer that isn't marked up with the SGPropertyDrawer attribute!");
+                Debug.Log("Attempted to register property drawer: " + newPropertyDrawerType + " that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
         public InspectorView(GraphView graphView) : base(graphView)
@@ -65,35 +68,37 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 RegisterPropertyDrawer(type);
             }
+
+            // By default at startup, the inspector should be hidden
+            this.style.visibility = Visibility.Hidden;
         }
 
-        #region Selection
+
+        // If any of the selected items are no longer selected, inspector requires an update
+        public bool DoesInspectorNeedUpdate()
+        {
+            var needUpdate = !m_CachedSelectionList.SequenceEqual(selection);
+            if(needUpdate)
+                isShowingGraphSettings = false;
+            return needUpdate;
+        }
 
         public void Update()
         {
             m_ContentContainer.Clear();
 
-            if (selection.Count == 0)
+            if(isShowingGraphSettings)
             {
-                HideWindow();
-            }
-            else if (selection.Count == 1)
-            {
-                ShowWindow();
-                var inspectable = selection.First() as IInspectable;
-                subTitle = $"{inspectable?.inspectorTitle}.";
-            }
-            else if (selection.Count > 1)
-            {
-                ShowWindow();
-                subTitle = $"{selection.Count} Objects.";
+                ShowGraphSettings();
+                return;
             }
 
             try
             {
                 foreach (var selectable in selection)
                 {
-                    DrawSelection(selectable, m_ContentContainer);
+                    if(selectable is IInspectable inspectable)
+                        DrawInspectable(m_ContentContainer, inspectable);
                 }
             }
             catch (Exception e)
@@ -102,15 +107,31 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 throw;
             }
 
-            m_ContentContainer.MarkDirtyRepaint();
-        }
+            // Store this for update checks later, copying list deliberately as we dont want a reference
+            m_CachedSelectionList = new List<ISelectable>(selection);
 
-        void DrawSelection(ISelectable selectable, VisualElement outputVisualElement)
-        {
-            if (selectable is IInspectable inspectable)
+            // Things can be selected that don't have an inspector representation,
+            // this check makes sure the inspector window doesn't show if there weren't any things to actually inspect
+            if (m_ContentContainer.childCount != 0)
             {
-                DrawInspectable(outputVisualElement, inspectable);
+                ShowWindow();
             }
+            else
+            {
+                HideWindow();
+            }
+
+            if (selection.Count == 1)
+            {
+                var inspectable = selection.First() as IInspectable;
+                subTitle = $"{inspectable?.inspectorTitle}.";
+            }
+            else if (selection.Count > 1)
+            {
+                subTitle = $"{selection.Count} Objects.";
+            }
+
+            m_ContentContainer.MarkDirtyRepaint();
         }
 
         void DrawInspectable(
@@ -126,22 +147,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Update();
         }
 
-        public void ToggleGraphSettings()
+        public void ShowGraphSettings()
         {
-            if (this.style.visibility == Visibility.Hidden)
-            {
-                this.ShowWindow();
-                ShowGraphSettings(m_ContentContainer);
-            }
-            else
-            {
-                this.HideWindow();
-            }
+            isShowingGraphSettings = true;
+            ShowWindow();
+            ShowGraphSettings_Internal(m_ContentContainer);
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
         // which for SG, is a representation of the settings in GraphData
-        protected virtual void ShowGraphSettings(VisualElement contentContainer)
+        protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
@@ -149,11 +164,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             subTitle = $"{graphEditorView.assetName} (Graph)";
 
+            contentContainer.Clear();
             DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            contentContainer.MarkDirtyRepaint();
         }
-#endregion
     }
-
 
     public static class InspectorUtils
     {

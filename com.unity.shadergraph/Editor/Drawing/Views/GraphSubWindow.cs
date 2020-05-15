@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views
 {
-    class GraphSubWindow : GraphElement, ISelection, IResizable
+    class GraphSubWindow : GraphElement, IResizable
     {
         Dragger m_Dragger;
 
@@ -56,14 +56,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             }
         }
 
-        // ISelection implementation
-        public List<ISelectable> selection
-        {
-            get
-            {
-                return graphView?.selection;
-            }
-        }
+        public List<ISelectable> selection => graphView?.selection;
 
         public override string title
         {
@@ -195,26 +188,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected void ShowWindow()
         {
             this.style.visibility = Visibility.Visible;
+            contentContainer.MarkDirtyRepaint();
         }
 
         protected void HideWindow()
         {
             this.style.visibility = Visibility.Hidden;
-        }
-
-        public virtual void AddToSelection(ISelectable selectable)
-        {
-            graphView?.AddToSelection(selectable);
-        }
-
-        public virtual void RemoveFromSelection(ISelectable selectable)
-        {
-            graphView?.RemoveFromSelection(selectable);
-        }
-
-        public virtual void ClearSelection()
-        {
-            graphView?.ClearSelection();
+            this.m_ScrollView.showVertical = false;
+            this.m_ScrollView.showHorizontal = false;
+            contentContainer.Clear();
+            contentContainer.MarkDirtyRepaint();
         }
 
         void BuildManipulators()
@@ -255,8 +238,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             else
                 windowDockingLayout = m_DefaultLayout;
 
-            // The window size needs to come from the stylesheet or UXML as opposed to being defined in code
-            windowDockingLayout.size = layout.size;
             windowDockingLayout.ApplySize(this);
             windowDockingLayout.ApplyPosition(this);
         }
@@ -278,6 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         void OnWindowResize(MouseUpEvent upEvent)
         {
+            OnResized();
         }
     }
 #endregion

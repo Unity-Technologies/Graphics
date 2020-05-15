@@ -60,21 +60,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InspectorUpdateDelegate = inspectorUpdateDelegate;
             if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
             {
-                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+                graphDataPropertyDrawer.GetPropertyData(ChangeConcretePrecision);
             }
-        }
-
-        void ChangeTargetSettings()
-        {
-            var activeBlocks = graph.GetActiveBlocksForAllActiveTargets();
-            if (ShaderGraphPreferences.autoAddRemoveBlocks)
-            {
-                graph.AddRemoveBlocksFromActiveList(activeBlocks);
-            }
-
-            graph.UpdateActiveBlocks(activeBlocks);
-            this.m_PreviewManagerUpdateDelegate();
-            this.m_InspectorUpdateDelegate();
         }
 
         void ChangeConcretePrecision(ConcretePrecision newValue)
