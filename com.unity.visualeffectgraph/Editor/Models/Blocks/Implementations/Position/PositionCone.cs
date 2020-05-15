@@ -86,7 +86,7 @@ float hNorm = 0.0f;
                 }
                 else if (spawnMode == SpawnMode.Random)
                 {
-					float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
+                    float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
                     outSource += $@"
 float hNorm = 0.0f;
 if (abs(ArcCone_radius0 - ArcCone_radius1) > VFX_EPSILON)
