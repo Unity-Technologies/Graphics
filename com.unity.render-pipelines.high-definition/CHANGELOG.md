@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a flow map parameter to HDRI Sky
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
+- Added an initial version of SSGI.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -504,7 +505,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
 - Fixed issue with unclear naming of debug menu for decals.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
 - Fixed ray tracing with VR single-pass
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
@@ -604,6 +605,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
 - Fixed various multi-editing issues when changing Emission parameters.
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
