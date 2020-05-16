@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a flow map parameter to HDRI Sky
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
+- Added an initial version of SSGI.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
