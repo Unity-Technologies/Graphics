@@ -444,6 +444,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5008_FogFiltering.unity
     guid: f5cb4917223ead34abb31c1dc1013fb2
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/5x_SkyAndFog/5009_HDRI_Sky_Flow.unity
+    guid: f2fd7a28087b7634e94c49cb78704e74
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/8x_ShaderGraph/8101_Opaque.unity
     guid: 3f9e911b4dbc9464e85add595c37cb89
   - enabled: 1
@@ -566,6 +569,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9700_CustomPass_FullScreen.unity
     guid: 86f8f2a99d6720b48abc19c684103d74
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9701_CustomPass_DrawRenderers.unity
+    guid: c64196eb7ce78e84bb835b2ea858ee19
   - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9801_ShurikenLightModule.unity
     guid: d50ee167e49a2d74988347d7888c3613

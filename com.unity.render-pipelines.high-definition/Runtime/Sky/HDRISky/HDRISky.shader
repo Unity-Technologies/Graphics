@@ -10,6 +10,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
+    #pragma multi_compile_local _ SKY_MOTION
+    #pragma multi_compile_local _ USE_FLOWMAP
+
     #pragma multi_compile _ DEBUG_DISPLAY
     #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
@@ -46,6 +49,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
+    
+    TEXTURE2D(_Flowmap);
+    SAMPLER(sampler_Flowmap);
 
     float4 _SkyParam; // x exposure, y multiplier, zw rotation (cosPhi and sinPhi)
     float4 _BackplateParameters0; // xy: scale, z: groundLevel, w: projectionDistance
@@ -54,6 +60,8 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     float3 _BackplateShadowTint;  // xyz: ShadowTint
     uint   _BackplateShadowFilter;
 
+    float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+    
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -76,6 +84,9 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #define _OffsetTex          _BackplateParameters2.zw
     #define _ShadowTint         _BackplateShadowTint.rgb
     #define _ShadowFilter       _BackplateShadowFilter
+    #define _UpperHemisphere    _FlowmapParam.x
+    #define _ScrollFactor       _FlowmapParam.y
+    #define _ScrollDirection    _FlowmapParam.zw
 
     struct Attributes
     {
@@ -171,9 +182,43 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
+    float3 GetDistordedSkyColor(float3 dir)
+    {
+#if SKY_MOTION
+        if (dir.y >= 0 || !_UpperHemisphere)
+        {
+            float2 alpha = frac(float2(_ScrollFactor, _ScrollFactor + 0.5)) - 0.5;
+
+#ifdef USE_FLOWMAP
+            float3 tangent = normalize(cross(dir, float3(0.0, 1.0, 0.0)));
+            float3 bitangent = cross(tangent, dir);
+
+            float3 windDir = RotationUp(dir, _ScrollDirection);
+            float2 flow = SAMPLE_TEXTURE2D_LOD(_Flowmap, sampler_Flowmap, GetLatLongCoords(windDir, _UpperHemisphere), 0).rg * 2.0 - 1.0;
+
+            float3 dd = flow.x * tangent + flow.y * bitangent;
+#else
+            float3 windDir = RotationUp(float3(0, 0, 1), _ScrollDirection);
+            windDir.x *= -1.0;
+            float3 dd = windDir*sin(dir.y*PI*0.5);
+#endif
+
+            // Sample twice
+            float3 color1 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.x*dd, 0).rgb;
+            float3 color2 = SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir - alpha.y*dd, 0).rgb;
+
+            // Blend color samples
+            return lerp(color1, color2, abs(2.0 * alpha.x));
+        }
+        else
+#endif
+
+        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+    }
+
     float3 GetSkyColor(float3 dir)
     {
-        return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+        return GetDistordedSkyColor(dir);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
