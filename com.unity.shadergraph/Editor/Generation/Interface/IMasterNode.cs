@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -16,5 +17,8 @@ namespace UnityEditor.ShaderGraph
 
         ConditionalField[] GetConditionalFields(PassDescriptor pass);
         void ProcessPreviewMaterial(Material material);
+
+        // NOTE: Remove when stacks are integrated, this is only here as a stopgap measure as IHasSettings has been removed
+        VisualElement CreateSettingsElement();
     }
 }
