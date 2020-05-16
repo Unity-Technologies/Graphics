@@ -46,10 +46,7 @@ RW_TEXTURE2D_X(float2, _IndirectDiffuseHitPointTextureRW);
 bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 positionSS, float deviceDepth, bool killRay, out float3 rayPos)
 {
     // Initialize ray pos to invalid value
-    rayPos = -1.0;
-
-    // We start tracing from the center of the current pixel, and do so up to the far plane.
-    float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
+    rayPos = float3(-1.0, -1.0, -1.0);
 
     // Compute the sampled position in world space (one meter away from the original point along the sampled direction)
     float3 sampledPosWS  = positionWS + sampleDir * _IndirectDiffuseMaximalRadius;
@@ -57,6 +54,16 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
     // Convert the sampled position to NDC, then to SS
     float3 sampledPosNDC = ComputeNormalizedDeviceCoordinatesWithZ(sampledPosWS, UNITY_MATRIX_VP); // Jittered
     float3 sampledPosSS  = float3(sampledPosNDC.xy * _ScreenSize.xy, sampledPosNDC.z);
+
+    // If the point is behind the camera, this ray should not be cast
+    killRay = killRay || (sampledPosSS.z <= 0);
+
+    // If this ray 
+    if (killRay)
+        return false;
+
+    // We start tracing from the center of the current pixel, and do so up to the far plane.
+    float3 rayOrigin = float3(positionSS + 0.5, deviceDepth);
 
     // Compute the ray direction in screen space
     float3 rayDir = (sampledPosSS - rayOrigin);
@@ -72,13 +79,6 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
                              rcpRayDir.y >= 0 ? 1 : -1,
                              rcpRayDir.z >= 0 ? 1 : -1);
     bool   rayTowardsEye  =  rcpRayDir.z >= 0;
-
-    // If the point is behind the camera, this ray should not be cast
-    killRay = killRay || (sampledPosSS.z <= 0);
-
-    // If this ray 
-    if (killRay)
-        return false;
 
     // Build the bounds that start at the center of the pixel and travel to the edge of the screen
     float tMax;
