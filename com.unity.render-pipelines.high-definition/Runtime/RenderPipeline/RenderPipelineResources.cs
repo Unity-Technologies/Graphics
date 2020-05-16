@@ -200,11 +200,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
+            public ComputeShader screenSpaceGlobalIlluminationCS;
+
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
             public Shader depthValuesPS;
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/ColorResolve.shader")]
             public Shader colorResolvePS;
+            [Reload("Runtime/RenderPipeline/RenderPass/MSAA/MotionVecResolve.shader")]
+            public Shader resolveMotionVecPS;
 
             // Post-processing
             [Reload("Runtime/PostProcessing/Shaders/AlphaCopy.compute")]
@@ -290,6 +295,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader chromaKeyingPS;
             [Reload("Runtime/Compositor/Shaders/CustomClear.shader")]
             public Shader customClearPS;
+
+            // Denoising
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/SSGIDenoiser.compute")]
+            public ComputeShader ssGIDenoiserCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
+            public ComputeShader bilateralUpsampleCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
