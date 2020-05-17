@@ -34,7 +34,7 @@ Shader "Custom/UniversalPipeline/CustomParticleData"
 				float4 uv : TEXCOORD0;
 				float3 uv2 : TEXCOORD1;
 
-				UNITY_FOG_COORDS(1)
+				UNITY_FOG_COORDS(2)
 				float4 vertex : SV_POSITION;
 				UNITY_VERTEX_OUTPUT_STEREO
 			};
