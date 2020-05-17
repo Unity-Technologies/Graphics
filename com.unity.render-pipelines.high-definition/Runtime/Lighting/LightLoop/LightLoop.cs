@@ -121,6 +121,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
+
+        // Indirect diffuse flags
+        public static int k_IndirectDiffuseFlagOff = 0x00;
+        public static int k_ScreenSpaceIndirectDiffuseFlag = 0x01;
+        public static int k_RayTracedIndirectDiffuseFlag = 0x02;
     }
 
     [GenerateHLSL]
@@ -997,7 +1002,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ScreenSpaceShadowsUnion.Clear();
         }
 
-        void LightLoopNewFrame(HDCamera hdCamera)
+        void LightLoopNewFrame(CommandBuffer cmd, HDCamera hdCamera)
         {
             var frameSettings = hdCamera.frameSettings;
 
@@ -1014,6 +1019,13 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
             {
                 m_WorldToViewMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
+
+            // Clear the cookie atlas if needed at the beginning of the frame.
+            if (m_DebugDisplaySettings.data.lightingDebugSettings.clearCookieAtlas)
+            {
+                m_TextureCaches.lightCookieManager.ResetAllocator();
+                m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
             }
         }
 
@@ -2714,7 +2726,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, HDLightType lightType)
         {
             // Note: light component can be null if a Light is used for shuriken particle lighting.
-            switch (hdLightData.ComputeLightType(light))
+            lightType = light == null ? HDLightType.Point : lightType;
+            switch (lightType)
             {
                 case HDLightType.Directional:
                     m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
@@ -4059,12 +4072,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
                 }
-            }
-
-            if (lightingDebug.clearCookieAtlas)
-            {
-                parameters.cookieManager.ResetAllocator();
-                parameters.cookieManager.ClearAtlasTexture(cmd);
             }
 
             if (lightingDebug.displayCookieAtlas)

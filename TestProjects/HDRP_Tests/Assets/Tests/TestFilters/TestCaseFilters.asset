@@ -72,6 +72,13 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Crash on Yamato
+  - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
@@ -167,6 +174,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: f2fd7a28087b7634e94c49cb78704e74, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause following test to fail
   - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -208,7 +222,14 @@ MonoBehaviour:
     GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: instable
+    Reason: unstable
+  - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -300,6 +321,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c64196eb7ce78e84bb835b2ea858ee19, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: flip flop
   - FilteredScene: {fileID: 102900000, guid: 5b7d40e46ea038446bf4f714c9d89eaf, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -307,10 +335,3 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
-  - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Crash on Yamato
