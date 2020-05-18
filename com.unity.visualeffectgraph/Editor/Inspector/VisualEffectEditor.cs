@@ -232,6 +232,10 @@ namespace UnityEditor.VFX
                         {
                             objTyp = typeof(Mesh);
                         }
+                        else if (parameter.realType == "SkinnedMeshRenderer")
+                        {
+                            objTyp = typeof(SkinnedMeshRenderer);
+                        }
                     }
                     EditorGUI.ObjectField(rect, valueProperty, objTyp, nameContent);
                 }
