@@ -121,7 +121,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public int                  refCount;
             public bool                 pruned;
             public bool                 hasSideEffect;
-            public int                  syncWithPassIndex;
+            public int                  syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int                  syncFromPassIndex; // Smaller pass index that waits for this pass.
             public bool                 needGraphicsFence;
             public GraphicsFence        fence;
 
@@ -138,7 +139,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 refCount = 0;
                 pruned = false;
                 hasSideEffect = false;
-                syncWithPassIndex = -1;
+                syncToPassIndex = -1;
+                syncFromPassIndex = -1;
                 needGraphicsFence = false;
             }
         }
@@ -480,6 +482,22 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return result;
         }
 
+
+        void UpdatePassSynchronization(ref PassExecutionInfo currentPassInfo, ref PassExecutionInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
+        {
+            // Current pass needs to waoit for pass index lastProducer
+            currentPassInfo.syncToPassIndex = lastProducer;
+            // Update latest pass waiting for the other pipe.
+            intLastSyncIndex = lastProducer;
+
+            // Producer will need a graphics fence that this pass will wait on.
+            producerPassInfo.needGraphicsFence = true;
+            // We update the producer pass with the index of the smallest pass waiting for it.
+            // This will be used to "lock" resource from being reused until the pipe has been synchronized.
+            if (producerPassInfo.syncFromPassIndex == -1)
+                producerPassInfo.syncFromPassIndex = currentPassIndex;
+        }
+
         void UpdateResourceSynchronization(ref int lastGraphicsPipeSync, ref int lastComputePipeSync, int currentPassIndex, in ResourceUsageInfo resource)
         {
             int lastProducer = GetLatestProducerIndex(currentPassIndex, resource);
@@ -497,18 +515,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     {
                         if (lastProducer > lastGraphicsPipeSync)
                         {
-                            currentPassInfo.syncWithPassIndex = lastProducer;
-                            lastGraphicsPipeSync = lastProducer;
-                            m_PassExecutionInfo[lastProducer].needGraphicsFence = true;
+                            UpdatePassSynchronization(ref currentPassInfo, ref m_PassExecutionInfo[lastProducer], currentPassIndex, lastProducer, ref lastGraphicsPipeSync);
                         }
                     }
                     else
                     {
                         if (lastProducer > lastComputePipeSync)
                         {
-                            currentPassInfo.syncWithPassIndex = lastProducer;
-                            lastComputePipeSync = lastProducer;
-                            m_PassExecutionInfo[lastProducer].needGraphicsFence = true;
+                            UpdatePassSynchronization(ref currentPassInfo, ref m_PassExecutionInfo[lastProducer], currentPassIndex, lastProducer, ref lastComputePipeSync);
                         }
                     }
                 }
@@ -565,7 +579,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 foreach (TextureHandle texture in pass.transientTextureList)
                 {
                     passInfo.textureCreateList.Add(texture);
-                    passInfo.textureReleaseList.Add(texture);
+
+                    ref ResourceUsageInfo info = ref m_TextureUsageInfo[texture];
+                    info.lastReadPassIndex = passIndex;
                 }
 
                 // Gather all renderer lists
@@ -578,8 +594,37 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 ResourceUsageInfo textureInfo = m_TextureUsageInfo[i];
                 if (textureInfo.lastReadPassIndex != -1)
                 {
-                    ref PassExecutionInfo passInfo = ref m_PassExecutionInfo[textureInfo.lastReadPassIndex];
-                    passInfo.textureReleaseList.Add(new TextureHandle(i));
+                    RenderGraphPass pass = m_RenderPasses[textureInfo.lastReadPassIndex];
+                    // In case of async passes, we need to extend lifetime of resource to the first pass on the graphics pipeline that wait for async passes to be over.
+                    // Otherwise, if we freed the resource right away during an async pass, another non async pass could reuse the resource even though the async pipe is not done.
+                    if (pass.enableAsyncCompute)
+                    {
+                        int currentPassIndex = textureInfo.lastReadPassIndex;
+                        int firstWaitingPassIndex = m_PassExecutionInfo[currentPassIndex].syncFromPassIndex;
+                        // Find the first async pass that is synchronized by the graphics pipeline (ie: passInfo.syncFromPassIndex != -1)
+                        while (firstWaitingPassIndex == -1 && currentPassIndex < m_RenderPasses.Count)
+                        {
+                            currentPassIndex++;
+                            if(m_RenderPasses[currentPassIndex].enableAsyncCompute)
+                                firstWaitingPassIndex = m_PassExecutionInfo[currentPassIndex].syncFromPassIndex;
+                        }
+
+                        // Finally add the release command to the pass before the first pass that waits for the compute pipe.
+                        ref PassExecutionInfo passInfo = ref m_PassExecutionInfo[Math.Max(0, firstWaitingPassIndex - 1)];
+                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+
+                        // Fail safe in case render graph is badly formed.
+                        if (currentPassIndex == m_RenderPasses.Count)
+                        {
+                            RenderGraphPass invalidPass = m_RenderPasses[textureInfo.lastReadPassIndex];
+                            throw new InvalidOperationException($"Asynchronous pass {invalidPass.name} was never synchronized on the graphics pipeline.");
+                        }
+                    }
+                    else
+                    {
+                        ref PassExecutionInfo passInfo = ref m_PassExecutionInfo[textureInfo.lastReadPassIndex];
+                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+                    }
                 }
             }
 
@@ -622,12 +667,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
                 }
 
-                LogRenderPassBegin(passIndex);
-                using (new RenderGraphLogIndent(m_Logger))
+                using (new ProfilingScope(rgContext.cmd, pass.customSampler))
                 {
-                    PreRenderPassExecute(passIndex, ref rgContext);
-                    pass.Execute(rgContext);
-                    PostRenderPassExecute(cmd, passIndex, ref rgContext);
+                    LogRenderPassBegin(passIndex);
+                    using (new RenderGraphLogIndent(m_Logger))
+                    {
+                        PreRenderPassExecute(passIndex, ref rgContext);
+                        pass.Execute(rgContext);
+                        PostRenderPassExecute(cmd, passIndex, ref rgContext);
+                    }
                 }
             }
         }
@@ -700,7 +748,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             //if (pass.enableAsyncCompute)
             //    PushKickAsyncJobMarker(rgContext, pass);
 
-            pass.customSampler?.Begin(rgContext.cmd);
+            //pass.customSampler?.Begin(rgContext.cmd);
 
             foreach (var texture in passInfo.textureCreateList)
                 m_Resources.CreateAndClearTexture(rgContext, texture);
@@ -719,9 +767,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Synchronize with graphics or compute pipe if needed.
-            if (passInfo.syncWithPassIndex != -1)
+            if (passInfo.syncToPassIndex != -1)
             {
-                rgContext.cmd.WaitOnAsyncGraphicsFence(m_PassExecutionInfo[passInfo.syncWithPassIndex].fence);
+                rgContext.cmd.WaitOnAsyncGraphicsFence(m_PassExecutionInfo[passInfo.syncToPassIndex].fence);
             }
         }
 
@@ -744,7 +792,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_DebugParameters.unbindGlobalTextures)
                 m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, m_RenderPasses[passIndex].textureReadList);
 
-            pass.customSampler?.End(rgContext.cmd);
+            //pass.customSampler?.End(rgContext.cmd);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
 
@@ -764,7 +812,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_DebugParameters.logFrameInformation)
             {
                 m_Logger.LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
-                m_Logger.LogLine("Number of passes declared: {0}", m_RenderPasses.Count);
+                m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
         }
 
@@ -772,7 +820,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.logFrameInformation)
             {
-                m_Logger.LogLine("Number of renderer lists created: {0}", m_RendererLists.Count);
+                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
             }
         }
 
@@ -783,12 +831,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 RenderGraphPass pass = m_RenderPasses[passIndex];
                 PassExecutionInfo passInfo = m_PassExecutionInfo[passIndex];
 
-                m_Logger.LogLine("Executing pass \"{0}\" (index: {1})", pass.name, pass.index);
+                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
                 using (new RenderGraphLogIndent(m_Logger))
                 {
-                    m_Logger.LogLine("Queue: {0}", pass.enableAsyncCompute ? "Compute" : "Graphics");
-                    if (passInfo.syncWithPassIndex != -1)
-                        m_Logger.LogLine("Synchronize with pass index: {0}", passInfo.syncWithPassIndex);
+                    if (passInfo.syncToPassIndex != -1)
+                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
                 }
             }
         }
@@ -805,9 +852,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         if (m_PassExecutionInfo[i].pruned)
                         {
                             var pass = m_RenderPasses[i];
-                            m_Logger.LogLine("{0} (index: {1})", pass.name, pass.index);
+                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
                         }
                     }
+                    m_Logger.LogLine("\n");
                 }
             }
         }
