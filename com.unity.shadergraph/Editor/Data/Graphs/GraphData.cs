@@ -398,7 +398,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void UpdateActiveTargets()
+        public void UpdateActiveTargets(bool reevaluateActivity = true)
         {
             // Update active TargetImplementation list
             if(m_ActiveTargets != null)
@@ -413,7 +413,11 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-            NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
+            if (reevaluateActivity)
+            {
+                ValidateGraph();
+                NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
+            }
         }
 
         public void ClearChanges()
@@ -2005,7 +2009,7 @@ namespace UnityEditor.ShaderGraph
                 m_ValidTargets[targetIndex] = target;
             }
 
-            UpdateActiveTargets();
+            UpdateActiveTargets(false);
 
         }
 
