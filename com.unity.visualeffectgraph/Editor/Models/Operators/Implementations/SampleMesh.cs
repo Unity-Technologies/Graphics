@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputPropertiesPlacementVertex
         {
-            [Tooltip("Sets the vertex index to read from.")
+            [Tooltip("Sets the vertex index to read from.")]
             public uint vertex = 0u;
         }
 
@@ -269,7 +269,7 @@ namespace UnityEditor.VFX.Operator
             var outputExpressions = new List<VFXExpression>();
             if (placementMode == PlacementMode.Vertex)
             {
-                var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, adressingMode);
+                var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, mode);
                 SampleVertex(mesh, meshVertexCount, vertexIndex, outputExpressions);
             }
             else if (placementMode == PlacementMode.Edge)
@@ -278,7 +278,7 @@ namespace UnityEditor.VFX.Operator
                 var oneUint = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Uint32];
                 var threeUint = VFXValue.Constant(3u);
 
-                var baseIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshIndexCount, adressingMode);
+                var baseIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshIndexCount, mode);
                 var nextIndex = baseIndex + oneUint;
 
                 //Loop triangle
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.Operator
             {
                 var UintThree = VFXValue.Constant<uint>(3u);
                 var triangleCount = meshIndexCount / UintThree;
-                var triangleIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], triangleCount, adressingMode);
+                var triangleIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], triangleCount, mode);
                 var baseIndex = triangleIndex * UintThree;
 
                 var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);

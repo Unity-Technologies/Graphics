@@ -67,7 +67,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression vertexIndex;
                 if (spawnMode == SpawnMode.Custom)
                 {
-                    vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputVertex, meshVertexCount, adressingMode);
+                    vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputVertex, meshVertexCount, mode);
                 }
                 else //if(spawnMode == SpawnMode.Random)
                 {
