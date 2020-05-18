@@ -108,7 +108,11 @@ namespace UnityEditor.VFX
                 if (exp.valueType == VFXValueType.Mesh)
                 {
                     if (sourceExpression == null)
-                        throw new InvalidOperationException("VFXValueType.Mesh cannot be an end expression, we can't determine usage.");
+                    {
+                        //Actually possible if not used within the graph but exposed, TODOPAUL : improve this test
+                        //throw new InvalidOperationException("VFXValueType.Mesh cannot be an end expression, we can't determine usage.");
+                        return exp;
+                    }
 
                     if (    sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat
                         ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat2

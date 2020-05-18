@@ -140,6 +140,13 @@ namespace UnityEditor.VFX
 #endif
                 case VFXValueType.Boolean: return "bool";
             }
+
+            //TODOPAUL : Remove this and handle correctly Mesh exposed but not used within the graph
+            if (type == VFXValueType.Mesh)
+            {
+                return "StructuredBuffer<float>";
+            }
+
             throw new NotImplementedException(type.ToString());
         }
 
