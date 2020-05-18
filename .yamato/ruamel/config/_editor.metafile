@@ -18,6 +18,10 @@ platforms:
     components:
       - editor
       - il2cpp
+  - os: ios
+    components:
+      - editor
+      - iOS
 agent:
   type: Unity::VM
   image: cds-ops/ubuntu-16.04-base:stable

@@ -362,3 +362,94 @@ editor:priming:CUSTOM-REVISION:linux:
         unity_revision.zip:
             paths:
               -  "unity_revision.txt"
+editor:priming:2020.1:ios:
+    name: '[2020.1,ios] Editor priming'
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-16.04-base:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  unity-downloader-cli -u 2020.1/staging -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:fast-2020.1:ios:
+    name: '[fast-2020.1,ios] Editor priming'
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-16.04-base:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  unity-downloader-cli -u 2020.1/staging --fast -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:trunk:ios:
+    name: '[trunk,ios] Editor priming'
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-16.04-base:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  unity-downloader-cli -u trunk -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:fast-trunk:ios:
+    name: '[fast-trunk,ios] Editor priming'
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-16.04-base:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    commands:
+      -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  unity-downloader-cli -u trunk --fast -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"
+editor:priming:CUSTOM-REVISION:ios:
+    name: '[CUSTOM-REVISION,ios] Editor priming'
+    agent:
+        type: Unity::VM
+        image: cds-ops/ubuntu-16.04-base:stable
+        flavor: b1.small
+    skip_checkout: true
+    variables:
+        PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
+        DISPLAY: ":0"
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    commands:
+      -  pip install unity-downloader-cli --user --upgrade --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  unity-downloader-cli -u $CUSTOM_REVISION -o macos --wait --skip-download -c editor -c iOS  > unity_revision.txt
+    artifacts:
+        unity_revision.zip:
+            paths:
+              -  "unity_revision.txt"

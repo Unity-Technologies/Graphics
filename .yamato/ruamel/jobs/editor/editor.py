@@ -11,9 +11,15 @@ class Editor_PrimingJob():
 
 
     def get_job_definition(self, platform, editor, agent):
-    
-        platform_os = 'windows' if platform["os"] == 'android' else platform["os"]
+        
         components = platform["components"]
+
+        if platform["os"].lower() == 'android':
+            platform_os = 'windows'
+        elif platform["os"].lower() == 'ios':
+            platform_os = 'macos'
+        else:
+            platform_os = platform["os"]
         
         # construct job
         job = YMLJob()
