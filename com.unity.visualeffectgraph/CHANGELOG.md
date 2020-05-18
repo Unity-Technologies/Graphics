@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 ### Fixed
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
+- Don't show the blocks window when context cant have blocks
 
 ## [7.5.0] - 2020-06-08
 

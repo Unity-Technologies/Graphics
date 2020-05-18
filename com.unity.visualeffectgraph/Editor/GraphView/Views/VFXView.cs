@@ -1102,7 +1102,8 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                context.OnCreateBlock(point);
+                if(context.canHaveBlocks)
+                    context.OnCreateBlock(point);
             }
             else
             {
