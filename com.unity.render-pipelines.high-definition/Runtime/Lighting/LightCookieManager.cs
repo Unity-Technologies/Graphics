@@ -69,9 +69,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
             cookieAtlasLastValidMip = gLightLoopSettings.cookieAtlasLastValidMip;
 
-            if (PowerOfTwoTextureAtlas.GetApproxCacheSizeInByte(1, cookieAtlasSize, true, cookieFormat) > HDRenderPipeline.k_MaxCacheSize)
-                cookieAtlasSize = PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, true, cookieFormat);
-
             m_CookieAtlas = new PowerOfTwoTextureAtlas(cookieAtlasSize, gLightLoopSettings.cookieAtlasLastValidMip, cookieFormat, name: "Cookie Atlas (Punctual Lights)", useMipMap: true);
 
             m_CookieCubeResolution = (int)gLightLoopSettings.pointCookieSize;

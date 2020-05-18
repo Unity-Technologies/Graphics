@@ -247,7 +247,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion.</summary>
         [FrameSettingsField(1, displayedName: "Screen Space Ambient Occlusion", tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Ambient Occlusion (Depends on \"Screen Space Ambient Occlusion\" in current HDRP Asset).")]
         SSAO = 24,
-
+        /// <summary>When enabled, Cameras using these Frame Settings calculate Transparent Screen Space Global Illumination.</summary>
+        [FrameSettingsField(1, displayedName: "Screen Space Global Illumination", customOrderInGroup: 25, tooltip: "When enabled, Cameras using these Frame Settings calculate Screen Space Global Illumination (Depends on \"Screen Space Global Illumination\" in current HDRP Asset).")]
+        SSGI = 95,
         /// <summary>When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material.</summary>
         [FrameSettingsField(1, customOrderInGroup: 46, autoName: SubsurfaceScattering,
         tooltip: "When enabled, Cameras using these Frame Settings render subsurface scattering (SSS) effects for GameObjects that use a SSS Material (Depends on \"Subsurface Scattering\" in current HDRP Asset).")]
@@ -373,6 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ScreenSpaceShadows,
                 (uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
+                (uint)FrameSettingsField.SSGI,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
                 (uint)FrameSettingsField.AtmosphericScattering,
@@ -444,6 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //(uint)FrameSettingsField.ShadowMask,
                 //(uint)FrameSettingsField.SSR,
                 //(uint)FrameSettingsField.SSAO,
+                //(uint)FrameSettingsField.SSGI,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
                 //(uint)FrameSettingsField.AtmosphericScaterring,
@@ -497,6 +501,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.Shadowmask,
                 //(uint)FrameSettingsField.SSR,
                 (uint)FrameSettingsField.SSAO,
+                //(uint)FrameSettingsField.SSGI,
                 (uint)FrameSettingsField.SubsurfaceScattering,
                 (uint)FrameSettingsField.Transmission,   // Caution: this is only for debug, it doesn't save the cost of Transmission execution
                 (uint)FrameSettingsField.AtmosphericScattering,
@@ -739,6 +744,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentSSR] &= renderPipelineSettings.supportSSRTransparent && sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSR];
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Refraction] &= !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSAO] &= renderPipelineSettings.supportSSAO && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SSGI] &= renderPipelineSettings.supportSSGI && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= renderPipelineSettings.supportSubsurfaceScattering;
 
             // We must take care of the scene view fog flags in the editor

@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
+        SsgiPass,
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,

@@ -4,8 +4,10 @@ using UnityEngine.Scripting.APIUpdating;
 using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
+using UnityEditorInternal;
 #endif
 using System.ComponentModel;
+using System.Linq;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -256,9 +258,10 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
-
+                
                 string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
-                m_EditorResourcesAsset = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineEditorResources>(resourcePath);
+                var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
+                m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
                 return m_EditorResourcesAsset;
             }
         }
@@ -674,6 +677,12 @@ namespace UnityEngine.Rendering.Universal
                     Shader defaultShader = scriptableRendererData.GetDefaultShader();
                     if (defaultShader != null)
                         return defaultShader;
+                }
+                
+                if (m_DefaultShader == null)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
+                    m_DefaultShader  = AssetDatabase.LoadAssetAtPath<Shader>(path);
                 }
 #endif
 

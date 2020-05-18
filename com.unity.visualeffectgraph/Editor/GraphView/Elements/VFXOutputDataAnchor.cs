@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.UI
 
             string text = "";
             string tooltip = null;
-            VFXPropertyAttribute.ApplyToGUI(controller.attributes, ref text, ref tooltip);
+            controller.attributes.ApplyToGUI(ref text, ref tooltip);
 
             this.tooltip = tooltip;
         }
