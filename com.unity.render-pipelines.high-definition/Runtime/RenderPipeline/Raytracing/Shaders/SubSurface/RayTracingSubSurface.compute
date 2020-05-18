@@ -42,7 +42,7 @@ void BlendSubSurfaceData(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gro
     float3 albedo        = ApplySubsurfaceScatteringTexturingMode(texturingMode, sssData.diffuseColor);
 
     // Blend and we are done
-    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(lerp(_DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)].xyz * albedo
+    _DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(lerp(_DiffuseLightingTextureRW[COORD_TEXTURE2D_X(currentCoord)].xyz * albedo * GetInverseCurrentExposureMultiplier()
     																	, _SubSurfaceLightingBuffer[COORD_TEXTURE2D_X(currentCoord)].xyz
     																	, sssData.subsurfaceMask), 1.0);
 }
