@@ -126,6 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added back-compatibility with builtin stereo matrices.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -609,6 +610,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed taaFrameIndex and XR tests 4052 and 4053
