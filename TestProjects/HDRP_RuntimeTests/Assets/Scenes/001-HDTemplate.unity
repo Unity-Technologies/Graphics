@@ -3575,7 +3575,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   captureFramerate: 0
-  waitFrames: 32
+  waitFrames: 0
   xrCompatible: 1
   xrThresholdMultiplier: 1
   checkMemoryAllocation: 0
