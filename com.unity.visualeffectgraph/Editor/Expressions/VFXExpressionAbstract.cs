@@ -225,6 +225,7 @@ namespace UnityEditor.VFX
                 //Mesh API can modify the vertex count & layout.
                 //Thus, all mesh related expression should never been constant folded while generating code.
                 case VFXValueType.Mesh:
+                case VFXValueType.SkinnedMeshRenderer:
                     return false;
             }
             return true;
