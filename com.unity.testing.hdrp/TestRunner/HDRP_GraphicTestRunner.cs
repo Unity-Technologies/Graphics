@@ -4,7 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
-using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 using System.IO;
