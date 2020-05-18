@@ -1124,6 +1124,11 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
+        /// <summary>
+        /// Returns true if the "Light Overlap" scene view draw mode is enabled.
+        /// </summary>
+        /// <param name="camera">Input camera.</param>
+        /// <returns>True if "Light Overlap" is enabled in the scene view associated with the input camera.</returns>
         public static bool IsLightOverlapDebugEnabled(Camera camera)
         {
             bool enabled = false;
