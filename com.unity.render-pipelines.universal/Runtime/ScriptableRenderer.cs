@@ -646,6 +646,15 @@ namespace UnityEngine.Rendering.Universal
                         renderPassStarted = true;
                     }
 
+                    if (renderPass.m_ColorBindings.Length > SystemInfo.supportedRenderTargetCount)
+                    {
+                        Debug.LogError("Skipping SubPass. Count of RenderTargets used (" + renderPass.m_ColorBindings.Length +
+                                       ") is not supported on this device. Supported Render Target count: " +
+                                       SystemInfo.supportedRenderTargetCount);
+                        continue;
+                    }
+
+
                     if (renderPass.hasInputAttachment)
                         context.BeginSubPass(renderPass.m_ColorBindings, renderPass.m_InputBindings, descriptor.readOnlyDepth, descriptor.readOnlyStencil);
                     else
