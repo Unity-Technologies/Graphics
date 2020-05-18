@@ -67,7 +67,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
-- Fixed an error about procedural sky being logged by mistake.
 - Fixed flickering of the game/scene view when lookdev is running.
 - Fixed some GCAlloc in the debug window.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
@@ -85,6 +84,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vectors not working when in MSAA.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
