@@ -214,7 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             m_CustomPassList.onAddCallback += (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
+                Undo.RegisterCompleteObjectUndo(target, "Add custom pass");
 
                 var menu = new GenericMenu();
                 foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
@@ -227,16 +227,21 @@ namespace UnityEditor.Rendering.HighDefinition
                         m_Volume.AddPassOfType(customPassType);
                         UpdateMaterialEditors();
                         passList.serializedObject.ApplyModifiedProperties();
-                    });
+                        // Notify the prefab that something have changed:
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+                   });
                 }
                 menu.ShowAsContext();
 			};
 
             m_CustomPassList.onRemoveCallback = (list) => {
+                passList.serializedObject.Update();
                 Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
                 m_Volume.customPasses.RemoveAt(list.index);
-                passList.serializedObject.Update();
                 UpdateMaterialEditors();
+                passList.serializedObject.ApplyModifiedProperties();
+                // Notify the prefab that something have changed:
+                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             };
         }
 

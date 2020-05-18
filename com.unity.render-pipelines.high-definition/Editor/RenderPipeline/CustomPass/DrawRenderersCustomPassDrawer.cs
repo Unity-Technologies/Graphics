@@ -204,7 +204,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_FilterFoldout.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                // EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+                m_RenderQueue.intValue = (int)(CustomPass.RenderQueueType)EditorGUI.EnumPopup(rect, Styles.renderQueueFilter, (CustomPass.RenderQueueType)m_RenderQueue.intValue);
+                EditorGUI.EndProperty();
                 rect.y += Styles.defaultLineSpace;
                 if (ShowOpaqueObjectWarning())
                 {
@@ -251,7 +255,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
+                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                // EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
+                m_ShaderPass.intValue = (int)(DrawRenderersCustomPass.ShaderPass)EditorGUI.EnumPopup(rect, Styles.shaderPass, (DrawRenderersCustomPass.ShaderPass)m_ShaderPass.intValue);
+                EditorGUI.EndProperty();
             }
             EditorGUI.indentLevel--;
 
