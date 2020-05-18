@@ -172,9 +172,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do the reprojection
                 cmd.DispatchCompute(ssGICS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
+                float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+                if (Application.isPlaying)
+                    historyValidity = 0.0f;
+                else
+#endif
+                    // We need to check if something invalidated the history buffers
+                    historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                 // Do the denoising part
                 SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
-                ssgiDenoiser.Denoise(cmd, hdCamera, buffer1, buffer0, halfResolution: !giSettings.fullResolutionSS);
+                ssgiDenoiser.Denoise(cmd, hdCamera, buffer1, buffer0, halfResolution: !giSettings.fullResolutionSS, historyValidity: historyValidity);
 
                 // If this was a half resolution effect, we still have to upscale it
                 if (!giSettings.fullResolutionSS)
