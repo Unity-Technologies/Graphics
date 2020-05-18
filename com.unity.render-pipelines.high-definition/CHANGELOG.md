@@ -154,6 +154,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors when switching area light to disk shape while an area emissive mesh was displayed.
 - PBR Sky now doesn't go black when going below sea level, but it instead freezes calculation as if on the horizon. 
 - Fixed UI drawing of the quaternion (1251235)
+- Fixed taaFrameIndex and XR tests 4052 and 4053
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
