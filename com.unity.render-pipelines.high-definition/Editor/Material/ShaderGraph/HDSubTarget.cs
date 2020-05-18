@@ -42,8 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override bool IsActive() => true;
 
         protected abstract ShaderID shaderID { get; }
+        protected abstract string customInspector { get; }
+        protected abstract string subTargetAssetGuid { get; }
+        protected abstract string renderType { get; }
+        protected abstract string renderQueue { get; }
 
-        public string identifier => GetType().Name;
+        public virtual string identifier => GetType().Name;
 
         public virtual ScriptableObject GetMetadataObject()
         {
@@ -51,6 +55,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             hdMetadata.shaderID = shaderID;
             return hdMetadata;
         }
+
+        public sealed override void Setup(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
+            context.SetDefaultShaderGUI(customInspector);
+
+            foreach (var subShader in EnumerateSubShaders())
+            {
+                // patch render type and render queue from pass declaration:
+                var patchedSubShader = subShader;
+                patchedSubShader.renderType = renderType;
+                patchedSubShader.renderQueue = renderQueue;
+                context.AddSubShader(patchedSubShader);
+            }
+        }
+
+        protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
 
         // System data specific fields:
         public override void GetFields(ref TargetFieldContext context)
@@ -80,6 +102,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
 
+            // TODO: we probably need to remove these for some master nodes (eye, stacklit, )
             context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass
                 && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
             context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass
@@ -100,6 +123,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 return new HDSaveContext{ updateMaterials = needsUpdate };
             }
-        }
+        } 
     }
 }

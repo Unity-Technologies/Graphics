@@ -9,110 +9,41 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class EyeSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
-        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<EyeData>
+    sealed class EyeSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<EyeData>
     {
-        const string kAssetGuid = "864e4e09d6293cf4d98457f740bb3301";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
+        protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
+        protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
 
-        public EyeSubTarget()
-        {
-            displayName = "Eye";
-        }
+        public EyeSubTarget() => displayName = "Eye";
 
-        // Render State
-        string renderType => HDRenderTypeTags.HDLitShader.ToString();
-        string renderQueue
-        {
-            get
-            {
-                var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-                int queue = HDRenderQueue.ChangeType(renderingPass, systemData.sortPriority, systemData.alphaTest);
-                return HDRenderQueue.GetShaderTagValue(queue);
-            }
-        }
-
-        // Material Data
-        SystemData m_SystemData;
-        BuiltinData m_BuiltinData;
-        LightingData m_LightingData;
         EyeData m_EyeData;
 
-        // Interface Properties
-        SystemData IRequiresData<SystemData>.data
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        BuiltinData IRequiresData<BuiltinData>.data
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        LightingData IRequiresData<LightingData>.data
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         EyeData IRequiresData<EyeData>.data
         {
             get => m_EyeData;
             set => m_EyeData = value;
         }
 
-        // Public properties
-        public SystemData systemData
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        public BuiltinData builtinData
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        public LightingData lightingData
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         public EyeData eyeData
         {
             get => m_EyeData;
             set => m_EyeData = value;
         }
 
-        public override bool IsActive() => true;
-
-        public override void Setup(ref TargetSetupContext context)
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.EyeGUI");
-
-            // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Eye };
-            for(int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = renderType;
-                subShaders[i].renderQueue = renderQueue;
-
-                // Add
-                context.AddSubShader(subShaders[i]);
-            }
+            yield return SubShaders.Eye; 
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // Features
-            context.AddField(Fields.LodCrossFade,                           systemData.supportLodCrossFade);
-
-            // Surface Type
-            context.AddField(Fields.SurfaceOpaque,                          systemData.surfaceType == SurfaceType.Opaque);
-            context.AddField(Fields.SurfaceTransparent,                     systemData.surfaceType != SurfaceType.Opaque);
+            base.GetFields(ref context);
 
             // Structs
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(EyeSubTarget.EyePasses.MotionVectors));
@@ -122,25 +53,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
             context.AddField(HDFields.SubsurfaceScattering,                 lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
 
-            // Specular Occlusion
-            context.AddField(HDFields.SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
-            context.AddField(HDFields.SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
-            context.AddField(HDFields.SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            AddSpecularOcclusionFields(ref context);
 
             // Misc
-            context.AddField(Fields.AlphaTest,                              systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            AddLitMiscFields(ref context);
+            AddSurfaceMiscFields(ref context);
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(Fields.AlphaToMask,                            systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.AlphaFog,                             systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
-            context.AddField(HDFields.BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
-            context.AddField(HDFields.DisableDecals,                        !lightingData.receiveDecals);
-            context.AddField(HDFields.DisableSSR,                           !lightingData.receiveSSR);
-            context.AddField(Fields.VelocityPrecomputed,                    builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.BentNormal,                           context.blocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
-            context.AddField(HDFields.AmbientOcclusion,                     context.blocks.Contains(BlockFields.SurfaceDescription.Occlusion) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
-            context.AddField(HDFields.LightingGI,                           context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
-            context.AddField(HDFields.BackLightingGI,                       context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(HDFields.DepthOffset,                          builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -172,6 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            // TODO: refactor this
             var settingsView = new EyeSettingsView(this);
             settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
@@ -237,38 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             EyeGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        int ComputeMaterialNeedsUpdateHash()
-        {
-            int hash = 0;
-            hash |= (systemData.alphaTest ? 0 : 1) << 0;
-            hash |= (lightingData.receiveSSR ? 0 : 1) << 1;
-            hash |= (lightingData.subsurfaceScattering ? 0 : 1) << 2;
-            return hash;
-        }
-
-        public override object saveContext
-        {
-            get
-            {
-                int hash = ComputeMaterialNeedsUpdateHash();
-                bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
-                if (needsUpdate)
-                    systemData.materialNeedsUpdateHash = hash;
-
-                return new HDSaveContext{ updateMaterials = needsUpdate };
-            }
-        }
-
-        // IHasMetaData
-        public string identifier => "HDEyeSubTarget";
-
-        public ScriptableObject GetMetadataObject()
-        {
-            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
-            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Eye;
-            return hdMetadata;
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
