@@ -94,6 +94,22 @@ platforms:
       - editor
       - il2cpp
       - android
+  - name: iPhone
+    os: ios
+    apis:
+      - name: Metal
+        cmd:
+    agent_default:
+      type: Unity::mobile::iPhone
+      image: mobile/macos-10.13-testing:stable
+      flavor: b1.medium
+    agent_standalone_build:
+      type: Unity::VM::osx
+      image: mobile/macos-10.13-testing:stable
+      flavor: b1.large
+    components:
+      - editor
+      - iOS
 all:
   dependencies:
     - platform_name: Win

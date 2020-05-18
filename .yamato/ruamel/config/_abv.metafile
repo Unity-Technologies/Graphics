@@ -33,6 +33,12 @@ nightly_config:
       api_name: Vulkan
       test_platform_names:
         - Standalone
+    - project_name: Universal
+      all: false
+      platform_name: iPhone
+      api_name: Metal
+      test_platform_names:
+        - Standalone
     - project_name: HDRP_Hybrid
       all: true
     - project_name: Universal_Hybrid

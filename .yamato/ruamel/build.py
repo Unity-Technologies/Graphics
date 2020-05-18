@@ -64,7 +64,7 @@ def create_project_specific_jobs(metafile_name):
                             if job.build_job is not None:
                                 yml[job.build_job.job_id] = job.build_job.yml
                     
-                    elif platform["name"].lower() != "android": # android only has standalone, so run this block only for != android
+                    elif platform["name"].lower() not in ["iphone","android"]: # mobile only has standalone
                         job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
                         yml[job.job_id] = job.yml
                     
