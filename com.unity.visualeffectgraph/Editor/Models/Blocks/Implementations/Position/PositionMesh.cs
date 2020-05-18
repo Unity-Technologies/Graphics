@@ -9,14 +9,20 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position", experimental = true)]
     class PositionMesh : PositionBase
     {
-        [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
-        private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Direction. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionDirection = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
         public override string name { get { return "Position (Mesh)"; } }
 
         public class CustomPropertiesMesh
         {
-            [Tooltip("Sets the mesh to sample from.")]
+            [Tooltip("Sets the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
@@ -24,6 +30,18 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("Sets the vertex index to read from.")]
             public uint vertex = 0;
+        }
+
+        public class CustomPropertiesBlendPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Set the blending value for position attribute.")]
+            public float blendPosition;
+        }
+
+        public class CustomPropertiesBlendDirection
+        {
+            [Range(0.0f, 1.0f), Tooltip("Set the blending value for direction attribute.")]
+            public float blendDirection;
         }
 
         protected override bool needDirectionWrite { get { return true; } }
@@ -88,7 +106,7 @@ namespace UnityEditor.VFX.Block
                     yield return setting;
 
                 if (spawnMode != SpawnMode.Custom)
-                    yield return "adressingMode";
+                    yield return "mode";
             }
         }
 
@@ -103,6 +121,12 @@ namespace UnityEditor.VFX.Block
                 if (/*Placement == PlacementMode.Vertex &&*/ spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
 
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendPosition"));
+
+                if (compositionDirection == AttributeCompositionMode.Blend)
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendDirection"));
+
                 return properties;
             }
         }
@@ -113,8 +137,10 @@ namespace UnityEditor.VFX.Block
             {
                 string source = "";
                 source += @"
-position = sampledPosition;
-direction = sampledNormal;";
+float3 readPosition = SampleMeshFloat3(mesh, vertexIndex, meshPositionOffset, meshVertexStride);
+float3 readDirection = SampleMeshFloat3(mesh, vertexIndex, meshNormalOffset, meshVertexStride);";
+                source += "\n" + VFXBlockUtility.GetComposeString(compositionPosition, "position", "readPosition", "blendPosition");
+                source += "\n" + VFXBlockUtility.GetComposeString(compositionDirection, "direction", "readDirection", "blendDirection");
                 return source;
             }
         }

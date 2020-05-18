@@ -88,6 +88,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Sample Flipbook Texture File Names
 - Don't lose SRP output specific data when SRP package is not present
 - Support of flag settings in model inspector
+- height of initial event name.
+- fix colorfield height.
+- fix for capacity change for locked asset.
+- fix null value not beeing assignable to slot.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
+- Fix for dragged parameters order when there are categories
+- Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
+- Don't show the blocks window when context cant have blocks
+- Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
 
 ## [7.1.1] - 2019-09-05
 ### Added

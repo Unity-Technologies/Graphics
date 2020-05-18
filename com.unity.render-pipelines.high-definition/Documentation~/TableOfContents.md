@@ -15,6 +15,7 @@
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
   * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
   * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
+  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -140,9 +141,10 @@
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools
-  * Look Dev
-    * [Look Dev Window](Look-Dev)
-    * [Environment Library](Look-Dev-Environment-Library)
+  * [Look Dev](Look-Dev)
+  * [Compositor](Compositor-Main)
+    * [User Guide](Compositor-User-Guide)
+    * [User Options](Compositor-User-Options)
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)

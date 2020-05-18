@@ -14,13 +14,13 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("Sets the mesh to sample from.")]
+            [Tooltip("Sets the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class OutputProperties
         {
-            [Tooltip("The number of vertices in this mesh")]
+            [Tooltip("Outputs the number of vertices in the Mesh.")]
             public uint count;
         }
 

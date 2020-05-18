@@ -218,7 +218,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public static bool IsTypeCanBeConstantFolded(VFXValueType type)
+        public static bool IsTypeConstantFoldable(VFXValueType type)
         {
             switch (type)
             {
@@ -552,8 +552,10 @@ namespace UnityEditor.VFX
                 foreach (var parent in m_Parents)
                 {
                     foldable &= parent.Is(Flags.Foldable);
-                    m_Flags |= (parent.m_Flags & (Flags.NotCompilableOnCPU));
 
+                    const Flags propagatedFlags = Flags.NotCompilableOnCPU | Flags.InvalidConstant;
+                    m_Flags |= parent.m_Flags & propagatedFlags;
+                    
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
 

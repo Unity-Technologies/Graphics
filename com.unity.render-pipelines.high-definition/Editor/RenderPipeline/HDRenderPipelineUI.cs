@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ContactShadowQuality = 1 << 24,
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
+            VirtualTexturing = 1 << 27,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -349,14 +350,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                bool isDeferredOnly = serialized.renderPipelineSettings.supportedLitShaderMode.intValue == (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
-
-                // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
-                if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)ShaderConfig.s_DeferredShadowFiltering;
-
-                using (new EditorGUI.DisabledScope(isDeferredOnly))
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {
@@ -845,10 +839,13 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportRayTracing.boolValue))
             {
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
                 if (serialized.renderPipelineSettings.supportRayTracing.boolValue && !UnityEngine.SystemInfo.supportsRayTracing)
                 {
                     EditorGUILayout.HelpBox(Styles.rayTracingUnsupportedWarning.text, MessageType.Warning, wide: true);
                 }
+                --EditorGUI.indentLevel;
             }
 
             serialized.renderPipelineSettings.lodBias.ValueGUI<float>(Styles.LODBias);
@@ -862,13 +859,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
-            using (new EditorGUI.DisabledScope(serialized.renderPipelineSettings.supportVolumetrics.hasMultipleDifferentValues
-                || !serialized.renderPipelineSettings.supportVolumetrics.boolValue))
-            {
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.increaseResolutionOfVolumetrics, Styles.volumetricResolutionContent);
-                --EditorGUI.indentLevel;
-            }
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportProbeVolume.boolValue))
@@ -1011,6 +1001,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportTransparentDepthPostpass, Styles.supportTransparentDepthPostpass);
             AppendSupport(builder, serialized.renderPipelineSettings.supportRayTracing, Styles.supportRaytracing);
             AppendSupport(builder, serialized.renderPipelineSettings.supportProbeVolume, Styles.supportProbeVolumeContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportedRayTracingMode, Styles.supportedRayTracingMode);
 
             EditorGUILayout.HelpBox(builder.ToString(), MessageType.Info, wide: true);
         }

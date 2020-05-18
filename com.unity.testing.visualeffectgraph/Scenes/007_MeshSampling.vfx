@@ -576,13 +576,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615546}
   cullMode: 0
   zWriteMode: 0
@@ -656,7 +649,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615293}
   - {fileID: 8926484042661615313}
   output: 25
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661614606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2712,13 +2705,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615547}
   cullMode: 0
   zWriteMode: 0
@@ -3867,7 +3853,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615298}
   - {fileID: 8926484042661615316}
   output: 24
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661614802
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5334,12 +5320,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615548}
   cullMode: 0
   zWriteMode: 0
@@ -5556,7 +5536,9 @@ MonoBehaviour:
   m_Disabled: 0
   positionMode: 0
   spawnMode: 1
-  adressingMode: 0
+  compositionPosition: 0
+  compositionDirection: 0
+  mode: 1
 --- !u!114 &8926484042661614907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6190,12 +6172,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615549}
   cullMode: 0
   zWriteMode: 0
@@ -6895,7 +6871,9 @@ MonoBehaviour:
   m_Disabled: 0
   positionMode: 0
   spawnMode: 0
-  adressingMode: 0
+  compositionPosition: 0
+  compositionDirection: 0
+  mode: 1
 --- !u!114 &8926484042661614953
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7435,12 +7413,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615550}
   cullMode: 0
   zWriteMode: 0
@@ -8140,7 +8112,9 @@ MonoBehaviour:
   m_Disabled: 0
   positionMode: 0
   spawnMode: 0
-  adressingMode: 0
+  compositionPosition: 0
+  compositionDirection: 0
+  mode: 1
 --- !u!114 &8926484042661614999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10175,10 +10149,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615551}
   cullMode: 0
   zWriteMode: 0
@@ -10881,7 +10851,9 @@ MonoBehaviour:
   m_Disabled: 0
   positionMode: 0
   spawnMode: 0
-  adressingMode: 0
+  compositionPosition: 0
+  compositionDirection: 0
+  mode: 1
 --- !u!114 &8926484042661615130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13408,10 +13380,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661615552}
   cullMode: 0
   zWriteMode: 0
@@ -14174,7 +14142,9 @@ MonoBehaviour:
   m_Disabled: 0
   positionMode: 0
   spawnMode: 1
-  adressingMode: 0
+  compositionPosition: 0
+  compositionDirection: 0
+  mode: 1
 --- !u!114 &8926484042661615246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16273,7 +16243,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
   - {fileID: 8926484042661615553}
   cullMode: 0
   zWriteMode: 0
@@ -17004,7 +16973,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615391}
   - {fileID: 8926484042661615396}
   output: 25
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661615385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17505,7 +17474,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
   - {fileID: 8926484042661615554}
   cullMode: 0
   zWriteMode: 0
@@ -18045,7 +18013,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615424}
   - {fileID: 8926484042661615429}
   output: 25
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661615418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18546,7 +18514,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
   - {fileID: 8926484042661615555}
   cullMode: 0
   zWriteMode: 0
@@ -19086,7 +19053,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615457}
   - {fileID: 8926484042661615462}
   output: 25
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661615451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19587,7 +19554,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
   - {fileID: 8926484042661615556}
   cullMode: 0
   zWriteMode: 0
@@ -20127,7 +20093,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615490}
   - {fileID: 8926484042661615495}
   output: 25
-  adressingMode: 0
+  mode: 0
 --- !u!114 &8926484042661615484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21640,39 +21606,6 @@ MonoBehaviour:
     type:
       m_SerializableType: UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
---- !u!114 &8926484042661615532
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 8926484042661615532}
-  m_MasterData:
-    m_Owner: {fileID: 0}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-    m_Space: 2147483647
-  m_Property:
-    name: b
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &8926484042661615534
 MonoBehaviour:
   m_ObjectHideFlags: 0

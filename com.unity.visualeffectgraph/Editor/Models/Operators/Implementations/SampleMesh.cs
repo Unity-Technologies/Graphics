@@ -21,13 +21,13 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            [Tooltip("Sets the mesh to sample from.")]
+            [Tooltip("Sets the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
         }
 
         public class InputPropertiesPlacementVertex
         {
-            [Tooltip("The vertex index to read from.")]
+            [Tooltip("Sets the vertex index to read from.")
             public uint vertex = 0u;
         }
 
@@ -94,11 +94,11 @@ namespace UnityEditor.VFX.Operator
             BlendIndices = 1 << 13
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Outputs the result of the specified mesh sampling.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Outputs the result of the Mesh sampling operation.")]
         private VertexAttributeFlag output = VertexAttributeFlag.Position | VertexAttributeFlag.Color | VertexAttributeFlag.TexCoord0;
 
-        [VFXSetting, SerializeField, Tooltip("Change how the out of bounds are handled while fetching with the custom vertex index.")]
-        private VFXOperatorUtility.SequentialAddressingMode adressingMode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
+        [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
         [VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
         private PlacementMode placementMode = PlacementMode.Vertex;

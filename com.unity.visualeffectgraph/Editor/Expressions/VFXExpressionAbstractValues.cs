@@ -147,7 +147,7 @@ namespace UnityEditor.VFX
             var flags = Flags.None;
             if (!IsTypeValidOnGPU(valueType))
                 flags |= VFXExpression.Flags.InvalidOnGPU;
-            if (!IsTypeCanBeConstantFolded(valueType))
+            if (!IsTypeConstantFoldable(valueType))
                 flags |= VFXExpression.Flags.InvalidConstant;
             return flags;
         }
@@ -275,7 +275,7 @@ namespace UnityEditor.VFX
         {
             if (value == null)
             {
-                value = (int)0;
+                m_Content = (int)0;
                 return;
             }
             if (value is UnityObject obj)
