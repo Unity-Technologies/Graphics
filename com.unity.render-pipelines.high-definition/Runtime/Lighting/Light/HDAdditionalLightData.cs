@@ -592,15 +592,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Optional IES (Cubemap for PointLight)
         [SerializeField]
-        Texture m_IESPoint;
+        internal Texture m_IESPoint;
         // Optional IES (2D Square texture for Spot or rectangular light)
         [SerializeField]
-        Texture m_IESSpot;
+        internal Texture m_IESSpot;
 
         /// <summary>
         /// Get/Set IES texture for Point
         /// </summary>
-        public Texture IESPoint
+        internal Texture IESPoint
         {
             get => m_IESPoint;
             set
@@ -621,7 +621,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Get/Set IES texture for Spot or rectangular light.
         /// </summary>
-        public Texture IESSpot
+        internal Texture IESSpot
         {
             get => m_IESSpot;
             set

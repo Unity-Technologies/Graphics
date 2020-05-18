@@ -9,7 +9,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [ScriptedImporter(1, "ies")]
     public partial class HDIESImporter : ScriptedImporter
     {
-        public UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
+        internal UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
 
         internal void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies)
         {

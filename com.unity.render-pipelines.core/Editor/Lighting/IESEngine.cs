@@ -16,11 +16,11 @@ namespace UnityEditor.Rendering
         const float k_HalfPi = 0.5f * Mathf.PI;
         const float k_TwoPi  = 2.0f * Mathf.PI;
 
-        IESReader m_IesReader = new IESReader();
+        internal IESReader m_IesReader = new IESReader();
 
-        public string FileFormatVersion { get => m_IesReader.FileFormatVersion; }
+        internal string FileFormatVersion { get => m_IesReader.FileFormatVersion; }
 
-        TextureImporterType m_TextureGenerationType = TextureImporterType.Cookie;
+        internal TextureImporterType m_TextureGenerationType = TextureImporterType.Cookie;
         public TextureImporterType TextureGenerationType
         {
             set { m_TextureGenerationType = value; }
@@ -79,8 +79,8 @@ namespace UnityEditor.Rendering
 
         public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression, int textureSize)
         {
-            int width  = 2*textureSize;
-            int height = 2*textureSize;
+            int width  = 2 * textureSize;
+            int height = 2 * textureSize;
 
             NativeArray<Color32> colorBuffer;
 
@@ -124,7 +124,7 @@ namespace UnityEditor.Rendering
 
         public (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
         {
-            int width  = 2*textureSize;
+            int width  = 2 * textureSize;
             int height = textureSize;
 
             NativeArray<Color32> colorBuffer;
@@ -187,8 +187,8 @@ namespace UnityEditor.Rendering
 
         NativeArray<Color32> BuildTypeACylindricalTexture(int width, int height)
         {
-            float stepU = 360f/(width - 1);
-            float stepV = 180f/(height - 1);
+            float stepU = 360f / (width - 1);
+            float stepV = 180f / (height - 1);
 
             var textureBuffer = new NativeArray<Color32>(width * height, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
