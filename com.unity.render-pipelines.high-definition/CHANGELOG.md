@@ -609,7 +609,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
-- Fixed XR tests 1219, 2008, 3003, 5001, 5002, 5003, 5008, 8101 and 8102
+- Tentative fix for missing include in depth of field shaders.
+- Fixed the light overlap scene view draw mode (wasn't working at all).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
