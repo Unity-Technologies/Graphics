@@ -611,6 +611,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
+- Fixed taaFrameIndex and XR tests 4052 and 4053
 
 ### Changed
 - Improve MIP selection for decals on Transparents
