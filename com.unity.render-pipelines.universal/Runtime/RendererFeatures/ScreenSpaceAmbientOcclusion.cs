@@ -303,7 +303,7 @@ public class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
             m_Descriptor.depthBufferBits = 0;
             m_Descriptor.width = m_Descriptor.width / downsampleDivider;
             m_Descriptor.height = m_Descriptor.height / downsampleDivider;
-            m_Descriptor.colorFormat = RenderTextureFormat.R16;
+            m_Descriptor.colorFormat = RenderTextureFormat.R8;
 
             cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Point);
             cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Point);
