@@ -15,9 +15,6 @@ EditorBuildSettings:
     path: Assets/Scenes/003_xr_LitShaderMaps.unity
     guid: e11b892ea1dbc934c9f88172ebd48c4f
   - enabled: 1
-    path: Assets/Scenes/004_xr_UnlitSprites.unity
-    guid: b297cee4303f4834b9b1c900996a3edf
-  - enabled: 1
     path: Assets/Scenes/005_xr_PBS_EnvironmentBRDF_Spheres.unity
     guid: e6b6cac1cd594e246834d5cd95fb53fc
   - enabled: 1
@@ -26,10 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/007_xr_Lighting_Scene_DirectionalBaked.unity
     guid: 77e221f332239f943a43c61ecfe67a23
-  - enabled: 0
-    path: Assets/Scenes/008_xr_Lighting_BasicPoint.unity
-    guid: 76c689d257cb6184fb8eda097a9b0c52
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/009_xr_Lighting_BasicSpot.unity
     guid: 1c44222c598a7ec47b0baf67e5a7e900
   - enabled: 1
@@ -59,4 +53,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 82dc1c7729e14374592a84ca219d6b0a,
+      type: 2}
+    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: ef24a01627bd442ae9601127b5df8c08,
+      type: 2}
