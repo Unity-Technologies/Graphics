@@ -927,7 +927,7 @@ namespace UnityEngine.Rendering.Universal
                             if (m_AttachmentDescriptorList[j] == rp.inputAttachmentDescriptors[i] && wasBound[j] != 1)
                             {
                                 rp.m_InputBindings[i] = j;
-                                wasBound[i] = 1;
+                                wasBound[j] = 1;
                                 break;
                             }
                         }

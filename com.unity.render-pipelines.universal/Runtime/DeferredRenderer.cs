@@ -105,12 +105,12 @@ namespace UnityEngine.Rendering.Universal
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
-            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrepasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_MainLightShadowCasterPass = new MainLightShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_AdditionalLightsShadowCasterPass = new AdditionalLightsShadowCasterPass(RenderPassEvent.BeforeRenderingShadows);
             m_ScreenSpaceShadowResolvePass = new ScreenSpaceShadowResolvePass(RenderPassEvent.BeforeRenderingPrepasses, m_ScreenspaceShadowsMaterial);
             m_ColorGradingLutPass = new ColorGradingLutPass(RenderPassEvent.BeforeRenderingPrepasses, data.postProcessData);
-            m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
+            m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask);
+            m_GBufferPass = new GBufferPass(RenderPassEvent.BeforeRenderingOpaques + 1, RenderQueueRange.opaque, data.opaqueLayerMask, m_DefaultStencilState, stencilData.stencilReference, m_DeferredLights);
             m_TileDepthRangePass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 2, m_DeferredLights, 0);
             m_TileDepthRangeExtraPass = new TileDepthRangePass(RenderPassEvent.BeforeRenderingOpaques + 3, m_DeferredLights, 1);
             m_DeferredPass = new DeferredPass(RenderPassEvent.BeforeRenderingOpaques + 4, m_DeferredLights);
@@ -207,12 +207,6 @@ namespace UnityEngine.Rendering.Universal
                         rendererFeatures[i].AddRenderPasses(this, ref renderingData);
                 }
 
-                if (requiresDepthPrepass)
-                {
-                    m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
-                    EnqueuePass(m_DepthPrepass);
-                }
-
                 // Deferred shading do not try to apply shadow because we don't render any
                 // (m_MainLightShadowCasterPass and m_AdditionalLightsShadowCasterPass are not queued).
                 EnqueueDeferred(ref renderingData, requiresDepthPrepass, false, false, context, true);
@@ -267,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
 
             m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            m_CameraDepthDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), true, false);
+            m_CameraDepthDescriptor.ConfigureTarget(requiresDepthPrepass ? m_CameraDepthTexture.Identifier() : m_ActiveCameraDepthAttachment.Identifier(), true, false);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
                 m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
@@ -292,12 +286,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (additionalLightShadows)
                 EnqueuePass(m_AdditionalLightsShadowCasterPass);
-
-            if (requiresDepthPrepass)
-            {
-                m_DepthPrepass.Setup(cameraTargetDescriptor, m_CameraDepthTexture);
-                EnqueuePass(m_DepthPrepass);
-            }
 
             if (generateColorGradingLUT)
             {
@@ -484,8 +472,15 @@ namespace UnityEngine.Rendering.Universal
                 //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
                 m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
-                m_DeferredDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
+                m_DeferredDepthDescriptor.ConfigureTarget(hasDepthPrepass ? m_CameraDepthTexture.Identifier() : m_CameraDepthAttachment.Identifier(), false, true);
                 m_DeferredDepthDescriptor.ConfigureClear(Color.black, 1.0f, 0);
+            }
+
+            if (hasDepthPrepass)
+            {
+                m_DepthPrepass.Setup(desc, m_CameraDepthTexture);
+                m_DepthPrepass.ConfigureTarget(m_DeferredDepthDescriptor);
+                EnqueueRenderPass(m_DepthPrepass, desc);
             }
 
             m_GBufferPass.Setup(m_GBufferOutputs, m_DeferredLights);
