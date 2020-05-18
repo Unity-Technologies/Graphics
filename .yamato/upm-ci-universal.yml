@@ -159,6 +159,7 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     {% endif %}
     image: {{ platform.image }}
     flavor: {{ platform.flavor }}
+    model: rtx2080
   variables:
     UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     {% if editor.version == 'CUSTOM-REVISION' %}
