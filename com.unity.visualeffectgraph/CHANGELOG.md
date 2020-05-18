@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix for dragged parameters order when there are categories
 - Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
+- Don't show the blocks window when context cant have blocks
 
 ## [9.0.0] - 2020-07-09
 
