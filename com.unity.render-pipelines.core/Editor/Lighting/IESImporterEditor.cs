@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering
                 }
 
                 EditorGUILayout.PropertyField(m_ApplyLightAttenuationProp);
-                EditorGUILayout.PropertyField(m_CookieCompressionProp);
+                EditorGUILayout.PropertyField(m_CookieCompressionProp, new GUIContent("IES Compression"));
 
                 // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
                 EditorGUILayout.PropertyField(m_UseIESMaximumIntensityProp, new GUIContent("Use IES Maximum Intensity"));
