@@ -333,6 +333,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     RTHandlesDeleter.ScheduleRelease(existingTexture);
                 }
+
+                int mipMapCount = multiplied.rt.mipmapCount;
+                for (int k = 0; k < mipMapCount; ++k)
+                {
+                    cmd.SetRenderTarget(multiplied, k);
+                    HDUtils.BlitQuad(cmd, filteredAreaLight, sourceScaleOffset, new Vector4(1, 1, 0, 0), k, true);
+                }
                 m_AreaLightTextureEmissive[currentID] = multiplied;
             }
 
@@ -367,11 +374,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                                     useMipMap: true,
                                                     colorFormat: cookieFormat,
                                                     enableRandomWrite: true);
-                int mipMapCount = stored.rt.mipmapCount;// 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(cookie.width, cookie.height), 2));
+                int mipMapCount = stored.rt.mipmapCount;
                 for (int k = 0; k < mipMapCount; ++k)
                 {
-                    cmd.CopyTexture(filteredAreaLight, 0, k, 0, 0, (int)(sourceScaleOffset.x*atlasTexture.rt.width)/(k+1), (int)(sourceScaleOffset.y*atlasTexture.rt.height)/(k+1),
-                                    stored, 0, k, 0, 0);
+                    cmd.SetRenderTarget(stored, k);
+                    HDUtils.BlitQuad(cmd, filteredAreaLight, sourceScaleOffset, new Vector4(1, 1, 0, 0), k, true);
                 }
                 m_AreaLightTextureEmissive[currentID] = stored;
             }
