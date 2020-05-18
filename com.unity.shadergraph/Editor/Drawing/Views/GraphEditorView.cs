@@ -771,9 +771,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in m_Graph.removedEdges)
             {
                 var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>()
-                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
+                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
                 if (edgeView != null)
                 {
+                    var nodeView = (IShaderNodeView)edgeView.input.node;
+                    if (nodeView?.node != null)
+                    {
+                        nodesToUpdate.Add(nodeView);
+                    }
+
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -787,6 +793,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var edge in m_Graph.addedEdges)
             {
                 var edgeView = AddEdge(edge);
+                if (edgeView != null)
+                    nodesToUpdate.Add((IShaderNodeView)edgeView.input.node);
             }
 
             foreach (var node in nodesToUpdate)
