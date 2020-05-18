@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
     [Title("Master", "StackLit (HDRP)")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.StackLitMasterNode")]
     [FormerName("UnityEditor.ShaderGraph.StackLitMasterNode")]
-    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, IHasSettings, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
+    class StackLitMasterNode : AbstractMaterialNode, IMasterNode, ICanChangeShaderGUI, IMayRequirePosition, IMayRequireNormal, IMayRequireTangent
     {
         public const string PositionSlotName = "Vertex Position";
         public const string PositionSlotDisplayName = "Vertex Position";
@@ -360,7 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
-        
+
         [SerializeField]
         bool m_AlphaToMask = false;
 
