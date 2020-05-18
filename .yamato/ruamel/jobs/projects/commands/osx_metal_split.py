@@ -1,6 +1,6 @@
 
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
-from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ...shared.constants import REPOSITORY_NAME, TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS
 
 def _cmd_base(project, components):
     return [   ]
@@ -37,7 +37,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         export YAMATO_JOB_ID=$YAMATO_JOB_ID
         export YAMATO_JOBDEFINITION_NAME=$YAMATO_JOBDEFINITION_NAME
         export YAMATO_PROJECT_ID=$YAMATO_PROJECT_ID
-        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP -T "./utr {test_platform_args}OSX --player-load-path=~/{REPOSITORY_NAME}/build/players --artifacts_path=~/{REPOSITORY_NAME}/build/{PATH_TEST_RESULTS} --player-connection-ip=127.0.0.1"
+        ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP -T "./utr {test_platform_args}OSX --player-load-path=~/{REPOSITORY_NAME}/{PATH_PLAYERS} --artifacts_path=~/{REPOSITORY_NAME}/build/{PATH_TEST_RESULTS} --player-connection-ip=127.0.0.1"
         
         UTR_RESULT=$?
         mkdir -p build/{PATH_TEST_RESULTS}/
@@ -50,6 +50,6 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
         f'git clone git@github.cds.internal.unity3d.com:unity/utr.git {TEST_PROJECTS_DIR}/{project_folder}/utr',
         f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
         f'cd {TEST_PROJECTS_DIR}/{project_folder} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in platform["components"]])} --wait --published-only',
-        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr/utr {test_platform_args}OSX --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildOSXMetal" --testproject=. --editor-location=.Editor --artifacts_path=build-results --timeout=3600 --player-save-path=../../build/players --build-only'
+        f'cd {TEST_PROJECTS_DIR}/{project_folder} && utr/utr {test_platform_args}OSX --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildOSXMetal" --testproject=. --editor-location=.Editor --artifacts_path=build-results --timeout=3600 --player-save-path={PATH_PLAYERS} --build-only'
     ]
 

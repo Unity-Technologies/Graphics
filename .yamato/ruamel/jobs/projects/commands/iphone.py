@@ -1,4 +1,4 @@
-from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS
+from ...shared.constants import TEST_PROJECTS_DIR, PATH_UNITY_REVISION, PATH_TEST_RESULTS, PATH_PLAYERS
 from ruamel.yaml.scalarstring import PreservedScalarString as pss
 
 def _cmd_base(project_folder, components):
@@ -12,7 +12,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
     return [
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',
         f'chmod +x ./utr',
-        f'./utr --suite=playmode --platform=iOS --player-load-path=players --artifacts_path=test-results'
+        f'./utr --suite=playmode --platform=iOS --player-load-path={PATH_PLAYERS} --artifacts_path={PATH_TEST_RESULTS}'
     ]
 
         
@@ -23,5 +23,5 @@ def cmd_standalone_build(project_folder, platform, api, test_platform_args):
         f'unity-downloader-cli --source-file $YAMATO_SOURCE_DIR/{PATH_UNITY_REVISION} {"".join([f"-c {c} " for c in components])}  --wait --published-only',
         f'curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr --output utr',
         f'chmod +x ./utr',
-        f'./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject={TEST_PROJECTS_DIR}/{project_folder} --player-save-path=players --artifacts_path={PATH_TEST_RESULTS} --build-only'
+        f'./utr --suite=playmode --platform=iOS --editor-location=.Editor --testproject={TEST_PROJECTS_DIR}/{project_folder} --player-save-path={PATH_PLAYERS} --artifacts_path={PATH_TEST_RESULTS} --build-only'
      ]
