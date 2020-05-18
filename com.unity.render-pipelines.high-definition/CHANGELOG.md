@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a flow map parameter to HDRI Sky
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
+- Added an initial version of SSGI.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -504,7 +505,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
 - Fixed issue with unclear naming of debug menu for decals.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
 - Fixed ray tracing with VR single-pass
 - Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
@@ -578,6 +579,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - DXR: Fixed shader compilation error with shader graph and pathtracer
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph). 
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
@@ -590,6 +594,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fixed issue with sceneview camera settings not being saved after Editor restart.
+- Fixed issue when switching back to custom sensor type in physical camera settings (case 1244350).
+- Fixed a null ref exception when running playmode tests with the render pipeline debug window opened.
+- Fixed some GCAlloc in the debug window.
+- Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
+- Fixed thin refraction mode not working properly.
+- Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169) 
+- Fixed over consumption of GPU memory by the Physically Based Sky.
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fixed an issue where asset preview could be rendered white because of static lighting sky.
+- Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
+- Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 
 ### Changed
@@ -717,6 +737,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shadowmask and realtime reflectoin probe property are hide in Quality settings
 - Improved performance of reflection probe management when using a lot of probes.
 - Ignoring the disable SSR flags for recursive rendering.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 
 ## [7.1.1] - 2019-09-05
 
