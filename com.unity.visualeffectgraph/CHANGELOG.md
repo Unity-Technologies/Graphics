@@ -109,6 +109,7 @@ The version number for this package has increased due to a version update of a r
 - Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
 - Fix for dragged parameters order when there are categories
 - Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
+- Don't show the blocks window when context cant have blocks
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
 
 ## [7.1.1] - 2019-09-05
