@@ -13,17 +13,16 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDLitSubTarget : HDSubTarget, ILegacyTarget,
-        IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<HDLitData>
+    sealed class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
     {
-        const string kAssetGuid = "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
 
         public HDLitSubTarget() => displayName = "Lit";
 
-        // Render State
-        string renderType => HDRenderTypeTags.HDLitShader.ToString();
-        string renderQueue
+        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
+        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override string renderQueue
         {
             get
             {
@@ -54,66 +53,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        // Material Data
-        BuiltinData m_BuiltinData;
-        LightingData m_LightingData;
         HDLitData m_LitData;
 
-        // Interface Properties
-        BuiltinData IRequiresData<BuiltinData>.data
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        LightingData IRequiresData<LightingData>.data
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         HDLitData IRequiresData<HDLitData>.data
         {
             get => m_LitData;
             set => m_LitData = value;
         }
 
-        // Public properties
-        public BuiltinData builtinData
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        public LightingData lightingData
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         public HDLitData litData
         {
             get => m_LitData;
             set => m_LitData = value;
         }
 
-        public override void Setup(ref TargetSetupContext context)
+        // Iterate over the sub passes available in the shader
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDLitGUI");
-
-            // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Lit, SubShaders.LitRaytracing };
-            for(int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = renderType;
-                subShaders[i].renderQueue = renderQueue;
-
-                // Add
-                context.AddSubShader(subShaders[i]);
-            }
+            yield return SubShaders.Lit;
+            yield return SubShaders.LitRaytracing;
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
+            
+            AddDistortionFields(ref context);
+            AddNormalDropOffFields(ref context);
+            AddSpecularOcclusionFields(ref context);
 
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
@@ -135,57 +102,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
             context.AddField(HDFields.DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
 
-            // Specular Occlusion
-            context.AddField(HDFields.SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
-            context.AddField(HDFields.SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
-            context.AddField(HDFields.SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
-
-            // Distortion
-            context.AddField(HDFields.DistortionDepthTest,                  builtinData.distortionDepthTest);
-            context.AddField(HDFields.DistortionAdd,                        builtinData.distortionMode == DistortionMode.Add);
-            context.AddField(HDFields.DistortionMultiply,                   builtinData.distortionMode == DistortionMode.Multiply);
-            context.AddField(HDFields.DistortionReplace,                    builtinData.distortionMode == DistortionMode.Replace);
-            context.AddField(HDFields.TransparentDistortion,                systemData.surfaceType != SurfaceType.Opaque && builtinData.distortion);
-
             // Refraction
             context.AddField(HDFields.Refraction,                           hasRefraction);
             context.AddField(HDFields.RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
             context.AddField(HDFields.RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
-
-            // Normal Drop Off Space
-            context.AddField(Fields.NormalDropOffOS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(Fields.NormalDropOffTS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(Fields.NormalDropOffWS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.World);
-
 
             // AlphaTest
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
                                                                                 !(lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
-            context.AddField(HDFields.DoAlphaTestShadow,                    systemData.alphaTest && lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
 
             // Misc
-            context.AddField(Fields.AlphaToMask,                            systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.AlphaFog,                             systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
-            context.AddField(HDFields.BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
-            context.AddField(HDFields.TransparentWritesMotionVec,           systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
-            context.AddField(HDFields.DisableDecals,                        !lightingData.receiveDecals);
-            context.AddField(HDFields.DisableSSR,                           !lightingData.receiveSSR);
+            AddSurfaceMiscFields(ref context);
+            AddLitMiscFields(ref context);
+
             context.AddField(HDFields.DisableSSRTransparent,                !litData.receiveSSRTransparent);
-            context.AddField(Fields.VelocityPrecomputed,                    builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
             context.AddField(HDFields.EnergyConservingSpecular,             lightingData.energyConservingSpecular);
-            context.AddField(HDFields.BentNormal,                           context.blocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.connectedBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
-            context.AddField(HDFields.AmbientOcclusion,                     context.blocks.Contains(BlockFields.SurfaceDescription.Occlusion) && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
             context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
             context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
-            context.AddField(HDFields.LightingGI,                           context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
-            context.AddField(HDFields.BackLightingGI,                       context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(HDFields.DepthOffset,                          builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
-            context.AddField(HDFields.TransparentBackFace,                  systemData.surfaceType != SurfaceType.Opaque && lightingData.backThenFrontRendering);
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);
         }
 
@@ -257,8 +192,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var settingsView = new HDLitSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
+            // TODO
+            // SystemDataPropertiesGUI.AddProperties(systemData, ref context, onChange, registerUndo);
+            // var settingsView = new HDLitSettingsView(this);
+            // settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -333,14 +270,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override int ComputeMaterialNeedsUpdateHash()
         {
             int hash = base.ComputeMaterialNeedsUpdateHash();
-            hash |= (lightingData.alphaTestShadow ? 0 : 1) << 1;
-            hash |= (lightingData.receiveSSR ? 0 : 1) << 2;
-            hash |= (litData.receiveSSRTransparent ? 0 : 1) << 3;
-            hash |= (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering ? 0 : 1) << 4;
+            // Be careful to not use a shift index used by the base function!
+            hash |= (litData.receiveSSRTransparent ? 0 : 1) << 4;
+            // TODO: should materialType also change lightingData.subsurfaceScattering ?
+            // If yes, we don't need this line
+            hash |= (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering ? 0 : 1) << 5;
             return hash;
         }
-
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {

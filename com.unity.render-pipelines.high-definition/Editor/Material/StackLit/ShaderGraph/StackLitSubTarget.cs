@@ -9,103 +9,41 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     //TODO:
     // clamp in shader code the ranged() properties
     // or let inputs (eg mask?) follow invalid values ? Lit does that (let them free running).
-    sealed class StackLitSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
-        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<LightingData>, IRequiresData<StackLitData>
+    sealed class StackLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<StackLitData>
     {
         const string kAssetGuid = "5f7ba34a143e67647b202a662748dae3";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
+        protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
+        protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
 
-        public StackLitSubTarget()
-        {
-            displayName = "StackLit";
-        }
+        public StackLitSubTarget() => displayName = "StackLit";
 
-        // Render State
-        string renderType => HDRenderTypeTags.HDLitShader.ToString();
-        string renderQueue
-        {
-            get
-            {
-                var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-                int queue = HDRenderQueue.ChangeType(renderingPass, systemData.sortPriority, systemData.alphaTest);
-                return HDRenderQueue.GetShaderTagValue(queue);
-            }
-        }
-
-        // Material Data
-        SystemData m_SystemData;
-        BuiltinData m_BuiltinData;
-        LightingData m_LightingData;
         StackLitData m_StackLitData;
 
-        // Interface Properties
-        SystemData IRequiresData<SystemData>.data
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        BuiltinData IRequiresData<BuiltinData>.data
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        LightingData IRequiresData<LightingData>.data
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         StackLitData IRequiresData<StackLitData>.data
         {
             get => m_StackLitData;
             set => m_StackLitData = value;
         }
 
-        // Public properties
-        public SystemData systemData
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        public BuiltinData builtinData
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
-        public LightingData lightingData
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
         public StackLitData stackLitData
         {
             get => m_StackLitData;
             set => m_StackLitData = value;
         }
 
-        public override bool IsActive() => true;
-
-        public override void Setup(ref TargetSetupContext context)
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.StackLitGUI");
-
-            // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.StackLit, SubShaders.StackLitRaytracing };
-            for(int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = renderType;
-                subShaders[i].renderQueue = renderQueue;
-
-                // Add
-                context.AddSubShader(subShaders[i]);
-            }
+            yield return SubShaders.StackLit;
+            yield return SubShaders.StackLitRaytracing;
         }
 
         // Reference for GetFields
@@ -220,9 +158,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // Surface Type
-            context.AddField(Fields.SurfaceOpaque,                  systemData.surfaceType == SurfaceType.Opaque);
-            context.AddField(Fields.SurfaceTransparent,             systemData.surfaceType != SurfaceType.Opaque);
+            base.GetFields(ref context);
 
             // Structs
             context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(StackLitSubTarget.StackLitPasses.MotionVectors));
@@ -243,16 +179,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DualSpecularLobe,             stackLitData.dualSpecularLobe);
 
             // Normal Drop Off Space
-            context.AddField(Fields.NormalDropOffOS,                lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(Fields.NormalDropOffTS,                lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(Fields.NormalDropOffWS,                lightingData.normalDropOffSpace == NormalDropOffSpace.World);
+            AddNormalDropOffFields(ref context);
 
             // Distortion
-            context.AddField(HDFields.DistortionDepthTest,          builtinData.distortionDepthTest);
-            context.AddField(HDFields.DistortionAdd,                builtinData.distortionMode == DistortionMode.Add);
-            context.AddField(HDFields.DistortionMultiply,           builtinData.distortionMode == DistortionMode.Multiply);
-            context.AddField(HDFields.DistortionReplace,            builtinData.distortionMode == DistortionMode.Replace);
-            context.AddField(HDFields.TransparentDistortion,        systemData.surfaceType != SurfaceType.Opaque && builtinData.distortion);
+            AddDistortionFields(ref context);
 
             // Base Parametrization
             // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
@@ -265,26 +195,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            AddLitMiscFields(ref context);
+            AddSurfaceMiscFields(ref context);
             context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.AlphaFog,                     systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
-            context.AddField(HDFields.BlendPreserveSpecular,        systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
             context.AddField(HDFields.EnergyConservingSpecular,     lightingData.energyConservingSpecular);
-            context.AddField(HDFields.DisableDecals,                !lightingData.receiveDecals);
-            context.AddField(HDFields.DisableSSR,                   !lightingData.receiveSSR);
-            context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.BentNormal,                   context.blocks.Contains(HDBlockFields.SurfaceDescription.BentNormal) &&
-                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BentNormal));
-            context.AddField(HDFields.AmbientOcclusion,             context.blocks.Contains(BlockFields.SurfaceDescription.Occlusion) && 
-                                                                            context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.Occlusion));
             context.AddField(HDFields.Tangent,                      context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
-            context.AddField(HDFields.LightingGI,                   context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedGI) &&
-                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
-            context.AddField(HDFields.BackLightingGI,               context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) &&
-                                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
-            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
             // if capHazinessWrtMetallic.isOn.
@@ -568,38 +484,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             StackLitGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        int ComputeMaterialNeedsUpdateHash()
-        {
-            int hash = 0;
-            hash |= (systemData.alphaTest ? 0 : 1) << 0;
-            hash |= (lightingData.receiveSSR ? 0 : 1) << 2;
-            hash |= (lightingData.subsurfaceScattering ? 0 : 1) << 3;
-            return hash;
-        }
-
-        public override object saveContext
-        {
-            get
-            {
-                int hash = ComputeMaterialNeedsUpdateHash();
-                bool needsUpdate = hash != systemData.materialNeedsUpdateHash;
-                if (needsUpdate)
-                    systemData.materialNeedsUpdateHash = hash;
-
-                return new HDSaveContext{ updateMaterials = needsUpdate };
-            }
-        }
-
-        // IHasMetaData
-        public string identifier => "HDStackLitSubTarget";
-
-        public ScriptableObject GetMetadataObject()
-        {
-            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
-            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_StackLit;
-            return hdMetadata;
         }
 
         public static bool SpecularOcclusionModeUsesVisibilityCone(StackLitData.SpecularOcclusionBaseMode soMethod)

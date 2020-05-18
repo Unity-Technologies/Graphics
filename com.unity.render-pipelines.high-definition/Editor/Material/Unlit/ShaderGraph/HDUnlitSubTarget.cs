@@ -9,86 +9,42 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
-        IRequiresData<SystemData>, IRequiresData<BuiltinData>, IRequiresData<HDUnlitData>
+    sealed class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
     {
-        const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
-
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
         // TODO: This should be resolved so we can delete the second pass template
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
         static string raytracingPassTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
+        protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
+        protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
+        protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
 
-        public HDUnlitSubTarget()
-        {
-            displayName = "Unlit";
-        }
+        public HDUnlitSubTarget() => displayName = "Unlit";
 
-        // Render State
-        string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
-        string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
-
-        // Material Data
-        SystemData m_SystemData;
-        BuiltinData m_BuiltinData;
         HDUnlitData m_UnlitData;
 
-        // Interface Properties
-        SystemData IRequiresData<SystemData>.data
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        BuiltinData IRequiresData<BuiltinData>.data
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
         HDUnlitData IRequiresData<HDUnlitData>.data
         {
             get => m_UnlitData;
             set => m_UnlitData = value;
         }
 
-        // Public properties
-        public SystemData systemData
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
-        public BuiltinData builtinData
-        {
-            get => m_BuiltinData;
-            set => m_BuiltinData = value;
-        }
         public HDUnlitData unlitData
         {
             get => m_UnlitData;
             set => m_UnlitData = value;
         }
 
-        public override bool IsActive() => true;
-        
-        public override void Setup(ref TargetSetupContext context)
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDUnlitGUI");
-            
-            // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitRaytracing };
-            for(int i = 0; i < subShaders.Length; i++)
-            {
-                // Update Render State
-                subShaders[i].renderType = renderType;
-                subShaders[i].renderQueue = renderQueue;
-
-                // Add
-                context.AddSubShader(subShaders[i]);
-            }
+            yield return SubShaders.Unlit;
+            yield return SubShaders.UnlitRaytracing;
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -96,21 +52,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Unlit
             context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
 
-            // Distortion
-            context.AddField(HDFields.DistortionAdd,                builtinData.distortionMode == DistortionMode.Add);
-            context.AddField(HDFields.DistortionMultiply,           builtinData.distortionMode == DistortionMode.Multiply);
-            context.AddField(HDFields.DistortionReplace,            builtinData.distortionMode == DistortionMode.Replace);
-            context.AddField(HDFields.TransparentDistortion,        systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
-            context.AddField(HDFields.DistortionDepthTest,          builtinData.distortionDepthTest);
-
             // Alpha
             context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.AlphaFog,                     systemData.surfaceType == SurfaceType.Transparent && builtinData.transparencyFog);
 
-            // Misc
-            context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
+            AddDistortionFields(ref context);
+            AddSurfaceMiscFields(ref context);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -134,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            // TODO: refactor
             var settingsView = new HDUnlitSettingsView(this);
             settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
@@ -218,16 +166,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        // IHasMetaData
-        public string identifier => "HDUnlitSubTarget";
-
-        public ScriptableObject GetMetadataObject()
-        {
-            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
-            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Unlit;
-            return hdMetadata;
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)

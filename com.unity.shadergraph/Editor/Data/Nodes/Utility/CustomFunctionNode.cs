@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,9 @@ namespace UnityEditor.ShaderGraph
                     m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
                     if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
                     {
-                        paths.Add(AssetDatabase.GUIDToAssetPath(m_FunctionSource));
+                        var assetPath = AssetDatabase.GUIDToAssetPath(m_FunctionSource);
+                        if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
+                            paths.Add(assetPath);
                     }
                 }
             }

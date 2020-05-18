@@ -9,34 +9,25 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class DecalSubTarget : SubTarget<HDTarget>, IHasMetadata, ILegacyTarget,
-        IRequiresData<SystemData>, IRequiresData<DecalData>
+    sealed class DecalSubTarget : HDSubTarget, ILegacyTarget, IRequiresData<DecalData>
     {
-        const string kAssetGuid = "3ec927dfcb5d60e4883b2c224857b6c2";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
 
-        public DecalSubTarget()
-        {
-            displayName = "Decal";
-        }
+        public DecalSubTarget() => displayName = "Decal";
 
-        // Render State
-        public string renderType => HDRenderTypeTags.Opaque.ToString();
-        public string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
+        protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
+        protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
+        protected override string renderType => HDRenderTypeTags.Opaque.ToString();
+        protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
 
         // Material Data
-        SystemData m_SystemData;
         DecalData m_DecalData;
 
         // Interface Properties
-        SystemData IRequiresData<SystemData>.data
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
         DecalData IRequiresData<DecalData>.data
         {
             get => m_DecalData;
@@ -44,28 +35,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         // Public properties
-        public SystemData systemData
-        {
-            get => m_SystemData;
-            set => m_SystemData = value;
-        }
         public DecalData decalData
         {
             get => m_DecalData;
             set => m_DecalData = value;
         }
 
-        public override bool IsActive() => true;
-
-        public override void Setup(ref TargetSetupContext context)
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.DecalGUI");
-
-            // Process SubShaders
-            SubShaders.Decal.renderType = renderType;
-            SubShaders.Decal.renderQueue = renderQueue;
-            context.AddSubShader(SubShaders.Decal);
+            yield return SubShaders.Decal;
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -103,9 +81,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            var settingsView = new DecalSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
+            // SystemDataPropertiesGUI.AddProperties(ref context, onChange, registerUndo);
+            // DecalDataPropertiesGUI.
         }
+
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
@@ -128,16 +108,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void ProcessPreviewMaterial(Material material)
         {
-        }
-
-        // IHasMetaData
-        public string identifier => "HDDecalSubTarget";
-
-        public ScriptableObject GetMetadataObject()
-        {
-            var hdMetadata = ScriptableObject.CreateInstance<HDMetadata>();
-            hdMetadata.shaderID = HDShaderUtils.ShaderID.SG_Decal;
-            return hdMetadata;
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
