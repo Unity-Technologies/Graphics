@@ -119,10 +119,9 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            // TODO Uncommenting this code will removed SRP data that are unknown, this is probably not what we want
-            //int nbRemoved = 0;
-            //if ((nbRemoved = m_SubOutputs.RemoveAll(s => s == null)) > 0)
-            //    Debug.LogWarningFormat("Remove {0} SRP Sub Outputs that could not be deserialized from {1} of type {2}", nbRemoved, name, GetType());
+            // Reference equals because we only need to remove actual null sub-output, not the ones that cannot be deserialized
+            // Because we want to keep reference to unknown SRP outputs. No log because this is internal clean up
+            m_SubOutputs.RemoveAll(s => object.ReferenceEquals(s, null));
 
             var subOutputsTypes = new HashSet<Type>(); // TODO For some reason constructor that takes a capacity does not exist
             for (int i = 0; i < m_SubOutputs.Count; ++i)
@@ -146,11 +145,7 @@ namespace UnityEditor.VFX
         {
             base.CollectDependencies(objs, ownedOnly);
             foreach (var data in m_SubOutputs)
-                if (data != null)
-                {
-                    objs.Add(data);
-                    data.CollectDependencies(objs, ownedOnly);
-                }
+                objs.Add(data);
         }
 
         public override VFXSetting GetSetting(string name)

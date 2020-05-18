@@ -25,6 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
         protected SerializedDataParameter m_EnableVolumetricFog;
         protected SerializedDataParameter m_DepthExtent;
         protected SerializedDataParameter m_SliceDistributionUniformity;
+        protected SerializedDataParameter m_ScreenResolutionPercentage;
+        protected SerializedDataParameter m_VolumeSliceCount;
         protected SerializedDataParameter m_Filter;
 
         static GUIContent s_Enabled = new GUIContent("Enable", "Check this to enable fog in your scene.");
@@ -61,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_EnableVolumetricFog = Unpack(o.Find(x => x.enableVolumetricFog));
             m_DepthExtent = Unpack(o.Find(x => x.depthExtent));
             m_SliceDistributionUniformity = Unpack(o.Find(x => x.sliceDistributionUniformity));
+            m_ScreenResolutionPercentage = Unpack(o.Find(x => x.screenResolutionPercentage));
+            m_VolumeSliceCount = Unpack(o.Find(x => x.volumeSliceCount));
             m_Filter = Unpack(o.Find(x => x.filter));
         }
 
@@ -117,6 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         PropertyField(m_DepthExtent);
                         PropertyField(m_SliceDistributionUniformity);
+                        PropertyField(m_ScreenResolutionPercentage);
+                        PropertyField(m_VolumeSliceCount);
                         PropertyField(m_Filter);
                     }
 

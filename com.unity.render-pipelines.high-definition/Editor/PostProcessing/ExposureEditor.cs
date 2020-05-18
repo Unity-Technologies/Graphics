@@ -20,6 +20,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AdaptationSpeedDarkToLight;
         SerializedDataParameter m_AdaptationSpeedLightToDark;
 
+        SerializedDataParameter m_WeightTextureMask;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -37,6 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AdaptationMode = Unpack(o.Find(x => x.adaptationMode));
             m_AdaptationSpeedDarkToLight = Unpack(o.Find(x => x.adaptationSpeedDarkToLight));
             m_AdaptationSpeedLightToDark = Unpack(o.Find(x => x.adaptationSpeedLightToDark));
+
+            m_WeightTextureMask = Unpack(o.Find(x => x.weightTextureMask));
         }
 
         public override void OnInspectorGUI()
@@ -51,12 +55,16 @@ namespace UnityEditor.Rendering.HighDefinition
             else if (mode == (int)ExposureMode.Fixed)
             {
                 PropertyField(m_FixedExposure);
+                PropertyField(m_Compensation);
             }
             else
             {
                 EditorGUILayout.Space();
 
                 PropertyField(m_MeteringMode);
+                if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
+                    PropertyField(m_WeightTextureMask);
+
                 PropertyField(m_LuminanceSource);
 
                 if (m_LuminanceSource.value.intValue == (int)LuminanceSource.LightingBuffer)

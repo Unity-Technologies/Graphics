@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -66,9 +66,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.GBuffer,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.GBuffer,
                 includes = PBRIncludes.GBuffer,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor META = new PassDescriptor()
@@ -91,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.Meta,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.Meta,
             };
@@ -116,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.ShadowCaster,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.DepthOnly,
             };
@@ -141,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.SceneSelection,
-                pragmas = CorePragmas.InstancedRenderingLayerEditorSync,
+                pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
                 defines = CoreDefines.SceneSelection,
                 keywords = PBRKeywords.LodFadeCrossfade,
                 includes = PBRIncludes.DepthOnly,
@@ -168,7 +170,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.DepthOnly,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = PBRKeywords.DepthMotionVectors,
                 includes = PBRIncludes.DepthOnly,
@@ -197,7 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Conditional State
                 renderStates = PBRRenderStates.MotionVectors,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = PBRKeywords.DepthMotionVectors,
                 includes = PBRIncludes.MotionVectors,
@@ -224,10 +226,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = PBRRenderStates.Forward,
-                pragmas = CorePragmas.InstancedRenderingLayer,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.Forward,
                 keywords = PBRKeywords.Forward,
                 includes = PBRIncludes.Forward,
+
+                virtualTextureFeedback = true,
             };
         }
 #endregion
@@ -277,7 +281,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static RenderStateCollection GBuffer = new RenderStateCollection
             {
                 { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-                { RenderState.ZTest(CoreRenderStates.Uniforms.zTestGBuffer) },
+                { RenderState.ZTest(ZTest.Equal), new FieldCondition(Fields.AlphaClip, true) },
+                { RenderState.ZTest(ZTest.LEqual), new FieldCondition(Fields.AlphaClip, false) },
                 { RenderState.Stencil(new StencilDescriptor()
                 {
                     WriteMask = $"{ 0 | (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering | (int)StencilUsage.TraceReflectionRay}",

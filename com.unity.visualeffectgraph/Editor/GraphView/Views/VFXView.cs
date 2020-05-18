@@ -1104,7 +1104,8 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                context.OnCreateBlock(point);
+                if(context.canHaveBlocks)
+                    context.OnCreateBlock(point);
             }
             else
             {
@@ -1190,21 +1191,21 @@ namespace UnityEditor.VFX.UI
         public EventPropagation OutputToDot()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.None, "expGraph_None.dot");
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotReduced()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.Reduction, "expGraph_Reduction.dot");
             return EventPropagation.Stop;
         }
 
         public EventPropagation OutputToDotConstantFolding()
         {
             if (controller == null) return EventPropagation.Stop;
-            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding);
+            DotGraphOutput.DebugExpressionGraph(controller.graph, VFXExpressionContextOption.ConstantFolding, "expGraph_ConstantFolding.dot");
             return EventPropagation.Stop;
         }
 

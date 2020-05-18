@@ -117,7 +117,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
-        PushLightDataGlobalParameters,
 
         // Profile sampler for shadow
         PushShadowGlobalParameters,
@@ -193,5 +192,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackClear,
+#endif
     }
 }
