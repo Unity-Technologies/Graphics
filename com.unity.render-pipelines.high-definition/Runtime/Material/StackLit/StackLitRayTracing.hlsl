@@ -43,6 +43,11 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
     ZERO_INITIALIZE(IndirectLighting, lighting);
     return lighting;
 }
+
+float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
+{
+    return PerceptualRoughnessToPerceptualSmoothness(bsdfData.perceptualRoughnessB);
+}
 #endif
 
 #if (SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER)

@@ -82,6 +82,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, recursiveSettings.rayLength.value);
                 cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, recursiveSettings.maxDepth.value);
                 cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
+                cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, recursiveSettings.minSmoothness.value);
 
                 // Set the data for the ray generation
 

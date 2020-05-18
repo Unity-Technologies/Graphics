@@ -511,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If enabled, display an emissive mesh rect synchronized with the intensity and color of the light.
         /// </summary>
-        internal bool displayAreaLightEmissiveMesh
+        public bool displayAreaLightEmissiveMesh
         {
             get => m_DisplayAreaLightEmissiveMesh;
             set
@@ -1492,9 +1492,53 @@ namespace UnityEngine.Rendering.HighDefinition
             if (PrefabUtility.IsPartOfPrefabAsset(this))
                     return;
 #endif
+            bool here = m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null);
 
-            //if not here, create it
-            if (m_ChildEmissiveMeshViewer == null || m_ChildEmissiveMeshViewer.Equals(null))
+#if UNITY_EDITOR
+            //if not parented anymore, destroy it
+            if (here && m_ChildEmissiveMeshViewer.transform.parent != transform)
+            {
+                if (Application.isPlaying)
+                    Destroy(m_ChildEmissiveMeshViewer);
+                else
+                    DestroyImmediate(m_ChildEmissiveMeshViewer);
+                m_ChildEmissiveMeshViewer = null;
+                m_EmissiveMeshFilter = null;
+                here = false;
+            }
+#endif
+
+            //if not here, try to find it first
+            if (!here)
+            {
+                foreach (Transform child in transform)
+                {
+                    var test = child.GetComponents(typeof(Component));
+                    if (child.name == k_EmissiveMeshViewerName
+                        && child.hideFlags == (HideFlags.NotEditable | HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor)
+                        && child.GetComponents(typeof(MeshFilter)).Length == 1
+                        && child.GetComponents(typeof(MeshRenderer)).Length == 1
+                        && child.GetComponents(typeof(Component)).Length == 3) // Transform + MeshFilter + MeshRenderer
+                    {
+                        m_ChildEmissiveMeshViewer = child.gameObject;
+                        m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
+                        m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
+                        m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+                        m_ChildEmissiveMeshViewer.layer = areaLightEmissiveMeshLayer == -1 ? gameObject.layer : areaLightEmissiveMeshLayer;
+
+                        m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
+                        emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
+                        emissiveMeshRenderer.shadowCastingMode = m_AreaLightEmissiveMeshShadowCastingMode;
+                        emissiveMeshRenderer.motionVectorGenerationMode = m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+
+                        here = true;
+                        break;
+                    }
+                }
+            }
+
+            //if still not here, create it
+            if (!here)
             {
                 m_ChildEmissiveMeshViewer = new GameObject(k_EmissiveMeshViewerName, typeof(MeshFilter), typeof(MeshRenderer));
                 m_ChildEmissiveMeshViewer.hideFlags = HideFlags.NotEditable | HideFlags.DontSaveInBuild | HideFlags.DontSaveInEditor;
@@ -1502,6 +1546,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ChildEmissiveMeshViewer.transform.localPosition = Vector3.zero;
                 m_ChildEmissiveMeshViewer.transform.localRotation = Quaternion.identity;
                 m_ChildEmissiveMeshViewer.transform.localScale = Vector3.one;
+                m_ChildEmissiveMeshViewer.layer = areaLightEmissiveMeshLayer == -1 ? gameObject.layer : areaLightEmissiveMeshLayer;
 
                 m_EmissiveMeshFilter = m_ChildEmissiveMeshViewer.GetComponent<MeshFilter>();
                 emissiveMeshRenderer = m_ChildEmissiveMeshViewer.GetComponent<MeshRenderer>();
@@ -1525,6 +1570,8 @@ namespace UnityEngine.Rendering.HighDefinition
         ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
         [SerializeField]
         MotionVectorGenerationMode m_AreaLightEmissiveMeshMotionVectorGenerationMode;
+        [SerializeField]
+        int m_AreaLightEmissiveMeshLayer = -1; //Special value that means we need to grab the one in the Light for initialization (for migration purpose)
 
         /// <summary> Change the Shadow Casting Mode of the generated emissive mesh for Area Light </summary>
         public ShadowCastingMode areaLightEmissiveMeshShadowCastingMode
@@ -1559,7 +1606,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-        
+
+        /// <summary> Change the Layer of the generated emissive mesh for Area Light </summary>
+        public int areaLightEmissiveMeshLayer
+        {
+            get => m_AreaLightEmissiveMeshLayer;
+            set
+            {
+                if (m_AreaLightEmissiveMeshLayer == value)
+                    return;
+
+                m_AreaLightEmissiveMeshLayer = value;
+                if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
+                {
+                    emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
+                }
+            }
+        }
+
         private void DisableCachedShadowSlot()
         {
             if (WillRenderShadowMap() && !ShadowIsUpdatedEveryFrame())
@@ -2118,6 +2182,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 #endif
 
+#if UNITY_EDITOR
+            //if not parented anymore, refresh it
+            if (m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null))
+            {
+                if (m_ChildEmissiveMeshViewer.transform.parent != transform)
+                {
+                    CreateChildEmissiveMeshViewerIfNeeded();
+                    UpdateAreaLightEmissiveMesh();
+                }
+                if (m_ChildEmissiveMeshViewer.gameObject.isStatic != gameObject.isStatic)
+                    m_ChildEmissiveMeshViewer.gameObject.isStatic = gameObject.isStatic;
+                if (GameObjectUtility.GetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject) != GameObjectUtility.GetStaticEditorFlags(gameObject))
+                    GameObjectUtility.SetStaticEditorFlags(m_ChildEmissiveMeshViewer.gameObject, GameObjectUtility.GetStaticEditorFlags(gameObject));
+            }
+#endif
+
+            //auto change layer on emissive mesh
+            if (areaLightEmissiveMeshLayer == -1
+                && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
+                && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
+                m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
+            
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)
             {

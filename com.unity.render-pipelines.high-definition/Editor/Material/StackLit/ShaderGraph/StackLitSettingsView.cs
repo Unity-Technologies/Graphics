@@ -117,6 +117,24 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 });
 
+                ps.Add(new PropertyRow(CreateLabel("Transparent Depth Prepass", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
+                    });
+                });
+
+                ps.Add(new PropertyRow(CreateLabel("Transparent Depth Postpass", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
+                    });
+                });
+
                 ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
@@ -352,12 +370,20 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel((m_Node.surfaceType == SurfaceType.Transparent) ? "Receive SSR Transparent" : "Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
-                    toggle.value = m_Node.receiveSSR.isOn;
-                    toggle.OnToggleChanged(ChangeReceiveSSR);
+                    if (m_Node.surfaceType == SurfaceType.Transparent)
+                    {
+                        toggle.value = m_Node.receiveSSRTransparent.isOn;
+                        toggle.OnToggleChanged(ChangeReceiveSSRTransparent);
+                    }
+                    else
+                    {
+                        toggle.value = m_Node.receiveSSR.isOn;
+                        toggle.OnToggleChanged(ChangeReceiveSSR);
+                    }
                 });
             });
 
@@ -723,6 +749,22 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             m_Node.alphaToMask = td;
         }
 
+        void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
+            ToggleData td = m_Node.alphaTestDepthPrepass;
+            td.isOn = evt.newValue;
+            m_Node.alphaTestDepthPrepass = td;
+        }
+
+        void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
+            ToggleData td = m_Node.alphaTestDepthPostpass;
+            td.isOn = evt.newValue;
+            m_Node.alphaTestDepthPostpass = td;
+        }
+        
         void ChangeReceiveDecals(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Receive Decals Change");
@@ -735,6 +777,13 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Receive SSR Change");
             ToggleData td = m_Node.receiveSSR;
+            td.isOn = evt.newValue;
+            m_Node.receiveSSR = td;
+        }
+        void ChangeReceiveSSRTransparent(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Receive SSR Transparent Change");
+            ToggleData td = m_Node.receiveSSRTransparent;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
         }
