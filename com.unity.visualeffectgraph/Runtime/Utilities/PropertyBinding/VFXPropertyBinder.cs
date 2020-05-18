@@ -36,6 +36,14 @@ namespace UnityEngine.VFX.Utility
             m_VisualEffect = GetComponent<VisualEffect>();
         }
 
+        private void Reset()
+        {
+            m_VisualEffect = GetComponent<VisualEffect>();
+            m_Bindings = new List<VFXBinderBase>();
+            m_Bindings.AddRange(gameObject.GetComponents<VFXBinderBase>());
+            ClearPropertyBinders();
+        }
+
         void Update()
         {
             if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
