@@ -51,7 +51,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
 #else
     bool useRGBMLightmap = true;
 #if defined(UNITY_LIGHTMAP_RGBM_ENCODING)
-    float4 decodeInstructions = float4(34.493242, 2.2, 0.0, 0.0); // range^2.2 = 5^2.2, gamma = 2.2
+    float4 decodeInstructions = float4(LIGHTMAP_HDR_MULTIPLIER, 2.2, 0.0, 0.0); // range^2.2 = 5^2.2, gamma = 2.2
 #else
     float4 decodeInstructions = float4(2.0, 2.2, 0.0, 0.0); // range = 2.0^2.2 = 4.59
 #endif

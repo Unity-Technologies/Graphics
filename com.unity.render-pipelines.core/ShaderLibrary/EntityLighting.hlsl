@@ -3,8 +3,8 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
-#define LIGHTMAP_RGBM_MAX_GAMMA     real(5.0)       // NB: Must match value in RGBMRanges.h
-#define LIGHTMAP_RGBM_MAX_LINEAR    real(34.493242) // LIGHTMAP_RGBM_MAX_GAMMA ^ 2.2
+#define LIGHTMAP_RGBM_MAX_GAMMA     real(_IndirectLightingMultiplier.y)       // NB: Must match value in RGBMRanges.h
+#define LIGHTMAP_RGBM_MAX_LINEAR    real(_IndirectLightingMultiplier.z) // LIGHTMAP_RGBM_MAX_GAMMA ^ 2.2
 
 #ifdef UNITY_LIGHTMAP_RGBM_ENCODING
     #ifdef UNITY_COLORSPACE_GAMMA
@@ -177,7 +177,7 @@ float4 SampleProbeOcclusion(TEXTURE3D_PARAM(SHVolumeTexture, SHVolumeSampler), f
 
 // TODO: This is the max value allowed for emissive (bad name - but keep for now to retrieve it) (It is 8^2.2 (gamma) and 8 is the limit of punctual light slider...), comme from UnityCg.cginc. Fix it!
 // Ask Jesper if this can be change for HDRenderPipeline
-#define EMISSIVE_RGBM_SCALE 97.0
+#define EMISSIVE_RGBM_SCALE (97.0)
 
 // RGBM stuff is temporary. For now baked lightmap are in RGBM and the RGBM range for lightmaps is specific so we can't use the generic method.
 // In the end baked lightmaps are going to be BC6H so the code will be the same as dynamic lightmaps.

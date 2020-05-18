@@ -979,7 +979,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Set up UnityPerView CBuffer.
                 hdCamera.SetupGlobalParams(cmd, m_FrameCount);
 
-                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
+                // Default  URP value is 5 
+                float RGBMRange = 50;
+                float EmissiveRange = 97; 
+                Graphics.SetRGBMRanges((int)RGBMRange,(int)EmissiveRange);
+                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier,
+                 new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 
+                 RGBMRange, Mathf.Pow(RGBMRange,2.2f), EmissiveRange));
+
+                //cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier,
+                // new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0));
+
 
                 // It will be overridden for transparent pass.
                 cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)UnityEngine.Rendering.ColorWriteMask.All);
