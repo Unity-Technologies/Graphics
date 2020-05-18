@@ -88,6 +88,14 @@ public class FrameManager : MonoBehaviour
         }
     }
     
+    void OnDestroy()
+    {
+        if (m_Recording)
+        {
+            StopMultiframeRendering();
+        }
+    }
+
     void OnValidate()
     {
         // Make sure the shutter will begin closing sometime after it is fully open (and not before)
