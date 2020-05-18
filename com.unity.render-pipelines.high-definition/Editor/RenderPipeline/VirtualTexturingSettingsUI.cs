@@ -246,8 +246,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         sealed class Styles
         {
-            public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size", "Amount of CPU memory (in MB) that can be allocated by the Virtual Texturing system to use to cache texture data.");
-            public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size per Format", "Amount of GPU memory (in MB) that can be allocated per format by the Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats.");
+            public readonly GUIContent cpuCacheSize = new GUIContent("CPU Cache Size", "Amount of CPU memory (in MB) that can be allocated by the Streaming Virtual Texturing system to use to cache texture data.");
+            public readonly GUIContent gpuCacheSize = new GUIContent("GPU Cache Size per Format", "Amount of GPU memory (in MB) that can be allocated per format by the Streaming Virtual Texturing system to cache texture data. The value assigned to None is used for all unspecified formats.");
 
             public readonly GUIContent gpuCacheSizeOverrideFormat = new GUIContent("Format", "Format and channel transform that will be overridden.");
             public readonly GUIContent gpuCacheSizeOverrideSize = new GUIContent("Size", "Size (in MB) of the setting.");
