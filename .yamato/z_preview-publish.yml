@@ -134,10 +134,11 @@ promote_{{ test.name }}:
             - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
-{% for editor in editors -%}
-{% for platform in platforms -%}
+    - .yamato/z_preview-publish.yml#publish_{{ test.name }}
+  {% for editor in editors -%}
+  {% for platform in platforms -%}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-{% endfor -%}
-{% endfor -%}
+  {% endfor -%}
+  {% endfor -%}
 {% endif -%} # publish_source
 {% endfor %}
