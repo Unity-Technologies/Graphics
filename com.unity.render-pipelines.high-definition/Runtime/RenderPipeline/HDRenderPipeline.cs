@@ -4612,7 +4612,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Light volumes
                 var lightingDebug = debugParams.debugDisplaySettings.data.lightingDebugSettings;
-                if (lightingDebug.displayLightVolumes)
+                bool isLightOverlapDebugEnabled = CoreUtils.IsLightOverlapDebugEnabled(hdCamera.camera);
+                if (lightingDebug.displayLightVolumes || isLightOverlapDebugEnabled)
                 {
                     s_lightVolumes.RenderLightVolumes(cmd, hdCamera, cullResults, lightingDebug, m_IntermediateAfterPostProcessBuffer);
                 }
