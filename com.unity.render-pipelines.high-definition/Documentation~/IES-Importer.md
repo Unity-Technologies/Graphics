@@ -17,7 +17,7 @@ IES Importer inspector provide informations and customization options for the in
 | **Lamp Catalog Number**        | Metadata about the catalog number of the manufactorer of the Lamp |
 | **Lamp Description**        | Metadata about the Lamp |
 | **Light Type**        | Light type used for the prefab used |
-| **Spot Angle**        | For a spot light a 2D texture is needed, to be able to project the IES in 2D we need an angle on the upper hemisphere for a proper projection (A ![https://en.wikipedia.org/wiki/Gnomonic_projection](Gnomonic projection) is used). As we cannot have infinite precision this parameter will decide how the pixels will be distributed. |
+| **Spot Angle**        | For a spot light a 2D texture is needed, to be able to project the IES in 2D we need an angle on the upper hemisphere for a proper projection (A [Gnomonic projection](https://en.wikipedia.org/wiki/Gnomonic_projection) is used). As we cannot have infinite precision this parameter will decide how the pixels will be distributed. | [Light Mode](https://docs.unity3d.com/Manual/LightModes.html)
 | **IES Size**        | The size of the texture generated (Size of the 2D texture (for spot and Area Lights) and the size of the cubemap (for Point lights)). |
 | **Apply Light Attenuation**        | For spot light, as its a projection, we need to take in account the distance to the light source to have a proper light attenuation. |
 | **IES Compression**        | Compression used for the internal texture |
