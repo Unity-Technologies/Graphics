@@ -38,7 +38,9 @@ namespace UnityEditor.ShaderGraph
                 var guid = assetReference?.subGraph?.guid;
                 if (guid != null)
                 {
-                    paths.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
+                        paths.Add(assetPath);
                 }
             }
         }
@@ -105,12 +107,20 @@ namespace UnityEditor.ShaderGraph
 
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
-                m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
-                m_SubGraph.LoadGraphData();
-                if (m_SubGraph == null)
+                if (string.IsNullOrEmpty(assetPath))
                 {
+                    // this happens if the editor has never seen the GUID
+                    // error will be printed by validation code in this case
                     return;
                 }
+                m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
+                if (m_SubGraph == null)
+                {
+                    // this happens if the editor has seen the GUID, but the file has been deleted since then
+                    // error will be printed by validation code in this case
+                    return;
+                }
+                m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
                 concretePrecision = m_SubGraph.outputPrecision;
