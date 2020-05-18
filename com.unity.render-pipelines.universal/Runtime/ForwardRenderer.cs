@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
                 }
 
-                requiresDepthPrepass = true;
+                requiresDepthPrepass |= rendererFeatures[i].isActive;
                 break;
             }
 
