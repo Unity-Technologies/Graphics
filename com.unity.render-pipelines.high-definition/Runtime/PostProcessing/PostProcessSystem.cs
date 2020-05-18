@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
         const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
+        const int k_DebugImageHistogramBins = 256;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
 
@@ -42,7 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_EmptyExposureTexture; // RGHalf
         RTHandle m_DebugExposureData; 
         ComputeBuffer m_HistogramBuffer;
+        ComputeBuffer m_DebugImageHistogramBuffer;
         readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
+        readonly int[] m_EmptyDebugImageHistogram = new int[k_DebugImageHistogramBins * 4];
 
         // Depth of field data
         ComputeBuffer m_BokehNearKernel;
@@ -253,6 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_AlphaTexture);
             CoreUtils.Destroy(m_ExposureCurveTexture);
             CoreUtils.SafeRelease(m_HistogramBuffer);
+            CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
             CoreUtils.Destroy(m_FinalPassMaterial);
@@ -273,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AlphaTexture              = null;
             m_ExposureCurveTexture      = null;
             m_HistogramBuffer           = null;
+            m_DebugImageHistogramBuffer = null;
             m_InternalSpectralLut       = null;
             m_InternalLogLut            = null;
             m_FinalPassMaterial         = null;
@@ -811,6 +816,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_HistogramBuffer;
         }
 
+        internal ComputeBuffer GetDebugImageHistogramBuffer()
+        {
+            return m_HistogramBuffer;
+        }
+
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;
@@ -967,6 +977,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
+    
 
         void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
         {
@@ -1035,6 +1046,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+        }
+
+        internal void GenerateDebugImageHistogram(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        {
+            var cs = m_Resources.shaders.debugImageHistogramCS;
+            int kernel = cs.FindKernel("KHistogramGen");
+
+            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
+            m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_DebugImageHistogramBuffer);
+
+            int threadGroupSizeX = 16;
+            int threadGroupSizeY = 16;
+            int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
+            int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
+            int totalPixels = camera.actualWidth * camera.actualHeight;
+            cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
         }
 
         #endregion

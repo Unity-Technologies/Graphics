@@ -152,7 +152,6 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
 
-    // TODO: Can we be a bit more parallel here? 
     if (threadID == 0)
     {
         float evProcessedSum = 0;

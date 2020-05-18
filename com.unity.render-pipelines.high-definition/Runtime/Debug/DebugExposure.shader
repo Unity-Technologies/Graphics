@@ -506,6 +506,11 @@ Shader "Hidden/HDRP/DebugExposure"
         return outputColor;
     }
 
+    float3 FragHistogram(Varyings input) : SV_Target
+    {
+
+    }
+
     ENDHLSL
 
     SubShader
@@ -544,6 +549,18 @@ Shader "Hidden/HDRP/DebugExposure"
 
             HLSLPROGRAM
                 #pragma fragment FragHistogram
+            ENDHLSL
+        }
+
+        Pass
+        {
+            ZWrite Off
+            ZTest Always
+            Blend Off
+            Cull Off
+
+            HLSLPROGRAM
+                #pragma fragment FragImageHistogram
             ENDHLSL
         }
 
