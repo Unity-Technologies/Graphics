@@ -925,6 +925,17 @@ namespace UnityEngine.Rendering.HighDefinition
                             setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
                 }
+                if(data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Display RGB Histogram",
+                            getter = () => data.lightingDebugSettings.displayFinalImageHistogramAsRGB,
+                            setter = value => data.lightingDebugSettings.displayFinalImageHistogramAsRGB = value
+                        });
+
+                }
 
                 exposureFoldout.children.Add(
                     new DebugUI.FloatField

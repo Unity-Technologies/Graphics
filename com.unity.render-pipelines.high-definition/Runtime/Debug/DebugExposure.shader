@@ -38,6 +38,7 @@ Shader "Hidden/HDRP/DebugExposure"
     #define _DrawTonemapCurve               _ExposureDebugParams.x
     #define _TonemapType                    _ExposureDebugParams.y
     #define _CenterAroundTargetExposure     _ExposureDebugParams.z
+    #define _FinalImageHistogramRGB         _ExposureDebugParams.w
 
 
     struct Attributes
@@ -686,9 +687,81 @@ Shader "Hidden/HDRP/DebugExposure"
         return outputColor;
     }
 
-    float3 FragHistogram(Varyings input) : SV_Target
-    {
 
+    StructuredBuffer<uint4> _FullImageHistogram;
+
+    float3 FragImageHistogram(Varyings input) : SV_Target
+    {
+        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+        float2 uv = input.texcoord.xy;
+
+        float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
+        float3 outputColor = color;
+
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25) * _ScreenSize.w * _RTHandleScale.y;
+
+        uint maxValue = 0;
+        uint maxLuma = 0;
+        for (int i = 0; i < 256; ++i)
+        {
+            uint histogramVal = Max3(_FullImageHistogram[i].x, _FullImageHistogram[i].y, _FullImageHistogram[i].z);
+            maxValue = max(histogramVal, maxValue);
+            maxLuma = max(_FullImageHistogram[i].w, maxLuma);
+        }
+
+        float histFrameHeight = 0.2 * _RTHandleScale.y;
+
+        float safeBand = 1.0f / 255.0f;
+        float binLocMin = safeBand;
+        float binLocMax = 1.0f - safeBand;
+        if (DrawEmptyFrame(uv, float3(0.125, 0.125, 0.125), 0.4, histFrameHeight, heightLabelBar, outputColor))
+        {
+            // Draw labels
+            const int labelCount = 12;
+            int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
+            int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
+            int labelLocationY = 0.0f;
+            uint2 unormCoord = input.positionCS.xy;
+
+            [unroll]
+            for (int i = 0; i <= labelCount; ++i)
+            {
+                float t = rcp(labelCount) * i;
+                uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
+                float labelValue = lerp(0.0, 255.0, t);
+                labelLoc.x += 2;
+                DrawInteger(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, labelLoc, outputColor.rgb);
+            }
+
+            float remappedX = (uv.x - binLocMin) / (binLocMax - binLocMin);
+            // Draw bins
+            uint bin = remappedX * 255;
+            float4 val = _FullImageHistogram[bin];
+            val /= float4(maxValue, maxValue, maxValue, maxLuma);
+
+            val *= 0.95*(histFrameHeight - heightLabelBar);
+            val += heightLabelBar;
+
+            if (_FinalImageHistogramRGB > 0)
+            {
+                float3 alphas = 0;
+                if (uv.y < val.x && uv.y > heightLabelBar)
+                    alphas.x = 0.25;
+                if (uv.y < val.y && uv.y > heightLabelBar)
+                    alphas.y = 0.25;
+                if (uv.y < val.z && uv.y > heightLabelBar)
+                    alphas.z = 0.25;
+
+                outputColor = outputColor * (1.0f - (alphas.x + alphas.y + alphas.z)) + alphas;
+            }
+            else
+            {
+                if (uv.y < val.w && uv.y > heightLabelBar)
+                    outputColor = outputColor * 0.25 + 0.25;
+            }
+        }
+
+        return outputColor;
     }
 
     ENDHLSL

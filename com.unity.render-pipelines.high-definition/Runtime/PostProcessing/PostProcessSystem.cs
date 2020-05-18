@@ -818,7 +818,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ComputeBuffer GetDebugImageHistogramBuffer()
         {
-            return m_HistogramBuffer;
+            return m_DebugImageHistogramBuffer;
         }
 
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)

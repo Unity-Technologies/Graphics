@@ -17,7 +17,9 @@ TEXTURE2D_X(_SourceTexture);
 
 uint4 GetBinsLoc(float3 rgbValue)
 {
-    return uint4(saturate(float4(rgbValue, Luminance(rgbValue))) * (HISTOGRAM_BINS - 1));
+    float3 srgbVal = LinearToSRGB(rgbValue);
+
+    return uint4(saturate(float4(srgbVal, Luminance(srgbVal))) * (HISTOGRAM_BINS - 1));
 }
 
 groupshared uint4 gs_localHistogram[HISTOGRAM_BINS];

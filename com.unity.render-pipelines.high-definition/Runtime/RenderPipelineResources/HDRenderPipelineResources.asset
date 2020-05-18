@@ -103,6 +103,7 @@ MonoBehaviour:
     exposureCS: {fileID: 7200000, guid: 976d7bce54fae534fb9ec67e9c18570c, type: 3}
     histogramExposureCS: {fileID: 7200000, guid: 222da48299136f34b8e3fb75ae9f8ac7, type: 3}
     applyExposureCS: {fileID: 7200000, guid: 1a6fea1dc099b984d8f2b27d504dc096, type: 3}
+    debugImageHistogramCS: {fileID: 7200000, guid: 52cc17ef5a5ffc443a5c142f9b745a85, type: 3}
     uberPostCS: {fileID: 7200000, guid: f1bf52f7c71bffd4f91e6cd90d12a4f7, type: 3}
     lutBuilder3DCS: {fileID: 7200000, guid: 37f2b1b0ecd6f1c439e4c1b4f2fdb524, type: 3}
     depthOfFieldKernelCS: {fileID: 7200000, guid: 7869415cc3e4eaa4d82ac21a752a2780, type: 3}

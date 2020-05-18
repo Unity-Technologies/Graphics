@@ -4562,6 +4562,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 passIndex = 2;
             }
+            if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            {
+                bool finalImageRGBHisto = parameters.debugDisplaySettings.data.lightingDebugSettings.displayFinalImageHistogramAsRGB;
+
+                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(0, 0, 0, finalImageRGBHisto ? 1 : 0));
+
+                parameters.debugExposureMaterial.SetBuffer(HDShaderIDs._FullImageHistogram, histogramBuffer);
+                passIndex = 3;
+            }
 
             HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
         }
@@ -4610,8 +4619,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (debugParams.exposureDebugEnabled)
                 {
-                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_DebugFullScreenTempBuffer,m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera),
-                        m_PostProcessSystem.GetExposureDebugData(), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetCustomToneMapCurve(), m_PostProcessSystem.GetLutSize(), m_PostProcessSystem.GetHistogramBuffer(), cmd);
+                    RenderExposureDebug(debugParams, m_CameraColorBuffer, m_DebugFullScreenTempBuffer, m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera),
+                        m_PostProcessSystem.GetExposureDebugData(), m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetCustomToneMapCurve(), m_PostProcessSystem.GetLutSize(),
+                        debugParams.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer(), cmd);
                 }
 
                 // First resolve color picker
