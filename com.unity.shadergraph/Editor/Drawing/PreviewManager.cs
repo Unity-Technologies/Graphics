@@ -378,7 +378,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AssignPerMaterialPreviewProperties(Material mat, List<PreviewProperty> perMaterialPreviewProperties)
         {
-            #if ENABLE_VIRTUALTEXTURES
             foreach (var prop in perMaterialPreviewProperties)
             {
                 switch (prop.propType)
@@ -400,10 +399,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 }
                             }
                         }
-
                         // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
                         if (setAnyTextures)
                         {
+#if ENABLE_VIRTUALTEXTURES
                             int stackPropertyId = Shader.PropertyToID(prop.vtProperty.referenceName);
                             try
                             {
@@ -420,11 +419,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                                 // This gets thrown when the system is in an indeterminate state (like a material with no textures assigned which can obviously never have a texture stack streamed).
                                 // This is valid in this case as we're still authoring the material.
                             }
+#endif // ENABLE_VIRTUALTEXTURES
                         }
                         break;
                 }
             }   
-        #endif // ENABLE_VIRTUALTEXTURES
         }
 
         private static readonly ProfilerMarker RenderPreviewsMarker = new ProfilerMarker("RenderPreviews");
@@ -602,7 +601,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         compileFailRekicks++;
                         if (compileFailRekicks <= 3)
                         {
-                            renderData.shaderData.passesCompiling = 0;
+                            shaderData.passesCompiling = 0;
                             previewsCompiled.Add(renderData);
                             m_PreviewsNeedsRecompile.Add(renderData);
                             continue;
@@ -627,7 +626,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (!allPassesCompiled)
                     {
                         // keep waiting
-                        return;
+                        continue;
                     }
 
                     // Force the material to re-generate all it's shader properties, by reassigning the shader
@@ -640,6 +639,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (renderData == m_MasterRenderData)
                     {
+                        // TODO: this may be a good thing to do BEFORE requesting shader compilation
                         // Process preview materials
                         foreach (var target in m_Graph.activeTargets)
                         {
@@ -805,12 +805,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     shaderData.mat = new Material(shaderData.shader) { hideFlags = HideFlags.HideAndDontSave };
                 }
 
-                if (shaderData.mat.passCount <= 0)
-                    Debug.Log("WTF Zero Passes ON COMPILE: " + shaderData.node.name + " (" + shaderData.passesCompiling + " passes, " + renderData.shaderData.mat.passCount + " mat passes)");
+                int materialPassCount = shaderData.mat.passCount;
+                if (materialPassCount <= 0)
+                    Debug.Log("Zero Passes ON COMPILE: " + shaderData.node.name + " (" + shaderData.passesCompiling + " passes, " + renderData.shaderData.mat.passCount + " mat passes)");
                 else
                 {
-                    shaderData.passesCompiling = shaderData.mat.passCount;
-                    for (var i = 0; i < shaderData.mat.passCount; i++)
+                    shaderData.passesCompiling = materialPassCount;
+                    for (var i = 0; i < materialPassCount; i++)
                     {
                         ShaderUtil.CompilePass(shaderData.mat, i);
                     }
@@ -994,13 +995,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static readonly ProfilerMarker UpdateTimedNodeListMarker = new ProfilerMarker("RenderPreviews");
+        private static readonly ProfilerMarker UpdateTopologyMarker = new ProfilerMarker("UpdateTopology");
         void UpdateTopology()
         {
             if (!m_TopologyDirty)
                 return;
 
-            using (UpdateTimedNodeListMarker.Auto())
+            using (UpdateTopologyMarker.Auto())
             using (var timedNodes = PooledHashSet<AbstractMaterialNode>.Get())
             {
                 timedNodes.UnionWith(m_Graph.GetNodes<AbstractMaterialNode>().Where(n => n.RequiresTime()));
