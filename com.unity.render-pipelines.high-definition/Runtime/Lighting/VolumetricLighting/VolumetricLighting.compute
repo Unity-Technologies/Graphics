@@ -498,17 +498,18 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
         float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
+        float tNext = t1;
 
     #if USE_DEPTH_BUFFER
         bool containsOpaqueGeometry = IsInRange(ray.geomDist, float2(t0, t1));
 
         if (containsOpaqueGeometry)
         {
-            t1 = min(t1, ray.geomDist); // Only render up to the opaque surface (make the voxel shorter)
+            t1 = max(t0 * 1.0001, ray.geomDist); // Only render up to the opaque surface (make the voxel shorter)
         }
     #endif
 
-        float dt = max(t1 - t0, FLT_EPS); // In case the geometry is at the distance t0
+        float dt = t1 - t0; // Is geometry-aware
 
         // Accurately compute the center of the voxel in the log space. It's important to perform
         // the inversion exactly, since the accumulated value of the integral is stored at the center.
@@ -626,7 +627,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         blendValue.rgb *= phaseCurrFrame;
     #endif // ENABLE_ANISOTROPY
 
-    #else // ENABLE_REPROJECTION
+    #else // NO REPROJECTION
 
     #ifdef ENABLE_ANISOTROPY
         float4 blendValue = float4(aggregateLighting.radianceComplete, extinction * dt);
@@ -664,7 +665,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * blendValue.a;
 
-        t0 = t1;
+        t0 = tNext;
     }
 }
 
