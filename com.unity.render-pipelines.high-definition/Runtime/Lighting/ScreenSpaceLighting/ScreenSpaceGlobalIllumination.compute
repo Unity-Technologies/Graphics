@@ -56,10 +56,7 @@ bool RayMarch(float3 positionWS, float3 sampleDir, float3 normalWS, float2 posit
     float3 sampledPosSS  = float3(sampledPosNDC.xy * _ScreenSize.xy, sampledPosNDC.z);
 
     // If the point is behind the camera, this ray should not be cast
-    killRay = killRay || (sampledPosSS.z <= 0);
-
-    // If this ray 
-    if (killRay)
+    if (killRay || sampledPosSS.z <= 0)
         return false;
 
     // We start tracing from the center of the current pixel, and do so up to the far plane.
