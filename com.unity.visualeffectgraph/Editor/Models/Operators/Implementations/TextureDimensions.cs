@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(GetOperandType(), "tex", VFXPropertyAttribute.Create(new TooltipAttribute("Sets the texture to get dimensions from."))));
+                yield return new VFXPropertyWithValue(new VFXProperty(GetOperandType(), "tex", new TooltipAttribute("Sets the texture to get dimensions from.")));
             }
         }
 
@@ -20,13 +20,13 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "width", VFXPropertyAttribute.Create(new TooltipAttribute("Outputs the width of the texture."))));
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "height", VFXPropertyAttribute.Create(new TooltipAttribute("Outputs the height of the texture."))));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "width", new TooltipAttribute("Outputs the width of the texture.")));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "height", new TooltipAttribute("Outputs the height of the texture.")));
 
                 if (GetOperandType() == typeof(Texture3D))
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "depth", VFXPropertyAttribute.Create(new TooltipAttribute("Outputs the depth of the texture."))));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "depth", new TooltipAttribute("Outputs the depth of the texture.")));
                 else if (GetOperandType() == typeof(Texture2DArray) || GetOperandType() == typeof(CubemapArray))
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "count", VFXPropertyAttribute.Create(new TooltipAttribute("Outputs the texture count of the texture array."))));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "count", new TooltipAttribute("Outputs the texture count of the texture array.")));
             }
         }
 
