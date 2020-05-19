@@ -108,11 +108,12 @@ namespace UnityEditor.ShaderGraph
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
                 m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
-                m_SubGraph.LoadGraphData();
                 if (m_SubGraph == null)
                 {
+                    Debug.Log("Failed to load subgraph asset at: " + assetPath);
                     return;
                 }
+                m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
                 concretePrecision = m_SubGraph.outputPrecision;
