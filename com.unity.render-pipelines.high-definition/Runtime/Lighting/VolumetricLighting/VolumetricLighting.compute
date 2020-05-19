@@ -716,14 +716,11 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     // the jittered ray corresponds to. The exact solution can be obtained by intersecting
     // the ray with the screen plane, e.i. (ViewSpace(jitterDirWS).z = 1). That's a little expensive.
     // So, as an approximation, we ignore the curvature of the frustum.
-    // Note that GetPositionInput() will add 0.5 (transform to the node-centered primal grid).
-    voxelCoord += _VBufferSampleOffset.xy;
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5 + _VBufferSampleOffset.xy) * _VBufferVoxelSize);
 #else
     ray.jitterDirWS = ray.centerDirWS;
-#endif
-
-    // Approximate; see the comment above.
     uint2 pixelCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize);
+#endif
 
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
@@ -734,6 +731,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 #endif
     uint  tileIndex = tileCoord.x + _NumTileBigTileX * tileCoord.y;
 
+    // Do not jitter 'voxelCoord' else. It's expected to correspond to the center of the voxel.
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferViewportSize.zw, tileCoord);
 
     ray.geomDist = FLT_INF;
