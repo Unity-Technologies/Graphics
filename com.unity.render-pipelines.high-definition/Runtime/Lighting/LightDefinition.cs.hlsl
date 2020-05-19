@@ -30,12 +30,6 @@
 #define COOKIEMODE_REPEAT (2)
 
 //
-// UnityEngine.Rendering.HighDefinition.IESMode:  static fields
-//
-#define IESMODE_NONE (0)
-#define IESMODE_FAST_OCTAHEDRAL (1)
-
-//
 // UnityEngine.Rendering.HighDefinition.EnvShapeType:  static fields
 //
 #define ENVSHAPETYPE_NONE (0)
@@ -102,8 +96,8 @@ struct LightData
     float volumetricLightDimmer;
     real angleScale;
     real angleOffset;
-    float iesCut;
     float3 forward;
+    float iesCut;
     int lightType;
     float3 right;
     real range;
