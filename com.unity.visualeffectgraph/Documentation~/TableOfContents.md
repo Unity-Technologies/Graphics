@@ -30,10 +30,15 @@
   * Context
   * Operator
     * Math
-      * [Sawtooth Wave](Operator-SawtoothWave.md)
-      * [Sine Wave](Operator-SineWave.md)
-      * [Square Wave](Operator-SquareWave.md)
-      * [Triangle Wave](Operator-TriangleWave.md)
+      * Arithmetic
+        * [Divide](Operator-Divide.md)
+        * [Fractional](Operator-Fractional.md)
+        * [Lerp](Operator-Lerp.md)
+      * Wave
+        * [Sawtooth Wave](Operator-SawtoothWave.md)
+        * [Sine Wave](Operator-SineWave.md)
+        * [Square Wave](Operator-SquareWave.md)
+        * [Triangle Wave](Operator-TriangleWave.md)
     * Noise
       * [Cellular Noise](Operator-CellularNoise.md)
       * [Perlin Noise](Operator-PerlinNoise.md)
