@@ -31,7 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderTextureFormat         m_Format;
         string                      m_Name;
         int                         m_AtlasShaderID;
-        int                         m_MomentAtlasShaderID;
         RenderPipelineResources     m_RenderPipelineResources;
 
         // Moment shadow data
@@ -52,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_HasResizedAtlas = false;
         int frameCounter = 0;
 
-        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "", int momentAtlasShaderID = 0)
+        public HDShadowAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
             this.width = width;
             this.height = height;
@@ -61,7 +60,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Format = format;
             m_Name = name;
             m_AtlasShaderID = atlasShaderID;
-            m_MomentAtlasShaderID = momentAtlasShaderID;
             m_ClearMaterial = clearMaterial;
             m_BlurAlgorithm = blurAlgorithm;
             m_RenderPipelineResources = renderPipelineResources;
@@ -76,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AllocateRenderTexture();
         }
 
-        void AllocateRenderTexture()
+        public void AllocateRenderTexture()
         {
             if (m_Atlas != null)
                 m_Atlas.Release();
@@ -109,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(m_AtlasShaderID, m_Atlas);
             if (m_BlurAlgorithm == BlurAlgorithm.EVSM)
             {
-                cmd.SetGlobalTexture(m_MomentAtlasShaderID, m_AtlasMoments[0]);
+                cmd.SetGlobalTexture(m_AtlasShaderID, m_AtlasMoments[0]);
             }
         }
 
@@ -471,7 +469,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // EVSM
             public ComputeShader            evsmShadowBlurMomentsCS;
-            public int                      momentAtlasShaderID;
 
             // IM
             public ComputeShader            imShadowBlurMomentsCS;
@@ -489,7 +486,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // EVSM
             parameters.evsmShadowBlurMomentsCS = m_RenderPipelineResources.shaders.evsmBlurCS;
-            parameters.momentAtlasShaderID = m_MomentAtlasShaderID;
 
             // IM
             parameters.imShadowBlurMomentsCS = m_RenderPipelineResources.shaders.momentShadowsCS;
