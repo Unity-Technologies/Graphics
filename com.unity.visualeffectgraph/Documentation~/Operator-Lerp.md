@@ -16,7 +16,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The linear interpolation of S between X and Y. The **Type** changes to match the type of **X** and **Y**. |
+| **Out**    | Dependent | The linear interpolation of S between X and Y.<br/>The **Type** changes to match the type of **X** and **Y**. |
 
 ## Operator configuration
 

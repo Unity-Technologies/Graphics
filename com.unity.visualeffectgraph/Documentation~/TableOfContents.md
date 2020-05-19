@@ -33,7 +33,10 @@
       * Arithmetic
         * [Divide](Operator-Divide.md)
         * [Fractional](Operator-Fractional.md)
+        * [Inverse Lerp](Operator-InverseLerp.md)
         * [Lerp](Operator-Lerp.md)
+        * [Multiply](Operator-Multiply.md)
+        * [Subtract](Operator-Subtract.md)
       * Wave
         * [Sawtooth Wave](Operator-SawtoothWave.md)
         * [Sine Wave](Operator-SineWave.md)

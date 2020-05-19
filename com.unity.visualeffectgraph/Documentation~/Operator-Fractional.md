@@ -14,7 +14,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The fractional of the input. The **Type** changes to match the largest vector type of the Operator's inputs. |
+| **Out**    | Dependent | The fractional of the input. <br/>The **Type** changes to match the largest vector type of the Operator's inputs. |
 
 ## Operator configuration
 
