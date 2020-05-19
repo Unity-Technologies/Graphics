@@ -614,6 +614,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed taaFrameIndex and XR tests 4052 and 4053
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
