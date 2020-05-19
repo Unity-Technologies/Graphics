@@ -246,27 +246,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
             {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ScreenSpaceShadows)))
-                {
-                    // First of all we handle the directional light
-                    RenderDirectionalLightScreenSpaceShadow(cmd, hdCamera);
+                // First of all we handle the directional light
+                RenderDirectionalLightScreenSpaceShadow(cmd, hdCamera);
 
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                {
                     // We handle the other light sources
                     RenderLightScreenSpaceShadows(hdCamera, cmd);
-
-                    // We do render the debug view
-                    EvaluateShadowDebugView(cmd, hdCamera);
-
-                    // Big the right texture
-                    cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
                 }
-            }
-            else
-            {
-                // We bind the black texture in this case
-                BindBlackShadowTexture(cmd);
+
+                // We do render the debug view
+                EvaluateShadowDebugView(cmd, hdCamera);
+
+                // Bind the right texture
+                cmd.SetGlobalTexture(HDShaderIDs._ScreenSpaceShadowsTexture, m_ScreenSpaceShadowTextureArray);
             }
         }
 
@@ -911,12 +906,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void EvaluateShadowDebugView(CommandBuffer cmd, HDCamera hdCamera)
         {
-            ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
-
             // If this is the right debug mode and the index we are asking for is in the range
             HDRenderPipeline hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
             if (FullScreenDebugMode.ScreenSpaceShadows == hdrp.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
+                if (!hdrp.rayTracingSupported)
+                {
+                    // In this case we have not rendered any screenspace shadows, so push a black texture on the debug display
+                    hdrp.PushFullScreenDebugTexture(hdCamera, cmd, TextureXR.GetBlackTextureArray(), FullScreenDebugMode.ScreenSpaceShadows);
+                    return;
+                }
+
+                // TODO: move the debug kernel outside of the ray tracing resources
+                ComputeShader shadowFilter = m_Asset.renderPipelineRayTracingResources.shadowFilterCS;
+
                 // Texture dimensions
                 int texWidth = hdCamera.actualWidth;
                 int texHeight = hdCamera.actualHeight;

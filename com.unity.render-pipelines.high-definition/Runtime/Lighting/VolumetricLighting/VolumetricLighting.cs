@@ -70,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Remove if equals to the ones in global CB?
         public uint _NumTileBigTileX;
         public uint _NumTileBigTileY;
+        public uint _Pad0_SVV;
+        public uint _Pad1_SVV;
     }
 
 
@@ -504,23 +506,19 @@ namespace UnityEngine.Rendering.HighDefinition
             var currIdx = (frameIndex + 0) & 1;
             var prevIdx = (frameIndex + 1) & 1;
 
-            if (!m_EnableRenderGraph) // Render Texture are not allocated when render graph is enabled.
-            {
-                var currentParams = hdCamera.vBufferParams[currIdx];
-                bool bufferResized = false;
+            var currentParams = hdCamera.vBufferParams[currIdx];
 
-                bufferResized |= ResizeVolumetricBuffer(ref m_DensityBuffer, "VBufferDensity", currentParams.viewportSize.x,
-                                                                                currentParams.viewportSize.y,
-                                                                                currentParams.viewportSize.z);
-                ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
-                                                                                currentParams.viewportSize.y,
-                                                                                currentParams.viewportSize.z);
+            ResizeVolumetricBuffer(ref m_DensityBuffer, "VBufferDensity", currentParams.viewportSize.x,
+                                                                            currentParams.viewportSize.y,
+                                                                            currentParams.viewportSize.z);
+            ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
+                                                                            currentParams.viewportSize.y,
+                                                                            currentParams.viewportSize.z);
 
-                if (bufferResized)
-                {
-                    m_CurrentVolumetricBufferSize = currentParams.viewportSize;
-                }
-            }
+            // TODO RENDERGRAPH: For now those texture are not handled by render graph.
+            // When they are we won't have the m_DensityBuffer handy for getting the current size in UpdateShaderVariablesGlobalVolumetrics
+            // So we store the size here and in time we'll fill this vector differently.
+            m_CurrentVolumetricBufferSize = new Vector3Int(m_DensityBuffer.rt.width, m_DensityBuffer.rt.height, m_DensityBuffer.rt.volumeDepth);
         }
 
         void InitializeVolumetricLighting()

@@ -296,6 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_InternalLogLut        = null;
         }
 
+
         // In some cases, the internal buffer of render textures might be invalid.
         // Usually when using these textures with API such as SetRenderTarget, they are recreated internally.
         // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.

@@ -213,6 +213,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
+        {
+            m_Resources.ResetRTHandleReferenceSize(width, height);
+        }
+
+        /// <summary>
         /// Import an external texture to the Render Graph.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>

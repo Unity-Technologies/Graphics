@@ -474,15 +474,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
-                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
-                    {
-                        dimension = TextureDimension.Tex3D,
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                        enableRandomWrite = true,
-                        slices = viewportSize.z,
-                        /* useDynamicScale: true, // <- TODO ,*/
-                        name = "VBufferDensity"
-                    }));
+                    passData.densityBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_DensityBuffer));
 
                     builder.SetRenderFunc(
                     (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
@@ -529,15 +521,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     float tileSize = 0;
                     Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
 
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(viewportSize.x, viewportSize.y, false, false)
-                    {
-                        dimension = TextureDimension.Tex3D,
-                        colorFormat = GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                        enableRandomWrite = true,
-                        slices = viewportSize.z,
-                        /* useDynamicScale: true, // <- TODO ,*/
-                        name = "VBufferLighting"
-                    }, HDShaderIDs._VBufferLighting));
+                    // TODO RENDERGRAPH: Auto-scale of 3D RTs is not supported yet so we need to find a better solution for this. Or keep it as is?
+                    passData.lightingBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_LightingBuffer, HDShaderIDs._VBufferLighting));
+
                     if (passData.parameters.enableReprojection)
                     {
                         var currIdx = (frameIndex + 0) & 1;
