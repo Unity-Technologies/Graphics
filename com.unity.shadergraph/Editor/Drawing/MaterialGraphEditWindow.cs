@@ -417,15 +417,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 string path = Path.GetDirectoryName(pathAndFile);
 
                 var extension = graphObject.graph.isSubGraph ? ShaderSubGraphImporter.Extension : ShaderGraphImporter.Extension;
-
-                var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
-
-
                 var newPath = EditorUtility.SaveFilePanelInProject("Save Graph As...", Path.GetFileNameWithoutExtension(pathAndFile), extension, "", path);
                 newPath = newPath.Replace(Application.dataPath, "Assets");
 
                 if (newPath != path)
                 {
+                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
                         var subGraphAssetPath = AssetDatabase.GUIDToAssetPath(subGraphNode.asset.assetGuid);
