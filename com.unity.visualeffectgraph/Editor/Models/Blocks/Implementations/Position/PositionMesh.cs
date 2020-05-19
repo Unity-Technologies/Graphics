@@ -88,8 +88,8 @@ namespace UnityEditor.VFX.Block
                 var positionChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
                 var normalChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
 
-                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, positionVertexOffset, positionChannelFormatAndDimension), "sampledPosition");
-                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, normalVertexOffset, normalChannelFormatAndDimension), "sampledNormal");
+                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, positionVertexOffset, positionChannelFormatAndDimension), "readPosition");
+                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, normalVertexOffset, normalChannelFormatAndDimension), "readDirection");
 #else
                 var vertexStride = new VFXExpressionMeshVertexStride(mesh);
                 yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, positionOffset, vertexStride), "sampledPosition");
@@ -136,9 +136,6 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string source = "";
-                source += @"
-float3 readPosition = SampleMeshFloat3(mesh, vertexIndex, meshPositionOffset, meshVertexStride);
-float3 readDirection = SampleMeshFloat3(mesh, vertexIndex, meshNormalOffset, meshVertexStride);";
                 source += "\n" + VFXBlockUtility.GetComposeString(compositionPosition, "position", "readPosition", "blendPosition");
                 source += "\n" + VFXBlockUtility.GetComposeString(compositionDirection, "direction", "readDirection", "blendDirection");
                 return source;
