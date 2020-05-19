@@ -190,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesGlobal m_ShaderVariablesGlobalCB = new ShaderVariablesGlobal();
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
         ShaderVariablesDebugDisplay m_ShaderVariablesDebugDisplayCB = new ShaderVariablesDebugDisplay();
+        ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
         // The current MSAA count
         MSAASamples m_MSAASamples;
@@ -328,7 +329,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
-        RenderGraph             m_RenderGraph;
+        RenderGraph m_RenderGraph;
+        bool        m_EnableRenderGraph;
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -527,15 +529,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CameraCaptureBridge.enabled = true;
 
-            // Render Graph
-            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
-            m_RenderGraph.RegisterDebug();
-
             InitializePrepass(m_Asset);
             m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.colorResolvePS);
             m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.shaders.resolveMotionVecPS);
 
             InitializeProbeVolumes();
+            CustomPassUtils.Initialize();
         }
 
 #if UNITY_EDITOR
@@ -635,7 +634,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite: true, useDynamicScale: true, name: "CameraSSSDiffuseLighting");
 
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
-            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, isShadowMap: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
+            m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, enableRandomWrite: true, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
 
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: Builtin.GetDistortionBufferFormat(), useDynamicScale: true, name: "Distortion");
 
@@ -665,6 +664,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GetOrCreateDebugTextures()
         {
+            if (m_EnableRenderGraph)
+                return;
+
             //Debug.isDebugBuild can be changed during DoBuildPlayer, these allocation has to be check on every frames
             //TODO : Clean this with the RenderGraph system
             if (Debug.isDebugBuild && m_DebugColorPickerBuffer == null && m_DebugFullScreenTempBuffer == null)
@@ -688,15 +690,18 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
             m_VtBufferManager.DestroyBuffers();
 #endif
-            m_MipGenerator.Release();
+
+            DestroySSSBuffers();
+            m_SharedRTManager.Cleanup();
 
             RTHandles.Release(m_CameraColorBuffer);
+            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
+            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
+
             if (m_CustomPassColorBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassColorBuffer.Value);
             if (m_CustomPassDepthBuffer.IsValueCreated)
                 RTHandles.Release(m_CustomPassDepthBuffer.Value);
-            RTHandles.Release(m_OpaqueAtmosphericScatteringBuffer);
-            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_ContactShadowBuffer);
@@ -707,13 +712,17 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_SsrHitPointTexture);
             RTHandles.Release(m_SsrLightingTexture);
 
-            RTHandles.Release(m_DebugColorPickerBuffer);
-            RTHandles.Release(m_DebugFullScreenTempBuffer);
-            RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
-
             RTHandles.Release(m_CameraColorMSAABuffer);
             RTHandles.Release(m_OpaqueAtmosphericScatteringMSAABuffer);
             RTHandles.Release(m_CameraSssDiffuseLightingMSAABuffer);
+
+            // Those buffer are initialized lazily so we need to null them for this to work after deallocation.
+            RTHandles.Release(m_DebugColorPickerBuffer);
+            RTHandles.Release(m_DebugFullScreenTempBuffer);
+            RTHandles.Release(m_IntermediateAfterPostProcessBuffer);
+            m_DebugColorPickerBuffer = null;
+            m_DebugFullScreenTempBuffer = null;
+            m_IntermediateAfterPostProcessBuffer = null;
         }
 
         void SetRenderingFeatures()
@@ -871,6 +880,65 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        void InitializeRenderGraph()
+        {
+            m_RenderGraph = new RenderGraph(m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_MSAASamples);
+            m_RenderGraph.RegisterDebug();
+        }
+
+        void CleanupRenderGraph()
+        {
+            if (m_EnableRenderGraph)
+            {
+                m_RenderGraph.Cleanup();
+                m_RenderGraph.UnRegisterDebug();
+                m_RenderGraph = null;
+            }
+        }
+
+        internal bool IsRenderGraphEnabled()
+        {
+            return m_EnableRenderGraph;
+        }
+
+        internal void EnableRenderGraph(bool value)
+        {
+            bool changed = value != m_EnableRenderGraph;
+            if (changed)
+            {
+                if (value)
+                {
+                    CleanupNonRenderGraphResources();
+                    InitializeRenderGraph();
+                    m_EnableRenderGraph = true;
+                }
+                else
+                {
+                    CleanupRenderGraph();
+                    InitializeNonRenderGraphResources();
+                    m_EnableRenderGraph = false;
+                }
+            }
+        }
+
+        void InitializeNonRenderGraphResources()
+        {
+            InitializeRenderTextures();
+            m_ShadowManager.InitializeNonRenderGraphResources();
+            m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
+            m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
+            s_lightVolumes.InitializeNonRenderGraphResources();
+        }
+
+        void CleanupNonRenderGraphResources()
+        {
+            DestroyRenderTextures();
+            m_ShadowManager.CleanupNonRenderGraphResources();
+            m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
+            m_PostProcessSystem.CleanupNonRenderGraphResources();
+            s_lightVolumes.CleanupNonRenderGraphResources();
+        }
+
         void InitializeDebugMaterials()
         {
             m_DebugViewMaterialGBuffer = CoreUtils.CreateEngineMaterial(defaultResources.shaders.debugViewMaterialGBufferPS);
@@ -974,8 +1042,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ApplyDistortionMaterial);
             CoreUtils.Destroy(m_ClearStencilBufferMaterial);
 
-            CleanupSubsurfaceScattering();
-            m_SharedRTManager.Cleanup();
             m_XRSystem.Cleanup();
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
@@ -992,20 +1058,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDCamera.ClearAll();
 
+            m_MipGenerator.Release();
+
             DestroyRenderTextures();
             CullingGroupManager.instance.Cleanup();
+
+            m_DbufferManager.ReleaseResolutionDependentBuffers();
+            m_SharedRTManager.DisposeCoarseStencilBuffer();
 
             CoreUtils.SafeRelease(m_DepthPyramidMipLevelOffsetsBuffer);
 
             CustomPassVolume.Cleanup();
 
-            // RenderGraph
-            m_RenderGraph.Cleanup();
-            m_RenderGraph.UnRegisterDebug();
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
             CoreUtils.Destroy(m_MotionVectorResolve);
 
+            CustomPassUtils.Cleanup();
 #if UNITY_EDITOR
             SceneViewDrawMode.ResetDrawMode();
 
@@ -1082,13 +1151,23 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void UpdateGlobalConstantBuffers(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            UpdateShaderVariablesGlobalCB(hdCamera, cmd);
+            UpdateShaderVariablesXRCB(hdCamera, cmd);
+            UpdateShaderVariablesRaytracingCB(hdCamera, cmd);
+
+            // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
+            cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+        }
+
         void UpdateShaderVariablesGlobalCB(HDCamera hdCamera, CommandBuffer cmd)
         {
             hdCamera.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, m_FrameCount);
             Fog.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalSubsurface(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalDecal(ref m_ShaderVariablesGlobalCB, hdCamera);
-            UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, RTHandles.rtHandleProperties, hdCamera);
+            UpdateShaderVariablesGlobalVolumetrics(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_ShadowManager.UpdateShaderVariablesGlobalCB(ref m_ShaderVariablesGlobalCB);
             UpdateShaderVariablesGlobalLightLoop(ref m_ShaderVariablesGlobalCB, hdCamera);
             UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
@@ -1135,13 +1214,33 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
+        }
 
+        void UpdateShaderVariablesXRCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
             hdCamera.xr.UpdateBuiltinStereoMatrices(cmd);
             hdCamera.UpdateShaderVariablesXRCB(ref m_ShaderVariablesXRCB);
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesXRCB, HDShaderIDs._ShaderVariablesXR);
+        }
 
-            // This one is not in a constant buffer because it's only used as a parameter for some shader's render states. It's not actually used inside shader code.
-            cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, (int)ColorWriteMask.All);
+
+        void UpdateShaderVariablesRaytracingCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
+            ScreenSpaceReflection screenSpaceReflection = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+
+            // Those are globally set parameters. The others are set per effect and will update the constant buffer as we render.
+            m_ShaderVariablesRayTracingCB._RaytracingRayBias = rayTracingSettings.rayBias.value;
+            m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
+            m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
+            m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness.value;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart.value;
+
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
 
         void CopyDepthBufferIfNeeded(HDCamera hdCamera, CommandBuffer cmd)
@@ -2105,7 +2204,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // So the first thing to do is to go through all the light: PrepareLightsForGPU
             bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, probeVolumes, m_CurrentDebugDisplaySettings, aovRequest);
 
-            UpdateShaderVariablesGlobalCB(hdCamera, cmd);
+            UpdateGlobalConstantBuffers(hdCamera, cmd);
 
             // Do the same for ray tracing if allowed
             if (m_RayTracingSupported)
@@ -2131,7 +2230,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (m_RenderGraph.enabled)
+            if (m_EnableRenderGraph)
             {
                 ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
                 return;
@@ -2441,7 +2540,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (!hdCamera.frameSettings.SSAORunsAsync())
-                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_FrameCount);
+                    m_AmbientOcclusionSystem.Render(cmd, hdCamera, renderContext, m_ShaderVariablesRayTracingCB, m_FrameCount);
 
                 // Run the contact shadows here as they need the light list
                 HDUtils.CheckRTCreated(m_ContactShadowBuffer);
@@ -4922,7 +5021,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle mainNormalBuffer = m_SharedRTManager.GetNormalBuffer();
                 RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
-                    return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainNormalBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainNormalBuffer.rt.enableRandomWrite, name: $"Normal History Buffer"
+                    return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainNormalBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainNormalBuffer.rt.enableRandomWrite, name: $"{id}_Normal History Buffer"
                     );
                 }
 
@@ -4937,7 +5036,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle mainDepthBuffer = m_SharedRTManager.GetDepthTexture();
                 RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
-                    return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer"
+                    return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"{id}_Depth History Buffer"
                     );
                 }
                 depthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth, Allocator, 1);

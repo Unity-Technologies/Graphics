@@ -80,6 +80,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
         }
 
+        void DestroySSSBuffers()
+        {
+            RTHandles.Release(m_SSSColorMSAA);
+            RTHandles.Release(m_SSSCameraFilteringBuffer);
+            if (!m_SSSReuseGBufferMemory)
+            {
+                RTHandles.Release(m_SSSColor);
+            }
+        }
+
         RTHandle GetSSSBuffer()
         {
             return m_SSSColor;
@@ -111,12 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_CombineLightingPass);
             CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
-            if (!m_SSSReuseGBufferMemory)
-            {
-                RTHandles.Release(m_SSSColor);
-            }
-            RTHandles.Release(m_SSSColorMSAA);
-            RTHandles.Release(m_SSSCameraFilteringBuffer);
+            DestroySSSBuffers();
         }
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
@@ -265,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("SubSurfaceHistoryBuffer{0}", frameIndex));
+                                        name: string.Format("{0}_SubSurfaceHistoryBuffer{1}", viewName, frameIndex));
         }
 
         void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
@@ -290,7 +295,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Fetch the volume overrides that we shall be using
                     RayTracingShader subSurfaceShader = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracing;
-                    RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                     ComputeShader deferredRayTracing = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
 
                     // Fetch all the intermediate buffers that we need
@@ -322,9 +326,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int sampleIndex = 0; sampleIndex < settings.sampleCount.value; ++sampleIndex)
                     {
                         // Inject the ray generation data
-                        cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIndex);
+                        m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
+                        m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
+                        ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
