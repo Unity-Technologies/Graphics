@@ -37,7 +37,6 @@ namespace UnityEditor.VFX
 
         private static void Initialize()
         {
-
             string[] guids = AssetDatabase.FindAssets("t:VFXResources");
 
 

@@ -207,7 +207,7 @@ namespace UnityEditor.VFX.Block
                 {
                     attribName = "scale";
                     return true;
-                }       
+                }
             }
 
             if (attribName == "sizeX")

@@ -225,7 +225,7 @@ namespace UnityEditor.VFX.Test
             var arrVariants = Enumerable.Range(0, 4).Select(o => Enumerable.Range(0, 4));
             IEnumerable<IEnumerable<int>> empty = new[] { Enumerable.Empty<int>() };
             var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))))
-                                           .Select(o => o.ToArray()).ToArray();
+                .Select(o => o.ToArray()).ToArray();
 
             //Cartesian product in combinations of [0,1,2,3]x[0,1,2,3] => {0,0,0,0}, {0,0,0,1}, ...
             //We create a simple graph node_A (Vector3) and node_B (Vector3 or Direction)
@@ -288,7 +288,6 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(v3_Ref.y, vector3Value.y);
             Assert.AreEqual(v3_Ref.y, vector3Value.y);
         }
-
 
         [Test]
         public void Slot_Copy_Link_Transform_To_OrientedBox()
