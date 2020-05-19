@@ -1988,6 +1988,11 @@ namespace UnityEditor.ShaderGraph
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    if(block.descriptor == null)
+                    {
+                        block.descriptor = new BlockFieldDescriptor("Unknown", "Unkown", block.serializedDescriptor, null, new UnknownControl(), stage);
+                        m_BlockFieldDescriptors.Add(block.descriptor);
+                    }
                     block.contextData = contextData;
                 }
             }
