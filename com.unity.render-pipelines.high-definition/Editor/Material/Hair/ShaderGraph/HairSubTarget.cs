@@ -148,7 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, lightingData.receiveSSR);
+            // TODO: make sure SSS is disabled in lighting data here
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,

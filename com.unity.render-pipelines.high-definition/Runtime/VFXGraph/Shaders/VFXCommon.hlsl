@@ -15,7 +15,7 @@ float4 VFXTransformPositionWorldToNonJitteredClip(float3 posWS)
 #if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
-    return mul(_NonJitteredViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_UNJITTERED_VP, float4(posWS, 1.0f));
 }
 
 float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
@@ -23,7 +23,7 @@ float4 VFXTransformPositionWorldToPreviousClip(float3 posWS)
 #if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
-    return mul(_PrevViewProjMatrix, float4(posWS, 1.0f));
+    return mul(UNITY_MATRIX_PREV_VP, float4(posWS, 1.0f));
 }
 
 #ifdef VFX_VARYING_PS_INPUTS

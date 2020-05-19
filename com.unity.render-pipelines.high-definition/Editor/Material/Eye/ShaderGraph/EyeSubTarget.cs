@@ -121,7 +121,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, lightingData.subsurfaceScattering, lightingData.receiveSSR);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,

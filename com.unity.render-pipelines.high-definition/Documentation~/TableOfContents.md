@@ -101,6 +101,8 @@
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
   * [Alpha Output](Alpha-Output)
+  * [Arbitrary Output Variables](AOVs)
+  * [Multiframe Rendering and Accumulation](Accumulation)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -141,9 +143,7 @@
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools
-  * Look Dev
-    * [Look Dev Window](Look-Dev)
-    * [Environment Library](Look-Dev-Environment-Library)
+  * [Look Dev](Look-Dev)
   * [Compositor](Compositor-Main)
     * [User Guide](Compositor-User-Guide)
     * [User Options](Compositor-User-Options)

@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [9.0.0] - 2020-07-09
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's layout vanishing on domain reload.
 - Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 - Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
+- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
