@@ -557,7 +557,7 @@ void VarianceNeighbourhood(inout NeighbourhoodSamples samples, float historyLuma
 #if ANTI_FLICKER_MV_DEPENDENT
     const float screenDiag = length(_ScreenSize.xy);
     const float maxFactorScale = 2.25f; // when stationary
-    const float minFactorScale = 0.75f; // when moving more than slightly
+    const float minFactorScale = 0.8f; // when moving more than slightly
     float localizedAntiFlicker = lerp(antiFlickerParams.x * minFactorScale, antiFlickerParams.x * maxFactorScale, saturate(1.0f - 2.0f * (motionVectorLen * screenDiag)));
 #else
     float localizedAntiFlicker = antiFlickerParams.x;
