@@ -1,6 +1,6 @@
 editors:
-  - version: trunk
-  - version: fast-trunk
+  - version: 2020.1
+  - version: fast-2020.1
   - version: CUSTOM-REVISION
 projects:
   - name: Universal
@@ -51,17 +51,17 @@ all_project_ci_{{ editor.version }}:
     logs:
       paths:
         - "**/test-results/**"
-  {% if editor.version == "fast-trunk" %}
+  {% if editor.version == "fast-2020.1" %}
   # run abv for non-draft PRs that are not docs
   triggers:
-    expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+    expression: pull_request.target eq "9.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
   {% endif %}
 {% endfor %}
 
 
-# a separate job so that only trunk is run nightly, not fast-trunk
+# a separate job so that only 2020.1 is run nightly, not fast-2020.1
 {% for editor in editors %}
- {% if editor.version == 'trunk' %}
+ {% if editor.version == '2020.1' %}
 all_project_ci_nightly_{{ editor.version }}:
   name: _Nightly ABV against {{ editor.version }}
   dependencies:
@@ -79,15 +79,13 @@ all_project_ci_nightly_{{ editor.version }}:
       rerun: always
     - path: .yamato/upm-ci-universal.yml#Universal_Android_Vulkan_{{ editor.version }}
       rerun: always
-    - path: .yamato/upm-ci-universal.yml#Universal_iPhone_Metal_{{ editor.version }}
-      rerun: always
     - path: .yamato/upm-ci-hdrp_hybrid.yml#All_HDRP_Hybrid_{{ editor.version }}
       rerun: always
     - path: .yamato/upm-ci-universal_hybrid.yml#All_Universal_Hybrid_{{ editor.version }}
       rerun: always
   triggers:
     recurring:
-      - branch: master
+      - branch: 9.x.x/release
         frequency: 0 * * ?     
   {% endif %}
 {% endfor %}
@@ -149,7 +147,8 @@ all_smoke_tests_{{ editor.version }}:
     rerun: on-new-revision
   {% endfor %}
   {% endfor %}
-        
+
+# "trunk" here just refers to unity source        
 {% for editor in editors %}
 trunk_verification_{{ editor.version }}:
   name: Trunk verification - {{ editor.version }}
