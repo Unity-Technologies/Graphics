@@ -733,7 +733,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-                    
+
             return result;
         }
 
@@ -901,7 +901,7 @@ namespace UnityEditor.ShaderGraph
 
             var node = property.ToConcreteNode() as AbstractMaterialNode;
             if (node == null)   // Some nodes have no concrete form
-            {                
+            {
                 if (deleteNodeIfNoConcreteFormExists)
                     RemoveNodeNoValidate(propertyNode);
                 return;

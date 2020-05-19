@@ -53,7 +53,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             shaderGUIOverrideField = null;
 
             string storedValue = actualObject.ShaderGUIOverride;
-            string preferredGUI = GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode);
+            string preferredGUI = String.Empty;
+            //string preferredGUI = GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode);
 
             var boolPropertyDrawer = new BoolPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUI(
@@ -132,7 +133,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             string sanitizedInput = Regex.Replace(newValue, @"(?:[^A-Za-z0-9._])|(?:\s)", "");
             if (HasPreferredGUI() && string.IsNullOrEmpty(sanitizedInput))
             {
-                var defaultGUI = GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode);
+                var defaultGUI = String.Empty;
+                //var defaultGUI = GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode);
                 m_ShaderGUIOverrideInfo.ShaderGUIOverride = defaultGUI;
             }
             else
@@ -200,7 +202,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         private bool HasPreferredGUI()
         {
-            return !string.IsNullOrEmpty(GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode));
+            return false;
+            //return !string.IsNullOrEmpty(GraphUtil.CurrentPipelinePreferredShaderGUI(m_MasterNode as IMasterNode));
         }
     }
 }
