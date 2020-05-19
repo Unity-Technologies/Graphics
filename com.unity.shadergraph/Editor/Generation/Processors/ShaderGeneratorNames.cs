@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph
         public const string VertexColor = "VertexColor";
         public const string FaceSign = "FaceSign";
         public const string TimeParameters = "TimeParameters";
-        public const string PixelCoordinate = "PixelCoordinate";
 
         public static string GetUVName(this UVChannel channel)
         {

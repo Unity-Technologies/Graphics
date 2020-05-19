@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 using System.IO;
 
 public class LWGraphicsTests
@@ -16,7 +17,7 @@ public class LWGraphicsTests
     [UnityTest, Category("LightWeightRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases(lwPackagePath)]
-    
+
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
@@ -28,17 +29,28 @@ public class LWGraphicsTests
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<LWGraphicsTestSettings>();
         Assert.IsNotNull(settings, "Invalid test scene, couldn't find LWGraphicsTestSettings");
-        
+
         // Stereo screen capture on Mac generates monoscopic images and won't be fixed.
         Assume.That((Application.platform != RuntimePlatform.OSXEditor && Application.platform != RuntimePlatform.OSXPlayer), "Stereo tests do not run on MacOSX.");
-        
+
         var referenceImage = testCase.ReferenceImage;
         // make sure we're rendering in the same size as the reference image, otherwise this is not really comparable.
         Screen.SetResolution(referenceImage.width, referenceImage.height, FullScreenMode.Windowed);
 
+#if UNITY_2020_2_OR_NEWER
+        // Ensure a valid XR display is active
+        List<XRDisplaySubsystem> xrDisplays = new List<XRDisplaySubsystem>();
+        SubsystemManager.GetInstances(xrDisplays);
+        Assume.That(xrDisplays.Count > 0 && xrDisplays[0].running, "No XR display active!");
+
+        // Set mirror view to side-by-side (both eyes)
+        xrDisplays[0].SetPreferredMirrorBlitMode(XRMirrorViewBlitMode.SideBySide);
+#else
         XRSettings.gameViewRenderMode = GameViewRenderMode.BothEyes;
+#endif
+
         yield return null;
-        
+
         foreach (var camera in cameras)
             camera.stereoTargetEye = StereoTargetEyeMask.Both;
 
@@ -57,9 +69,9 @@ public class LWGraphicsTests
         // ScreenCapture.CaptureScreenshotAsTexture --> does not work since colorspace is wrong, would need colorspace change and thus color compression
         // ScreenCapture.CaptureScreenshotIntoRenderTexture --> does not work since texture is flipped, would need another pass
         // so we need to capture and reload the resulting file.
-        ScreenCapture.CaptureScreenshot(tempScreenshotFile);
-        
-        // NOTE: there's discussions around whether Unity has actually documented this correctly. 
+        ScreenCapture.CaptureScreenshot(tempScreenshotFile, ScreenCapture.StereoScreenCaptureMode.BothEyes);
+
+        // NOTE: there's discussions around whether Unity has actually documented this correctly.
         // Unity says: next frame MUST have the file ready
         // Community says: not true, file write might take longer, so have to explicitly check the file handle before use
         // https://forum.unity.com/threads/how-to-wait-for-capturescreen-to-complete.172194/
@@ -94,10 +106,10 @@ public class LWGraphicsTests
         if (!File.Exists(path)) {
             return false;
         }
-        
+
         FileInfo file = new System.IO.FileInfo(path);
         FileStream stream = null;
- 
+
         try {
             stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
         }
@@ -112,7 +124,7 @@ public class LWGraphicsTests
             if (stream != null)
                 stream.Close();
         }
-        
+
         return true;
     }
 

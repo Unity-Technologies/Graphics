@@ -11,8 +11,11 @@ namespace  UnityEngine.Rendering.HighDefinition
             return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
-        RTHandle m_VTFeedbackBuffer;
+        public RTHandle FeedbackBuffer { get; private set; }
+        public RTHandle FeedbackBufferMsaa { get; private set; }
+
         VirtualTexturing.Resolver m_Resolver = new VirtualTexturing.Resolver();
+        VirtualTexturing.Resolver m_ResolverMsaa = new VirtualTexturing.Resolver();
         public static int AdditionalForwardRT = 1;
         const int resolveScaleFactor = 16;
         Vector2 resolverScale = new Vector2(1.0f / (float)resolveScaleFactor, 1.0f / (float)resolveScaleFactor);
@@ -26,10 +29,11 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void CreateBuffers(RenderPipelineSettings settings)
         {
-            if (settings.supportMSAA || settings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            FeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, useDynamicScale: true, name: "VTFeedbackForward");
+            if (settings.supportMSAA)
             {
                 // Our processing handles both MSAA and regular buffers so we don't need to explicitly resolve here saving a buffer
-                m_VTFeedbackBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
+                FeedbackBufferMsaa = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, bindTextureMS: true,
                     enableMSAA: settings.supportMSAA, useDynamicScale: true, name: "VTFeedbackForwardMSAA");
             }
 
@@ -42,20 +46,21 @@ namespace  UnityEngine.Rendering.HighDefinition
             m_Resolver.UpdateSize(width, height);
         }
 
-        public void Resolve(CommandBuffer cmd, RTHandle rt, int width, int height)
+        public void Resolve(CommandBuffer cmd, RTHandle rt, HDCamera hdCamera)
         {
-            if (rt != null)
-            {
-                ResolveVTDispatch(cmd, rt, width, height );
-            }
+            var width = hdCamera.actualWidth;
+            var height = hdCamera.actualHeight;
 
-            if (m_VTFeedbackBuffer != null)
+            ResolveVTDispatch(m_Resolver, cmd, rt ?? FeedbackBuffer, width, height);
+
+            var msaaEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            if (msaaEnabled && FeedbackBufferMsaa != null)
             {
-                ResolveVTDispatch(cmd, m_VTFeedbackBuffer, width, height );
+                ResolveVTDispatch(m_ResolverMsaa, cmd, FeedbackBufferMsaa, width, height );
             }
         }
 
-        void ResolveVTDispatch(CommandBuffer cmd, RTHandle buffer, int width, int height)
+        void ResolveVTDispatch(VirtualTexturing.Resolver resolver, CommandBuffer cmd, RTHandle buffer, int width, int height)
         {
             // We allow only resolving a sub-rectangle of a larger allocated buffer but not the other way around.
             Debug.Assert(width <= buffer.referenceSize.x && height <= buffer.referenceSize.y);
@@ -80,7 +85,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             var TGSize = 8; //Match shader
             cmd.DispatchCompute(downSampleCS, kernel, ((int)lowResWidth + (TGSize - 1)) / TGSize, ((int)lowResHeight + (TGSize - 1)) / TGSize, 1);
 
-            m_Resolver.Process(cmd, lowresResolver.nameID, 0, lowResWidth, 0, lowResHeight, 0, 0);
+            resolver.Process(cmd, lowresResolver.nameID, 0, lowResWidth, 0, lowResHeight, 0, 0);
         }
 
         void GetResolveDimensions(ref int w, ref int h)
@@ -91,20 +96,15 @@ namespace  UnityEngine.Rendering.HighDefinition
 
         public void DestroyBuffers()
         {
-            RTHandles.Release(m_VTFeedbackBuffer);
+            RTHandles.Release(FeedbackBuffer);
+            RTHandles.Release(FeedbackBufferMsaa);
             RTHandles.Release(lowresResolver);
-            m_VTFeedbackBuffer = null;
+            FeedbackBuffer = null;
+            FeedbackBufferMsaa = null;
             lowresResolver = null;
             m_Resolver.Dispose();
+            m_ResolverMsaa.Dispose();
         }
-
-        // This may be null in some cases where this buffer can be shared with the one used by the Gbuffer
-        public RTHandle GetFeedbackBuffer()
-        {
-            return m_VTFeedbackBuffer;
-        }
-
-
     }
 }
 #endif

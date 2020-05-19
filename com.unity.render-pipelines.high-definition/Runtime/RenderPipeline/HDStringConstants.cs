@@ -380,9 +380,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _VBufferDensity                    = Shader.PropertyToID("_VBufferDensity");
         public static readonly int _VBufferLighting                   = Shader.PropertyToID("_VBufferLighting");
-        public static readonly int _VBufferLightingIntegral           = Shader.PropertyToID("_VBufferLightingIntegral");
-        public static readonly int _VBufferLightingHistory            = Shader.PropertyToID("_VBufferLightingHistory");
-        public static readonly int _VBufferLightingFeedback           = Shader.PropertyToID("_VBufferLightingFeedback");
+        public static readonly int _VBufferHistory                    = Shader.PropertyToID("_VBufferHistory");
+        public static readonly int _VBufferFeedback                   = Shader.PropertyToID("_VBufferFeedback");
+        public static readonly int _VBufferFilteringInput             = Shader.PropertyToID("_VBufferFilteringInput");
+        public static readonly int _VBufferFilteringOutput            = Shader.PropertyToID("_VBufferFilteringOutput");
         public static readonly int _VolumeBounds                      = Shader.PropertyToID("_VolumeBounds");
         public static readonly int _VolumeData                        = Shader.PropertyToID("_VolumeData");
         public static readonly int _VolumeMaskAtlas                   = Shader.PropertyToID("_VolumeMaskAtlas");
@@ -459,6 +460,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PixelSpreadAngleTangent         = Shader.PropertyToID("_PixelSpreadAngleTangent");
         public static readonly int _RaytracingPixelSpreadAngle      = Shader.PropertyToID("_RaytracingPixelSpreadAngle");
         public static readonly string _RaytracingAccelerationStructureName          = "_RaytracingAccelerationStructure";
+
+        // Path tracing variables
+        public static readonly int _PathTracedDoFConstants          = Shader.PropertyToID("_PathTracedDoFConstants");
+        public static readonly int _InvViewportScaleBias            = Shader.PropertyToID("_InvViewportScaleBias");
 
         // Light Cluster
         public static readonly int _MinClusterPos                   = Shader.PropertyToID("_MinClusterPos");
@@ -569,6 +574,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Deferred Lighting
         public static readonly int _RaytracingLitBufferRW           = Shader.PropertyToID("_RaytracingLitBufferRW");
         public static readonly int _RaytracingDiffuseRay            = Shader.PropertyToID("_RaytracingDiffuseRay");
+        public static readonly int _RayTracingDiffuseLightingOnly   = Shader.PropertyToID("_RayTracingDiffuseLightingOnly");
 
         // Ray binning
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
@@ -599,6 +605,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureParams                 = Shader.PropertyToID("_ExposureParams");
         public static readonly int _AdaptationParams               = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture           = Shader.PropertyToID("_ExposureCurveTexture");
+        public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
         public static readonly int _InputTextureMSAA               = Shader.PropertyToID("_InputTextureMSAA");

@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                m_GraphData.AddValidationError(m_OutputNode.guid, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
@@ -245,7 +245,6 @@ namespace UnityEditor.ShaderGraph
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
-            var graphIncludes = new IncludeCollection();
 
             // Hash table of named $splice(name) commands
             // Key: splice token
@@ -327,6 +326,36 @@ namespace UnityEditor.ShaderGraph
 
                 string command = GenerationUtils.GetSpliceCommand(passPragmaBuilder.ToCodeBlock(), "PassPragmas");
                 spliceCommands.Add("PassPragmas", command);
+            }
+
+            // Includes
+            using (var preGraphIncludeBuilder = new ShaderStringBuilder())
+            {
+                if (pass.includes != null)
+                {
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                    {
+                        if (include.TestActive(activeFields))
+                            preGraphIncludeBuilder.AppendLine(include.value);
+                    }
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(preGraphIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
+                spliceCommands.Add("PreGraphIncludes", command);
+            }
+            using (var postGraphIncludeBuilder = new ShaderStringBuilder())
+            {
+                if (pass.includes != null)
+                {
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
+                    {
+                        if (include.TestActive(activeFields))
+                            postGraphIncludeBuilder.AppendLine(include.value);
+                    }
+                }
+
+                string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
+                spliceCommands.Add("PostGraphIncludes", command);
             }
 
             // Keywords
@@ -448,7 +477,6 @@ namespace UnityEditor.ShaderGraph
                 GenerationUtils.GenerateVertexDescriptionFunction(
                     m_GraphData,
                     vertexGraphFunctionBuilder,
-                    graphIncludes,
                     functionRegistry,
                     propertyCollector,
                     keywordCollector,
@@ -493,7 +521,6 @@ namespace UnityEditor.ShaderGraph
                 m_OutputNode,
                 m_GraphData,
                 pixelGraphFunctionBuilder,
-                graphIncludes,
                 functionRegistry,
                 propertyCollector,
                 keywordCollector,
@@ -516,49 +543,6 @@ namespace UnityEditor.ShaderGraph
                 if(pixelBuilder.length == 0)
                     pixelBuilder.AppendLine("// GraphPixel: <None>");
                 spliceCommands.Add("GraphPixel", pixelBuilder.ToCodeBlock());
-            }
-
-            // --------------------------------------------------
-            // Includes (including Graph Includes)
-            using (var preGraphIncludeBuilder = new ShaderStringBuilder())
-            {
-                if (pass.includes != null)
-                {
-                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
-                    {
-                        if (include.TestActive(activeFields))
-                            preGraphIncludeBuilder.AppendLine(include.value);
-                    }
-                }
-
-                foreach (IncludeCollection.Item include in graphIncludes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
-                {
-                    if (include.TestActive(activeFields))
-                        preGraphIncludeBuilder.AppendLine(include.value);
-                }
-
-                string command = GenerationUtils.GetSpliceCommand(preGraphIncludeBuilder.ToCodeBlock(), "PreGraphIncludes");
-                spliceCommands.Add("PreGraphIncludes", command);
-            }
-            using (var postGraphIncludeBuilder = new ShaderStringBuilder())
-            {
-                if (pass.includes != null)
-                {
-                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
-                    {
-                        if (include.TestActive(activeFields))
-                            postGraphIncludeBuilder.AppendLine(include.value);
-                    }
-                }
-
-                foreach (IncludeCollection.Item include in graphIncludes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
-                {
-                    if (include.TestActive(activeFields))
-                        postGraphIncludeBuilder.AppendLine(include.value);
-                }
-
-                string command = GenerationUtils.GetSpliceCommand(postGraphIncludeBuilder.ToCodeBlock(), "PostGraphIncludes");
-                spliceCommands.Add("PostGraphIncludes", command);
             }
 
             // --------------------------------------------------
@@ -593,10 +577,10 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            int instancedPropCount = propertyCollector.GetDotsInstancingPropertiesCount(m_Mode);
+            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -612,7 +596,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");

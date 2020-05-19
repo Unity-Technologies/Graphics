@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8905808178241479771
+--- !u!114 &-3078463350630407065
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Shader Graphs_Fabric_CottonWool_Transparent
-  m_Shader: {fileID: -6465566751694194690, guid: c495b322af8a81441ac91320059c99a8,
+  m_Shader: {fileID: -6465566751694194690, guid: d6c22991d07f30445aa28266c4142fa7,
     type: 3}
   m_ShaderKeywords: _BLENDMODE_ALPHA _DISABLE_SSR_TRANSPARENT _ENABLE_FOG_ON_TRANSPARENT
     _SURFACE_TYPE_TRANSPARENT
@@ -43,9 +43,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Vector1_38D695E4: 0.5
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -78,6 +80,7 @@ Material:
     - _ZTestTransparent: 4
     - _ZWrite: 0
     m_Colors:
+    - Color_D63725C8: {r: 0, g: 0, b: 0, a: 0}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

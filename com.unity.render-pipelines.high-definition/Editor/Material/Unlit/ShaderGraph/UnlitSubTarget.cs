@@ -343,7 +343,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kCommonLighting, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-                { CoreIncludes.kShadowContext, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
