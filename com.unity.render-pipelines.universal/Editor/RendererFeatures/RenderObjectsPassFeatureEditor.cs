@@ -71,7 +71,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 	    private SerializedProperty m_CameraOffset;
 	    private SerializedProperty m_RestoreCamera;
 
-	    private ReorderableList m_ShaderPassesList;
         private List<SerializedObject> m_properties = new List<SerializedObject>();
 
         private void Init(SerializedProperty property)
@@ -111,25 +110,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_RestoreCamera = m_CameraSettings.FindPropertyRelative("restoreCamera");
 
             m_properties.Add(property.serializedObject);
-            CreateShaderPassList();
-        }
-
-        private void CreateShaderPassList()
-        {
-            m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, false, true, true, true);
-
-            m_ShaderPassesList.drawElementCallback =
-            (Rect rect, int index, bool isActive, bool isFocused) =>
-            {
-                var element = m_ShaderPassesList.serializedProperty.GetArrayElementAtIndex(index);
-                var propRect = new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight);
-                element.stringValue = EditorGUI.TextField(propRect, "", element.stringValue);
-            };
-
-            m_ShaderPassesList.drawHeaderCallback = (Rect testHeaderRect) =>
-            {
-                EditorGUI.LabelField(testHeaderRect, Styles.shaderPassFilter);
-            };
         }
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
@@ -198,10 +178,10 @@ namespace UnityEditor.Experimental.Rendering.Universal
 			    EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
 			    rect.y += Styles.defaultLineSpace;
 			    //Shader pass list
-			    EditorGUI.indentLevel--;
-			    m_ShaderPassesList.DoList(rect);
-			    rect.y += m_ShaderPassesList.GetHeight();
-		    }
+                EditorGUI.PropertyField(rect, m_ShaderPasses, Styles.shaderPassFilter, true);
+                rect.y += EditorGUI.GetPropertyHeight(m_ShaderPasses);
+                EditorGUI.indentLevel--;
+            }
 	    }
 
 	    void DoMaterialOverride(ref Rect rect)
@@ -267,7 +247,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
 		    Init(property);
             height += Styles.defaultLineSpace * (m_FiltersFoldout.value ? m_FilterLines : 1);
-            height += m_FiltersFoldout.value ? m_ShaderPassesList.GetHeight() : 0;
+            height += m_FiltersFoldout.value ? EditorGUI.GetPropertyHeight(m_ShaderPasses) : 0;
 
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RenderFoldout.value)
