@@ -782,8 +782,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_DebugParameters.unbindGlobalTextures)
                 m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, pass.textureReadList);
 
-            //pass.customSampler?.End(rgContext.cmd);
-
             m_RenderGraphPool.ReleaseAllTempAlloc();
 
             foreach (var texture in passInfo.textureReleaseList)
