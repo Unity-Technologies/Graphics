@@ -88,6 +88,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
