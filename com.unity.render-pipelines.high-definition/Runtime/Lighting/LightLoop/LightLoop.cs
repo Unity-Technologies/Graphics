@@ -121,6 +121,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
+
+        // Indirect diffuse flags
+        public static int k_IndirectDiffuseFlagOff = 0x00;
+        public static int k_ScreenSpaceIndirectDiffuseFlag = 0x01;
+        public static int k_RayTracedIndirectDiffuseFlag = 0x02;
     }
 
     [GenerateHLSL]
@@ -234,6 +239,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public uint         _DensityVolumeIndexShift;
         public uint         _ProbeVolumeIndexShift;
+        public uint         _Pad0_SVLL;
+        public uint         _Pad1_SVLL;
     }
 
     internal struct ProcessedLightData
@@ -992,7 +999,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ScreenSpaceShadowsUnion.Clear();
         }
 
-        void LightLoopNewFrame(HDCamera hdCamera)
+        void LightLoopNewFrame(CommandBuffer cmd, HDCamera hdCamera)
         {
             var frameSettings = hdCamera.frameSettings;
 
@@ -1009,6 +1016,13 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int viewIndex = 0; viewIndex < viewCount; ++viewIndex)
             {
                 m_WorldToViewMatrices.Add(GetWorldToViewMatrix(hdCamera, viewIndex));
+            }
+
+            // Clear the cookie atlas if needed at the beginning of the frame.
+            if (m_DebugDisplaySettings.data.lightingDebugSettings.clearCookieAtlas)
+            {
+                m_TextureCaches.lightCookieManager.ResetAllocator();
+                m_TextureCaches.lightCookieManager.ClearAtlasTexture(cmd);
             }
         }
 
@@ -2700,6 +2714,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 PushLightDataGlobalParams(cmd);
+                PushShadowGlobalParams(cmd);
             }
 
             m_EnableBakeShadowMask = m_EnableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -2709,7 +2724,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ReserveCookieAtlasTexture(HDAdditionalLightData hdLightData, Light light, HDLightType lightType)
         {
             // Note: light component can be null if a Light is used for shuriken particle lighting.
-            switch (hdLightData.ComputeLightType(light))
+            lightType = light == null ? HDLightType.Point : lightType;
+            switch (lightType)
             {
                 case HDLightType.Directional:
                     m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
@@ -3384,20 +3400,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return add;
         }
 
-        struct ShadowGlobalParameters
-        {
-            public HDCamera hdCamera;
-            public HDShadowManager shadowManager;
-        }
-
-        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
-        {
-            ShadowGlobalParameters parameters = new ShadowGlobalParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.shadowManager = m_ShadowManager;
-            return parameters;
-        }
-
         struct LightLoopGlobalParameters
         {
             public HDCamera                 hdCamera;
@@ -3492,16 +3494,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
         }
 
-        static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
+        void PushShadowGlobalParams(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushShadowGlobalParameters)))
-            {
-                Camera camera = param.hdCamera.camera;
-
-                // Shadows
-                param.shadowManager.SyncData();
-                param.shadowManager.BindResources(cmd);
-            }
+            m_ShadowManager.PushGlobalParameters(cmd);
         }
 
         static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
@@ -3532,8 +3527,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.RenderShadows(renderContext, cmd, globalCB, cullResults, hdCamera);
 
             // Bind the shadow data
-            var globalParams = PrepareShadowGlobalParameters(hdCamera);
-            PushShadowGlobalParams(globalParams, cmd);
+            m_ShadowManager.BindResources(cmd);
         }
 
         bool WillRenderContactShadow()
@@ -4054,12 +4048,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         CoreUtils.DrawFullScreen(cmd, parameters.debugViewTilesMaterial, 0);
                     }
                 }
-            }
-
-            if (lightingDebug.clearCookieAtlas)
-            {
-                parameters.cookieManager.ResetAllocator();
-                parameters.cookieManager.ClearAtlasTexture(cmd);
             }
 
             if (lightingDebug.displayCookieAtlas)

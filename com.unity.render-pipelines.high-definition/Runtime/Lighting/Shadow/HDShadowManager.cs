@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
-                                                        HDShaderIDs._AreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._AreaShadowmapMomentAtlas);
+                                                        HDShaderIDs._AreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
 
             m_ShadowDataBuffer = new ComputeBuffer(initParams.maxShadowRequests, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
@@ -307,6 +307,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
                                                     HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
+        }
+
+        public void InitializeNonRenderGraphResources()
+        {
+            m_Atlas.AllocateRenderTexture();
+            m_CascadeAtlas.AllocateRenderTexture();
+            if (ShaderConfig.s_AreaLights == 1)
+                m_AreaLightShadowAtlas.AllocateRenderTexture();
+        }
+
+        public void CleanupNonRenderGraphResources()
+        {
+            m_Atlas.Release();
+            m_CascadeAtlas.Release();
+            if (ShaderConfig.s_AreaLights == 1)
+                m_AreaLightShadowAtlas.Release();
         }
 
         // Keep in sync with both HDShadowSampling.hlsl
@@ -614,6 +630,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DirectionalShadowData.cascadeDirection = Vector4.zero;
 
             m_DirectionalShadowData.cascadeDirection.w = camera.volumeStack.GetComponent<HDShadowSettings>().cascadeShadowSplitCount.value;
+
+            if (m_ShadowRequestCount > 0)
+            {
+                // Upload the shadow buffers to GPU
+                m_ShadowDataBuffer.SetData(m_ShadowDatas);
+                m_CachedDirectionalShadowData[0] = m_DirectionalShadowData;
+                m_DirectionalShadowDataBuffer.SetData(m_CachedDirectionalShadowData);
+            }
         }
 
         public void RenderShadows(ScriptableRenderContext renderContext, CommandBuffer cmd, in ShaderVariablesGlobal globalCB, CullingResults cullResults, HDCamera hdCamera)
@@ -644,18 +668,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void SyncData()
-        {
-            // Avoid to upload datas which will not be used
-            if (m_ShadowRequestCount == 0)
-                return;
-
-            // Upload the shadow buffers to GPU
-            m_ShadowDataBuffer.SetData(m_ShadowDatas);
-            m_CachedDirectionalShadowData[0] = m_DirectionalShadowData;
-            m_DirectionalShadowDataBuffer.SetData(m_CachedDirectionalShadowData);
-        }
-
         public void PushGlobalParameters(CommandBuffer cmd)
         {
             // This code must be in sync with HDShadowContext.hlsl
@@ -665,8 +677,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void BindResources(CommandBuffer cmd)
         {
-            PushGlobalParameters(cmd);
-
             m_Atlas.BindResources(cmd);
             m_CascadeAtlas.BindResources(cmd);
             cachedShadowManager.punctualShadowAtlas.BindResources(cmd);

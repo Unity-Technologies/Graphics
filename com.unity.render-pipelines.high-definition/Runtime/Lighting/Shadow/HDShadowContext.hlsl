@@ -20,8 +20,7 @@ struct HDShadowContext
 TEXTURE2D(_ShadowmapAtlas);
 TEXTURE2D(_CachedShadowmapAtlas);
 TEXTURE2D(_ShadowmapCascadeAtlas);
-TEXTURE2D(_AreaShadowmapAtlas);
-TEXTURE2D(_AreaShadowmapMomentAtlas);
+TEXTURE2D(_ShadowmapAreaAtlas);
 TEXTURE2D(_CachedAreaShadowmapMomentAtlas);
 
 StructuredBuffer<HDShadowData>              _HDShadowDatas;
