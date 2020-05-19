@@ -57,7 +57,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     // TODO: if on the light type to retrieve the good shadow data
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-    
+
     if (pointLight)
     {
         sd.shadowToWorld = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].shadowToWorld;
@@ -66,14 +66,14 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
         sd.rot1 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot1;
         sd.rot2 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot2;
     }
-    
+
     return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
 }
 
 float GetAreaLightAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
 {
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-    return EvalShadow_AreaDepth(sd, _AreaShadowmapMomentAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
+    return EvalShadow_AreaDepth(sd, _ShadowmapAreaAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
 }
 
 
