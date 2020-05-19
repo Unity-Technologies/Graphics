@@ -790,6 +790,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _LoD                            = Shader.PropertyToID("_LoD");
         public static readonly int _FaceIndex                      = Shader.PropertyToID("_FaceIndex");
 
+        // Custom Pass Utils API
+        public static readonly int _SourceScaleBias                = Shader.PropertyToID("_SourceScaleBias");
+        public static readonly int _GaussianWeights                = Shader.PropertyToID("_GaussianWeights");
+        public static readonly int _SampleCount                    = Shader.PropertyToID("_SampleCount");
+        public static readonly int _Radius                         = Shader.PropertyToID("_Radius");
+        public static readonly int _ViewPortSize                   = Shader.PropertyToID("_ViewPortSize");
+        public static readonly int _ViewportScaleBias              = Shader.PropertyToID("_ViewportScaleBias");
+        public static readonly int _SourceSize                     = Shader.PropertyToID("_SourceSize");
+        public static readonly int _SourceScaleFactor              = Shader.PropertyToID("_SourceScaleFactor");
+
         // Probe Volumes
         public static readonly int _ProbeVolumeAtlasSH             = Shader.PropertyToID("_ProbeVolumeAtlasSH");
         public static readonly int _ProbeVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_ProbeVolumeAtlasResolutionAndSliceCount");
