@@ -33,6 +33,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphObjectPool        renderGraphPool;
         ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
         public RenderGraphResourceRegistry  resources;
+        ///<summary>Render Graph default resources.</summary>
+        public RenderGraphDefaultResources  defaultResources;
     }
 
     /// <summary>
@@ -50,7 +52,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphDebugParams
     {
-        public bool enableRenderGraph = false; // TODO: TEMP TO REMOVE
         public bool tagResourceNamesWithRG;
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
@@ -61,7 +62,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void RegisterDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => enableRenderGraph, setter = value => enableRenderGraph = value });
             list.Add(new DebugUI.BoolField { displayName = "Tag Resources with RG", getter = () => tagResourceNamesWithRG, setter = value => tagResourceNamesWithRG = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
@@ -69,8 +69,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             list.Add(new DebugUI.Button { displayName = "Log Frame Information", action = () => logFrameInformation = true });
             list.Add(new DebugUI.Button { displayName = "Log Resources", action = () => logResources = true });
 
-            var testPanel = DebugManager.instance.GetPanel("Render Graph", true);
-            testPanel.children.Add(list.ToArray());
+            var panel = DebugManager.instance.GetPanel("Render Graph", true);
+            panel.children.Add(list.ToArray());
         }
 
         public void UnRegisterDebug()
@@ -194,19 +194,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<RendererListHandle>    m_RendererLists = new List<RendererListHandle>();
         RenderGraphDebugParams      m_DebugParameters = new RenderGraphDebugParams();
         RenderGraphLogger           m_Logger = new RenderGraphLogger();
+        RenderGraphDefaultResources m_DefaultResources = new RenderGraphDefaultResources();
 
         #region Public Interface
-
-        /// <summary>
-        /// Returns true if rendering with Render Graph is enabled.
-        /// </summary>
-        public bool enabled { get { return m_DebugParameters.enableRenderGraph; } }
 
         // TODO: Currently only needed by SSAO to sample correctly depth texture mips. Need to figure out a way to hide this behind a proper formalization.
         /// <summary>
         /// Gets the RTHandleProperties structure associated with the Render Graph's RTHandle System.
         /// </summary>
         public RTHandleProperties rtHandleProperties { get { return m_Resources.GetRTHandleProperties(); } }
+
+        public RenderGraphDefaultResources defaultResources
+        {
+            get
+            {
+                m_DefaultResources.InitializeForRendering(this);
+                return m_DefaultResources;
+            }
+        }
 
         /// <summary>
         /// Render Graph constructor.
@@ -224,6 +229,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void Cleanup()
         {
             m_Resources.Cleanup();
+            m_DefaultResources.Cleanup();
         }
 
         /// <summary>
@@ -231,7 +237,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void RegisterDebug()
         {
-            //m_DebugParameters.RegisterDebug();
+            m_DebugParameters.RegisterDebug();
         }
 
         /// <summary>
@@ -239,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void UnRegisterDebug()
         {
-            //m_DebugParameters.UnRegisterDebug();
+            m_DebugParameters.UnRegisterDebug();
         }
 
         /// <summary>
@@ -391,6 +397,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             rgContext.renderContext = renderContext;
             rgContext.renderGraphPool = m_RenderGraphPool;
             rgContext.resources = m_Resources;
+            rgContext.defaultResources = m_DefaultResources;
 
             try
             {
@@ -424,6 +431,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 ClearRenderPasses();
                 m_Resources.Clear();
+                m_DefaultResources.Clear();
                 m_RendererLists.Clear();
 
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)

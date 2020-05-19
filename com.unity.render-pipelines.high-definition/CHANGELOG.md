@@ -126,6 +126,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -612,6 +613,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed taaFrameIndex and XR tests 4052 and 4053
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
 
 ### Changed
 - Improve MIP selection for decals on Transparents

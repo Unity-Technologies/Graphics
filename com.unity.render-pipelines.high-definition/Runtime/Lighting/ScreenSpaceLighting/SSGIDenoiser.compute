@@ -31,6 +31,7 @@ CBUFFER_START(UnityScreenSpaceGlobalIllumination)
     float2 _DepthPyramidFirstMipLevelOffset;
     float4 _HalfScreenSize;
     int _IndirectDiffuseSpatialFilter;
+    float _HistoryValidity;
 CBUFFER_END
 
 // Denoised output buffer
@@ -204,7 +205,7 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 
     // If the history was a background pixel, skip it
     bool invalidHistory = false;
-    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE)
+    if (historyDepth == UNITY_RAW_FAR_CLIP_VALUE || _HistoryValidity == 0.0)
         invalidHistory = true;
 
     // Compute the world space position (from previous frame)

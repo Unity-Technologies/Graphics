@@ -96,7 +96,15 @@ namespace UnityEngine.Rendering
         /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
         public void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
         {
-            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.");
+            if (m_AutoSizedRTs.Count != 0)
+            {
+                string leakingResources = "Unreleased RTHandles:";
+                foreach (var rt in m_AutoSizedRTs)
+                {
+                    leakingResources = string.Format("{0}\n    {1}", leakingResources, rt.name);
+                }
+                Debug.LogError(string.Format("RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
+            }
 
             m_MaxWidths = width;
             m_MaxHeights = height;
