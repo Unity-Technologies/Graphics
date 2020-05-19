@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_EyeSG 0
+  m_Name: M_EyeSG 9
   m_Shader: {fileID: -6465566751694194690, guid: 340c7e4cc24f7ab45a547d903732bd32,
     type: 3}
   m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _NORMALMAP_TANGENT_SPACE
@@ -53,7 +53,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - Texture2D_D8BF6575:
-        m_Texture: {fileID: 2800000, guid: e57fcf91e25a35d45b62ddd69de04e5f, type: 3}
+        m_Texture: {fileID: 2800000, guid: a90359049bc491f4db4e1b7ef35e687c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AnisotropyMap:
@@ -152,15 +152,15 @@ Material:
     - Vector1_81C02E55: 0.22
     - Vector1_84D73E2: -0.005
     - Vector1_8F0D1174: 1
-    - Vector1_94E1614A: 0.01
+    - Vector1_94E1614A: 0.036
     - Vector1_A6DA845F: 2.55
     - Vector1_BA182736: 1.376
-    - Vector1_C4ED1456: 0.01
+    - Vector1_C4ED1456: 0.231
     - Vector1_DFF948F3: 0.31
     - Vector1_EF58F7DF: 0.0477
     - Vector1_F084AE9E: 0.88
     - Vector1_FC0895C8: 0.41
-    - Vector1_FEA38ABB: 0.5
+    - Vector1_FEA38ABB: 0.564
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
