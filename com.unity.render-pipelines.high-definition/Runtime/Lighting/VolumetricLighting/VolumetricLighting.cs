@@ -342,7 +342,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Do not access 'rt.name', it allocates memory every time...
         // Have to manually cache and pass the name.
-        static internal bool ResizeVolumetricBuffer(ref RTHandle rt, string name, int viewportWidth, int viewportHeight, int viewportDepth)
+        static internal void ResizeVolumetricBuffer(ref RTHandle rt, string name, int viewportWidth, int viewportHeight, int viewportDepth)
         {
             Debug.Assert(rt != null);
 
@@ -362,11 +362,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 rt = RTHandles.Alloc(width, height, depth, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                                      dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: name);
-
-                return true;
             }
-
-            return false;
         }
 
         static internal void CreateVolumetricHistoryBuffers(HDCamera hdCamera, int bufferCount)
@@ -452,22 +448,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
 
-            VolumetricInitializeNonRenderGraphResource();
-        }
-
-        internal void DestroyVolumetricLightingBuffers()
-        {
-            VolumetricCleanupNonRenderGraphResource();
-
-            CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
-            CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
-
-            m_VisibleVolumeData   = null; // free()
-            m_VisibleVolumeBounds = null; // free()
-        }
-
-        void VolumetricInitializeNonRenderGraphResource()
-        {
             // Allocate the smallest possible 3D texture.
             // We will perform rescaling manually, in a custom manner, based on volume parameters.
             const int minSize = 4;
@@ -479,12 +459,17 @@ namespace UnityEngine.Rendering.HighDefinition
                                                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
         }
 
-        void VolumetricCleanupNonRenderGraphResource()
+        internal void DestroyVolumetricLightingBuffers()
         {
             RTHandles.Release(m_LightingBuffer);
             RTHandles.Release(m_DensityBuffer);
-        }
 
+            CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
+            CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
+
+            m_VisibleVolumeData   = null; // free()
+            m_VisibleVolumeBounds = null; // free()
+        }
 
         // Must be called AFTER UpdateVolumetricBufferParams.
         internal void ResizeVolumetricLightingBuffers(HDCamera hdCamera, int frameIndex)
