@@ -16,6 +16,15 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_SkySettings; }
             set
             {
+                // We cleanup the renderer first here because in some cases, after scene unload, the skySettings field will be "null" because the object got destroyed.
+                // In this case, the renderer might stay allocated until a non null value is set. To avoid a lingering allocation, we cleanup first before anything else.
+                // So next frame after scene unload, renderer will be freed.
+                if (skyRenderer != null && (value == null || value.GetSkyRendererType() != skyRenderer.GetType()))
+                {
+                    skyRenderer.Cleanup();
+                    skyRenderer = null;
+                }
+
                 if (m_SkySettings == value)
                     return;
 
@@ -23,13 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SkySettings = value;
                 currentUpdateTime = 0.0f;
 
-                if (m_SkySettings != null && (skyRenderer == null || m_SkySettings.GetSkyRendererType() != skyRenderer.GetType()))
+                if (m_SkySettings != null && skyRenderer == null)
                 {
-                    if (skyRenderer != null)
-                    {
-                        skyRenderer.Cleanup();
-                    }
-
                     var rendererType = m_SkySettings.GetSkyRendererType();
                     skyRenderer = (SkyRenderer)Activator.CreateInstance(rendererType);
                     skyRenderer.Build();
