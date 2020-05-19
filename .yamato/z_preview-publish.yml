@@ -43,12 +43,12 @@ auto-version:
     packages:
       paths:
         - "upm-ci~/**/*"
-{% if publishing.auto_version == "true" -%}
-  triggers:
-    branches:
-      only:
-        - "{{ repo.branches.integration }}"
-{% endif -%}
+# {% if publishing.auto_version == "true" -%}
+#   triggers:
+#     branches:
+#       only:
+#         - "{{ repo.branches.integration }}"
+# {% endif -%}
 
 
 {% for test in testables -%}
@@ -88,12 +88,12 @@ publish_{{ test.name }}:
 
 publish_all_preview:
   name: "Publish all preview packages - nightly"
-  {% if publishing.auto_publish == "true" %}
-  triggers:
-    recurring:
-      - branch: "{{ repo.branches.integration }}"
-        frequency: daily
-  {% endif %}
+  # {% if publishing.auto_publish == "true" %}
+  # triggers:
+  #   recurring:
+  #     - branch: "{{ repo.branches.integration }}"
+  #       frequency: daily
+  # {% endif %}
   dependencies:
     {% for test in testables %}
     - .yamato/z_preview-publish.yml#publish_{{ test.name }}
@@ -102,7 +102,7 @@ publish_all_preview:
 wait_for_nightly:
   name: "z_Wait for nightly"
   dependencies:
-    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_2020.1
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
   {% for test in testables %}
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
   {% for editor in editors %}
@@ -134,11 +134,9 @@ promote_{{ test.name }}:
             - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
-    - .yamato/z_preview-publish.yml#publish_{{ test.name }}
-  {% for editor in editors -%}
-  {% for platform in platforms -%}
-    - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-  {% endfor -%}
-  {% endfor -%}
+    # TODO: Add back in when fixed on upm side.
+    # Removed because promotion tests are checking if the packages exist in production
+    # -- which they dont because we are trying to promote them.
+    # - .yamato/package-test.yml#promotion:test:trigger:{{ test.name }}
 {% endif -%} # publish_source
 {% endfor %}
