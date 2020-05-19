@@ -93,7 +93,7 @@ float GetAreaLightAttenuation(HDShadowContext shadowContext, float2 positionSS, 
 
     if (sd.isInCachedAtlas > 0) // This is a scalar branch.
     {
-        return EvalShadow_AreaDepth(sd, _CachedAreaShadowmapMomentAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
+        return EvalShadow_AreaDepth(sd, _CachedAreaLightShadowmapAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
     }
     else
     {

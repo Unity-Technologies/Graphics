@@ -87,7 +87,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CachedAreaLightShadowmapAtlas = Shader.PropertyToID("_CachedAreaLightShadowmapAtlas");
         public static readonly int _CachedShadowAtlasSize = Shader.PropertyToID("_CachedShadowAtlasSize");
         public static readonly int _CachedAreaShadowAtlasSize = Shader.PropertyToID("_CachedAreaShadowAtlasSize");
-        public static readonly int _CachedAreaShadowmapMomentAtlas = Shader.PropertyToID("_CachedAreaShadowmapMomentAtlas");
 
         // Moment shadow map data
         public static readonly int _MomentShadowAtlas = Shader.PropertyToID("_MomentShadowAtlas");

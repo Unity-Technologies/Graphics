@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
-                                                        HDShaderIDs._AreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
+                                                        HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
 
             m_ShadowDataBuffer = new ComputeBuffer(initParams.maxShadowRequests, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDShadowData)));
             m_DirectionalShadowDataBuffer = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(HDDirectionalShadowData)));
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                             HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
-                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas", momentAtlasShaderID: HDShaderIDs._CachedAreaShadowmapMomentAtlas);
+                                                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
         }
 
         public void InitializeNonRenderGraphResources()

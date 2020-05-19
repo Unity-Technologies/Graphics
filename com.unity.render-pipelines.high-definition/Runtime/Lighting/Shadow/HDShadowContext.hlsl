@@ -21,7 +21,7 @@ TEXTURE2D(_ShadowmapAtlas);
 TEXTURE2D(_CachedShadowmapAtlas);
 TEXTURE2D(_ShadowmapCascadeAtlas);
 TEXTURE2D(_ShadowmapAreaAtlas);
-TEXTURE2D(_CachedAreaShadowmapMomentAtlas);
+TEXTURE2D(_CachedAreaLightShadowmapAtlas);
 
 StructuredBuffer<HDShadowData>              _HDShadowDatas;
 // Only the first element is used since we only support one directional light
