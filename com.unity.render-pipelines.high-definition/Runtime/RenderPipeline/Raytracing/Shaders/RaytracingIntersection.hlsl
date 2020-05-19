@@ -33,6 +33,16 @@ struct RayIntersection
 	float maxRoughness;
 	// Velocity for the intersection point
 	float velocity;
+
+    float3 lightPosition;
+    float3 lightDirection;
+    float3 lightOutgoing;
+    float pdf;
+    float3 value;
+    float3 diffValue;
+    float diffPdf;
+    float3 specValue;
+    float specPdf;
 };
 
 struct AttributeData
