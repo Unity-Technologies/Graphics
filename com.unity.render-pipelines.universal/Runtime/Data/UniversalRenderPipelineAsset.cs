@@ -159,7 +159,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
 
         // Adaptive performance settings
-        [SerializeField] bool m_UseAdaptivePerformance = false;
+        [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
