@@ -162,7 +162,7 @@ The three sections here are:
 - **Punctual Light Shadows**
 - **Area Light Shadows**
 
-They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale**.
+They all share the same properties, except **Directional Light Shadows** which does not include **Resolution** or **Dynamic Rescale**. When you set the resolution of each tier, to help with shadow atlas organization, try to keep the value as a multiple of 64.
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
