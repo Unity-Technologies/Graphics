@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("AmbientOcclusionHistoryBuffer{0}", frameIndex));
+                                        name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
         }
 
 

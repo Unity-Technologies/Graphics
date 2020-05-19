@@ -584,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
                 // Return all black textures for default values.
-                var blackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+                var blackTexture = renderGraph.defaultResources.blackTextureXR;
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;

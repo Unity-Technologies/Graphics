@@ -234,6 +234,17 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRT();
         }
 
+        internal void InitializeNonRenderGraphResources()
+        {
+            float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+            AllocRT(scaleFactor);
+        }
+
+        internal void CleanupNonRenderGraphResources()
+        {
+            ReleaseRT();
+        }
+
         internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
