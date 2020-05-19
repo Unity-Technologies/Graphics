@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with NullReferenceException happening with URP shaders
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
+- Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
 
 ## [8.1.0] - 2020-04-21
 
@@ -40,7 +42,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue when Linear -> sRGB conversion would not happen on some Android devices. [case 1226208](https://issuetracker.unity3d.com/issues/no-srgb-conversion-on-some-android-devices-when-using-the-universal-render-pipeline)
 - Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
 - Fixed an issue with shadows not being correctly calculated in some shaders.
-- Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
 
 ## [8.0.1] - 2020-02-25
 
