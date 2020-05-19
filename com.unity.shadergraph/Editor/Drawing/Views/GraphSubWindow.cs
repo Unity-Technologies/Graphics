@@ -187,11 +187,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
             RegisterCallback<MouseDownEvent>(e =>
             {
-                if (e.button == (int)MouseButton.LeftMouse)
-                    ClearSelection();
                 // prevent ContentDragger manipulator
                 e.StopPropagation();
             });
+        }
+
+        protected void ShowWindow()
+        {
+            this.style.visibility = Visibility.Visible;
+        }
+
+        protected void HideWindow()
+        {
+            this.style.visibility = Visibility.Hidden;
         }
 
         public virtual void AddToSelection(ISelectable selectable)
