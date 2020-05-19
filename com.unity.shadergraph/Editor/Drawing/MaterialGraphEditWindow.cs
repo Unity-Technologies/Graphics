@@ -871,7 +871,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 Repaint();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 m_HasError = true;
                 m_GraphEditorView = null;
