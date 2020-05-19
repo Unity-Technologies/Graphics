@@ -709,18 +709,19 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
     ray.yDirDerivWS = cross(ray.xDirDerivWS, ray.centerDirWS); // Will have the length of 'unitDistFaceSize' by construction
 
 #ifdef ENABLE_REPROJECTION
-    ray.jitterDirWS = normalize(ray.centerDirWS + _VBufferSampleOffset.x * ray.xDirDerivWS
-                                                + _VBufferSampleOffset.y * ray.yDirDerivWS);
+    float2 sampleOffset = _VBufferSampleOffset.xy;
+#else
+    float2 sampleOffset = 0;
+#endif
+
+    ray.jitterDirWS = normalize(ray.centerDirWS + sampleOffset.x * ray.xDirDerivWS
+                                                + sampleOffset.y * ray.yDirDerivWS);
 
     // We would like to determine the screen pixel (at the full resolution) which
     // the jittered ray corresponds to. The exact solution can be obtained by intersecting
     // the ray with the screen plane, e.i. (ViewSpace(jitterDirWS).z = 1). That's a little expensive.
     // So, as an approximation, we ignore the curvature of the frustum.
-    uint2 pixelCoord = (uint2)((voxelCoord + 0.5 + _VBufferSampleOffset.xy) * _VBufferVoxelSize);
-#else
-    ray.jitterDirWS = ray.centerDirWS;
-    uint2 pixelCoord = (uint2)((voxelCoord + 0.5) * _VBufferVoxelSize);
-#endif
+    uint2 pixelCoord = (uint2)((voxelCoord + 0.5 + sampleOffset) * _VBufferVoxelSize);
 
 #ifdef VL_PRESET_OPTIMAL
     // The entire thread group is within the same light tile.
