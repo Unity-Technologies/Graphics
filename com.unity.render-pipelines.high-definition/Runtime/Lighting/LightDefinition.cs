@@ -57,18 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
         Repeat,
     }
 
-    /// <summary>
-    /// IES Mode
-    /// </summary>
-    [GenerateHLSL]
-    public enum IESMode
-    {
-        /// <summary>IES Disabled.</summary>
-        None,
-        /// <summary>Fast Octahedral Projection.</summary>
-        FastOctahedral
-    }
-
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
     [GenerateHLSL(PackingRules.Exact, false)]
     struct DirectionalLightData
@@ -139,9 +127,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   angleScale;              // Spot light
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   angleOffset;             // Spot light
-        public float   iesCut;                  // Spot light
 
         public Vector3 forward;
+        public float   iesCut;                  // Spot light
+
         public GPULightType lightType;          // TODO: move this up?
 
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
