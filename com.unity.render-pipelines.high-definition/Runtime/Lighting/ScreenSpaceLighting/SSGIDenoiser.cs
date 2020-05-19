@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
 
         public void Denoise(CommandBuffer cmd, HDCamera hdCamera, 
             RTHandle noisyBuffer, RTHandle outputBuffer,
-            bool halfResolution = false)
+            bool halfResolution = false, float historyValidity = 1.0f)
         {
             // Grab the global illumination volume component
             var giSettings = hdCamera.volumeStack.GetComponent<UnityEngine.Rendering.HighDefinition.GlobalIllumination>();
@@ -141,6 +141,7 @@ namespace UnityEngine.Experimental.Rendering.HighDefinition
             // Bind the input buffers
             cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthTexture());
             cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
+            cmd.SetComputeFloatParam(m_SSGIDenoiserCS, HDShaderIDs._HistoryValidity, historyValidity);
             if (halfResolution)
             {   
                 cmd.SetComputeTextureParam(m_SSGIDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer1);
