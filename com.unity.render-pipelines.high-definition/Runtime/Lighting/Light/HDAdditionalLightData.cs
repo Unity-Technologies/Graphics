@@ -113,6 +113,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const float k_MinAreaLightShadowCone = 10.0f;
         internal const float k_MaxAreaLightShadowCone = 179.0f;
 
+        /// <summary>List of the lights that overlaps when the OverlapLight scene view mode is enabled</summary>
+        internal static HashSet<HDAdditionalLightData> s_overlappingHDLights = new HashSet<HDAdditionalLightData>();
+
 #region HDLight Properties API
 
         [SerializeField, FormerlySerializedAs("displayLightIntensity")]
@@ -1643,6 +1646,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DisableCachedShadowSlot();
             SetEmissiveMeshRendererEnabled(false);
+            s_overlappingHDLights.Remove(this);
         }
 
         void SetEmissiveMeshRendererEnabled(bool enabled)
@@ -2180,6 +2184,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #if !UNITY_EDITOR
             if (!m_Animated)
                 return;
+#endif
+
+#if UNITY_EDITOR
+            // Update the list of overlapping lights for the LightOverlap scene view mode
+            if (IsOverlapping())
+                s_overlappingHDLights.Add(this);
+            else
+                s_overlappingHDLights.Remove(this);
 #endif
 
 #if UNITY_EDITOR
@@ -3071,6 +3083,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 : lightType != HDLightType.Directional
                     ? ShadowMapType.PunctualAtlas
                     : ShadowMapType.CascadedDirectional;
+        }
+
+        /// <summary>Tell if the light is overlapping for the light overlap debug mode</summary>
+        internal bool IsOverlapping()
+        {
+            var baking = GetComponent<Light>().bakingOutput;
+            bool isOcclusionSeparatelyBaked = baking.occlusionMaskChannel != -1;
+            bool isDirectUsingBakedOcclusion = baking.mixedLightingMode == MixedLightingMode.Shadowmask || baking.mixedLightingMode == MixedLightingMode.Subtractive;
+            return isDirectUsingBakedOcclusion && !isOcclusionSeparatelyBaked;
         }
     }
 }

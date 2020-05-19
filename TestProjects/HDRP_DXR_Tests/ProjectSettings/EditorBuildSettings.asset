@@ -84,8 +84,14 @@ EditorBuildSettings:
     path: Assets/Scenes/701_DirectionalColorShadow.unity
     guid: 142a7be56d6440d43b4f83a92b10b2b1
   - enabled: 1
+    path: Assets/Scenes/701_DirectionalColorShadowSG.unity
+    guid: ebe458a334d4ac1488f836b86f4814a3
+  - enabled: 1
     path: Assets/Scenes/702_DirectionalShadow.unity
     guid: fef4168c8e3f3bd47b3edad8d968de9f
+  - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowSG.unity
+    guid: 97247f075d9ed4c4ab30894abe19320e
   - enabled: 1
     path: Assets/Scenes/702_DirectionalShadowFiltering.unity
     guid: 8b86ef43f75119a4dbf4af23c2b4e52e
@@ -134,6 +140,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
     guid: 5b672860fdf88f84fa93bf94214514f1
+  - enabled: 1
+    path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
+    guid: cc33ef2ea5450204ab4fab18d90afaec
   - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f

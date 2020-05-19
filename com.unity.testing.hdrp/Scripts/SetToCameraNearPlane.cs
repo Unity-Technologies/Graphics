@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.TestTools.Graphics;
+//using UnityEngine.TestTools.Graphics; // Don't know why but it doesn't compile when building player
 
 public class SetToCameraNearPlane : MonoBehaviour
 {
     new public MeshRenderer renderer;
     new public Camera camera;
-    public GraphicsTestSettings testSettings;
+    //public GraphicsTestSettings testSettings;
 
     [Range(0, 1)]
     public float screenSize = 0.8f;
@@ -22,7 +22,7 @@ public class SetToCameraNearPlane : MonoBehaviour
 
     void PlaceObject ()
     {
-        float captureRatio = testSettings.ImageComparisonSettings.TargetWidth * 1.0f / testSettings.ImageComparisonSettings.TargetHeight;
+        float captureRatio = 1.0f; // testSettings.ImageComparisonSettings.TargetWidth * 1.0f / testSettings.ImageComparisonSettings.TargetHeight;
         float objectRatio = extend.x / extend.y;
 
         bool scaleBaseOnX = objectRatio >= captureRatio;
