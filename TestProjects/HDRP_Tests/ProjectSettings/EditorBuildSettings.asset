@@ -168,6 +168,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1900_AlphaTest_SG_b.unity
     guid: 2486b40270d6e524d8762a9d2a0c1e78
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/2000_EyeTestSG.unity
+    guid: f62791cf7ace7534680a0f9c461be164
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Light_DynamicDirectional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
   - enabled: 1

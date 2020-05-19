@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
 - Added back-compatibility with builtin stereo matrices.
+- Added shader graph nodes for rendering a complex eye shader.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
