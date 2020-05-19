@@ -152,7 +152,7 @@ Transform:
   m_Children:
   - {fileID: 1906598941}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &390723110
 GameObject:
@@ -362,6 +362,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 19.375, y: -119.066, z: -0.649}
+--- !u!137 &1394269430 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1676831429412873536, guid: 2d16b98b298548c409324e682bb1c55f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1935495399}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1394269431 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2037821578091592825, guid: 2d16b98b298548c409324e682bb1c55f,
+    type: 3}
+  m_PrefabInstance: {fileID: 1935495399}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1840247982
 GameObject:
   m_ObjectHideFlags: 0
@@ -399,7 +411,6 @@ VFXRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
   - {fileID: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -454,7 +465,10 @@ VisualEffect:
     m_Gradient:
       m_Array: []
     m_NamedObject:
-      m_Array: []
+      m_Array:
+      - m_Value: {fileID: 1394269430}
+        m_Name: skinned
+        m_Overridden: 1
     m_Bool:
       m_Array: []
 --- !u!4 &1840247985
@@ -464,12 +478,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1840247982}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.00094269455, z: -0, w: 0.9999996}
+  m_LocalPosition: {x: 3, y: 2, z: 0}
+  m_LocalScale: {x: 0.8466667, y: 0.8466667, z: 0.8466667}
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_Father: {fileID: 1394269431}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1906598941 stripped
 Transform:

@@ -105,6 +105,7 @@ namespace UnityEditor.VFX
             private VFXExpression InsertGPUTransformation(VFXExpression exp, VFXExpression sourceExpression)
             {
 #if UNITY_2020_2_OR_NEWER
+                //TODOPAUL : Unify with switch case UNITY_2020_2_OR_NEWER isn't needed anymore
                 if (exp.valueType == VFXValueType.Mesh)
                 {
                     if (sourceExpression == null)
@@ -125,6 +126,17 @@ namespace UnityEditor.VFX
                         return new VFXExpressionIndexBufferFromMesh(exp);
 
                     throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression.operation);
+                }
+
+                if (exp.valueType == VFXValueType.SkinnedMeshRenderer)
+                {
+                    if (sourceExpression == null)
+                    {
+                        return exp;
+                    }
+
+                    //TODOPAUL : Test actual source expression type
+                    return new VFXExpressionVertexBufferFromSkinnedMeshRenderer(exp, sourceExpression.parents[2] /* channelFormatAndDimensionAndStreamIndex */);
                 }
 #endif
 

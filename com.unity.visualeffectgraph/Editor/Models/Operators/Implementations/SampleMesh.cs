@@ -19,10 +19,16 @@ namespace UnityEditor.VFX.Operator
             Surface
         };
 
-        public class InputProperties
+        public class InputPropertiesMesh
         {
             [Tooltip("Sets the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
+        }
+
+        public class InputPropertiesSkinnedMeshRenderer
+        {
+            [Tooltip("TODOPAUL")]
+            public SkinnedMeshRenderer skinnedMesh = null;
         }
 
         public class InputPropertiesPlacementVertex
@@ -94,6 +100,12 @@ namespace UnityEditor.VFX.Operator
             BlendIndices = 1 << 13
         }
 
+        public enum SourceType
+        {
+            Mesh,
+            SkinnedMeshRenderer
+        }
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Outputs the result of the Mesh sampling operation.")]
         private VertexAttributeFlag output = VertexAttributeFlag.Position | VertexAttributeFlag.Color | VertexAttributeFlag.TexCoord0;
 
@@ -105,6 +117,9 @@ namespace UnityEditor.VFX.Operator
 
         [VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
         private SurfaceCoordinates surfaceCoordinates = SurfaceCoordinates.Uniform;
+
+        [VFXSetting, SerializeField, Tooltip("TODOPAUL")]
+        private SourceType source = SourceType.Mesh;
 
         private bool HasOutput(VertexAttributeFlag flag)
         {
@@ -183,7 +198,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var props = PropertiesFromType("InputProperties");
+                var props = source == SourceType.Mesh ? PropertiesFromType("InputPropertiesMesh") : PropertiesFromType("InputPropertiesSkinnedMeshRenderer");
                 if (placementMode == PlacementMode.Vertex)
                 {
                     props = props.Concat(PropertiesFromType("InputPropertiesPlacementVertex"));
@@ -217,8 +232,10 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        private void SampleVertex(VFXExpression mesh, VFXExpression meshVertexCount, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
+        private void SampleVertex(VFXExpression sourceMesh, VFXExpression meshVertexCount, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
         {
+            var mesh = source == SourceType.Mesh ? sourceMesh : new VFXExpressionMeshFromSkinnedMeshRenderer(sourceMesh);
+
             foreach (var vertexAttribute in GetOutputVertexAttributes())
             {
                 var channelIndex = VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute));
@@ -232,16 +249,33 @@ namespace UnityEditor.VFX.Operator
 #if UNITY_2020_2_OR_NEWER
                 var meshChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, channelIndex);
                 var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
-                if (vertexAttribute == VertexAttributeFlag.Color)
-                    sampled = new VFXExpressionSampleMeshColor(mesh, vertexOffset, meshChannelFormatAndDimension);
-                else if (outputType == typeof(float))
-                    sampled = new VFXExpressionSampleMeshFloat(mesh, vertexOffset, meshChannelFormatAndDimension);
-                else if (outputType == typeof(Vector2))
-                    sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexOffset, meshChannelFormatAndDimension);
-                else if (outputType == typeof(Vector3))
-                    sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexOffset, meshChannelFormatAndDimension);
+
+                if (source == SourceType.Mesh)
+                {
+                    if (vertexAttribute == VertexAttributeFlag.Color)
+                        sampled = new VFXExpressionSampleMeshColor(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(float))
+                        sampled = new VFXExpressionSampleMeshFloat(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(Vector2))
+                        sampled = new VFXExpressionSampleMeshFloat2(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(Vector3))
+                        sampled = new VFXExpressionSampleMeshFloat3(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else
+                        sampled = new VFXExpressionSampleMeshFloat4(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                }
                 else
-                    sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexOffset, meshChannelFormatAndDimension);
+                {
+                    if (vertexAttribute == VertexAttributeFlag.Color)
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererColor(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(float))
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(Vector2))
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat2(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else if (outputType == typeof(Vector3))
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat3(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                    else
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat4(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                }
 #else
                 if (vertexAttribute == VertexAttributeFlag.Color)
                     sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
@@ -260,7 +294,8 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var mesh = inputExpression[0];
+            var sourceMesh = inputExpression[0];
+            var mesh = source == SourceType.Mesh ? sourceMesh : new VFXExpressionMeshFromSkinnedMeshRenderer(sourceMesh);
 
             var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
             var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
@@ -270,7 +305,7 @@ namespace UnityEditor.VFX.Operator
             if (placementMode == PlacementMode.Vertex)
             {
                 var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, mode);
-                SampleVertex(mesh, meshVertexCount, vertexIndex, outputExpressions);
+                SampleVertex(sourceMesh, meshVertexCount, vertexIndex, outputExpressions);
             }
             else if (placementMode == PlacementMode.Edge)
             {
@@ -290,8 +325,8 @@ namespace UnityEditor.VFX.Operator
                 var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
 
                 var allInputValues = new List<VFXExpression>();
-                SampleVertex(mesh, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(mesh, meshVertexCount, sampledIndex_B, allInputValues);
+                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_A, allInputValues);
+                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_B, allInputValues);
 
                 var attributeCount = GetOutputVertexAttributes().Count();
                 for (int i = 0; i < attributeCount; ++i)
@@ -316,9 +351,9 @@ namespace UnityEditor.VFX.Operator
                 var sampledIndex_C = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(2u), meshIndexFormat);
 
                 var allInputValues = new List<VFXExpression>();
-                SampleVertex(mesh, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(mesh, meshVertexCount, sampledIndex_B, allInputValues);
-                SampleVertex(mesh, meshVertexCount, sampledIndex_C, allInputValues);
+                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_A, allInputValues);
+                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_B, allInputValues);
+                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_C, allInputValues);
 
                 var attributeCount = GetOutputVertexAttributes().Count();
                 for (int i = 0; i < attributeCount; ++i)

@@ -20,6 +20,19 @@ namespace UnityEditor.VFX
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.VertexBufferFromMesh; } }
     }
 
+    class VFXExpressionVertexBufferFromSkinnedMeshRenderer : VFXExpression
+    {
+        public VFXExpressionVertexBufferFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionVertexBufferFromSkinnedMeshRenderer(VFXExpression mesh, VFXExpression channelFormatAndDimensionAndStream) : base(Flags.InvalidOnGPU, new VFXExpression[] { mesh, channelFormatAndDimensionAndStream })
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.VertexBufferFromSkinnedMeshRenderer; } }
+    }
+
     class VFXExpressionIndexBufferFromMesh : VFXExpression
     {
         public VFXExpressionIndexBufferFromMesh() : this(VFXValue<Mesh>.Default)
@@ -31,6 +44,26 @@ namespace UnityEditor.VFX
         }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.IndexBufferFromMesh; } }
+    }
+
+    class VFXExpressionMeshFromSkinnedMeshRenderer : VFXExpression
+    {
+        public VFXExpressionMeshFromSkinnedMeshRenderer() : this(VFXValue<SkinnedMeshRenderer>.Default)
+        {
+        }
+
+        public VFXExpressionMeshFromSkinnedMeshRenderer(VFXExpression skinnedMesh) : base(Flags.InvalidOnGPU, new VFXExpression[] { skinnedMesh })
+        {
+        }
+
+        public sealed override VFXExpressionOperation operation { get { return VFXExpressionOperation.MeshFromSkinnedMeshRenderer; } }
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var skinnedMeshReduce = constParents[0];
+            var skinnedMesh = skinnedMeshReduce.Get<SkinnedMeshRenderer>();
+            Mesh result = skinnedMesh != null ? skinnedMesh.sharedMesh : null;
+            return VFXValue.Constant(result);
+        }
     }
 
     class VFXExpressionMeshIndexCount : VFXExpression
@@ -105,13 +138,39 @@ namespace UnityEditor.VFX
         }
     }
 
-    class VFXExpressionSampleMeshFloat : VFXExpression
+    abstract class VFXExpressionSampleBaseFloat : VFXExpression
+    {
+        public VFXExpressionSampleBaseFloat(Flags flags, VFXExpression source, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(flags, new VFXExpression[] { source, vertexOffset, channelFormatAndDimension })
+        {
+        }
+
+        public sealed override string GetCodeString(string[] parents)
+        {
+            return string.Format("SampleMeshFloat({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+        }
+    }
+
+    class VFXExpressionSampleSkinnedMeshRendererFloat : VFXExpressionSampleBaseFloat
+    {
+        public VFXExpressionSampleSkinnedMeshRendererFloat() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleSkinnedMeshRendererFloat(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float; } }
+    }
+
+    class VFXExpressionSampleMeshFloat : VFXExpressionSampleBaseFloat
     {
         public VFXExpressionSampleMeshFloat() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, mesh, vertexOffset, channelFormatAndDimension)
         {
         }
 
@@ -129,20 +188,42 @@ namespace UnityEditor.VFX
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat(mesh, vertexOffset, channelFormatAndDimension));
         }
+    }
+
+    abstract class VFXExpressionSampleBaseFloat2 : VFXExpression
+    {
+        public VFXExpressionSampleBaseFloat2(Flags flags, VFXExpression source, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(flags, new VFXExpression[] { source, vertexOffset, channelFormatAndDimension })
+        {
+        }
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("SampleMeshFloat({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+            return string.Format("SampleMeshFloat2({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSampleMeshFloat2 : VFXExpression
+    class VFXExpressionSampleSkinnedMeshRendererFloat2 : VFXExpressionSampleBaseFloat2
+    {
+        public VFXExpressionSampleSkinnedMeshRendererFloat2() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleSkinnedMeshRendererFloat2(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float2; } }
+    }
+
+    class VFXExpressionSampleMeshFloat2 : VFXExpressionSampleBaseFloat2
     {
         public VFXExpressionSampleMeshFloat2() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat2(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, mesh, vertexOffset, channelFormatAndDimension)
         {
         }
 
@@ -160,20 +241,42 @@ namespace UnityEditor.VFX
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat2(mesh, vertexOffset, channelFormatAndDimension));
         }
+    }
+
+    abstract class VFXExpressionSampleBaseFloat3 : VFXExpression
+    {
+        public VFXExpressionSampleBaseFloat3(Flags flags, VFXExpression source, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(flags, new VFXExpression[] { source, vertexOffset, channelFormatAndDimension })
+        {
+        }
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("SampleMeshFloat2({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+            return string.Format("SampleMeshFloat3({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSampleMeshFloat3 : VFXExpression
+    class VFXExpressionSampleSkinnedMeshRendererFloat3 : VFXExpressionSampleBaseFloat3
+    {
+        public VFXExpressionSampleSkinnedMeshRendererFloat3() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleSkinnedMeshRendererFloat3(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float3; } }
+    }
+
+    class VFXExpressionSampleMeshFloat3 : VFXExpressionSampleBaseFloat3
     {
         public VFXExpressionSampleMeshFloat3() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat3(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, mesh, vertexOffset, channelFormatAndDimension)
         {
         }
 
@@ -191,20 +294,42 @@ namespace UnityEditor.VFX
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat3(mesh, vertexOffset, channelFormatAndDimension));
         }
+    }
+
+    abstract class VFXExpressionSampleBaseFloat4 : VFXExpression
+    {
+        public VFXExpressionSampleBaseFloat4(Flags flags, VFXExpression source, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(flags, new VFXExpression[] { source, vertexOffset, channelFormatAndDimension })
+        {
+        }
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("SampleMeshFloat3({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+            return string.Format("SampleMeshFloat4({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSampleMeshFloat4 : VFXExpression
+    class VFXExpressionSampleSkinnedMeshRendererFloat4 : VFXExpressionSampleBaseFloat4
+    {
+        public VFXExpressionSampleSkinnedMeshRendererFloat4() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleSkinnedMeshRendererFloat4(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
+    }
+
+    class VFXExpressionSampleMeshFloat4 : VFXExpressionSampleBaseFloat4
     {
         public VFXExpressionSampleMeshFloat4() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshFloat4(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, mesh, vertexOffset, channelFormatAndDimension)
         {
         }
 
@@ -222,20 +347,42 @@ namespace UnityEditor.VFX
 
             return VFXValue.Constant(VFXExpressionMesh.GetFloat4(mesh, vertexOffset, channelFormatAndDimension));
         }
+    }
+
+    abstract class VFXExpressionSampleBaseColor : VFXExpression
+    {
+        public VFXExpressionSampleBaseColor(Flags flags, VFXExpression source, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(flags, new VFXExpression[] { source, vertexOffset, channelFormatAndDimension })
+        {
+        }
 
         public sealed override string GetCodeString(string[] parents)
         {
-            return string.Format("SampleMeshFloat4({0}, {1}, {2})", parents[0], parents[1], parents[2]);
+            return string.Format("SampleMeshColor({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 
-    class VFXExpressionSampleMeshColor : VFXExpression
+    class VFXExpressionSampleSkinnedMeshRendererColor : VFXExpressionSampleBaseColor
+    {
+        public VFXExpressionSampleSkinnedMeshRendererColor() : this(VFXValue<SkinnedMeshRenderer>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
+        {
+        }
+
+        public VFXExpressionSampleSkinnedMeshRendererColor(VFXExpression skinnedMeshRenderer, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.InvalidOnCPU, skinnedMeshRenderer, vertexOffset, channelFormatAndDimension)
+        {
+        }
+
+        sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.None; } }
+
+        sealed public override VFXValueType valueType { get { return VFXValueType.Float4; } }
+    }
+
+    class VFXExpressionSampleMeshColor : VFXExpressionSampleBaseColor
     {
         public VFXExpressionSampleMeshColor() : this(VFXValue<Mesh>.Default, VFXValue<uint>.Default, VFXValue<uint>.Default)
         {
         }
 
-        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, new VFXExpression[] { mesh, vertexOffset, channelFormatAndDimension })
+        public VFXExpressionSampleMeshColor(VFXExpression mesh, VFXExpression vertexOffset, VFXExpression channelFormatAndDimension) : base(Flags.None, mesh, vertexOffset, channelFormatAndDimension)
         {
         }
 
@@ -252,11 +399,6 @@ namespace UnityEditor.VFX
             var channelFormatAndDimension = channelFormatAndDimensionReduce.Get<uint>();
 
             return VFXValue.Constant(VFXExpressionMesh.GetColor(mesh, vertexOffset, channelFormatAndDimension));
-        }
-
-        public sealed override string GetCodeString(string[] parents)
-        {
-            return string.Format("SampleMeshColor({0}, {1}, {2})", parents[0], parents[1], parents[2]);
         }
     }
 #else
