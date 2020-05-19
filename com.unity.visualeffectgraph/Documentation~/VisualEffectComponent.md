@@ -7,14 +7,14 @@ The Visual Effect Component creates an instance of a Visual Effect in the scene,
 
 ## How to create a Visual Effect
 
-In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect. 
+In order to create a Visual Effect, you can manually add the component via the Add Component Menu in the Inspector or in the menu : Component / Effects / Visual Effect.
 
 You can also create a complete Game Object holding a Visual Effect Component by using the GameObject menu under the Category Visual Effects and Selecting Visual Effect.
 
 Finally, When you drag a Visual Effect Graph Asset from the project view to the scene view or hierarchy view. It will create automatically a child Game Object with Visual Effect Component:
 
-* When dropped in the Scene View : At center of screen in front of the camera, 
-* When dropped in the Hierarchy under no Parent Game Object : At  the origin of the world 
+* When dropped in the Scene View : At center of screen in front of the camera,
+* When dropped in the Hierarchy under no Parent Game Object : At  the origin of the world
 * When dropped in the Hierarchy under a Parent Game Object : At the parent's transform
 
 ## The Visual Effect Inspector
