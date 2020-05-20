@@ -26,8 +26,8 @@ HDRP_Hybrid_OSX_Metal_playmode_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_OSX_Metal_playmode XR_2020.1:
-    name: HDRP_Hybrid on OSX_Metal_playmode XR on version 2020.1
+HDRP_Hybrid_OSX_Metal_playmode_XR_2020.1:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR on version 2020.1
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -110,8 +110,8 @@ HDRP_Hybrid_OSX_Metal_playmode_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_OSX_Metal_playmode XR_fast-2020.1:
-    name: HDRP_Hybrid on OSX_Metal_playmode XR on version fast-2020.1
+HDRP_Hybrid_OSX_Metal_playmode_XR_fast-2020.1:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR on version fast-2020.1
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -194,8 +194,8 @@ HDRP_Hybrid_OSX_Metal_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_OSX_Metal_playmode XR_trunk:
-    name: HDRP_Hybrid on OSX_Metal_playmode XR on version trunk
+HDRP_Hybrid_OSX_Metal_playmode_XR_trunk:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR on version trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -278,8 +278,8 @@ HDRP_Hybrid_OSX_Metal_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_OSX_Metal_playmode XR_fast-trunk:
-    name: HDRP_Hybrid on OSX_Metal_playmode XR on version fast-trunk
+HDRP_Hybrid_OSX_Metal_playmode_XR_fast-trunk:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR on version fast-trunk
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable
@@ -363,8 +363,8 @@ HDRP_Hybrid_OSX_Metal_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_OSX_Metal_playmode XR_CUSTOM-REVISION:
-    name: HDRP_Hybrid on OSX_Metal_playmode XR on version CUSTOM-REVISION
+HDRP_Hybrid_OSX_Metal_playmode_XR_CUSTOM-REVISION:
+    name: HDRP_Hybrid on OSX_Metal_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::metal::macmini
         image: slough-ops/macos-10.14-xcode:stable

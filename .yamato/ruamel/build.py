@@ -30,6 +30,7 @@ from jobs.templates.test_all import Template_AllTemplateCiJob
 save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 shared_editors = []
 shared_platforms = []
+shared_test_platforms = []
 target_branch = ''
 
 def load_yml(filepath):
@@ -51,6 +52,14 @@ def get_platform(platform, api=""):
     else:
         return shared_platforms.get(f'{platform["name"]}_{api}', shared_platforms.get(platform["name"]))
 
+def get_test_platforms(metafile):
+    test_platforms = []
+    for test_platform_name in metafile["test_platforms"]:
+        test_platforms.append({
+        "name": test_platform_name,
+        "args": shared_test_platforms[test_platform_name]
+    })
+    return test_platforms
 
 
 def create_project_specific_jobs(metafile_name):
@@ -64,8 +73,7 @@ def create_project_specific_jobs(metafile_name):
 
             yml = {}
             for editor in get_editors(metafile):
-                for test_platform in metafile['test_platforms']:
-
+                for test_platform in get_test_platforms(metafile):
                     if test_platform["name"].lower() == 'standalone':
                         if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
                             job = Project_StandaloneJob(project, editor, platform, api, test_platform)
@@ -147,21 +155,21 @@ def create_abv_jobs(metafile_name):
     yml = {}
 
     for editor in get_editors(metafile):
-        for test_platform in metafile['test_platforms']:
+        for test_platform in get_test_platforms(metafile):
             job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
             yml[job.job_id] = job.yml
         
-        job = ABV_AllSmokeTestsJob(editor, metafile["test_platforms"])
+        job = ABV_AllSmokeTestsJob(editor, get_test_platforms(metafile))
         yml[job.job_id] = job.yml
 
         job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editors"], target_branch)
         yml[job.job_id] = job.yml
 
         if editor["version"] in metafile["nightly_config"]["allowed_editors"]:
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], metafile["test_platforms"], metafile["nightly_config"], target_branch)
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], get_test_platforms(metafile), metafile["nightly_config"], target_branch)
             yml[job.job_id] = job.yml
 
-        job = ABV_TrunkVerificationJob(editor, metafile["projects"], metafile["test_platforms"])
+        job = ABV_TrunkVerificationJob(editor, metafile["projects"], get_test_platforms(metafile))
         yml[job.job_id] = job.yml
 
     dump_yml(abv_filepath(), yml)
@@ -230,6 +238,7 @@ if __name__== "__main__":
     shared = load_yml('config/__shared.metafile')
     shared_editors = shared['editors']
     shared_platforms = shared['platforms']
+    shared_test_platforms = shared['test_platforms']
     target_branch = shared['target_branch']
 
     # clear directory from existing yml files, not to have old duplicates etc

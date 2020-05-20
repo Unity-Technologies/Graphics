@@ -18,8 +18,8 @@ HDRP_Win_DX12_playmode_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode XR_2020.1:
-    name: HDRP on Win_DX12_playmode XR on version 2020.1
+HDRP_Win_DX12_playmode_XR_2020.1:
+    name: HDRP on Win_DX12_playmode_XR on version 2020.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -124,8 +124,8 @@ HDRP_Win_DX12_playmode_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode XR_fast-2020.1:
-    name: HDRP on Win_DX12_playmode XR on version fast-2020.1
+HDRP_Win_DX12_playmode_XR_fast-2020.1:
+    name: HDRP on Win_DX12_playmode_XR on version fast-2020.1
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -230,8 +230,8 @@ HDRP_Win_DX12_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode XR_trunk:
-    name: HDRP on Win_DX12_playmode XR on version trunk
+HDRP_Win_DX12_playmode_XR_trunk:
+    name: HDRP on Win_DX12_playmode_XR on version trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -336,8 +336,8 @@ HDRP_Win_DX12_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode XR_fast-trunk:
-    name: HDRP on Win_DX12_playmode XR on version fast-trunk
+HDRP_Win_DX12_playmode_XR_fast-trunk:
+    name: HDRP on Win_DX12_playmode_XR on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -443,8 +443,8 @@ HDRP_Win_DX12_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode XR_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode XR on version CUSTOM-REVISION
+HDRP_Win_DX12_playmode_XR_CUSTOM-REVISION:
+    name: HDRP on Win_DX12_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable

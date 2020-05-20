@@ -19,8 +19,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_Linux_Vulkan_playmode XR_2020.1:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode XR on version 2020.1
+HDRP_Hybrid_Linux_Vulkan_playmode_XR_2020.1:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_XR on version 2020.1
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -82,8 +82,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_fast-2020.1:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_Linux_Vulkan_playmode XR_fast-2020.1:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode XR on version fast-2020.1
+HDRP_Hybrid_Linux_Vulkan_playmode_XR_fast-2020.1:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_XR on version fast-2020.1
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -145,8 +145,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_Linux_Vulkan_playmode XR_trunk:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode XR on version trunk
+HDRP_Hybrid_Linux_Vulkan_playmode_XR_trunk:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_XR on version trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -208,8 +208,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_Linux_Vulkan_playmode XR_fast-trunk:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode XR on version fast-trunk
+HDRP_Hybrid_Linux_Vulkan_playmode_XR_fast-trunk:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_XR on version fast-trunk
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable
@@ -272,8 +272,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Hybrid_Linux_Vulkan_playmode XR_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_Vulkan_playmode XR on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_Vulkan_playmode_XR_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_Vulkan_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: cds-ops/ubuntu-18.04-base:stable

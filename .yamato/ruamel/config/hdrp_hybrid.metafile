@@ -2,12 +2,9 @@ project:
   name: HDRP_Hybrid
   folder: HDRP_HybridTests
 test_platforms:
-  - name: playmode
-    args: --suite=playmode
-  - name: playmode XR
-    args: --suite=playmode --extra-editor-arg="-xr-tests"
-  - name: editmode
-    args: --suite=editor --platform=editmode
+  - playmode
+  - playmode_XR
+  - editmode
 platforms:
   - name: Win
     apis:

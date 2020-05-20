@@ -2,10 +2,8 @@ project:
   name: HDRP_DXR
   folder: HDRP_DXR_Tests
 test_platforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
+  - Standalone
+  - playmode
 platforms:
   - name: Win
     os: windows

@@ -2,12 +2,9 @@ project:
   name: ShaderGraph
   folder: ShaderGraph
 test_platforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
+  - Standalone
+  - playmode
+  - editmode
 platforms:
   - name: Win
     apis:
