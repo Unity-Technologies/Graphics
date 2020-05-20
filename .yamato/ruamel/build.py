@@ -48,7 +48,7 @@ def get_editors(metafile):
     return override_editors if override_editors is not None else shared_editors
 
 def get_platform(platform, api=""):
-    if platform.get("agent_default") is not None:
+    if platform.get("agent_default") is not None and not isinstance(platform.get("agent_default"), str):
         return platform
     else:
         return shared_platforms.get(f'{platform["name"]}_{api}', shared_platforms.get(platform["name"]))
@@ -134,8 +134,9 @@ def create_package_jobs(metafile_name):
         yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
-        for platform_meta in metafile["platforms"]:
-            platform = get_platform(platform_meta)
+        for plat in metafile["platforms"]:
+            platform = plat.copy()
+            platform["agent_default"] = get_agent(platform["agent_default"])
             for package in metafile["packages"]:
                 job = Package_TestJob(package, platform, editor)
                 yml[job.job_id] = job.yml
@@ -215,8 +216,9 @@ def create_template_jobs(metafile_name):
 
 
     for editor in get_editors(metafile):
-        for platform_meta in metafile["platforms"]:
-            platform = get_platform(platform_meta)
+        for plat in metafile["platforms"]:
+            platform = plat.copy()
+            platform["agent_default"] = get_agent(platform["agent_default"])
             for template in metafile["templates"]:
                 job = Template_TestJob(template, platform, editor)
                 yml[job.job_id] = job.yml

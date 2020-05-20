@@ -55,26 +55,20 @@ packages:
       - config
     hascodependencies: 1
 platforms:
-    - name: win
+    - name: Win
       os: windows
       components:
       - editor
       - il2cpp
-      agent_default:
-        type: Unity::VM
-        image: package-ci/win10:stable
-        flavor: b1.large
+      agent_default: win_large_package_ci
       copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
       editorpath: .\.Editor
-    - name: mac
+    - name: OSX
       os: macos
       components:
       - editor
       - il2cpp
-      agent_default:
-        type: Unity::VM::osx
-        image: buildfarm/mac:stable
-        flavor: m1.mac
+      agent_default: osx_mac_buildfarm
       copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
 agent_pack: win_large_package_ci 

@@ -143,3 +143,7 @@ non_project_agents:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
+  osx_mac_buildfarm:
+    type: Unity::VM::osx
+    image: buildfarm/mac:stable
+    flavor: m1.mac

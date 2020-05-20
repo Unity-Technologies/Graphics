@@ -19,8 +19,8 @@ publish_core:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_win_trunk
-      -  .yamato/_packages.yml#test_core_mac_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -49,8 +49,8 @@ publish_lwrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_win_trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
@@ -79,8 +79,8 @@ publish_shadergraph:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_win_trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -109,8 +109,8 @@ publish_hdrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_win_trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -139,8 +139,8 @@ publish_universal:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_win_trunk
-      -  .yamato/_packages.yml#test_universal_mac_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -169,8 +169,8 @@ publish_vfx:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_win_trunk
-      -  .yamato/_packages.yml#test_vfx_mac_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -199,8 +199,8 @@ publish_config:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_win_trunk
-      -  .yamato/_packages.yml#test_config_mac_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
+      -  .yamato/_packages.yml#test_config_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -208,8 +208,8 @@ publish_config:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-test_core_win_trunk:
-    name: Test Core win trunk
+test_core_Win_trunk:
+    name: Test Core Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -226,15 +226,15 @@ test_core_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_win_trunk_dependencies:
-    name: Test Core win trunk - dependencies
+test_core_Win_trunk_dependencies:
+    name: Test Core Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_core_win_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -245,8 +245,8 @@ test_core_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_trunk:
-    name: Test Lightweight win trunk
+test_lwrp_Win_trunk:
+    name: Test Lightweight Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -267,15 +267,15 @@ test_lwrp_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_trunk_dependencies:
-    name: Test Lightweight win trunk - dependencies
+test_lwrp_Win_trunk_dependencies:
+    name: Test Lightweight Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_lwrp_win_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -290,8 +290,8 @@ test_lwrp_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_trunk:
-    name: Test ShaderGraph win trunk
+test_shadergraph_Win_trunk:
+    name: Test ShaderGraph Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -310,15 +310,15 @@ test_shadergraph_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_trunk_dependencies:
-    name: Test ShaderGraph win trunk - dependencies
+test_shadergraph_Win_trunk_dependencies:
+    name: Test ShaderGraph Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_shadergraph_win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -331,8 +331,8 @@ test_shadergraph_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_trunk:
-    name: Test HDRP win trunk
+test_hdrp_Win_trunk:
+    name: Test HDRP Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -354,15 +354,15 @@ test_hdrp_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_trunk_dependencies:
-    name: Test HDRP win trunk - dependencies
+test_hdrp_Win_trunk_dependencies:
+    name: Test HDRP Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_hdrp_win_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -378,8 +378,8 @@ test_hdrp_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_trunk:
-    name: Test Universal win trunk
+test_universal_Win_trunk:
+    name: Test Universal Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -399,15 +399,15 @@ test_universal_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_trunk_dependencies:
-    name: Test Universal win trunk - dependencies
+test_universal_Win_trunk_dependencies:
+    name: Test Universal Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_universal_win_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -421,8 +421,8 @@ test_universal_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_trunk:
-    name: Test VFX win trunk
+test_vfx_Win_trunk:
+    name: Test VFX Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -442,15 +442,15 @@ test_vfx_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_trunk_dependencies:
-    name: Test VFX win trunk - dependencies
+test_vfx_Win_trunk_dependencies:
+    name: Test VFX Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_vfx_win_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -464,8 +464,8 @@ test_vfx_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_trunk:
-    name: Test Config win trunk
+test_config_Win_trunk:
+    name: Test Config Win trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -484,15 +484,15 @@ test_config_win_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_trunk_dependencies:
-    name: Test Config win trunk - dependencies
+test_config_Win_trunk_dependencies:
+    name: Test Config Win trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:windows
-      -  .yamato/_packages.yml#test_config_win_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -505,8 +505,8 @@ test_config_win_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_trunk:
-    name: Test Core mac trunk
+test_core_OSX_trunk:
+    name: Test Core OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -523,15 +523,15 @@ test_core_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_trunk_dependencies:
-    name: Test Core mac trunk - dependencies
+test_core_OSX_trunk_dependencies:
+    name: Test Core OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_core_mac_trunk
+      -  .yamato/_packages.yml#test_core_OSX_trunk
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -542,8 +542,8 @@ test_core_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_trunk:
-    name: Test Lightweight mac trunk
+test_lwrp_OSX_trunk:
+    name: Test Lightweight OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -564,15 +564,15 @@ test_lwrp_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_trunk_dependencies:
-    name: Test Lightweight mac trunk - dependencies
+test_lwrp_OSX_trunk_dependencies:
+    name: Test Lightweight OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_lwrp_mac_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -587,8 +587,8 @@ test_lwrp_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_trunk:
-    name: Test ShaderGraph mac trunk
+test_shadergraph_OSX_trunk:
+    name: Test ShaderGraph OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -607,15 +607,15 @@ test_shadergraph_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_trunk_dependencies:
-    name: Test ShaderGraph mac trunk - dependencies
+test_shadergraph_OSX_trunk_dependencies:
+    name: Test ShaderGraph OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -628,8 +628,8 @@ test_shadergraph_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_trunk:
-    name: Test HDRP mac trunk
+test_hdrp_OSX_trunk:
+    name: Test HDRP OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -651,15 +651,15 @@ test_hdrp_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_trunk_dependencies:
-    name: Test HDRP mac trunk - dependencies
+test_hdrp_OSX_trunk_dependencies:
+    name: Test HDRP OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_hdrp_mac_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -675,8 +675,8 @@ test_hdrp_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_trunk:
-    name: Test Universal mac trunk
+test_universal_OSX_trunk:
+    name: Test Universal OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -696,15 +696,15 @@ test_universal_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_trunk_dependencies:
-    name: Test Universal mac trunk - dependencies
+test_universal_OSX_trunk_dependencies:
+    name: Test Universal OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_universal_mac_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -718,8 +718,8 @@ test_universal_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_trunk:
-    name: Test VFX mac trunk
+test_vfx_OSX_trunk:
+    name: Test VFX OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -739,15 +739,15 @@ test_vfx_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_trunk_dependencies:
-    name: Test VFX mac trunk - dependencies
+test_vfx_OSX_trunk_dependencies:
+    name: Test VFX OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_vfx_mac_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -761,8 +761,8 @@ test_vfx_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_trunk:
-    name: Test Config mac trunk
+test_config_OSX_trunk:
+    name: Test Config OSX trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -781,15 +781,15 @@ test_config_mac_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_trunk_dependencies:
-    name: Test Config mac trunk - dependencies
+test_config_OSX_trunk_dependencies:
+    name: Test Config OSX trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:trunk:macos
-      -  .yamato/_packages.yml#test_config_mac_trunk
+      -  .yamato/_packages.yml#test_config_OSX_trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -802,8 +802,8 @@ test_config_mac_trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_win_fast-trunk:
-    name: Test Core win fast-trunk
+test_core_Win_fast-trunk:
+    name: Test Core Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -820,15 +820,15 @@ test_core_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_win_fast-trunk_dependencies:
-    name: Test Core win fast-trunk - dependencies
+test_core_Win_fast-trunk_dependencies:
+    name: Test Core Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_core_win_fast-trunk
+      -  .yamato/_packages.yml#test_core_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -839,8 +839,8 @@ test_core_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_fast-trunk:
-    name: Test Lightweight win fast-trunk
+test_lwrp_Win_fast-trunk:
+    name: Test Lightweight Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -861,15 +861,15 @@ test_lwrp_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_fast-trunk_dependencies:
-    name: Test Lightweight win fast-trunk - dependencies
+test_lwrp_Win_fast-trunk_dependencies:
+    name: Test Lightweight Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_lwrp_win_fast-trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -884,8 +884,8 @@ test_lwrp_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_fast-trunk:
-    name: Test ShaderGraph win fast-trunk
+test_shadergraph_Win_fast-trunk:
+    name: Test ShaderGraph Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -904,15 +904,15 @@ test_shadergraph_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_fast-trunk_dependencies:
-    name: Test ShaderGraph win fast-trunk - dependencies
+test_shadergraph_Win_fast-trunk_dependencies:
+    name: Test ShaderGraph Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -925,8 +925,8 @@ test_shadergraph_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_fast-trunk:
-    name: Test HDRP win fast-trunk
+test_hdrp_Win_fast-trunk:
+    name: Test HDRP Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -948,15 +948,15 @@ test_hdrp_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_fast-trunk_dependencies:
-    name: Test HDRP win fast-trunk - dependencies
+test_hdrp_Win_fast-trunk_dependencies:
+    name: Test HDRP Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_hdrp_win_fast-trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -972,8 +972,8 @@ test_hdrp_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_fast-trunk:
-    name: Test Universal win fast-trunk
+test_universal_Win_fast-trunk:
+    name: Test Universal Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -993,15 +993,15 @@ test_universal_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_fast-trunk_dependencies:
-    name: Test Universal win fast-trunk - dependencies
+test_universal_Win_fast-trunk_dependencies:
+    name: Test Universal Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_universal_win_fast-trunk
+      -  .yamato/_packages.yml#test_universal_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1015,8 +1015,8 @@ test_universal_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_fast-trunk:
-    name: Test VFX win fast-trunk
+test_vfx_Win_fast-trunk:
+    name: Test VFX Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1036,15 +1036,15 @@ test_vfx_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_fast-trunk_dependencies:
-    name: Test VFX win fast-trunk - dependencies
+test_vfx_Win_fast-trunk_dependencies:
+    name: Test VFX Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_vfx_win_fast-trunk
+      -  .yamato/_packages.yml#test_vfx_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1058,8 +1058,8 @@ test_vfx_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_fast-trunk:
-    name: Test Config win fast-trunk
+test_config_Win_fast-trunk:
+    name: Test Config Win fast-trunk
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1078,15 +1078,15 @@ test_config_win_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_fast-trunk_dependencies:
-    name: Test Config win fast-trunk - dependencies
+test_config_Win_fast-trunk_dependencies:
+    name: Test Config Win fast-trunk - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:windows
-      -  .yamato/_packages.yml#test_config_win_fast-trunk
+      -  .yamato/_packages.yml#test_config_Win_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1099,8 +1099,8 @@ test_config_win_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_fast-trunk:
-    name: Test Core mac fast-trunk
+test_core_OSX_fast-trunk:
+    name: Test Core OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1117,15 +1117,15 @@ test_core_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_fast-trunk_dependencies:
-    name: Test Core mac fast-trunk - dependencies
+test_core_OSX_fast-trunk_dependencies:
+    name: Test Core OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_core_mac_fast-trunk
+      -  .yamato/_packages.yml#test_core_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1136,8 +1136,8 @@ test_core_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_fast-trunk:
-    name: Test Lightweight mac fast-trunk
+test_lwrp_OSX_fast-trunk:
+    name: Test Lightweight OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1158,15 +1158,15 @@ test_lwrp_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_fast-trunk_dependencies:
-    name: Test Lightweight mac fast-trunk - dependencies
+test_lwrp_OSX_fast-trunk_dependencies:
+    name: Test Lightweight OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1181,8 +1181,8 @@ test_lwrp_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_fast-trunk:
-    name: Test ShaderGraph mac fast-trunk
+test_shadergraph_OSX_fast-trunk:
+    name: Test ShaderGraph OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1201,15 +1201,15 @@ test_shadergraph_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_fast-trunk_dependencies:
-    name: Test ShaderGraph mac fast-trunk - dependencies
+test_shadergraph_OSX_fast-trunk_dependencies:
+    name: Test ShaderGraph OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1222,8 +1222,8 @@ test_shadergraph_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_fast-trunk:
-    name: Test HDRP mac fast-trunk
+test_hdrp_OSX_fast-trunk:
+    name: Test HDRP OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1245,15 +1245,15 @@ test_hdrp_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_fast-trunk_dependencies:
-    name: Test HDRP mac fast-trunk - dependencies
+test_hdrp_OSX_fast-trunk_dependencies:
+    name: Test HDRP OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1269,8 +1269,8 @@ test_hdrp_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_fast-trunk:
-    name: Test Universal mac fast-trunk
+test_universal_OSX_fast-trunk:
+    name: Test Universal OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1290,15 +1290,15 @@ test_universal_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_fast-trunk_dependencies:
-    name: Test Universal mac fast-trunk - dependencies
+test_universal_OSX_fast-trunk_dependencies:
+    name: Test Universal OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_universal_mac_fast-trunk
+      -  .yamato/_packages.yml#test_universal_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1312,8 +1312,8 @@ test_universal_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_fast-trunk:
-    name: Test VFX mac fast-trunk
+test_vfx_OSX_fast-trunk:
+    name: Test VFX OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1333,15 +1333,15 @@ test_vfx_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_fast-trunk_dependencies:
-    name: Test VFX mac fast-trunk - dependencies
+test_vfx_OSX_fast-trunk_dependencies:
+    name: Test VFX OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_vfx_mac_fast-trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1355,8 +1355,8 @@ test_vfx_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_fast-trunk:
-    name: Test Config mac fast-trunk
+test_config_OSX_fast-trunk:
+    name: Test Config OSX fast-trunk
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1375,15 +1375,15 @@ test_config_mac_fast-trunk:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_fast-trunk_dependencies:
-    name: Test Config mac fast-trunk - dependencies
+test_config_OSX_fast-trunk_dependencies:
+    name: Test Config OSX fast-trunk - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:fast-trunk:macos
-      -  .yamato/_packages.yml#test_config_mac_fast-trunk
+      -  .yamato/_packages.yml#test_config_OSX_fast-trunk
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1396,8 +1396,8 @@ test_config_mac_fast-trunk_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_win_CUSTOM-REVISION:
-    name: Test Core win CUSTOM-REVISION
+test_core_Win_CUSTOM-REVISION:
+    name: Test Core Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1414,15 +1414,15 @@ test_core_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_win_CUSTOM-REVISION_dependencies:
-    name: Test Core win CUSTOM-REVISION - dependencies
+test_core_Win_CUSTOM-REVISION_dependencies:
+    name: Test Core Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_core_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_core_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1433,8 +1433,8 @@ test_core_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_CUSTOM-REVISION:
-    name: Test Lightweight win CUSTOM-REVISION
+test_lwrp_Win_CUSTOM-REVISION:
+    name: Test Lightweight Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1455,15 +1455,15 @@ test_lwrp_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_win_CUSTOM-REVISION_dependencies:
-    name: Test Lightweight win CUSTOM-REVISION - dependencies
+test_lwrp_Win_CUSTOM-REVISION_dependencies:
+    name: Test Lightweight Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_lwrp_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_lwrp_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1478,8 +1478,8 @@ test_lwrp_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_CUSTOM-REVISION:
-    name: Test ShaderGraph win CUSTOM-REVISION
+test_shadergraph_Win_CUSTOM-REVISION:
+    name: Test ShaderGraph Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1498,15 +1498,15 @@ test_shadergraph_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_win_CUSTOM-REVISION_dependencies:
-    name: Test ShaderGraph win CUSTOM-REVISION - dependencies
+test_shadergraph_Win_CUSTOM-REVISION_dependencies:
+    name: Test ShaderGraph Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_shadergraph_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_shadergraph_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1519,8 +1519,8 @@ test_shadergraph_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_CUSTOM-REVISION:
-    name: Test HDRP win CUSTOM-REVISION
+test_hdrp_Win_CUSTOM-REVISION:
+    name: Test HDRP Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1542,15 +1542,15 @@ test_hdrp_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_win_CUSTOM-REVISION_dependencies:
-    name: Test HDRP win CUSTOM-REVISION - dependencies
+test_hdrp_Win_CUSTOM-REVISION_dependencies:
+    name: Test HDRP Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_hdrp_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_hdrp_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1566,8 +1566,8 @@ test_hdrp_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_CUSTOM-REVISION:
-    name: Test Universal win CUSTOM-REVISION
+test_universal_Win_CUSTOM-REVISION:
+    name: Test Universal Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1587,15 +1587,15 @@ test_universal_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_win_CUSTOM-REVISION_dependencies:
-    name: Test Universal win CUSTOM-REVISION - dependencies
+test_universal_Win_CUSTOM-REVISION_dependencies:
+    name: Test Universal Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_universal_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_universal_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1609,8 +1609,8 @@ test_universal_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_CUSTOM-REVISION:
-    name: Test VFX win CUSTOM-REVISION
+test_vfx_Win_CUSTOM-REVISION:
+    name: Test VFX Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1630,15 +1630,15 @@ test_vfx_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_win_CUSTOM-REVISION_dependencies:
-    name: Test VFX win CUSTOM-REVISION - dependencies
+test_vfx_Win_CUSTOM-REVISION_dependencies:
+    name: Test VFX Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_vfx_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_vfx_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1652,8 +1652,8 @@ test_vfx_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_CUSTOM-REVISION:
-    name: Test Config win CUSTOM-REVISION
+test_config_Win_CUSTOM-REVISION:
+    name: Test Config Win CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -1672,15 +1672,15 @@ test_config_win_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_win_CUSTOM-REVISION_dependencies:
-    name: Test Config win CUSTOM-REVISION - dependencies
+test_config_Win_CUSTOM-REVISION_dependencies:
+    name: Test Config Win CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-      -  .yamato/_packages.yml#test_config_win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_config_Win_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1693,8 +1693,8 @@ test_config_win_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_CUSTOM-REVISION:
-    name: Test Core mac CUSTOM-REVISION
+test_core_OSX_CUSTOM-REVISION:
+    name: Test Core OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1711,15 +1711,15 @@ test_core_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_mac_CUSTOM-REVISION_dependencies:
-    name: Test Core mac CUSTOM-REVISION - dependencies
+test_core_OSX_CUSTOM-REVISION_dependencies:
+    name: Test Core OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_core_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_core_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -1730,8 +1730,8 @@ test_core_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_CUSTOM-REVISION:
-    name: Test Lightweight mac CUSTOM-REVISION
+test_lwrp_OSX_CUSTOM-REVISION:
+    name: Test Lightweight OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1752,15 +1752,15 @@ test_lwrp_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_mac_CUSTOM-REVISION_dependencies:
-    name: Test Lightweight mac CUSTOM-REVISION - dependencies
+test_lwrp_OSX_CUSTOM-REVISION_dependencies:
+    name: Test Lightweight OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_lwrp_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_lwrp_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1775,8 +1775,8 @@ test_lwrp_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_CUSTOM-REVISION:
-    name: Test ShaderGraph mac CUSTOM-REVISION
+test_shadergraph_OSX_CUSTOM-REVISION:
+    name: Test ShaderGraph OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1795,15 +1795,15 @@ test_shadergraph_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_mac_CUSTOM-REVISION_dependencies:
-    name: Test ShaderGraph mac CUSTOM-REVISION - dependencies
+test_shadergraph_OSX_CUSTOM-REVISION_dependencies:
+    name: Test ShaderGraph OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_shadergraph_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_shadergraph_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
@@ -1816,8 +1816,8 @@ test_shadergraph_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_CUSTOM-REVISION:
-    name: Test HDRP mac CUSTOM-REVISION
+test_hdrp_OSX_CUSTOM-REVISION:
+    name: Test HDRP OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1839,15 +1839,15 @@ test_hdrp_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_mac_CUSTOM-REVISION_dependencies:
-    name: Test HDRP mac CUSTOM-REVISION - dependencies
+test_hdrp_OSX_CUSTOM-REVISION_dependencies:
+    name: Test HDRP OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_hdrp_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_hdrp_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1863,8 +1863,8 @@ test_hdrp_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_CUSTOM-REVISION:
-    name: Test Universal mac CUSTOM-REVISION
+test_universal_OSX_CUSTOM-REVISION:
+    name: Test Universal OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1884,15 +1884,15 @@ test_universal_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_mac_CUSTOM-REVISION_dependencies:
-    name: Test Universal mac CUSTOM-REVISION - dependencies
+test_universal_OSX_CUSTOM-REVISION_dependencies:
+    name: Test Universal OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_universal_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_universal_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -1906,8 +1906,8 @@ test_universal_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_CUSTOM-REVISION:
-    name: Test VFX mac CUSTOM-REVISION
+test_vfx_OSX_CUSTOM-REVISION:
+    name: Test VFX OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1927,15 +1927,15 @@ test_vfx_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_mac_CUSTOM-REVISION_dependencies:
-    name: Test VFX mac CUSTOM-REVISION - dependencies
+test_vfx_OSX_CUSTOM-REVISION_dependencies:
+    name: Test VFX OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_vfx_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_vfx_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -1949,8 +1949,8 @@ test_vfx_mac_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_CUSTOM-REVISION:
-    name: Test Config mac CUSTOM-REVISION
+test_config_OSX_CUSTOM-REVISION:
+    name: Test Config OSX CUSTOM-REVISION
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
@@ -1969,15 +1969,15 @@ test_config_mac_CUSTOM-REVISION:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_mac_CUSTOM-REVISION_dependencies:
-    name: Test Config mac CUSTOM-REVISION - dependencies
+test_config_OSX_CUSTOM-REVISION_dependencies:
+    name: Test Config OSX CUSTOM-REVISION - dependencies
     agent:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
     dependencies:
       -  .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
-      -  .yamato/_packages.yml#test_config_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_config_OSX_CUSTOM-REVISION
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
@@ -1997,20 +1997,20 @@ all_package_ci_trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_win_trunk
-      -  .yamato/_packages.yml#test_lwrp_win_trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_trunk
-      -  .yamato/_packages.yml#test_hdrp_win_trunk
-      -  .yamato/_packages.yml#test_universal_win_trunk
-      -  .yamato/_packages.yml#test_vfx_win_trunk
-      -  .yamato/_packages.yml#test_config_win_trunk
-      -  .yamato/_packages.yml#test_core_mac_trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_trunk
-      -  .yamato/_packages.yml#test_universal_mac_trunk
-      -  .yamato/_packages.yml#test_vfx_mac_trunk
-      -  .yamato/_packages.yml#test_config_mac_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
+      -  .yamato/_packages.yml#test_config_OSX_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -2022,20 +2022,20 @@ all_package_ci_fast-trunk:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_win_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_win_fast-trunk
-      -  .yamato/_packages.yml#test_universal_win_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_win_fast-trunk
-      -  .yamato/_packages.yml#test_config_win_fast-trunk
-      -  .yamato/_packages.yml#test_core_mac_fast-trunk
-      -  .yamato/_packages.yml#test_lwrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_shadergraph_mac_fast-trunk
-      -  .yamato/_packages.yml#test_hdrp_mac_fast-trunk
-      -  .yamato/_packages.yml#test_universal_mac_fast-trunk
-      -  .yamato/_packages.yml#test_vfx_mac_fast-trunk
-      -  .yamato/_packages.yml#test_config_mac_fast-trunk
+      -  .yamato/_packages.yml#test_core_Win_fast-trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_fast-trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_fast-trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_fast-trunk
+      -  .yamato/_packages.yml#test_universal_Win_fast-trunk
+      -  .yamato/_packages.yml#test_vfx_Win_fast-trunk
+      -  .yamato/_packages.yml#test_config_Win_fast-trunk
+      -  .yamato/_packages.yml#test_core_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_universal_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_fast-trunk
+      -  .yamato/_packages.yml#test_config_OSX_fast-trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
@@ -2047,20 +2047,20 @@ all_package_ci_CUSTOM-REVISION:
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_shadergraph_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_hdrp_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_universal_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_vfx_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_config_win_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_core_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_lwrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_shadergraph_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_hdrp_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_universal_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_vfx_mac_CUSTOM-REVISION
-      -  .yamato/_packages.yml#test_config_mac_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_core_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_lwrp_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_shadergraph_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_hdrp_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_universal_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_vfx_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_config_Win_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_core_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_lwrp_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_shadergraph_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_hdrp_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_universal_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_vfx_OSX_CUSTOM-REVISION
+      -  .yamato/_packages.yml#test_config_OSX_CUSTOM-REVISION
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
