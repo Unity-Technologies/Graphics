@@ -1,13 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:TestProjects/UniversalGraphicsTest/Assets/Scenes/129_EnvironmentShaderVariables.unity.meta
 guid: 4992b4e789a834290bb09f01dd4d4433
-=======
-guid: 97247f075d9ed4c4ab30894abe19320e
->>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/702_DirectionalShadowSG.unity.meta
-=======
-guid: 4992b4e789a834290bb09f01dd4d4433
->>>>>>> master
 DefaultImporter:
   externalObjects: {}
   userData: 

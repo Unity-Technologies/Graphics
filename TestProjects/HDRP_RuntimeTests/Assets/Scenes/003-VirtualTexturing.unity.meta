@@ -1,13 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/Scenes/003-VirtualTexturing.unity.meta
 guid: 897c2870240f77a46a18884a0446b797
-=======
-guid: ccf33fc5169d0624c91b9116ebf44c7f
->>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/308_ScreenSpaceGlobalIllumination.unity.meta
-=======
-guid: 897c2870240f77a46a18884a0446b797
->>>>>>> master
 DefaultImporter:
   externalObjects: {}
   userData: 
