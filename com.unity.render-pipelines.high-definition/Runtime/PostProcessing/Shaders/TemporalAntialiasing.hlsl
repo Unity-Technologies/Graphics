@@ -257,7 +257,7 @@ float3 ConvertToOutputSpace(float3 color)
 // Front most neighbourhood velocity ([Karis 2014])
 float2 GetClosestFragment(TEXTURE2D_X(DepthTexture), int2 positionSS)
 {
-    float center = LoadCameraDepth(positionSS);
+    float center = LOAD_TEXTURE2D_X_LOD(DepthTexture, positionSS, 0).r;
 
     int2 quadOffset = GetQuadOffset(positionSS);
 
