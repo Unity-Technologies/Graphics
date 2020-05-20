@@ -965,22 +965,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //
     // TBN
     //
-#if 0
-// TEST without gradients: comment out the #define SURFACE_GRADIENT before the include of materialutilities to test this path!
-    GetNormalWS(
-        input,
-        2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvBase, _SVBRDF_NormalMap)).xyz - 1.0,
-        surfaceData.normalWS,
-        doubleSidedConstants
-    );
-    GetNormalWS(
-        input,
-        2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvBase, _ClearcoatNormalMap)).xyz - 1.0,
-        surfaceData.clearcoatNormalWS,
-        doubleSidedConstants
-    );
-// ...TEST without gradients
-#else
     // Note: since SURFACE_GRADIENT is enabled, resolve is done with input.tangentToWorld[2] in GetNormalWS(),
     // and uvMapping uses that as vertexNormalWS.
 
@@ -1011,7 +995,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, gradient.xyz, surfaceData.normalWS, doubleSidedConstants);
     GetNormalWS(input, coatGradient.xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
-#endif //#if 0 use gradients
 
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
