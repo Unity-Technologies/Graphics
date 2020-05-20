@@ -10,25 +10,7 @@ test_platforms:
     args: --suite=editor --platform=editmode
 platforms:
   - name: Win
-    os: windows
-    apis: # TODO no apis specified
-      - name: ''
-        cmd: 
-    agent_default:
-      type: Unity::VM::GPU
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_standalone_build:
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.xlarge
-    agent_editmode:
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    components:
-      - editor
-      - il2cpp
+    apis: 
 all:
   dependencies:
     - platform_name: Win

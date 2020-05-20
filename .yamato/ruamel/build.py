@@ -28,7 +28,8 @@ from jobs.templates.template_test_dependencies import Template_TestDependenciesJ
 from jobs.templates.test_all import Template_AllTemplateCiJob
 
 save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
-editors = []
+shared_editors = []
+shared_platforms = []
 target_branch = ''
 
 def load_yml(filepath):
@@ -42,22 +43,31 @@ def dump_yml(filepath, yml_dict):
 
 def get_editors(metafile):
     override_editors = metafile.get("override_editors", None)
-    return override_editors if override_editors is not None else editors
+    return override_editors if override_editors is not None else shared_editors
+
+def get_platform(platform, api=""):
+    if platform.get("agent_default") is not None:
+        return platform
+    else:
+        return shared_platforms.get(f'{platform["name"]}_{api}', shared_platforms.get(platform["name"]))
+
+
 
 def create_project_specific_jobs(metafile_name):
 
     metafile = load_yml(metafile_name)
     project = metafile["project"]
 
-    for platform in metafile['platforms']:
-        for api in platform['apis']:
+    for platform_meta in metafile['platforms']:
+        for api in platform_meta['apis'] or [""]:
+            platform = get_platform(platform_meta, api)
 
             yml = {}
             for editor in get_editors(metafile):
                 for test_platform in metafile['test_platforms']:
 
                     if test_platform["name"].lower() == 'standalone':
-                        if api["name"].lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
+                        if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
                             job = Project_StandaloneJob(project, editor, platform, api, test_platform)
                             yml[job.job_id] = job.yml
                             
@@ -69,7 +79,7 @@ def create_project_specific_jobs(metafile_name):
                         yml[job.job_id] = job.yml
                     
             # store yml per [project]-[platform]-[api]
-            yml_file = project_filepath_specific(project["name"], platform["name"], api["name"])
+            yml_file = project_filepath_specific(project["name"], platform["name"], api)
             dump_yml(yml_file, yml)
 
 
@@ -113,7 +123,8 @@ def create_package_jobs(metafile_name):
         yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
-        for platform in metafile["platforms"]:
+        for platform_meta in metafile["platforms"]:
+            platform = get_platform(platform_meta)
             for package in metafile["packages"]:
                 job = Package_TestJob(package, platform, editor)
                 yml[job.job_id] = job.yml
@@ -190,7 +201,8 @@ def create_template_jobs(metafile_name):
 
 
     for editor in get_editors(metafile):
-        for platform in metafile["platforms"]:
+        for platform_meta in metafile["platforms"]:
+            platform = get_platform(platform_meta)
             for template in metafile["templates"]:
                 job = Template_TestJob(template, platform, editor)
                 yml[job.job_id] = job.yml
@@ -216,9 +228,9 @@ if __name__== "__main__":
 
     # parse shared file
     shared = load_yml('config/__shared.metafile')
-    editors = shared['editors']
+    shared_editors = shared['editors']
+    shared_platforms = shared['platforms']
     target_branch = shared['target_branch']
-
 
     # clear directory from existing yml files, not to have old duplicates etc
     print(save_dir)
@@ -226,30 +238,31 @@ if __name__== "__main__":
     for f in old_yml_files:
         os.remove(f)
 
-    # create editor
-    print(f'Running: editor')
-    create_editor_job('config/_editor.metafile')
+    # # create editor
+    # print(f'Running: editor')
+    # create_editor_job('config/_editor.metafile')
 
-    # create package jobs
-    print(f'Running: packages')
-    create_package_jobs('config/_packages.metafile')
+    # # create package jobs
+    # print(f'Running: packages')
+    # create_package_jobs('config/_packages.metafile')
 
-    # create abv
-    print(f'Running: abv')
-    create_abv_jobs('config/_abv.metafile')
+    # # create abv
+    # print(f'Running: abv')
+    # create_abv_jobs('config/_abv.metafile')
 
-    # create preview publish
-    print(f'Running: preview_publish')
-    create_preview_publish_jobs('config/_preview_publish.metafile')
+    # # create preview publish
+    # print(f'Running: preview_publish')
+    # create_preview_publish_jobs('config/_preview_publish.metafile')
 
-     # create template jobs
-    print(f'Running: templates')
-    create_template_jobs('config/_templates.metafile')
+    #  # create template jobs
+    # print(f'Running: templates')
+    # create_template_jobs('config/_templates.metafile')
 
     # create yml jobs for each specified project
     for project_metafile in glob.glob('config/[!_]*.metafile'):
-        print(f'Running: {project_metafile}')
+        print(f'Running: {project_metafile}')   
         create_project_specific_jobs(project_metafile) # create jobs for testplatforms
         create_project_all_jobs(project_metafile) # create All_ job
+
 
 

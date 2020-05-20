@@ -10,57 +10,16 @@ test_platforms:
     args: --suite=editor --platform=editmode
 platforms:
   - name: Win
-    os: windows
     apis:
-      - name: DX11
-        cmd: -force-d3d11
-      - name: DX12
-        cmd: -force-d3d12
-      - name: Vulkan
-        cmd: -force-vulkan
-    agent_default:
-      type: Unity::VM::GPU
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    agent_standalone_build:
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.xlarge
-    agent_editmode:
-      type: Unity::VM
-      image: sdet/gamecode_win10:stable
-      flavor: b1.large
-    components:
-      - editor
-      - il2cpp
-  - name: OSX #TODO metal doesnt have editmode
-    os: macos
+      - DX11
+      - DX12
+      - Vulkan
+  - name: OSX 
     apis:
-      - name: Metal
-        cmd: 
-    agent_default:
-      type: Unity::metal::macmini
-      image: slough-ops/macos-10.14-xcode:stable
-      flavor: m1.mac
-    components:
-      - editor
-      - il2cpp
+      - Metal
   - name: Linux
-    os: linux
     apis: 
-      - name: Vulkan
-        cmd: -force-vulkan
-    agent_default:
-      type: Unity::VM::GPU
-      image: cds-ops/ubuntu-18.04-base:stable
-      flavor: b1.large
-    agent_editmode:
-      type: Unity::VM
-      image: cds-ops/ubuntu-18.04-base:stable
-      flavor: b1.large
-    components:
-      - editor
-      - il2cpp
+      - Vulkan
 all:
   dependencies:
     - platform_name: Win

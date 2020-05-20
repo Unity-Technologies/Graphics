@@ -10,13 +10,12 @@ platforms:
   - name: Win
     os: windows
     apis:
-      - name: DX12
-        cmd: -force-d3d12
+      DX12: -force-d3d12
     agent_default:
       type: Unity::VM::GPU
       image: sdet/gamecode_win10:stable
       flavor: b1.large
-      model: rtx2080 #TODO add model in job configuration
+      model: rtx2080
     components:
       - editor
       - il2cpp

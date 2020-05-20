@@ -9,9 +9,9 @@ def _job(project_name, test_platform_name, editor, platform, api, cmd):
 
     # define name
     if test_platform_name.lower() == 'standalone_build':
-        job_name = f'Build {project_name} on {platform["name"]}_{api["name"]}_Player on version {editor["version"]}'
+        job_name = f'Build {project_name} on {platform["name"]}_{api}_Player on version {editor["version"]}'
     else:
-        job_name = f'{project_name} on {platform["name"]}_{api["name"]}_{test_platform_name} on version {editor["version"]}'
+        job_name = f'{project_name} on {platform["name"]}_{api}_{test_platform_name} on version {editor["version"]}'
 
     # define agent
     agent = platform.get(f'agent_{test_platform_name.lower().replace(" ","_")}', platform['agent_default']) # replace(" ","_") called for playmode XR
