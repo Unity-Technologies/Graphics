@@ -8,10 +8,10 @@ class ABV_AllProjectCiNightlyJob():
         if editor["version"] not in nightly_config["allowed_editors"]:
             raise Exception(f'Tried to construct nightly with PR trigger for version {editor["version"]}')
         self.job_id = abv_job_id_all_project_ci_nightly(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config["additional_jobs"], target_branch).get_yml()
+        self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config["extra_dependencies"], target_branch).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms, nightly_additions, target_branch):  # only run for 2020.1 and trunk
+    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch):  # only run for 2020.1 and trunk
 
         # define dependencies
         dependencies = [{
@@ -23,15 +23,15 @@ class ABV_AllProjectCiNightlyJob():
                 'path': f'{abv_filepath()}#{abv_job_id_smoke_test(editor["version"],test_platform["name"])}',
                 'rerun': editor["rerun_strategy"]})
 
-        for a in nightly_additions:
-            if a["all"] == True:
+        for dep in extra_dependencies:
+            if dep.get("all"):
                 dependencies.append({
-                    'path': f'{project_filepath_all(a["project"])}#{project_job_id_all(a["project"], editor["version"])}',
+                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_all(dep["project"], editor["version"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
-                for tp in a["test_platforms"]:
+                for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(a["project"], a["platform"], a["api"])}#{project_job_id_test(a["project"], a["platform"], a["api"], tp, editor["version"])}',
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["version"])}',
                         'rerun': editor["rerun_strategy"]})
             
         # construct job

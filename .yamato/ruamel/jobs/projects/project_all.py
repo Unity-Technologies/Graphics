@@ -15,17 +15,21 @@ class Project_AllJob():
         # define dependencies
         dependencies = []
         for dep in dependencies_in_all:
-            for test_platform in dep["test_platforms"]:
-                
-                file = project_filepath_specific(project, dep["platform"], dep["api"])
-                job_id = project_job_id_test(project,dep["platform"],dep["api"],test_platform,editor["version"])
+            project_dep = dep.get('project', project)
+            
+            if dep.get("all"):
+                dependencies.append({
+                    'path': f'{project_filepath_all(project_dep)}#{project_job_id_all(project_dep, editor["version"])}',
+                    'rerun': editor["rerun_strategy"]})
+            else:
+                for test_platform in dep["test_platforms"]:
+                        
+                    file = project_filepath_specific(project_dep, dep["platform"], dep["api"])
+                    job_id = project_job_id_test(project_dep,dep["platform"],dep["api"],test_platform,editor["version"])
 
-                dependencies.append(
-                    {
-                        'path' : f'{file}#{job_id}',
-                        'rerun' : editor["rerun_strategy"]
-                    }
-                )
+                    dependencies.append({
+                            'path' : f'{file}#{job_id}',
+                            'rerun' : editor["rerun_strategy"]})
 
         # construct job
         job = YMLJob()
