@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             gBufferAttachments[1] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferSpecularMetallicIndex];
             gBufferAttachments[2] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferNormalSmoothnessIndex];
             gBufferAttachments[3] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferLightingIndex];
-#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+#if (UNITY_IOS) && !UNITY_EDITOR
             gBufferAttachments[4] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAdditionalDepthIndex];
 #endif
         }
