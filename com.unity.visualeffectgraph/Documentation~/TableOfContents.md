@@ -35,7 +35,10 @@
         * [Fractional](Operator-Fractional.md)
         * [Inverse Lerp](Operator-InverseLerp.md)
         * [Lerp](Operator-Lerp.md)
+        * [Modulo](Operator-Modulo.md)
         * [Multiply](Operator-Multiply.md)
+        * [Negate](Operator-Negate.md)
+        * [One Minus](Operator-OneMinus)
         * [Subtract](Operator-Subtract.md)
       * Wave
         * [Sawtooth Wave](Operator-SawtoothWave.md)
