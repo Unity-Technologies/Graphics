@@ -224,6 +224,8 @@ all_project_ci_fast-trunk:
          rerun: always
       -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_fast-trunk
          rerun: always
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
     dependencies:

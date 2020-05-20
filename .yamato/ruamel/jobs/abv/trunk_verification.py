@@ -9,7 +9,7 @@ class ABV_TrunkVerificationJob():
         self.yml = self.get_job_definition(editor, projects, test_platforms).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms):  # only run for 2020.1 and trunk
+    def get_job_definition(self, editor, projects, test_platforms): 
         
         # define dependencies
         dependencies = []

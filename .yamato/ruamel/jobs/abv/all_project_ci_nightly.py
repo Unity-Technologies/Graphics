@@ -11,7 +11,7 @@ class ABV_AllProjectCiNightlyJob():
         self.yml = self.get_job_definition(editor, projects, test_platforms, nightly_config["extra_dependencies"], target_branch).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch):  # only run for 2020.1 and trunk
+    def get_job_definition(self, editor, projects, test_platforms, extra_dependencies, target_branch): 
 
         # define dependencies
         dependencies = [{

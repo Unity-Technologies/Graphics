@@ -10,7 +10,7 @@ class ABV_SmokeTestJob():
         self.yml = self.get_job_definition(editor, test_platform, smoke_test).get_yml()
 
 
-    def get_job_definition(self, editor, test_platform, smoke_test):  # only run for 2020.1 and trunk
+    def get_job_definition(self, editor, test_platform, smoke_test): 
         agent = dict(smoke_test["agent"])
         agent_gpu = dict(smoke_test["agent_gpu"])
         

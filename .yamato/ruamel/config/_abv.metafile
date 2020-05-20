@@ -12,10 +12,9 @@ test_platforms:
   - editmode
 abv_config: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - fast-2020.1
+    - fast-trunk
 nightly_config:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - 2020.1
     - trunk
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project: Universal
