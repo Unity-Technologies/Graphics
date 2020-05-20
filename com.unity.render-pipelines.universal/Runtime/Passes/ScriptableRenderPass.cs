@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = depthAttachment;
             ConfigureTarget(colorAttachment);
         }
-        public void ConfigureTarget(AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
+        internal void ConfigureTarget(AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
         {
             m_DepthAttachmentDescriptor = depthAttachment;
             ConfigureTarget(colorAttachment);
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
         }
-        public void ConfigureTarget(AttachmentDescriptor[] colorAttachments, AttachmentDescriptor depthAttachment)
+        internal void ConfigureTarget(AttachmentDescriptor[] colorAttachments, AttachmentDescriptor depthAttachment)
         {
             overrideCameraTarget = true;
 
@@ -205,7 +205,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorAttachments[i] = 0;
         }
 
-        public void ConfigureTarget(AttachmentDescriptor attachment)
+        internal void ConfigureTarget(AttachmentDescriptor attachment)
         {
             m_ColorAttachmentDescriptors[0] = attachment;
             for (int i = 1; i < m_ColorAttachmentDescriptors.Length; ++i)

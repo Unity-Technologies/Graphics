@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
                 // TODO: Investigate why using RenderPass with CopyColor pass causes artifacts on iOS/Android devices
-                Downsampling downsamplingMethod = Downsampling.None; // Ignoring this setting as otherwise it will break RenderPass
+                Downsampling downsamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
                 m_CopyColorPass.Setup(m_CameraColorTexture.Identifier(), m_OpaqueColor, downsamplingMethod);
 
                 EnqueuePass(m_CopyColorPass);

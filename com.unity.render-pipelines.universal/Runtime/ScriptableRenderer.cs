@@ -179,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_CameraColorTarget;
         }
 
-        public AttachmentDescriptor cameraColorTargetDescriptor
+        internal AttachmentDescriptor cameraColorTargetDescriptor
         {
             get => m_CameraColorTargetAttachment;
         }
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_CameraDepthTarget;
         }
 
-        public AttachmentDescriptor cameraDepthAttachment
+        internal AttachmentDescriptor cameraDepthAttachment
         {
             get => m_CameraDepthTargetAttachment;
         }
@@ -327,7 +327,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraDepthTarget = depthTarget;
         }
 
-        public void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
+        internal void ConfigureCameraTarget(RenderTargetIdentifier colorTarget, RenderTargetIdentifier depthTarget, AttachmentDescriptor colorAttachment, AttachmentDescriptor depthAttachment)
         {
             ConfigureCameraTarget(colorTarget, depthTarget);
             m_CameraColorTargetAttachment = colorAttachment;
