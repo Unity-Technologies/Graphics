@@ -60,18 +60,20 @@ To create a new property, use the **Add (+)** button on the top right corner of 
 
 ![](images/MyFirstShaderGraph_07.png)
 
-This adds a new property in the Blackboard with the following options.
+This adds a new property in the Blackboard with the following options in the Inspector when the property is selected.
 
 ![](images/MyFirstShaderGraph_08.png)
 
 | **Option**          | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Property button** | To change the name of the property, right-click the button, select **Rename**, then enter a new property name. To delete the property, right-click the button, and select **Delete**. |
+| **Property button** | To change the name of the property, right-click the button in the Blackboard, select **Rename**, then enter a new property name. To delete the property, right-click the button, and select **Delete**. |
 | **Exposed**         | Enable this checkbox to make the property visible from the Material's Inspector. |
 | **Reference**       | The property's name that appears in C# scripts. To change the **Reference** name, enter a new string. |
 | **Default**         | The default value of the property.                           |
 | **Mode**            | The mode of the property. Each property has different modes. For **Color**, you can select either **Default** or **HDR**. |
-| **Precision**            | The default [precision](Precision-Modes) of the property. |
+| **Precision**       | The default [precision](Precision-Modes) of the property. |
+| **Hybrid Instanced**| An experimental feature that enables this property to be instanced when using the Hybrid DOTS renderer. |
+
 
 There are two ways to reference a property in your graph:
 
