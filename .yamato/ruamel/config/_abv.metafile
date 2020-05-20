@@ -29,6 +29,11 @@ nightly_config:
       test_platforms:
         - Standalone
     - project: Universal
+      platform: Android
+      api: Vulkan
+      test_platforms:
+        - Standalone
+    - project: Universal
       platform: iPhone
       api: Metal
       test_platforms:
@@ -36,6 +41,8 @@ nightly_config:
     - project: HDRP_Hybrid
       all: true
     - project: Universal_Hybrid
+      all: true
+    - project: VFX_LWRP
       all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest

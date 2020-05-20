@@ -1,25 +1,3 @@
-All_ShaderGraph_2020.1:
-    name: All ShaderGraph CI - 2020.1
-    dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_2020.1
-         rerun: always
-All_ShaderGraph_fast-2020.1:
-    name: All ShaderGraph CI - fast-2020.1
-    dependencies:
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-2020.1
-         rerun: always
-      -  path: .yamato/shadergraph-osx-openglcore.yml#ShaderGraph_OSX_OpenGLCore_editmode_fast-2020.1
-         rerun: always
 All_ShaderGraph_trunk:
     name: All ShaderGraph CI - trunk
     dependencies:

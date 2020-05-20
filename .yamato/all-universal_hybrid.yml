@@ -1,21 +1,3 @@
-All_Universal_Hybrid_2020.1:
-    name: All Universal_Hybrid CI - 2020.1
-    dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_2020.1
-         rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_Standalone_2020.1
-         rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_2020.1
-         rerun: always
-All_Universal_Hybrid_fast-2020.1:
-    name: All Universal_Hybrid CI - fast-2020.1
-    dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_Standalone_fast-2020.1
-         rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_fast-2020.1
-         rerun: always
 All_Universal_Hybrid_trunk:
     name: All Universal_Hybrid CI - trunk
     dependencies:
