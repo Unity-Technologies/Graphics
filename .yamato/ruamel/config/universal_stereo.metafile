@@ -13,9 +13,9 @@ platforms:
     apis: 
 all:
   dependencies:
-    - platform_name: Win
-      api_name: '' # TODO no apiname
-      test_platform_names:
+    - platform: Win
+      api: '' # TODO no apiname
+      test_platforms:
         - Standalone
         - editmode
         - playmode

@@ -21,8 +21,8 @@ platforms:
       - il2cpp
 all:
   dependencies:
-    - platform_name: Win
-      api_name: DX12
-      test_platform_names:
+    - platform: Win
+      api: DX12
+      test_platforms:
         - Standalone
         - playmode

@@ -25,9 +25,9 @@ platforms:
       - Vulkan
 all:
   dependencies:
-    - platform_name: Win
-      api_name: DX11
-      test_platform_names:
+    - platform: Win
+      api: DX11
+      test_platforms:
         - editmode
         - playmode
         - playmode XR

@@ -23,14 +23,14 @@ platforms:
       - Vulkan
 all:
   dependencies:
-    - platform_name: Win
-      api_name: DX11
-      test_platform_names:
+    - platform: Win
+      api: DX11
+      test_platforms:
         - Standalone
         - editmode
         - playmode
-    - platform_name: OSX
-      api_name: OpenGLCore
-      test_platform_names:
+    - platform: OSX
+      api: OpenGLCore
+      test_platforms:
         - editmode   
 

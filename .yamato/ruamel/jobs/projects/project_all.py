@@ -4,32 +4,32 @@ from ..shared.yml_job import YMLJob
 
 class Project_AllJob():
     
-    def __init__(self, project_name, editor, dependencies_in_all):
-        self.project_name = project_name
-        self.job_id = project_job_id_all(project_name, editor["version"])
-        self.yml = self.get_job_definition(project_name, editor, dependencies_in_all).get_yml()
+    def __init__(self, project, editor, dependencies_in_all):
+        self.project = project
+        self.job_id = project_job_id_all(project, editor["version"])
+        self.yml = self.get_job_definition(project, editor, dependencies_in_all).get_yml()
 
     
-    def get_job_definition(self, project_name, editor, dependencies_in_all):
+    def get_job_definition(self, project, editor, dependencies_in_all):
     
         # define dependencies
         dependencies = []
-        for d in dependencies_in_all:
-            for test_platform_name in d["test_platform_names"]:
+        for dep in dependencies_in_all:
+            for test_platform in dep["test_platforms"]:
                 
-                file_name = project_filepath_specific(project_name, d["platform_name"], d["api_name"])
-                job_id = project_job_id_test(project_name,d["platform_name"],d["api_name"],test_platform_name,editor["version"])
+                file = project_filepath_specific(project, dep["platform"], dep["api"])
+                job_id = project_job_id_test(project,dep["platform"],dep["api"],test_platform,editor["version"])
 
                 dependencies.append(
                     {
-                        'path' : f'{file_name}#{job_id}',
+                        'path' : f'{file}#{job_id}',
                         'rerun' : editor["rerun_strategy"]
                     }
                 )
 
         # construct job
         job = YMLJob()
-        job.set_name(f'All {project_name} CI - {editor["version"]}')
+        job.set_name(f'All {project} CI - {editor["version"]}')
         job.add_dependencies(dependencies)
         job.add_var_custom_revision(editor["version"])
         return job

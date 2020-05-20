@@ -31,30 +31,30 @@ platforms:
       - Metal
 all:
   dependencies:
-    - platform_name: Win
-      api_name: DX11
-      test_platform_names:
+    - platform: Win
+      api: DX11
+      test_platforms:
         - Standalone
         - editmode
         - playmode
-    #- platform_name: Win
-    #  api_name: DX12
-    #  test_platform_names:
+    #- platform: Win
+    #  api: DX12
+    #  test_platforms:
     #    - Standalone
     #    - editmode
     #    - playmode
-    - platform_name: Win
-      api_name: Vulkan
-      test_platform_names:
+    - platform: Win
+      api: Vulkan
+      test_platforms:
         - Standalone
         - editmode
         - playmode
-    - platform_name: OSX
-      api_name: Metal
-      test_platform_names:
+    - platform: OSX
+      api: Metal
+      test_platforms:
         - Standalone
         - playmode 
-    - platform_name: OSX
-      api_name: OpenGLCore
-      test_platform_names:
+    - platform: OSX
+      api: OpenGLCore
+      test_platforms:
         - editmode    
