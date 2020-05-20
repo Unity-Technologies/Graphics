@@ -63,25 +63,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+                var gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
                 lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, m_FrameCount);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.SSAO);
 
                 // Evaluate the clear coat mask texture based on the lit shader mode
-                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.ImportTexture(TextureXR.GetBlackTexture());
+                var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
                                                               hdCamera,
                                                               prepassOutput.resolvedNormalBuffer,
                                                               prepassOutput.resolvedMotionVectorsBuffer,
+                                                              prepassOutput.depthBuffer,
                                                               prepassOutput.depthPyramidTexture,
                                                               prepassOutput.stencilBuffer,
                                                               clearCoatMask);
 
-                lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
+                lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
-                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, m_TileAndClusterData.bigTileLightList, m_FrameCount);
+                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList, m_FrameCount);
 
                 shadowResult = RenderShadows(m_RenderGraph, hdCamera, cullingResults);
 
@@ -113,11 +114,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 //    hdCamera.xr.StopSinglePass(cmd);
                 //}
 
-                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, m_TileAndClusterData.bigTileLightList, shadowResult, m_FrameCount);
+                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, volumetricDensityBuffer, gpuLightListOutput.bigTileLightList, shadowResult, m_FrameCount);
 
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult);
+                var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
                 RenderForwardOpaque(m_RenderGraph, hdCamera, colorBuffer, lightingBuffers, prepassOutput.depthBuffer, shadowResult, prepassOutput.dbuffer, cullingResults);
 
@@ -145,6 +146,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 //ClearStencilBuffer(hdCamera, cmd);
 
                 colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, shadowResult, cullingResults);
+
+                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector))
+                {
+                    prepassOutput.motionVectorsBuffer = ResolveMotionVector(m_RenderGraph, hdCamera, prepassOutput.motionVectorsBuffer);
+                }
 
                 // TODO RENDERGRAPH : Move this to the end after we do move semantic and graph pruning to avoid doing the rest of the frame for nothing
                 // Transparent objects may write to the depth and motion vectors buffers.
@@ -1014,6 +1020,48 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class ResolveMotionVectorData
+        {
+            public TextureHandle input;
+            public TextureHandle output;
+            public Material resolveMaterial;
+            public int passIndex;
+        }
+
+        TextureHandle ResolveMotionVector(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
+        {
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            {
+                using (var builder = renderGraph.AddRenderPass<ResolveMotionVectorData>("ResolveMotionVector", out var passData))
+                {
+                    var outputDesc = renderGraph.GetTextureDesc(input);
+                    outputDesc.enableMSAA = false;
+                    outputDesc.enableRandomWrite = true;
+                    outputDesc.bindTextureMS = false;
+                    outputDesc.name = string.Format("{0}Resolved", outputDesc.name);
+
+                    passData.input = builder.ReadTexture(input);
+                    passData.output = builder.UseColorBuffer(renderGraph.CreateTexture(outputDesc), 0);
+                    passData.resolveMaterial = m_MotionVectorResolve;
+                    passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
+
+                    builder.SetRenderFunc(
+                        (ResolveColorData data, RenderGraphContext context) =>
+                        {
+                            var res = context.resources;
+                            var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
+                            mpb.SetTexture(HDShaderIDs._MotionVectorTextureMS, res.GetTexture(data.input));
+                            context.cmd.DrawProcedural(Matrix4x4.identity, data.resolveMaterial, data.passIndex, MeshTopology.Triangles, 3, 1, mpb);
+                        });
+
+                    return passData.output;
+                }
+            }
+            else
+            {
+                return input;
+            }
+        }
 #if UNITY_EDITOR
         class RenderGizmosPassData
         {

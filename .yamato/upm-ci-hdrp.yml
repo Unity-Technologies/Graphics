@@ -1,8 +1,4 @@
 editors:
-  - version: 2020.1
-    rerun_strategy: on-new-revision
-  - version: fast-2020.1
-    rerun_strategy: on-new-revision
   - version: trunk
     rerun_strategy: on-new-revision
   - version: fast-trunk
@@ -13,8 +9,8 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
+    image: graphics-foundation/win10-dxr:latest
+    flavor: b1.xlarge
     components:
       - editor
       - il2cpp
@@ -75,7 +71,7 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
@@ -225,17 +221,24 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "OSX_Metal" %}
   #skip
   {% elsif platform.name == "Linux" %}
-  #skip
-  
+  #skip  
   {% elsif platform.name == "Win" %}
+
   {% for win_api in win_apis %}
-  {% if win_api.name == "Vulkan" %}
-  #skip
-  {% elsif  win_api.name == "DX12" %}
-  #skip
-  {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
-  {% endif %}
+    {% if win_api.name == "Vulkan" and testplatform.name == "playmode XR" %}
+    #skip - Vulkan don't support VR
+    {% elsif win_api.name == "Vulkan" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11
+    {% elsif win_api.name == "DX12" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11	
+    {% else %}
+      - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}    
+      {% if win_api.name == "DX12" and testplatform.name == "playmode" %}
+      - path: .yamato/upm-ci-hdrp_dxr.yml#HDRP_DXR_Win_DX12_playmode_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}
+      {% endif %}
+    {% endif %}
   {% endfor %}
 
   {% else %}
