@@ -371,5 +371,49 @@ namespace UnityEditor.ShaderGraph
 
             return null;
         }
+
+        //
+        //  Find all nodes of the given type downstream from the given node
+        //  Returns a unique list. So even if a node can be reached through different paths it will be present only once.
+        //
+        public static List<NodeType> FindDownStreamNodesOfType<NodeType>(AbstractMaterialNode node) where NodeType : AbstractMaterialNode
+        {
+            // Should never be called without a node
+            Debug.Assert(node != null);
+
+            HashSet<AbstractMaterialNode> visitedNodes = new HashSet<AbstractMaterialNode>();
+            List<NodeType> vtNodes = new List<NodeType>();
+            Queue<AbstractMaterialNode> nodeStack = new Queue<AbstractMaterialNode>();
+            nodeStack.Enqueue(node);
+            visitedNodes.Add(node);
+
+            while (nodeStack.Count > 0)
+            {
+                AbstractMaterialNode visit = nodeStack.Dequeue();
+
+                // Flood fill through all the nodes
+                foreach (var slot in visit.GetInputSlots<MaterialSlot>())
+                {
+                    foreach (var edge in visit.owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = edge.outputSlot.node;
+                        if (!visitedNodes.Contains(inputNode))
+                        {
+                            nodeStack.Enqueue(inputNode);
+                            visitedNodes.Add(inputNode);
+                        }
+                    }
+                }
+
+                // Extract vt node
+                if (visit is NodeType)
+                {
+                    NodeType vtNode = visit as NodeType;
+                    vtNodes.Add(vtNode);
+                }
+            }
+
+            return vtNodes;
+        }
     }
 }

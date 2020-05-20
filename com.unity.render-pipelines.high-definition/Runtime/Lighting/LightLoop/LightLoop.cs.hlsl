@@ -59,6 +59,9 @@
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
+#define INDIRECT_DIFFUSE_FLAG_OFF (0)
+#define SCREEN_SPACE_INDIRECT_DIFFUSE_FLAG (1)
+#define RAY_TRACED_INDIRECT_DIFFUSE_FLAG (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
 // PackingRules = Exact
@@ -107,6 +110,8 @@ CBUFFER_START(ShaderVariablesLightList)
     uint _DecalIndexShift;
     uint _DensityVolumeIndexShift;
     uint _ProbeVolumeIndexShift;
+    uint _Pad0_SVLL;
+    uint _Pad1_SVLL;
 CBUFFER_END
 
 //
