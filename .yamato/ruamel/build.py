@@ -175,7 +175,7 @@ def create_abv_jobs(metafile_name):
             job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], get_test_platforms(metafile), metafile["nightly_config"], target_branch)
             yml[job.job_id] = job.yml
 
-        job = ABV_TrunkVerificationJob(editor, metafile["projects"], get_test_platforms(metafile))
+        job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])
         yml[job.job_id] = job.yml
 
     dump_yml(abv_filepath(), yml)

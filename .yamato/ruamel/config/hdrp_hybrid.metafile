@@ -5,6 +5,7 @@ test_platforms:
   - playmode
   - playmode_XR
   - editmode
+  - Standalone
 platforms:
   - name: Win
     apis:

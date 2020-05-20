@@ -4,29 +4,25 @@ from ..shared.yml_job import YMLJob
 
 class ABV_TrunkVerificationJob():
     
-    def __init__(self, editor, projects, test_platforms):
+    def __init__(self, editor, extra_dependencies):
         self.job_id = abv_job_id_trunk_verification(editor["version"])
-        self.yml = self.get_job_definition(editor, projects, test_platforms).get_yml()
+        self.yml = self.get_job_definition(editor, extra_dependencies).get_yml()
 
     
-    def get_job_definition(self, editor, projects, test_platforms): 
+    def get_job_definition(self, editor, extra_dependencies): 
         
         # define dependencies
         dependencies = []
-        for project in projects:
-            if project["name"] in ['HDRP_Standalone', 'Universal_Stereo','ShaderGraph_Stereo']:
-                continue
-            for test_platform in test_platforms:
-                if test_platform["name"] == 'Standalone':
-                    continue
-                elif test_platform["name"] == 'editmode' and project["name"] == 'VFX_LWRP':
-                    continue
-                else:
+        for dep in extra_dependencies:
+            if dep.get("all"):
+                dependencies.append({
+                    'path': f'{project_filepath_all(dep["project"])}#{project_job_id_all(dep["project"], editor["version"])}',
+                    'rerun': editor["rerun_strategy"]})
+            else:
+                for tp in dep["test_platforms"]:
                     dependencies.append({
-                        'path' : f'{project_filepath_specific(project["name"], "Win", "DX11")}#{project_job_id_test(project["name"], "Win", "DX11", test_platform["name"], editor["version"])}',
-                        'rerun': editor["rerun_strategy"]
-                    })
-        
+                        'path': f'{project_filepath_specific(dep["project"], dep["platform"], dep["api"])}#{project_job_id_test(dep["project"], dep["platform"], dep["api"], tp, editor["version"])}',
+                        'rerun': editor["rerun_strategy"]})
 
         # construct job
         job = YMLJob()

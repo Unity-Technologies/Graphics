@@ -28,11 +28,6 @@ nightly_config:
       test_platforms:
         - Standalone
     - project: Universal
-      platform: Android
-      api: Vulkan
-      test_platforms:
-        - Standalone
-    - project: Universal
       platform: iPhone
       api: Metal
       test_platforms:
@@ -41,9 +36,38 @@ nightly_config:
       all: true
     - project: Universal_Hybrid
       all: true
-    - project: VFX_LWRP
-      all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: win_large_sdet # used for editmode
   agent_gpu: win_large_sdet_gpu  # used for non-editmode
+trunk_verification: # jobs to include in trunk verification job
+  dependencies:
+    - project: Universal
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: ShaderGraph
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: HDRP
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: VFXMain
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - editmode
+    - project: VFX_LWRP
+      platform: Win
+      api: DX11
+      test_platforms:
+        - playmode

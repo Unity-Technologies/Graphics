@@ -101,15 +101,11 @@ all_project_ci_nightly_trunk:
          rerun: always
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
          rerun: always
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
-         rerun: always
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
          rerun: always
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
          rerun: always
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
-         rerun: always
-      -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_trunk
          rerun: always
     triggers:
         recurring:
