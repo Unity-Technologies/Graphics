@@ -746,18 +746,18 @@ Shader "Hidden/HDRP/DebugExposure"
             {
                 float3 alphas = 0;
                 if (uv.y < val.x && uv.y > heightLabelBar)
-                    alphas.x = 0.25;
+                    alphas.x = 0.3333f;
                 if (uv.y < val.y && uv.y > heightLabelBar)
-                    alphas.y = 0.25;
+                    alphas.y = 0.3333f;
                 if (uv.y < val.z && uv.y > heightLabelBar)
-                    alphas.z = 0.25;
+                    alphas.z = 0.3333f;
 
                 outputColor = outputColor * (1.0f - (alphas.x + alphas.y + alphas.z)) + alphas;
             }
             else
             {
                 if (uv.y < val.w && uv.y > heightLabelBar)
-                    outputColor = outputColor * 0.25 + 0.25;
+                    outputColor = 0.3333f;
             }
         }
 
