@@ -40,6 +40,14 @@
         * [Negate](Operator-Negate.md)
         * [One Minus](Operator-OneMinus)
         * [Subtract](Operator-Subtract.md)
+      * Trigonometry
+        * [Acos](Operator-Acos.md)
+        * [Asin](Operator-Asin.md)
+        * [Atan](Operator-Atan.md)
+        * [Atan2](Operator-Atan2.md)
+        * [Cosine](Operator-Cosine.md)
+        * [Sine](Operator-Sine.md)
+        * [Tangent](Operator-Tangent.md)
       * Wave
         * [Sawtooth Wave](Operator-SawtoothWave.md)
         * [Sine Wave](Operator-SineWave.md)
