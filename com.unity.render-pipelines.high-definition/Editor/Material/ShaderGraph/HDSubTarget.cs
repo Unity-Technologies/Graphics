@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual int ComputeMaterialNeedsUpdateHash()
         {
             // Alpha test is currently the only property in system data to trigger the material upgrade script.
-            int hash = (systemData.alphaTest ? 0 : 1) << 0;
+            int hash = systemData.alphaTest.GetHashCode();
             return hash;
         }
 
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
 
         // System data specific fields:
-        public override void GetFields(ref TargetFieldContext context)
+        protected void AddSystemDataFields(ref TargetFieldContext context)
         {
             // Features
             context.AddField(Fields.LodCrossFade,          systemData.supportLodCrossFade);
@@ -102,7 +102,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
 
-            // TODO: we probably need to remove these for some master nodes (eye, stacklit, )
             context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass
                 && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
             context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass

@@ -44,10 +44,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override int ComputeMaterialNeedsUpdateHash()
         {
             int hash = base.ComputeMaterialNeedsUpdateHash();
-            // Be careful to not use a shift index used by the base function!
-            hash |= (lightingData.alphaTestShadow ? 0 : 1) << 1;
-            hash |= (lightingData.receiveSSR ? 0 : 1) << 2;
-            hash |= (lightingData.subsurfaceScattering ? 0 : 1) << 3;
+
+            unchecked
+            {
+                hash = hash * 23 + builtinData.alphaTestShadow.GetHashCode();
+                hash = hash * 23 + lightingData.receiveSSR.GetHashCode();
+                hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
+                hash = hash * 23 + lightingData.subsurfaceScattering.GetHashCode();
+            }
+
             return hash;
         }
 
@@ -56,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
             context.AddField(HDFields.DisableDecals,                        !lightingData.receiveDecals);
             context.AddField(HDFields.DisableSSR,                           !lightingData.receiveSSR);
+            context.AddField(HDFields.DisableSSRTransparent,                !lightingData.receiveSSRTransparent);
             context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
@@ -64,8 +70,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.LightingGI,                           context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedGI));
             context.AddField(HDFields.BackLightingGI,                       context.blocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.BakedBackGI));
 
-            context.AddField(HDFields.TransparentBackFace,                  systemData.surfaceType != SurfaceType.Opaque && lightingData.backThenFrontRendering);
-            context.AddField(HDFields.DoAlphaTestShadow,                    systemData.alphaTest && lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+            context.AddField(HDFields.TransparentBackFace,                  systemData.surfaceType != SurfaceType.Opaque && builtinData.backThenFrontRendering);
+            context.AddField(HDFields.DoAlphaTestShadow,                    systemData.alphaTest && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
         }
 
         protected void AddNormalDropOffFields(ref TargetFieldContext context)
@@ -80,6 +86,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.SpecularOcclusionFromAO,              lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAO);
             context.AddField(HDFields.SpecularOcclusionFromAOBentNormal,    lightingData.specularOcclusionMode == SpecularOcclusionMode.FromAOAndBentNormal);
             context.AddField(HDFields.SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+        }
+
+        protected void AddLightingBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
+            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
+            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
+
+            // Specular AA
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
+
+            // Baked GI
+            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,              lightingData.overrideBakedGI);
+            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,          lightingData.overrideBakedGI);
+
+            // Misc
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,    lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+        }
+
+        protected void AddNormalBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,               lightingData.normalDropOffSpace == NormalDropOffSpace.World);
         }
     }
 }

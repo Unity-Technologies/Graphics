@@ -32,16 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_MaterialType = value;
         }
 
-        [SerializeField, Obsolete("Kept for data migration")]
-        bool m_DrawBeforeRefraction;
-        #pragma warning disable CS0618 // Type or member is obsolete
-        public bool drawBeforeRefraction
-        {
-            get => m_DrawBeforeRefraction;
-            set => m_DrawBeforeRefraction = value;
-        }
-        #pragma warning restore CS0618 // Type or member is obsolete
-
         [SerializeField]
         ScreenSpaceRefraction.RefractionModel m_RefractionModel;
         public ScreenSpaceRefraction.RefractionModel refractionModel
@@ -58,14 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_SSSTransmission;
             set => m_SSSTransmission = value;
-        }
-
-        [SerializeField]
-        bool m_ReceivesSSRTransparent = true;
-        public bool receiveSSRTransparent
-        {
-            get => m_ReceivesSSRTransparent;
-            set => m_ReceivesSSRTransparent = value;
         }
 
         // TODO: This seems to have been replaced by a Port?

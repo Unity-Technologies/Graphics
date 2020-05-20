@@ -45,7 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.TransparentDistortion,                systemData.surfaceType != SurfaceType.Opaque && builtinData.distortion);
         }
 
-        /// <summary>Add fields </summary>
         protected void AddSurfaceMiscFields(ref TargetFieldContext context)
         {
             context.AddField(Fields.AlphaToMask,                            systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
@@ -53,6 +52,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.VelocityPrecomputed,                    builtinData.addPrecomputedVelocity);
             context.AddField(HDFields.TransparentWritesMotionVec,           systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
             context.AddField(HDFields.DepthOffset,                          builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+        }
+
+        /// <summary>Add vertex inputs for standard surface shader</summary>
+        protected void AddVertexBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+        }
+
+        protected void AddDistortionBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,       systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,   systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
+        }
+
+        protected void AddSurfaceBlocks(ref TargetActiveBlockContext context)
+        {
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+            context.AddBlock(BlockFields.SurfaceDescription.Emission);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
+
+            // Alpha Test
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
+
+            // Misc
+            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
         }
     }
 }

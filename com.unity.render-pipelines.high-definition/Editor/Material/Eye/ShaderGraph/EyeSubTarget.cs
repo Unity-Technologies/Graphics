@@ -13,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class EyeSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<EyeData>
+    sealed partial class EyeSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<EyeData>
     {
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
@@ -43,49 +43,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            base.GetFields(ref context);
+            AddSystemDataFields(ref context);
+            AddSpecularOcclusionFields(ref context);
+            AddLitMiscFields(ref context);
+            AddSurfaceMiscFields(ref context);
 
-            // Structs
+            // Eye specific properties
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(EyeSubTarget.EyePasses.MotionVectors));
-
-            // Material
             context.AddField(HDFields.Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(HDFields.EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
             context.AddField(HDFields.SubsurfaceScattering,                 lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-
-            AddSpecularOcclusionFields(ref context);
-
-            // Misc
-            AddLitMiscFields(ref context);
-            AddSurfaceMiscFields(ref context);
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Vertex
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            AddVertexBlocks(ref context);
+            AddSurfaceBlocks(ref context);
 
-            // Eye
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,        lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            // Eye specific blocks
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(HDBlockFields.SurfaceDescription.IrisNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
-            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(HDBlockFields.SurfaceDescription.IOR);
-            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(HDBlockFields.SurfaceDescription.Mask);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash,     lightingData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,           lightingData.subsurfaceScattering);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold,         systemData.alphaTest);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,                  lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,              lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,              builtinData.depthOffset);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -156,115 +139,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             EyeGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            if(!(masterNode is EyeMasterNode1 eyeMasterNode))
-                return false;
-
-            // Set data
-            systemData.surfaceType = (SurfaceType)eyeMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)eyeMasterNode.m_AlphaMode);
-            systemData.alphaTest = eyeMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
-            systemData.sortPriority = eyeMasterNode.m_SortPriority;
-            systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = eyeMasterNode.m_ZWrite;
-            systemData.transparentCullMode = eyeMasterNode.m_transparentCullMode;
-            systemData.zTest = eyeMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = eyeMasterNode.m_SupportLodCrossFade;
-            systemData.dotsInstancing = eyeMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = eyeMasterNode.m_MaterialNeedsUpdateHash;
-
-            builtinData.transparencyFog = eyeMasterNode.m_TransparencyFog;
-            builtinData.addPrecomputedVelocity = eyeMasterNode.m_AddPrecomputedVelocity;
-            builtinData.depthOffset = eyeMasterNode.m_depthOffset;
-            builtinData.alphaToMask = eyeMasterNode.m_AlphaToMask;
-
-            lightingData.blendPreserveSpecular = eyeMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = eyeMasterNode.m_ReceiveDecals;
-            lightingData.receiveSSR = eyeMasterNode.m_ReceivesSSR;
-            lightingData.specularOcclusionMode = eyeMasterNode.m_SpecularOcclusionMode;
-            lightingData.overrideBakedGI = eyeMasterNode.m_overrideBakedGI;
-            lightingData.subsurfaceScattering = eyeMasterNode.m_SubsurfaceScattering;
-            
-            eyeData.materialType = (EyeData.MaterialType)eyeMasterNode.m_MaterialType;
-            target.customEditorGUI = eyeMasterNode.m_OverrideEnabled ? eyeMasterNode.m_ShaderGUIOverride : "";
-
-            // Convert SlotMask to BlockMap entries
-            var blockMapLookup = new Dictionary<EyeMasterNode1.SlotMask, BlockFieldDescriptor>()
-            {
-                { EyeMasterNode1.SlotMask.Position, BlockFields.VertexDescription.Position },
-                { EyeMasterNode1.SlotMask.VertexNormal, BlockFields.VertexDescription.Normal },
-                { EyeMasterNode1.SlotMask.VertexTangent, BlockFields.VertexDescription.Tangent },
-                { EyeMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
-                { EyeMasterNode1.SlotMask.SpecularOcclusion, HDBlockFields.SurfaceDescription.SpecularOcclusion },
-                { EyeMasterNode1.SlotMask.Normal, BlockFields.SurfaceDescription.NormalTS }, 
-                { EyeMasterNode1.SlotMask.IrisNormal, HDBlockFields.SurfaceDescription.IrisNormal }, 
-                { EyeMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { EyeMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness }, 
-                { EyeMasterNode1.SlotMask.IOR, HDBlockFields.SurfaceDescription.IOR },
-                { EyeMasterNode1.SlotMask.Occlusion, BlockFields.SurfaceDescription.Occlusion },
-                { EyeMasterNode1.SlotMask.Mask, HDBlockFields.SurfaceDescription.Mask },
-                { EyeMasterNode1.SlotMask.DiffusionProfile, HDBlockFields.SurfaceDescription.DiffusionProfileHash },
-                { EyeMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
-                { EyeMasterNode1.SlotMask.Emission, BlockFields.SurfaceDescription.Emission },
-                { EyeMasterNode1.SlotMask.Alpha, BlockFields.SurfaceDescription.Alpha },
-                { EyeMasterNode1.SlotMask.AlphaClipThreshold, BlockFields.SurfaceDescription.AlphaClipThreshold },
-            };
-
-            // Legacy master node slots have additional slot conditions, test them here
-            bool AdditionalSlotMaskTests(EyeMasterNode1.SlotMask slotMask)
-            {
-                switch(slotMask)
-                {
-                    case EyeMasterNode1.SlotMask.SpecularOcclusion:
-                        return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
-                    case EyeMasterNode1.SlotMask.DiffusionProfile:
-                        return lightingData.subsurfaceScattering;
-                    case EyeMasterNode1.SlotMask.SubsurfaceMask:
-                        return lightingData.subsurfaceScattering;
-                    case EyeMasterNode1.SlotMask.AlphaClipThreshold:
-                        return systemData.alphaTest;
-                    default:
-                        return true;
-                }
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>();
-            foreach(EyeMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(EyeMasterNode1.SlotMask)))
-            {
-                if(eyeMasterNode.MaterialTypeUsesSlotMask(slotMask))
-                {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
-                        continue;
-
-                    if(!AdditionalSlotMaskTests(slotMask))
-                        continue;
-                    
-                    var slotId = Mathf.Log((int)slotMask, 2);
-                    blockMap.Add(blockFieldDescriptor, (int)slotId);
-                }
-            }
-
-            // Override Baked GI
-            if(lightingData.overrideBakedGI)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, EyeMasterNode1.LightingSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, EyeMasterNode1.BackLightingSlotId);
-            }
-
-            // Depth Offset
-            if(builtinData.depthOffset)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, EyeMasterNode1.DepthOffsetSlotId);
-            }
-
-            return true;
         }
 
 #region SubShaders

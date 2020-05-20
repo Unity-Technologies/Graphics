@@ -13,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
+    sealed partial class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
     {
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
@@ -49,34 +49,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // Unlit
-            context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
-
-            // Alpha
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-
             AddDistortionFields(ref context);
             AddSurfaceMiscFields(ref context);
+
+            // Unlit specific properties
+            context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
+            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Vertex
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            AddVertexBlocks(ref context);
+            AddDistortionBlocks(ref context);
+            AddSurfaceBlocks(ref context);
 
-            // Unlit
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
+            // Unlit specific blocks
             context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
-
-            // Distortion
-            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,       systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,   systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -166,96 +154,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             HDUnlitGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            switch(masterNode)
-            {
-                case UnlitMasterNode1 unlitMasterNode:
-                    UpgradeUnlitMasterNode(unlitMasterNode, out blockMap);
-                    return true;
-                case HDUnlitMasterNode1 hdUnlitMasterNode:
-                    UpgradeHDUnlitMasterNode(hdUnlitMasterNode, out blockMap);
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            // Set data
-            systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);
-            systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
-            systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
-            systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
-            systemData.zWrite = false;
-            builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
-            target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 10 },
-                { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-            };
-        }
-
-        void UpgradeHDUnlitMasterNode(HDUnlitMasterNode1 hdUnlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            // Set data
-            systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdUnlitMasterNode.m_RenderingPass;
-            systemData.alphaTest = hdUnlitMasterNode.m_AlphaTest;
-            systemData.sortPriority = hdUnlitMasterNode.m_SortPriority;
-            systemData.doubleSidedMode = hdUnlitMasterNode.m_DoubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
-            systemData.zWrite = hdUnlitMasterNode.m_ZWrite;
-            systemData.transparentCullMode = hdUnlitMasterNode.m_transparentCullMode;
-            systemData.zTest = hdUnlitMasterNode.m_ZTest;
-            systemData.dotsInstancing = hdUnlitMasterNode.m_DOTSInstancing;
-
-            builtinData.transparencyFog = hdUnlitMasterNode.m_TransparencyFog;
-            builtinData.distortion = hdUnlitMasterNode.m_Distortion;
-            builtinData.distortionMode = hdUnlitMasterNode.m_DistortionMode;
-            builtinData.distortionDepthTest = hdUnlitMasterNode.m_DistortionDepthTest;
-            builtinData.alphaToMask = hdUnlitMasterNode.m_AlphaToMask;
-            builtinData.addPrecomputedVelocity = hdUnlitMasterNode.m_AddPrecomputedVelocity;
-
-            unlitData.enableShadowMatte = hdUnlitMasterNode.m_EnableShadowMatte;
-            target.customEditorGUI = hdUnlitMasterNode.m_OverrideEnabled ? hdUnlitMasterNode.m_ShaderGUIOverride : "";
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 13 },
-                { BlockFields.VertexDescription.Tangent, 14 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-                { BlockFields.SurfaceDescription.Emission, 12 },
-            };
-
-            // Distortion
-            if(systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, 10);
-                blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, 11);
-            }
-
-            // Shadow Matte
-            if(unlitData.enableShadowMatte)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.ShadowTint, 15);
-            }
         }
 
 #region SubShaders

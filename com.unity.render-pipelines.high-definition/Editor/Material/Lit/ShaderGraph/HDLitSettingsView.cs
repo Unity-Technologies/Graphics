@@ -63,13 +63,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.alphaTest = evt.newValue;
                 onChange();
             });
-            context.AddProperty("Use Shadow Threshold", 1, new Toggle() { value = lightingData.alphaTestShadow }, systemData.alphaTest, (evt) =>
+            context.AddProperty("Use Shadow Threshold", 1, new Toggle() { value = builtinData.alphaTestShadow }, systemData.alphaTest, (evt) =>
             {
-                if (Equals(lightingData.alphaTestShadow, evt.newValue))
+                if (Equals(builtinData.alphaTestShadow, evt.newValue))
                     return;
 
                 registerUndo("Use Shadow Threshold");
-                lightingData.alphaTestShadow = evt.newValue;
+                builtinData.alphaTestShadow = evt.newValue;
                 onChange();
             });
             context.AddProperty("Alpha to Mask", 1, new Toggle() { value = builtinData.alphaToMask }, systemData.alphaTest, (evt) =>
@@ -305,13 +305,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
 
-            context.AddProperty("Back Then Front Rendering", indentLevel + 1, new Toggle() { value = lightingData.backThenFrontRendering }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
+            context.AddProperty("Back Then Front Rendering", indentLevel + 1, new Toggle() { value = builtinData.backThenFrontRendering }, systemData.surfaceType == SurfaceType.Transparent, (evt) =>
             {
-                if (Equals(lightingData.backThenFrontRendering, evt.newValue))
+                if (Equals(builtinData.backThenFrontRendering, evt.newValue))
                     return;
 
                 registerUndo("Back Then Front Rendering");
-                lightingData.backThenFrontRendering = evt.newValue;
+                builtinData.backThenFrontRendering = evt.newValue;
                 onChange();
             });
 
