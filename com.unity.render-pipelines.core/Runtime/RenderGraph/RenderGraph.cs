@@ -499,7 +499,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void UpdatePassSynchronization(ref CompiledPassInfo currentPassInfo, ref CompiledPassInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
         {
-            // Current pass needs to waoit for pass index lastProducer
+            // Current pass needs to wait for pass index lastProducer
             currentPassInfo.syncToPassIndex = lastProducer;
             // Update latest pass waiting for the other pipe.
             intLastSyncIndex = lastProducer;

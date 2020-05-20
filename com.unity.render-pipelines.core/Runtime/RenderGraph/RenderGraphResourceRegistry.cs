@@ -610,15 +610,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     }
                 }
 
-                //// This can happen because we release texture in two passes (see ReleaseTexturesForPass) and texture can be present in both passes
-                //if (resourceDesc.rt != null)
-                {
-                    LogTextureRelease(resourceDesc.rt);
-                    ReleaseTextureResource(resourceDesc.cachedHash, resourceDesc.rt);
-                    resourceDesc.cachedHash = -1;
-                    resourceDesc.rt = null;
-                    resourceDesc.wasReleased = true;
-                }
+                LogTextureRelease(resourceDesc.rt);
+                ReleaseTextureResource(resourceDesc.cachedHash, resourceDesc.rt);
+                resourceDesc.cachedHash = -1;
+                resourceDesc.rt = null;
+                resourceDesc.wasReleased = true;
             }
         }
 
