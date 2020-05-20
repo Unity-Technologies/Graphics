@@ -26,12 +26,12 @@ class ABV_AllProjectCiNightlyJob():
         for a in nightly_additions:
             if a["all"] == True:
                 dependencies.append({
-                    'path': f'{project_filepath_all(a["project_name"])}#{project_job_id_all(a["project_name"], editor["version"])}',
+                    'path': f'{project_filepath_all(a["project"])}#{project_job_id_all(a["project"], editor["version"])}',
                     'rerun': editor["rerun_strategy"]})
             else:
-                for tp_name in a["test_platform_names"]:
+                for tp in a["test_platforms"]:
                     dependencies.append({
-                        'path': f'{project_filepath_specific(a["project_name"], a["platform_name"], a["api_name"])}#{project_job_id_test(a["project_name"], a["platform_name"], a["api_name"], tp_name, editor["version"])}',
+                        'path': f'{project_filepath_specific(a["project"], a["platform"], a["api"])}#{project_job_id_test(a["project"], a["platform"], a["api"], tp, editor["version"])}',
                         'rerun': editor["rerun_strategy"]})
             
         # construct job

@@ -11,8 +11,8 @@ class ABV_SmokeTestJob():
 
 
     def get_job_definition(self, editor, test_platform, smoke_test):  # only run for 2020.1 and trunk
-        agent = dict(smoke_test["agent_win"])
-        agent_gpu = dict(smoke_test["agent_win_gpu"])
+        agent = dict(smoke_test["agent"])
+        agent_gpu = dict(smoke_test["agent_gpu"])
         
         # define dependencies
         dependencies = [{

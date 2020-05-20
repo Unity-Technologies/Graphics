@@ -23,7 +23,7 @@ platforms:
       components:
       - editor
       - il2cpp
-      agent:
+      agent_default:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
@@ -34,17 +34,12 @@ platforms:
       components:
       - editor
       - il2cpp
-      agent:
+      agent_default:
         type: Unity::VM::osx
         image: buildfarm/mac:stable
         flavor: m1.mac
       copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
-agent_win: 
-  type: Unity::VM
-  image: package-ci/win10:stable
-  flavor: b1.large
-agent_ubuntu: 
-  type: Unity::VM
-  image: package-ci/ubuntu:stable
-  flavor: b1.large
+agent_pack: win_large_package_ci
+agent_test:  win_large_package_ci
+agent_all_ci: win_large_package_ci

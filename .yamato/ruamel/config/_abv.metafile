@@ -7,12 +7,9 @@ projects:
   - name: VFXMain
   - name: VFX_LWRP
 test_platforms:
-  - name: Standalone
-    args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
-  - name: editmode
-    args: --suite=editor --platform=editmode
+  - Standalone
+  - playmode
+  - editmode
 abv_config: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
     - fast-2020.1
@@ -21,36 +18,29 @@ nightly_config:
     - 2020.1
     - trunk
   additional_jobs: # additional project jobs to run nightly (in addition to ABV and smoke tests)
-    - project_name: Universal
+    - project: Universal
       all: false
-      platform_name: Android
-      api_name: OpenGLES3
-      test_platform_names:
+      platform: Android
+      api: OpenGLES3
+      test_platforms:
         - Standalone
-    - project_name: Universal
+    - project: Universal
       all: false
-      platform_name: Android
-      api_name: Vulkan
-      test_platform_names:
+      platform: Android
+      api: Vulkan
+      test_platforms:
         - Standalone
-    - project_name: Universal
+    - project: Universal
       all: false
-      platform_name: iPhone
-      api_name: Metal
-      test_platform_names:
+      platform: iPhone
+      api: Metal
+      test_platforms:
         - Standalone
-    - project_name: HDRP_Hybrid
+    - project: HDRP_Hybrid
       all: true
-    - project_name: Universal_Hybrid
+    - project: Universal_Hybrid
       all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
-  agent_win: # used for editmode
-    type: Unity::VM
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-  agent_win_gpu: # used for non-editmode
-    type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
-
+  agent: win_large_sdet # used for editmode
+  agent_gpu: win_large_sdet_gpu  # used for non-editmode

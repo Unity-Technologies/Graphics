@@ -32,7 +32,7 @@ class Template_TestDependenciesJob():
         # construct job
         job = YMLJob()
         job.set_name(f'Test { template["name"] } {platform["name"]} {editor["version"]} - dependencies')
-        job.set_agent(platform['agent'])
+        job.set_agent(platform['agent_default'])
         job.add_dependencies(dependencies)
         job.add_commands(commands)
         job.add_artifacts_test_results()

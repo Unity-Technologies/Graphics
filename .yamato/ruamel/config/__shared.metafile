@@ -20,7 +20,7 @@ test_platforms:
   playmode: --suite=playmode
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
   editmode: --suite=editor --platform=editmode
-platforms:
+project_platforms:
   Win:
     name: Win
     os: windows
@@ -118,4 +118,28 @@ platforms:
       type: Unity::VM::osx
       image: mobile/macos-10.13-testing:stable
       flavor: b1.large
-    
+non_project_agents:
+  ubuntu_small_cds_ops:
+    type: Unity::VM
+    image: cds-ops/ubuntu-16.04-base:stable
+    flavor: b1.small
+  ubuntu_large_cds_ops:
+    type: Unity::VM
+    image: cds-ops/ubuntu-16.04-base:stable
+    flavor: b1.large
+  ubuntu_large_package_ci:
+    type: Unity::VM
+    image: package-ci/ubuntu:stable
+    flavor: b1.large
+  win_large_package_ci:
+    type: Unity::VM
+    image: package-ci/win10:stable
+    flavor: b1.large
+  win_large_sdet:
+    type: Unity::VM
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large
+  win_large_sdet_gpu:
+    type: Unity::VM::GPU
+    image: sdet/gamecode_win10:stable
+    flavor: b1.large

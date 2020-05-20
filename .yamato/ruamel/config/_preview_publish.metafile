@@ -42,11 +42,6 @@ packages:
     type: package
     publish_source: true
     standalone: false
-agent_win: 
-  type: Unity::VM
-  image: package-ci/win10:stable
-  flavor: b1.large
-agent_ubuntu:
-  type: Unity::VM
-  image: package-ci/ubuntu:stable
-  flavor: b1.large
+agent_publish: win_large_package_ci
+agent_promote: win_large_package_ci
+agent_auto_version: ubuntu_large_package_ci

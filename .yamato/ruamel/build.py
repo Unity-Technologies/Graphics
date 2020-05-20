@@ -31,6 +31,7 @@ save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
 shared_editors = []
 shared_platforms = []
 shared_test_platforms = []
+shared_agents = []
 target_branch = ''
 
 def load_yml(filepath):
@@ -61,6 +62,8 @@ def get_test_platforms(metafile):
     })
     return test_platforms
 
+def get_agent(agent_name):
+    return shared_agents[agent_name]
 
 def create_project_specific_jobs(metafile_name):
 
@@ -70,10 +73,10 @@ def create_project_specific_jobs(metafile_name):
     for platform_meta in metafile['platforms']:
         for api in platform_meta['apis'] or [""]:
             platform = get_platform(platform_meta, api)
-
             yml = {}
             for editor in get_editors(metafile):
                 for test_platform in get_test_platforms(metafile):
+                    
                     if test_platform["name"].lower() == 'standalone':
                         if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
                             job = Project_StandaloneJob(project, editor, platform, api, test_platform)
@@ -113,7 +116,7 @@ def create_editor_job(metafile_name):
     yml = {}
     for platform in metafile["platforms"]:
         for editor in get_editors(metafile):
-            job = Editor_PrimingJob(platform, editor, metafile["agent"])
+            job = Editor_PrimingJob(platform, editor, get_agent(metafile["agent"]))
             yml[job.job_id] = job.yml
 
     dump_yml(editor_filepath(), yml)
@@ -124,10 +127,10 @@ def create_package_jobs(metafile_name):
     yml = {}
 
     for package in metafile["packages"]:
-        job = Package_PackJob(package, metafile["agent_win"])
+        job = Package_PackJob(package, get_agent(metafile["agent_pack"]))
         yml[job.job_id] = job.yml
 
-        job = Package_PublishJob(package, metafile["agent_win"], metafile["platforms"])
+        job = Package_PublishJob(package, get_agent(metafile["agent_publish"]), metafile["platforms"])
         yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
@@ -141,10 +144,10 @@ def create_package_jobs(metafile_name):
                 yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
-        job = Package_AllPackageCiJob(metafile["packages"], metafile["agent_win"], metafile["platforms"], editor)
+        job = Package_AllPackageCiJob(metafile["packages"], get_agent(metafile["agent_publish"]), metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
-    job = Package_PublishAllJob(metafile["packages"], metafile["agent_ubuntu"])
+    job = Package_PublishAllJob(metafile["packages"], get_agent(metafile["agent_publish_all"]))
     yml[job.job_id] = job.yml
 
     dump_yml(packages_filepath(), yml)
@@ -154,6 +157,9 @@ def create_abv_jobs(metafile_name):
     metafile = load_yml(metafile_name)
     yml = {}
 
+    metafile["smoke_test"]["agent"] = get_agent(metafile["smoke_test"]["agent"])
+    metafile["smoke_test"]["agent_gpu"] = get_agent(metafile["smoke_test"]["agent_gpu"])
+    
     for editor in get_editors(metafile):
         for test_platform in get_test_platforms(metafile):
             job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
@@ -179,7 +185,7 @@ def create_preview_publish_jobs(metafile_name):
     metafile = load_yml(metafile_name)
     yml = {}
 
-    job = PreviewPublish_AutoVersionJob(metafile["agent_ubuntu"], metafile["packages"], target_branch, metafile["publishing"]["auto_version"])
+    job = PreviewPublish_AutoVersionJob(get_agent(metafile["agent_auto_version"]), metafile["packages"], target_branch, metafile["publishing"]["auto_version"])
     yml[job.job_id] = job.yml
 
     job = PreviewPublish_PublishAllPreviewJob(metafile["packages"], target_branch, metafile["publishing"]["auto_publish"])
@@ -191,10 +197,10 @@ def create_preview_publish_jobs(metafile_name):
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(metafile["agent_win"], package, target_branch, metafile["publishing"]["auto_publish"], get_editors(metafile), metafile["platforms"])
+            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, target_branch, metafile["publishing"]["auto_publish"], get_editors(metafile), metafile["platforms"])
             yml[job.job_id] = job.yml
 
-            job = PreviewPublish_PromoteJob(metafile["agent_win"], package)
+            job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package)
             yml[job.job_id] = job.yml
 
     dump_yml(pb_filepath(), yml)
@@ -204,7 +210,7 @@ def create_template_jobs(metafile_name):
     yml = {}
 
     for template in metafile["templates"]:
-        job = Template_PackJob(template, metafile["agent_win"])
+        job = Template_PackJob(template, get_agent(metafile["agent_pack"]))
         yml[job.job_id] = job.yml
 
 
@@ -219,7 +225,7 @@ def create_template_jobs(metafile_name):
                 yml[job.job_id] = job.yml
 
     for editor in get_editors(metafile):
-        job = Template_AllTemplateCiJob(metafile["templates"], metafile["agent_win"], metafile["platforms"], editor)
+        job = Template_AllTemplateCiJob(metafile["templates"], get_agent(metafile["agent_all_ci"]), metafile["platforms"], editor)
         yml[job.job_id] = job.yml
     
 
@@ -237,9 +243,10 @@ if __name__== "__main__":
     # parse shared file
     shared = load_yml('config/__shared.metafile')
     shared_editors = shared['editors']
-    shared_platforms = shared['platforms']
+    shared_platforms = shared['project_platforms']
     shared_test_platforms = shared['test_platforms']
     target_branch = shared['target_branch']
+    shared_agents = shared['non_project_agents']
 
     # clear directory from existing yml files, not to have old duplicates etc
     print(save_dir)
@@ -247,25 +254,25 @@ if __name__== "__main__":
     for f in old_yml_files:
         os.remove(f)
 
-    # # create editor
-    # print(f'Running: editor')
-    # create_editor_job('config/_editor.metafile')
+    # create editor
+    print(f'Running: editor')
+    create_editor_job('config/_editor.metafile')
 
-    # # create package jobs
-    # print(f'Running: packages')
-    # create_package_jobs('config/_packages.metafile')
+    # create package jobs
+    print(f'Running: packages')
+    create_package_jobs('config/_packages.metafile')
 
-    # # create abv
-    # print(f'Running: abv')
-    # create_abv_jobs('config/_abv.metafile')
+    # create abv
+    print(f'Running: abv')
+    create_abv_jobs('config/_abv.metafile')
 
-    # # create preview publish
-    # print(f'Running: preview_publish')
-    # create_preview_publish_jobs('config/_preview_publish.metafile')
+    # create preview publish
+    print(f'Running: preview_publish')
+    create_preview_publish_jobs('config/_preview_publish.metafile')
 
-    #  # create template jobs
-    # print(f'Running: templates')
-    # create_template_jobs('config/_templates.metafile')
+     # create template jobs
+    print(f'Running: templates')
+    create_template_jobs('config/_templates.metafile')
 
     # create yml jobs for each specified project
     for project_metafile in glob.glob('config/[!_]*.metafile'):
