@@ -1125,6 +1125,7 @@ namespace UnityEditor.VFX
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
