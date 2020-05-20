@@ -65,8 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BindRayTracedReflectionData(CommandBuffer cmd, HDCamera hdCamera, RayTracingShader reflectionShader, ScreenSpaceReflection settings, LightCluster lightClusterSettings, RayTracingSettings rtSettings
-                                        , RTHandle outputLightingBuffer, RTHandle outputHitPointBuffer)
+        void BindRayTracedReflectionData(CommandBuffer cmd, HDCamera hdCamera, RayTracingShader reflectionShader, ScreenSpaceReflection settings, LightCluster lightClusterSettings,
+                                            RTHandle outputLightingBuffer, RTHandle outputHitPointBuffer)
         {
             // Grab the acceleration structures and the light cluster to use
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -80,15 +80,14 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetRayTracingAccelerationStructure(reflectionShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
             // Global reflection parameters
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionSmoothnessFadeStart, settings.smoothnessFadeStart.value);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingIncludeSky, settings.reflectSky.value ? 1 : 0);
-
+            m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue.value;
+            m_ShaderVariablesRayTracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
             // Inject the ray generation data
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rtSettings.rayBias.value);
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, settings.rayLength.value);
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
+            m_ShaderVariablesRayTracingCB._RaytracingRayMaxLength = settings.rayLength.value;
+            m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
+            // Set the number of bounces for reflections
+            m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = settings.bounceCount.value;
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
             // Inject the ray-tracing sampling data
             blueNoise.BindDitheredRNGData8SPP(cmd);
@@ -103,11 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Set ray count tex
             RayCountManager rayCountManager = GetRayCountManager();
-            cmd.SetGlobalInt(HDShaderIDs._RayCountEnabled, rayCountManager.RayCountIsEnabled());
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._RayCountTexture, rayCountManager.GetRayCountTexture());
-
-            // Compute the pixel spread value
-            cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
 
             // Bind the lightLoop data
             lightCluster.BindLightClusterData(cmd);
@@ -118,9 +113,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Evaluate the clear coat mask texture based on the lit shader mode
             RenderTargetIdentifier clearCoatMaskTexture = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? m_GbufferManager.GetBuffersRTI()[2] : TextureXR.GetBlackTexture();
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMaskTexture);
-
-            // Set the number of bounces for reflections
-            cmd.SetGlobalInt(HDShaderIDs._RaytracingMaxRecursion, settings.bounceCount.value);
 
             // Set the data for the ray miss
             cmd.SetRayTracingTextureParam(reflectionShader, HDShaderIDs._SkyTexture, m_SkyManager.GetSkyReflection(hdCamera));
@@ -140,21 +132,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Generic attributes
             deferredParameters.rayBinning = true;
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.Reflection;
-            deferredParameters.rayBias = rTSettings.rayBias.value;
-            deferredParameters.maxRayLength = settings.rayLength.value;
-            deferredParameters.clampValue = settings.clampValue.value;
-            deferredParameters.includeSky = settings.reflectSky.value;
             deferredParameters.diffuseLightingOnly = false;
             deferredParameters.halfResolution = !settings.fullResolution.value;
-            deferredParameters.rayCountFlag = m_RayCountManager.RayCountIsEnabled();
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
-            deferredParameters.preExpose = false;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
             deferredParameters.height = hdCamera.actualHeight;
             deferredParameters.viewCount = hdCamera.viewCount;
-            deferredParameters.fov = hdCamera.camera.fieldOfView;
 
             // Compute buffers
             deferredParameters.rayBinResult = m_RayBinResult;
@@ -173,6 +158,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 deferredParameters.rayBinning = false;
                 Debug.LogWarning("Ray binning is not supported with XR single-pass rendering!");
             }
+
+            deferredParameters.globalCB = m_ShaderVariablesRayTracingCB;
+            deferredParameters.globalCB._RaytracingRayMaxLength = settings.rayLength.value;
+            deferredParameters.globalCB._RaytracingIntensityClamp = settings.clampValue.value;
+            deferredParameters.globalCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
+            deferredParameters.globalCB._RaytracingPreExposition = 0;
+            deferredParameters.globalCB._RaytracingDiffuseRay = 0;
 
             return deferredParameters;
         }
@@ -228,9 +220,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._StencilTexture, m_SharedRTManager.GetDepthStencilBuffer(), 0, RenderTextureSubElement.Stencil);
 
                 // Bind all the required scalars
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, settings.clampValue.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingIncludeSky, settings.reflectSky.value ? 1 : 0);
+                m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = settings.clampValue.value;
+                m_ShaderVariablesRayTracingCB._RaytracingIncludeSky = settings.reflectSky.value ? 1 : 0;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the output buffers
                 cmd.SetComputeTextureParam(reflectionShaderCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, intermediateBuffer1);
@@ -278,8 +270,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(reflectionFilter, currentKernel, HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
                 cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._SpatialFilterRadius, settings.upscaleRadius.value);
                 cmd.SetComputeIntParam(reflectionFilter, HDShaderIDs._RaytracingDenoiseRadius, settings.denoise.value ? settings.denoiserRadius.value : 0);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionMinSmoothness, settings.minSmoothness.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingReflectionSmoothnessFadeStart, settings.smoothnessFadeStart.value);
 
                 numTilesXHR = (texWidth + (areaTileSize - 1)) / areaTileSize;
                 numTilesYHR = (texHeight + (areaTileSize - 1)) / areaTileSize;
@@ -328,18 +318,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
-            RayTracingSettings rtSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingIntegrateReflection)))
             {
                 // Bind all the required data for ray tracing
-                BindRayTracedReflectionData(cmd, hdCamera, reflectionShader, settings, lightClusterSettings, rtSettings, intermediateBuffer0, intermediateBuffer1);
+                BindRayTracedReflectionData(cmd, hdCamera, reflectionShader, settings, lightClusterSettings, intermediateBuffer0, intermediateBuffer1);
 
                 // Only use the shader variant that has multi bounce if the bounce count > 1
                 CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", settings.bounceCount.value > 1);
 
                 // We are not in the diffuse only case
-                cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, 0);
+                m_ShaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 0;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Run the computation
                 cmd.DispatchRays(reflectionShader, transparent ? m_RayGenIntegrationTransparentName : m_RayGenIntegrationName, (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, (uint)hdCamera.viewCount);

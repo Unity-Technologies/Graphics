@@ -295,7 +295,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Fetch the volume overrides that we shall be using
                     RayTracingShader subSurfaceShader = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracing;
-                    RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                     ComputeShader deferredRayTracing = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
 
                     // Fetch all the intermediate buffers that we need
@@ -327,9 +326,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int sampleIndex = 0; sampleIndex < settings.sampleCount.value; ++sampleIndex)
                     {
                         // Inject the ray generation data
-                        cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIndex);
+                        m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
+                        m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
+                        ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
