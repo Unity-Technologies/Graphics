@@ -485,7 +485,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_GBufferPass.Setup(m_GBufferOutputs, m_DeferredLights);
             m_GBufferPass.ConfigureTarget(m_GBufferOutputs, m_DeferredDepthDescriptor);
-            EnqueueRenderPass(m_GBufferPass, desc);
+            EnqueueRenderPass(m_GBufferPass, desc, hasDepthPrepass);
 
             //Early exit if we are rendering offscreen depth as there is no real need to render lights
             if (offscreenDepth)

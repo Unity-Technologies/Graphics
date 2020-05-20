@@ -240,6 +240,8 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
+        private bool m_CameraTargetWasOverriden = false;
+
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_NativeRenderPass = "Native RenderPass";
@@ -606,7 +608,7 @@ namespace UnityEngine.Rendering.Universal
                         context.EndRenderPass();
                         renderPassStarted = false;
                     }
-                    ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
+                    ExecuteRenderPass(context, renderPass, ref renderingData);
                 }
                 else
                 {
@@ -923,12 +925,11 @@ namespace UnityEngine.Rendering.Universal
             ref CameraData cameraData = ref renderingData.cameraData;
 
             int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
-            if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear) ))
+            if (cameraColorTargetIndex != -1 && m_FirstTimeCameraColorTargetIsBound)
             {
                 //Leaving this like that atm, cause i guess we could just clear with load action on first render pass
                 //And also we need to say the renderer not to clear if first non-native render pass is executed later
                 m_FirstTimeCameraColorTargetIsBound = false;
-                m_XRRenderTargetNeedsClear = false;
             }
             renderPass.Execute(context, ref renderingData);
         }
