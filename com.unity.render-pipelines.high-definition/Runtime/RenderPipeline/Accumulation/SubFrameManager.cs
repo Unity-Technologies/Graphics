@@ -89,6 +89,10 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (int camID in m_CameraCache.Keys.ToList())
                 Reset(camID);
         }
+        internal void Clear()
+        {
+            m_CameraCache.Clear();
+        }
         internal void SelectiveReset(uint maxSamples)
         {
             foreach (int camID in m_CameraCache.Keys.ToList())
@@ -109,11 +113,13 @@ namespace UnityEngine.Rendering.HighDefinition
             m_IsRecording = true;
             m_IsRenderingTheFirstFrame = true;
 
+            Clear();
+
             m_OriginalTimeScale = Time.timeScale;
 
             Time.timeScale = m_OriginalTimeScale * m_ShutterInterval / m_AccumulationSamples;
 
-            if (m_Centered && m_IsRenderingTheFirstFrame)
+            if (m_Centered)
             {
                 Time.timeScale *= 0.5f;
             }
@@ -146,16 +152,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Should be called before rendering a new frame in a sequence (when accumulation is desired)
-        internal void PrepareNewSubFrame(int camID)
+        internal void PrepareNewSubFrame()
         {
-            CameraData camData = GetCameraData(camID);
+            uint maxIteration = 0;
+            foreach (int camID in m_CameraCache.Keys.ToList())
+                maxIteration = Math.Max(maxIteration, GetCameraData(camID).currentIteration);
 
-            if (camData.currentIteration == m_AccumulationSamples)
+            if (maxIteration == m_AccumulationSamples)
             {
-                Reset(camID);
+                Reset();
             }
-
-            if (camData.currentIteration == m_AccumulationSamples - 1)
+            else if (maxIteration == m_AccumulationSamples - 1)
             {
                 Time.timeScale = m_OriginalTimeScale * (1.0f - m_ShutterInterval);
                 m_IsRenderingTheFirstFrame = false;
@@ -270,9 +277,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Should be called during a recording session when preparing to render a new sub-frame of a multi-frame sequence where each final frame is an accumulation of multiple sub-frames.
         /// </summary>
-        public void PrepareNewSubFrame(HDCamera hdCamera)
+        public void PrepareNewSubFrame()
         {
-            m_SubFrameManager.PrepareNewSubFrame(hdCamera.camera.GetInstanceID());
+            m_SubFrameManager.PrepareNewSubFrame();
         }
 
         void RenderAccumulation(HDCamera hdCamera, CommandBuffer cmd, RTHandle inputTexture, RTHandle outputTexture, bool needsExposure = false)
