@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
+<<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/Temporary.meta
 guid: b1c155473153aed43822a0276d5f38f5
+=======
+guid: fe37f0403f5b0a943ad227b62d015880
+>>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/ShadowData/Volumes.meta
+=======
+guid: b1c155473153aed43822a0276d5f38f5
+>>>>>>> master
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

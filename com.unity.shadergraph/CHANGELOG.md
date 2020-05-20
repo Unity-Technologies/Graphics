@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
 - Fixed a bug where searcher entries would not repopulate correctly after an undo was perfromed (https://fogbugz.unity3d.com/f/cases/1241018/)
 - Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
+- Fixed a soft lock when you open a graph when the blackboard hidden.
 
 ## [7.1.1] - 2019-09-05
 ### Added

@@ -432,6 +432,20 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_ReceivesSSRTransparent = false;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         bool m_AddPrecomputedVelocity = false;
 
         public ToggleData addPrecomputedVelocity
@@ -880,6 +894,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.TransparentWritesMotionVec,           surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                           !receiveSSR.isOn),
+                new ConditionalField(HDFields.DisableSSRTransparent,                !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                    addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) &&
                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
@@ -1016,7 +1031,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, surfaceType == SurfaceType.Opaque ? receiveSSR.isOn : receiveSSRTransparent.isOn, receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
@@ -1031,6 +1046,7 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }

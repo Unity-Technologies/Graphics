@@ -344,18 +344,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             Matrix4x4 proj;
             Matrix4x4 view;
 
-            if (renderingData.cameraData.isXRMultipass)
-            {
-                //Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)renderingData.cameraData.camera.stereoActiveEye; // Always left eye
-                Camera.StereoscopicEye eyeIndex = (Camera.StereoscopicEye)m_EyeIndex;
-                proj = renderingData.cameraData.camera.GetStereoProjectionMatrix(eyeIndex);
-                view = renderingData.cameraData.camera.GetStereoViewMatrix(eyeIndex);
-            }
-            else
-            {
-                proj = renderingData.cameraData.camera.projectionMatrix;
-                view = renderingData.cameraData.camera.worldToCameraMatrix;
-            }
+            proj = renderingData.cameraData.camera.projectionMatrix;
+            view = renderingData.cameraData.camera.worldToCameraMatrix;
 
             // When reading back from depth texture, we need to scale back from [0; 1] to [-1; 1] as Unity defaults to for GL clip-space depth convention.
             // As well, non-GL platforms render upside-down, we don't need to y-reverse again on GL platforms.
