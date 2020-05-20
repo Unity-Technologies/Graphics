@@ -69,9 +69,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData)
         {
-            bool ssrEnabled = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
+            bool ssrEnabled = false;
+            
+            if (lightingData != null)
+                ssrEnabled = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
 
-            BaseLitGUI.ComputeStencilProperties(ssrEnabled, lightingData.subsurfaceScattering, out int stencilRef, out int stencilWriteMask,
+            BaseLitGUI.ComputeStencilProperties(ssrEnabled, lightingData != null && lightingData.subsurfaceScattering, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -93,9 +96,9 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_StencilRefGBuffer", stencilRefGBuffer);
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
-            collector.AddToggleProperty(kUseSplitLighting, lightingData.subsurfaceScattering);
-            collector.AddToggleProperty(kReceivesSSR, lightingData.receiveSSR);
-            collector.AddToggleProperty(kReceivesSSRTransparent, lightingData.receiveSSRTransparent);
+            collector.AddToggleProperty(kUseSplitLighting, lightingData != null && lightingData.subsurfaceScattering);
+            collector.AddToggleProperty(kReceivesSSR, lightingData != null && lightingData.receiveSSR);
+            collector.AddToggleProperty(kReceivesSSRTransparent, lightingData != null && lightingData.receiveSSRTransparent);
         }
 
         public static void AddBlendingStatesShaderProperties(
