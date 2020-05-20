@@ -39,7 +39,6 @@ def load_yml(filepath):
         return yaml.load(f)
 
 def dump_yml(filepath, yml_dict):
-    
     with open(os.path.join(save_dir,filepath), 'w') as f:
         yaml.dump(yml_dict, f)
 
@@ -48,7 +47,7 @@ def get_editors(metafile):
     return override_editors if override_editors is not None else shared_editors
 
 def get_platform(platform, api=""):
-    if platform.get("agent_default") is not None and not isinstance(platform.get("agent_default"), str):
+    if platform.get("agent_default") is not None:
         return platform
     else:
         return shared_platforms.get(f'{platform["name"]}_{api}', shared_platforms.get(platform["name"]))
@@ -57,9 +56,9 @@ def get_test_platforms(metafile):
     test_platforms = []
     for test_platform_name in metafile["test_platforms"]:
         test_platforms.append({
-        "name": test_platform_name,
-        "args": shared_test_platforms[test_platform_name]
-    })
+            "name": test_platform_name,
+            "args": shared_test_platforms[test_platform_name]
+        })
     return test_platforms
 
 def get_agent(agent_name):

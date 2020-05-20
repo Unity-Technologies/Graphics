@@ -26,13 +26,13 @@ all:
       test_platforms:
         - editmode
         - playmode
-        - playmode XR
+        - playmode_XR
         - Standalone
     - platform: Win
       api: DX12
       test_platforms:
         - playmode
-        - playmode XR
+        - playmode_XR
     - platform: Win
       api: Vulkan
       test_platforms:

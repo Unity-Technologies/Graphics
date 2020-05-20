@@ -11,7 +11,7 @@ platforms:
 all:
   dependencies:
     - platform: Win
-      api: '' # TODO no apiname
+      api: ''
       test_platforms:
         - Standalone
         - editmode
