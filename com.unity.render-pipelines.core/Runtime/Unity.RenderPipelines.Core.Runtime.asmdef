@@ -25,6 +25,11 @@
             "name": "com.unity.inputsystem",
             "expression": "0.0.0",
             "define": "ENABLE_INPUT_SYSTEM_PACKAGE"
+        },
+        {
+            "name": "com.unity.rendering.hybrid",
+            "expression": "0.7.0",
+            "define": "HYBRID_0_7_0_OR_NEWER"
         }
     ],
     "noEngineReferences": false
