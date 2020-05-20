@@ -208,6 +208,12 @@ namespace UnityEditor.VFX
             {
                 //Mesh API can modify the vertex count & layout.
                 //Thus, all mesh related expression should never been constant folded while generating code.
+                // The same goes for textures
+                case VFXValueType.Texture2D:
+                case VFXValueType.Texture2DArray:
+                case VFXValueType.Texture3D:
+                case VFXValueType.TextureCube:
+                case VFXValueType.TextureCubeArray:
                 case VFXValueType.Mesh:
                     return false;
             }
