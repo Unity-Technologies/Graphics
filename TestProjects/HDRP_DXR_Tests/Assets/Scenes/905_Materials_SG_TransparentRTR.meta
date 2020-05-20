@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/Scenes/003-VirtualTexturing.meta
-guid: 8a8a012815473e64790222c384ce5078
-=======
 guid: d98848f1b79cb8444868f9107eb8e7f1
->>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/905_Materials_SG_TransparentRTR.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

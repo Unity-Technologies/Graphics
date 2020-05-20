@@ -1,13 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-<<<<<<< HEAD:TestProjects/HDRP_RuntimeTests/Assets/Scenes/003-VirtualTexturing/Textures.meta
 guid: dbb82e018b0d1cf4294e640c0a15e73a
-=======
-guid: b739db225bb6fd842bd0b38298e118c0
->>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/ShadowData/ShaderGraphs.meta
-=======
-guid: dbb82e018b0d1cf4294e640c0a15e73a
->>>>>>> master
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
