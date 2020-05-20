@@ -28,3 +28,17 @@ all:
         - playmode
         - playmode XR
         - Standalone
+    - platform: Win
+      api: DX12
+      test_platforms:
+        - playmode
+        - playmode XR
+    - platform: Win
+      api: Vulkan
+      test_platforms:
+        - playmode
+    - project: HDRP_DXR
+      platform: Win
+      api: DX12
+      test_platforms:
+        - playmode
