@@ -15,57 +15,34 @@ class Outline : CustomPass
     Shader                  outlineShader;
 
     Material                fullscreenOutline;
-    MaterialPropertyBlock   outlineProperties;
-    ShaderTagId[]           shaderTags;
     RTHandle                outlineBuffer;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
         outlineShader = Shader.Find("Hidden/Outline");
         fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
-        outlineProperties = new MaterialPropertyBlock();
-
-        // List all the materials that will be replaced in the frame
-        shaderTags = new ShaderTagId[3]
-        {
-            new ShaderTagId("Forward"),
-            new ShaderTagId("ForwardOnly"),
-            new ShaderTagId("SRPDefaultUnlit"),
-        };
 
         outlineBuffer = RTHandles.Alloc(
             Vector2.one, TextureXR.slices, dimension: TextureXR.dimension,
-            colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
+            colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // We don't need alpha for this effect
             useDynamicScale: true, name: "Outline Buffer"
         );
     }
 
-    void DrawOutlineMeshes(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+    protected override void Execute(CustomPassContext ctx)
     {
-        var result = new RendererListDesc(shaderTags, cullingResult, hdCamera.camera)
-        {
-            // We need the lighting render configuration to support rendering lit objects
-            rendererConfiguration = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.Lightmaps,
-            renderQueueRange = RenderQueueRange.all,
-            sortingCriteria = SortingCriteria.BackToFront,
-            excludeObjectMotionVectors = false,
-            layerMask = outlineLayer,
-        };
+        // Render meshes we want to outline in the outline buffer
+        CoreUtils.SetRenderTarget(ctx.cmd, outlineBuffer, ClearFlag.Color);
+        CustomPassUtils.DrawRenderers(ctx, outlineLayer);
 
-        CoreUtils.SetRenderTarget(cmd, outlineBuffer, ClearFlag.Color);
-        HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
-    }
+        // Setup outline effect properties
+        ctx.propertyBlock.SetColor("_OutlineColor", outlineColor);
+        ctx.propertyBlock.SetTexture("_OutlineBuffer", outlineBuffer);
+        ctx.propertyBlock.SetFloat("_Threshold", threshold);
 
-    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult)
-    {
-        DrawOutlineMeshes(renderContext, cmd, camera, cullingResult);
-
-        SetCameraRenderTarget(cmd);
-
-        outlineProperties.SetColor("_OutlineColor", outlineColor);
-        outlineProperties.SetTexture("_OutlineBuffer", outlineBuffer);
-        outlineProperties.SetFloat("_Threshold", threshold);
-        CoreUtils.DrawFullScreen(cmd, fullscreenOutline, outlineProperties, shaderPassId: 0);
+        // Render the outline as a fullscreen alpha-blended pass on top of the camera color
+        CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, ClearFlag.None);
+        CoreUtils.DrawFullScreen(ctx.cmd, fullscreenOutline, ctx.propertyBlock, shaderPassId: 0);
     }
 
     protected override void Cleanup()

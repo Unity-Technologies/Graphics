@@ -20,8 +20,8 @@
     #define _WorldSpaceCameraPosViewOffset  _XRWorldSpaceCameraPosViewOffset[unity_StereoEyeIndex].xyz
     #define _PrevCamPosRWS                  _XRPrevWorldSpaceCameraPos[unity_StereoEyeIndex].xyz
 #else
-    #define _WorldSpaceCameraPos            _WorldSpaceCameraPos_Internal
-    #define _PrevCamPosRWS                  _PrevCamPosRWS_Internal
+    #define _WorldSpaceCameraPos            _WorldSpaceCameraPos_Internal.xyz
+    #define _PrevCamPosRWS                  _PrevCamPosRWS_Internal.xyz
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)

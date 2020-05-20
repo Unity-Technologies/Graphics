@@ -87,6 +87,16 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 100
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0
@@ -245,6 +255,40 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   m_AdvancedMode: 0
+  quality:
+    m_OverrideState: 0
+    m_Value: 1
+  enable:
+    m_OverrideState: 1
+    m_Value: 1
+  depthBufferThickness:
+    m_OverrideState: 0
+    m_Value: 0.01
+    min: 0
+    max: 1
+  m_RaySteps:
+    m_OverrideState: 0
+    m_Value: 24
+    min: 16
+    max: 128
+  m_MaximalRadius:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0.01
+    max: 50
+  m_FullResolutionSS:
+    m_OverrideState: 0
+    m_Value: 1
+  m_ClampValueSS:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0.01
+    max: 10
+  m_FilterRadius:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 2
+    max: 8
   rayTracing:
     m_OverrideState: 1
     m_Value: 1

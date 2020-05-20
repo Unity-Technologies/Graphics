@@ -159,10 +159,16 @@ Pass
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+#endif
+
         #if (SHADERPASS == SHADERPASS_DISTORTION)
             builtinData.distortion = surfaceDescription.Distortion;
             builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

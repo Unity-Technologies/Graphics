@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
             get => m_RenderPassDescriptor.sampleCount != 0; // This should be enough to indicate whether the descriptor was set
         }
 
-        internal int eyeIndex { get; set; }
+       // internal int eyeIndex { get; set; }
 
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
@@ -126,7 +126,6 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            eyeIndex = 0;
         }
 
         public struct RenderPassDescriptor
@@ -394,23 +393,6 @@ namespace UnityEngine.Rendering.Universal
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
-
-        // TODO: Remove this. Currently only used by FinalBlit pass.
-        internal void SetRenderTarget(
-            CommandBuffer cmd,
-            RenderTargetIdentifier colorAttachment,
-            RenderBufferLoadAction colorLoadAction,
-            RenderBufferStoreAction colorStoreAction,
-            ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
-        {
-            if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-            else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-        }
-
 
         #region Obsolete
 

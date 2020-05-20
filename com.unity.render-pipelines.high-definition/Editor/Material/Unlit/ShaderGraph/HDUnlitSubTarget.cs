@@ -243,6 +243,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = UnlitKeywords.Forward,
                 includes = UnlitIncludes.ForwardOnly,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor RaytracingIndirect = new PassDescriptor()
@@ -290,8 +292,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingVisibility },
             };
 
