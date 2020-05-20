@@ -44,5 +44,5 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
-- If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling as well as the decal's emision.
+- If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling as well as the decal's emission.
 - In **Project Settings > Graphics**, if **Instancing Variants** is set to **Strip All**, Unity strips the Decal Shader this component references when you build your Project. This happens even if you include the Shader in the **Always Included Shaders** list. If Unity strips the Shader during the build process, the decal does not appear in your built Application.
