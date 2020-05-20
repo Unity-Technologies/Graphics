@@ -623,6 +623,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard check on default volume profile to also check it is not the default one in package.
 - Fix erroneous central depth sampling in TAA.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed AxF handling of roughness for Blinn-Phong type materials
+- Fixed AxF UI errors when surface type is switched to transparent
 
 ### Changed
 - Improve MIP selection for decals on Transparents
