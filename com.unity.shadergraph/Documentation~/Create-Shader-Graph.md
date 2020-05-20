@@ -19,7 +19,7 @@ Double-click your newly created Shader Graph Asset to open it in the Shader Grap
 
 ## Shader Graph window
 
-The Shader Graph window consists of the Master Node, the Preview Window, and the Blackboard.
+The Shader Graph window consists of the Master Node, the Preview Window, the Blackboard, and the Internal Inspector.
 
 ![](images/ShaderGraphWindow.png)
 
@@ -42,4 +42,10 @@ An area that contains all of the shader's properties in a single, collected view
 ![](images/Blackboard.png)
 
 After you've set up a project, and become familiar with the Shader Graph window, see [My first Shader Graph](First-Shader-Graph) for more information on how to get started.
+
+### Inspector
+
+Introduced in 20.2, this is an area that contains information contextual to whatever the user is currently clicking on. It's a window that automatically is hidden by default and only appears when something is selected that can be edited by the user. Use the Inspector to display and modify properties, node options, and the graph settings.  
+
+![](images/Inspector.png)
 
