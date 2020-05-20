@@ -19,43 +19,31 @@ MonoBehaviour:
     GraphicsDevice: 4
     XrSdk: None
     StereoModes: 0
-    Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00588090625f'
+    Reason: 'Android: Known issue: expected less than or equal to 0.00100000005f
+      but was 0.00588090625f (scene 010)'
   - FilteredScene: {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
     XrSdk: None
     StereoModes: 0
-    Reason: 'Baking issue: scene 017'
+    Reason: 'Android: Baking issue: scene 017'
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 4
     XrSdk: None
     StereoModes: 0
-    Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00277045905f'
-  - FilteredScene: {fileID: 102900000, guid: c4dab86134e72034aac45c19df32ceb7, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: This test makes next test fail with unhandled log message
-  - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Known issue: expected less than or equal to 0.00100000005f but was 0.00287158438f'
+    Reason: 'Android: Known issue: expected less than or equal to 0.00100000005f
+      but was 0.00277045905f (scene 036)'
   - FilteredScene: {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
     GraphicsDevice: 21
     XrSdk: None
     StereoModes: 0
-    Reason: 'Known issue: expected less than or equal to 0.000500000024f but was
-      0.000877162092f'
+    Reason: 'Android Vulkan: expected less than or equal to 0.000500000024f but was
+      0.000877162092f (scene 059)'
   - FilteredScene: {fileID: 102900000, guid: e23c793ace3c4a146a73360af1600fbd, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -262,7 +250,14 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 4
+    GraphicsDevice: 11
     XrSdk: None
     StereoModes: 0
-    Reason: OpenGL shader error in trunk
+    Reason: 'Android OpenGL: shader error in trunk (scene 130)'
+  - FilteredScene: {fileID: 102900000, guid: 2fac616c9e61b45ccb7fcfa4fb18ae60, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 11
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android OpenGLES: regression with camera (scene 124)'
