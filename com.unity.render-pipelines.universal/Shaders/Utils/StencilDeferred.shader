@@ -88,10 +88,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return output;
     }
 
-    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(1);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(2);
-    UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+    DECLARE_FRAMEBUFFER_INPUT_HALF(0);
+    DECLARE_FRAMEBUFFER_INPUT_HALF(1);
+    DECLARE_FRAMEBUFFER_INPUT_HALF(2);
+    DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
     float4x4 _ScreenToWorld;
     SamplerState my_point_clamp_sampler;
@@ -112,10 +112,10 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         UNITY_SETUP_INSTANCE_ID(input);
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-        half4 gbuffer0 = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
-        half4 gbuffer1 = UNITY_READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
-        half4 gbuffer2 = UNITY_READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
-        float d        = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
+        half4 gbuffer0 = READ_FRAMEBUFFER_INPUT(0, input.positionCS.xy);
+        half4 gbuffer1 = READ_FRAMEBUFFER_INPUT(1, input.positionCS.xy);
+        half4 gbuffer2 = READ_FRAMEBUFFER_INPUT(2, input.positionCS.xy);
+        float d        = READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
 
         #if XR_MODE
             #if UNITY_REVERSED_Z
@@ -180,7 +180,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
-        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
+        float d = READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);

@@ -94,12 +94,12 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             #pragma vertex Vertex
             #pragma fragment FragFetch
 
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_HALF(0);
+            DECLARE_FRAMEBUFFER_INPUT_HALF(0);
 
 
             half4 FragFetch(Varyings input) : SV_Target
             {
-                half4 col = UNITY_READ_FRAMEBUFFER_INPUT(0, input.positionCS);
+                half4 col = READ_FRAMEBUFFER_INPUT(0, input.positionCS);
                 return col;
             }
             ENDHLSL

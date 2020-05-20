@@ -79,7 +79,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
             SamplerState my_point_clamp_sampler;
             #endif
             TEXTURE2D_FLOAT(_DepthTex);
-            UNITY_DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
+            DECLARE_FRAMEBUFFER_INPUT_FLOAT(3);
 
             float4 _DepthTexSize;
             // Missing C# interface to upload int vectors!
@@ -150,7 +150,7 @@ Shader "Hidden/Universal Render Pipeline/TileDepthInfo"
                         int2 tx = sourceCorner + int2(i, j);
                         tx.y = _DepthTexSize.y - tx.y; // TODO fixme: Depth buffer is y-inverted
 
-                        float d = UNITY_READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
+                        float d = READ_FRAMEBUFFER_INPUT(3, input.positionCS.xy).x;
                         #if UNITY_REVERSED_Z // TODO: can fold reversed_z into g_unproject parameters.
                         d = 1.0 - d;
                         #endif
