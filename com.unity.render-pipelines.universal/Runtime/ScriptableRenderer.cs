@@ -821,7 +821,7 @@ namespace UnityEngine.Rendering.Universal
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
                 {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
-
+                    m_CameraTargetWasOverriden = true;
 #if ENABLE_VR && ENABLE_XR_MODULE
                     if (cameraData.xr.enabled)
                     {
