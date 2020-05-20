@@ -94,7 +94,6 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
             collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
-
         }
 
         public static void AddBlendingStatesShaderProperties(
