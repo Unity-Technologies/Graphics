@@ -1,6 +1,7 @@
 //-------------------------------------------------------------------------------------
 // Defines
 //-------------------------------------------------------------------------------------
+// Gradients are now required:
 #define SURFACE_GRADIENT // Note: this affects Material/MaterialUtilities.hlsl's GetNormalWS() and makes it expect a surface gradient.
 
 //to test #define FLAKES_TILE_BEFORE_SCALE
@@ -13,8 +14,7 @@
 // is used, and AxF materials textures often have trilinear filtering set.
 #define FLAKES_USE_DDXDDY
 
-//#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGB
-#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGorAG
+#define AXF_USES_RG_NORMAL_MAPS // else, RGB
 
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
@@ -27,6 +27,11 @@
 //-----------------------------------------------------------------------------
 // Texture Mapping
 //-----------------------------------------------------------------------------
+#ifdef AXF_USES_RG_NORMAL_MAPS
+#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGorAG
+#else
+#define AXF_DERIVATIVE_NORMAL UnpackDerivativeNormalRGB
+#endif
 
 // Note: the scaling _Material_SO.xy should already be in texuv, but NOT the bias.
 #define AXF_TRANSFORM_TEXUV_BYNAME(texuv, name) ((texuv.xy) * name##_SO.xy + name##_SO.zw + _Material_SO.zw)
@@ -474,15 +479,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     InitTextureUVMapping(input, uvMapping);
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
-    //-----------------------------------------------------------------------------
-    // _AXF_BRDF_TYPE_SVBRDF
-    //-----------------------------------------------------------------------------
 
     float alpha = 1.0;
 
     surfaceData.ambientOcclusion = 1.0;
     surfaceData.specularOcclusion = 1.0;
     surfaceData.specularLobe = 0;
+
+    //-----------------------------------------------------------------------------
+    // _AXF_BRDF_TYPE_SVBRDF
+    //-----------------------------------------------------------------------------
 
 #ifdef _AXF_BRDF_TYPE_SVBRDF
 
@@ -508,29 +514,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //
     // TBN
     //
-#if 0
-// TEST without gradients: comment out the #define SURFACE_GRADIENT before the include of materialutilities to test this path!
-    GetNormalWS(
-        input,
-        2.0 * SAMPLE_TEXTURE2D(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvBase, _SVBRDF_NormalMap)).xyz - 1.0,
-        surfaceData.normalWS,
-        doubleSidedConstants
-    );
-    GetNormalWS(
-        input,
-        2.0 * SAMPLE_TEXTURE2D(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, AXF_TRANSFORM_TEXUV_BYNAME(uvMapping.uvBase, _ClearcoatNormalMap)).xyz - 1.0,
-        surfaceData.clearcoatNormalWS,
-        doubleSidedConstants
-    );
-// ...TEST without gradients
-#else
     // Note: since SURFACE_GRADIENT is enabled, resolve is done with input.tangentToWorld[2] in GetNormalWS(),
     // and uvMapping uses that as vertexNormalWS.
 
     //Normal sampling:
     GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping).xyz, surfaceData.normalWS, doubleSidedConstants);
     GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
-#endif // use gradients
 
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
