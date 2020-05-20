@@ -1,19 +1,18 @@
 # Inspector
 
 ## Inspector
-The Inspector is used to interact with [Properties](https://docs.unity3d.com/Manual/SL-Properties.html) and [Keywords](Keywords) and [Nodes](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Node-Library.html) available for use in the graph. You can edit their attributes and default values.  
+The Inspector is used to interact with  and  and [Nodes](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Node-Library.html) available for use in the graph. You can edit their attributes and default values.  
 
-To inspect something in the graph, the user must select it. There are some graph elements that contain values that can be modified, and some that cannot. 
-Whenever the user selects something that can be interacted with through the Inspector, the Inspector window will become visible.
+To inspect something in the graph, the user must select it. Whenever the user selects something that can be interacted with through the Inspector, the Inspector window will become visible.
 
-To change the path of a [Shader Graph Asset](Shader-Graph-Asset), click on its path field in the Blackboard, and enter the new path. The Unity Editor uses the Shader Graph path to list the corresponding Shader Graph Asset in the Material Inspector's **Shader** drop-down menu. Similarly, you can change the path field of a [Sub Graph](Sub-graph). The Editor uses the Sub Graph path to list the corresponding Sub Graph Asset in the [Create Node Menu](Create-Node-Menu).
+Graph elements that can be inspected:
+- [Properties](https://docs.unity3d.com/Manual/SL-Properties.html)/[Keywords](Keywords.md)
+- [Custom Function nodes](Custom-Function-Node.md)
+- [Subgraph Output nodes](Subgraph-Output-Node.md)
+- [Per-node precision](Precision-Types.md)
 
-![](images/blackboard_shadergraph_path.png) ![](images/blackboard_subgraph_path.png)
+Graph elements that cannot (currently) be inspected:
+- Edges
+- [Sticky Notes](Sticky-Notes.md)
+- Groups
 
-You can move the Blackboard anywhere in the [Shader Graph Window](Shader-Graph-Window). It always maintains the same distance from the nearest corner, even if you resize the window.
-
-To create a new Property or Keyword, click the **Add (+)** button on the Blackboard's title bar, and select a Property or Keyword type.
-
-To reorder items listed on the Blackboard, drag and drop them. To delete items, use the Delete key on Windows, or the Command + Backspace key combination on OS X. To rename an item, double-click on its name, and enter a new name (note: quotation marks in display names will get stripped and replaced with underscores). Drag Properties and Keywords from the Blackboard to the graph to create a corresponding node.
-
-For a full list of Property types, see [Property Types](Property-Types).
