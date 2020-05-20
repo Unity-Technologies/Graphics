@@ -1,4 +1,4 @@
-﻿﻿// Shader outputs a pipeline environment color for testing reasons.
+﻿// Shader outputs a pipeline environment color for testing reasons.
 Shader "Universal Render Pipeline/Custom/DebugEnvironment"
 {
     Properties
