@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColorDescriptor.ConfigureTarget(m_ActiveCameraColorAttachment.Identifier(), true, true);
 
             m_CameraDepthDescriptor = new AttachmentDescriptor(RenderTextureFormat.Depth);
-            m_CameraDepthDescriptor.ConfigureTarget(requiresDepthPrepass ? m_CameraDepthTexture.Identifier() : m_ActiveCameraDepthAttachment.Identifier(), true, false);
+            m_CameraDepthDescriptor.ConfigureTarget(m_ActiveCameraDepthAttachment.Identifier(), true, false);
 
             ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(),
                 m_ActiveCameraDepthAttachment.Identifier(), m_CameraColorDescriptor, m_CameraDepthDescriptor);
@@ -305,8 +305,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer
-            if (!requiresDepthPrepass && renderingData.cameraData.requiresDepthTexture)
+            if (renderingData.cameraData.requiresDepthTexture)
             {
+                m_CopyDepthPass.AllocateRT = !requiresDepthPrepass;
                 m_CopyDepthPass.Setup(m_CameraDepthAttachment, m_CameraDepthTexture);
                 EnqueuePass(m_CopyDepthPass);
             }
@@ -472,11 +473,11 @@ namespace UnityEngine.Rendering.Universal
                 //TODO: Investigate which color exactly to pick here, as this is needed for both Scene view and Game view
                 m_DeferredLights.GBufferDescriptors[m_DeferredLights.GBufferLightingIndex].ConfigureClear(CoreUtils.ConvertSRGBToActiveColorSpace(renderingData.cameraData.camera.backgroundColor), 1, 0);
 
-                m_DeferredDepthDescriptor.ConfigureTarget(hasDepthPrepass ? m_CameraDepthTexture.Identifier() : m_CameraDepthAttachment.Identifier(), false, true);
+                m_DeferredDepthDescriptor.ConfigureTarget(m_CameraDepthAttachment.Identifier(), false, true);
                 m_DeferredDepthDescriptor.ConfigureClear(Color.black, 1.0f, 0);
             }
 
-            if (hasDepthPrepass)
+            if (hasDepthPrepass && !offscreenDepth)
             {
                 m_DepthPrepass.Setup(desc, m_CameraDepthTexture);
                 m_DepthPrepass.ConfigureTarget(m_DeferredDepthDescriptor);
