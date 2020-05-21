@@ -318,6 +318,8 @@ namespace UnityEditor.ShaderGraph
         public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
+        private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
+
         public GraphData()
         {
             m_GroupItems[null] = new List<IGroupItem>();
@@ -418,6 +420,7 @@ namespace UnityEditor.ShaderGraph
                 ValidateGraph();
                 NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
             }
+            activeTargets.Sort(targetComparison);
         }
 
         public void ClearChanges()
@@ -1988,6 +1991,24 @@ namespace UnityEditor.ShaderGraph
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    if(block.descriptor == null)
+                    {
+                        //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
+                        //create a new entry for it and continue on
+                        if(string.IsNullOrEmpty(block.serializedDescriptor))
+                        {
+                            throw new Exception($"Block {block} had no serialized descriptor");
+                        }
+
+                        var tmp = block.serializedDescriptor.Split('.');
+                        if(tmp.Length != 2)
+                        {
+                            throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
+                        }
+                        //right thing to do?
+                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, new UnknownControl(), stage, true);
+                        m_BlockFieldDescriptors.Add(block.descriptor);
+                    }
                     block.contextData = contextData;
                 }
             }

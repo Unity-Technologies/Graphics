@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -130,6 +130,14 @@ namespace UnityEditor.ShaderGraph
             this.value = value;
         }
 
+        public ShaderGraphRequirements GetRequirements()
+        {
+            return ShaderGraphRequirements.none;
+        }
+    }
+
+    public class UnknownControl : IControl
+    {
         public ShaderGraphRequirements GetRequirements()
         {
             return ShaderGraphRequirements.none;

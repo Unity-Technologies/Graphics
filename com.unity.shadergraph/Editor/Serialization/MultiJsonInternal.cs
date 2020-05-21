@@ -107,7 +107,9 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public UnknownTargetType(string displayName, string jsonData)
             {
-                this.displayName = displayName;
+                var split = displayName.Split('.');
+                var last = split[split.Length - 1];
+                this.displayName = last.Replace("Target", "");
                 isHidden = false;
                 this.jsonData = jsonData;
             }

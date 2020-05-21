@@ -98,6 +98,9 @@ namespace UnityEditor.ShaderGraph
                 case Vector3Control vector3Control:
                     AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
+                case UnknownControl unknownControl:
+                    AddSlot(new UnknownMaterialSlot());
+                    break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
         }
@@ -208,7 +211,10 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+            if (descriptor != null)
+            {
+                m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+            }
         }
     }
 }
