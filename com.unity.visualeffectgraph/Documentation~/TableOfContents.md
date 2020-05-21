@@ -29,6 +29,10 @@
 * Node Library
   * Context
   * Operator
+    * Attribute
+      * [Age Over Lifetime](Operator-AgeOverLifetime.md)
+    * Builtin
+      * [Delta Time](Operator-DeltaTime.md)
     * Math
       * Arithmetic
         * [Absolute](Operator-Absolute.md)
@@ -61,6 +65,8 @@
       * [Cellular Noise](Operator-CellularNoise.md)
       * [Perlin Noise](Operator-PerlinNoise.md)
       * [Value Noise](Operator-ValueNoise.md)
+    * Random
+      * [Random Number](Operator-RandomNumber.md)
     * Sampling
       * [Load Texture2D](Operator-LoadTexture2D.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
