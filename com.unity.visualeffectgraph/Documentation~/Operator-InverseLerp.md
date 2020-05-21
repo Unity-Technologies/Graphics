@@ -2,7 +2,10 @@
 
 Menu Path : **Operator > Math > Arithmetic > Inverse Lerp**  
 
-The **Inverse Lerp** Operator calculates the inverse of the linear interpolation of a value between two border values. 
+The **Inverse Lerp** Operator calculates a fraction which represents how far through a value is between two border values. Whereas the [Lerp Operator](Operator-Lerp.md) takes a fraction and outputs a blend between the two values, this Operator takes a blended value and outputs the fraction. For example, if **a** and **b** are the two border values, **t** is the fraction, and **value** is the blend between **a** and **b**:
+
+* Lerp (**a**, **b**, **t**) = **value**.
+* Inverse Lerp (**a**, **b**, **value**) = **t**.
 
 This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). The **X** and **Y** input are always of the same type. The **S** input is either a float or a vector of the same size as **X** and **Y**.
 
