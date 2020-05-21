@@ -61,7 +61,7 @@ Set precision for the **Sub Graph Output** on the **Output** node. This precisio
 
 ![](images/Precision_SubGraph_01.png)
 
-For **Sub Graph Inputs**, set precision modes for each individual [Property](Property-Types.md) through the [Internal Inspector](Inspector.md). Properties that use the `inherit` option inherit the **Graph Precision** you set for the Sub Graph using the drop-down menu in the top left corner.
+For **Sub Graph Inputs**, set precision modes for each individual [Property](Property-Types.md) through the [Internal Inspector](Internal-Inspector.md). Properties that use the `inherit` option inherit the **Graph Precision** you set for the Sub Graph using the drop-down menu in the top left corner.
 
 ![](images/Precision_SubGraph_02.png)
 

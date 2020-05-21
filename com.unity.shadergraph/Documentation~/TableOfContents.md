@@ -5,6 +5,7 @@
     * [Shader Graph Window](Shader-Graph-Window)  
         * [Blackboard](Blackboard)  
         * [Master Preview](Master-Preview) 
+        * [Internal Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
     * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
