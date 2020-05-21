@@ -40,10 +40,10 @@ Use Volumes to localize environmental Scene settings and post-processing effects
 HDRP Shaders allow you to use the following features:
 
 - [Opaque/transparent surfaces](Surface-Type.md).
-- Different blend modes for transparent surfaces.
+  - Different blend modes for transparent surfaces.
   - Transparent surfaces that work with fog.
   - Refraction and distortion for transparent surfaces.
-  
+
 - [Material types](Material-Type.md).
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
