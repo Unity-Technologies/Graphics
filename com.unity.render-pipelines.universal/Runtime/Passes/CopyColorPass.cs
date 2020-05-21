@@ -61,6 +61,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             cmd.GetTemporaryRT(destination.id, descriptor, m_DownsamplingMethod == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
+            ConfigureTarget(destination.Identifier());
         }
 
         /// <inheritdoc/>
@@ -75,8 +76,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
             var cameraData = renderingData.cameraData;
-
-            ScriptableRenderer.SetRenderTarget(cmd, opaqueColorRT, BuiltinRenderTextureType.CameraTarget, clearFlag, clearColor);
 
             bool useDrawProceduleBlit = renderingData.cameraData.xr.enabled;
             switch (m_DownsamplingMethod)
