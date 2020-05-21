@@ -1,10 +1,10 @@
 # Custom Port Menu
 
 ## Description 
-The Custom [Port](Port.md) Menu is available on the [Custom Function Node](Custom-Function-Node.md) and [Sub Graph](Sub-graph.md) output node. This menu allows you to add, remove, rename, reorder, and define the types of your custom input and output ports. 
+The Custom [Port](Port.md) Menu is displayed in the Inspector by clicking on the [Custom Function Node](Custom-Function-Node.md) and [Sub Graph](Sub-graph.md) output node. This menu allows you to add, remove, rename, reorder, and define the types of your custom input and output ports. 
 
 ## How to Use 
-Click the gear icon on the top right corner of the node to open the Custom Port Menu on top of the node. To close the menu, click the gear icon again. Using the gear icon to open the menu automatically deselects any current selections, and selects the current node attached to the menu.
+Select the [Custom Function Node](Custom-Function-Node.md) or the [Sub Graph](Sub-graph.md) output node to view the Custom Port Menu in the Inspector. To close the menu, click anywhere in the graph or on another graph-element. 
 
 ![01](images/Custom-Port-Menu-Empty.png)
 
