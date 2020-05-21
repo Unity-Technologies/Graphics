@@ -27,7 +27,7 @@ Graph elements that can be inspected:
 
 - [Subgraph Output nodes](Subgraph-Output-Node.md)
 
-    ![](images/SubGraph-Output-Node.png)
+    ![](images/Inspector-SubgraphOutput.png)
 
 - [Per-node precision](Precision-Types.md)
 
