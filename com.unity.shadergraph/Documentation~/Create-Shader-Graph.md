@@ -2,18 +2,20 @@
 
 After you configure an SRP, you can create a new Shader Graph Asset. Right-click the Project window, locate **Create** > **Shader** in the context menu, then select your desired type of Shader Graph. 
 
-Unity currently supports the following graph types:
-- PBR Graph
-- Sub Graph
-- Unlit Graph
+The type of Shader Graph available is dependent on the render pipelines present in your project. Some options may or may not be present based on the render pipelines. 
 
-If you're using HDRP in your project, the following HDRP-specific graph types are also available:
-- Decal Graph
-- Fabric Graph
-- Hair Graph
-- Lit Graph
-- StackLit Graph
-- Unlit Graph
+The following options are always available: 
+
+|       |  |
+|:------------|:----------------|:------------|
+| Blank Shader Graph | A completely blank shader graph. No target is selected and no blocks are added to the Master Stack. |
+| Sub Graph |  A blank sub graph asset. |
+
+A sub menu for each installed render pipeline may be present containing template stacks for standard shading models ( Lit, Unlit, etc ). 
+
+For a full list of provided options, see the [Universal Render Pipeline]() and [High Definition Render Pipeline]() documentation.
+
+For this example, Universal is installed so a Unversal Lit Shader Graph has been created.
 
 Double-click your newly created Shader Graph Asset to open it in the Shader Graph window.
 
@@ -23,15 +25,15 @@ The Shader Graph window consists of the Master Node, the Preview Window, and the
 
 ![](images/ShaderGraphWindow.png)
 
-### Master node
+### Master Stack
 
-The final connection that determines your shader output. See [Master Node](Master-Node) for more information.
+The final connection that determines your shader output. See [Master Stack]() for more information.
 
-![](images/MasterNode.png)
+![]()
 
 ### Preview window
 
-An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. See [Master Preview](Master-Preview) for more information.
+An area to preview the current shader output. Here, you can rotate the object, and zoom in and out. You can also change the basic mesh on which the shader is previewed. See [Main Preview](Master-Preview) for more information.
 
 ![img](images/MainPreview.png)
 

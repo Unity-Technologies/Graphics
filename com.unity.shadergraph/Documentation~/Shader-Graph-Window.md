@@ -4,7 +4,7 @@
 
 The **Shader Graph Window** contains the workspace for creating shaders using the **Shader Graph** system. To open the **Shader Graph Window** you must first create a [Shader Graph Asset](index.md). For more information see the [Getting Started](Getting-Started.md) section.
 
-The **Shader Graph** window contains various individual elements such as the [Blackboard](Blackboard.md) and [Master Preview](Master-Preview.md). These elements can be moved inside the workspace. They will automatically anchor to the nearest corner when scaling the **Shader Graph Window**.
+The **Shader Graph** window contains various individual elements such as the [Blackboard](Blackboard.md) and [Main Preview](Master-Preview.md). These elements can be moved inside the workspace. They will automatically anchor to the nearest corner when scaling the **Shader Graph Window**.
 
 ## Title Bar
 
@@ -13,11 +13,13 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 | Item        | Description |
 |:------------|:------------|
 | Save Asset | Saves the graph to update the [Shader Graph Asset](index.md) |
+| Save As... | Saves the graph to a new [Shader Graph Asset](index.md) at the specified location|
 | Show In Project | Hightlights the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
-| Precision Mode | Provides the drop down menu to select a [Precision Mode](Precision-Modes.md) for the graph. |
+| Check Out | When version control is enabled and configured in your project, will check out the Shader Graph Asset for editing. If version control is not enabled or configured for your project, this button will be greyed out. |
 | Color Mode | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
 | Blackboard | Toggles visibility of the [Blackboard](Blackboard.md). |
-| Master Preview | Toggles visbility of the [Master Preview](Master-Preview.md). |
+| Inspector | Toggles visibility of the [Inspector](). |
+| Main Preview | Toggles visbility of the [Main Preview](Master-Preview.md). |
 
 ## Workspace
 
@@ -41,10 +43,18 @@ Right clicking within the workspace will open a context menu. Note that right cl
 | Item        | Description |
 |:------------|:------------|
 | Create Node | Opens the [Create Node Menu](Create-Node-Menu.md) |
+| Create Sticky Note | Creates a new [Sticky Note](Sticky-Notes.md) on the Graph. |
+| Collapse All Previews | Collapses previews on all [Nodes](Node.md) |
 | Cut | Cuts selected [Nodes](Node.md) to the clipboard |
 | Copy | Copies selected [Nodes](Node.md) to the clipboard |
 | Paste | Pastes [Nodes](Node.md) in the clipboard |
 | Delete | Deletes selected [Nodes](Node.md) |
 | Duplicate | Duplicates selected [Nodes](Node.md) |
-| Collapse Previews | Collapses previews on all [Nodes](Node.md) |
-| Expand Previews | Expands previews on all [Nodes](Node.md) |
+| Select / Unused Nodes | Selects all nodes on the graph that are not contributing to the final shader output from the Master Stack. |
+| View / Collapse Ports | Collapses unused ports on all selected [Nodes](Node.md) |
+| Vierw / Expand Ports | Expands unused ports on all selected [Nodes](Node.md) |
+| View / Collapse Previews | Collapses previews on all selected [Nodes](Node.md) |
+| View / Expand Previews | Expands previews on all selected [Nodes](Node.md) |
+| Precision / Inherit | Sets precision of all selected Nodes to Inherit. |
+| Precision / Float | Sets precision on all selected nodes to Float. |
+| Precision / Half | Sets precision on all selected nodes to Half. |

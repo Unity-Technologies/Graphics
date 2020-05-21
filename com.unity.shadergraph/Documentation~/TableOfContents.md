@@ -20,7 +20,6 @@
         * [Port](Port)  
         * [Custom Port Menu](Custom-Port-Menu)
         * [Edge](Edge)  
-    * [Master Node](Master-Node)
     * [Property Types](Property-Types) 
     * [Keywords](Keywords) 
     * [Data Types](Data-Types)
@@ -113,9 +112,6 @@
             * [Texture 2D Array Asset](Texture-2D-Array-Asset-Node)  
             * [Texture 2D Asset](Texture-2D-Asset-Node)  
             * [Texture 3D Asset](Texture-3D-Asset-Node)  
-    * [Master](Master-Nodes)
-        * [PBR](PBR-Master-Node)  
-        * [Unlit](Unlit-Master-Node)  
     * [Math](Math-Nodes) 
         * Advanced
             * [Absolute](Absolute-Node)  
