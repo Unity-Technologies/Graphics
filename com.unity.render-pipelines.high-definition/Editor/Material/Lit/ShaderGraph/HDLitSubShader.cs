@@ -956,6 +956,60 @@ namespace UnityEditor.Rendering.HighDefinition
             },
             UseInPreview = false
         };
+
+        Pass m_PassLidarRayTracing = new Pass()
+        {
+            Name = "LidarDXR",
+            LightMode = "LidarDXR",
+            TemplateName = "HDLitPass.template",
+            MaterialName = "Lit",
+            ShaderPassName = "SHADERPASS_LIDAR_DXR",
+            ShaderStages = HDSubShaderUtilities.s_ShaderStagesRayTracing,
+            ExtraDefines = new List<string>()
+            {
+                "#define SHADOW_LOW",
+                "#pragma shader_feature SHADERPASS_LIDAR_DXR",
+                DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
+            },
+            Includes = new List<string>()
+            {
+                "#include \"Packages/com.unity.sensor/Runtime/Sensors/Components/Resources/SensorShaderPassPathTracing.hlsl\"",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.AlbedoSlotId,
+                HDLitMasterNode.NormalSlotId,
+                HDLitMasterNode.BentNormalSlotId,
+                HDLitMasterNode.TangentSlotId,
+                HDLitMasterNode.SubsurfaceMaskSlotId,
+                HDLitMasterNode.ThicknessSlotId,
+                HDLitMasterNode.DiffusionProfileHashSlotId,
+                HDLitMasterNode.IridescenceMaskSlotId,
+                HDLitMasterNode.IridescenceThicknessSlotId,
+                HDLitMasterNode.SpecularColorSlotId,
+                HDLitMasterNode.CoatMaskSlotId,
+                HDLitMasterNode.MetallicSlotId,
+                HDLitMasterNode.EmissionSlotId,
+                HDLitMasterNode.SmoothnessSlotId,
+                HDLitMasterNode.AmbientOcclusionSlotId,
+                HDLitMasterNode.SpecularOcclusionSlotId,
+                HDLitMasterNode.AlphaSlotId,
+                HDLitMasterNode.AlphaThresholdSlotId,
+                HDLitMasterNode.AnisotropySlotId,
+                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
+                HDLitMasterNode.SpecularAAThresholdSlotId,
+                HDLitMasterNode.RefractionIndexSlotId,
+                HDLitMasterNode.RefractionColorSlotId,
+                HDLitMasterNode.RefractionDistanceSlotId,
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                HDLitMasterNode.PositionSlotId,
+                HDLitMasterNode.VertexNormalSlotID,
+                HDLitMasterNode.VertexTangentSlotID
+            },
+            UseInPreview = false
+        };
         public int GetPreviewPassIndex() { return 0; }
 
         private static ActiveFields GetActiveFieldsFromMasterNode(AbstractMaterialNode iMasterNode, Pass pass)
@@ -1330,6 +1384,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     GenerateShaderPassLit(masterNode, m_PassRaytracingGBuffer, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassRaytracingSubSurface, mode, subShader, sourceAssetDependencyPaths);
                     GenerateShaderPassLit(masterNode, m_PassPathTracing, mode, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassLidarRayTracing, mode, subShader, sourceAssetDependencyPaths);
                 }
                 subShader.Deindent();
                 subShader.AddShaderChunk("}", false);
