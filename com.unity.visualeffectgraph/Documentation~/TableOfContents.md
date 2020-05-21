@@ -42,6 +42,7 @@
         * [Negate](Operator-Negate.md)
         * [One Minus](Operator-OneMinus)
         * [Sign](Operator-Sign.md)
+        * [Square Root](Operator-SquareRoot.md)
         * [Subtract](Operator-Subtract.md)
       * Trigonometry
         * [Acos](Operator-Acos.md)
