@@ -40,11 +40,10 @@ Use Volumes to localize environmental Scene settings and post-processing effects
 HDRP Shaders allow you to use the following features:
 
 - [Opaque/transparent surfaces](Surface-Type.md).
-
-  - Different blend modes for transparent surfaces.
+- Different blend modes for transparent surfaces.
   - Transparent surfaces that work with fog.
   - Refraction and distortion for transparent surfaces.
-
+  
 - [Material types](Material-Type.md).
 
   - Anisotropy, for surfaces that have highlights that change when you view them from different angles, like brushed metal or velvet.
@@ -116,7 +115,7 @@ The Decal Shader allows you to place decals on surfaces in your Scene. To apply 
 
 ![](Images/HDRPFeatures-TerrainShader.png)
 
-The Terrain Lit Shader is compatible with the built-in terrain system and supports up to eight layers in a single draw call. This Shader uses the same lighting model as the Lit Shader.
+The Terrain Lit Shader is compatible with the built-in terrain system and supports up to eight layers in a single draw call. This Shader uses the same lighting model as the Lit Shader. For more information, including the full list of Shader properties, see the [Terrain Lit Shader documentation](Terrain-Lit-Shader.md).
 
 <a name="Lighting"></a>
 
