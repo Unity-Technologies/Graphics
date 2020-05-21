@@ -6,7 +6,7 @@ Use the **Graph Settings Menu** to change settings that affect the Shader Graph 
 
 ![](images/GraphSettings_Button.png)
 
-Pressing the button shows the [Inspector](Inspector.md) if it was hidden and displays the graph settings within it.
+Pressing the button shows the [Inspector](Internal-Inspector.md) if it was hidden and displays the graph settings within it.
 
 ![](images/GraphSettings_Menu.png)
 

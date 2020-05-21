@@ -12,14 +12,16 @@ The title bar at the top of the **Shader Graph Window** contains actions that ca
 
 | Item        | Description |
 |:------------|:------------|
-| Save Asset | Saves the graph to update the [Shader Graph Asset](index.md) |
-| Save As... | Saves the graph to a new [Shader Graph Asset](index.md) at the specified location|
-| Show In Project | Hightlights the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
-| Check Out | When version control is enabled and configured in your project, will check out the Shader Graph Asset for editing. If version control is not enabled or configured for your project, this button will be greyed out. |
-| Color Mode | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
-| Blackboard | Toggles visibility of the [Blackboard](Blackboard.md). |
-| Inspector | Toggles visibility of the [Inspector](). |
-| Main Preview | Toggles visbility of the [Main Preview](Master-Preview.md). |
+| Save Asset        | Saves the graph to update the [Shader Graph Asset](index.md) |
+| Save As           | Opens a file dialog that allows the user to save out the [Shader Graph Asset](index.md) under a new name. |
+| Show In Project   | Highlights the [Shader Graph Asset](index.md) in the [Project Window](https://docs.unity3d.com/Manual/ProjectView.html) |
+| Graph Settings    | Toggles visibility of the [Inspector](Internal-Inspector.md) if it is currently hidden and displays graph-level settings like the overall graph precision.  |
+| Precision Mode    | Provides the drop down menu to select a [Precision Mode](Precision-Modes.md) for the graph. |
+| Check Out         | If version control is enabled, this will check out the [Shader Graph Asset](index.md) from the source control provider. |
+| Color Mode        | Provides the drop down menu to select a [Color Mode](Color-Modes.md) for the graph. |
+| Blackboard        | Toggles visibility of the [Blackboard](Blackboard.md). |
+| Inspector         | Toggles visibility of the [Inspector](Internal-Inspector.md). |
+| Master Preview    | Toggles visbility of the [Master Preview](Master-Preview.md). |
 
 ## Workspace
 

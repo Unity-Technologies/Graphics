@@ -45,9 +45,9 @@ An area that contains all of the shader's properties in a single, collected view
 
 After you've set up a project, and become familiar with the Shader Graph window, see [My first Shader Graph](First-Shader-Graph) for more information on how to get started.
 
-### Inspector
+### Internal Inspector
 
-Introduced in 20.2, this is an area that contains information contextual to whatever the user is currently clicking on. It's a window that automatically is hidden by default and only appears when something is selected that can be edited by the user. Use the Inspector to display and modify properties, node options, and the graph settings.  
+Introduced in 20.2, this is an area that contains information contextual to whatever the user is currently clicking on. It's a window that automatically is hidden by default and only appears when something is selected that can be edited by the user. Use the Internal Inspector to display and modify properties, node options, and the graph settings. See [Internal Inspector](Internal-Inspector.md) for more information.
 
 ![](images/Inspector.png)
 

@@ -61,4 +61,4 @@ The Custom Function node, on its own, is a single node instance. If you wish to 
 
 ![11](images/Custom-Function-Node-Subgraph.png)
 
-Create your custom function either directly in a Sub Graph, or right-click the existing Custom Function node and select `Convert to Sub Graph`. Add the appropriate input and output ports using the [Internal Inspector](Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md). After this, you can reuse your custom function as many times as needed, even within other Sub Graphs. 
+Create your custom function either directly in a Sub Graph, or right-click the existing Custom Function node and select `Convert to Sub Graph`. Add the appropriate input and output ports using the [Internal Inspector](Internal-Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md). After this, you can reuse your custom function as many times as needed, even within other Sub Graphs. 
