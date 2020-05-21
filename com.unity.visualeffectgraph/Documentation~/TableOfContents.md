@@ -31,6 +31,8 @@
   * Operator
     * Math
       * Arithmetic
+        * [Absolute](Operator-Absolute.md)
+        * [Add](Operator-Add.md)
         * [Divide](Operator-Divide.md)
         * [Fractional](Operator-Fractional.md)
         * [Inverse Lerp](Operator-InverseLerp.md)
@@ -39,6 +41,7 @@
         * [Multiply](Operator-Multiply.md)
         * [Negate](Operator-Negate.md)
         * [One Minus](Operator-OneMinus)
+        * [Sign](Operator-Sign.md)
         * [Subtract](Operator-Subtract.md)
       * Trigonometry
         * [Acos](Operator-Acos.md)
