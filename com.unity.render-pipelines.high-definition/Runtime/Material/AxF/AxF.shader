@@ -156,20 +156,26 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
-    #pragma shader_feature_local_fragment_raytracing _DISABLE_DECALS
-    #pragma shader_feature_local_fragment_raytracing _DISABLE_SSR
-    #pragma shader_feature_local_fragment_raytracing _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local_fragment _DISABLE_DECALS
+    #pragma shader_feature_local_fragment _DISABLE_SSR
+    #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local_raytracing _DISABLE_DECALS
+    #pragma shader_feature_local_raytracing _DISABLE_SSR
+    #pragma shader_feature_local_raytracing _ENABLE_GEOMETRIC_SPECULAR_AA
 
     #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local_fragment_raytracing _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local_fragment_raytracing _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
+    #pragma shader_feature_local_fragment _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local_fragment _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
+    #pragma shader_feature_local_raytracing _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local_raytracing _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
     #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
 
     // enable dithering LOD crossfade
-    #pragma multi_compile_fragment_raytracing _ LOD_FADE_CROSSFADE
+    #pragma multi_compile_fragment _ LOD_FADE_CROSSFADE
+    #pragma multi_compile_raytracing _ LOD_FADE_CROSSFADE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
