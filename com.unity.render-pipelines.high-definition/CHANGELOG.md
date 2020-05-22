@@ -57,6 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
 - Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
