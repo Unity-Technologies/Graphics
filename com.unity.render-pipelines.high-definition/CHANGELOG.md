@@ -751,6 +751,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the sub surface mask not being taken into account when computing ray traced sub surface scattering.
 - Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
 - Changed default exposure compensation to 0.
+- Refactored shadow caching system.
 
 ## [7.1.1] - 2019-09-05
 

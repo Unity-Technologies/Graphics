@@ -775,10 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager = HDShadowManager.instance;
             m_ShadowManager.InitShadowManager(
                 defaultResources,
-                m_ShadowInitParameters.directionalShadowsDepthBits,
-                m_ShadowInitParameters.punctualLightShadowAtlas,
-                m_ShadowInitParameters.areaLightShadowAtlas,
-                m_ShadowInitParameters.maxShadowRequests,
+                m_ShadowInitParameters,
                 defaultResources.shaders.shadowClearPS
             );
         }
@@ -2569,6 +2566,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
+            HDShadowManager.cachedShadowManager.AssignSlotsInAtlases();
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
             {
                 Camera camera = hdCamera.camera;
@@ -2630,8 +2629,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     int processedProbesCount = PreprocessVisibleProbes(hdCamera, cullResults, hdProbeCullingResults, aovRequest);
                     PrepareGPUProbeData(cmd, hdCamera, cullResults, hdProbeCullingResults, processedProbesCount);
                 }
-
-                HDShadowManager.instance.CheckForCulledCachedShadows();
 
                 if (decalDatasCount > 0)
                 {
@@ -4137,12 +4134,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
+                        case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
+                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
                         case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
                             parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
                         case ShadowMapDebugMode.VisualizeAreaLightAtlas:
                             parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
+                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
                         default:
