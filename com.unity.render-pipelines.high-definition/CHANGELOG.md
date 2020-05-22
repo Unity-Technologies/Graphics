@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added Light decomposition lighting debugging modes and support in AOV
-- Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
