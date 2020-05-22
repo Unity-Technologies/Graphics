@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
-                passData.alphaTexture = builder.ReadTexture(m_KeepAlpha ? alphaTexture : renderGraph.ImportTexture(TextureXR.GetWhiteTexture()));
+                passData.alphaTexture = builder.ReadTexture(m_KeepAlpha ? alphaTexture : renderGraph.defaultResources.whiteTextureXR);
                 passData.destination = builder.WriteTexture(finalRT);
 
                 builder.SetRenderFunc(
