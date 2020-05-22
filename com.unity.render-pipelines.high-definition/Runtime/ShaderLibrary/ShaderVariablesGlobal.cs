@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Global = 0,
         XR = 1,
         PBRSky = 2,
+        RayTracing = 3,
+        RayTracingLightLoop = 4,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -144,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
+        public Vector4 _CachedShadowAtlasSize;
+        public Vector4 _CachedAreaShadowAtlasSize;
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];

@@ -55,6 +55,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_Blit = CoreUtils.CreateEngineMaterial(renderPipelineResources.shaders.blitPS);
 
+            InitializeNonRenderGraphResources();
+        }
+
+        public void ReleaseData()
+        {
+            CoreUtils.Destroy(m_Blit);
+            CoreUtils.Destroy(m_DebugLightVolumeMaterial);
+
+            CleanupNonRenderGraphResources();
+        }
+
+        public void InitializeNonRenderGraphResources()
+        {
             m_LightCountBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeCount");
             m_ColorAccumulationBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: false, useMipMap: false, name: "LightVolumeColorAccumulation");
             m_DebugLightVolumesTexture = RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite: true, useMipMap: false, name: "LightVolumeDebugLightVolumesTexture");
@@ -64,16 +77,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTIDs[1] = m_ColorAccumulationBuffer;
         }
 
-        public void ReleaseData()
+        public void CleanupNonRenderGraphResources()
         {
-            CoreUtils.Destroy(m_Blit);
-
             RTHandles.Release(m_DepthBuffer);
             RTHandles.Release(m_DebugLightVolumesTexture);
             RTHandles.Release(m_ColorAccumulationBuffer);
             RTHandles.Release(m_LightCountBuffer);
-
-            CoreUtils.Destroy(m_DebugLightVolumeMaterial);
         }
 
         public struct RenderLightVolumesParameters

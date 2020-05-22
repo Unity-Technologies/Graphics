@@ -121,7 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareLightsForGPU,
 
         // Profile sampler for shadow
-        PushShadowGlobalParameters,
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
