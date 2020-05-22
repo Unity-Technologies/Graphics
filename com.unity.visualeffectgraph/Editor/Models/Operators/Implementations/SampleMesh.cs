@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttributeFlag> vertexAttributes) //TODOPAUL replace VertexAttributeFlag by VertexAttribute
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
