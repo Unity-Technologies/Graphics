@@ -238,14 +238,14 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        private void SampleVertex(VFXExpression sourceMesh, VFXExpression meshVertexCount, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttributeFlag> vertexAttributes)
         {
-            var mesh = source == SourceType.Mesh ? sourceMesh : new VFXExpressionMeshFromSkinnedMeshRenderer(sourceMesh);
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
 
-            foreach (var vertexAttribute in GetOutputVertexAttributes())
+            foreach (var vertexAttribute in vertexAttributes)
             {
                 var channelIndex = VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute));
-
                 var meshVertexStride = new VFXExpressionMeshVertexStride(mesh, channelIndex);
                 var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, channelIndex);
 
@@ -255,153 +255,185 @@ namespace UnityEditor.VFX.Operator
                 var meshChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, channelIndex);
                 var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
 
-                if (source == SourceType.Mesh)
+                if (!skinnedMesh)
                 {
                     if (vertexAttribute == VertexAttributeFlag.Color)
-                        sampled = new VFXExpressionSampleMeshColor(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleMeshColor(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(float))
-                        sampled = new VFXExpressionSampleMeshFloat(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleMeshFloat(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(Vector2))
-                        sampled = new VFXExpressionSampleMeshFloat2(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleMeshFloat2(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(Vector3))
-                        sampled = new VFXExpressionSampleMeshFloat3(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleMeshFloat3(source, vertexOffset, meshChannelFormatAndDimension);
                     else
-                        sampled = new VFXExpressionSampleMeshFloat4(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleMeshFloat4(source, vertexOffset, meshChannelFormatAndDimension);
                 }
                 else
                 {
                     if (vertexAttribute == VertexAttributeFlag.Color)
-                        sampled = new VFXExpressionSampleSkinnedMeshRendererColor(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererColor(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(float))
-                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(Vector2))
-                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat2(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat2(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(Vector3))
-                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat3(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat3(source, vertexOffset, meshChannelFormatAndDimension);
                     else
-                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat4(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
+                        sampled = new VFXExpressionSampleSkinnedMeshRendererFloat4(source, vertexOffset, meshChannelFormatAndDimension);
                 }
+
+                yield return sampled;
+            }
+        }
+
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        {
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
+            var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
+            vertexIndex = VFXOperatorUtility.ApplyAddressingMode(vertexIndex, meshVertexCount, mode);
+            return SampleVertexAttribute(source, vertexIndex, vertexAttributes);
+        }
+
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        {
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
+
+            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+            var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
+
+            var oneInt = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Int32];
+            var oneUint = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Uint32];
+            var threeUint = VFXValue.Constant(3u);
+
+            var baseIndex = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount, mode);
+            var nextIndex = baseIndex + oneUint;
+
+            //Loop triangle
+            var loop = VFXOperatorUtility.Modulo(nextIndex, threeUint);
+            var predicat = new VFXExpressionCondition(VFXCondition.NotEqual, new VFXExpressionCastUintToFloat(loop), VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float]);
+            nextIndex = new VFXExpressionBranch(predicat, nextIndex, nextIndex - threeUint);
+
+            var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
+            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
+
+            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
+            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
+
+            for (int i = 0; i < vertexAttributes.Count(); ++i)
+            {
+                var outputValueType = sampling_A[i].valueType;
+                var s = VFXOperatorUtility.CastFloat(x, outputValueType);
+                yield return VFXOperatorUtility.Lerp(sampling_A[i], sampling_B[i], s);
+            }
+        }
+
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        {
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
+
+            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+            var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
+
+            var UintThree = VFXValue.Constant<uint>(3u);
+            var triangleCount = meshIndexCount / UintThree;
+            triangleIndex = VFXOperatorUtility.ApplyAddressingMode(triangleIndex, triangleCount, mode);
+            var baseIndex = triangleIndex * UintThree;
+
+            var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
+            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(1u), meshIndexFormat);
+            var sampledIndex_C = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(2u), meshIndexFormat);
+
+            var allInputValues = new List<VFXExpression>();
+            var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
+            var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
+            var sampling_C = SampleVertexAttribute(source, sampledIndex_C, vertexAttributes).ToArray();
+
+            VFXExpression barycentricCoordinates = null;
+            var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
+            if (coordMode == SurfaceCoordinates.Barycentric)
+            {
+                var barycentricCoordinateInput = coord;
+                barycentricCoordinates = new VFXExpressionCombine(barycentricCoordinateInput.x, barycentricCoordinateInput.y, one - barycentricCoordinateInput.x - barycentricCoordinateInput.y);
+            }
+            else if (coordMode == SurfaceCoordinates.Uniform)
+            {
+                //https://hal.archives-ouvertes.fr/hal-02073696v2/document
+                var input = coord;
+
+                var half2 = VFXOperatorUtility.HalfExpression[UnityEngine.VFX.VFXValueType.Float2];
+                var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
+                var t = input * half2;
+                var offset = t.y - t.x;
+                var pred = new VFXExpressionCondition(VFXCondition.Greater, offset, zero);
+                var t2 = new VFXExpressionBranch(pred, t.y + offset, t.y);
+                var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
+                var t3 = one - t2 - t1;
+                barycentricCoordinates = new VFXExpressionCombine(t1, t2, t3);
+
+                /* Possible variant See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
+                var input = VFXOperatorUtility.Saturate(inputExpression[2]);
+                var s = input.x;
+                var t = VFXOperatorUtility.Sqrt(input.y);
+                var a = one - t;
+                var b = (one - s) * t;
+                var c = s * t;
+                barycentricCoordinates = new VFXExpressionCombine(a, b, c);
+                */
+            }
+            else
+            {
+                throw new InvalidOperationException("No supported surfaceCoordinates : " + coord);
+            }
+
+            for (int i = 0; i < vertexAttributes.Count(); ++i)
+            {
+                var outputValueType = sampling_A[i].valueType;
+
+                var barycentricCoordinateX = VFXOperatorUtility.CastFloat(barycentricCoordinates.x, outputValueType);
+                var barycentricCoordinateY = VFXOperatorUtility.CastFloat(barycentricCoordinates.y, outputValueType);
+                var barycentricCoordinateZ = VFXOperatorUtility.CastFloat(barycentricCoordinates.z, outputValueType);
+
+                var r = sampling_A[i] * barycentricCoordinateX + sampling_B[i] * barycentricCoordinateY + sampling_C[i] * barycentricCoordinateZ;
+                yield return r;
+            }
+        }
+
+        //TODOPAUL clean this
+        private void SampleVertex(VFXExpression sourceMesh, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
+        {
+            foreach (var vertexAttribute in GetOutputVertexAttributes())
+            {
+                var sampled = SampleVertexAttribute(sourceMesh, vertexIndex, new[] { vertexAttribute }).First();
                 sampledValues.Add(sampled);
             }
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var sourceMesh = inputExpression[0];
-            var mesh = source == SourceType.Mesh ? sourceMesh : new VFXExpressionMeshFromSkinnedMeshRenderer(sourceMesh);
-
-            var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
-            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
-            var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
-
-            var outputExpressions = new List<VFXExpression>();
+            VFXExpression[] outputExpressions = null;
             if (placementMode == PlacementMode.Vertex)
             {
-                var vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshVertexCount, mode);
-                SampleVertex(sourceMesh, meshVertexCount, vertexIndex, outputExpressions);
+                var sampled = SampleVertexAttribute(inputExpression[0], inputExpression[1], mode, GetOutputVertexAttributes());
+                outputExpressions = sampled.ToArray();
             }
             else if (placementMode == PlacementMode.Edge)
             {
-                var oneInt = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Int32];
-                var oneUint = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Uint32];
-                var threeUint = VFXValue.Constant(3u);
-
-                var baseIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], meshIndexCount, mode);
-                var nextIndex = baseIndex + oneUint;
-
-                //Loop triangle
-                var loop = VFXOperatorUtility.Modulo(nextIndex, threeUint);
-                var predicat = new VFXExpressionCondition(VFXCondition.NotEqual, new VFXExpressionCastUintToFloat(loop), VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float]);
-                nextIndex = new VFXExpressionBranch(predicat, nextIndex, nextIndex - threeUint);
-
-                var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
-                var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
-
-                var allInputValues = new List<VFXExpression>();
-                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_B, allInputValues);
-
-                var attributeCount = GetOutputVertexAttributes().Count();
-                for (int i = 0; i < attributeCount; ++i)
-                {
-                    var sampleValue_A = allInputValues[i];
-                    var sampleValue_B = allInputValues[i + attributeCount];
-
-                    var outputValueType = sampleValue_A.valueType;
-                    var s = VFXOperatorUtility.CastFloat(inputExpression[2], outputValueType);
-                    outputExpressions.Add(VFXOperatorUtility.Lerp(sampleValue_A, sampleValue_B, s));
-                }
+                var sampled = SampleEdgeAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, GetOutputVertexAttributes());
+                outputExpressions = sampled.ToArray();
             }
             else if (placementMode == PlacementMode.Surface)
             {
-                var UintThree = VFXValue.Constant<uint>(3u);
-                var triangleCount = meshIndexCount / UintThree;
-                var triangleIndex = VFXOperatorUtility.ApplyAddressingMode(inputExpression[1], triangleCount, mode);
-                var baseIndex = triangleIndex * UintThree;
-
-                var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
-                var sampledIndex_B = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(1u), meshIndexFormat);
-                var sampledIndex_C = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(2u), meshIndexFormat);
-
-                var allInputValues = new List<VFXExpression>();
-                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_A, allInputValues);
-                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_B, allInputValues);
-                SampleVertex(sourceMesh, meshVertexCount, sampledIndex_C, allInputValues);
-
-                var attributeCount = GetOutputVertexAttributes().Count();
-                for (int i = 0; i < attributeCount; ++i)
-                {
-                    var sampleValue_A = allInputValues[i];
-                    var sampleValue_B = allInputValues[i + attributeCount];
-                    var sampleValue_C = allInputValues[i + attributeCount*2];
-                    var outputValueType = sampleValue_A.valueType;
-
-                    VFXExpression barycentricCoordinates = null;
-                    var one = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Float];
-                    if (surfaceCoordinates == SurfaceCoordinates.Barycentric)
-                    {
-                        var barycentricCoordinateInput = inputExpression[2];
-                        barycentricCoordinates = new VFXExpressionCombine(barycentricCoordinateInput.x, barycentricCoordinateInput.y, one - barycentricCoordinateInput.x - barycentricCoordinateInput.y);
-                    }
-                    else if (surfaceCoordinates == SurfaceCoordinates.Uniform)
-                    {
-                        //https://hal.archives-ouvertes.fr/hal-02073696v2/document
-                        var input = inputExpression[2];
-
-                        var half2 = VFXOperatorUtility.HalfExpression[UnityEngine.VFX.VFXValueType.Float2];
-                        var zero = VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float];
-                        var t = input * half2;
-                        var offset = t.y - t.x;
-                        var pred = new VFXExpressionCondition(VFXCondition.Greater, offset, zero);
-                        var t2 = new VFXExpressionBranch(pred, t.y + offset, t.y);
-                        var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
-                        var t3 = one - t2 - t1;
-                        barycentricCoordinates = new VFXExpressionCombine(t1, t2, t3);
-
-                        /* Possible variant See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
-                        var input = VFXOperatorUtility.Saturate(inputExpression[2]);
-                        var s = input.x;
-                        var t = VFXOperatorUtility.Sqrt(input.y);
-                        var a = one - t;
-                        var b = (one - s) * t;
-                        var c = s * t;
-                        barycentricCoordinates = new VFXExpressionCombine(a, b, c);
-                        */
-                    }
-                    else
-                    {
-                        throw new Exception("No supported surfaceCoordinates : " + surfaceCoordinates);
-                    }
-
-                    var barycentricCoordinateX = VFXOperatorUtility.CastFloat(barycentricCoordinates.x, outputValueType);
-                    var barycentricCoordinateY = VFXOperatorUtility.CastFloat(barycentricCoordinates.y, outputValueType);
-                    var barycentricCoordinateZ = VFXOperatorUtility.CastFloat(barycentricCoordinates.z, outputValueType);
-
-                    var r = sampleValue_A * barycentricCoordinateX + sampleValue_B * barycentricCoordinateY + sampleValue_C * barycentricCoordinateZ;
-                    outputExpressions.Add(r);
-                }
+                var sampled = SampleTriangleAttribute(inputExpression[0], inputExpression[1], inputExpression[2], mode, surfaceCoordinates, GetOutputVertexAttributes());
+                outputExpressions = sampled.ToArray();
             }
-            return outputExpressions.ToArray();
+            else
+            {
+                throw new InvalidOperationException("Not supported placement mode " + placementMode);
+            }
+            return outputExpressions;
         }
     }
 }

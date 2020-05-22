@@ -3,10 +3,25 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", experimental = true)]
+    class PositionMeshProvider : VariantProvider
+    {
+        protected override sealed Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "sourceMesh", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray() },
+                };
+            }
+        }
+    }
+
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionMeshProvider), experimental = true)]
     class PositionMesh : PositionBase
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
@@ -18,12 +33,36 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        public override string name { get { return "Position (Mesh)"; } }
+        //[VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
+        //private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
+
+        //[VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
+        //private SampleMesh.SurfaceCoordinates surfaceCoordinates = SampleMesh.SurfaceCoordinates.Uniform;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Choose between classic mesh sampling or skinned renderer mesh sampling.")]
+        private SampleMesh.SourceType sourceMesh = SampleMesh.SourceType.Mesh;
+
+        public override string name
+        {
+            get
+            {
+                if (sourceMesh == SampleMesh.SourceType.Mesh)
+                    return "Position (Mesh)";
+                else
+                    return "Position (Skinned Mesh)";
+            }
+        }
 
         public class CustomPropertiesMesh
         {
             [Tooltip("Sets the Mesh to sample from.")]
             public Mesh mesh = VFXResources.defaultResources.mesh;
+        }
+
+        public class CustomPropertiesPropertiesSkinnedMeshRenderer
+        {
+            [Tooltip("Sets the Mesh to sample from, has to be an exposed entry.")]
+            public SkinnedMeshRenderer skinnedMesh = null;
         }
 
         public class CustomPropertiesVertex
@@ -109,7 +148,10 @@ namespace UnityEditor.VFX.Block
             {
                 var properties = base.inputProperties;
 
-                properties = properties.Concat(PropertiesFromType("CustomPropertiesMesh"));
+                if (sourceMesh == SampleMesh.SourceType.Mesh)
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesMesh"));
+                else
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesPropertiesSkinnedMeshRenderer"));
 
                 if (/*Placement == PlacementMode.Vertex &&*/ spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));

@@ -53,6 +53,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMeshFromSkinnedMeshRenderer(VFXExpression skinnedMesh) : base(Flags.InvalidOnGPU, new VFXExpression[] { skinnedMesh })
         {
+            if (skinnedMesh.valueType != VFXValueType.SkinnedMeshRenderer)
+                throw new InvalidOperationException("Unexpected input type in VFXExpressionMeshFromSkinnedMeshRenderer : " + skinnedMesh.valueType);
         }
 
         public sealed override VFXExpressionOperation operation { get { return VFXExpressionOperation.MeshFromSkinnedMeshRenderer; } }
