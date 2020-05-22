@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -467,6 +467,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     type = KeywordType.Boolean,
                     definition = KeywordDefinition.ShaderFeature,
                     scope = KeywordScope.Global,
+                    stages = KeywordShaderStage.Fragment,
                 };
 
                 public static KeywordDescriptor Decals4RT = new KeywordDescriptor()
@@ -476,6 +477,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     type = KeywordType.Boolean,
                     definition = KeywordDefinition.ShaderFeature,
                     scope = KeywordScope.Global,
+                    stages = KeywordShaderStage.Fragment,
                 };
             }
 

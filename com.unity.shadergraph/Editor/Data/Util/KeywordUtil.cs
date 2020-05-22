@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
                     new KeywordEntry("Medium", "MEDIUM"),
                     new KeywordEntry("Low", "LOW"),
                 },
+                stages = KeywordShaderStage.All,
             };
         }
     }
@@ -65,11 +66,33 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static string ToKeywordStagesString(this KeywordShaderStage stages)
+        {
+            string outString = "";
+
+            if (stages == KeywordShaderStage.All)
+                return outString;
+            if ((stages & KeywordShaderStage.Vertex) == KeywordShaderStage.Vertex)
+                outString += "_vertex";
+            if ((stages & KeywordShaderStage.Fragment) == KeywordShaderStage.Fragment)
+                outString += "_fragment";
+            if ((stages & KeywordShaderStage.Geometry) == KeywordShaderStage.Geometry)
+                outString += "_geometry";
+            if ((stages & KeywordShaderStage.Hull) == KeywordShaderStage.Hull)
+                outString += "_hull";
+            if ((stages & KeywordShaderStage.Domain) == KeywordShaderStage.Domain)
+                outString += "_domain";
+            if ((stages & KeywordShaderStage.RayTracing) == KeywordShaderStage.RayTracing)
+                outString += "_raytracing";
+
+            return outString;
+        }
+
         public static string ToDeclarationString(this KeywordDescriptor keyword)
         {
             // Get definition type using scope
             string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
-            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}";
+            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}{keyword.stages.ToKeywordStagesString()}";
 
             switch(keyword.type)
             {

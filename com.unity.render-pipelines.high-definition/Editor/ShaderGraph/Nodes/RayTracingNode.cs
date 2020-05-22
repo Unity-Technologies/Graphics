@@ -46,6 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     new KeywordEntry("High", "HIGH"),
                     new KeywordEntry("Low", "LOW"),
                 },
+                stages = KeywordShaderStage.RayTracing,
             };
         }
     }

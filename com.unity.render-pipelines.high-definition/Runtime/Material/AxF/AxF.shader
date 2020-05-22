@@ -156,20 +156,20 @@ Shader "HDRP/AxF"
     #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
-    #pragma shader_feature_local _DISABLE_DECALS
-    #pragma shader_feature_local _DISABLE_SSR
-    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
+    #pragma shader_feature_local_fragment_raytracing _DISABLE_DECALS
+    #pragma shader_feature_local_fragment_raytracing _DISABLE_SSR
+    #pragma shader_feature_local_fragment_raytracing _ENABLE_GEOMETRIC_SPECULAR_AA
 
-    #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
+    #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
-    #pragma shader_feature_local _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
-    #pragma shader_feature_local _ENABLE_FOG_ON_TRANSPARENT
+    #pragma shader_feature_local_fragment_raytracing _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    #pragma shader_feature_local_fragment_raytracing _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
+    #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
 
     // enable dithering LOD crossfade
-    #pragma multi_compile _ LOD_FADE_CROSSFADE
+    #pragma multi_compile_fragment_raytracing _ LOD_FADE_CROSSFADE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
@@ -305,7 +305,7 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #define WRITE_NORMAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -342,7 +342,7 @@ Shader "HDRP/AxF"
             HLSLPROGRAM
 
             #define WRITE_NORMAL_BUFFER
-            #pragma multi_compile _ WRITE_MSAA_DEPTH
+            #pragma multi_compile_fragment _ WRITE_MSAA_DEPTH
 
             #define SHADERPASS SHADERPASS_MOTION_VECTORS
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -380,13 +380,13 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma multi_compile _ DEBUG_DISPLAY
-            #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_fragment _ DEBUG_DISPLAY
+            #pragma multi_compile_fragment _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
-            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile_fragment DECALS_OFF DECALS_3RT DECALS_4RT
 
             // Supported shadow modes per light type
             #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
