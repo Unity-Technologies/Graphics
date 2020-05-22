@@ -300,7 +300,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
-            CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
 
             m_EmptyExposureTexture  = null;
