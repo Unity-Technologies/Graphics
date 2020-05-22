@@ -123,15 +123,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        static List<Type> s_ComponentTypes;
+
         /// <summary>List of Volume component types.</summary>
         static public List<Type> componentTypes
         {
             get
             {
-                return VolumeManager.instance.baseComponentTypes
+                if (s_ComponentTypes == null)
+                {
+                    s_ComponentTypes = VolumeManager.instance.baseComponentTypes
                     .Where(t => !t.IsDefined(typeof(VolumeComponentDeprecated), false))
                     .OrderBy(t => ComponentDisplayName(t))
                     .ToList();
+                }
+                return s_ComponentTypes;
             }
         }
 

@@ -130,6 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_MotionBlurSupportsScattering;
 
+        bool m_NonRenderGraphResourcesAvailable;
+
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
 
@@ -159,14 +161,86 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
-            // Project-wise LUT size for all grading operations - meaning that internal LUTs and
-            // user-provided LUTs will have to be this size
-            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
-            m_LutSize = settings.lutSize;
-            var lutFormat = (GraphicsFormat)settings.lutFormat;
+            var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+            m_LutSize = postProcessSettings.lutSize;
 
             // Grading specific
             m_HableCurve = new HableCurve();
+
+            m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
+            // TODO: Remove this line when atomic bug in HLSLcc is fixed.
+            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
+            // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
+            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
+
+            // Initialize our target pool to ease RT management
+            m_Pool = new TargetPool();
+
+            // Use a custom RNG, we don't want to mess with the Unity one that the users might be
+            // relying on (breaks determinism in their code)
+            m_Random = new System.Random();
+
+            m_ColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
+            m_KeepAlpha = false;
+
+            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
+
+            if (m_EnableAlpha == false)
+            {
+                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
+            }
+
+            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
+            InitializeNonRenderGraphResources(hdAsset);
+        }
+
+        public void Cleanup()
+        {
+            CleanupNonRenderGraphResources();
+
+            CoreUtils.Destroy(m_ExposureCurveTexture);
+            CoreUtils.Destroy(m_InternalSpectralLut);
+            CoreUtils.Destroy(m_FinalPassMaterial);
+            CoreUtils.Destroy(m_ClearBlackMaterial);
+            CoreUtils.Destroy(m_SMAAMaterial);
+            CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.SafeRelease(m_BokehNearKernel);
+            CoreUtils.SafeRelease(m_BokehFarKernel);
+            CoreUtils.SafeRelease(m_BokehIndirectCmd);
+            CoreUtils.SafeRelease(m_NearBokehTileList);
+            CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
+            CoreUtils.SafeRelease(m_HistogramBuffer);
+            RTHandles.Release(m_DebugExposureData);
+
+            m_ExposureCurveTexture      = null;
+            m_InternalSpectralLut       = null;
+            m_FinalPassMaterial         = null;
+            m_ClearBlackMaterial        = null;
+            m_SMAAMaterial              = null;
+            m_TemporalAAMaterial        = null;
+            m_BokehNearKernel           = null;
+            m_BokehFarKernel            = null;
+            m_BokehIndirectCmd          = null;
+            m_NearBokehTileList         = null;
+            m_FarBokehTileList          = null;
+            m_HistogramBuffer           = null;
+            m_DebugExposureData         = null;
+
+        }
+
+        public void InitializeNonRenderGraphResources(HDRenderPipelineAsset hdAsset)
+        {
+            m_NonRenderGraphResourcesAvailable = true;
+
+            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+
+            // Project-wide LUT size for all grading operations - meaning that internal LUTs and
+            // user-provided LUTs will have to be this size
+            var lutFormat = (GraphicsFormat)settings.lutFormat;
+
             m_InternalLogLut = RTHandles.Alloc(
                 name: "Color Grading Log Lut",
                 dimension: TextureDimension.Tex3D,
@@ -194,21 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Debug Exposure Info"
             );
 
-
-            m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
-            // TODO: Remove this line when atomic bug in HLSLcc is fixed.
-            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
-            // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
-            m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
-
             FillEmptyExposureTexture();
-
-            // Initialize our target pool to ease RT management
-            m_Pool = new TargetPool();
-
-            // Use a custom RNG, we don't want to mess with the Unity one that the users might be
-            // relying on (breaks determinism in their code)
-            m_Random = new System.Random();
 
             // Misc targets
             m_TempTexture1024 = RTHandles.Alloc(
@@ -221,18 +281,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
 
-            m_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
-            m_KeepAlpha = false;
-
-            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.supportsAlpha;
-
-            if (m_EnableAlpha == false)
-            {
-                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
-            }
-
             if (m_KeepAlpha)
             {
                 m_AlphaTexture = RTHandles.Alloc(
@@ -242,48 +290,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Cleanup()
+        public void CleanupNonRenderGraphResources()
         {
+            m_NonRenderGraphResourcesAvailable = false;
+
             m_Pool.Cleanup();
 
             RTHandles.Release(m_EmptyExposureTexture);
-            RTHandles.Release(m_DebugExposureData);
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
-            CoreUtils.Destroy(m_ExposureCurveTexture);
-            CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
-            CoreUtils.Destroy(m_FinalPassMaterial);
-            CoreUtils.Destroy(m_ClearBlackMaterial);
-            CoreUtils.Destroy(m_SMAAMaterial);
-            CoreUtils.Destroy(m_TemporalAAMaterial);
-            CoreUtils.SafeRelease(m_BokehNearKernel);
-            CoreUtils.SafeRelease(m_BokehFarKernel);
-            CoreUtils.SafeRelease(m_BokehIndirectCmd);
-            CoreUtils.SafeRelease(m_NearBokehTileList);
-            CoreUtils.SafeRelease(m_FarBokehTileList);
-            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
-            m_EmptyExposureTexture      = null;
-            m_DebugExposureData         = null;
-            m_TempTexture1024           = null;
-            m_TempTexture32             = null;
-            m_AlphaTexture              = null;
-            m_ExposureCurveTexture      = null;
-            m_HistogramBuffer           = null;
-            m_InternalSpectralLut       = null;
-            m_InternalLogLut            = null;
-            m_FinalPassMaterial         = null;
-            m_ClearBlackMaterial        = null;
-            m_SMAAMaterial              = null;
-            m_TemporalAAMaterial        = null;
-            m_BokehNearKernel           = null;
-            m_BokehFarKernel            = null;
-            m_BokehIndirectCmd          = null;
-            m_NearBokehTileList         = null;
-            m_FarBokehTileList          = null;
+            m_EmptyExposureTexture  = null;
+            m_TempTexture1024       = null;
+            m_TempTexture32         = null;
+            m_AlphaTexture          = null;
+            m_InternalLogLut        = null;
         }
 
         // In some cases, the internal buffer of render textures might be invalid.
@@ -291,6 +315,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
         void CheckRenderTexturesValidity()
         {
+            if (!m_NonRenderGraphResourcesAvailable)
+                return;
+
             if (!m_EmptyExposureTexture.rt.IsCreated())
                 FillEmptyExposureTexture();
 
@@ -840,7 +867,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // r: multiplier, g: EV100
                 return rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                    enableRandomWrite: true, name: $"Exposure Texture ({id}) {frameIndex}"
+                    enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
                 );
             }
 
@@ -1148,7 +1175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: m_ColorFormat,
-                    enableRandomWrite: true, useDynamicScale: true, name: "TAA History"
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
                 );
             }
 
@@ -1164,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
-                    enableRandomWrite: true, useDynamicScale: true, name: "Velocity magnitude"
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
                 );
             }
 
@@ -1790,7 +1817,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CoC History"
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: $"{id} CoC History"
                 );
             }
 
