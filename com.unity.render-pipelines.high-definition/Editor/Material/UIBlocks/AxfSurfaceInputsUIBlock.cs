@@ -22,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent    mappingModeText = new GUIContent("Mapping Mode");
             public static GUIContent    planarSpaceText = new GUIContent("Planar Space");
+
+            public static GUIContent    materialTilingOffsetText = new GUIContent("Main Tiling & Offset");
             /////////////////////////////////////////////////////////////////////////////////////////////////
             // SVBRDF Parameters
             public static GUIContent    diffuseColorMapText = new GUIContent("Diffuse Color");
@@ -380,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 --EditorGUI.indentLevel;
             }
 
-            materialEditor.ShaderProperty(m_MaterialTilingOffset, "Main Tiling & Offset");
+            materialEditor.ShaderProperty(m_MaterialTilingOffset, Styles.materialTilingOffsetText);
 
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
