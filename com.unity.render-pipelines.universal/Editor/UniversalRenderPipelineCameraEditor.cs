@@ -335,6 +335,8 @@ namespace UnityEditor.Rendering.Universal
 
         void AddCameraToCameraList(Rect rect, ReorderableList list)
         {
+            // Need to do clear the list here otherwise the meu just fills up with more and more entries
+            validCameras.Clear();
             StageHandle stageHandle = StageUtility.GetStageHandle(camera.gameObject);
             var allCameras = stageHandle.FindComponentsOfType<Camera>();
             foreach (var camera in allCameras)
@@ -350,10 +352,9 @@ namespace UnityEditor.Rendering.Universal
             }
 
             var names = new GUIContent[validCameras.Count];
-
             for (int i = 0; i < validCameras.Count; ++i)
             {
-                names[i] = new GUIContent(validCameras[i].name);
+                names[i] = new GUIContent((i+1) + " " + validCameras[i].name);
             }
 
             if (!validCameras.Any())
