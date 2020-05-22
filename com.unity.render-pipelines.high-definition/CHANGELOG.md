@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added Light decomposition lighting debugging modes and support in AOV
-- Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
 - Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
@@ -91,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
