@@ -250,7 +250,7 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 11
+    GraphicsDevice: 4
     XrSdk: None
     StereoModes: 0
     Reason: 'Android OpenGL: shader error in trunk (scene 130)'
