@@ -7,7 +7,21 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Sampling", experimental = true)]
+    class SampleMeshProvider : VariantProvider
+    {
+        protected override sealed Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "source", Enum.GetValues(typeof(SampleMesh.SourceType)).Cast<object>().ToArray() },
+                };
+            }
+        }
+    }
+
+    [VFXInfo(category = "Sampling", variantProvider = typeof(SampleMeshProvider), experimental = true)]
     class SampleMesh : VFXOperator
     {
         override public string name
