@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.Block
                     else
                         yield return parameter;
                 }
-
+                //TODOPAUL : Test actual type of mesh
                 var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
                 VFXExpression vertexIndex;
                 if (spawnMode == SpawnMode.Custom)
