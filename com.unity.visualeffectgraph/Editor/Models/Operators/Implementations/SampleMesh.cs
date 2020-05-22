@@ -401,16 +401,6 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        //TODOPAUL clean this
-        private void SampleVertex(VFXExpression sourceMesh, VFXExpression vertexIndex, List<VFXExpression> sampledValues)
-        {
-            foreach (var vertexAttribute in GetOutputVertexAttributes())
-            {
-                var sampled = SampleVertexAttribute(sourceMesh, vertexIndex, new[] { vertexAttribute }).First();
-                sampledValues.Add(sampled);
-            }
-        }
-
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] outputExpressions = null;

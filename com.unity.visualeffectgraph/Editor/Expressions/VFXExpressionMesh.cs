@@ -411,6 +411,8 @@ namespace UnityEditor.VFX
 
         public VFXExpressionMeshVertexCount(VFXExpression mesh) : base(Flags.InvalidOnGPU, new VFXExpression[1] { mesh })
         {
+            if (mesh.valueType != VFXValueType.Mesh)
+                throw new InvalidOperationException("Unexpected type in VFXExpressionMeshVertexCount : " + mesh.valueType);
         }
 
         sealed public override VFXExpressionOperation operation { get { return VFXExpressionOperation.MeshVertexCount; } }

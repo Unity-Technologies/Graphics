@@ -33,8 +33,8 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Specifies how Unity handles the sample when the custom vertex index is out the out of bounds of the vertex array.")]
         private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
 
-        //[VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
-        //private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
+        [VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
+        private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
 
         //[VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
         //private SampleMesh.SurfaceCoordinates surfaceCoordinates = SampleMesh.SurfaceCoordinates.Uniform;
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.Block
                 VFXExpression inputVertex = null;
                 foreach (var parameter in base.parameters)
                 {
-                    if (parameter.name == "mesh")
+                    if (parameter.name == "mesh" || parameter.name == "skinnedMesh")
                         mesh = parameter.exp;
                     else if (parameter.name == "vertex")
                         inputVertex = parameter.exp;
@@ -114,19 +114,11 @@ namespace UnityEditor.VFX.Block
                     vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
                 }
 
-                var positionOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
-                var normalOffset = new VFXExpressionMeshChannelOffset(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
+                var vertexAttributes = new[] { SampleMesh.VertexAttributeFlag.Position, SampleMesh.VertexAttributeFlag.Normal };
+                var sampling = SampleMesh.SampleVertexAttribute(mesh, vertexIndex, vertexAttributes).ToArray();
 
-                var vertexStridePosition = new VFXExpressionMeshVertexStride(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
-                var vertexStrideNormal = new VFXExpressionMeshVertexStride(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
-
-                var positionVertexOffset = vertexStridePosition * vertexIndex + positionOffset;
-                var normalVertexOffset = vertexStrideNormal * vertexIndex + normalOffset;
-                var positionChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Position));
-                var normalChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, VFXValue.Constant<UInt32>((UInt32)VertexAttribute.Normal));
-
-                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, positionVertexOffset, positionChannelFormatAndDimension), "readPosition");
-                yield return new VFXNamedExpression(new VFXExpressionSampleMeshFloat3(mesh, normalVertexOffset, normalChannelFormatAndDimension), "readDirection");
+                yield return new VFXNamedExpression(sampling[0], "readPosition");
+                yield return new VFXNamedExpression(sampling[1], "readDirection");
             }
         }
 
@@ -153,7 +145,7 @@ namespace UnityEditor.VFX.Block
                 else
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesPropertiesSkinnedMeshRenderer"));
 
-                if (/*Placement == PlacementMode.Vertex &&*/ spawnMode == SpawnMode.Custom)
+                if (placementMode == SampleMesh.PlacementMode.Vertex && spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
