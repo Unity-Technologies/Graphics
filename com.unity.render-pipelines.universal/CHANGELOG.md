@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
 - Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
+- Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
 
 ## [8.1.0] - 2020-04-21
 
