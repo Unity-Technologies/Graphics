@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly GraphData m_Graph;
         public static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
-        readonly Dictionary<Guid, BlackboardRow> m_InputRows;
+        readonly Dictionary<ShaderInput, BlackboardRow> m_InputRows;
         readonly BlackboardSection m_PropertySection;
         readonly BlackboardSection m_KeywordSection;
 
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(GraphData graph)
         {
             m_Graph = graph;
-            m_InputRows = new Dictionary<Guid, BlackboardRow>();
+            m_InputRows = new Dictionary<ShaderInput, BlackboardRow>();
 
             blackboard = new Blackboard()
             {
@@ -206,6 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent($"Texture2D Array"), false, () => AddInputRow(new Texture2DArrayShaderProperty(), true));
             gm.AddItem(new GUIContent($"Texture3D"), false, () => AddInputRow(new Texture3DShaderProperty(), true));
             gm.AddItem(new GUIContent($"Cubemap"), false, () => AddInputRow(new CubemapShaderProperty(), true));
+            gm.AddItem(new GUIContent($"Virtual Texture"), false, () => AddInputRow(new VirtualTextureShaderProperty(), true));
             gm.AddItem(new GUIContent($"Boolean"), false, () => AddInputRow(new BooleanShaderProperty(), true));
             gm.AddItem(new GUIContent($"Matrix2x2"), false, () => AddInputRow(new Matrix2ShaderProperty(), true));
             gm.AddItem(new GUIContent($"Matrix3x3"), false, () => AddInputRow(new Matrix3ShaderProperty(), true));
@@ -255,7 +256,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
-            var selection = new List<ISelectable>(blackboard.selection);
+            var selection = new List<ISelectable>();
+            if (blackboard.selection != null)
+            {
+                selection.AddRange(blackboard.selection);
+            }
 
             foreach (var inputGuid in m_Graph.removedInputs)
             {
@@ -293,10 +298,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     row.RemoveFromHierarchy();
 
                 foreach (var property in m_Graph.properties)
-                    m_PropertySection.Add(m_InputRows[property.guid]);
+                    m_PropertySection.Add(m_InputRows[property]);
 
                 foreach (var keyword in m_Graph.keywords)
-                    m_KeywordSection.Add(m_InputRows[keyword.guid]);
+                    m_KeywordSection.Add(m_InputRows[keyword]);
             }
         }
 
@@ -306,7 +311,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddInputRow(ShaderInput input, bool create = false, int index = -1)
         {
-            if (m_InputRows.ContainsKey(input.guid))
+            if (m_InputRows.ContainsKey(input))
                 return;
 
             if (create)
@@ -370,11 +375,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             var expandButton = row.Q<Button>("expandButton");
             expandButton.RemoveFromHierarchy();
 
-            m_InputRows[input.guid] = row;
+            m_InputRows[input] = row;
 
             if (!create)
             {
-                m_InputRows[input.guid].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.guid.ToString()}.isExpanded", false);
+                m_InputRows[input].expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{input.objectId}.isExpanded", false);
             }
             else
             {
@@ -416,9 +421,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardRow GetBlackboardRow(Guid guid)
+        public BlackboardRow GetBlackboardRow(ShaderInput input)
         {
-            return m_InputRows[guid];
+            return m_InputRows[input];
         }
 
         void OnMouseHover(EventBase evt, ShaderInput input)
@@ -432,7 +437,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (node.userData is PropertyNode propertyNode)
                         {
-                            if (propertyNode.propertyGuid == input.guid)
+                            if (propertyNode.property == input)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");
@@ -443,7 +448,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         if (node.userData is KeywordNode keywordNode)
                         {
-                            if (keywordNode.keywordGuid == input.guid)
+                            if (keywordNode.keyword == input)
                             {
                                 m_SelectedNodes.Add(node);
                                 node.AddToClassList("hovered");

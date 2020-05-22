@@ -14,6 +14,7 @@ using UnityEditor.UIElements;
 using Edge = UnityEditor.Experimental.GraphView.Edge;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
 using UnityEditor.VersionControl;
 
@@ -55,10 +56,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         GraphEditorView m_GraphEditorView;
-        GraphEditorView graphEditorView
+        internal GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
-            set
+            private set
             {
                 if (m_GraphEditorView != null)
                 {
@@ -83,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        GraphObject graphObject
+        internal GraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -126,7 +127,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             bool shouldClose = true; // Close unless if the same file was replaced
 
             if (EditorUtility.DisplayDialog("\"" + assetName + "\" Graph Asset Missing", AssetDatabase.GUIDToAssetPath(selectedGuid)
-                    + " has been deleted or moved outside of Unity.\n\nWould you like to save your Graph Asset?", "Save As", "Close Window"))
+                + " has been deleted or moved outside of Unity.\n\nWould you like to save your Graph Asset?", "Save As", "Close Window"))
             {
                 shouldClose = !SaveAsImplementation();
             }
@@ -282,10 +283,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsDirty()
         {
-            if (m_Deleted)
+            if (m_Deleted || graphObject.graph == null)
                 return false; // Not dirty; it's gone.
 
-            var currentJson = EditorJsonUtility.ToJson(graphObject.graph, true);
+            var currentJson = MultiJson.Serialize(graphObject.graph);
             var fileJson = File.ReadAllText(AssetDatabase.GUIDToAssetPath(selectedGuid));
             return !string.Equals(currentJson, fileJson, StringComparison.Ordinal);
         }
@@ -482,10 +483,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var center = node.drawState.position.center;
                 bounds = Rect.MinMaxRect(
-                        Mathf.Min(bounds.xMin, center.x),
-                        Mathf.Min(bounds.yMin, center.y),
-                        Mathf.Max(bounds.xMax, center.x),
-                        Mathf.Max(bounds.yMax, center.y));
+                    Mathf.Min(bounds.xMin, center.x),
+                    Mathf.Min(bounds.yMin, center.y),
+                    Mathf.Max(bounds.xMax, center.x),
+                    Mathf.Max(bounds.yMax, center.y));
             }
             var middle = bounds.center;
             bounds.center = Vector2.zero;
@@ -494,29 +495,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
 
             // Collect the property nodes and get the corresponding properties
-            var propertyNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
-            var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+            var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
+            var metaProperties = graphView.graph.properties.Where(x => propertyNodes.Contains(x));
 
             // Collect the keyword nodes and get the corresponding keywords
-            var keywordNodeGuids = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keywordGuid);
-            var metaKeywords = graphView.graph.keywords.Where(x => keywordNodeGuids.Contains(x.guid));
+            var keywordNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is KeywordNode)).Select(x => ((KeywordNode)x.node).keyword);
+            var metaKeywords = graphView.graph.keywords.Where(x => keywordNodes.Contains(x));
 
-            var copyPasteGraph = new CopyPasteGraph(
-                    graphView.graph.assetGuid,
-                    graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
-                    graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
-                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
-                    graphInputs,
-                    metaProperties,
-                    metaKeywords,
-                    graphView.selection.OfType<StickyNote>().Select(x => x.userData));
+            var copyPasteGraph = new CopyPasteGraph(graphView.selection.OfType<ShaderGroup>().Select(x => x.userData),
+                graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray(),
+                graphView.selection.OfType<Edge>().Select(x => x.userData as Graphing.Edge),
+                graphInputs,
+                metaProperties,
+                metaKeywords,
+                graphView.selection.OfType<StickyNote>().Select(x => x.userData),
+                true);
 
-            var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
+            // why do we serialize and deserialize only to make copies of everything in the steps below?
+            // is this just to clear out all non-serialized data?
+            var deserialized = CopyPasteGraph.FromJson(MultiJson.Serialize(copyPasteGraph), graphView.graph);
             if (deserialized == null)
                 return;
 
-            var subGraph = new GraphData { isSubGraph = true };
-            subGraph.path = "Sub Graphs";
+            var subGraph = new GraphData {isSubGraph = true, path = "Sub Graphs"};
             var subGraphOutputNode = new SubGraphOutputNode();
             {
                 var drawState = subGraphOutputNode.drawState;
@@ -524,54 +525,41 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraphOutputNode.drawState = drawState;
             }
             subGraph.AddNode(subGraphOutputNode);
+            subGraph.outputNode = subGraphOutputNode;
 
             // Always copy deserialized keyword inputs
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
-                ShaderInput copiedInput = keyword.Copy();
+                var copiedInput = (ShaderKeyword)keyword.Copy();
                 subGraph.SanitizeGraphInputName(copiedInput);
                 subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
                 subGraph.AddGraphInput(copiedInput);
 
                 // Update the keyword nodes that depends on the copied keyword
-                var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keywordGuid == keyword.guid);
+                var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keyword == keyword);
                 foreach (var node in dependentKeywordNodes)
                 {
                     node.owner = graphView.graph;
-                    node.keywordGuid = copiedInput.guid;
+                    node.keyword = copiedInput;
                 }
             }
 
-            var groupGuidMap = new Dictionary<Guid, Guid>();
             foreach (GroupData groupData in deserialized.groups)
             {
-                var oldGuid = groupData.guid;
-                var newGuid = groupData.RewriteGuid();
-                groupGuidMap[oldGuid] = newGuid;
                 subGraph.CreateGroup(groupData);
             }
 
-            List<Guid> groupGuids = new List<Guid>();
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in deserialized.GetNodes<AbstractMaterialNode>())
             {
-                var oldGuid = node.guid;
-                var newGuid = node.RewriteGuid();
-                nodeGuidMap[oldGuid] = newGuid;
                 var drawState = node.drawState;
                 drawState.position = new Rect(drawState.position.position - middle, drawState.position.size);
                 node.drawState = drawState;
 
-                if (!groupGuids.Contains(node.groupGuid))
-                {
-                    groupGuids.Add(node.groupGuid);
-                }
-
                 // Checking if the group guid is also being copied.
                 // If not then nullify that guid
-                if (node.groupGuid != Guid.Empty)
+                if (node.group != null && !subGraph.groups.Contains(node.group))
                 {
-                    node.groupGuid = !groupGuidMap.ContainsKey(node.groupGuid) ? Guid.Empty : groupGuidMap[node.groupGuid];
+                    node.group = null;
                 }
 
                 subGraph.AddNode(node);
@@ -579,39 +567,29 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var note in deserialized.stickyNotes)
             {
-                if (!groupGuids.Contains(note.groupGuid))
+                if (note.group != null && !subGraph.groups.Contains(note.group))
                 {
-                    groupGuids.Add(note.groupGuid);
+                    note.group = null;
                 }
 
-                if (note.groupGuid != Guid.Empty)
-                {
-                    note.groupGuid = !groupGuidMap.ContainsKey(note.groupGuid) ? Guid.Empty : groupGuidMap[note.groupGuid];
-                }
-
-                note.RewriteGuid();
                 subGraph.AddStickyNote(note);
             }
 
             // figure out what needs remapping
-            var externalOutputSlots = new List<IEdge>();
-            var externalInputSlots = new List<IEdge>();
+            var externalOutputSlots = new List<Graphing.Edge>();
+            var externalInputSlots = new List<Graphing.Edge>();
             foreach (var edge in deserialized.edges)
             {
                 var outputSlot = edge.outputSlot;
                 var inputSlot = edge.inputSlot;
 
-                Guid remappedOutputNodeGuid;
-                Guid remappedInputNodeGuid;
-                var outputSlotExistsInSubgraph = nodeGuidMap.TryGetValue(outputSlot.nodeGuid, out remappedOutputNodeGuid);
-                var inputSlotExistsInSubgraph = nodeGuidMap.TryGetValue(inputSlot.nodeGuid, out remappedInputNodeGuid);
+                var outputSlotExistsInSubgraph = subGraph.ContainsNode(outputSlot.node);
+                var inputSlotExistsInSubgraph = subGraph.ContainsNode(inputSlot.node);
 
                 // pasting nice internal links!
                 if (outputSlotExistsInSubgraph && inputSlotExistsInSubgraph)
                 {
-                    var outputSlotRef = new SlotReference(remappedOutputNodeGuid, outputSlot.slotId);
-                    var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
-                    subGraph.Connect(outputSlotRef, inputSlotRef);
+                    subGraph.Connect(outputSlot, inputSlot);
                 }
                 // one edge needs to go to outside world
                 else if (outputSlotExistsInSubgraph)
@@ -626,9 +604,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Find the unique edges coming INTO the graph
             var uniqueIncomingEdges = externalOutputSlots.GroupBy(
-                    edge => edge.outputSlot,
-                    edge => edge,
-                    (key, edges) => new { slotRef = key, edges = edges.ToList() });
+                edge => edge.outputSlot,
+                edge => edge,
+                (key, edges) => new { slotRef = key, edges = edges.ToList() });
 
             var externalInputNeedingConnection = new List<KeyValuePair<IEdge, AbstractShaderProperty>>();
 
@@ -640,8 +618,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var group in uniqueIncomingEdges)
             {
                 var sr = group.slotRef;
-                var fromNode = graphObject.graph.GetNodeFromGuid(sr.nodeGuid);
-                var fromSlot = fromNode.FindOutputSlot<MaterialSlot>(sr.slotId);
+                var fromNode = sr.node;
+                var fromSlot = sr.slot;
+
+                var materialGraph = graphObject.graph;
+                var fromProperty = fromNode is PropertyNode fromPropertyNode
+                    ? materialGraph.properties.FirstOrDefault(p => p == fromPropertyNode.property)
+                    : null;
 
                 AbstractShaderProperty prop;
                 switch (fromSlot.concreteValueType)
@@ -688,58 +671,63 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Gradient:
                         prop = new GradientShaderProperty();
                         break;
+                    case ConcreteSlotValueType.VirtualTexture:
+                        prop = new VirtualTextureShaderProperty()
+                        {
+                            // also copy the VT settings over from the original property (if there is one)
+                            value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
+                        };
+                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (prop != null)
+                prop.displayName = fromProperty != null
+                    ? fromProperty.displayName
+                    : fromSlot.concreteValueType.ToString();
+                prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
+                    prop.displayName);
+
+                subGraph.AddGraphInput(prop);
+                var propNode = new PropertyNode();
                 {
-                    var materialGraph = (GraphData)graphObject.graph;
-                    var fromPropertyNode = fromNode as PropertyNode;
-                    var fromProperty = fromPropertyNode != null ? materialGraph.properties.FirstOrDefault(p => p.guid == fromPropertyNode.propertyGuid) : null;
-                    prop.displayName = fromProperty != null ? fromProperty.displayName : fromSlot.concreteValueType.ToString();
-                    prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})", prop.displayName);
+                    var drawState = propNode.drawState;
+                    drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f) + propPos,
+                        drawState.position.size);
+                    propPos += new Vector2(0, height);
+                    propNode.drawState = drawState;
+                }
+                subGraph.AddNode(propNode);
+                propNode.property = prop;
 
-                    subGraph.AddGraphInput(prop);
-                    var propNode = new PropertyNode();
-                    {
-                        var drawState = propNode.drawState;
-                        drawState.position = new Rect(new Vector2(bounds.xMin - 300f, 0f) + propPos, drawState.position.size);
-                        propPos += new Vector2(0, height);
-                        propNode.drawState = drawState;
-                    }
-                    subGraph.AddNode(propNode);
-                    propNode.propertyGuid = prop.guid;
-
-                    foreach (var edge in group.edges)
-                    {
-                        subGraph.Connect(
-                            new SlotReference(propNode.guid, PropertyNode.OutputSlotId),
-                            new SlotReference(nodeGuidMap[edge.inputSlot.nodeGuid], edge.inputSlot.slotId));
-                        externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
-                    }
+                foreach (var edge in group.edges)
+                {
+                    subGraph.Connect(
+                        new SlotReference(propNode, PropertyNode.OutputSlotId),
+                        edge.inputSlot);
+                    externalInputNeedingConnection.Add(new KeyValuePair<IEdge, AbstractShaderProperty>(edge, prop));
                 }
             }
 
             var uniqueOutgoingEdges = externalInputSlots.GroupBy(
-                    edge => edge.outputSlot,
-                    edge => edge,
-                    (key, edges) => new { slot = key, edges = edges.ToList() });
+                edge => edge.outputSlot,
+                edge => edge,
+                (key, edges) => new { slot = key, edges = edges.ToList() });
 
             var externalOutputsNeedingConnection = new List<KeyValuePair<IEdge, IEdge>>();
             foreach (var group in uniqueOutgoingEdges)
             {
                 var outputNode = subGraph.outputNode as SubGraphOutputNode;
 
-                AbstractMaterialNode node = graphView.graph.GetNodeFromGuid(group.edges[0].outputSlot.nodeGuid);
+                AbstractMaterialNode node = group.edges[0].outputSlot.node;
                 MaterialSlot slot = node.FindSlot<MaterialSlot>(group.edges[0].outputSlot.slotId);
                 var slotId = outputNode.AddSlot(slot.concreteValueType);
 
-                var inputSlotRef = new SlotReference(outputNode.guid, slotId);
+                var inputSlotRef = new SlotReference(outputNode, slotId);
 
                 foreach (var edge in group.edges)
                 {
-                    var newEdge = subGraph.Connect(new SlotReference(nodeGuidMap[edge.outputSlot.nodeGuid], edge.outputSlot.slotId), inputSlotRef);
+                    var newEdge = subGraph.Connect(edge.outputSlot, inputSlotRef);
                     externalOutputsNeedingConnection.Add(new KeyValuePair<IEdge, IEdge>(edge, newEdge));
                 }
             }
@@ -768,22 +756,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             subGraphNode.drawState = ds;
 
             // Add the subgraph into the group if the nodes was all in the same group group
-            if (groupGuids.Count == 1)
+            var firstNode = copyPasteGraph.GetNodes<AbstractMaterialNode>().FirstOrDefault();
+            if (firstNode != null && copyPasteGraph.GetNodes<AbstractMaterialNode>().All(x => x.group == firstNode.group))
             {
-                subGraphNode.groupGuid = groupGuids[0];
+                subGraphNode.group = firstNode.group;
             }
 
-            graphObject.graph.AddNode(subGraphNode);
             subGraphNode.asset = loadedSubGraph;
+            graphObject.graph.AddNode(subGraphNode);
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {
-                graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode.guid, edgeMap.Value.guid.GetHashCode()));
+                graphObject.graph.Connect(edgeMap.Key.outputSlot, new SlotReference(subGraphNode, edgeMap.Value.guid.GetHashCode()));
             }
 
             foreach (var edgeMap in externalOutputsNeedingConnection)
             {
-                graphObject.graph.Connect(new SlotReference(subGraphNode.guid, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
+                graphObject.graph.Connect(new SlotReference(subGraphNode, edgeMap.Value.inputSlot.slotId), edgeMap.Key.inputSlot);
             }
 
             graphObject.graph.RemoveElements(
@@ -846,10 +835,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var textGraph = File.ReadAllText(path, Encoding.UTF8);
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
-                    graphObject.graph = JsonUtility.FromJson<GraphData>(textGraph);
-                    graphObject.graph.assetGuid = assetGuid;
-                    graphObject.graph.isSubGraph = isSubGraph;
-                    graphObject.graph.messageManager = messageManager;
+                    graphObject.graph = new GraphData
+                    {
+                        assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
+                    };
+                    MultiJson.Deserialize(graphObject.graph, textGraph);
                     graphObject.graph.OnEnable();
                     graphObject.graph.ValidateGraph();
                 }

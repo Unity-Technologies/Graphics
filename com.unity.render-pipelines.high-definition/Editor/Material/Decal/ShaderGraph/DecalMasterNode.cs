@@ -465,5 +465,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Graph);
             }
         }
+
+        public bool supportsVirtualTexturing => false;
     }
 }

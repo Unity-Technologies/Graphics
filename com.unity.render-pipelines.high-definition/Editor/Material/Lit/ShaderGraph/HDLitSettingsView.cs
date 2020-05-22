@@ -349,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel((m_Node.surfaceType == SurfaceType.Transparent) ? "Receive SSR Transparent" : "Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
