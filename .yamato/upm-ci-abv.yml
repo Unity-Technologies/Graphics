@@ -1,6 +1,4 @@
 editors:
-  - version: 2020.1
-  - version: fast-2020.1
   - version: trunk
   - version: fast-trunk
   - version: CUSTOM-REVISION
@@ -53,7 +51,7 @@ all_project_ci_{{ editor.version }}:
     logs:
       paths:
         - "**/test-results/**"
-  {% if editor.version == "fast-2020.1" %}
+  {% if editor.version == "fast-trunk" %}
   # run abv for non-draft PRs that are not docs
   triggers:
     expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
@@ -63,7 +61,7 @@ all_project_ci_{{ editor.version }}:
 
 # a separate job so that only trunk is run nightly, not fast-trunk
 {% for editor in editors %}
- {% if editor.version == '2020.1' or editor.version == 'trunk'%}
+ {% if editor.version == 'trunk' %}
 all_project_ci_nightly_{{ editor.version }}:
   name: _Nightly ABV against {{ editor.version }}
   dependencies:
@@ -81,11 +79,11 @@ all_project_ci_nightly_{{ editor.version }}:
       rerun: always
     - path: .yamato/upm-ci-universal.yml#Universal_Android_Vulkan_{{ editor.version }}
       rerun: always
+    - path: .yamato/upm-ci-universal.yml#Universal_iPhone_Metal_{{ editor.version }}
+      rerun: always
     - path: .yamato/upm-ci-hdrp_hybrid.yml#All_HDRP_Hybrid_{{ editor.version }}
       rerun: always
     - path: .yamato/upm-ci-universal_hybrid.yml#All_Universal_Hybrid_{{ editor.version }}
-      rerun: always
-    - path: .yamato/upm-ci-hdrp.yml#HDRP_Win_DX12_playmode_{{ editor.version }}
       rerun: always
   triggers:
     recurring:

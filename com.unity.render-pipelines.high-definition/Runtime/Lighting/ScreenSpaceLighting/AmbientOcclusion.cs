@@ -234,6 +234,17 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRT();
         }
 
+        internal void InitializeNonRenderGraphResources()
+        {
+            float scaleFactor = m_RunningFullRes ? 1.0f : 0.5f;
+            AllocRT(scaleFactor);
+        }
+
+        internal void CleanupNonRenderGraphResources()
+        {
+            ReleaseRT();
+        }
+
         internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
@@ -241,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;
 
-        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, int frameCount)
+        internal void Render(CommandBuffer cmd, HDCamera camera, ScriptableRenderContext renderContext, in ShaderVariablesRaytracing globalRTCB, int frameCount)
         {
             var settings = camera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -253,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 if (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, renderContext, frameCount);
+                    m_RaytracingAmbientOcclusion.RenderAO(camera, cmd, m_AmbientOcclusionTex, globalRTCB, renderContext, frameCount);
                 else
                 {
                     Dispatch(cmd, camera, frameCount);

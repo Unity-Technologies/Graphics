@@ -34,6 +34,11 @@ namespace UnityEngine.Rendering.Universal
             /// <seealso cref="UniversalAdditionalCameraData.cameraStack"/>
             /// </summary>
             public bool cameraStacking { get; set; } = false;
+
+            /// <summary>
+            /// This setting controls if the Universal Render Pipeline asset should expose MSAA option.
+            /// </summary>
+            public bool msaa { get; set; } = true;
         }
 
         /// <summary>
@@ -55,9 +60,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
         public static void SetCameraMatrices(CommandBuffer cmd, ref CameraData cameraData, bool setInverseMatrices)
         {
-            // We cannot override camera matrices in VR. They are set using context.SetupCameraProperties until XR Pure SDK lands.
-            if (cameraData.isStereoEnabled)
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
                 return;
+            }
+#endif
 
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
             Matrix4x4 projectionMatrix = cameraData.GetProjectionMatrix();
@@ -66,18 +75,15 @@ namespace UnityEngine.Rendering.Universal
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-
-            // unity_MatrixInvVP is not set by cmd.SetViewProjectionMatrices, we set it here
-            Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
-            Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
-            cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
-
-            cmd.SetGlobalMatrix(ShaderPropertyId.worldToCameraMatrix, viewMatrix);
-
+            
             if (setInverseMatrices)
             {
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
+                
+                Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
+                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
             // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
@@ -161,11 +167,11 @@ namespace UnityEngine.Rendering.Universal
             Vector4 deltaTimeVector = new Vector4(deltaTime, 1f / deltaTime, smoothDeltaTime, 1f / smoothDeltaTime);
             Vector4 timeParametersVector = new Vector4(time, Mathf.Sin(time), Mathf.Cos(time), 0.0f);
 
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._Time, timeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._SinTime, sinTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._CosTime, cosTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer.unity_DeltaTime, deltaTimeVector);
-            cmd.SetGlobalVector(UniversalRenderPipeline.PerFrameBuffer._TimeParameters, timeParametersVector);
+            cmd.SetGlobalVector(ShaderPropertyId.time, timeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.sinTime, sinTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.cosTime, cosTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.deltaTime, deltaTimeVector);
+            cmd.SetGlobalVector(ShaderPropertyId.timeParameters, timeParametersVector);
         }
 
         public RenderTargetIdentifier cameraColorTarget
@@ -215,9 +221,9 @@ namespace UnityEngine.Rendering.Universal
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         RenderTargetIdentifier m_CameraColorTarget;
         RenderTargetIdentifier m_CameraDepthTarget;
+
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
-        bool m_XRRenderTargetNeedsClear = false;
 
         const string k_SetCameraRenderStateTag = "Set Camera Data";
         const string k_SetRenderTarget = "Set RenderTarget";
@@ -225,7 +231,6 @@ namespace UnityEngine.Rendering.Universal
 
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
-        static bool m_InsideStereoRenderBlock;
 
         // CommandBuffer.SetRenderTarget(RenderTargetIdentifier[] colors, RenderTargetIdentifier depth, int mipLevel, CubemapFace cubemapFace, int depthSlice);
         // called from CoreUtils.SetRenderTarget will issue a warning assert from native c++ side if "colors" array contains some invalid RTIDs.
@@ -336,7 +341,6 @@ namespace UnityEngine.Rendering.Universal
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            bool stereoEnabled = cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetCameraRenderStateTag);
             InternalStartRendering(context, ref renderingData);
@@ -384,10 +388,7 @@ namespace UnityEngine.Rendering.Universal
             // Used to render input textures like shadowmaps.
             ExecuteBlock(RenderPassBlock.BeforeRendering, blockRanges, context, ref renderingData);
 
-           for (int eyeIndex = 0; eyeIndex < renderingData.cameraData.numberOfXRPasses; ++eyeIndex)
-           {
             // This is still required because of the following reasons:
-            // - XR Camera Matrices. This condition should be lifted when Pure XR SDK lands.
             // - Camera billboard properties.
             // - Camera frustum planes: unity_CameraWorldClipPlanes[6]
             // - _ProjectionParams.x logic is deep inside GfxDevice
@@ -395,7 +396,7 @@ namespace UnityEngine.Rendering.Universal
             // is because this need to be called for each eye in multi pass VR.
             // The side effect is that this will override some shader properties we already setup and we will have to
             // reset them.
-            context.SetupCameraProperties(camera, stereoEnabled, eyeIndex);
+            context.SetupCameraProperties(camera);
             SetCameraMatrices(cmd, ref cameraData, true);
 
             // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
@@ -409,26 +410,23 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd);
             cmd.Clear();
 
-            if (stereoEnabled)
-                BeginXRRendering(context, camera, eyeIndex);
+            BeginXRRendering(cmd, context, ref renderingData.cameraData);
 
             // In the opaque and transparent blocks the main rendering executes.
 
             // Opaque blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData, eyeIndex);
+            ExecuteBlock(RenderPassBlock.MainRenderingOpaque, blockRanges, context, ref renderingData);
 
             // Transparent blocks...
-            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData, eyeIndex);
+            ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
 
             // Draw Gizmos...
             DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
-            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData, eyeIndex);
+            ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
 
-            if (stereoEnabled)
-                EndXRRendering(context, renderingData, eyeIndex);
-            }
+            EndXRRendering(cmd, context, ref renderingData.cameraData);
 
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
@@ -518,8 +516,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_ActiveDepthAttachment = BuiltinRenderTextureType.CameraTarget;
 
-            m_InsideStereoRenderBlock = false;
-
             m_FirstTimeCameraColorTargetIsBound = cameraType == CameraRenderType.Base;
             m_FirstTimeCameraDepthTargetIsBound = true;
 
@@ -530,28 +526,26 @@ namespace UnityEngine.Rendering.Universal
         }
 
         void ExecuteBlock(int blockIndex, NativeArray<int> blockRanges,
-            ScriptableRenderContext context, ref RenderingData renderingData, int eyeIndex = 0, bool submit = false)
+            ScriptableRenderContext context, ref RenderingData renderingData, bool submit = false)
         {
             int endIndex = blockRanges[blockIndex + 1];
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
-                ExecuteRenderPass(context, renderPass, ref renderingData, eyeIndex);
+                ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 
             if (submit)
                 context.Submit();
         }
 
-        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData, int eyeIndex)
+        void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass, ref RenderingData renderingData)
         {
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
-            bool firstTimeStereo = false;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-            renderPass.eyeIndex = eyeIndex;
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -568,10 +562,9 @@ namespace UnityEngine.Rendering.Universal
                 bool needCustomCameraDepthClear = false;
 
                 int cameraColorTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, m_CameraColorTarget);
-                if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear) ))
+                if (cameraColorTargetIndex != -1 && (m_FirstTimeCameraColorTargetIsBound))
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
-                    firstTimeStereo = true;
 
                     // Overlay cameras composite on top of previous ones. They don't clear.
                     // MTT: Commented due to not implemented yet
@@ -582,12 +575,6 @@ namespace UnityEngine.Rendering.Universal
                     // But there is still a chance we don't need to issue individual clear() on each render-targets if they all have the same clear parameters.
                     needCustomCameraColorClear = (cameraClearFlag & ClearFlag.Color) != (renderPass.clearFlag & ClearFlag.Color)
                                                 || CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor) != renderPass.clearColor;
-
-                    if(cameraData.isXRMultipass && m_XRRenderTargetNeedsClear)
-                        // For multipass mode, if m_XRRenderTargetNeedsClear == true, then both color and depth buffer need clearing (not just color)
-                        needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
-
-                    m_XRRenderTargetNeedsClear = false; // register that the XR camera multi-pass target does not need clear any more (until next call to BeginXRRendering)
                 }
 
                 // Note: if we have to give up the assumption that no depthTarget can be included in the MRT colorAttachments, we might need something like this:
@@ -597,16 +584,10 @@ namespace UnityEngine.Rendering.Universal
                 // }
 
                 if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
-                // note: should be split m_XRRenderTargetNeedsClear into m_XRColorTargetNeedsClear and m_XRDepthTargetNeedsClear and use m_XRDepthTargetNeedsClear here?
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
-                    //firstTimeStereo = true; // <- we do not call this here as the first render pass might be a shadow pass (non-stereo)
                     needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
-
-                    //m_XRRenderTargetNeedsClear = false; // note: is it possible that XR camera multi-pass target gets clear first when bound as depth target?
-                                                          //       in this case we might need need to register that it does not need clear any more (until next call to BeginXRRendering)
                 }
-
 
                 // Perform all clear operations needed. ----------------
                 // We try to minimize calls to SetRenderTarget().
@@ -675,23 +656,20 @@ namespace UnityEngine.Rendering.Universal
                 ClearFlag finalClearFlag = ClearFlag.None;
                 Color finalClearColor;
 
-                if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear)))
+                if (passColorAttachment == m_CameraColorTarget && (m_FirstTimeCameraColorTargetIsBound))
                 {
                     m_FirstTimeCameraColorTargetIsBound = false; // register that we did clear the camera target the first time it was bound
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Color);
                     finalClearColor = CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor);
-                    firstTimeStereo = true;
 
-                    if (m_FirstTimeCameraDepthTargetIsBound || (cameraData.isXRMultipass && m_XRRenderTargetNeedsClear))
+                    if (m_FirstTimeCameraDepthTargetIsBound)
                     {
                         // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
                         // We cannot infer this information here, so we must assume both camera color and depth are first-time bound here (this is the legacy behaviour).
                         m_FirstTimeCameraDepthTargetIsBound = false;
                         finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
                     }
-
-                    m_XRRenderTargetNeedsClear = false; // register that the XR camera multi-pass target does not need clear any more (until next call to BeginXRRendering)
                 }
                 else
                 {
@@ -701,57 +679,65 @@ namespace UnityEngine.Rendering.Universal
 
                 // Condition (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget) below prevents m_FirstTimeCameraDepthTargetIsBound flag from being reset during non-camera passes (such as Color Grading LUT). This ensures that in those cases, cameraDepth will actually be cleared during the later camera pass.
                 if (   (m_CameraDepthTarget!=BuiltinRenderTextureType.CameraTarget ) && (passDepthAttachment == m_CameraDepthTarget || passColorAttachment == m_CameraDepthTarget) && m_FirstTimeCameraDepthTargetIsBound )
-                // note: should be split m_XRRenderTargetNeedsClear into m_XRColorTargetNeedsClear and m_XRDepthTargetNeedsClear and use m_XRDepthTargetNeedsClear here?
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
                     finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
 
-                    //firstTimeStereo = true; // <- we do not call this here as the first render pass might be a shadow pass (non-stereo)
-
                     // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
-
-                    //m_XRRenderTargetNeedsClear = false; // note: is it possible that XR camera multi-pass target gets clear first when bound as depth target?
-                    //       in this case we might need need to register that it does not need clear any more (until next call to BeginXRRendering)
                 }
                 else
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // Only setup render target if current render pass attachments are different from the active ones
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)
+                {
                     SetRenderTarget(cmd, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor);
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+                    if (cameraData.xr.enabled)
+                    {
+                        // SetRenderTarget might alter the internal device state(winding order).
+                        // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
+                        // XRTODO: Consolidate y-flip and winding order device state in URP
+                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
+                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                    }
+#endif
+                }
             }
 
-            // We must execute the commands recorded at this point because potential call to context.StartMultiEye(cameraData.camera) below will alter internal renderer states
             // Also, we execute the commands recorded at this point to ensure SetRenderTarget is called before RenderPass.Execute
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            if (firstTimeStereo && cameraData.isStereoEnabled )
-            {
-                // The following call alters internal renderer states (we can think of some of the states as global states).
-                // So any cmd recorded before must be executed before calling into that built-in call.
-                context.StartMultiEye(camera, eyeIndex);
-                XRUtils.DrawOcclusionMesh(cmd, camera);
-            }
-
             renderPass.Execute(context, ref renderingData);
         }
 
-        void BeginXRRendering(ScriptableRenderContext context, Camera camera, int eyeIndex)
+        void BeginXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            context.StartMultiEye(camera, eyeIndex);
-            m_InsideStereoRenderBlock = true;
-            m_XRRenderTargetNeedsClear = true;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                cameraData.xr.StartSinglePass(cmd);
+                cmd.EnableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
         }
 
-        void EndXRRendering(ScriptableRenderContext context, in RenderingData renderingData, int eyeIndex)
+        void EndXRRendering(CommandBuffer cmd, ScriptableRenderContext context, ref CameraData cameraData)
         {
-            Camera camera = renderingData.cameraData.camera;
-            context.StopMultiEye(camera);
-            bool isLastPass = renderingData.cameraData.resolveFinalTarget && (eyeIndex == renderingData.cameraData.numberOfXRPasses - 1);
-            context.StereoEndRender(camera, eyeIndex, isLastPass);
-            m_InsideStereoRenderBlock = false;
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                cameraData.xr.StopSinglePass(cmd);
+                cmd.DisableShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
+#endif
         }
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
@@ -768,9 +754,8 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            TextureDimension dimension = (m_InsideStereoRenderBlock) ? XRGraphics.eyeTextureDesc.dimension : TextureDimension.Tex2D;
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
-                depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor, dimension);
+                depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
         static void SetRenderTarget(
@@ -779,13 +764,9 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction colorLoadAction,
             RenderBufferStoreAction colorStoreAction,
             ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
+            Color clearColor)
         {
-            if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-            else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
+            CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
         static void SetRenderTarget(
@@ -797,21 +778,16 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction depthLoadAction,
             RenderBufferStoreAction depthStoreAction,
             ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
+            Color clearColor)
         {
+            // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
             if (depthAttachment == BuiltinRenderTextureType.CameraTarget)
             {
-                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor,
-                    dimension);
+                SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
             }
             else
             {
-                if (dimension == TextureDimension.Tex2DArray)
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
-                        clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-                else
-                    CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }
         }
@@ -898,6 +874,32 @@ namespace UnityEngine.Rendering.Universal
 
                 list[j + 1] = curr;
             }
+        }
+
+        internal void SetupBackbufferFormat(int msaaSamples, bool stereo)
+        {
+#if ENABLE_VR && ENABLE_VR_MODULE
+            if (!stereo)
+                return;
+            
+            bool msaaSampleCountHasChanged = false;
+            int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
+            if (currentQualitySettingsSampleCount != msaaSamples &&
+                !(currentQualitySettingsSampleCount == 0 && msaaSamples == 1))
+            {
+                msaaSampleCountHasChanged = true;
+            }
+
+            // There's no exposed API to control how a backbuffer is created with MSAA
+            // By settings antiAliasing we match what the amount of samples in camera data with backbuffer
+            // We only do this for the main camera and this only takes effect in the beginning of next frame.
+            // This settings should not be changed on a frame basis so that's fine.
+            if (msaaSampleCountHasChanged)
+            {
+                QualitySettings.antiAliasing = msaaSamples;
+                XR.XRDevice.UpdateEyeTextureMSAASetting();
+            }  
+#endif
         }
     }
 }

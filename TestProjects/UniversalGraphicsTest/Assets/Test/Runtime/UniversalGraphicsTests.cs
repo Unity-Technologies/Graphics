@@ -24,6 +24,10 @@ public class UniversalGraphicsTests
 
     public IEnumerator Run(GraphicsTestCase testCase)
     {
+        // XRTODO: Fix XR tests on macOS or disable them from Yamato directly
+        if (XRSystem.testModeEnabled && (Application.platform == RuntimePlatform.OSXEditor || Application.platform == RuntimePlatform.OSXPlayer))
+            Assert.Ignore("Universal XR tests do not run on macOS.");
+
         SceneManager.LoadScene(testCase.ScenePath);
 
         // Always wait one frame for scene load
@@ -31,14 +35,32 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
+
+        if (XRSystem.testModeEnabled)
+        {
+            if (settings.XRCompatible)
+            {
+                XRSystem.automatedTestRunning = true;
+            }
+            else
+            {
+                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+            }
+        }
 
         Scene scene = SceneManager.GetActiveScene();
 
         yield return null;
 
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        int waitFrames = settings.WaitFrames;
+
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
+        {
+            waitFrames = 1;
+        }
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
 #if UNITY_ANDROID
         // On Android first scene often needs a bit more frames to load all the assets
@@ -83,6 +105,12 @@ public class UniversalGraphicsTests
     public void DumpImagesInEditor()
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
+    }
+
+    [TearDown]
+    public void ResetSystemState()
+    {
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 }
