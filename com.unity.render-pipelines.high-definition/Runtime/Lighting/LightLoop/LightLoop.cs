@@ -3583,7 +3583,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             rayTracingEnabled;
             public RayTracingShader contactShadowsRTS;
             public RayTracingAccelerationStructure accelerationStructure;
-            public float            rayTracingBias;
             public int              actualWidth;
             public int              actualHeight;
             public int              depthTextureParameterName;
@@ -3603,9 +3602,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
-                RayTracingSettings raySettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                 parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;
-                parameters.rayTracingBias = raySettings.rayBias.value;
                 parameters.accelerationStructure = RequestAccelerationStructure();
 
                 parameters.actualWidth = hdCamera.actualWidth;
@@ -3661,7 +3658,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.rayTracingEnabled)
             {
                 cmd.SetRayTracingShaderPass(parameters.contactShadowsRTS, "VisibilityDXR");
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, parameters.rayTracingBias);
                 cmd.SetRayTracingAccelerationStructure(parameters.contactShadowsRTS, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
 
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);

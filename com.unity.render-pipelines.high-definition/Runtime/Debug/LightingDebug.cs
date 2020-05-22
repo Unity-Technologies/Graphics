@@ -173,6 +173,24 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Exposure debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ExposureDebugMode
+    {
+        /// <summary>No exposure debug.</summary>
+        None,
+        /// <summary>Display the EV100 values of the scene, color-coded.</summary>
+        SceneEV100Values,
+        /// <summary>Display the Histogram used for exposure.</summary>
+        HistogramView,
+        /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
+        MeteringWeighted,
+
+    }
+
+
+    /// <summary>
     /// Probe Volume Debug Modes.
     /// </summary>
     [GenerateHLSL]
@@ -295,8 +313,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
+        /// <summary>Exposure debug mode.</summary>
+        public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 showTonemapCurveAlongHistogramView = true;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
