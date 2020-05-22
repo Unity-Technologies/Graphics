@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    Reset();
+                    ResetSky();
                 }
                 return m_SkySettings;
             }
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    Reset();
+                    ResetCloud();
                 }
                 return m_CloudLayer;
             }
@@ -282,7 +282,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Profile != null)
                 SkyManager.UnRegisterStaticLightingSky(this);
 
-            Reset();
+            ResetSky();
+            ResetCloud();
         }
 
         void Update()
@@ -294,13 +295,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void Reset()
+        void ResetSky()
         {
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;
             m_SkySettingsFromProfile = null;
             m_LastComputedHash = 0;
+        }
 
+        void ResetCloud()
+        {
             CoreUtils.Destroy(m_CloudLayer);
             m_CloudLayer = null;
             m_CloudLayerFromProfile = null;
