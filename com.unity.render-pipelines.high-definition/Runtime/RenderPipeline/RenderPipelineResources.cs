@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugFullScreenPS;
             [Reload("Runtime/Debug/DebugColorPicker.Shader")]
             public Shader debugColorPickerPS;
+            [Reload("Runtime/Debug/DebugExposure.Shader")]
+            public Shader debugExposurePS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -220,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/HistogramExposure.compute")]
+            public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]

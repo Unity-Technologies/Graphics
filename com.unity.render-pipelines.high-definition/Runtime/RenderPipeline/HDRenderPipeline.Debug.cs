@@ -194,6 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_FullScreenDebugPushed = false;
             }
 
+            // TODO RENDERGRAPH (Needs post processing in Rendergraph to properly be implemented)
+            if(debugParameters.exposureDebugEnabled)
+            {
+                // For reference the following is what is called in the non-render-graph version.
+                // RenderExposureDebug(debugParams, m_CameraColorBuffer, m_DebugFullScreenTempBuffer,m_PostProcessSystem.GetPreviousExposureTexture(hdCamera), m_PostProcessSystem.GetExposureTexture(hdCamera),
+                //    m_PostProcessSystem.GetExposureDebugData(),m_IntermediateAfterPostProcessBuffer, m_PostProcessSystem.GetCustomToneMapCurve(), m_PostProcessSystem.GetLutSize(), m_PostProcessSystem.GetHistogramBuffer(), cmd);
+            }
+
             if (debugParameters.colorPickerEnabled)
                 output = ResolveColorPickerDebug(renderGraph, debugParameters, colorPickerDebugTexture);
 
