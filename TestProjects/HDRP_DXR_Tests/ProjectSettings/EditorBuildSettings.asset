@@ -56,6 +56,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/307_GlobalIlluminationFog.unity
     guid: 8a5a48512a640734394f6427d94fd0f8
+  - enabled: 0
+    path: Assets/Scenes/308_ScreenSpaceGlobalIllumination.unity
+    guid: ccf33fc5169d0624c91b9116ebf44c7f
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
@@ -155,7 +158,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/3002_AreaShadowsForward_Denoiser.unity
     guid: 22e35301dfb0fdf468a423c8a8390b13
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/5001_PathTracing.unity
     guid: 3666dc8006745714997c368c4375f316
   - enabled: 1

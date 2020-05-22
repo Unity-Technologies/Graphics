@@ -43,12 +43,12 @@ auto-version:
     packages:
       paths:
         - "upm-ci~/**/*"
-{% if publishing.auto_version == "true" -%}
-  triggers:
-    branches:
-      only:
-        - "{{ repo.branches.integration }}"
-{% endif -%}
+# {% if publishing.auto_version == "true" -%}
+#   triggers:
+#     branches:
+#       only:
+#         - "{{ repo.branches.integration }}"
+# {% endif -%}
 
 
 {% for test in testables -%}
@@ -88,12 +88,12 @@ publish_{{ test.name }}:
 
 publish_all_preview:
   name: "Publish all preview packages - nightly"
-  {% if publishing.auto_publish == "true" %}
-  triggers:
-    recurring:
-      - branch: "{{ repo.branches.integration }}"
-        frequency: daily
-  {% endif %}
+  # {% if publishing.auto_publish == "true" %}
+  # triggers:
+  #   recurring:
+  #     - branch: "{{ repo.branches.integration }}"
+  #       frequency: daily
+  # {% endif %}
   dependencies:
     {% for test in testables %}
     - .yamato/z_preview-publish.yml#publish_{{ test.name }}

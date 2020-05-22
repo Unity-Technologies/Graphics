@@ -80,6 +80,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SSSSetDiffusionProfiles = new DiffusionProfileSettings[DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT];
         }
 
+        void DestroySSSBuffers()
+        {
+            RTHandles.Release(m_SSSColorMSAA);
+            RTHandles.Release(m_SSSCameraFilteringBuffer);
+            if (!m_SSSReuseGBufferMemory)
+            {
+                RTHandles.Release(m_SSSColor);
+            }
+        }
+
         RTHandle GetSSSBuffer()
         {
             return m_SSSColor;
@@ -111,12 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CoreUtils.Destroy(m_CombineLightingPass);
             CoreUtils.Destroy(m_SSSCopyStencilForSplitLighting);
-            if (!m_SSSReuseGBufferMemory)
-            {
-                RTHandles.Release(m_SSSColor);
-            }
-            RTHandles.Release(m_SSSColorMSAA);
-            RTHandles.Release(m_SSSCameraFilteringBuffer);
+            DestroySSSBuffers();
         }
 
         void UpdateCurrentDiffusionProfileSettings(HDCamera hdCamera)
@@ -265,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("SubSurfaceHistoryBuffer{0}", frameIndex));
+                                        name: string.Format("{0}_SubSurfaceHistoryBuffer{1}", viewName, frameIndex));
         }
 
         void RenderSubsurfaceScattering(HDCamera hdCamera, CommandBuffer cmd, RTHandle colorBufferRT,
@@ -288,13 +293,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     int numTilesXHR = (hdCamera.actualWidth + (areaTileSize - 1)) / areaTileSize;
                     int numTilesYHR = (hdCamera.actualHeight + (areaTileSize - 1)) / areaTileSize;
 
-                    // Clear the integration texture first
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, diffuseBufferRT);
-                    cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
-
                     // Fetch the volume overrides that we shall be using
                     RayTracingShader subSurfaceShader = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracing;
-                    RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                     ComputeShader deferredRayTracing = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
 
                     // Fetch all the intermediate buffers that we need
@@ -302,7 +302,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
                     RTHandle intermediateBuffer2 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA2);
                     RTHandle intermediateBuffer3 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA3);
+                    RTHandle intermediateBuffer4 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA4);
                     RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
+
+                    // Clear the integration texture first
+                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer4);
+                    cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                     // Grab the acceleration structure for the target camera
                     RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -321,9 +326,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int sampleIndex = 0; sampleIndex < settings.sampleCount.value; ++sampleIndex)
                     {
                         // Inject the ray generation data
-                        cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, settings.sampleCount.value);
-                        cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, sampleIndex);
+                        m_ShaderVariablesRayTracingCB._RaytracingNumSamples = settings.sampleCount.value;
+                        m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = sampleIndex;
+                        ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Bind the textures for ray generation
                         cmd.SetRayTracingTextureParam(subSurfaceShader, HDShaderIDs._DepthTexture, sharedRTManager.GetDepthStencilBuffer());
@@ -358,7 +363,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer3);
 
                         // Bind the output texture (it is used for accumulation read and write)
-                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._RaytracingLitBufferRW, diffuseBufferRT);
+                        cmd.SetComputeTextureParam(deferredRayTracing, currentKernel, HDShaderIDs._RaytracingLitBufferRW, intermediateBuffer4);
 
                         // Compute the Lighting
                         cmd.DispatchCompute(deferredRayTracing, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
@@ -380,13 +385,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply temporal filtering to the buffer
                     HDTemporalFilter temporalFilter = GetTemporalFilter();
-                    temporalFilter.DenoiseBuffer(cmd, hdCamera, diffuseBufferRT, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
+                    temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer4, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
+
+                    // Now based on the mask, we need to blend the subsurface and the diffuse lighting
+                    ComputeShader rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
+                    int m_CombineSubSurfaceKernel = rayTracingSubSurfaceCS.FindKernel("BlendSubSurfaceData");
+                    cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._SubSurfaceLightingBuffer, intermediateBuffer0);
+                    cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._DiffuseLightingTextureRW, diffuseBufferRT);
+                    cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._SSSBufferTexture, m_SSSColor);
+                    cmd.DispatchCompute(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                     // Push this version of the texture for debug
-                    PushFullScreenDebugTexture(hdCamera, cmd, intermediateBuffer0, FullScreenDebugMode.RayTracedSubSurface);
+                    PushFullScreenDebugTexture(hdCamera, cmd, diffuseBufferRT, FullScreenDebugMode.RayTracedSubSurface);
 
                     // Combine it with the rest of the lighting
-                    m_CombineLightingPass.SetTexture(HDShaderIDs._IrradianceSource, intermediateBuffer0);
+                    m_CombineLightingPass.SetTexture(HDShaderIDs._IrradianceSource, diffuseBufferRT );
                     HDUtils.DrawFullScreen(cmd, m_CombineLightingPass, colorBufferRT, depthStencilBufferRT, shaderPassId: 1);
                 }
             }
