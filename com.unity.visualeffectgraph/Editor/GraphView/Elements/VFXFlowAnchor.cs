@@ -58,12 +58,12 @@ namespace UnityEditor.VFX.UI
             {
                 SelfChange();
             }
-            else if( e.controller == controller.context)
+            else if (e.controller == controller.context)
             {
                 UpdateType();
 
                 //Need to force refreshof the edge in case the color change because of a setting of the context ( hasStrip ).
-                foreach( var edge in connections)
+                foreach (var edge in connections)
                     edge.MarkDirtyRepaint();
             }
         }
@@ -78,15 +78,14 @@ namespace UnityEditor.VFX.UI
                 RemoveFromClassList("connected");
 
 
-
             switch (controller.direction)
             {
                 case Direction.Input:
-                    {
-                        RemoveFromClassList("Output");
-                        AddToClassList("Input");
-                    }
-                    break;
+                {
+                    RemoveFromClassList("Output");
+                    AddToClassList("Input");
+                }
+                break;
                 case Direction.Output:
                     RemoveFromClassList("Input");
                     AddToClassList("Output");
@@ -101,7 +100,7 @@ namespace UnityEditor.VFX.UI
             VFXDataType type = controller.direction == Direction.Input ? controller.context.model.inputType : controller.context.model.outputType;
             foreach (VFXDataType value in System.Enum.GetValues(typeof(VFXDataType)))
             {
-                if( value != type)
+                if (value != type)
                     RemoveFromClassList("type" + VFXContextUI.ContextEnumToClassName(value.ToString()));
             }
             AddToClassList("type" + VFXContextUI.ContextEnumToClassName(type.ToString()));
@@ -222,7 +221,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition - new Vector2(376*0.5f* VFXViewWindow.currentWindow.graphView.scale, 0), view.ViewToScreenPosition(Event.current.mousePosition),  new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition - new Vector2(376 * 0.5f * VFXViewWindow.currentWindow.graphView.scale, 0), view.ViewToScreenPosition(Event.current.mousePosition),  new VFXNodeProvider(viewController, AddLinkedContext, ProviderFilter, new Type[] { typeof(VFXContext)}));
             }
         }
     }

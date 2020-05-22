@@ -134,7 +134,7 @@ class VFXExternalShaderProcessor : AssetPostprocessor
             if (resource == null)
                 continue;
             resource.GetOrCreateGraph().SetExpressionGraphDirty();
-            resource.GetOrCreateGraph().RecompileIfNeeded(false,true);
+            resource.GetOrCreateGraph().RecompileIfNeeded(false, true);
         }
 
         foreach (var assetPath in vfxToRefresh)
@@ -197,11 +197,12 @@ class VisualEffectAssetEditor : Editor
 
     void OnReorder(ReorderableList list)
     {
-        for(int i = 0; i < m_OutputContexts.Count(); ++i)
+        for (int i = 0; i < m_OutputContexts.Count(); ++i)
         {
-            m_OutputContexts[i].sortPriority =i;
+            m_OutputContexts[i].sortPriority = i;
         }
     }
+
     private void DrawOutputContextItem(Rect rect, int index, bool isActive, bool isFocused)
     {
         EditorGUI.LabelField(rect, EditorGUIUtility.TempContent((m_OutputContexts[index] as VFXContext).fileName));
@@ -215,7 +216,6 @@ class VisualEffectAssetEditor : Editor
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
-
         m_OutputContexts.Clear();
         VisualEffectAsset target = this.target as VisualEffectAsset;
         var resource = target.GetResource();
@@ -396,7 +396,7 @@ class VisualEffectAssetEditor : Editor
             m_Distance *= 1 + (Event.current.delta.y * .015f);
         }
 
-        if(m_Mat == null)
+        if (m_Mat == null)
             m_Mat = (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
 
         if (isRepaint)
@@ -484,7 +484,7 @@ class VisualEffectAssetEditor : Editor
         }
         EditorGUILayout.EndHorizontal();
 
-        if (prewarmDeltaTime!= null && prewarmStepCount != null)
+        if (prewarmDeltaTime != null && prewarmStepCount != null)
         {
             if (!prewarmDeltaTime.hasMultipleDifferentValues && !prewarmStepCount.hasMultipleDifferentValues)
             {
@@ -597,7 +597,7 @@ class VisualEffectAssetEditor : Editor
 
             VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"),  false, false);
 
-            var shaderSources = VFXExternalShaderProcessor.allowExternalization?resource.shaderSources:null;
+            var shaderSources = VFXExternalShaderProcessor.allowExternalization ? resource.shaderSources : null;
 
             string assetPath = AssetDatabase.GetAssetPath(asset);
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
@@ -610,7 +610,7 @@ class VisualEffectAssetEditor : Editor
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
-                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization? 250:160;
+                    int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 250 : 160;
 
 
                     Rect labelR = r;
@@ -619,7 +619,7 @@ class VisualEffectAssetEditor : Editor
                     int index = resource.GetShaderIndex(shader);
                     if (index >= 0)
                     {
-                        if (VFXExternalShaderProcessor.allowExternalization && index <shaderSources.Length)
+                        if (VFXExternalShaderProcessor.allowExternalization && index < shaderSources.Length)
                         {
                             string externalPath = directory + shaderSources[index].name;
                             if (!shaderSources[index].compute)
@@ -666,7 +666,7 @@ class VisualEffectAssetEditor : Editor
                     Rect selectButtonR = r;
                     selectButtonR.xMin = labelR.xMax;
                     selectButtonR.width = 50;
-                    if (GUI.Button(selectButtonR,"Select"))
+                    if (GUI.Button(selectButtonR, "Select"))
                     {
                         Selection.activeObject = shader;
                     }

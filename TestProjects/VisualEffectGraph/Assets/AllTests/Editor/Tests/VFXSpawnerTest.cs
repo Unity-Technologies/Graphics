@@ -100,7 +100,6 @@ namespace UnityEditor.VFX.Test
             var camera = cameraObj.AddComponent<Camera>();
             camera.transform.localPosition = Vector3.one;
             camera.transform.LookAt(vfxComponent.transform);
-
         }
 
         [UnityTest]
@@ -477,7 +476,7 @@ namespace UnityEditor.VFX.Test
             spawnerOutput.LinkFrom(spawnerInit);
 
             //Force issue due to uninitialized expression (otherwise, constant folding resolve it)
-            graph.SetCompilationMode(VFXCompilationMode.Edition); 
+            graph.SetCompilationMode(VFXCompilationMode.Edition);
             graph.RecompileIfNeeded();
 
             var gameObj = new GameObject("CreateSpawner_Single_Burst_With_Delay");
@@ -538,7 +537,7 @@ namespace UnityEditor.VFX.Test
             {
                 expectedContent = System.IO.File.ReadLines(pathExpected);
             }
-            catch(System.Exception)
+            catch (System.Exception)
             {
                 success = false;
                 Debug.LogErrorFormat("Can't locate file : {0}", pathExpected);
@@ -711,34 +710,43 @@ namespace UnityEditor.VFX.Test
         public static readonly CreateSpawner_ChangeLoopMode_TestCase[] k_CreateSpawner_ChangeLoopModeTestCases =
         {
             //Default : infinite loop, infinite loop duration
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Infinite,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Infinite,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
             //Simply random loop
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Random loop, adding random before delay
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Infinite,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Random loop count, constant loop duration
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Constant,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Random,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.None },
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Constant,
+                LoopCount       = VFXBasicSpawner.LoopMode.Random,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.None,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.None
+            },
 
             //Everything random
-            new CreateSpawner_ChangeLoopMode_TestCase() {   LoopDuration    = VFXBasicSpawner.LoopMode.Random,
-                                                            LoopCount       = VFXBasicSpawner.LoopMode.Random,
-                                                            DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
-                                                            DelayAfterLoop  = VFXBasicSpawner.DelayMode.Random },
-
+            new CreateSpawner_ChangeLoopMode_TestCase() {
+                LoopDuration    = VFXBasicSpawner.LoopMode.Random,
+                LoopCount       = VFXBasicSpawner.LoopMode.Random,
+                DelayBeforeLoop = VFXBasicSpawner.DelayMode.Random,
+                DelayAfterLoop  = VFXBasicSpawner.DelayMode.Random
+            },
         };
 
         [UnityTest]

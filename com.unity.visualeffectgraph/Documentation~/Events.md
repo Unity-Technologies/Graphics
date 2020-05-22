@@ -1,61 +1,62 @@
-<div style="border: solid 1px #999; border-radius:12px; background-color:#EEE; padding: 8px; padding-left:14px; color: #555; font-size:14px;"><b>Draft:</b> The content on this page is complete, but it has not been reviewed yet.</div>
 # Events
 
-Events are the Processing Workflow inputs of a Visual Effect Graph. Through Events, a Visual Effect can :
+Events define the inputs for a Visual Effect Graph's [**processing** workflow](GraphLogicAndPhilosophy.md#processing-workflow-(vertical-logic)). The Spawn and Initialize [Contexts](Contexts.md) use Events as their inputs. Through Events, a Visual Effect Graph can :
 
-* Start and stop spawning particles, 
-* Read Attribute payloads sent from C#
-
-Events are used in the graph as inputs for Spawn Contexts and Initialize
+* Start and stop spawning particles.
+* Read [Event Attribute payloads](#eventattribute-payloads) sent from C# scripts.
 
 ## Creating Events
 
 ![](Images/EventContexts.png)
 
-You can Create Events using Event Contexts. These contexts have no Flow input and connect to Spawn or Initialize Contexts.
+In general, an Event is just a string that represents the Event's name. To receive an Event in the Visual Effect Graph, create an Event [Context](Contexts.md) and type the name of the Event you want to receive in the **Event Name** property. Event Contexts have no input flow slots and can only connect their output flow slot to Spawn or Initialize Contexts.
 
-In order to Create an Event Context, right click in an empty space of the Workspace and select Create Node, then Select **Event (Context)** from the Node Creation menu.
+To create an Event Context:
+
+1. In the [Visual Effect Graph window](VisualEffectGraphWindow.md), right-click in an empty space.
+2. From the menu, click **Create Node**.
+3. In the Node Creation menu, click **Contexts > Event (Context)**.
+4. In the **Event Name** input field, type the name of your Event.
 
 ## Default Events
 
-Visual Effect Graphs provide two Default Events that are implicitly bound to the Start and Stop Flow Inputs of the Spawn Contexts:
+The Visual Effect Graph provide two default Events:
 
-* `OnPlay` for the intent *Enabling the Spawn of Particles*, is implicitly bound to the Start Flow input of any Spawn Context.
-* `OnStop` for the intent of *Stopping the Spawn of Particles*, is implicitly bound to the Stop Flow input of any Spawn Context.
+* **OnPlay**: To enable the spawning of particles. If you do not assign an Event to a Spawn Context's **Start** input flow slot, the Visual Effect Graph implicitly binds this Event to that input flow slot instead.
+* **OnStop**: To disable the spawning of particles. If you do not assign an Event to a Spawn Context's **Stop** input flow slot, the Visual Effect Graph implicitly binds this Event to that input flow slot instead.
 
-Connecting Event Contexts on the Start and Stop Flow inputs of a Spawn Contexts will remove the implicit binding to the `OnPlay` and `OnStop` Events
+If you connect an Event Context to a Spawn Context's **Start** or **Stop** input flow slot, this removes the implicit binding to the **OnPlay** and **OnStop** Events respectively.
 
 ## Custom Events
 
-Custom Events can be created inside Visual Effect Graphs using Event Contexts.
+If you do not want to use the default Events, you can use an Event Context to create your own custom Event.
 
-In order to create a custom event, create an event using the **Create Node** menu, then change its name in the **Event Name** field
+To do this, first [create an Event Context](#creating-events), then type the name of your custom Event in the **Event Name** property.
 
-## EventAttribute Payloads
+## Event Attribute Payloads
 
-Event Attribute payloads are attributes attached on one event. You can set these attributes in Visual Effect Graph using the **Set [Attribute] Event Attribute>** Blocks in Spawn Contexts, but you can also attach them to events sent from the scene using the [Component API](ComponentAPI.md#event-attributes) .
+Event Attribute payloads are attributes that you can attach to an Event. To set these attributes in a Visual Effect Graph, you can use the **Set [Attribute]** Blocks in Spawn Contexts, but you can also attach them to Events you send from C# scripts. For information on how to do that latter, see [Component API](ComponentAPI.md#event-attributes) .
 
-EventAttribute Payloads are attributes that will implicitly travel through the graph from Events, through Spawn Systems, and that can be caught in Initialize Contexts using **Get Source Attribute Operators** and **Inherit [Attribute] Blocks**
+Event Attribute Payloads are attributes that implicitly travel through the graph from Events, through Spawn Contexts, and eventually to an Initialize Context. To catch a payload in an Initialize Context, use **Get Source Attribute** Operators or **Inherit [Attribute]** Blocks.
 
-## Default VisualEffect Event
+## Default Visual Effect Event
 
-The default Visual Effect Event defines the name of the event that is implicitly sent when a `Reset` is performed on a [Visual Effect](VisualEffectComponent.md) instance (this can happen at first start or any restart of the effect).
+The default Visual Effect Event defines the name of the Event that the Visual Effect Graph implicitly sends when a [Visual Effect](VisualEffectComponent.md) instance **Resets**. This happens when the effect first starts, or when the effect restarts.
 
-Default VisualEffect Event is defined in the [Visual Effect Graph Asset Inspector](VisualEffectGraphAsset.md) but can be overridden in any [Visual Effect Inspector](VisualEffectComponent.md) for any instance in the scene.
+You can define the default Visual Effect Event for each [Visual Effect Graph Asset](VisualEffectGraphAsset.md) independently. You can also override this value for every instance of the Visual Effect Graph Asset. To override the default Visual Effect Event for an instance, see **Initial Event Name** in the [Visual Effect Inspector](VisualEffectComponent.md).
 
 ## GPU Events
 
-GPU Events is an **Experimental feature** of Visual Effect Graph : It enables particle spawn based on other Particles.  You can enable this option in [Visual Effect Preferences](VisualEffectPreferences.md) .
+GPU Events are an **Experimental feature** of the Visual Effect Graph. They allow you to spawn particles based on other particles. To enable this option, enable the **Experimental Operators/Blocks** checkbox in the [Visual Effect Preferences](VisualEffectPreferences.md) .
 
-![](Images/GPUEvent.png)
+GPU Events are Event Contexts that rely on data sent from other systems, for example, when a particle dies. The following Update Blocks can send GPU Event Data:
 
-GPU Events are Event Contexts that relies on Data sent from other Systems, for instance when a particle dies, or other conditions. The following Update Blocks can send GPU Event Data:
+* **Trigger Event On Die**:  Spawns N Particles on another system when a particle dies.
+* **Trigger Event Rate**: Spawn N Particles per second (or per distance travelled), based on a particle from a system.
+* **Trigger Event Always**:  Spawns N Particles every frame.
 
-* **Trigger Event On Die** :  Spawns N Particles on another system when a particle dies
-* **Trigger Event Rate** : Spawn N Particles per second (or per distance travelled), based on a particle from a system
-* **Trigger Event Always** :  Spawns N Particles every Frame.
+These Blocks connect to a **GPUEvent** Context. This Context does not handle any Blocks, but instead connects to an Initialize Context of a child system.
 
-These Blocks connect to a **GPUEvent** Context. This context does not handle any Blocks but instead connects to a Initialize Context of a child system.
+To gather data from the parent particle, a child system must refer to [Source Attributes](Attributes.md) in its Initialize Context. To do this, a child system can use a **Get Source Attribute** Operator, or an **Inherit Attribute** Block. For a visual example, see the image below.
 
-In order to gather data from the parent particle, the child system must refer to [Source Attributes](Attributes.md) in its Initialize Context, by using **Get Source Attribute Operator**, or **Inherit Attribute Block**,as shown as in the example above : The child System inherits the source position of the particle that created it, and inherits roughly 50% of its speed.
-
+![](Images/GPUEvent.png)*In this example, the child System inherits the source position of the particle that creates it. It also inherit roughly 50% of the parent particle's speed.*

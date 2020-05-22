@@ -297,7 +297,7 @@ namespace UnityEditor.VFX.Test
 
             var expressionValue = outputValue.Get<Vector4>();
             //Direction expects a normalize
-            var expectedValue = new Vector4(1.0f/Mathf.Sqrt(2), 1.0f/Mathf.Sqrt(2), 0.0f, 3.0f);
+            var expectedValue = new Vector4(1.0f / Mathf.Sqrt(2), 1.0f / Mathf.Sqrt(2), 0.0f, 3.0f);
 
             Assert.AreEqual(expectedValue.x, expressionValue.x, 1e-5f);
             Assert.AreEqual(expectedValue.y, expressionValue.y, 1e-5f);
@@ -358,7 +358,7 @@ namespace UnityEditor.VFX.Test
             branch.inputSlots[1].value = transformA;
             branch.inputSlots[2].value = transformB;
 
-            Func<Transform, Transform, bool> fnCompareTransform = delegate (Transform aS, Transform bS)
+            Func<Transform, Transform, bool> fnCompareTransform = delegate(Transform aS, Transform bS)
             {
                 //Only compare position => didn't modify something else above
                 if (aS.position.x != bS.position.x) return false;
@@ -367,7 +367,7 @@ namespace UnityEditor.VFX.Test
                 return true;
             };
 
-            Func<VFXSlot, Transform> fnSlotToTransform = delegate (VFXSlot slot)
+            Func<VFXSlot, Transform> fnSlotToTransform = delegate(VFXSlot slot)
             {
                 var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
                 var position = context.Compile(slot[0].GetExpression());

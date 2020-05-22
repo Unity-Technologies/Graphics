@@ -494,7 +494,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
     float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= maskVertexColor;
+    blendMasks *= saturate(maskVertexColor);
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
     blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
 #endif

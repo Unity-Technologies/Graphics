@@ -25,7 +25,7 @@ namespace UnityEngine.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-            component.SetBool(m_Property, check == 0 ? Target.activeInHierarchy : Target.activeSelf );
+            component.SetBool(m_Property, check == 0 ? Target.activeInHierarchy : Target.activeSelf);
         }
 
         public override string ToString()
