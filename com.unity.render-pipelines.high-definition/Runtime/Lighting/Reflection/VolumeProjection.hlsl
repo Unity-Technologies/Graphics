@@ -50,8 +50,9 @@ float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 position
     for (int i = firstPlane; i < lastPlane; i++)
     {
         float4 plane = _ConvexProxyPlanesAtlas[i];
-        float t = (plane.w - dot(positionPS, plane.xyz)) / dot(dirPS, plane.xyz);
-        if (t > 0) projectionDistance = min(projectionDistance, t);
+        float angle = dot(dirPS, plane.xyz);
+        if (angle > 0)
+            projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
     }
 
     return projectionDistance;

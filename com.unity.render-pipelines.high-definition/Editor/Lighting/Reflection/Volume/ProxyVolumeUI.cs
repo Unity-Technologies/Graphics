@@ -11,12 +11,13 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static GUIContent shapeContent = EditorGUIUtility.TrTextContent("Shape", "The shape of the Proxy.\nInfinite is compatible with any kind of InfluenceShape.");
         internal static GUIContent boxSizeContent = EditorGUIUtility.TrTextContent("Box Size", "The size of the box.");
         internal static GUIContent sphereRadiusContent = EditorGUIUtility.TrTextContent("Sphere Radius", "The radius of the sphere.");
-
-		internal static GUIContent addPlane = EditorGUIUtility.TrTextContent("Add Plane");
-		internal static GUIContent planeNormal = EditorGUIUtility.TrTextContent("Plane Equation");
-		internal static GUIContent deleteSelected = EditorGUIUtility.TrTextContent("Delete Selected");
-		internal static GUIContent clearSelection = EditorGUIUtility.TrTextContent("Clear Selection");
-		internal static GUIContent duplicateSelected = EditorGUIUtility.TrTextContent("Duplicate Selected");
+		internal static GUIContent planesContent = EditorGUIUtility.TrTextContent("Planes", "The planes to the convex volume.");
+        
+		internal static GUIContent addPlane = EditorGUIUtility.TrTextContent("Add Plane", "Add a new plane to the volume.");
+		internal static GUIContent deleteSelected = EditorGUIUtility.TrTextContent("Delete Selected", "Remove the selected plane from the volume.");
+		internal static GUIContent clearSelection = EditorGUIUtility.TrTextContent("Clear Selection", "Unselect the selected plane.");
+		internal static GUIContent duplicateSelected = EditorGUIUtility.TrTextContent("Duplicate Selected", "Duplicate the selected plane.");
+        internal static GUIContent selectedPlane = EditorGUIUtility.TrTextContent("Selected Plane", "The coefficients of the plane relative to the volume.\nXYZ is the plane normal. W is the distance to origin");
 
         public static readonly CED.IDrawer SectionShape = CED.Group((serialized, owner) =>
         {
@@ -39,17 +40,23 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.PropertyField(serialized.sphereRadius, sphereRadiusContent);
                     break;
                 case ProxyShape.Convex:
-                    bool editing = ConvexVolume.DrawToolbar(HDEditorUtils.GetBoundsGetter(owner), owner);
+                    if (serialized.planes.hasMultipleDifferentValues)
+                    {
+                        EditorGUILayout.PropertyField(serialized.planes, planesContent);
+                        break;
+                    }
+
+                    bool editing = ConvexVolume.DrawToolbar(owner);
                     int selected = editing ? serialized.selected.intValue : -1;
                     if (selected >= serialized.planes.arraySize)
                         selected = -1;
-
-                    for (int i = 0; i < serialized.planes.arraySize; i++)
+                    
+                    EditorGUILayout.PropertyField(serialized.planes, planesContent);
+                    using (new EditorGUI.DisabledScope(selected == -1))
                     {
-                        string text = (i == selected) ? "Selected Plane" : $"Plane {i}";
-                        var planeProp = serialized.planes.GetArrayElementAtIndex(i);
+                        var planeProp = selected == -1 ? null : serialized.planes.GetArrayElementAtIndex(selected);
                         EditorGUI.BeginChangeCheck();
-                        Vector4 plane = EditorGUILayout.Vector4Field(EditorGUIUtility.TrTextContent(text), planeProp.vector4Value);
+                        Vector4 plane = EditorGUILayout.Vector4Field(selectedPlane, planeProp == null ? Vector4.zero : planeProp.vector4Value);
                         if (EditorGUI.EndChangeCheck())
                             planeProp.vector4Value = plane;
                     }

@@ -79,12 +79,14 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                             break;
                         case ProxyShape.Convex:
+                            ConvexVolume.DoToolbarShortcutKey(this);
                             m_ConvexVolume.center = Quaternion.Inverse(tr.rotation) * tr.position;
                             m_ConvexVolume.planes = prox.planes;
                             m_ConvexVolume.selected = prox.selected;
                             EditorGUI.BeginChangeCheck();
                             m_ConvexVolume.DrawHull();
-                            m_ConvexVolume.DrawHandle();
+                            if (m_TypedTargets.Length == 1)
+                                m_ConvexVolume.DrawHandle();
                             if (EditorGUI.EndChangeCheck())
                             {
                                 Undo.RecordObjects(new Object[] { tr, comp }, "Update Proxy Volume Size");
