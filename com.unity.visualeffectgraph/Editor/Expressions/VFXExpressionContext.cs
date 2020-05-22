@@ -104,8 +104,7 @@ namespace UnityEditor.VFX
 
             private VFXExpression InsertGPUTransformation(VFXExpression exp, VFXExpression sourceExpression)
             {
-#if UNITY_2020_2_OR_NEWER
-                //TODOPAUL : Unify with switch case UNITY_2020_2_OR_NEWER isn't needed anymore
+                //TODOPAUL : Unify with switch case
                 if (exp.valueType == VFXValueType.Mesh)
                 {
                     if (sourceExpression == null)
@@ -138,7 +137,6 @@ namespace UnityEditor.VFX
                     //TODOPAUL : Test actual source expression type
                     return new VFXExpressionVertexBufferFromSkinnedMeshRenderer(exp, sourceExpression.parents[2] /* channelFormatAndDimensionAndStreamIndex */);
                 }
-#endif
 
                 switch (exp.valueType)
                 {

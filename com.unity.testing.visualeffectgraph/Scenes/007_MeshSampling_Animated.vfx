@@ -566,12 +566,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661614849}
   cullMode: 0
   zWriteMode: 0
@@ -856,7 +850,10 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 8926484042661614825}
   output: 1
-  adressingMode: 1
+  mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  source: 0
 --- !u!114 &8926484042661614602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2939,12 +2936,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661614850}
   cullMode: 3
   zWriteMode: 0
@@ -2996,12 +2987,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661614851}
   cullMode: 0
   zWriteMode: 0
@@ -4386,12 +4371,6 @@ MonoBehaviour:
   useAlphaClipping: 0
   generateMotionVector: 0
   m_SubOutputs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
   - {fileID: 8926484042661614852}
   cullMode: 0
   zWriteMode: 0

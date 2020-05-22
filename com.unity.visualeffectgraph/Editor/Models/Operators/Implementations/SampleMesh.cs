@@ -10,7 +10,16 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Sampling", experimental = true)]
     class SampleMesh : VFXOperator
     {
-        override public string name { get { return "Sample Mesh"; } }
+        override public string name
+        {
+            get
+            {
+                if (source == SourceType.Mesh)
+                    return "Sample Mesh";
+                else
+                    return "Sample Skinned Mesh";
+            }
+        }
 
         public enum PlacementMode
         {
@@ -27,7 +36,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputPropertiesSkinnedMeshRenderer
         {
-            [Tooltip("TODOPAUL")]
+            [Tooltip("Sets the Mesh to sample from, has to be an exposed entry.")]
             public SkinnedMeshRenderer skinnedMesh = null;
         }
 
@@ -41,8 +50,6 @@ namespace UnityEditor.VFX.Operator
         {
             Barycentric,
             Uniform,
-            //<= Experiment
-            LowDistorsionMapping,
         }
 
         public class InputPropertiesPlacementSurfaceBarycentricCoordinates
@@ -54,30 +61,22 @@ namespace UnityEditor.VFX.Operator
             public Vector2 barycentric;
         }
 
-        public class InputPropertiesPlacementSurfaceUniformSampling
-        {
-            [Tooltip("The triangle index to read from.")]
-            public uint triangle = 0u;
-
-            [Tooltip("Sampler.")] //Not sure it's intuitive neither.
-            public Vector2 sampler;
-        }
-
         public class InputPropertiesPlacementSurfaceLowDistorsionMapping
         {
             [Tooltip("The triangle index to read from.")]
             public uint triangle = 0u;
 
-            [Tooltip("From Eric.")]
+            [Tooltip("Low distortion mapping coordinate.")]
             public Vector2 square;
         }
-        //Add trilinear coordinates ? How to represent this input user friendly...
 
         public class InputPropertiesEdge
         {
-            [Tooltip("The start index of edge, line will be renderer with the following one")]
+            [Tooltip("The start index of edge, line will be renderer with the following one.")]
             public uint index = 0u;
-            public float x; //don't now how to render
+
+            [Tooltip("Linear interpolation value between start and end edge position.")]
+            public float x;
         }
 
         [Flags]
@@ -118,7 +117,7 @@ namespace UnityEditor.VFX.Operator
         [VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
         private SurfaceCoordinates surfaceCoordinates = SurfaceCoordinates.Uniform;
 
-        [VFXSetting, SerializeField, Tooltip("TODOPAUL")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Choose between classic mesh sampling or skinned renderer mesh sampling.")]
         private SourceType source = SourceType.Mesh;
 
         private bool HasOutput(VertexAttributeFlag flag)
@@ -149,12 +148,7 @@ namespace UnityEditor.VFX.Operator
                 case VertexAttributeFlag.TexCoord4:
                 case VertexAttributeFlag.TexCoord5:
                 case VertexAttributeFlag.TexCoord6:
-                case VertexAttributeFlag.TexCoord7:
-#if UNITY_2020_2_OR_NEWER
-                    return typeof(Vector4);
-#else
-                    return typeof(Vector2);
-#endif
+                case VertexAttributeFlag.TexCoord7: return typeof(Vector4);
                 case VertexAttributeFlag.BlendWeight: return typeof(Vector4);
                 case VertexAttributeFlag.BlendIndices: return typeof(Vector4);
                 default: throw new InvalidOperationException("Unexpected attribute : " + attribute);
@@ -207,10 +201,8 @@ namespace UnityEditor.VFX.Operator
                 {
                     if (surfaceCoordinates == SurfaceCoordinates.Barycentric)
                         props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinates"));
-                    else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
-                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceLowDistorsionMapping"));
                     else
-                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceUniformSampling"));
+                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceLowDistorsionMapping"));
                 }
                 else if (placementMode == PlacementMode.Edge)
                 {
@@ -246,8 +238,7 @@ namespace UnityEditor.VFX.Operator
                 var outputType = GetOutputType(vertexAttribute);
                 VFXExpression sampled = null;
 
-#if UNITY_2020_2_OR_NEWER
-                var meshChannelFormatAndDimension = new VFXExpressionMeshChannelFormatAndDimension(mesh, channelIndex);
+                var meshChannelFormatAndDimension = new VFXExpressionMeshChannelInfos(mesh, channelIndex);
                 var vertexOffset = vertexIndex * meshVertexStride + meshChannelOffset;
 
                 if (source == SourceType.Mesh)
@@ -276,18 +267,6 @@ namespace UnityEditor.VFX.Operator
                     else
                         sampled = new VFXExpressionSampleSkinnedMeshRendererFloat4(sourceMesh, vertexOffset, meshChannelFormatAndDimension);
                 }
-#else
-                if (vertexAttribute == VertexAttributeFlag.Color)
-                    sampled = new VFXExpressionSampleMeshColor(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-                else if (outputType == typeof(float))
-                    sampled = new VFXExpressionSampleMeshFloat(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-                else if (outputType == typeof(Vector2))
-                    sampled = new VFXExpressionSampleMeshFloat2(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-                else if (outputType == typeof(Vector3))
-                    sampled = new VFXExpressionSampleMeshFloat3(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-                else
-                    sampled = new VFXExpressionSampleMeshFloat4(mesh, vertexIndex, meshChannelOffset, meshVertexStride);
-#endif
                 sampledValues.Add(sampled);
             }
         }
@@ -370,7 +349,7 @@ namespace UnityEditor.VFX.Operator
                         var barycentricCoordinateInput = inputExpression[2];
                         barycentricCoordinates = new VFXExpressionCombine(barycentricCoordinateInput.x, barycentricCoordinateInput.y, one - barycentricCoordinateInput.x - barycentricCoordinateInput.y);
                     }
-                    else if (surfaceCoordinates == SurfaceCoordinates.LowDistorsionMapping)
+                    else if (surfaceCoordinates == SurfaceCoordinates.Uniform)
                     {
                         //https://hal.archives-ouvertes.fr/hal-02073696v2/document
                         var input = inputExpression[2];
@@ -384,10 +363,8 @@ namespace UnityEditor.VFX.Operator
                         var t1 = new VFXExpressionBranch(pred, t.x, t.x - offset);
                         var t3 = one - t2 - t1;
                         barycentricCoordinates = new VFXExpressionCombine(t1, t2, t3);
-                    }
-                    else if (surfaceCoordinates == SurfaceCoordinates.Uniform)
-                    {
-                        //See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
+
+                        /* Possible variant See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
                         var input = VFXOperatorUtility.Saturate(inputExpression[2]);
                         var s = input.x;
                         var t = VFXOperatorUtility.Sqrt(input.y);
@@ -395,6 +372,7 @@ namespace UnityEditor.VFX.Operator
                         var b = (one - s) * t;
                         var c = s * t;
                         barycentricCoordinates = new VFXExpressionCombine(a, b, c);
+                        */
                     }
                     else
                     {
@@ -408,7 +386,6 @@ namespace UnityEditor.VFX.Operator
                     var r = sampleValue_A * barycentricCoordinateX + sampleValue_B * barycentricCoordinateY + sampleValue_C * barycentricCoordinateZ;
                     outputExpressions.Add(r);
                 }
-
             }
             return outputExpressions.ToArray();
         }

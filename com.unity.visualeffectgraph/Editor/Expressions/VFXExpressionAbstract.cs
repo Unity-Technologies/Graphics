@@ -131,13 +131,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
-#if UNITY_2020_2_OR_NEWER
-                //On 2020.2, we don't bind directly the Mesh anymore
-                //TODO : handle type of StructuredBuffer to remove asuint/asfloat
                 case VFXValueType.Buffer: return "StructuredBuffer<float>";
-#else
-                case VFXValueType.Mesh: return "StructuredBuffer<float>";
-#endif
                 case VFXValueType.Boolean: return "bool";
             }
 
