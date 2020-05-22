@@ -105,6 +105,8 @@ namespace UnityEditor.ShaderGraph.Serialization
                 isHidden = true;
             }
 
+            private List<BlockFieldDescriptor> m_activeBlocks = null;
+
             public UnknownTargetType(string displayName, string jsonData)
             {
                 var split = displayName.Split('.');
@@ -123,8 +125,25 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 return jsonData.Trim();
             }
+            //When we first call GetActiveBlocks, we assume any unknown blockfielddescriptors are owned by this target
             public override void GetActiveBlocks(ref TargetActiveBlockContext context)
             {
+                if (m_activeBlocks == null)
+                {
+                    m_activeBlocks = new List<BlockFieldDescriptor>();
+                    foreach (var cur in context.currentBlocks)
+                    {
+                        if (cur.control == null && !string.IsNullOrEmpty(cur.displayName))
+                        {
+                            m_activeBlocks.Add(cur);
+                        }
+                    }
+                }
+
+                foreach(var block in m_activeBlocks)
+                {
+                    context.AddBlock(block);
+                }
             }
 
             public override void GetFields(ref TargetFieldContext context)

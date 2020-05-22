@@ -98,9 +98,6 @@ namespace UnityEditor.ShaderGraph
                 case Vector3Control vector3Control:
                     AddSlot(new Vector3MaterialSlot(0, descriptor.displayName, descriptor.name, SlotType.Input, vector3Control.value, stageCapability));
                     break;
-                case UnknownControl unknownControl:
-                    AddSlot(new UnknownMaterialSlot());
-                    break;
             }
             RemoveSlotsNameNotMatching(new int[] {0});
         }

@@ -406,6 +406,7 @@ namespace UnityEditor.ShaderGraph
             if(m_ActiveTargets != null)
             {
                 m_ActiveTargets.Clear();
+                var invalidTargetsToRemove = ListPool<Target>.Get();
                 var targetCount = m_ValidTargets.Count;
                 for(int i = 0; i < targetCount; i++)
                 {
@@ -413,7 +414,17 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_ActiveTargets.Add(m_ValidTargets[i]);
                     }
+                    else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
+                    {
+                        invalidTargetsToRemove.Add(m_ValidTargets[i]);
+                    }
                 }
+
+                foreach(var invalidTarget in invalidTargetsToRemove)
+                {
+                    m_ValidTargets.Remove(invalidTarget);
+                }
+                ListPool<Target>.Release(invalidTargetsToRemove);
             }
             if (reevaluateActivity)
             {
@@ -630,13 +641,27 @@ namespace UnityEditor.ShaderGraph
             // Set Blocks as active based on supported Block list
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
-                                                                                                                       : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                if (vertexBlock.value?.descriptor?.control == null)
+                {
+                    vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
-                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                if (fragmentBlock.value?.descriptor?.control == null)
+                {
+                    fragmentBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                               : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
             }
         }
 
@@ -652,7 +677,7 @@ namespace UnityEditor.ShaderGraph
                     if(!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
                         var slot = block.value.FindSlot<MaterialSlot>(0);
-                        if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.control == null) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
                         }
@@ -2006,7 +2031,7 @@ namespace UnityEditor.ShaderGraph
                             throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
                         }
                         //right thing to do?
-                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, new UnknownControl(), stage, true);
+                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true);
                         m_BlockFieldDescriptors.Add(block.descriptor);
                     }
                     block.contextData = contextData;

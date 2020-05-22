@@ -6,7 +6,7 @@ namespace UnityEditor.ShaderGraph
 {
     class UnknownMaterialSlot : MaterialSlot
     {
-        public override bool isDefaultValue => false; //always assume not default so it doesnt get removed by addremoveblocks
+        public override bool isDefaultValue => true;
 
         public override SlotValueType valueType => SlotValueType.Unknown;
 
