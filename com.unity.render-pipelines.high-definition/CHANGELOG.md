@@ -619,6 +619,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed taaFrameIndex and XR tests 4052 and 4053
 - Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
 - Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fix erroneous central depth sampling in TAA.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -747,6 +749,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ignoring the disable SSR flags for recursive rendering.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 - Fixed the sub surface mask not being taken into account when computing ray traced sub surface scattering.
+- Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
+- Changed default exposure compensation to 0.
 
 ## [7.1.1] - 2019-09-05
 
