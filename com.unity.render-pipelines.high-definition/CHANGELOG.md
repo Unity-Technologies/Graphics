@@ -745,6 +745,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ignoring the disable SSR flags for recursive rendering.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 - Fixed the sub surface mask not being taken into account when computing ray traced sub surface scattering.
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
 
 ## [7.1.1] - 2019-09-05
 
