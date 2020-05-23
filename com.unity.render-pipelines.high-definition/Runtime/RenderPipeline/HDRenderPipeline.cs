@@ -771,13 +771,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // HDRP always enable baking of cookie by default
-            #if UNITY_2020_2_OR_NEWER
             m_PreviousEnableCookiesInLightmapper = UnityEditor.EditorSettings.enableCookiesInLightmapper;
             UnityEditor.EditorSettings.enableCookiesInLightmapper = true;
-            #else
-            m_PreviousEnableCookiesInLightmapper = UnityEditor.EditorSettings.disableCookiesInLightmapper;
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
-            #endif
 
             SceneViewDrawMode.SetupDrawMode();
 
@@ -873,11 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmapping.ResetDelegate();
 
 #if UNITY_EDITOR
-            #if UNITY_2020_2_OR_NEWER
             UnityEditor.EditorSettings.enableCookiesInLightmapper = m_PreviousEnableCookiesInLightmapper;
-            #else
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_PreviousEnableCookiesInLightmapper;
-            #endif
 #endif
         }
 
