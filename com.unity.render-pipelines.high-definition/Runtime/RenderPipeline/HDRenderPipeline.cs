@@ -2788,9 +2788,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
             cmd.SetViewport(hdCamera.finalViewport);
 
-            if (camera.cameraType == CameraType.SceneView)
-                RenderWireOverlay(cmd, camera, renderContext);
-
             // Render overlay Gizmos
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
@@ -3110,18 +3107,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
         }
-
-#if UNITY_EDITOR
-        void RenderWireOverlay(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
-        {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
-            {
-                renderContext.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-                renderContext.DrawWireOverlay(camera);
-            }
-        }
-#endif
 
         static RendererListDesc CreateOpaqueRendererListDesc(
             CullingResults cull,

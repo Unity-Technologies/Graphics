@@ -10,7 +10,8 @@ namespace UnityEditor.Rendering.Universal
 
         static bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
-            if (cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
+            if (cameraMode.drawMode == DrawCameraMode.TexturedWire ||
+                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
                 cameraMode.drawMode == DrawCameraMode.RenderPaths ||
                 cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
                 cameraMode.drawMode == DrawCameraMode.Overdraw ||
