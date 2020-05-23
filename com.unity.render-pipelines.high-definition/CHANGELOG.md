@@ -128,6 +128,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an initial version of SSGI.
 - Added back-compatibility with builtin stereo matrices.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added support for multiple mapping modes in AxF.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
