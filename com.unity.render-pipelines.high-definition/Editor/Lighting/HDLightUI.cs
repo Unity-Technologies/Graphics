@@ -756,11 +756,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            #if UNITY_2020_2_OR_NEWER
             if (useBaking && !UnityEditor.EditorSettings.enableCookiesInLightmapper)
-            #else
-            if (useBaking && UnityEditor.EditorSettings.disableCookiesInLightmapper)
-            #endif
                 EditorGUILayout.HelpBox(s_Styles.cookieBaking, MessageType.Warning);
             if (cookie.width != cookie.height)
                 EditorGUILayout.HelpBox(s_Styles.cookieNonPOT, MessageType.Warning);

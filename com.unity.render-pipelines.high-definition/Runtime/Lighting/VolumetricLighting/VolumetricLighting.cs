@@ -467,7 +467,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
 
-            m_VisibleVolumeData = null; // free()
+            m_VisibleVolumeData   = null; // free()
             m_VisibleVolumeBounds = null; // free()
         }
 
@@ -493,7 +493,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var currentParams = hdCamera.vBufferParams[currIdx];
 
-            ResizeVolumetricBuffer(ref m_DensityBuffer, "VBufferDensity",   currentParams.viewportSize.x,
+            ResizeVolumetricBuffer(ref m_DensityBuffer, "VBufferDensity", currentParams.viewportSize.x,
                                                                             currentParams.viewportSize.y,
                                                                             currentParams.viewportSize.z);
             ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
