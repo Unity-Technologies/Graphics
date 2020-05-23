@@ -36,8 +36,8 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, SerializeField, Tooltip("Change what kind of primitive we want to sample.")]
         private SampleMesh.PlacementMode placementMode = SampleMesh.PlacementMode.Vertex;
 
-        //[VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
-        //private SampleMesh.SurfaceCoordinates surfaceCoordinates = SampleMesh.SurfaceCoordinates.Uniform;
+        [VFXSetting, SerializeField, Tooltip("Surface sampling coordinate.")]
+        private SampleMesh.SurfaceCoordinates surfaceCoordinates = SampleMesh.SurfaceCoordinates.Uniform;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Choose between classic mesh sampling or skinned renderer mesh sampling.")]
         private SampleMesh.SourceType sourceMesh = SampleMesh.SourceType.Mesh;
@@ -71,6 +71,33 @@ namespace UnityEditor.VFX.Block
             public uint vertex = 0;
         }
 
+        public class CustomPropertiesEdge
+        {
+            [Tooltip("The start index of edge, line will be renderer with the following one.")]
+            public uint index = 0u;
+
+            [Tooltip("Linear interpolation value between start and end edge position.")]
+            public float x;
+        }
+
+        public class CustomPropertiesPlacementSurfaceBarycentricCoordinates
+        {
+            [Tooltip("The triangle index to read from.")]
+            public uint triangle = 0u;
+
+            [Tooltip("Barycentric coordinate (z is computed from x & y).")]
+            public Vector2 barycentric;
+        }
+
+        public class CustomPropertiesPlacementSurfaceLowDistorsionMapping
+        {
+            [Tooltip("The triangle index to read from.")]
+            public uint triangle = 0u;
+
+            [Tooltip("Low distortion mapping coordinate.")]
+            public Vector2 square;
+        }
+
         public class CustomPropertiesBlendPosition
         {
             [Range(0.0f, 1.0f), Tooltip("Set the blending value for position attribute.")]
@@ -99,14 +126,23 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                //TODOPAUL : use typename in these new block
                 VFXExpression source = null;
-                VFXExpression inputVertex = null;
+                VFXExpression index = null;
+                VFXExpression coordinate = null;
                 foreach (var parameter in base.parameters)
                 {
-                    if (parameter.name == "mesh" || parameter.name == "skinnedMesh")
+                    if (    parameter.name == "mesh"
+                        ||  parameter.name == "skinnedMesh")
                         source = parameter.exp;
-                    else if (parameter.name == "vertex")
-                        inputVertex = parameter.exp;
+                    else if (       parameter.name == "x"
+                                ||  parameter.name == "square"
+                                ||  parameter.name == "barycentric")
+                        coordinate = parameter.exp;
+                    else if (   parameter.name == "vertex"
+                            ||  parameter.name == "index"
+                            ||  parameter.name == "triangle")
+                        index = parameter.exp;
                     else
                         yield return parameter;
                 }
@@ -115,18 +151,45 @@ namespace UnityEditor.VFX.Block
                 var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
                 var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
 
-                VFXExpression vertexIndex;
+                var threeUint = VFXOperatorUtility.ThreeExpression[UnityEngine.VFX.VFXValueType.Uint32];
+
                 if (spawnMode == SpawnMode.Custom)
                 {
-                    vertexIndex = VFXOperatorUtility.ApplyAddressingMode(inputVertex, meshVertexCount, mode);
+                    if (placementMode == SampleMesh.PlacementMode.Vertex)
+                        index = VFXOperatorUtility.ApplyAddressingMode(index, meshVertexCount, mode);
+                    else if (placementMode == SampleMesh.PlacementMode.Edge)
+                        index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount, mode);
+                    else if (placementMode == SampleMesh.PlacementMode.Surface)
+                        index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount / threeUint, mode);
                 }
-                else //if(spawnMode == SpawnMode.Random)
+                else if(spawnMode == SpawnMode.Random)
                 {
-                    vertexIndex = BuildRandomUIntPerParticle(meshVertexCount);
+                    if (placementMode == SampleMesh.PlacementMode.Vertex)
+                    {
+                        index = BuildRandomUIntPerParticle(meshVertexCount);
+                    }
+                    else if (placementMode == SampleMesh.PlacementMode.Edge)
+                    {
+                        index = BuildRandomUIntPerParticle(meshIndexCount);
+                        coordinate = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                    }
+                    else if (placementMode == SampleMesh.PlacementMode.Surface)
+                    {
+                        index = BuildRandomUIntPerParticle(meshIndexCount / threeUint);
+                        var x = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                        var y = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+                        coordinate = new VFXExpressionCombine(x, y);
+                    }
                 }
 
                 var vertexAttributes = new[] { VertexAttribute.Position, VertexAttribute.Normal };
-                var sampling = SampleMesh.SampleVertexAttribute(source, vertexIndex, vertexAttributes).ToArray();
+                VFXExpression[] sampling = null;
+                if (placementMode == SampleMesh.PlacementMode.Vertex)
+                    sampling = SampleMesh.SampleVertexAttribute(source, index, vertexAttributes).ToArray();
+                else if (placementMode == SampleMesh.PlacementMode.Edge)
+                    sampling = SampleMesh.SampleEdgeAttribute(source, index, coordinate, vertexAttributes).ToArray();
+                else if (placementMode == SampleMesh.PlacementMode.Surface)
+                    sampling = SampleMesh.SampleTriangleAttribute(source, index, coordinate, surfaceCoordinates, vertexAttributes).ToArray();
 
                 yield return new VFXNamedExpression(sampling[0], "readPosition");
                 yield return new VFXNamedExpression(sampling[1], "readDirection");
@@ -139,6 +202,9 @@ namespace UnityEditor.VFX.Block
             {
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
+
+                if (spawnMode != SpawnMode.Custom || placementMode != SampleMesh.PlacementMode.Surface)
+                    yield return "surfaceCoordinates";
 
                 if (spawnMode != SpawnMode.Custom)
                     yield return "mode";
@@ -156,8 +222,24 @@ namespace UnityEditor.VFX.Block
                 else
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesPropertiesSkinnedMeshRenderer"));
 
-                if (placementMode == SampleMesh.PlacementMode.Vertex && spawnMode == SpawnMode.Custom)
-                    properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
+                if (spawnMode == SpawnMode.Custom)
+                {
+                    if (placementMode == SampleMesh.PlacementMode.Vertex)
+                        properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
+                    else if (placementMode == SampleMesh.PlacementMode.Edge)
+                        properties = properties.Concat(PropertiesFromType("CustomPropertiesEdge"));
+                    else if (placementMode == SampleMesh.PlacementMode.Surface)
+                    {
+                        if (surfaceCoordinates == SampleMesh.SurfaceCoordinates.Barycentric)
+                            properties = properties.Concat(PropertiesFromType("CustomPropertiesPlacementSurfaceBarycentricCoordinates"));
+                        else if (surfaceCoordinates == SampleMesh.SurfaceCoordinates.Uniform)
+                            properties = properties.Concat(PropertiesFromType("CustomPropertiesPlacementSurfaceLowDistorsionMapping"));
+                        else
+                            throw new InvalidOperationException("Unexpected surface coordinate mode : " + surfaceCoordinates);
+                    }
+                    else
+                        throw new InvalidOperationException("Unexpected placement mode : " + placementMode);
+                }
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
                     properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendPosition"));

@@ -66,6 +66,15 @@ namespace UnityEditor.VFX.Operator
             Uniform,
         }
 
+        public class InputPropertiesEdge
+        {
+            [Tooltip("The start index of edge, line will be renderer with the following one.")]
+            public uint index = 0u;
+
+            [Tooltip("Linear interpolation value between start and end edge position.")]
+            public float x;
+        }
+
         public class InputPropertiesPlacementSurfaceBarycentricCoordinates
         {
             [Tooltip("The triangle index to read from.")]
@@ -82,15 +91,6 @@ namespace UnityEditor.VFX.Operator
 
             [Tooltip("Low distortion mapping coordinate.")]
             public Vector2 square;
-        }
-
-        public class InputPropertiesEdge
-        {
-            [Tooltip("The start index of edge, line will be renderer with the following one.")]
-            public uint index = 0u;
-
-            [Tooltip("Linear interpolation value between start and end edge position.")]
-            public float x;
         }
 
         [Flags]
@@ -295,28 +295,26 @@ namespace UnityEditor.VFX.Operator
             return SampleVertexAttribute(source, vertexIndex, vertexAttributes);
         }
 
-        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
 
-            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
             var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
 
             var oneInt = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Int32];
             var oneUint = VFXOperatorUtility.OneExpression[UnityEngine.VFX.VFXValueType.Uint32];
-            var threeUint = VFXValue.Constant(3u);
+            var threeUint = VFXOperatorUtility.ThreeExpression[UnityEngine.VFX.VFXValueType.Uint32];
 
-            var baseIndex = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount, mode);
-            var nextIndex = baseIndex + oneUint;
+            var nextIndex = index + oneUint;
 
             //Loop triangle
             var loop = VFXOperatorUtility.Modulo(nextIndex, threeUint);
             var predicat = new VFXExpressionCondition(VFXCondition.NotEqual, new VFXExpressionCastUintToFloat(loop), VFXOperatorUtility.ZeroExpression[UnityEngine.VFX.VFXValueType.Float]);
             nextIndex = new VFXExpressionBranch(predicat, nextIndex, nextIndex - threeUint);
 
-            var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
-            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
+            var sampledIndex_A = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
+            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
 
             var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
             var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
@@ -329,7 +327,17 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
+        {
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
+            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+
+            index = VFXOperatorUtility.ApplyAddressingMode(index, meshIndexCount, mode);
+            return SampleEdgeAttribute(source, index, x, vertexAttributes);
+        }
+
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -337,10 +345,8 @@ namespace UnityEditor.VFX.Operator
             var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
             var meshIndexFormat = new VFXExpressionMeshIndexFormat(mesh);
 
-            var UintThree = VFXValue.Constant<uint>(3u);
-            var triangleCount = meshIndexCount / UintThree;
-            triangleIndex = VFXOperatorUtility.ApplyAddressingMode(triangleIndex, triangleCount, mode);
-            var baseIndex = triangleIndex * UintThree;
+            var threeUint = VFXOperatorUtility.ThreeExpression[UnityEngine.VFX.VFXValueType.Uint32];
+            var baseIndex = triangleIndex * threeUint;
 
             var sampledIndex_A = new VFXExpressionSampleIndex(mesh, baseIndex, meshIndexFormat);
             var sampledIndex_B = new VFXExpressionSampleIndex(mesh, baseIndex + VFXValue.Constant<uint>(1u), meshIndexFormat);
@@ -399,6 +405,19 @@ namespace UnityEditor.VFX.Operator
                 var r = sampling_A[i] * barycentricCoordinateX + sampling_B[i] * barycentricCoordinateY + sampling_C[i] * barycentricCoordinateZ;
                 yield return r;
             }
+        }
+
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
+        {
+            bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+            var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
+            var UintThree = VFXOperatorUtility.ThreeExpression[UnityEngine.VFX.VFXValueType.Uint32];
+
+            var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+            var triangleCount = meshIndexCount / UintThree;
+            triangleIndex = VFXOperatorUtility.ApplyAddressingMode(triangleIndex, triangleCount, mode);
+
+            return SampleTriangleAttribute(source, triangleIndex, coord, coordMode, vertexAttributes);
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
