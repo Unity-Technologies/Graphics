@@ -5582,6 +5582,9 @@ MonoBehaviour:
   compositionPosition: 0
   compositionDirection: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661614907
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6917,6 +6920,9 @@ MonoBehaviour:
   compositionPosition: 0
   compositionDirection: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661614953
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8158,6 +8164,9 @@ MonoBehaviour:
   compositionPosition: 0
   compositionDirection: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661614999
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10897,6 +10906,9 @@ MonoBehaviour:
   compositionPosition: 0
   compositionDirection: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661615130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14188,6 +14200,9 @@ MonoBehaviour:
   compositionPosition: 0
   compositionDirection: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661615246
 MonoBehaviour:
   m_ObjectHideFlags: 0
