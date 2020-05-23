@@ -126,22 +126,22 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                //TODOPAUL : use typename in these new block
                 VFXExpression source = null;
                 VFXExpression index = null;
                 VFXExpression coordinate = null;
                 foreach (var parameter in base.parameters)
                 {
-                    if (    parameter.name == "mesh"
-                        ||  parameter.name == "skinnedMesh")
+                    if (    parameter.name == nameof(CustomPropertiesMesh.mesh)
+                        ||  parameter.name == nameof(CustomPropertiesPropertiesSkinnedMeshRenderer.skinnedMesh))
                         source = parameter.exp;
-                    else if (       parameter.name == "x"
-                                ||  parameter.name == "square"
-                                ||  parameter.name == "barycentric")
+                    else if (       parameter.name == nameof(CustomPropertiesEdge.x)
+                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.square)
+                                ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.barycentric))
                         coordinate = parameter.exp;
-                    else if (   parameter.name == "vertex"
-                            ||  parameter.name == "index"
-                            ||  parameter.name == "triangle")
+                    else if (   parameter.name == nameof(CustomPropertiesVertex.vertex)
+                            ||  parameter.name == nameof(CustomPropertiesEdge.index)
+                            || parameter.name == nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping.triangle)
+                            ||  parameter.name == nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates.triangle))
                         index = parameter.exp;
                     else
                         yield return parameter;
@@ -204,10 +204,10 @@ namespace UnityEditor.VFX.Block
                     yield return setting;
 
                 if (spawnMode != SpawnMode.Custom || placementMode != SampleMesh.PlacementMode.Surface)
-                    yield return "surfaceCoordinates";
+                    yield return nameof(surfaceCoordinates);
 
                 if (spawnMode != SpawnMode.Custom)
-                    yield return "mode";
+                    yield return nameof(mode);
             }
         }
 
@@ -218,22 +218,22 @@ namespace UnityEditor.VFX.Block
                 var properties = base.inputProperties;
 
                 if (sourceMesh == SampleMesh.SourceType.Mesh)
-                    properties = properties.Concat(PropertiesFromType("CustomPropertiesMesh"));
+                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesMesh)));
                 else
-                    properties = properties.Concat(PropertiesFromType("CustomPropertiesPropertiesSkinnedMeshRenderer"));
+                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesPropertiesSkinnedMeshRenderer)));
 
                 if (spawnMode == SpawnMode.Custom)
                 {
                     if (placementMode == SampleMesh.PlacementMode.Vertex)
-                        properties = properties.Concat(PropertiesFromType("CustomPropertiesVertex"));
+                        properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesVertex)));
                     else if (placementMode == SampleMesh.PlacementMode.Edge)
-                        properties = properties.Concat(PropertiesFromType("CustomPropertiesEdge"));
+                        properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesEdge)));
                     else if (placementMode == SampleMesh.PlacementMode.Surface)
                     {
                         if (surfaceCoordinates == SampleMesh.SurfaceCoordinates.Barycentric)
-                            properties = properties.Concat(PropertiesFromType("CustomPropertiesPlacementSurfaceBarycentricCoordinates"));
+                            properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesPlacementSurfaceBarycentricCoordinates)));
                         else if (surfaceCoordinates == SampleMesh.SurfaceCoordinates.Uniform)
-                            properties = properties.Concat(PropertiesFromType("CustomPropertiesPlacementSurfaceLowDistorsionMapping"));
+                            properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesPlacementSurfaceLowDistorsionMapping)));
                         else
                             throw new InvalidOperationException("Unexpected surface coordinate mode : " + surfaceCoordinates);
                     }
@@ -242,10 +242,10 @@ namespace UnityEditor.VFX.Block
                 }
 
                 if (compositionPosition == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendPosition"));
+                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendPosition)));
 
                 if (compositionDirection == AttributeCompositionMode.Blend)
-                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendDirection"));
+                    properties = properties.Concat(PropertiesFromType(nameof(CustomPropertiesBlendDirection)));
 
                 return properties;
             }

@@ -197,8 +197,9 @@ namespace UnityEditor.VFX.Operator
             {
                 foreach (var settings in base.filteredOutSettings)
                     yield return settings;
+
                 if (placementMode != PlacementMode.Surface)
-                    yield return "surfaceCoordinates";
+                    yield return nameof(surfaceCoordinates);
             }
     }
 
@@ -206,22 +207,30 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                var props = source == SourceType.Mesh ? PropertiesFromType("InputPropertiesMesh") : PropertiesFromType("InputPropertiesSkinnedMeshRenderer");
+                var props = base.inputProperties;
+                if (source == SourceType.Mesh)
+                    props = props.Concat(PropertiesFromType(nameof(InputPropertiesMesh)));
+                else if (source == SourceType.SkinnedMeshRenderer)
+                    props = props.Concat(PropertiesFromType(nameof(InputPropertiesSkinnedMeshRenderer)));
+                else
+                    throw new InvalidOperationException("Unexpected source type : " + source);
+
                 if (placementMode == PlacementMode.Vertex)
-                {
-                    props = props.Concat(PropertiesFromType("InputPropertiesPlacementVertex"));
-                }
+                    props = props.Concat(PropertiesFromType(nameof(InputPropertiesPlacementVertex)));
                 else if (placementMode == PlacementMode.Surface)
                 {
                     if (surfaceCoordinates == SurfaceCoordinates.Barycentric)
-                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceBarycentricCoordinates"));
+                        props = props.Concat(PropertiesFromType(nameof(InputPropertiesPlacementSurfaceBarycentricCoordinates)));
+                    else if (surfaceCoordinates == SurfaceCoordinates.Uniform)
+                        props = props.Concat(PropertiesFromType(nameof(InputPropertiesPlacementSurfaceLowDistorsionMapping)));
                     else
-                        props = props.Concat(PropertiesFromType("InputPropertiesPlacementSurfaceLowDistorsionMapping"));
+                        throw new InvalidOperationException("Unexpected surfaceCoordinates : " + surfaceCoordinates);
                 }
                 else if (placementMode == PlacementMode.Edge)
-                {
-                    props = props.Concat(PropertiesFromType("InputPropertiesEdge"));
-                }
+                    props = props.Concat(PropertiesFromType(nameof(InputPropertiesEdge)));
+                else
+                    throw new InvalidOperationException("Unexpected placementMode : " + placementMode);
+
                 return props;
             }
         }
