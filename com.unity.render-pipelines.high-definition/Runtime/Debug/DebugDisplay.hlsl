@@ -180,6 +180,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
+    [unroll] // Needed to supress warning as some odd code gen is happening here. Is bad for perf, but it is a debug display.
     for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
@@ -213,7 +214,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, false);
 }
 
-void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+void DrawFloatExplicitPrecision(float floatValue, float3 fontColor, uint2 currentUnormCoord, uint digitCount, inout uint2 fixedUnormCoord, inout float3 color)
 {
     if (IsNaN(floatValue))
     {
@@ -227,10 +228,15 @@ void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inou
         bool forceNegativeSign = floatValue >= 0.0f ? false : true;
         DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, forceNegativeSign);
         DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, color);
-        int fracValue = int(frac(abs(floatValue)) * 1e6); // 6 digit
-        int leading0 = 6 - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
+        int fracValue = int(frac(abs(floatValue)) * pow(10, digitCount));
+        int leading0 = digitCount - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
         DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, color, leading0, false);
     }
+}
+
+void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+{
+    DrawFloatExplicitPrecision(floatValue, fontColor, currentUnormCoord, 6, fixedUnormCoord, color);
 }
 
 // Debug rendering is performed at the end of the frame (after post-processing).
