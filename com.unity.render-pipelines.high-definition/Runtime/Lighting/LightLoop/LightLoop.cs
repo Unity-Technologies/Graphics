@@ -1191,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var lightData = new DirectionalLightData();
 
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             // Light direction for directional is opposite to the forward direction
             lightData.forward = light.GetForward();
@@ -1343,7 +1343,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightType = processedData.lightType;
 
             var visibleLightAxisAndPosition = light.GetAxisAndPosition();
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             lightData.lightType = gpuLightType;
 
@@ -1840,7 +1840,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             InfluenceVolume influence = probe.influenceVolume;
-            envLightData.lightLayers = probe.lightLayersAsUInt;
+            envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
