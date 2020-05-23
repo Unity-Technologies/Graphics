@@ -86,23 +86,35 @@ namespace UnityEditor.VFX.Block
         protected override bool needDirectionWrite { get { return true; } }
         protected override bool supportsVolumeSpawning { get { return false; } }
 
+        private static VFXExpression BuildRandomUIntPerParticle(VFXExpression max)
+        {
+            //TODO : Add support of proper integer random
+            var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
+            VFXExpression r = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(max));
+            r = VFXOperatorUtility.ApplyAddressingMode(r, max, VFXOperatorUtility.SequentialAddressingMode.Clamp);
+            return r;
+        }
+
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
             {
-                VFXExpression mesh = null;
+                VFXExpression source = null;
                 VFXExpression inputVertex = null;
                 foreach (var parameter in base.parameters)
                 {
                     if (parameter.name == "mesh" || parameter.name == "skinnedMesh")
-                        mesh = parameter.exp;
+                        source = parameter.exp;
                     else if (parameter.name == "vertex")
                         inputVertex = parameter.exp;
                     else
                         yield return parameter;
                 }
-                //TODOPAUL : Test actual type of mesh
+                bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
+                var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
                 var meshVertexCount = new VFXExpressionMeshVertexCount(mesh);
+                var meshIndexCount = new VFXExpressionMeshIndexCount(mesh);
+
                 VFXExpression vertexIndex;
                 if (spawnMode == SpawnMode.Custom)
                 {
@@ -110,12 +122,11 @@ namespace UnityEditor.VFX.Block
                 }
                 else //if(spawnMode == SpawnMode.Random)
                 {
-                    var rand = VFXOperatorUtility.BuildRandom(VFXSeedMode.PerParticle, false);
-                    vertexIndex = new VFXExpressionCastFloatToUint(rand * new VFXExpressionCastUintToFloat(meshVertexCount));
+                    vertexIndex = BuildRandomUIntPerParticle(meshVertexCount);
                 }
 
-                var vertexAttributes = new[] { SampleMesh.VertexAttributeFlag.Position, SampleMesh.VertexAttributeFlag.Normal };
-                var sampling = SampleMesh.SampleVertexAttribute(mesh, vertexIndex, vertexAttributes).ToArray();
+                var vertexAttributes = new[] { VertexAttribute.Position, VertexAttribute.Normal };
+                var sampling = SampleMesh.SampleVertexAttribute(source, vertexIndex, vertexAttributes).ToArray();
 
                 yield return new VFXNamedExpression(sampling[0], "readPosition");
                 yield return new VFXNamedExpression(sampling[1], "readDirection");

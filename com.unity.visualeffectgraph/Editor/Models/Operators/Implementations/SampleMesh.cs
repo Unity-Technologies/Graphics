@@ -139,32 +139,32 @@ namespace UnityEditor.VFX.Operator
             return (output & flag) == flag;
         }
 
-        private IEnumerable<VertexAttributeFlag> GetOutputVertexAttributes()
+        private IEnumerable<VertexAttribute> GetOutputVertexAttributes()
         {
             var vertexAttributes = Enum.GetValues(typeof(VertexAttributeFlag)).Cast<VertexAttributeFlag>();
             foreach (var vertexAttribute in vertexAttributes)
                 if (vertexAttribute != VertexAttributeFlag.None && HasOutput(vertexAttribute))
-                    yield return vertexAttribute;
+                    yield return GetActualVertexAttribute(vertexAttribute);
         }
 
-        private static Type GetOutputType(VertexAttributeFlag attribute)
+        private static Type GetOutputType(VertexAttribute attribute)
         {
             switch (attribute)
             {
-                case VertexAttributeFlag.Position: return typeof(Vector3);
-                case VertexAttributeFlag.Normal: return typeof(Vector3);
-                case VertexAttributeFlag.Tangent: return typeof(Vector4);
-                case VertexAttributeFlag.Color: return typeof(Vector4);
-                case VertexAttributeFlag.TexCoord0:
-                case VertexAttributeFlag.TexCoord1:
-                case VertexAttributeFlag.TexCoord2:
-                case VertexAttributeFlag.TexCoord3:
-                case VertexAttributeFlag.TexCoord4:
-                case VertexAttributeFlag.TexCoord5:
-                case VertexAttributeFlag.TexCoord6:
-                case VertexAttributeFlag.TexCoord7: return typeof(Vector4);
-                case VertexAttributeFlag.BlendWeight: return typeof(Vector4);
-                case VertexAttributeFlag.BlendIndices: return typeof(Vector4);
+                case VertexAttribute.Position: return typeof(Vector3);
+                case VertexAttribute.Normal: return typeof(Vector3);
+                case VertexAttribute.Tangent: return typeof(Vector4);
+                case VertexAttribute.Color: return typeof(Vector4);
+                case VertexAttribute.TexCoord0:
+                case VertexAttribute.TexCoord1:
+                case VertexAttribute.TexCoord2:
+                case VertexAttribute.TexCoord3:
+                case VertexAttribute.TexCoord4:
+                case VertexAttribute.TexCoord5:
+                case VertexAttribute.TexCoord6:
+                case VertexAttribute.TexCoord7: return typeof(Vector4);
+                case VertexAttribute.BlendWeight: return typeof(Vector4);
+                case VertexAttribute.BlendIndices: return typeof(Vector4);
                 default: throw new InvalidOperationException("Unexpected attribute : " + attribute);
             }
         }
@@ -238,14 +238,14 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttributeFlag> vertexAttributes) //TODOPAUL replace VertexAttributeFlag by VertexAttribute
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
 
             foreach (var vertexAttribute in vertexAttributes)
             {
-                var channelIndex = VFXValue.Constant<uint>((uint)GetActualVertexAttribute(vertexAttribute));
+                var channelIndex = VFXValue.Constant<uint>((uint)vertexAttribute);
                 var meshVertexStride = new VFXExpressionMeshVertexStride(mesh, channelIndex);
                 var meshChannelOffset = new VFXExpressionMeshChannelOffset(mesh, channelIndex);
 
@@ -257,7 +257,7 @@ namespace UnityEditor.VFX.Operator
 
                 if (!skinnedMesh)
                 {
-                    if (vertexAttribute == VertexAttributeFlag.Color)
+                    if (vertexAttribute == VertexAttribute.Color)
                         sampled = new VFXExpressionSampleMeshColor(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(float))
                         sampled = new VFXExpressionSampleMeshFloat(source, vertexOffset, meshChannelFormatAndDimension);
@@ -270,7 +270,7 @@ namespace UnityEditor.VFX.Operator
                 }
                 else
                 {
-                    if (vertexAttribute == VertexAttributeFlag.Color)
+                    if (vertexAttribute == VertexAttribute.Color)
                         sampled = new VFXExpressionSampleSkinnedMeshRendererColor(source, vertexOffset, meshChannelFormatAndDimension);
                     else if (outputType == typeof(float))
                         sampled = new VFXExpressionSampleSkinnedMeshRendererFloat(source, vertexOffset, meshChannelFormatAndDimension);
@@ -286,7 +286,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleVertexAttribute(VFXExpression source, VFXExpression vertexIndex, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX.Operator
             return SampleVertexAttribute(source, vertexIndex, vertexAttributes);
         }
 
-        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, VFXOperatorUtility.SequentialAddressingMode mode, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -329,7 +329,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttributeFlag> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleTriangleAttribute(VFXExpression source, VFXExpression triangleIndex, VFXExpression coord, VFXOperatorUtility.SequentialAddressingMode mode, SurfaceCoordinates coordMode, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
