@@ -103,31 +103,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void UpdateEmissiveColorAndIntensity()
-        {
-            materialEditor.serializedObject.ApplyModifiedProperties();
-            foreach (Material target in materials)
-            {
-                if (target.HasProperty(kEmissiveColorLDR) && target.HasProperty(kEmissiveIntensity) && target.HasProperty(kEmissiveColor))
-                {
-                    target.SetColor(kEmissiveColor, target.GetColor(kEmissiveColorLDR) * target.GetFloat(kEmissiveIntensity));
-                }
-            }
-            materialEditor.serializedObject.Update();
-        }
-
-        void UpdateEmissionUnit(float newUnitFloat)
-        {
-            foreach (Material target in materials)
-            {
-                if (target.HasProperty(kEmissiveIntensityUnit) && target.HasProperty(kEmissiveIntensity))
-                {
-                    target.SetFloat(kEmissiveIntensityUnit, newUnitFloat);
-                }
-            }
-            materialEditor.serializedObject.Update();
-        }
-
         void DrawEmissionGUI()
         {
             EditorGUI.BeginChangeCheck();
@@ -145,85 +120,35 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 EditorGUI.BeginChangeCheck();
-                DoEmissiveTextureProperty(emissiveColorLDR);
-                // Normalize all emissive colors for each target separately
-                foreach (Material material in materials)
                 {
-                    if (material.HasProperty(kEmissiveColorLDR))
-                        material.SetColor(kEmissiveColorLDR, NormalizeEmissionColor(ref updateEmissiveColor, material.GetColor(kEmissiveColorLDR)));
-                }
-                if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                    UpdateEmissiveColorAndIntensity();
+                    DoEmissiveTextureProperty(emissiveColorLDR);
+                    emissiveColorLDR.colorValue = NormalizeEmissionColor(ref updateEmissiveColor, emissiveColorLDR.colorValue);
 
-                float newUnitFloat;
-                float newIntensity = emissiveIntensity.floatValue;
-                bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
-                bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
-                bool intensityChanged = false;
-                bool unitChanged = false;
-                EditorGUI.BeginChangeCheck();
-                {
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
-                        EditorGUI.showMixedValue = intensityIsMixed;
 
                         if (unit == EmissiveIntensityUnit.Nits)
                         {
                             using (var change = new EditorGUI.ChangeCheckScope())
                             {
                                 materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-                                intensityChanged = change.changed;
-                                if (intensityChanged)
-                                    newIntensity = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
+                                if (change.changed)
+                                    emissiveIntensity.floatValue = Mathf.Clamp(emissiveIntensity.floatValue, 0, float.MaxValue);
                             }
                         }
                         else
                         {
-                            float value = emissiveIntensity.floatValue;
-                            if (!intensityIsMixed)
-                            {
-                                float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
-                                evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
-                                newIntensity = Mathf.Clamp(evValue, 0, float.MaxValue);
-                                emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
-                            }
-                            else
-                            {
-                                using (var change = new EditorGUI.ChangeCheckScope())
-                                {
-                                    newIntensity = EditorGUILayout.FloatField(Styles.emissiveIntensityText, value);
-                                    intensityChanged = change.changed;
-                                }
-                            }
+                            float evValue = LightUtils.ConvertLuminanceToEv(emissiveIntensity.floatValue);
+                            evValue = EditorGUILayout.FloatField(Styles.emissiveIntensityText, evValue);
+                            evValue = Mathf.Clamp(evValue, 0, float.MaxValue);
+                            emissiveIntensity.floatValue = LightUtils.ConvertEvToLuminance(evValue);
                         }
-                        EditorGUI.showMixedValue = false;
-
-                        EditorGUI.showMixedValue = emissiveIntensityUnit.hasMixedValue;
-                        using (var change = new EditorGUI.ChangeCheckScope())
-                        {
-                            newUnitFloat = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
-                            unitChanged = change.changed;
-                        }
-                        EditorGUI.showMixedValue = false;
+                        emissiveIntensityUnit.floatValue = (float)(EmissiveIntensityUnit)EditorGUILayout.EnumPopup(unit);
                     }
                 }
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
-                {
-                    if(unitChanged)
-                    {
-                        if (unitIsMixed)
-                            UpdateEmissionUnit(newUnitFloat);
-                        else
-                            emissiveIntensityUnit.floatValue = newUnitFloat;
-                    }
-
-                    // We don't allow changes on intensity if units are mixed
-                    if (intensityChanged && !unitIsMixed)
-                        emissiveIntensity.floatValue = newIntensity;
-
-                    UpdateEmissiveColorAndIntensity();
-                }
+                    emissiveColor.colorValue = emissiveColorLDR.colorValue * emissiveIntensity.floatValue;
             }
 
             materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);

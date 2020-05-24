@@ -5,19 +5,18 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         #pragma multi_compile_local _ _FXAA
         #pragma multi_compile_local _ _FILM_GRAIN
         #pragma multi_compile_local _ _DITHERING
-        #pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
-
+		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
+        
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_SourceTex);
+        TEXTURE2D_X(_BlitTex);
         TEXTURE2D(_Grain_Texture);
         TEXTURE2D(_BlueNoise_Texture);
 
-        float4 _SourceTex_TexelSize;
+        float4 _BlitTex_TexelSize;
         float2 _Grain_Params;
         float4 _Grain_TilingParams;
         float4 _Dithering_Params;
@@ -37,26 +36,26 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
         half3 Fetch(float2 coords, float2 offset)
         {
             float2 uv = coords + offset;
-            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
+            return SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uv).xyz;
         }
 
         half3 Load(int2 icoords, int idx, int idy)
         {
             #if SHADER_API_GLES
-            float2 uv = (icoords + int2(idx, idy)) * _SourceTex_TexelSize.xy;
-            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
+            float2 uv = (icoords + int2(idx, idy)) * _BlitTex_TexelSize.xy;
+            return SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uv).xyz;
             #else
-            return LOAD_TEXTURE2D_X(_SourceTex, clamp(icoords + int2(idx, idy), 0, _SourceTex_TexelSize.zw - 1.0)).xyz;
+            return LOAD_TEXTURE2D_X(_BlitTex, clamp(icoords + int2(idx, idy), 0, _BlitTex_TexelSize.zw - 1.0)).xyz;
             #endif
         }
 
-        half4 Frag(FullscreenVaryings input) : SV_Target
+        half4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
             float2 positionNDC = uv;
-            int2   positionSS  = uv * _SourceTex_TexelSize.zw;
+            int2   positionSS  = uv * _BlitTex_TexelSize.zw;
 
             half3 color = Load(positionSS, 0, 0).xyz;
 
@@ -88,7 +87,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
                 float dirReduce = max(lumaSum * (0.25 * FXAA_REDUCE_MUL), FXAA_REDUCE_MIN);
                 float rcpDirMin = rcp(min(abs(dir.x), abs(dir.y)) + dirReduce);
 
-                dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * _SourceTex_TexelSize.xy;
+                dir = min((FXAA_SPAN_MAX).xx, max((-FXAA_SPAN_MAX).xx, dir * rcpDirMin)) * _BlitTex_TexelSize.xy;
 
                 // Blur
                 half3 rgb03 = Fetch(positionNDC, dir * (0.0 / 3.0 - 0.5));
@@ -147,7 +146,7 @@ Shader "Hidden/Universal Render Pipeline/FinalPost"
             Name "FinalPost"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment Frag
             ENDHLSL
         }

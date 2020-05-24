@@ -45,14 +45,7 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
         sd.atlasOffset = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].atlasOffset;
     }
 
-    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
-    {
-        return EvalShadow_PunctualDepth(sd, _CachedShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
-    }
-    else
-    {
-        return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
-    }
+    return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
 }
 
 float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight)
@@ -64,7 +57,7 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     // TODO: if on the light type to retrieve the good shadow data
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-
+    
     if (pointLight)
     {
         sd.shadowToWorld = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].shadowToWorld;
@@ -73,32 +66,14 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
         sd.rot1 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot1;
         sd.rot2 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot2;
     }
-
-    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
-    {
-        return EvalShadow_SampleClosestDistance_Punctual(sd, _CachedShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
-    }
-    else
-    {
-        return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
-    }
+    
+    return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
 }
 
 float GetAreaLightAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
 {
-#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
-    shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
-#endif
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-
-    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
-    {
-        return EvalShadow_AreaDepth(sd, _CachedAreaLightShadowmapAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
-    }
-    else
-    {
-        return EvalShadow_AreaDepth(sd, _ShadowmapAreaAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
-    }
+    return EvalShadow_AreaDepth(sd, _AreaShadowmapMomentAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
 }
 
 

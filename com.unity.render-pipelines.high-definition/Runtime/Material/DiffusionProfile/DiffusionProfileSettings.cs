@@ -10,7 +10,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const int SSS_PIXELS_PER_SAMPLE        = 4;
     }
 
-    enum DefaultSssSampleBudgetForQualityLevel
+    public enum DefaultSssSampleBudgetForQualityLevel
     {
         Low    = 20,
         Medium = 40,

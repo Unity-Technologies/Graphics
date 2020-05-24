@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             PostProcessParameters parameters = PreparePostProcess(cullResults, hdCamera);
 
-            TextureHandle afterPostProcessBuffer = renderGraph.defaultResources.blackTextureXR;
+            TextureHandle afterPostProcessBuffer = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
             TextureHandle dest = HDUtils.PostProcessIsFinalPass(parameters.hdCamera) ? backBuffer : renderGraph.CreateTexture(
                         new TextureDesc(Vector2.one, true, true) { colorFormat = GetColorBufferFormat(), name = "Intermediate Postprocess buffer" });
 

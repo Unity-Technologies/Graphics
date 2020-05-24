@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesAmbientOcclusion.cs.hlsl.meta
 guid: 76eeb935e3f2f6341a2ade96fccecc6c
+=======
+guid: 6e0fdcd3c439283408fa825c454499a2
+>>>>>>> 8f57f3a16bc29eb6b6995b083fc3fc9a89e9ea88:com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.cs.hlsl.meta
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []

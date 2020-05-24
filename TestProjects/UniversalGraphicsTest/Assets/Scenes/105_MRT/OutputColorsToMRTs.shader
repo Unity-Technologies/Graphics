@@ -37,7 +37,7 @@ Shader "Test/OutputColorsToMRTs"
                 return output;
             }
 
-            FragmentOutput frag(Varyings input)
+            FragmentOutput frag(Varyings input) : SV_Target
             {
                 FragmentOutput o;
                 o.dest0 = half4(0, 0, 1, 1);

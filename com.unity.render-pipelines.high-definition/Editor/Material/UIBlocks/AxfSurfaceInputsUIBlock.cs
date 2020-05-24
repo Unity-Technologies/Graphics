@@ -113,23 +113,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         /////////////////////////////////////////////////////////////////////////////////////////////////
         // Generic Parameters
-        
-        MaterialProperty  m_MaterialTilingOffset = null;
-        MaterialProperty  m_DiffuseColorMapST = null;
-        MaterialProperty  m_SpecularColorMapST = null;
-        MaterialProperty  m_NormalMapST = null;
-        MaterialProperty  m_SpecularLobeMapST = null;
-        MaterialProperty  m_AlphaMapST = null;
-        MaterialProperty  m_FresnelMapST = null;
-        MaterialProperty  m_AnisoRotationMapST = null;
-        MaterialProperty  m_HeightMapST = null;
-        MaterialProperty  m_ClearcoatColorMapST = null;
-        MaterialProperty  m_ClearcoatNormalMapST = null;
-        MaterialProperty  m_ClearcoatIORMapST = null;
-        MaterialProperty  m_CarPaint2_BTFFlakeMapST = null;
-
-        static string               tilingOffsetPropNameSuffix = "_SO";
-        static string               m_MaterialTilingOffsetText = "_Material_SO";
+        static string               m_MaterialTilingUText = "_MaterialTilingU";
+        MaterialProperty  m_MaterialTilingU;
+        static string               m_MaterialTilingVText = "_MaterialTilingV";
+        MaterialProperty  m_MaterialTilingV;
 
         static string               m_AxF_BRDFTypeText = "_AxF_BRDFType";
         MaterialProperty  m_AxF_BRDFType = null;
@@ -192,6 +179,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static string               m_CarPaint2_BTFFlakeMapScaleText = "_CarPaint2_BTFFlakeMapScale";
         MaterialProperty  m_CarPaint2_BTFFlakeMapScale;
 
+        static string               m_CarPaint2_FlakeTilingText = "_CarPaint2_FlakeTiling";
+        MaterialProperty  m_CarPaint2_FlakeTiling;
+
         static string               m_CarPaint2_FlakeThetaFISliceLUTMapText = "_CarPaint2_FlakeThetaFISliceLUTMap";
         MaterialProperty  m_CarPaint2_FlakeThetaFISliceLUTMap;
 
@@ -234,20 +224,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadMaterialProperties()
         {
-            m_MaterialTilingOffset = FindProperty(m_MaterialTilingOffsetText);
-    
-            m_DiffuseColorMapST = FindProperty(m_DiffuseColorMapText + tilingOffsetPropNameSuffix);
-            m_SpecularColorMapST = FindProperty(m_SpecularColorMapText + tilingOffsetPropNameSuffix);
-            m_NormalMapST = FindProperty(m_NormalMapText + tilingOffsetPropNameSuffix);
-            m_SpecularLobeMapST = FindProperty(m_SpecularLobeMapText + tilingOffsetPropNameSuffix);
-            m_AlphaMapST = FindProperty(m_AlphaMapText + tilingOffsetPropNameSuffix);
-            m_FresnelMapST = FindProperty(m_FresnelMapText + tilingOffsetPropNameSuffix);
-            m_AnisoRotationMapST = FindProperty(m_AnisoRotationMapText + tilingOffsetPropNameSuffix);
-            m_HeightMapST = FindProperty(m_HeightMapText + tilingOffsetPropNameSuffix);
-            m_ClearcoatColorMapST = FindProperty(m_ClearcoatColorMapText + tilingOffsetPropNameSuffix);
-            m_ClearcoatNormalMapST = FindProperty(m_ClearcoatNormalMapText + tilingOffsetPropNameSuffix);
-            m_ClearcoatIORMapST = FindProperty(m_ClearcoatIORMapText + tilingOffsetPropNameSuffix);
-            m_CarPaint2_BTFFlakeMapST = FindProperty(m_CarPaint2_BTFFlakeMapText + tilingOffsetPropNameSuffix);
+            m_MaterialTilingU = FindProperty(m_MaterialTilingUText);
+            m_MaterialTilingV = FindProperty(m_MaterialTilingVText);
 
             m_AxF_BRDFType = FindProperty(m_AxF_BRDFTypeText);
 
@@ -286,6 +264,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CarPaint2_BRDFColorMapScale = FindProperty(m_CarPaint2_BRDFColorMapScaleText);
             m_CarPaint2_BRDFColorMapUVScale = FindProperty(m_CarPaint2_BRDFColorMapUVScaleText);
             m_CarPaint2_BTFFlakeMapScale = FindProperty(m_CarPaint2_BTFFlakeMapScaleText);
+            m_CarPaint2_FlakeTiling = FindProperty(m_CarPaint2_FlakeTilingText);
 
             m_CarPaint2_FlakeMaxThetaI = FindProperty(m_CarPaint2_FlakeMaxThetaIText);
             m_CarPaint2_FlakeNumThetaF = FindProperty(m_CarPaint2_FlakeNumThetaFText);
@@ -344,7 +323,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawAxfSurfaceOptionsGUI()
         {
-            materialEditor.ShaderProperty(m_MaterialTilingOffset, "Main Tiling & Offset");
+            materialEditor.ShaderProperty(m_MaterialTilingU, "Material Tiling U");
+            materialEditor.ShaderProperty(m_MaterialTilingV, "Material Tiling V");
 
             AxfBrdfType AxF_BRDFType = (AxfBrdfType)m_AxF_BRDFType.floatValue;
             AxF_BRDFType = (AxfBrdfType)EditorGUILayout.Popup("BRDF Type", (int)AxF_BRDFType, AxfBrdfTypeNames);
@@ -392,15 +372,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // Regular maps
-                    materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap, m_DiffuseColorMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap, m_SpecularColorMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap, m_SpecularLobeMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.diffuseColorMapText, m_DiffuseColorMap);
+                    materialEditor.TexturePropertySingleLine(Styles.specularColorMapText, m_SpecularColorMap);
+                    materialEditor.TexturePropertySingleLine(Styles.specularLobeMapText, m_SpecularLobeMap);
                     m_SpecularLobeMapScale.floatValue = EditorGUILayout.FloatField(Styles.specularLobeMapScaleText, m_SpecularLobeMapScale.floatValue);
-                    materialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap, m_FresnelMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.normalMapText, m_NormalMap, m_NormalMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.fresnelMapText, m_FresnelMap);
+                    materialEditor.TexturePropertySingleLine(Styles.normalMapText, m_NormalMap);
 
                     // Alpha
-                    materialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap, m_AlphaMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.alphaMapText, m_AlphaMap);
 
                     // Displacement
                     //TODO: unsupported for now
@@ -409,7 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (useHeightMap)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap, m_HeightMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.heightMapText, m_HeightMap);
                         materialEditor.ShaderProperty(m_SVBRDF_HeightMapMaxMM, "Max Displacement (mm)");
                         --EditorGUI.indentLevel;
                     }
@@ -419,7 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (anisotropy)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap, m_AnisoRotationMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.anisoRotationMapText, m_AnisoRotationMap);
                         --EditorGUI.indentLevel;
                     }
 
@@ -428,12 +408,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (clearcoat)
                     {
                         ++EditorGUI.indentLevel;
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap, m_ClearcoatColorMapST);
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatColorMapText, m_ClearcoatColorMap);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
                         clearcoatRefraction = EditorGUILayout.Toggle("Enable Refraction", clearcoatRefraction);
                         // The IOR map is always required for the coat F0, while in the CAR_PAINT model, the IOR
                         // is given by a scalar value.
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap, m_ClearcoatIORMapST);
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatIORMapText, m_ClearcoatIORMap);
                         --EditorGUI.indentLevel;
                     }
 
@@ -475,11 +455,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
 
-                    //materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
-                    materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap, m_CarPaint2_BTFFlakeMapST);
+                    materialEditor.TexturePropertySingleLine(Styles.BTFFlakesMapText, m_CarPaint2_BTFFlakeMap);
                     //EditorGUILayout.LabelField( "Texture Dimension = " + m_CarPaint_BTFFlakesMap_sRGB.textureDimension );
                     //EditorGUILayout.LabelField( "Texture Format = " + m_CarPaint_BTFFlakesMap_sRGB.textureValue. );
                     m_CarPaint2_BTFFlakeMapScale.floatValue = EditorGUILayout.FloatField(Styles.BTFFlakesMapScaleText, m_CarPaint2_BTFFlakeMapScale.floatValue);
+                    m_CarPaint2_FlakeTiling.floatValue = EditorGUILayout.FloatField(Styles.FlakesTilingText, m_CarPaint2_FlakeTiling.floatValue);
 
                     materialEditor.TexturePropertySingleLine(Styles.thetaFI_sliceLUTMapText, m_CarPaint2_FlakeThetaFISliceLUTMap);
 
@@ -500,10 +480,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         ++EditorGUI.indentLevel;
 //                        materialEditor.TexturePropertySingleLine( Styles.clearcoatColorMapText, m_ClearcoatColorMap );
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
-                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-                        //materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap, m_ClearcoatNormalMapST);
-
+                        materialEditor.TexturePropertySingleLine(Styles.clearcoatNormalMapText, m_ClearcoatNormalMap);
 //                        materialEditor.TexturePropertySingleLine( Styles.clearcoatIORMapText, m_ClearcoatIORMap );
                         m_CarPaint2_ClearcoatIOR.floatValue = EditorGUILayout.FloatField(Styles.CarPaintIORText, m_CarPaint2_ClearcoatIOR.floatValue);
                         --EditorGUI.indentLevel;

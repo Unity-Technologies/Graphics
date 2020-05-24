@@ -14,10 +14,9 @@ class #SCRIPTNAME# : CustomPass
         // Setup code here
     }
 
-    protected override void Execute(CustomPassContext ctx)
+    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
     {
-        // Executed every frame for all the camera inside the pass volume.
-        // The context contains the command buffer to use to enqueue graphics commands.
+        // Executed every frame for all the camera inside the pass volume
     }
 
     protected override void Cleanup()

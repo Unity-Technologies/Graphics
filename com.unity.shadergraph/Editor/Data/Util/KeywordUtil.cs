@@ -143,11 +143,6 @@ namespace UnityEditor.ShaderGraph
             return sb.ToString();
         }
 
-        public static string GetKeywordPermutationConditional(int permutation)
-        {
-            return $"#if defined(KEYWORD_PERMUTATION_{permutation})";
-        }
-
         public static void GetKeywordPermutationDeclarations(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)
         {
             if (permutations.Count == 0)

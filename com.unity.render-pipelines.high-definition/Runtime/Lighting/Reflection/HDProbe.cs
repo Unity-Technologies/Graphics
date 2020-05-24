@@ -428,13 +428,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
-        // Forces the re-rendering for both OnDemand and OnEnable
-        internal void ForceRenderingNextUpdate()
-        {
-            m_WasRenderedSinceLastOnDemandRequest = false;
-            wasRenderedAfterOnEnable = false;
-        }
-
         void UpdateProbeName()
         {
             // TODO: ask if this is ok:

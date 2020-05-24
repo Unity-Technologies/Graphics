@@ -7,8 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased] - XXXX-XX-XX
 
 ### Changed
-- Updated version to HightDefinition RP version 10.0.0
-- Caching Shader Preprocessor is now enabled in Project Settings
+- Updated version to HightDefinition RP version 9.0.0
 
 ## [7.1.7] - 2019-12-3
 - Editor will force text serialization to occur on one line

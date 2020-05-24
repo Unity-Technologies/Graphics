@@ -1,4 +1,4 @@
-namespace UnityEditor.ShaderGraph.Internal
+﻿namespace UnityEditor.ShaderGraph.Internal
 {
     [GenerationAPI]
     public enum PropertyType
@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph.Internal
         Matrix2,
         Matrix3,
         Matrix4,
-        SamplerState,
-        VirtualTexture
+        SamplerState
     }
 }

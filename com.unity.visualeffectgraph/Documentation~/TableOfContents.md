@@ -26,6 +26,5 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
-  * [Mesh Sampling](MeshSampling.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

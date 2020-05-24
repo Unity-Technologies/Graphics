@@ -53,5 +53,4 @@ void Frag(  PackedVaryingsToPS packedInput,
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
 #endif
-
 }

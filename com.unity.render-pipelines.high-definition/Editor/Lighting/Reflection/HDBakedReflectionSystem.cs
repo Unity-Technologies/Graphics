@@ -131,27 +131,26 @@ namespace UnityEditor.Rendering.HighDefinition
             HashUtilities.AppendHash(ref skySettingsHash, ref allProbeDependencyHash);
 
             var bakedProbes = HDProbeSystem.bakedProbes;
-            var bakedProbeCount = HDProbeSystem.bakedProbeCount;
 
             // == 2. ==
-            var states = stackalloc HDProbeBakingState[bakedProbeCount];
+            var states = stackalloc HDProbeBakingState[bakedProbes.Count];
             ComputeProbeInstanceID(bakedProbes, states);
             ComputeProbeSettingsHashes(bakedProbes, states);
             // TODO: Handle bounce dependency here
-            ComputeProbeBakingHashes(bakedProbeCount, allProbeDependencyHash, states);
+            ComputeProbeBakingHashes(bakedProbes.Count, allProbeDependencyHash, states);
 
             CoreUnsafeUtils.QuickSort<HDProbeBakingState, Hash128, HDProbeBakingState.ProbeBakingHash>(
-                bakedProbeCount, states
+                bakedProbes.Count, states
             );
 
             int operationCount = 0, addCount = 0, remCount = 0;
-            var maxProbeCount = Mathf.Max(bakedProbeCount, m_HDProbeBakedStates.Length);
+            var maxProbeCount = Mathf.Max(bakedProbes.Count, m_HDProbeBakedStates.Length);
             var addIndices = stackalloc int[maxProbeCount];
             var remIndices = stackalloc int[maxProbeCount];
 
             if (m_HDProbeBakedStates.Length == 0)
             {
-                for (int i = 0; i < bakedProbeCount; ++i)
+                for (int i = 0; i < bakedProbes.Count; ++i)
                     addIndices[addCount++] = i;
                 operationCount = addCount;
             }
@@ -166,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             HDProbeBakingState, HDProbeBakingState.ProbeBakingHash
                        > (
                        m_HDProbeBakedStates.Length, oldBakedStates, // old hashes
-                       bakedProbeCount, states,                   // new hashes
+                       bakedProbes.Count, states,                   // new hashes
                        addIndices, remIndices,
                        out addCount, out remCount
                     );
@@ -203,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Get from cache or render the probe
                     if (!File.Exists(cacheFile))
                         RenderAndWriteToFile(probe, cacheFile, cubeRT, planarRT);
-
+                    
                     planarRT.Release();
                 }
                 cubeRT.Release();
@@ -233,7 +232,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 for (int j = 0; j < 2; ++j)
                 {
                     AssetDatabase.StartAssetEditing();
-                    for (int i = 0; i < bakedProbeCount; ++i)
+                    for (int i = 0; i < bakedProbes.Count; ++i)
                     {
                         var index = addIndices[i];
                         var instanceId = states[index].instanceID;
@@ -313,7 +312,7 @@ namespace UnityEditor.Rendering.HighDefinition
             handle.SetIsDone(true);
         }
 
-        public static bool BakeProbes(IEnumerable<HDProbe> bakedProbes)
+        public static bool BakeProbes(IList<HDProbe> bakedProbes)
         {
             if (!(RenderPipelineManager.currentPipeline is HDRenderPipeline hdPipeline))
             {
@@ -327,8 +326,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var cubeRT = HDRenderUtilities.CreateReflectionProbeRenderTarget(cubemapSize);
 
             // Render and write the result to disk
-            foreach (var probe in bakedProbes)
+            for (int i = 0; i < bakedProbes.Count; ++i)
             {
+                var probe = bakedProbes[i];
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                 var planarRT = HDRenderUtilities.CreatePlanarProbeRenderTarget((int)probe.resolution);
                 RenderAndWriteToFile(probe, bakedTexturePath, cubeRT, planarRT);
@@ -342,8 +342,9 @@ namespace UnityEditor.Rendering.HighDefinition
             for (int j = 0; j < 2; ++j)
             {
                 AssetDatabase.StartAssetEditing();
-                foreach (var probe in bakedProbes)
+                for (int i = 0; i < bakedProbes.Count; ++i)
                 {
+                    var probe = bakedProbes[i];
                     var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
                     AssetDatabase.ImportAsset(bakedTexturePath);
                     ImportAssetAt(probe, bakedTexturePath);
@@ -352,8 +353,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             AssetDatabase.StartAssetEditing();
-            foreach (var probe in bakedProbes)
+            for (int i = 0; i < bakedProbes.Count; ++i)
             {
+                var probe = bakedProbes[i];
                 var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
 
                 // Get or create the baked texture asset for the probe
@@ -377,8 +379,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // updateCount is a transient data, so don't execute this code before the asset reload.
             {
                 UnityEngine.Random.InitState((int)(1000 * hdPipeline.GetTime()));
-                foreach (var probe in bakedProbes)
+                for (int i = 0; i < bakedProbes.Count; ++i)
                 {
+                    var probe = bakedProbes[i];
                     var c = UnityEngine.Random.Range(2, 10);
                     while (probe.texture.updateCount < c) probe.texture.IncrementUpdateCount();
                 }
@@ -471,13 +474,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             // Or we delete all assets
                             || !deleteUnusedOnly)
                         {
-                            // If the buffer is full we empty it and then push again the element we were trying to
-                            // push but failed.
                             if (!buffer.TryPush(files[fileI]))
-                            {
                                 DeleteAllAssetsIn(ref buffer);
-                                buffer.TryPush(files[fileI]);
-                            }
                         }
                     }
                 }
@@ -494,9 +492,6 @@ namespace UnityEditor.Rendering.HighDefinition
             while (queue.TryPop(out string path))
                 AssetDatabase.DeleteAsset(path);
             AssetDatabase.StopAssetEditing();
-
-            // Clear the queue so that can be filled again.
-            queue.Clear();
         }
 
         internal static void Checkout(string targetFile)
@@ -668,28 +663,23 @@ namespace UnityEditor.Rendering.HighDefinition
             return Path.Combine(hashFolder, string.Format("HDProbe-{0}.exr", hash));
         }
 
-        static void ComputeProbeInstanceID(IEnumerable<HDProbe> probes, HDProbeBakingState* states)
+        static void ComputeProbeInstanceID(IList<HDProbe> probes, HDProbeBakingState* states)
         {
-            var i = 0;
-            foreach (var probe in probes)
-            {
-                states[i].instanceID = probe.GetInstanceID();
-                ++i;
-            }
+            for (int i = 0; i < probes.Count; ++i)
+                states[i].instanceID = probes[i].GetInstanceID();
         }
 
-        static void ComputeProbeSettingsHashes(IEnumerable<HDProbe> probes, HDProbeBakingState* states)
+        static void ComputeProbeSettingsHashes(IList<HDProbe> probes, HDProbeBakingState* states)
         {
-            var i = 0;
-            foreach (var probe in probes)
+            for (int i = 0; i < probes.Count; ++i)
             {
+                var probe = probes[i];
                 var positionSettings = ProbeCapturePositionSettings.ComputeFrom(probe, null);
                 var positionSettingsHash = positionSettings.ComputeHash();
                 // TODO: make ProbeSettings and unmanaged type so its hash can be the hash of its memory
                 var probeSettingsHash = probe.settings.ComputeHash();
                 HashUtilities.AppendHash(ref positionSettingsHash, ref probeSettingsHash);
                 states[i].probeSettingsHash = probeSettingsHash;
-                ++i;
             }
         }
 

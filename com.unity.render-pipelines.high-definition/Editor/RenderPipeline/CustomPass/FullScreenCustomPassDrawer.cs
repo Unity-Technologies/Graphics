@@ -54,21 +54,19 @@ namespace UnityEditor.Rendering.HighDefinition
 				rect.y += Styles.defaultLineSpace;
 			}
 
-			EditorGUI.PropertyField(rect, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
+			// TODO: remove all this code when the fix for SerializedReference lands
+			m_FullScreenPassMaterial.objectReferenceValue = EditorGUI.ObjectField(rect, Styles.fullScreenPassMaterial, m_FullScreenPassMaterial.objectReferenceValue, typeof(Material), false);
+			// EditorGUI.PropertyField(rect, m_FullScreenPassMaterial, Styles.fullScreenPassMaterial);
 			rect.y += Styles.defaultLineSpace;
 			if (m_FullScreenPassMaterial.objectReferenceValue is Material mat)
 			{
 				using (new EditorGUI.IndentLevelScope())
 				{
-					EditorGUI.BeginProperty(rect, Styles.materialPassName, m_MaterialPassName);
-					{
-						EditorGUI.BeginChangeCheck();
-						int index = mat.FindPass(m_MaterialPassName.stringValue);
-						index = EditorGUI.IntPopup(rect, Styles.materialPassName, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
-						if (EditorGUI.EndChangeCheck())
-							m_MaterialPassName.stringValue = mat.GetPassName(index);
-					}
-					EditorGUI.EndProperty();
+					EditorGUI.BeginChangeCheck();
+					int index = mat.FindPass(m_MaterialPassName.stringValue);
+					index = EditorGUI.IntPopup(rect, Styles.materialPassName, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+					if (EditorGUI.EndChangeCheck())
+						m_MaterialPassName.stringValue = mat.GetPassName(index);
 				}
 			}
         }

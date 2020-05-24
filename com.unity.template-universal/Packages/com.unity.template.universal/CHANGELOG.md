@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased] - XXXX-XX-XX
 
 ### Changed
-- Updated version to Universal RP version 10.0.0
+- Updated version to Universal RP version 9.0.0
 - EditorSettings.lineEndingsForNewScripts property now defaults to OSNative
 
 ### Fixed

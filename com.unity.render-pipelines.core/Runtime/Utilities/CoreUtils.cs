@@ -1124,32 +1124,6 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
-        /// <summary>
-        /// Returns true if the "Light Overlap" scene view draw mode is enabled.
-        /// </summary>
-        /// <param name="camera">Input camera.</param>
-        /// <returns>True if "Light Overlap" is enabled in the scene view associated with the input camera.</returns>
-        public static bool IsLightOverlapDebugEnabled(Camera camera)
-        {
-            bool enabled = false;
-#if UNITY_EDITOR
-            if (camera.cameraType == CameraType.SceneView)
-            {
-                // Determine whether the "LightOverlap" mode is enabled for the current view.
-                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
-                {
-                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
-                    if (sv.camera == camera && sv.cameraMode.drawMode == UnityEditor.DrawCameraMode.LightOverlap)
-                    {
-                        enabled = true;
-                        break;
-                    }
-                }
-            }
-#endif
-            return enabled;
-        }
-
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 

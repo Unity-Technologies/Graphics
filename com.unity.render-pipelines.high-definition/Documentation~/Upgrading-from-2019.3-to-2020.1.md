@@ -9,7 +9,3 @@ From Unity 2020.1, the HDRP-specific settings of the scene view camera (anti-ali
 ## Cookie baking
 
 From Unity 2020.1, Cookie on light are not taken into account for the lightmaps / Lightprobes. This support is always enable with HDRP.
-
-## Default Volume Profile
-
-From Unity 2020.1, the Default Volume Profile asset has changed so that the Exposure component sets the default Compensation to 0.

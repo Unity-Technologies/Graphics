@@ -193,9 +193,6 @@
             * [Sawtooth Wave](Sawtooth-Wave-Node)
             * [Square Wave](Square-Wave-Node)  
             * [Triangle Wave](Triangle-Wave-Node)    
-    * Mesh Deformation
-        * [Compute Deformation](Compute-Deformation-Node)    
-        * [Linear Blend Skinning](Linear-Blend-Skinning-Node)    
     * [Procedural](Procedural-Nodes)
         * Noise   
             * [Gradient Noise](Gradient-Noise-Node)  

@@ -15,6 +15,7 @@
     "com.unity.timeline": "1.2.9",
     "com.unity.ugui": "1.0.0",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
+    "com.unity.xr.legacyinputhelpers": "2.1.2",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

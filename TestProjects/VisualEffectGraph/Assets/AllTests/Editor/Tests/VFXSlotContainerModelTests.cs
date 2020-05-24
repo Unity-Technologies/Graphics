@@ -196,10 +196,10 @@ namespace UnityEditor.VFX.Test
 
 
             model.SetSettingValue("slotSetting", 1);
-            Assert.IsTrue(model.GetInputSlot(0).property.attributes.attributes.Count == 0);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 0);
 
             model.SetSettingValue("slotSetting", 5);
-            Assert.IsTrue(model.GetInputSlot(0).property.attributes.attributes.Count == 1);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 1);
         }
 
         [Test]

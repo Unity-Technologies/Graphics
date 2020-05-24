@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering.HighDefinition;
@@ -14,7 +13,6 @@ public class HDRP_GraphicTestRunner
 {
     [PrebuildSetup("SetupGraphicsTestCases")]
     [UseGraphicsTestCases]
-    [Timeout(300 * 1000)] // Set timeout to 5 minutes to handle complex scenes with many shaders (default timeout is 3 minutes)
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
@@ -35,26 +33,20 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
-        if (XRGraphicsAutomatedTests.enabled)
+        if (XRSystem.testModeEnabled)
         {
             if (settings.xrCompatible)
             {
-                XRGraphicsAutomatedTests.running = true;
+                XRSystem.automatedTestRunning = true;
 
                 // Increase tolerance to account for slight changes due to float precision
                 settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
                 settings.ImageComparisonSettings.PerPixelCorrectnessThreshold *= settings.xrThresholdMultiplier;
-
-                // Increase number of volumetric slices to compensate for initial half-resolution due to XR single-pass optimization
-                foreach (var volume in GameObject.FindObjectsOfType<Volume>())
-                {
-                    if (volume.profile.TryGet<Fog>(out Fog fog))
-                        fog.volumeSliceCount.value *= 2;
-                }
             }
             else
             {
-                Assert.Ignore("Test scene is not compatible with XR and will be skipped.");
+                // Skip incompatible XR tests
+                yield break;
             }
         }
 
@@ -65,9 +57,6 @@ public class HDRP_GraphicTestRunner
             // Wait again one frame, to be sure.
             yield return null;
         }
-
-        // Reset temporal effects on hdCamera
-        HDCamera.GetOrCreate(camera).Reset();
 
         for (int i=0 ; i<settings.waitFrames ; ++i)
             yield return null;
@@ -86,6 +75,12 @@ public class HDRP_GraphicTestRunner
                 {
                     // GC alloc from Camera.CustomRender (case 1206364)
                     int gcAllocThreshold = 2;
+
+#if UNITY_2019_3
+                    // In case playmode tests for XR are enabled in 2019.3 we allow one GC alloc from XRSystem:120
+                    if (XRSystem.testModeEnabled)
+                        gcAllocThreshold += 1;
+#endif
 
                     ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
                 }
@@ -159,7 +154,7 @@ public class HDRP_GraphicTestRunner
     [TearDown]
     public void ResetSystemState()
     {
-        XRGraphicsAutomatedTests.running = false;
+        XRSystem.automatedTestRunning = false;
     }
 #endif
 

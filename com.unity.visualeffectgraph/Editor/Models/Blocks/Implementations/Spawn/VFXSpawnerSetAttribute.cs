@@ -30,18 +30,27 @@ namespace UnityEditor.VFX.Block
             {
                 var attrib = currentAttribute;
 
-                VFXPropertyAttributes attr = new VFXPropertyAttributes();
+                VFXPropertyAttribute[] attr = null;
                 if (attrib.Equals(VFXAttribute.Color))
-                    attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
+                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
 
                 Type slotType = VFXExpression.TypeToType(attrib.type);
 
                 if (randomMode == RandomMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name, attr), currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name)
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min", attr), currentAttribute.value.GetContent());
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max", attr), currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min")
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max")
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
                 }
             }
         }

@@ -1013,12 +1013,6 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
     return hpositionWS.xyz / hpositionWS.w;
 }
 
-float3 ComputeWorldSpacePosition(float4 positionCS, float4x4 invViewProjMatrix)
-{
-    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
-    return hpositionWS.xyz / hpositionWS.w;
-}
-
 // ----------------------------------------------------------------------------
 // PositionInputs
 // ----------------------------------------------------------------------------

@@ -35,7 +35,6 @@ namespace UnityEditor.VFX.Block
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
         protected virtual bool needDirectionWrite { get { return false; } }
-        protected virtual bool supportsVolumeSpawning { get { return true; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
         {
@@ -55,8 +54,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this).Where(e => e.name != "Thickness"))
                     yield return p;
 
-                if (supportsVolumeSpawning)
-                    yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
+                yield return new VFXNamedExpression(CalculateVolumeFactor(positionMode, 0, 1), "volumeFactor");
             }
         }
 
@@ -65,29 +63,11 @@ namespace UnityEditor.VFX.Block
             get
             {
                 var properties = PropertiesFromType(GetInputPropertiesTypeName());
-
-                if (supportsVolumeSpawning)
-                {
-                    if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
-                        properties = properties.Concat(PropertiesFromType("ThicknessProperties"));
-                }
-
+                if (positionMode == PositionMode.ThicknessAbsolute || positionMode == PositionMode.ThicknessRelative)
+                    properties = properties.Concat(PropertiesFromType("ThicknessProperties"));
                 if (spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomProperties"));
-
                 return properties;
-            }
-        }
-
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                if (!supportsVolumeSpawning)
-                    yield return "positionMode";
-
-                foreach (var setting in base.filteredOutSettings)
-                    yield return setting;
             }
         }
 

@@ -1,19 +1,24 @@
 Shader "Hidden/Universal Render Pipeline/Bloom"
 {
+    Properties
+    {
+        _MainTex("Source", 2D) = "white" {}
+    }
+
     HLSLINCLUDE
 
         #pragma multi_compile_local _ _USE_RGBM
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_SourceTex);
-        float4 _SourceTex_TexelSize;
-        TEXTURE2D_X(_SourceTexLowMip);
-        float4 _SourceTexLowMip_TexelSize;
+        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_MainTexLowMip);
+
+        float4 _MainTex_TexelSize;
+        float4 _MainTexLowMip_TexelSize;
 
         float4 _Params; // x: scatter, y: clamp, z: threshold (linear), w: threshold knee
 
@@ -50,11 +55,11 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
         #endif
         }
 
-        half4 FragPrefilter(FullscreenVaryings input) : SV_Target
+        half4 FragPrefilter(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            half3 color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv).xyz;
+            half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv).xyz;
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);
@@ -73,22 +78,22 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return EncodeHDR(color);
         }
 
-        half4 FragBlurH(FullscreenVaryings input) : SV_Target
+        half4 FragBlurH(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float texelSize = _SourceTex_TexelSize.x * 2.0;
+            float texelSize = _MainTex_TexelSize.x * 2.0;
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // 9-tap gaussian blur on the downsampled source
-            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 4.0, 0.0)));
-            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 3.0, 0.0)));
-            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 2.0, 0.0)));
-            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(texelSize * 1.0, 0.0)));
-            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv                               ));
-            half3 c5 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(texelSize * 1.0, 0.0)));
-            half3 c6 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(texelSize * 2.0, 0.0)));
-            half3 c7 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(texelSize * 3.0, 0.0)));
-            half3 c8 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(texelSize * 4.0, 0.0)));
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(texelSize * 4.0, 0.0)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(texelSize * 3.0, 0.0)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(texelSize * 2.0, 0.0)));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(texelSize * 1.0, 0.0)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv                               ));
+            half3 c5 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(texelSize * 1.0, 0.0)));
+            half3 c6 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(texelSize * 2.0, 0.0)));
+            half3 c7 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(texelSize * 3.0, 0.0)));
+            half3 c8 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(texelSize * 4.0, 0.0)));
 
             half3 color = c0 * 0.01621622 + c1 * 0.05405405 + c2 * 0.12162162 + c3 * 0.19459459
                         + c4 * 0.22702703
@@ -97,18 +102,18 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             return EncodeHDR(color);
         }
 
-        half4 FragBlurV(FullscreenVaryings input) : SV_Target
+        half4 FragBlurV(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-            float texelSize = _SourceTex_TexelSize.y;
+            float texelSize = _MainTex_TexelSize.y;
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // Optimized bilinear 5-tap gaussian on the same-sized source (9-tap equivalent)
-            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 3.23076923)));
-            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 1.38461538)));
-            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv                                      ));
-            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(0.0, texelSize * 1.38461538)));
-            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv + float2(0.0, texelSize * 3.23076923)));
+            half3 c0 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 3.23076923)));
+            half3 c1 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv - float2(0.0, texelSize * 1.38461538)));
+            half3 c2 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv                                      ));
+            half3 c3 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(0.0, texelSize * 1.38461538)));
+            half3 c4 = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv + float2(0.0, texelSize * 3.23076923)));
 
             half3 color = c0 * 0.07027027 + c1 * 0.31621622
                         + c2 * 0.22702703
@@ -119,18 +124,18 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
 
         half3 Upsample(float2 uv)
         {
-            half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uv));
+            half3 highMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv));
 
         #if _BLOOM_HQ && !defined(SHADER_API_GLES)
-            half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_SourceTexLowMip, sampler_LinearClamp), uv, _SourceTexLowMip_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex));
+            half3 lowMip = DecodeHDR(SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_MainTexLowMip, sampler_LinearClamp), uv, _MainTexLowMip_TexelSize.zwxy, (1.0).xx, unity_StereoEyeIndex));
         #else
-            half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_SourceTexLowMip, sampler_LinearClamp, uv));
+            half3 lowMip = DecodeHDR(SAMPLE_TEXTURE2D_X(_MainTexLowMip, sampler_LinearClamp, uv));
         #endif
 
             return lerp(highMip, lowMip, Scatter);
         }
 
-        half4 FragUpsample(FullscreenVaryings input) : SV_Target
+        half4 FragUpsample(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             half3 color = Upsample(UnityStereoTransformScreenSpaceTex(input.uv));
@@ -150,7 +155,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             Name "Bloom Prefilter"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment FragPrefilter
             ENDHLSL
         }
@@ -160,7 +165,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             Name "Bloom Blur Horizontal"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment FragBlurH
             ENDHLSL
         }
@@ -170,7 +175,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             Name "Bloom Blur Vertical"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment FragBlurV
             ENDHLSL
         }
@@ -180,7 +185,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             Name "Bloom Upsample"
 
             HLSLPROGRAM
-                #pragma vertex FullscreenVert
+                #pragma vertex Vert
                 #pragma fragment FragUpsample
                 #pragma multi_compile_local _ _BLOOM_HQ
             ENDHLSL

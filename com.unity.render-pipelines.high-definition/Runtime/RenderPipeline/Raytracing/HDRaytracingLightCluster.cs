@@ -449,8 +449,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 int lightClusterKernel = lightClusterCS.FindKernel(m_LightClusterKernelName);
 
                 // Inject all the parameters
-                cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, HDShaderIDs._RaytracingLightClusterRW, m_LightCluster);
+                cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, HDShaderIDs._RaytracingLightCluster, m_LightCluster);
+                cmd.SetComputeVectorParam(lightClusterCS, HDShaderIDs._MinClusterPos, minClusterPos);
+                cmd.SetComputeVectorParam(lightClusterCS, HDShaderIDs._MaxClusterPos, maxClusterPos);
                 cmd.SetComputeVectorParam(lightClusterCS, _ClusterCellSize, clusterCellSize);
+                cmd.SetComputeFloatParam(lightClusterCS, HDShaderIDs._LightPerCellCount, HDShadowUtils.Asfloat(numLightsPerCell));
 
                 cmd.SetComputeBufferParam(lightClusterCS, lightClusterKernel, _LightVolumes, m_LightVolumeGPUArray);
                 cmd.SetComputeFloatParam(lightClusterCS, _LightVolumeCount, HDShadowUtils.Asfloat(totalLightCount));
@@ -615,7 +618,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Inject all the parameters to the debug compute
             cmd.SetComputeBufferParam(lightClusterDebugCS, m_LightClusterDebugKernel, HDShaderIDs._RaytracingLightCluster, m_LightCluster);
+            cmd.SetComputeVectorParam(lightClusterDebugCS, HDShaderIDs._MinClusterPos, minClusterPos);
+            cmd.SetComputeVectorParam(lightClusterDebugCS, HDShaderIDs._MaxClusterPos, maxClusterPos);
             cmd.SetComputeVectorParam(lightClusterDebugCS, _ClusterCellSize, clusterCellSize);
+            cmd.SetComputeIntParam(lightClusterDebugCS, HDShaderIDs._LightPerCellCount, numLightsPerCell);
             cmd.SetComputeTextureParam(lightClusterDebugCS, m_LightClusterDebugKernel, HDShaderIDs._CameraDepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
 
             // Target output texture
@@ -634,7 +640,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Bind the parameters
             m_DebugMaterialProperties.SetBuffer(HDShaderIDs._RaytracingLightCluster, m_LightCluster);
+            m_DebugMaterialProperties.SetVector(HDShaderIDs._MinClusterPos, minClusterPos);
+            m_DebugMaterialProperties.SetVector(HDShaderIDs._MaxClusterPos, maxClusterPos);
             m_DebugMaterialProperties.SetVector(_ClusterCellSize, clusterCellSize);
+            m_DebugMaterialProperties.SetInt(HDShaderIDs._LightPerCellCount, numLightsPerCell);
             m_DebugMaterialProperties.SetTexture(HDShaderIDs._CameraDepthTexture, m_RenderPipeline.sharedRTManager.GetDepthTexture());
 
             // Draw the faces
@@ -689,11 +698,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return envLightCount;
         }
 
-        public int GetLightPerCellCount()
-        {
-            return numLightsPerCell;
-        }
-
         void InvalidateCluster()
         {
             // Invalidate the cluster's bounds so that we never access the buffer
@@ -731,14 +735,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Evaluate the volume of the cluster
             EvaluateClusterVolume(hdCamera);
-        }
 
-		public void BuildLightClusterBuffer(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights)
-		{
-			  // If there is no lights to process or no environment not the shader is missing
-            if (totalLightCount == 0 || rayTracingLights.lightCount == 0 || !m_RenderPipeline.GetRayTracingState())
-                return;
-			
             // Cull the lights within the evaluated cluster range
             CullLights(cmd);
 
@@ -775,6 +772,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, GetCluster());
             cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, GetLightDatas());
             cmd.SetGlobalBuffer(HDShaderIDs._EnvLightDatasRT, GetEnvLightDatas());
+            cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, GetMinClusterPos());
+            cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, GetMaxClusterPos());
+            cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, numLightsPerCell);
+            cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, GetPunctualLightCount());
+            cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, GetAreaLightCount());
+            cmd.SetGlobalInt(HDShaderIDs._EnvLightCountRT, GetEnvLightCount());
         }
     }
 }

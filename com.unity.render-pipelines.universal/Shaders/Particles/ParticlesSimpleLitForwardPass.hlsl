@@ -102,8 +102,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
-
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif
@@ -180,7 +179,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
-
+    
     return color;
 }
 

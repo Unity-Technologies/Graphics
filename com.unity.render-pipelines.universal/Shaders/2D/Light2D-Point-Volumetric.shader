@@ -29,15 +29,15 @@ Shader "Hidden/Light2d-Point-Volumetric"
             struct Varyings
             {
                 float4  positionCS      : SV_POSITION;
-                half2   uv              : TEXCOORD0;
-                half2	screenUV        : TEXCOORD1;
-                half2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
-                half2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
+                float2  uv              : TEXCOORD0;
+                float2	screenUV        : TEXCOORD1;
+                float2	lookupUV        : TEXCOORD2;  // This is used for light relative direction
+                float2	lookupNoRotUV   : TEXCOORD3;  // This is used for screen relative direction of a light
 
 #if LIGHT_QUALITY_FAST
-                half4	lightDirection	: TEXCOORD4;
+                float4	lightDirection	: TEXCOORD4;
 #else
-                half4	positionWS : TEXCOORD4;
+                float4	positionWS : TEXCOORD4;
 #endif
                 SHADOW_COORDS(TEXCOORD5)
             };
@@ -49,18 +49,18 @@ Shader "Hidden/Light2d-Point-Volumetric"
 
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
-            half _FalloffIntensity;
+            float _FalloffIntensity;
 
             TEXTURE2D(_LightLookup);
             SAMPLER(sampler_LightLookup);
-            half4 _LightLookup_TexelSize;
+            float4 _LightLookup_TexelSize;
 
             TEXTURE2D(_NormalMap);
             SAMPLER(sampler_NormalMap);
 
             half4   _LightColor;
-            half    _VolumeOpacity;
-            half4   _LightPosition;
+            float   _VolumeOpacity;
+            float4  _LightPosition;
             half4x4 _LightInvMatrix;
             half4x4 _LightNoRotInvMatrix;
             half    _LightZDistance;

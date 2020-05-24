@@ -540,8 +540,6 @@ Shader "HDRP/Unlit"
 
             #define SHADOW_LOW
             #pragma multi_compile _ TRANSPARENT_COLOR_SHADOW
-            
-            #define SHADERPASS SHADERPASS_RAYTRACING_VISIBILITY
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"
 
@@ -568,6 +566,7 @@ Shader "HDRP/Unlit"
             #pragma only_renderers d3d11
             #pragma raytracing surface_shader
 
+            #define SHADOW_LOW
             #define SHADERPASS SHADERPASS_PATH_TRACING
 
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl"

@@ -20,9 +20,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(101, Extension, 3)]
+    [ScriptedImporter(100, Extension, 3)]
 #else
-    [ScriptedImporter(33, Extension, 3)]
+    [ScriptedImporter(32, Extension, 3)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -147,13 +147,6 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 metadata.outputNodeTypeName = graph.outputNode.GetType().FullName;
             }
-            metadata.assetDependencies = new List<UnityEngine.Object>();
-            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
-            foreach (string dependency in deps)
-            {
-                metadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
-            }
-
             ctx.AddObjectToAsset("Metadata", metadata);
 
             foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())

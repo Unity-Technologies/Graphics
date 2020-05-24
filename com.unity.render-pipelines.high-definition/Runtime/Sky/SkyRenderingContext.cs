@@ -14,8 +14,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubemapArray skyboxBSDFCubemapArray { get; private set; }
         public bool supportsConvolution { get; private set; } = false;
 
-        internal bool ambientProbeIsReady = false;
-
         public SkyRenderingContext(int resolution, int bsdfCount, bool supportsConvolution, SphericalHarmonicsL2 ambientProbe, string name)
         {
             m_AmbientProbe = ambientProbe;
@@ -73,8 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_AmbientProbe[channel, coeff] = result[channel * 9 + coeff];
                     }
                 }
-
-                ambientProbeIsReady = true;
             }
         }
     }

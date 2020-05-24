@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD:TestProjects/HDRP_PerformanceTests/Assets/Scene Settings Profile.asset.meta
-guid: da3a4b097b7857248b38614703d7a18b
-=======
 guid: 7906daf99f11c624a9d2c8fa0eed731c
->>>>>>> master:com.unity.render-pipelines.high-definition/Samples~/MaterialSamples/Settings/Linen Thin.asset.meta
 NativeFormatImporter:
   externalObjects: {}
   mainObjectFileID: 11400000

@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
         public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
     }
-
+    
     class SubGraphAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         public bool isValid;
@@ -50,8 +50,6 @@ namespace UnityEditor.ShaderGraph
         public string path;
 
         public List<FunctionPair> functions = new List<FunctionPair>();
-
-        public List<string> vtFeedbackVariables = new List<string>();
 
         private SubGraphData m_SubGraphData;
 

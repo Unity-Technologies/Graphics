@@ -291,11 +291,7 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            // This is a guard where dependencies that couldnt be deserialized (because script is missing for instance) are removed from the list
-            // because else StoreObjectsToByteArray is crashing
-            // TODO Fix that
-            var safeDependencies = dependencies.Where(o => o != null);
-            var result = VFXMemorySerializer.StoreObjectsToByteArray(safeDependencies.ToArray(), CompressionLevel.Fastest);
+            var result = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 

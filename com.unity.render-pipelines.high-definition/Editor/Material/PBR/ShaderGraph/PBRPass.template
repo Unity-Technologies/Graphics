@@ -201,11 +201,6 @@ Pass
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-        //Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
-        //We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
-        //This is a limitation of the current MRT approach.
-        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
-
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }
 

@@ -518,10 +518,6 @@ Pass
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
-        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
-#endif
-
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
         #if (SHADERPASS == SHADERPASS_DISTORTION)
@@ -533,8 +529,6 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
-
-        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

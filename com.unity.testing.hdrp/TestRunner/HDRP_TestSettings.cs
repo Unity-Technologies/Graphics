@@ -30,6 +30,10 @@ public class HDRP_TestSettings : GraphicsTestSettings
 
     void Awake()
     {
+        // Built-in font shaders are incompatible with XR, replace them with a ShaderGraph version
+        if (XRSystem.testModeEnabled && xrCompatible)
+            doBeforeTest.AddListener(ReplaceBuiltinFontShaders);
+
         if (renderPipelineAsset == null)
         {
             Debug.LogWarning("No RenderPipelineAsset has been assigned in the test settings. This may result in a wrong test.");
@@ -55,5 +59,32 @@ public class HDRP_TestSettings : GraphicsTestSettings
         Debug.Log($"Scenes that needed to change the RP asset:{Environment.NewLine}{quitDebug.ToString()}");
 
         quitDebug.Clear();
+    }
+
+    void ReplaceBuiltinFontShaders()
+    {
+#if UNITY_EDITOR
+        var fontMaterialSG = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.testing.hdrp/Fonts/Font Material SG.mat");
+        if (fontMaterialSG != null)
+        {
+            foreach (var textMesh in GameObject.FindObjectsOfType<TextMesh>())
+            {
+                var textMeshRenderer = textMesh.gameObject.GetComponent<MeshRenderer>();
+
+                if (!textMeshRenderer.material.shader.name.StartsWith("Shader Graphs"))
+                {
+                    // From Unity source: Runtime\Resources\Assets\DefaultResources\Font.shader
+                    var fontTexture = textMeshRenderer.material.GetTexture("_MainTex");
+                    var fontColor = textMeshRenderer.material.GetColor("_Color");
+
+                    textMeshRenderer.material = fontMaterialSG;
+                    textMeshRenderer.material.SetTexture("_MainTex", fontTexture);
+                    textMeshRenderer.material.SetColor("_Color", fontColor);
+
+                    textMeshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                }
+            }
+        }
+#endif
     }
 }

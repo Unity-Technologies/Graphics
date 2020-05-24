@@ -284,50 +284,6 @@ float FixedRand(uint seed)
     return ToFloat01(AnotherHash(seed));
 }
 
-///////////////////
-// Mesh sampling //
-///////////////////
-float4 SampleMeshFloat4(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float4(vertices[offset], vertices[offset + 1u], vertices[offset + 2u], vertices[offset + 3u]);
-}
-
-float3 SampleMeshFloat3(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    if (channelOffset == -1)
-        return float3(0.0f, 0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float3(vertices[offset], vertices[offset + 1u], vertices[offset + 2u]);
-}
-
-float2 SampleMeshFloat2(Buffer<float> vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    if (channelOffset == -1)
-        return float2(0.0f, 0.0f);
-    uint offset = vertexIndex * vertexStride + channelOffset;
-    return float2(vertices[offset], vertices[offset + 1]);
-}
-
-float SampleMeshFloat(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
-{
-    if (channelOffset == -1)
-        return 0.0f;
-    int offset = vertexIndex * vertexStride + channelOffset;
-    return vertices[offset];
-}
-
-float4 SampleMeshColor(Buffer<float> vertices, int vertexIndex, int channelOffset, int vertexStride)
-{
-    if (channelOffset == -1)
-        return float4(0.0f, 0.0f, 0.0f, 0.0f);
-    uint colorByte = asuint(vertices[vertexIndex * vertexStride + channelOffset]);
-    float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-    return float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
-}
-
 ///////////////////////////
 // Color transformations //
 ///////////////////////////

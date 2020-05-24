@@ -142,17 +142,15 @@ namespace UnityEditor.VFX
 
     class VFXValue<T> : VFXValue
     {
-        protected static Flags GetFlagsFromType(VFXValueType valueType)
+        private static Flags GetFlagsFromType(VFXValueType valueType)
         {
             var flags = Flags.None;
             if (!IsTypeValidOnGPU(valueType))
                 flags |= VFXExpression.Flags.InvalidOnGPU;
-            if (!IsTypeConstantFoldable(valueType))
-                flags |= VFXExpression.Flags.InvalidConstant;
             return flags;
         }
 
-        public VFXValue(T content, Mode mode = Mode.FoldableVariable, Flags flag = Flags.None) : base(mode, flag | GetFlagsFromType(ToValueType()))
+        public VFXValue(T content, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
@@ -237,24 +235,16 @@ namespace UnityEditor.VFX
         }
     }
 
+
     class VFXObjectValue : VFXValue<int>
     {
-        public VFXObjectValue(int instanceID, Mode mode, VFXValueType contentType) : base(instanceID, mode, GetFlagsFromType(contentType))
+        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
         {
-            m_ContentType = contentType;
-        }
-
-        sealed protected override int[] additionnalOperands
-        {
-            get
-            {
-                return new int[] { (int)m_ContentType };
-            }
         }
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXObjectValue((int)m_Content, mode, m_ContentType);
+            var copy = new VFXObjectValue((int)m_Content, mode);
             return copy;
         }
 
@@ -275,7 +265,7 @@ namespace UnityEditor.VFX
         {
             if (value == null)
             {
-                m_Content = (int)0;
+                value = (int)0;
                 return;
             }
             if (value is UnityObject obj)
@@ -286,8 +276,6 @@ namespace UnityEditor.VFX
 
             m_Content = (int)value;
         }
-
-        VFXValueType m_ContentType;
     }
 
 #pragma warning restore 0659

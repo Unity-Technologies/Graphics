@@ -529,17 +529,6 @@ namespace UnityEditor.VFX
             return combine;
         }
 
-        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, VFXExpression seed = null)
-        {
-            if (seedMode == VFXSeedMode.PerParticleStrip || constant)
-            {
-                if (seed == null)
-                    throw new ArgumentNullException("seed");
-                return FixedRandom(seed, seedMode);
-            }
-            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle);
-        }
-
         static public VFXExpression FixedRandom(uint hash, VFXSeedMode mode)
         {
             return FixedRandom(VFXValue.Constant<uint>(hash), mode);
@@ -560,7 +549,7 @@ namespace UnityEditor.VFX
             Mirror
         };
 
-        static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
+        static private VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
             if (mode == SequentialAddressingMode.Wrap)
