@@ -29,7 +29,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // MSAA resolve materials
         Material m_DepthResolveMaterial  = null;
         Material m_ColorResolveMaterial = null;
-        Material m_MotionVectorResolve = null;
 
         // Flags that defines if we are using a local texture or external
         bool m_ReuseGBufferMemory = false;
@@ -95,10 +94,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Create the required resolve materials
                 m_DepthResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.depthValuesPS);
                 m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(resources.shaders.colorResolvePS);
-                m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(resources.shaders.resolveMotionVecPS);
 
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }
+
+            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
 
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
@@ -296,6 +296,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
+            DisposeCoarseStencilBuffer();
 
             if (m_MSAASupported)
             {
@@ -309,7 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
                  // Do not forget to release the materials
                 CoreUtils.Destroy(m_DepthResolveMaterial);
                 CoreUtils.Destroy(m_ColorResolveMaterial);
-                CoreUtils.Destroy(m_MotionVectorResolve);
             }
         }
 
@@ -372,20 +372,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
-
-        public void ResolveMotionVectorTexture(CommandBuffer cmd, HDCamera hdCamera)
-        {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) && m_MotionVectorsSupport)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ResolveMSAAMotionVector)))
-                {
-                    CoreUtils.SetRenderTarget(cmd, m_MotionVectorsRT);
-                    Shader.SetGlobalTexture(HDShaderIDs._MotionVectorTextureMS, m_MotionVectorsMSAART);
-                    cmd.DrawProcedural(Matrix4x4.identity, m_MotionVectorResolve, SampleCountToPassIndex(m_MSAASamples), MeshTopology.Triangles, 3, 1);
-                }
-            }
-        }
-
         public void ResolveMSAAColor(CommandBuffer cmd, HDCamera hdCamera, RTHandle msaaTarget, RTHandle simpleTarget)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))

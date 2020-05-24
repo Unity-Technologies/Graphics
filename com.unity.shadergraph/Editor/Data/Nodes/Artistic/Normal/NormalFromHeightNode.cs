@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
                         s.AppendLine("$precision dHdx = ddx(In);");
                         s.AppendLine("$precision dHdy = ddy(In);");
                         s.AppendLine("$precision3 surfGrad = surface * (dHdx*crossY + dHdy*crossX);");
-                        s.AppendLine("Out = SafeNormalize(TangentMatrix[2].xyz - (Strength * surfGrad));");
+                        s.AppendLine("Out = normalize(TangentMatrix[2].xyz - (Strength * surfGrad));");
 
                         if(outputSpace == OutputSpace.Tangent)
                             s.AppendLine("Out = TransformWorldToTangent(Out, TangentMatrix);");

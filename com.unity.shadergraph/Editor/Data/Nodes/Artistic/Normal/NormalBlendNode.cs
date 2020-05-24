@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
             return @"
 {
-    Out = SafeNormalize($precision3(A.rg + B.rg, A.b * B.b));
+    Out = normalize($precision3(A.rg + B.rg, A.b * B.b));
 }
 ";
         }

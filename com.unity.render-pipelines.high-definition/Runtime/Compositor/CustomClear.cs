@@ -40,17 +40,17 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.customClearPS);
         }
 
-        protected override void Execute(CustomPassContext ctx)
+        protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult)
         {
             // Executed every frame for all the camera inside the pass volume
-            AdditionalCompositorData layerData = ctx.hdCamera.camera.gameObject.GetComponent<AdditionalCompositorData>();
+            AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
             if (layerData == null || layerData.clearColorTexture == null)
             {
                 return;
             }
             else
             {
-                float cameraAspectRatio = (float)ctx.hdCamera.actualWidth / ctx.hdCamera.actualHeight;
+                float cameraAspectRatio = (float)camera.actualWidth / camera.actualHeight;
                 float imageAspectRatio = (float)layerData.clearColorTexture.width / layerData.clearColorTexture.height;
 
                 var scaleBiasRt = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 {
                     m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBiasRt, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
                     m_FullscreenPassMaterial.SetVector(ShaderIDs.k_BlitScaleBias, new Vector4(1.0f, 1.0f, 0.0f, 0.0f));
-                    ctx.cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.ClearColorAndStencil, MeshTopology.Quads, 4, 1);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.ClearColorAndStencil, MeshTopology.Quads, 4, 1);
                 }
 
                 m_FullscreenPassMaterial.SetTexture(ShaderIDs.k_BlitTexture, layerData.clearColorTexture);
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                 m_FullscreenPassMaterial.SetInt(ShaderIDs.k_ClearAlpha, layerData.clearAlpha ? 1 : 0);
 
                 // draw a quad (not Triangle), to support letter boxing and stretching 
-                ctx.cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);
+                cmd.DrawProcedural(Matrix4x4.identity, m_FullscreenPassMaterial, (int)PassType.DrawTextureAndClearStencil, MeshTopology.Quads, 4, 1);
             }
         }
 

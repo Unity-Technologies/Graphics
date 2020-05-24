@@ -7774,6 +7774,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3711618258570137585, guid: 5f639aeb2b271eb458c4303b4c365c42,
         type: 3}
+      propertyPath: xrThresholdMultiplier
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3711618258570137585, guid: 5f639aeb2b271eb458c4303b4c365c42,
+        type: 3}
+      propertyPath: xrCompatible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3711618258570137585, guid: 5f639aeb2b271eb458c4303b4c365c42,
+        type: 3}
       propertyPath: compareSGtoBI
       value: 0
       objectReference: {fileID: 0}

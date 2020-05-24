@@ -33,7 +33,7 @@ float4x4 GetViewToHClipMatrix()
 float3 GetAbsolutePositionWS(float3 positionRWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionRWS += _WorldSpaceCameraPos.xyz;
+    positionRWS += _WorldSpaceCameraPos;
 #endif
     return positionRWS;
 }
@@ -42,7 +42,7 @@ float3 GetAbsolutePositionWS(float3 positionRWS)
 float3 GetCameraRelativePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS -= _WorldSpaceCameraPos.xyz;
+    positionWS -= _WorldSpaceCameraPos;
 #endif
     return positionWS;
 }
@@ -113,7 +113,7 @@ real3 TransformWorldToViewDir(real3 dirWS, bool doNormalize = false)
     if (doNormalize)
         return normalize(dirVS);
 
-    return dirVS;
+    return dirVS; 
 }
 
 // Tranforms vector from world space to homogenous space
@@ -180,20 +180,20 @@ real3 TransformWorldToTangent(real3 dirWS, real3x3 tangentToWorld)
     float3 row0 = tangentToWorld[0];
     float3 row1 = tangentToWorld[1];
     float3 row2 = tangentToWorld[2];
-
+    
     // these are the columns of the inverse matrix but scaled by the determinant
     float3 col0 = cross(row1, row2);
     float3 col1 = cross(row2, row0);
     float3 col2 = cross(row0, row1);
-
+    
     float determinant = dot(row0, col0);
     float sgn = determinant<0.0 ? (-1.0) : 1.0;
-
+    
     // inverse transposed but scaled by determinant
     // Will remove transpose part by using matrix as the first arg in the mul() below
     // this makes it the exact inverse of what TransformTangentToWorld() does.
     real3x3 matTBN_I_T = real3x3(col0, col1, col2);
-
+    
     return SafeNormalize( sgn * mul(matTBN_I_T, dirWS) );
 }
 
@@ -208,9 +208,9 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
 {
     // Note matrix is in row major convention with left multiplication as it is build on the fly
 
-    // don't normalize, as normalWS will be normalized after TransformWorldToTangent
+    // don't normalize, as normalWS will be normalized after TransformWorldToTangent 
     float3 normalWS = TransformObjectToWorldNormal(dirOS, false);
-
+    
     // transform from world to tangent
     return TransformWorldToTangent(normalWS, tangentToWorld);
 }

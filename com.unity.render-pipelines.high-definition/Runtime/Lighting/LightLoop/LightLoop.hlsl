@@ -531,12 +531,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #endif
 
-#if !defined(_SURFACE_TYPE_TRANSPARENT)
-    // Only use the texture ssgi if the use indirect diffuse flag matches
-    if (_UseIndirectDiffuse == SCREEN_SPACE_INDIRECT_DIFFUSE_FLAG)
-        builtinData.bakeDiffuseLighting += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
-#endif
-
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 
     // Also Apply indiret diffuse (GI)

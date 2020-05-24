@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BuildCoarseStencilAndResolveParameters parameters;
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
-            public ComputeBufferHandle coarseStencilBuffer;
+            public ComputeBuffer coarseStencilBuffer;
         }
 
         void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -501,9 +501,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
                 passData.inputDepth = output.depthBuffer;
-                passData.coarseStencilBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_SharedRTManager.GetCoarseStencilBuffer()));
-                if (passData.parameters.resolveIsNecessary)
-                    passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+                passData.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
+                passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
                 builder.SetRenderFunc(
                 (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
@@ -511,7 +510,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(data.parameters,
                         res.GetTexture(data.inputDepth),
                         res.GetTexture(data.resolvedStencil),
-                        res.GetComputeBuffer(data.coarseStencilBuffer),
+                        data.coarseStencilBuffer,
                         context.cmd);
                 }
                 );
@@ -585,7 +584,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
                 // Return all black textures for default values.
-                var blackTexture = renderGraph.defaultResources.blackTextureXR;
+                var blackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;

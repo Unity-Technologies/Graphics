@@ -90,7 +90,6 @@
 
 #define SAMPLER(samplerName)
 #define SAMPLER_CMP(samplerName)
-#define ASSIGN_SAMPLER(samplerName, samplerValue)
 
 #define TEXTURE2D_PARAM(textureName, samplerName)                sampler2D textureName
 #define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          samplerCUBE textureName

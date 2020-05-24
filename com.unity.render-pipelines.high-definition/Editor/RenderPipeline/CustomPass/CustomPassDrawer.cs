@@ -158,33 +158,36 @@ namespace UnityEditor.Rendering.HighDefinition
 				rect.y += Styles.defaultLineSpace;
 			}
 
+#if true
 			if ((commonPassUIFlags & PassUIFlag.TargetColorBuffer) != 0)
             {
-				EditorGUI.BeginProperty(rect, Styles.targetColorBuffer, m_TargetColorBuffer);
-				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
-				// EditorGUI.PropertyField(rect, m_TargetColorBuffer, Styles.targetColorBuffer);
-				m_TargetColorBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetColorBuffer, (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue);
-				EditorGUI.EndProperty();
+                m_TargetColorBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetColorBuffer, (CustomPass.TargetBuffer)m_TargetColorBuffer.intValue);
                 rect.y += Styles.defaultLineSpace;
             }
 
             if ((commonPassUIFlags & PassUIFlag.TargetDepthBuffer) != 0)
             {
-				EditorGUI.BeginProperty(rect, Styles.targetColorBuffer, m_TargetDepthBuffer);
-				// EditorGUI.PropertyField(rect, m_TargetDepthBuffer, Styles.targetDepthBuffer);
-				m_TargetDepthBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetDepthBuffer, (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue);
-				EditorGUI.EndProperty();
+                m_TargetDepthBuffer.intValue = (int)(CustomPass.TargetBuffer)EditorGUI.EnumPopup(rect, Styles.targetDepthBuffer, (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue);
                 rect.y += Styles.defaultLineSpace;
             }
 
             if ((commonPassUIFlags & PassUIFlag.ClearFlags) != 0)
             {
-				EditorGUI.BeginProperty(rect, Styles.clearFlags, m_ClearFlags);
-				// EditorGUI.PropertyField(rect, m_ClearFlags, Styles.clearFlags);
-				m_ClearFlags.intValue = (int)(ClearFlag)EditorGUI.EnumPopup(rect, Styles.clearFlags, (ClearFlag)m_ClearFlags.intValue);
-				EditorGUI.EndProperty();
+                m_ClearFlags.intValue = (int)(ClearFlag)EditorGUI.EnumPopup(rect, Styles.clearFlags, (ClearFlag)m_ClearFlags.intValue);
                 rect.y += Styles.defaultLineSpace;
 			}
+			
+#else		// TODO: remove all this code when the fix for SerializedReference lands
+			
+			EditorGUI.PropertyField(rect, m_TargetColorBuffer, Styles.targetColorBuffer);
+			rect.y += Styles.defaultLineSpace;
+
+			EditorGUI.PropertyField(rect, m_TargetDepthBuffer, Styles.targetDepthBuffer);
+			rect.y += Styles.defaultLineSpace;
+			
+			EditorGUI.PropertyField(rect, m_ClearFlags, Styles.clearFlags);
+			rect.y += Styles.defaultLineSpace;
+#endif
 		}
 
 		/// <summary>
@@ -213,18 +216,10 @@ namespace UnityEditor.Rendering.HighDefinition
 			enabledRect.x = rect.xMax - enabledSize.x;
 			enabledRect.width = enabledSize.x;
 
-			EditorGUI.BeginProperty(headerRect, GUIContent.none, m_PassFoldout);
-			{
-				m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, $"{m_Name.stringValue} ({m_PassType.Name})", true, EditorStyles.boldLabel);
-			}
-			EditorGUI.EndProperty();
-			EditorGUI.BeginProperty(enabledRect, Styles.enabled, m_Enabled);
-			{
-				EditorGUIUtility.labelWidth = enabledRect.width - 14;
-				m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
-				EditorGUIUtility.labelWidth = 0;
-			}
-			EditorGUI.EndProperty();
+			m_PassFoldout.boolValue = EditorGUI.Foldout(headerRect, m_PassFoldout.boolValue, $"{m_Name.stringValue} ({m_PassType.Name})", true, EditorStyles.boldLabel);
+			EditorGUIUtility.labelWidth = enabledRect.width - 14;
+			m_Enabled.boolValue = EditorGUI.Toggle(enabledRect, Styles.enabled, m_Enabled.boolValue);
+			EditorGUIUtility.labelWidth = 0;
 		}
 
 		/// <summary>

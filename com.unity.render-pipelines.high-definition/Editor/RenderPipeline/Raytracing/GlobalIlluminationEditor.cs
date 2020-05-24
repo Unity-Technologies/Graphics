@@ -1,28 +1,15 @@
-using UnityEngine;
-using UnityEngine.Rendering;
+using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(GlobalIllumination))]
-    class GlobalIlluminatorEditor : VolumeComponentWithQualityEditor
+    class GlobalIlluminatorEditor : VolumeComponentEditor
     {
-        // Shared rasterization / ray tracing parameter
-        SerializedDataParameter m_Enable;
-
-        // Screen space global illumination parameters
-        SerializedDataParameter m_FullResolutionSS;
-        SerializedDataParameter m_DepthBufferThickness;
-        SerializedDataParameter m_RaySteps;
-        SerializedDataParameter m_MaximalRadius;
-        SerializedDataParameter m_ClampValueSS;
-        SerializedDataParameter m_FilterRadius;
-
-        // Ray tracing generic attributes
-        SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_LayerMask;
+        SerializedDataParameter m_RayTracing;
         SerializedDataParameter m_RayLength;
         SerializedDataParameter m_ClampValue;
         SerializedDataParameter m_Mode;
@@ -42,27 +29,12 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_SecondDenoiserPass;
         SerializedDataParameter m_SecondDenoiserRadius;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<GlobalIllumination>(serializedObject);
 
-            m_Enable = Unpack(o.Find(x => x.enable));
-
-            // SSGI Parameters
-            m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
-            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
-            m_RaySteps = Unpack(o.Find(x => x.raySteps));
-            m_MaximalRadius = Unpack(o.Find(x => x.maximalRadius));
-            m_ClampValueSS = Unpack(o.Find(x => x.clampValueSS));
-            m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
-
-            // Ray Tracing shared parameters
-            m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_LayerMask = Unpack(o.Find(x => x.layerMask));
+            m_RayTracing = Unpack(o.Find(x => x.rayTracing));
             m_RayLength = Unpack(o.Find(x => x.rayLength));
             m_ClampValue = Unpack(o.Find(x => x.clampValue));
             m_Mode = Unpack(o.Find(x => x.mode));
@@ -85,35 +57,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
             HDRenderPipelineAsset currentAsset = HDRenderPipeline.currentAsset;
-            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportSSGI ?? false)
+            if (!currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? false)
             {
                 EditorGUILayout.Space();
-                EditorGUILayout.HelpBox("The current HDRP Asset does not support Screen Space Global illumination.", MessageType.Error, wide: true);
+                EditorGUILayout.HelpBox("The current HDRP Asset does not support Ray Tracing.", MessageType.Error, wide: true);
                 return;
             }
 
-            PropertyField(m_Enable);
-            
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
                 PropertyField(m_RayTracing);
-            }
 
-            // Flag to track if the ray tracing parameters were displayed
-            bool rayTracingSettingsDisplayed = false;
-
-            EditorGUI.indentLevel++;
-            if (HDRenderPipeline.pipelineSupportsRayTracing)
-            {
                 if (m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
                 {
-                    rayTracingSettingsDisplayed = true;
+                    EditorGUI.indentLevel++;
                     PropertyField(m_LayerMask);
                     PropertyField(m_RayLength);
                     PropertyField(m_ClampValue);
+
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
                         PropertyField(m_Mode);
@@ -155,26 +118,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_SecondDenoiserRadius);
                         EditorGUI.indentLevel--;
                     }
+                    EditorGUI.indentLevel--;
                 }
             }
-
-            // If we dit not display the ray tracing parameter, we display the ssgi ones
-            if (!rayTracingSettingsDisplayed)
-            {
-                base.OnInspectorGUI(); // Quality Setting
-                EditorGUI.indentLevel++;
-                GUI.enabled = useCustomValue;
-                PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
-                PropertyField(m_RaySteps);
-                PropertyField(m_MaximalRadius);
-                PropertyField(m_ClampValueSS, EditorGUIUtility.TrTextContent("Clamp Value", "Clamps the exposed intensity."));
-                PropertyField(m_FilterRadius);
-                GUI.enabled = true;
-                EditorGUI.indentLevel--;
-                PropertyField(m_DepthBufferThickness);
-            }
-
-            EditorGUI.indentLevel--;
         }
     }
 }

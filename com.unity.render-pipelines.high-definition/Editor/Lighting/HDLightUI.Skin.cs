@@ -81,8 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, Color and Intensity of the Area Light.");
             public readonly GUIContent areaLightEmissiveMeshCastShadow = new GUIContent("Cast Shadows", "Specify wether the generated geometry create shadow or not when a shadow casting Light shines on it");
             public readonly GUIContent areaLightEmissiveMeshMotionVector = new GUIContent("Motion Vectors", "Specify wether the generated Mesh renders 'Per Object Motion', 'Camera Motion' or 'No Motion' vectors to the Camera Motion Vector Texture.");
-            public readonly GUIContent areaLightEmissiveMeshSameLayer = new GUIContent("Same Layer", "If checked, use the same Layer than the Light one.");
-            public readonly GUIContent areaLightEmissiveMeshCustomLayer = new GUIContent("Custom Layer", "Specify on which layer the generated Mesh live.");
             public readonly GUIContent lightLayer = new GUIContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
 
             public readonly GUIContent interactsWithSky = new GUIContent("Affect Physically Based Sky", "Check this option to make the light and the Physically Based sky affect one another.");

@@ -540,7 +540,7 @@ namespace UnityEditor.ShaderGraph
                 GetInputSlots(tempSlots);
                 foreach (var slot in tempSlots)
                 {
-                    if (slot.RequiresScreenPosition(stageCapability))
+                    if (slot.RequiresScreenPosition())
                         return true;
                 }
 

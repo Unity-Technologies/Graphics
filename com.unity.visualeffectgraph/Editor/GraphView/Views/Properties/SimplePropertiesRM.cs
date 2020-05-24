@@ -3,7 +3,14 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using UnityEditor.VFX;
+using UnityEditor.VFX.UIElements;
+using Object = UnityEngine.Object;
+using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
+using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
+using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -33,15 +40,7 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<int> CreateField()
         {
-            var field = new EnumField(m_Label, m_Provider.portType);
-            field.OnDisplayMenu = OnDisplayMenu;
-
-            return field;
-        }
-
-        void OnDisplayMenu(EnumField field)
-        {
-            field.filteredOutValues = provider.filteredOutEnumerators;
+            return new EnumField(m_Label, m_Provider.portType);
         }
     }
 

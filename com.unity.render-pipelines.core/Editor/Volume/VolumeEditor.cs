@@ -1,7 +1,4 @@
-using System.IO;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
@@ -156,13 +153,7 @@ namespace UnityEditor.Rendering
                     // Duplicate the currently assigned profile and save it as a new profile
                     var origin = profileRef;
                     var path = AssetDatabase.GetAssetPath(m_Profile.objectReferenceValue);
-
-                    path = IsAssetInReadOnlyPackage(path)
-                        // We may be in a read only package, in that case we need to clone the volume profile in an
-                        // editable area, such as the root of the project.
-                        ? AssetDatabase.GenerateUniqueAssetPath(Path.Combine("Assets", Path.GetFileName(path)))
-                        // Otherwise, duplicate next to original asset.
-                        : AssetDatabase.GenerateUniqueAssetPath(path);
+                    path = AssetDatabase.GenerateUniqueAssetPath(path);
 
                     var asset = Instantiate(origin);
                     asset.components.Clear();
@@ -210,13 +201,6 @@ namespace UnityEditor.Rendering
             }
 
             serializedObject.ApplyModifiedProperties();
-        }
-
-        static bool IsAssetInReadOnlyPackage(string path)
-        {
-            Assert.IsNotNull(path);
-            var info = PackageManager.PackageInfo.FindForAssetPath(path);
-            return info != null && (info.source != PackageSource.Local && info.source != PackageSource.Embedded);
         }
     }
 }

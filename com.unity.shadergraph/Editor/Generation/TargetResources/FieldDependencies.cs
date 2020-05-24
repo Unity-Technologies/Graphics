@@ -1,4 +1,4 @@
-namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class FieldDependencies
@@ -53,7 +53,6 @@ namespace UnityEditor.ShaderGraph
 
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   StructFields.Attributes.weights),
             new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   StructFields.Attributes.indices),
-            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                      StructFields.Attributes.vertexID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection

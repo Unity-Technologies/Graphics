@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
 
         public Vector3PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            bool isColor = m_Provider.attributes.Is(VFXPropertyAttributes.Type.Color);
+            bool isColor = VFXPropertyAttribute.IsColor(m_Provider.attributes);
 
             if (isColor)
             {
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!base.IsCompatible(provider)) return false;
 
-            bool isColor = provider.attributes.Is(VFXPropertyAttributes.Type.Color);
+            bool isColor = VFXPropertyAttribute.IsColor(provider.attributes);
 
             return isColor == (m_ColorField != null);
         }

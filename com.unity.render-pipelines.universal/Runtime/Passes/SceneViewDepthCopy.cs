@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.Universal
 
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth for Scene View";
+        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
+
 
         public SceneViewDepthCopyPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -46,8 +48,8 @@ namespace UnityEngine.Rendering.Universal
             // scaleBias.w = unused
             ref CameraData cameraData = ref renderingData.cameraData;
             float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBiasRt = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
 
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
             context.ExecuteCommandBuffer(cmd);

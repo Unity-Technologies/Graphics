@@ -72,9 +72,6 @@ namespace UnityEditor.VFX.UI
         }
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
-
-        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return (m_Owner as VFXModel).GetFilteredOutEnumerators(name); } }
-
         public virtual string iconName
         {
             get { return portType.Name; }
@@ -85,11 +82,11 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public VFXPropertyAttributes attributes
+        public VFXPropertyAttribute[] attributes
         {
             get
             {
-                return new VFXPropertyAttributes(customAttributes);
+                return VFXPropertyAttribute.Create(customAttributes);
             }
         }
 

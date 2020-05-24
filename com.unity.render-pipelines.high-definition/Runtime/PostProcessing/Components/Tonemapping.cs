@@ -6,7 +6,6 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Available tonemapping modes.
     /// </summary>
     /// <seealso cref="Tonemapping.mode"/>
-    [GenerateHLSL]
     public enum TonemappingMode
     {
         /// <summary>

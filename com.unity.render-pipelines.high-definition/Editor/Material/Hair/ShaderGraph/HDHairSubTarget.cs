@@ -1,4 +1,4 @@
-using UnityEngine.Rendering.HighDefinition;
+﻿using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -36,15 +36,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HairPasses.DepthForwardOnly },
                     { HairPasses.MotionVectors },
                     { HairPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
-                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
-                    { HairPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { HairPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
                     { HairPasses.ForwardOnly },
                     { HairPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 },
@@ -218,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = HairRenderStates.TransparentDepthPrePass,
+                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -325,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = HairDefines.RaytracingIndirect,
+                defines = HairDefines.RaytracingForwardIndirect,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingIndirect },
@@ -351,8 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.RaytracingVisiblity,
-                defines = HairDefines.RaytracingVisibility,
+                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
             };
@@ -377,7 +368,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = HairDefines.RaytracingForward,
+                defines = HairDefines.RaytracingForwardIndirect,
                 keywords = CoreKeywords.RaytracingGBufferForward,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingForward },
@@ -499,8 +490,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HairMasterNode.AlphaSlotId,
                 HairMasterNode.AlphaClipThresholdDepthPrepassSlotId,
                 HairMasterNode.DepthOffsetSlotId,
-                HairMasterNode.NormalSlotId,
-                HairMasterNode.SmoothnessSlotId,
             };
 
             public static int[] FragmentTransparentBackface = new int[]
@@ -576,56 +565,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pass = "Replace",
                 }) },
             };
-
-            public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.Zero) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
         }
 #endregion
 
 #region Defines
         static class HairDefines
         {
-            public static DefineCollection RaytracingForward = new DefineCollection
+            public static DefineCollection RaytracingForwardIndirect = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
-                { RayTracingNode.GetRayTracingKeyword(), 0 },
                 { CoreKeywordDescriptors.HasLightloop, 1 },
-            };
-
-            public static DefineCollection RaytracingIndirect = new DefineCollection
-            {
-                { CoreKeywordDescriptors.Shadow, 0 },
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
-                { CoreKeywordDescriptors.HasLightloop, 1 },
-            };
-
-            public static DefineCollection RaytracingVisibility = new DefineCollection
-            {
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
             };
 
             public static DefineCollection RaytracingGBuffer = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
-            };
-
-            public static DefineCollection RaytracingPathTracing = new DefineCollection
-            {
-                { CoreKeywordDescriptors.Shadow, 0 },
-                { RayTracingNode.GetRayTracingKeyword(), 0 },
-                { CoreKeywordDescriptors.HasLightloop, 1 },
             };
         }
 #endregion

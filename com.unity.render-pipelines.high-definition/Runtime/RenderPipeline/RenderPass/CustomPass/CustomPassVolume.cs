@@ -282,26 +282,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Add a pass of type passType in the active pass list
         /// </summary>
-        /// <typeparam name="T">The type of the CustomPass to create</typeparam>
-        /// <returns>The new custom</returns>
-        public CustomPass AddPassOfType<T>() where T : CustomPass => AddPassOfType(typeof(T));
-
-        /// <summary>
-        /// Add a pass of type passType in the active pass list
-        /// </summary>
-        /// <param name="passType">The type of the CustomPass to create</param>
-        /// <returns>The new custom</returns>
-        public CustomPass AddPassOfType(Type passType)
+        /// <param name="passType"></param>
+        public void AddPassOfType(Type passType)
         {
             if (!typeof(CustomPass).IsAssignableFrom(passType))
             {
                 Debug.LogError($"Can't add pass type {passType} to the list because it does not inherit from CustomPass.");
-                return null;
+                return ;
             }
 
-            var customPass = Activator.CreateInstance(passType) as CustomPass;
-            customPasses.Add(customPass);
-            return customPass;
+            customPasses.Add(Activator.CreateInstance(passType) as CustomPass);
         }
 
 #if UNITY_EDITOR

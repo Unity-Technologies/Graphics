@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.HighDefinition
             UpdateMaterialEditor();
             foreach (var decalProjector in targets)
             {
-                (decalProjector as DecalProjector).OnMaterialChange += RequireUpdateMaterialEditor;
+                (decalProjector as DecalProjector).OnMaterialChange += UpdateMaterialEditor;
             }
 
             // Fetch serialized properties
@@ -125,10 +125,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private void OnDisable()
         {
-            foreach (DecalProjector decalProjector in targets)
+            foreach (var decalProjector in targets)
             {
-                if (decalProjector != null)
-                    decalProjector.OnMaterialChange -= RequireUpdateMaterialEditor;
+                (decalProjector as DecalProjector).OnMaterialChange -= UpdateMaterialEditor;
             }
             s_Owner = null;
         }
@@ -147,10 +146,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             return new Bounds(decalProjector.transform.position, handle.size);
         }
-
-        private bool m_RequireUpdateMaterialEditor = false;
-
-        private void RequireUpdateMaterialEditor() => m_RequireUpdateMaterialEditor = true;
 
         public void UpdateMaterialEditor()
         {
@@ -322,49 +317,41 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
+            EditorGUI.BeginChangeCheck();
 
-            if (m_RequireUpdateMaterialEditor)
-            {
-                UpdateMaterialEditor();
-                m_RequireUpdateMaterialEditor = false;
-            }
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter, this);
+
+            //[TODO: add editable pivot. Uncomment this when ready]
+            //DoInspectorToolbar(k_EditPivotModes, editPivotLabels, GetBoundsGetter, this);
+            GUILayout.FlexibleSpace();
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.PropertyField(m_Size, k_SizeContent);
+            EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
             EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
+            if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
+                m_DrawDistanceProperty.floatValue = 0f;
+
+            EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
+            EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
+            EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
+            EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
+
+            // only display the affects transparent property if material is HDRP/decal
+            if (showAffectTransparencyHaveMultipleDifferentValue)
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter, this);
-
-                //[TODO: add editable pivot. Uncomment this when ready]
-                //DoInspectorToolbar(k_EditPivotModes, editPivotLabels, GetBoundsGetter, this);
-                GUILayout.FlexibleSpace();
-                EditorGUILayout.EndHorizontal();
-
-                EditorGUILayout.Space();
-
-                EditorGUILayout.PropertyField(m_Size, k_SizeContent);
-                EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
-                if (EditorGUI.EndChangeCheck() && m_DrawDistanceProperty.floatValue < 0f)
-                    m_DrawDistanceProperty.floatValue = 0f;
-
-                EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
-                EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
-                EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
-                EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
-
-                // only display the affects transparent property if material is HDRP/decal
-                if (showAffectTransparencyHaveMultipleDifferentValue)
-                {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Multiple material type in selection"));
-                }
-                else if (showAffectTransparency)
-                    EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Multiple material type in selection"));
             }
+            else if (showAffectTransparency)
+                EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
+
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
 

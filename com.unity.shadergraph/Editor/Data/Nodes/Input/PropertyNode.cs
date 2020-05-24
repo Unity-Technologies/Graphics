@@ -71,20 +71,20 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Vector1:
-                    AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector1MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, 0));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector2:
-                    AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector3:
-                    AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector3MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Vector4:
-                    AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Vector4MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output, Vector4.zero));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Matrix2:
                     AddSlot(new Matrix2MaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
@@ -99,32 +99,28 @@ namespace UnityEditor.ShaderGraph
                     RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Texture2D:
-                    AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture2DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture2DArray:
-                    AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture2DArrayMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Texture3D:
-                    AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] {OutputSlotId});
+                AddSlot(new Texture3DMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] {OutputSlotId});
                     break;
                 case ConcreteSlotValueType.Cubemap:
-                    AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new CubemapMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.SamplerState:
-                    AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new SamplerStateMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 case ConcreteSlotValueType.Gradient:
-                    AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
-                    break;
-                case ConcreteSlotValueType.VirtualTexture:
-                    AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
-                    RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+                AddSlot(new GradientMaterialSlot(OutputSlotId, property.displayName, "Out", SlotType.Output));
+                RemoveSlotsNameNotMatching(new[] { OutputSlotId });
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -176,13 +172,10 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForSlot(int slotId)
         {
-            
-            // TODO: I don't like this exception list being buried in PropertyNode.cs, should be something on the ShaderProperty themselves...
             if (!(property is Texture2DShaderProperty) &&
                 !(property is Texture2DArrayShaderProperty) &&
                 !(property is Texture3DShaderProperty) &&
-                !(property is CubemapShaderProperty) &&
-                !(property is VirtualTextureShaderProperty))
+                !(property is CubemapShaderProperty))
                 return base.GetVariableNameForSlot(slotId);
 
             return property.referenceName;

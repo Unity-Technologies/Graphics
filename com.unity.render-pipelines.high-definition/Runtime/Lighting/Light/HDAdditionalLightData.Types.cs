@@ -234,11 +234,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (type != value)
                 {
-                    if (m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame)
-                    {
-                        HDShadowManager.cachedShadowManager.EvictLight(this);
-                    }
-
                     switch (value)
                     {
                         case HDLightType.Directional:
@@ -259,11 +254,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         default:
                             Debug.Assert(false, $"Unknown {typeof(HDLightType).Name} {value}.");
                             break;
-                    }
-
-                    if (legacyLight.shadows != LightShadows.None && m_ShadowUpdateMode != ShadowUpdateMode.EveryFrame)
-                    {
-                        HDShadowManager.cachedShadowManager.RegisterLight(this);
                     }
 
                     // If the current light unit is not supported by the new light type, we change it

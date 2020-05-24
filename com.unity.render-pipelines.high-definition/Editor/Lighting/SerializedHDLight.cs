@@ -32,8 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty deportedAreaLightEmissiveMeshCastShadow;
         public SerializedProperty areaLightEmissiveMeshMotionVector;
         public SerializedProperty deportedAreaLightEmissiveMeshMotionVector;
-        public SerializedProperty areaLightEmissiveMeshLayer;
-        public SerializedProperty deportedAreaLightEmissiveMeshLayer;
         public SerializedProperty renderingLayerMask;
         public SerializedProperty shadowNearPlane;
         public SerializedProperty blockerSampleCount;
@@ -100,14 +98,11 @@ namespace UnityEditor.Rendering.HighDefinition
         private SerializedProperty pointLightHDType;
         private SerializedProperty areaLightShapeProperty;
 
-        private GameObject[] emissiveMeshes;
+        private IEnumerable<GameObject> emissiveMeshes;
 
         public bool needUpdateAreaLightEmissiveMeshComponents = false;
 
         public SerializedObject serializedObject;
-
-        public SerializedProperty lightLayer;
-        private SerializedObject lightGameObject;
 
         //contain serialized property that are mainly used to draw inspector
         public LightEditor.Settings settings;
@@ -232,50 +227,25 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        struct AreaLightEmissiveMeshObjectEditionScope : System.IDisposable
-        {
-            SerializedHDLight m_Serialized;
-            public AreaLightEmissiveMeshObjectEditionScope(SerializedHDLight serialized)
-            {
-                m_Serialized = serialized;
-                foreach (GameObject emissiveMesh in m_Serialized.emissiveMeshes)
-                {
-                    emissiveMesh.hideFlags &= ~HideFlags.NotEditable;
-                }
-                m_Serialized.areaLightEmissiveMeshLayer.serializedObject.Update();
-            }
-
-            void System.IDisposable.Dispose()
-            {
-                m_Serialized.areaLightEmissiveMeshLayer.serializedObject.ApplyModifiedProperties();
-                foreach (GameObject emissiveMesh in m_Serialized.emissiveMeshes)
-                {
-                    emissiveMesh.hideFlags |= HideFlags.NotEditable;
-                }
-                m_Serialized.areaLightEmissiveMeshLayer.serializedObject.Update();
-            }
-        }
-
         public struct AreaLightEmissiveMeshDrawScope : System.IDisposable
         {
-            SerializedProperty[] m_Properties;
-            bool m_OldEnableState;
+            int propertyCount;
+            bool oldEnableState;
             public AreaLightEmissiveMeshDrawScope(Rect rect, GUIContent label, bool enabler, params SerializedProperty[] properties)
             {
-                m_Properties = properties;
-                foreach (var property in m_Properties)
+                propertyCount = properties.Count(p => p != null);
+                foreach (var property in properties)
                     if (property != null)
                         EditorGUI.BeginProperty(rect, label, property);
-                m_OldEnableState = GUI.enabled;
+                oldEnableState = GUI.enabled;
                 GUI.enabled = enabler;
             }
 
             void System.IDisposable.Dispose()
             {
-                GUI.enabled = m_OldEnableState;
-                foreach (var property in m_Properties)
-                    if (property != null)
-                        EditorGUI.EndProperty();
+                GUI.enabled = oldEnableState;
+                for (int i = 0; i < propertyCount; ++i)
+                    EditorGUI.EndProperty();
             }
         }
 
@@ -304,16 +274,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightEmissiveMeshMotionVector.intValue = (int)motionVectorGenerationMode;
                 if (deportedAreaLightEmissiveMeshMotionVector != null) //only possible while editing from prefab
                     deportedAreaLightEmissiveMeshMotionVector.intValue = (int)motionVectorGenerationMode;
-            }
-        }
-
-        public void UpdateAreaLightEmissiveMeshLayer(int layer)
-        {
-            using (new AreaLightEmissiveMeshObjectEditionScope(this))
-            {
-                areaLightEmissiveMeshLayer.intValue = layer;
-                if (deportedAreaLightEmissiveMeshLayer != null) //only possible while editing from prefab
-                    deportedAreaLightEmissiveMeshLayer.intValue = layer;
             }
         }
 
@@ -414,13 +374,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 // emission mesh
                 areaLightEmissiveMeshCastShadow = o.Find("m_AreaLightEmissiveMeshShadowCastingMode");
                 areaLightEmissiveMeshMotionVector = o.Find("m_AreaLightEmissiveMeshMotionVectorGenerationMode");
-                areaLightEmissiveMeshLayer = o.Find("m_AreaLightEmissiveMeshLayer");
             }
 
             RefreshEmissiveMeshReference();
-
-            lightGameObject = new SerializedObject(serializedObject.targetObjects.Select(ld => ((HDAdditionalLightData)ld).gameObject).ToArray());
-            lightLayer = lightGameObject.FindProperty("m_Layer");
         }
 
         void RefreshEmissiveMeshReference()
@@ -432,11 +388,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 SerializedObject meshRendererSerializedObject = new SerializedObject(meshRenderers.ToArray());
                 deportedAreaLightEmissiveMeshCastShadow = meshRendererSerializedObject.FindProperty("m_CastShadows");
                 deportedAreaLightEmissiveMeshMotionVector = meshRendererSerializedObject.FindProperty("m_MotionVectors");
-                SerializedObject gameObjectSerializedObject = new SerializedObject(emissiveMeshes);
-                deportedAreaLightEmissiveMeshLayer = gameObjectSerializedObject.FindProperty("m_Layer");
             }
             else
-                deportedAreaLightEmissiveMeshCastShadow = deportedAreaLightEmissiveMeshMotionVector = deportedAreaLightEmissiveMeshLayer = null;
+                deportedAreaLightEmissiveMeshCastShadow = deportedAreaLightEmissiveMeshMotionVector = null;
         }
 
         public void FetchAreaLightEmissiveMeshComponents()
@@ -464,10 +418,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             serializedObject.Update();
             settings.Update();
-
-            lightGameObject.Update();
-            deportedAreaLightEmissiveMeshMotionVector?.serializedObject.Update();
-            deportedAreaLightEmissiveMeshLayer?.serializedObject.Update();
         }
 
         void ApplyInternal(bool withDeportedEmissiveMeshData)
@@ -475,10 +425,7 @@ namespace UnityEditor.Rendering.HighDefinition
             serializedObject.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
             if (withDeportedEmissiveMeshData)
-            {
                 deportedAreaLightEmissiveMeshMotionVector?.serializedObject.ApplyModifiedProperties();
-                deportedAreaLightEmissiveMeshLayer?.serializedObject.ApplyModifiedProperties();
-            }
         }
 
         public void Apply() => ApplyInternal(withDeportedEmissiveMeshData: true);

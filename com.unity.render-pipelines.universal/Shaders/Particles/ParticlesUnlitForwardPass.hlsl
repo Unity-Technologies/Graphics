@@ -96,7 +96,7 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = input.color;
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetCameraPositionWS() - vertexInput.positionWS;
 #if !SHADER_HINT_NICE_QUALITY
     viewDirWS = SafeNormalize(viewDirWS);
 #endif

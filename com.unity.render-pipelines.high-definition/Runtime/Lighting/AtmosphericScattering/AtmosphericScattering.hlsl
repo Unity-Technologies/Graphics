@@ -310,7 +310,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
             // This will result in fog looking overly bright.
 
-            float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
+            float3 volAlbedo = _HeightFogBaseScattering / _HeightFogBaseExtinction;
             float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                 _HeightFogExponents, cosZenith, startHeight, distDelta);
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
@@ -333,7 +333,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
-        EvaluatePbrAtmosphere(_WorldSpaceCameraPos.xyz, V, tFrag, false, skyColor, skyOpacity);
+        EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, false, skyColor, skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.

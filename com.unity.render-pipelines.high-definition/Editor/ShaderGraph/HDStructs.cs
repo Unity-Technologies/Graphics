@@ -1,4 +1,4 @@
-using UnityEditor.ShaderGraph;
+﻿using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDStructFields.AttributesMesh.instanceID,
                 HDStructFields.AttributesMesh.weights,
                 HDStructFields.AttributesMesh.indices,
-                HDStructFields.AttributesMesh.vertexID,
             }
         };
 

@@ -635,8 +635,6 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(m_ReseedOnPlay, Contents.reseedOnPlay);
         }
 
-        static readonly GUIContent exampleGUIContent = new GUIContent("Aq");
-
         void InitialEventField(VisualEffectResource resource)
         {
             if (m_InitialEventName == null)
@@ -645,7 +643,7 @@ namespace UnityEditor.VFX
             bool changed = false;
             using (new GUILayout.HorizontalScope())
             {
-                var rect = EditorGUILayout.GetControlRect(false, GUI.skin.textField.CalcHeight(exampleGUIContent, 10000));
+                var rect = EditorGUILayout.GetControlRect(false, overrideWidth);
                 var toggleRect = rect;
                 toggleRect.yMin += 2.0f;
                 toggleRect.width = overrideWidth;

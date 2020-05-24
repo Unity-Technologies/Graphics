@@ -154,7 +154,7 @@ namespace UnityEditor.Rendering.Universal
         {
             SetAnimationTarget(m_ShowBGColorAnim, initialize, isSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
             SetAnimationTarget(m_ShowOrthoAnim, initialize, isSameOrthographic && camera.orthographic);
-            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both);
+            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || XRGraphics.tryEnable);
         }
 
         void UpdateCameraTypeIntPopupData()
@@ -475,6 +475,16 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("The renderer used by this camera doesn't support camera stacking. Only Base camera will render.", MessageType.Warning);
                 return;
             }
+
+            // TODO: Warn when MultiPass is active and enabled so we show in the UI camera stacking is not supported.
+            // Seems like the stereo rendering mode only changes in playmode. Check the reason so we can enable this check.
+//#if ENABLE_VR
+//            if (UnityEngine.XR.XRSettings.stereoRenderingMode == UnityEngine.XR.XRSettings.StereoRenderingMode.MultiPass)
+//            {
+//                EditorGUILayout.HelpBox("Camera Stacking is not supported in Multi Pass stereo mode. Only Base camera will render.", MessageType.Warning);
+//                return;
+//            }
+//#endif
 
             if (m_StackSettingsFoldout.value)
             {

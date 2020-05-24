@@ -161,7 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 // TODO: remove all this code when the fix for SerializedReference lands
-                EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
+                // EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
+                m_SortingCriteria.intValue = (int)(SortingCriteria)EditorGUI.EnumPopup(rect, Styles.sortingCriteria, (SortingCriteria)m_SortingCriteria.intValue);
                 rect.y += Styles.defaultLineSpace;
 
                 EditorGUI.indentLevel--;
@@ -172,7 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool ShowOpaqueObjectWarning()
         {
             // Only opaque objects are concerned
-            RenderQueueRange currentRange = CustomPassUtils.GetRenderQueueRangeFromRenderQueueType((CustomPass.RenderQueueType)m_RenderQueue.intValue);
+            RenderQueueRange currentRange = CustomPass.GetRenderQueueRangeFromRenderQueueType((CustomPass.RenderQueueType)m_RenderQueue.intValue);
             var allOpaque = HDRenderQueue.k_RenderQueue_AllOpaque;
             bool customPassQueueContainsOpaqueObjects = currentRange.upperBound >= allOpaque.lowerBound && currentRange.lowerBound <= allOpaque.upperBound;
             if (!customPassQueueContainsOpaqueObjects)
@@ -204,11 +205,10 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_FilterFoldout.boolValue)
             {
                 EditorGUI.indentLevel++;
-                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                //Render queue filter
                 // EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
+                // TODO: remove all this code when the fix for SerializedReference lands
                 m_RenderQueue.intValue = (int)(CustomPass.RenderQueueType)EditorGUI.EnumPopup(rect, Styles.renderQueueFilter, (CustomPass.RenderQueueType)m_RenderQueue.intValue);
-                EditorGUI.EndProperty();
                 rect.y += Styles.defaultLineSpace;
                 if (ShowOpaqueObjectWarning())
                 {
@@ -229,7 +229,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             //Override material
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
+            // TODO: remove all this code when the fix for SerializedReference lands
+            m_OverrideMaterial.objectReferenceValue = EditorGUI.ObjectField(rect, Styles.overrideMaterial, m_OverrideMaterial.objectReferenceValue, typeof(Material), false);
+            // EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
             if (EditorGUI.EndChangeCheck())
             {
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
@@ -242,49 +244,37 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel++;
             if (m_OverrideMaterial.objectReferenceValue)
             {
-                EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
-                {
-                    var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                    EditorGUI.BeginChangeCheck();
-                    int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
-                    index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
-                    if (EditorGUI.EndChangeCheck())
-                        m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
-                }
-                EditorGUI.EndProperty();
+                var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                EditorGUI.BeginChangeCheck();
+                int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
+                index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                if (EditorGUI.EndChangeCheck())
+                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
             }
             else
             {
-                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
-				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
-                // EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
                 m_ShaderPass.intValue = (int)(DrawRenderersCustomPass.ShaderPass)EditorGUI.EnumPopup(rect, Styles.shaderPass, (DrawRenderersCustomPass.ShaderPass)m_ShaderPass.intValue);
-                EditorGUI.EndProperty();
             }
             EditorGUI.indentLevel--;
 
             rect.y += Styles.defaultLineSpace;
-            EditorGUI.BeginProperty(rect, Styles.overrideDepth, m_OverrideDepthState);
+            if (customDepthIsNone)
             {
-                if (customDepthIsNone)
-                {
-                    using (new EditorGUI.DisabledScope(true))
-                        EditorGUI.Toggle(rect, Styles.overrideDepth, false);
-                }
-                else
-                {
-                    EditorGUI.PropertyField(rect, m_OverrideDepthState, Styles.overrideDepth);
-                }
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUI.Toggle(rect, Styles.overrideDepth, false);
             }
-            EditorGUI.EndProperty();
+            else
+            {
+                m_OverrideDepthState.boolValue = EditorGUI.Toggle(rect, Styles.overrideDepth, m_OverrideDepthState.boolValue);
+            }
 
             if (m_OverrideDepthState.boolValue && !customDepthIsNone)
             {
                 EditorGUI.indentLevel++;
                 rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_DepthCompareFunction, Styles.depthCompareFunction);
+                m_DepthCompareFunction.intValue = (int)(CompareFunction)EditorGUI.EnumPopup(rect, Styles.depthCompareFunction, (CompareFunction)m_DepthCompareFunction.intValue);
                 rect.y += Styles.defaultLineSpace;
-                EditorGUI.PropertyField(rect, m_DepthWrite, Styles.depthWrite);
+                m_DepthWrite.boolValue = EditorGUI.Toggle(rect, Styles.depthWrite, m_DepthWrite.boolValue);
                 EditorGUI.indentLevel--;
             }
         }

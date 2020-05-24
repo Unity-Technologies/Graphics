@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
 
         public override float GetPreferredControlWidth()
         {
-            Vector2 range = m_Provider.attributes.FindRange();
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
             if (RangeShouldCreateSlider(range))
             {
                 return 120;
@@ -37,7 +37,7 @@ namespace UnityEditor.VFX.UI
 
         public override INotifyValueChanged<U> CreateField()
         {
-            Vector2 range = m_Provider.attributes.FindRange();
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
             INotifyValueChanged<U> result;
             if (!RangeShouldCreateSlider(range))
             {
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.UI
         {
             if (!base.IsCompatible(provider)) return false;
 
-            Vector2 range = m_Provider.attributes.FindRange();
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
             return RangeShouldCreateSlider(range) != (m_Slider == null);
         }
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Slider != null)
             {
-                Vector2 range = m_Provider.attributes.FindRange();
+                Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
                 m_Slider.range = range;
             }
@@ -115,7 +115,7 @@ namespace UnityEditor.VFX.UI
         public abstract T FilterValue(Vector2 range, T value);
         public override object FilterValue(object value)
         {
-            Vector2 range = m_Provider.attributes.FindRange();
+            Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
             if (range != Vector2.zero)
             {
@@ -175,7 +175,7 @@ namespace UnityEditor.VFX.UI
 
         protected override INotifyValueChanged<long> CreateSimpleField(out TextValueField<long> textField)
         {
-            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.BitField))
+            if (VFXPropertyAttribute.IsBitField(m_Provider.attributes))
             {
                 var bitfield = new VFXLabeledField<VFX32BitField, long>(m_Label);
                 textField = null;

@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using System.Collections;
 using UnityEditor;
 
@@ -7,11 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class SceneViewDrawMode
     {
-        static HashSet<SceneView> sceneViewHaveValidateFunction = new HashSet<SceneView>();
-
         static private bool RejectDrawMode(SceneView.CameraMode cameraMode)
         {
-            if (cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
+            if (cameraMode.drawMode == DrawCameraMode.TexturedWire ||
+                cameraMode.drawMode == DrawCameraMode.ShadowCascades ||
                 cameraMode.drawMode == DrawCameraMode.RenderPaths ||
                 cameraMode.drawMode == DrawCameraMode.AlphaChannel ||
                 cameraMode.drawMode == DrawCameraMode.Overdraw ||
@@ -28,32 +26,18 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        static void UpdateSceneViewStates()
-        {
-            foreach (SceneView sceneView in SceneView.sceneViews)
-            {
-                if (sceneViewHaveValidateFunction.Contains(sceneView))
-                    continue;
-                
-
-                sceneView.onValidateCameraMode += RejectDrawMode;
-                sceneViewHaveValidateFunction.Add(sceneView);
-            }
-        }
-
         static public void SetupDrawMode()
         {
-            EditorApplication.update -= UpdateSceneViewStates;
-            EditorApplication.update += UpdateSceneViewStates;
+            ArrayList sceneViewArray = SceneView.sceneViews;
+            foreach (SceneView sceneView in sceneViewArray)
+                sceneView.onValidateCameraMode += RejectDrawMode;
         }
 
         static public void ResetDrawMode()
         {
-            EditorApplication.update -= UpdateSceneViewStates;
-            
-            foreach (var sceneView in sceneViewHaveValidateFunction)
+            ArrayList sceneViewArray = SceneView.sceneViews;
+            foreach (SceneView sceneView in sceneViewArray)
                 sceneView.onValidateCameraMode -= RejectDrawMode;
-            sceneViewHaveValidateFunction.Clear();
         }
     }
 }

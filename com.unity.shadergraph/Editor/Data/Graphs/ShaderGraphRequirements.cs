@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField] bool m_RequiresCameraOpaqueTexture;
         [SerializeField] bool m_RequiresTime;
         [SerializeField] bool m_RequiresVertexSkinning;
-        [SerializeField] bool m_RequiresVertexID;
 
         internal static ShaderGraphRequirements none
         {
@@ -112,12 +111,6 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_RequiresVertexSkinning = value; }
         }
 
-        public bool requiresVertexID
-        {
-            get { return m_RequiresVertexID; }
-            internal set { m_RequiresVertexID = value; }
-        }
-
         internal bool NeedsTangentSpace()
         {
             var compoundSpaces = m_RequiresBitangent | m_RequiresNormal | m_RequiresPosition
@@ -142,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Internal
             newReqs.m_RequiresCameraOpaqueTexture = other.m_RequiresCameraOpaqueTexture | m_RequiresCameraOpaqueTexture;
             newReqs.m_RequiresTime = other.m_RequiresTime | m_RequiresTime;
             newReqs.m_RequiresVertexSkinning = other.m_RequiresVertexSkinning | m_RequiresVertexSkinning;
-            newReqs.m_RequiresVertexID = other.m_RequiresVertexID | m_RequiresVertexID;
+
 
             newReqs.m_RequiresMeshUVs = new List<UVChannel>();
             if (m_RequiresMeshUVs != null)
@@ -160,14 +153,13 @@ namespace UnityEditor.ShaderGraph.Internal
             NeededCoordinateSpace requiresTangent = nodes.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
             NeededCoordinateSpace requiresViewDir = nodes.OfType<IMayRequireViewDirection>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresViewDirection(stageCapability));
             NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
-            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition(stageCapability));
+            bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
             bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
             bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
             bool requiresDepthTexture = nodes.OfType<IMayRequireDepthTexture>().Any(x => x.RequiresDepthTexture());
             bool requiresCameraOpaqueTexture = nodes.OfType<IMayRequireCameraOpaqueTexture>().Any(x => x.RequiresCameraOpaqueTexture());
             bool requiresTime = nodes.Any(x => x.RequiresTime());
             bool requiresVertexSkinning = nodes.OfType<IMayRequireVertexSkinning>().Any(x => x.RequiresVertexSkinning(stageCapability));
-            bool requiresVertexID = nodes.OfType<IMayRequireVertexID>().Any(x => x.RequiresVertexID(stageCapability));
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -208,8 +200,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 m_RequiresDepthTexture = requiresDepthTexture,
                 m_RequiresCameraOpaqueTexture = requiresCameraOpaqueTexture,
                 m_RequiresTime = requiresTime,
-                m_RequiresVertexSkinning = requiresVertexSkinning,
-                m_RequiresVertexID = requiresVertexID,
+                m_RequiresVertexSkinning = requiresVertexSkinning
             };
 
             return reqs;

@@ -1,4 +1,4 @@
-namespace UnityEditor.ShaderGraph
+﻿namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal struct PassDescriptor
@@ -8,7 +8,6 @@ namespace UnityEditor.ShaderGraph
         public string referenceName;
         public string lightMode;
         public bool useInPreview;
-        public bool virtualTextureFeedback;
 
         // Templates
         public string passTemplatePath;

@@ -92,14 +92,14 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
     output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
 #endif
 
-#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
+#if (SHADERPASS == SHADERPASS_FORWARD)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif
@@ -116,4 +116,3 @@ Varyings BuildVaryings(Attributes input)
 
     return output;
 }
-

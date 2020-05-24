@@ -212,7 +212,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void InitMaterial()
+        void OnEnable()
         {
             if (m_Material == null)
             {
@@ -223,13 +223,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_Material = null;
 #endif
             }
-        }
-
-        void Reset() => InitMaterial();
-
-        void OnEnable()
-        {
-            InitMaterial();
 
             if (m_Handle != null)
             {

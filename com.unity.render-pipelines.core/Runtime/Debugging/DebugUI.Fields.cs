@@ -320,9 +320,6 @@ namespace UnityEngine.Rendering
 
             internal void InitIndexes()
             {
-                if (enumNames == null)
-                    enumNames = new GUIContent[0];
-
                 indexes = new int[enumNames.Length];
                 for (int i = 0; i < enumNames.Length; i++)
                 {

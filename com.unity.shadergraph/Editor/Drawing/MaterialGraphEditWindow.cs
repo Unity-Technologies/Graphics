@@ -56,10 +56,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         GraphEditorView m_GraphEditorView;
-        internal GraphEditorView graphEditorView
+        GraphEditorView graphEditorView
         {
             get { return m_GraphEditorView; }
-            private set
+            set
             {
                 if (m_GraphEditorView != null)
                 {
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        internal GraphObject graphObject
+        GraphObject graphObject
         {
             get { return m_GraphObject; }
             set
@@ -511,8 +511,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.selection.OfType<StickyNote>().Select(x => x.userData),
                 true);
 
-            // why do we serialize and deserialize only to make copies of everything in the steps below?
-            // is this just to clear out all non-serialized data?
             var deserialized = CopyPasteGraph.FromJson(MultiJson.Serialize(copyPasteGraph), graphView.graph);
             if (deserialized == null)
                 return;
@@ -621,11 +619,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var fromNode = sr.node;
                 var fromSlot = sr.slot;
 
-                var materialGraph = graphObject.graph;
-                var fromProperty = fromNode is PropertyNode fromPropertyNode
-                    ? materialGraph.properties.FirstOrDefault(p => p == fromPropertyNode.property)
-                    : null;
-
                 AbstractShaderProperty prop;
                 switch (fromSlot.concreteValueType)
                 {
@@ -671,17 +664,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                     case ConcreteSlotValueType.Gradient:
                         prop = new GradientShaderProperty();
                         break;
-                    case ConcreteSlotValueType.VirtualTexture:
-                        prop = new VirtualTextureShaderProperty()
-                        {
-                            // also copy the VT settings over from the original property (if there is one)
-                            value = (fromProperty as VirtualTextureShaderProperty)?.value ?? new SerializableVirtualTexture()
-                        };
-                        break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
 
+                var materialGraph = graphObject.graph;
+                var fromProperty = fromNode is PropertyNode fromPropertyNode
+                    ? materialGraph.properties.FirstOrDefault(p => p == fromPropertyNode.property)
+                    : null;
                 prop.displayName = fromProperty != null
                     ? fromProperty.displayName
                     : fromSlot.concreteValueType.ToString();
@@ -762,8 +752,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 subGraphNode.group = firstNode.group;
             }
 
-            subGraphNode.asset = loadedSubGraph;
             graphObject.graph.AddNode(subGraphNode);
+            subGraphNode.asset = loadedSubGraph;
 
             foreach (var edgeMap in externalInputNeedingConnection)
             {

@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Operator
         }
 
         [SerializeField, VFXSetting]
-        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Clamp;
+        private VFXOperatorUtility.SequentialAddressingMode mode = VFXOperatorUtility.SequentialAddressingMode.Wrap;
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

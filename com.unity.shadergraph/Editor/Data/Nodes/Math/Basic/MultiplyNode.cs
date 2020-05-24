@@ -34,7 +34,10 @@ namespace UnityEditor.ShaderGraph
 
         MultiplyType m_MultiplyType;
 
-        public override bool hasPreview => true;
+        public override bool hasPreview
+        {
+            get { return m_MultiplyType != MultiplyType.Matrix; }
+        }
 
         string GetFunctionHeader()
         {

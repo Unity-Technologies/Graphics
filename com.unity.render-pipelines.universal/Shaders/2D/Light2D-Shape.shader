@@ -40,23 +40,23 @@ Shader "Hidden/Light2D-Shape"
             struct Varyings
             {
                 float4  positionCS  : SV_POSITION;
-                half4   color       : COLOR;
-                half2   uv          : TEXCOORD0;
+                float4  color       : COLOR;
+                float2  uv          : TEXCOORD0;
 
                 SHADOW_COORDS(TEXCOORD1)
                 NORMALS_LIGHTING_COORDS(TEXCOORD2, TEXCOORD3)
             };
 
-            half    _InverseHDREmulationScale;
-            half4   _LightColor;
-            half    _FalloffDistance;
-            half4   _FalloffOffset;
+            float  _InverseHDREmulationScale;
+            float4 _LightColor;
+            float  _FalloffDistance;
+            float4 _FalloffOffset;
 
 #ifdef SPRITE_LIGHT
             TEXTURE2D(_CookieTex);			// This can either be a sprite texture uv or a falloff texture
             SAMPLER(sampler_CookieTex);
 #else
-            half    _FalloffIntensity;
+            float _FalloffIntensity;
             TEXTURE2D(_FalloffLookup);
             SAMPLER(sampler_FalloffLookup);
 #endif

@@ -18,10 +18,9 @@ struct HDShadowContext
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDShadowAlgorithms.hlsl"
 
 TEXTURE2D(_ShadowmapAtlas);
-TEXTURE2D(_CachedShadowmapAtlas);
 TEXTURE2D(_ShadowmapCascadeAtlas);
-TEXTURE2D(_ShadowmapAreaAtlas);
-TEXTURE2D(_CachedAreaLightShadowmapAtlas);
+TEXTURE2D(_AreaShadowmapAtlas);
+TEXTURE2D(_AreaShadowmapMomentAtlas);
 
 StructuredBuffer<HDShadowData>              _HDShadowDatas;
 // Only the first element is used since we only support one directional light

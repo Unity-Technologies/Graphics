@@ -243,8 +243,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = UnlitKeywords.Forward,
                 includes = UnlitIncludes.ForwardOnly,
-
-                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor RaytracingIndirect = new PassDescriptor()
@@ -292,8 +290,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
+                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
-                keywords = CoreKeywords.RaytracingVisiblity,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingVisibility },
             };
 
@@ -367,7 +365,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
+                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
             };
@@ -484,31 +482,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Comp = "Always",
                     Pass = "Replace",
                 }) },
-            };
-        }
-        #endregion
-
-#region Defines
-        static class UnlitDefines
-        {
-            public static DefineCollection RaytracingForward = new DefineCollection
-            {
-                { RayTracingNode.GetRayTracingKeyword(), 0 },
-            };
-
-            public static DefineCollection RaytracingIndirect = new DefineCollection
-            {
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
-            };
-
-            public static DefineCollection RaytracingVisibility = new DefineCollection
-            {
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
-            };
-
-            public static DefineCollection RaytracingGBuffer = new DefineCollection
-            {
-                { RayTracingNode.GetRayTracingKeyword(), 1 },
             };
         }
 #endregion

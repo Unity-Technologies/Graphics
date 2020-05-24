@@ -69,7 +69,12 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var rand = VFXOperatorUtility.BuildRandom(seed, constant, inputExpression.Length > 2 ? inputExpression[2] : null);
+            VFXExpression rand = null;
+            if (seed == VFXSeedMode.PerParticleStrip || constant)
+                rand = VFXOperatorUtility.FixedRandom(inputExpression[2], seed);
+            else
+                rand = new VFXExpressionRandom(seed == VFXSeedMode.PerParticle);
+
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], rand) };
         }
     }

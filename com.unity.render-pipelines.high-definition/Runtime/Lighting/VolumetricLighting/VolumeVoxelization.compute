@@ -169,7 +169,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
         float heightMultiplier = ComputeHeightFogMultiplier(fragmentHeight, _HeightFogBaseHeight, _HeightFogExponents);
 
         // Start by sampling the height fog.
-        float3 voxelScattering = _HeightFogBaseScattering.xyz * heightMultiplier;
+        float3 voxelScattering = _HeightFogBaseScattering * heightMultiplier;
         float  voxelExtinction = _HeightFogBaseExtinction * heightMultiplier;
 
         for (uint volumeOffset = 0; volumeOffset < volumeCount; volumeOffset++)

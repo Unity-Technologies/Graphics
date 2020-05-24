@@ -52,9 +52,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                 return;
 
             Camera camera = renderingData.cameraData.camera;
+            bool stereo = renderingData.cameraData.isStereoEnabled;
 
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
-            if (!renderingData.cameraData.xr.enabled)
+            if (!stereo)
             {
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_ScreenSpaceShadowsMaterial);
