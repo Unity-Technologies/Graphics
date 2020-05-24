@@ -26,9 +26,9 @@ class ABV_SmokeTestJob():
                 f'pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade',
                 f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && unity-downloader-cli --source-file ../../{PATH_UNITY_REVISION} -c editor --wait --published-only' ]
         if test_platform['name'].lower() == 'standalone':
-            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr/utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
+            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr\\utr {test_platform["args"]}Windows64 --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS} --timeout=1200')
         else:
-            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr/utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
+            commands.append(f'cd {TEST_PROJECTS_DIR}/{smoke_test["folder"]} && utr\\utr {test_platform["args"]} --testproject=. --editor-location=.Editor --artifacts_path={PATH_TEST_RESULTS}')
         
         # construct job
         job = YMLJob()
