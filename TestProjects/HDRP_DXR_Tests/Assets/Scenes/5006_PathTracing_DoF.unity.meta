@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/HDRP_DXR_Tests/Assets/Scenes/902_Materials_SG_Variants_Hair.unity.meta
+guid: 034219978a2f81049b231504161409e5
+=======
 guid: c163eeeb7af1c194590ab367fb84a376
+>>>>>>> master:TestProjects/HDRP_DXR_Tests/Assets/Scenes/5006_PathTracing_DoF.unity.meta
 DefaultImporter:
   externalObjects: {}
   userData: 
