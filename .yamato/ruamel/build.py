@@ -52,9 +52,9 @@ def get_platform(platform, api=""):
     else:
         return shared_platforms.get(f'{platform["name"]}_{api}', shared_platforms.get(platform["name"]))
 
-def get_test_platforms(metafile):
+def get_test_platforms(metafile_testplatforms):
     test_platforms = []
-    for test_platform_name in metafile["test_platforms"]:
+    for test_platform_name in metafile_testplatforms:
         test_platforms.append({
             "name": test_platform_name,
             "args": shared_test_platforms[test_platform_name]
@@ -74,7 +74,7 @@ def create_project_specific_jobs(metafile_name):
             platform = get_platform(platform_meta, api)
             yml = {}
             for editor in get_editors(metafile):
-                for test_platform in get_test_platforms(metafile):
+                for test_platform in get_test_platforms(metafile['test_platforms']):
                     
                     if test_platform["name"].lower() == 'standalone':
                         if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
@@ -161,18 +161,18 @@ def create_abv_jobs(metafile_name):
     metafile["smoke_test"]["agent_gpu"] = get_agent(metafile["smoke_test"]["agent_gpu"])
     
     for editor in get_editors(metafile):
-        for test_platform in get_test_platforms(metafile):
+        for test_platform in get_test_platforms(metafile["smoke_test"]["test_platforms"]):
             job = ABV_SmokeTestJob(editor, test_platform, metafile["smoke_test"])
             yml[job.job_id] = job.yml
         
-        job = ABV_AllSmokeTestsJob(editor, get_test_platforms(metafile))
+        job = ABV_AllSmokeTestsJob(editor, get_test_platforms(metafile["smoke_test"]["test_platforms"]))
         yml[job.job_id] = job.yml
 
-        job = ABV_AllProjectCiJob(editor, metafile["projects"], metafile["abv_config"]["trigger_editors"], target_branch)
+        job = ABV_AllProjectCiJob(editor, metafile["abv"]["projects"], metafile["abv"]["trigger_editors"], target_branch)
         yml[job.job_id] = job.yml
 
-        if editor["version"] in metafile["nightly_config"]["allowed_editors"]:
-            job = ABV_AllProjectCiNightlyJob(editor, metafile["projects"], get_test_platforms(metafile), metafile["nightly_config"], target_branch)
+        if editor["version"] in metafile["nightly"]["allowed_editors"]:
+            job = ABV_AllProjectCiNightlyJob(editor, metafile["abv"]["projects"], get_test_platforms(metafile["smoke_test"]["test_platforms"]), metafile["nightly"], target_branch)
             yml[job.job_id] = job.yml
 
         job = ABV_TrunkVerificationJob(editor, metafile["trunk_verification"]["dependencies"])
@@ -197,7 +197,7 @@ def create_preview_publish_jobs(metafile_name):
     for package in metafile["packages"]:
 
         if package["publish_source"] == True:
-            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, target_branch, metafile["publishing"]["auto_publish"], get_editors(metafile), metafile["platforms"])
+            job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, get_editors(metafile), metafile["platforms"])
             yml[job.job_id] = job.yml
 
             job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package)

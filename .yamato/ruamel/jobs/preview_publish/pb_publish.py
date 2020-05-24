@@ -5,12 +5,12 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class PreviewPublish_PublishJob():
     
-    def __init__(self, agent, package, target_branch, auto_publish, editors, platforms):
+    def __init__(self, agent, package, editors, platforms):
         self.job_id = pb_job_id_publish(package["name"])
-        self.yml = self.get_job_definition(agent, package, target_branch, auto_publish, editors, platforms).get_yml()
+        self.yml = self.get_job_definition(agent, package, editors, platforms).get_yml()
 
 
-    def get_job_definition(self, agent, package, target_branch, auto_publish, editors, platforms):
+    def get_job_definition(self, agent, package,  editors, platforms):
         
         if package["publish_source"] != True:
             raise Exception('Tried to publish package for which "publish_source" set to false.')
@@ -32,8 +32,6 @@ class PreviewPublish_PublishJob():
                 f'npm install upm-ci-utils@stable -g --registry {NPM_UPMCI_INSTALL_URL}',
                 f'upm-ci {package["type"]} publish --{package["type"]}-path {package["path"]}'])
         job.add_artifacts_packages()
-        if auto_publish is True:
-            job.add_trigger_recurrent(target_branch, 'daily')
         return job
     
     

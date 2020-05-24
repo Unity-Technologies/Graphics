@@ -15,10 +15,6 @@ auto-version:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        branches:
-            only:
-              -  master
 publish_all_preview:
     name: Publish all preview packages - nightly
     dependencies:
@@ -29,35 +25,31 @@ publish_all_preview:
       -  .yamato/_preview_publish.yml#publish_vfx
       -  .yamato/_preview_publish.yml#publish_config
       -  .yamato/_preview_publish.yml#publish_lwrp
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 wait_for_nightly:
     name: Wait for nightly
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_nightly_trunk
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_mac_trunk
-      -  .yamato/_packages.yml#test_core_win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_mac_trunk
-      -  .yamato/_packages.yml#test_universal_win_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_mac_trunk
-      -  .yamato/_packages.yml#test_hdrp_win_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_mac_trunk
-      -  .yamato/_packages.yml#test_vfx_win_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_mac_trunk
-      -  .yamato/_packages.yml#test_config_win_trunk
+      -  .yamato/_packages.yml#test_config_OSX_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_mac_trunk
-      -  .yamato/_packages.yml#test_lwrp_win_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
 publish_core:
     name: '[core] Candidates Publish'
     agent:
@@ -67,8 +59,8 @@ publish_core:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_core_mac_trunk
-      -  .yamato/_packages.yml#test_core_win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -76,10 +68,6 @@ publish_core:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_core:
     name: '[core] Production Promote'
     agent:
@@ -106,8 +94,8 @@ publish_universal:
     dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_universal_mac_trunk
-      -  .yamato/_packages.yml#test_universal_win_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -115,10 +103,6 @@ publish_universal:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_universal:
     name: '[universal] Production Promote'
     agent:
@@ -145,8 +129,8 @@ publish_hdrp:
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_hdrp_mac_trunk
-      -  .yamato/_packages.yml#test_hdrp_win_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -154,10 +138,6 @@ publish_hdrp:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_hdrp:
     name: '[hdrp] Production Promote'
     agent:
@@ -184,8 +164,8 @@ publish_shadergraph:
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_shadergraph_mac_trunk
-      -  .yamato/_packages.yml#test_shadergraph_win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -193,10 +173,6 @@ publish_shadergraph:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_shadergraph:
     name: '[shadergraph] Production Promote'
     agent:
@@ -223,8 +199,8 @@ publish_vfx:
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_vfx_mac_trunk
-      -  .yamato/_packages.yml#test_vfx_win_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -232,10 +208,6 @@ publish_vfx:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_vfx:
     name: '[vfx] Production Promote'
     agent:
@@ -262,8 +234,8 @@ publish_config:
     dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_config_mac_trunk
-      -  .yamato/_packages.yml#test_config_win_trunk
+      -  .yamato/_packages.yml#test_config_OSX_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -271,10 +243,6 @@ publish_config:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_config:
     name: '[config] Production Promote'
     agent:
@@ -301,8 +269,8 @@ publish_lwrp:
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_lwrp_mac_trunk
-      -  .yamato/_packages.yml#test_lwrp_win_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
@@ -310,10 +278,6 @@ publish_lwrp:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-    triggers:
-        recurring:
-          -  branch: master
-             frequency: daily
 promote_lwrp:
     name: '[lwrp] Production Promote'
     agent:

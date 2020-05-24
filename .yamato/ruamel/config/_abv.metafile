@@ -1,19 +1,15 @@
-projects:
-  - name: Universal
-  - name: Universal_Stereo
-  - name: ShaderGraph
-  - name: ShaderGraph_Stereo
-  - name: HDRP
-  - name: VFXMain
-  - name: VFX_LWRP
-test_platforms:
-  - Standalone
-  - playmode
-  - editmode
-abv_config: # specify the editor versions for which to create the expression trigger for all_project_ci job
+abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
     - fast-trunk
-nightly_config:
+  projects:
+    - name: Universal
+    - name: Universal_Stereo
+    - name: ShaderGraph
+    - name: ShaderGraph_Stereo
+    - name: HDRP
+    - name: VFXMain
+    - name: VFX_LWRP
+nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - trunk
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
@@ -40,6 +36,10 @@ smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
   agent: win_large_sdet # used for editmode
   agent_gpu: win_large_sdet_gpu  # used for non-editmode
+  test_platforms:
+    - Standalone
+    - playmode
+    - editmode
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: Universal
