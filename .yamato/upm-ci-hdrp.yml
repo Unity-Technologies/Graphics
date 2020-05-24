@@ -1,8 +1,4 @@
 editors:
-  - version: 2020.1
-    rerun_strategy: on-new-revision
-  - version: fast-2020.1
-    rerun_strategy: on-new-revision
   - version: trunk
     rerun_strategy: on-new-revision
   - version: fast-trunk
@@ -13,8 +9,8 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
+    image: graphics-foundation/win10-dxr:latest
+    flavor: b1.xlarge
     components:
       - editor
       - il2cpp
@@ -75,7 +71,7 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
@@ -174,7 +170,6 @@ linux_apis:
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-    - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
@@ -226,17 +221,24 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "OSX_Metal" %}
   #skip
   {% elsif platform.name == "Linux" %}
-  #skip
-  
+  #skip  
   {% elsif platform.name == "Win" %}
+
   {% for win_api in win_apis %}
-  {% if win_api.name == "Vulkan" %}
-  #skip
-  {% elsif  win_api.name == "DX12" %}
-  #skip
-  {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
-  {% endif %}
+    {% if win_api.name == "Vulkan" and testplatform.name == "playmode XR" %}
+    #skip - Vulkan don't support VR
+    {% elsif win_api.name == "Vulkan" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11
+    {% elsif win_api.name == "DX12" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11	
+    {% else %}
+      - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}    
+      {% if win_api.name == "DX12" and testplatform.name == "playmode" %}
+      - path: .yamato/upm-ci-hdrp_dxr.yml#HDRP_DXR_Win_DX12_playmode_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}
+      {% endif %}
+    {% endif %}
   {% endfor %}
 
   {% else %}

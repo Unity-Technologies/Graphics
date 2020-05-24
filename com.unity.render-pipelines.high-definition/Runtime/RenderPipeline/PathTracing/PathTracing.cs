@@ -49,6 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
     }
+
     public partial class HDRenderPipeline
     {
         PathTracing m_PathTracingSettings = null;
@@ -93,6 +94,17 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ResetPathTracing()
         {
             m_SubFrameManager.Reset();
+        }
+
+        private Vector4 ComputeDoFConstants(HDCamera hdCamera, PathTracing settings)
+        {
+            var dofSettings = hdCamera.volumeStack.GetComponent<DepthOfField>();
+            bool enableDof = (dofSettings.focusMode.value == DepthOfFieldMode.UsePhysicalCamera) && !(hdCamera.camera.cameraType == CameraType.SceneView);
+
+            // focalLength is in mm, so we need to convert to meters. We also want the aperture radius, not diameter, so we divide by two.
+            float apertureRadius = (enableDof && hdCamera.physicalParameters != null && hdCamera.physicalParameters.aperture > 0) ? 0.5f * 0.001f * hdCamera.camera.focalLength / hdCamera.physicalParameters.aperture : 0.0f;
+
+            return new Vector4(apertureRadius, dofSettings.focusDistance.value, 0.0f, 0.0f);
         }
 
 #if UNITY_EDITOR
@@ -195,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("PathTracingHistoryBuffer{0}", frameIndex));
+                                        name: string.Format("{0}_PathTracingHistoryBuffer{1}", viewName, frameIndex));
         }
 
         void RenderPathTracing(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture)
@@ -217,7 +229,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
             HDRaytracingLightCluster lightCluster = RequestLightCluster();
             LightCluster lightClusterSettings = hdCamera.volumeStack.GetComponent<LightCluster>();
-            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
 
             if (!m_SubFrameManager.isRecording)
             {
@@ -243,29 +254,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalTexture(HDShaderIDs._OwenScrambledTexture, m_Asset.renderPipelineResources.textures.owenScrambled256Tex);
                 cmd.SetGlobalTexture(HDShaderIDs._ScramblingTexture, m_Asset.renderPipelineResources.textures.scramblingTex);
 
-                // Inject the ray generation data
-
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingNumSamples, m_SubFrameManager.subFrameCount);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingMinRecursion, m_PathTracingSettings.minimumDepth.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingMaxRecursion, m_PathTracingSettings.maximumDepth.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingIntensityClamp, m_PathTracingSettings.maximumIntensity.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingCameraNearPlane, hdCamera.camera.nearClipPlane);
-
-                // Set the data for the ray generation
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingSampleIndex, (int)m_SubFrameManager.iteration);
-
-                // Compute an approximate pixel spread angle value (in radians)
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingPixelSpreadAngle, GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight));
+                // Update the global constant buffer
+                m_ShaderVariablesRayTracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
+                m_ShaderVariablesRayTracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
+                m_ShaderVariablesRayTracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
+                m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
+                m_ShaderVariablesRayTracingCB._RaytracingSampleIndex = (int)m_SubFrameManager.iteration;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // LightLoop data
                 cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, lightCluster.GetCluster());
                 cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, lightCluster.GetLightDatas());
-                cmd.SetGlobalVector(HDShaderIDs._MinClusterPos, lightCluster.GetMinClusterPos());
-                cmd.SetGlobalVector(HDShaderIDs._MaxClusterPos, lightCluster.GetMaxClusterPos());
-                cmd.SetGlobalInt(HDShaderIDs._LightPerCellCount, lightClusterSettings.maxNumLightsPercell.value);
-                cmd.SetGlobalInt(HDShaderIDs._PunctualLightCountRT, lightCluster.GetPunctualLightCount());
-                cmd.SetGlobalInt(HDShaderIDs._AreaLightCountRT, lightCluster.GetAreaLightCount());
 
                 // Set the data for the ray miss
                 cmd.SetRayTracingIntParam(pathTracingShader, HDShaderIDs._RaytracingCameraSkyEnabled, m_CameraSkyEnabled ? 1 : 0);
@@ -275,6 +274,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Additional data for path tracing
                 cmd.SetRayTracingTextureParam(pathTracingShader, HDShaderIDs._RadianceTexture, m_RadianceTexture);
                 cmd.SetRayTracingMatrixParam(pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, hdCamera.mainViewConstants.pixelCoordToViewDirWS);
+                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._PathTracedDoFConstants, ComputeDoFConstants(hdCamera, m_PathTracingSettings));
+                cmd.SetRayTracingVectorParam(pathTracingShader, HDShaderIDs._InvViewportScaleBias, HDUtils.ComputeInverseViewportScaleBias(hdCamera));
 
                 // Run the computation
                 cmd.DispatchRays(pathTracingShader, "RayGen", (uint)hdCamera.actualWidth, (uint)hdCamera.actualHeight, 1);

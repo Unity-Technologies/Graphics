@@ -10,10 +10,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No lighting debug mode.</summary>
         None,
+        // Caution: Shader code assume that all lighting decomposition mode are contiguous
+        // i.e start with DiffuseLighting and end with EmissiveLighting. Keep those boundary.
         /// <summary>Display only diffuse lighting.</summary>
         DiffuseLighting,
         /// <summary>Display only specular lighting.</summary>
         SpecularLighting,
+        /// <summary>Display only direct diffuse lighting.</summary>
+        DirectDiffuseLighting,
+        /// <summary>Display only direct specular lighting.</summary>
+        DirectSpecularLighting,
+        /// <summary>Display only indirect diffuse lighting.</summary>
+        IndirectDiffuseLighting,
+        /// <summary>Display only reflection.</summary>
+        ReflectionLighting,
+        /// <summary>Display only refraction.</summary>
+        RefractionLighting,
+        /// <summary>Display only Emissive lighting.</summary>
+        EmissiveLighting,
         /// <summary>Display lux values.</summary>
         LuxMeter,
         /// <summary>Display luminance values.</summary>
@@ -148,11 +162,33 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeDirectionalLightAtlas,
         /// <summary>Display area lights shadow atlas as an overlay.</summary>
         VisualizeAreaLightAtlas,
+        /// <summary>Display punctual lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedPunctualLightAtlas,
+        /// <summary>Display area lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedAreaLightAtlas,
         /// <summary>Display a single light shadow map as an overlay.</summary>
         VisualizeShadowMap,
         /// <summary>Replace rendering with a black and white view of the shadow of a single light in the scene.</summary>
         SingleShadow,
     }
+
+    /// <summary>
+    /// Exposure debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ExposureDebugMode
+    {
+        /// <summary>No exposure debug.</summary>
+        None,
+        /// <summary>Display the EV100 values of the scene, color-coded.</summary>
+        SceneEV100Values,
+        /// <summary>Display the Histogram used for exposure.</summary>
+        HistogramView,
+        /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
+        MeteringWeighted,
+
+    }
+
 
     /// <summary>
     /// Probe Volume Debug Modes.
@@ -277,8 +313,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
-        /// <summary>Exposure used for lighting debug modes.</summary>
+        /// <summary>Exposure debug mode.</summary>
+        public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
+        /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 showTonemapCurveAlongHistogramView = true;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
@@ -315,7 +355,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
+            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
+                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
+                    debugLightingMode == DebugLightingMode.ProbeVolume;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

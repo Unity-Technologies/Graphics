@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Experimental.Rendering;
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// HDCamera class.
     /// This class holds all information for a given camera. Constants used for shading as well as buffers persistent from one frame to another etc.
     /// </summary>
+    [DebuggerDisplay("({camera.name})")]
     public class HDCamera
     {
         #region Public API
@@ -186,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Transform              volumeAnchor;
         internal Rect                   finalViewport; // This will have the correct viewport position and the size will be full resolution (ie : not taking dynamic rez into account)
         internal int                    colorPyramidHistoryMipCount = 0;
-        internal VBufferParameters[]    vBufferParams; // Double-buffered; needed even if reprojection is off
+        internal VBufferParameters[]    vBufferParams;            // Double-buffered; needed even if reprojection is off
+        internal RTHandle[]             volumetricHistoryBuffers; // Double-buffered; only used for reprojection
         // Currently the frame count is not increase every render, for ray tracing shadow filtering. We need to have a number that increases every render
         internal uint                   cameraFrameCount = 0;
         internal bool                   animateMaterials;
@@ -198,6 +201,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[]   shadowHistoryUsage = null;
 
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
+
+        /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
+        internal bool                   isPersistent = false;
 
         // VisualSky is the sky used for rendering in the main view.
         // LightingSky is the sky used for lighting the scene (ambient probe and sky reflection)
@@ -257,6 +263,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     return HDAdditionalCameraData.ClearColorMode.None;
             }
         }
+
+        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+
 
         internal Color backgroundColorHDR
         {
@@ -374,7 +383,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // That way you will never update an HDCamera and forget to update the dependent system.
         // NOTE: This function must be called only once per rendering (not frame, as a single camera can be rendered multiple times with different parameters during the same frame)
         // Otherwise, previous frame view constants will be wrong.
-        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass)
+        internal void Update(FrameSettings currentFrameSettings, HDRenderPipeline hdrp, MSAASamples newMSAASamples, XRPass xrPass, bool allocateHistoryBuffers = true)
         {
             // Inherit animation settings from the parent camera.
             Camera aniCam = (parentCamera != null) ? parentCamera : camera;
@@ -403,10 +412,11 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateAntialiasing();
 
             // Handle memory allocation.
+            if (allocateHistoryBuffers)
             {
                 // Have to do this every frame in case the settings have changed.
                 // The condition inside controls whether we perform init/deinit or not.
-                hdrp.ReinitializeVolumetricBufferParams(this);
+                HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
                 bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
@@ -425,7 +435,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
-                    volumetricHistoryIsValid = false;
+
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
                     // The history system only supports the "nuke all" option.
                     m_HistoryRTSystem.Dispose();
@@ -438,7 +449,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (numVolumetricBuffersRequired != 0)
                     {
-                        hdrp.AllocateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
                     }
 
                     // Mark as init.
@@ -455,7 +466,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                    finalViewport = GetPixelRect();
                 }
 
                 actualWidth = Math.Max((int)finalViewport.size.x, 1);
@@ -478,11 +489,16 @@ namespace UnityEngine.Rendering.HighDefinition
             screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
 
+            const int kMaxSampleCount = 8;
+            if (++taaFrameIndex >= kMaxSampleCount)
+                taaFrameIndex = 0;
+
             UpdateAllViewConstants();
             isFirstFrame = false;
             cameraFrameCount++;
 
-            hdrp.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
 
             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
@@ -490,12 +506,18 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
+        /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
+        internal void SetReferenceSize()
+        {
+            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+        }
+
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)
         // The reason is that RTHandle will hold data necessary to setup RenderTargets and viewports properly.
         internal void BeginRender(CommandBuffer cmd)
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
-            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            SetReferenceSize();
 
             m_RecorderCaptureActions = CameraCaptureBridge.GetCaptureActions(camera);
 
@@ -553,7 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 bool hasPersistentHistory = camera.m_AdditionalCameraData != null && camera.m_AdditionalCameraData.hasPersistentHistory;
                 // We keep preview camera around as they are generally disabled/enabled every frame. They will be destroyed later when camera.camera is null
-                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory))
+                if (camera.camera == null || (!camera.camera.isActiveAndEnabled && camera.camera.cameraType != CameraType.Preview && !hasPersistentHistory && !camera.isPersistent))
                     s_Cleanup.Add(key);
             }
 
@@ -564,6 +586,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             s_Cleanup.Clear();
+        }
+
+        internal static void ResetAllHistoryRTHandleSystems(int width, int height)
+        {
+            foreach (var kvp in s_Cameras)
+            {
+                var hdCamera = kvp.Value;
+                var currentHistorySize = hdCamera.m_HistoryRTSystem.rtHandleProperties.currentRenderTargetSize;
+                // We only reset if the new size if smaller than current reference (otherwise we might increase the size of off screen camera with lower resolution than the new reference.
+                if (width < currentHistorySize.x || height < currentHistorySize.y)
+                {
+                    hdCamera.m_HistoryRTSystem.ResetReferenceSize(width, height);
+                }
+            }
         }
 
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
@@ -710,8 +746,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.input = builder.ReadTexture(input);
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
-                passData.tempTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(actualWidth, actualHeight)
-                { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" }));
+                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc(actualWidth, actualHeight)
+                { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" });
 
                 builder.SetRenderFunc(
                 (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
@@ -769,6 +805,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
         }
+
+        internal void OverridePixelRect(Rect newPixelRect) => m_OverridePixelRect = newPixelRect;
+        internal void ResetPixelRect() => m_OverridePixelRect = null;
         #endregion
 
         #region Private API
@@ -781,7 +820,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
             }
         }
 
@@ -800,6 +839,7 @@ namespace UnityEngine.Rendering.HighDefinition
         IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> m_RecorderCaptureActions;
         int                     m_RecorderTempRT = Shader.PropertyToID("TempRecorder");
         MaterialPropertyBlock   m_RecorderPropertyBlock = new MaterialPropertyBlock();
+        Rect?                   m_OverridePixelRect = null;
 
         void SetupCurrentMaterialQuality(CommandBuffer cmd)
         {
@@ -855,9 +895,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // When changing antialiasing mode to TemporalAA we must reset the history, otherwise we get one frame of garbage
-            if (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+            if ( (previousAntialiasing != antialiasing && antialiasing == AntialiasingMode.TemporalAntialiasing)
+                || (m_PreviousClearColorMode != clearColorMode))
             {
                 resetPostProcessingHistory = true;
+                m_PreviousClearColorMode = clearColorMode;
             }
         }
 
@@ -874,6 +916,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_XRViewConstants == null || m_XRViewConstants.Length != viewCount)
             {
                 m_XRViewConstants = new ViewConstants[viewCount];
+                resetPostProcessingHistory = true;
+                isFirstFrame = true;
             }
 
             UpdateAllViewConstants(IsTAAEnabled(), true);
@@ -1124,10 +1168,6 @@ namespace UnityEngine.Rendering.HighDefinition
             float jitterY = HaltonSequence.Get((taaFrameIndex & 1023) + 1, 3) - 0.5f;
             taaJitter = new Vector4(jitterX, jitterY, jitterX / actualWidth, jitterY / actualHeight);
 
-            const int kMaxSampleCount = 8;
-            if (++taaFrameIndex >= kMaxSampleCount)
-                taaFrameIndex = 0;
-
             Matrix4x4 proj;
 
             if (camera.orthographic)
@@ -1227,12 +1267,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
                                         dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
-                                        name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
+                                        name: string.Format("{0}_CameraColorBufferMipChain{1}", viewName, frameIndex));
         }
 
         void ReleaseHistoryBuffer()
         {
             m_HistoryRTSystem.ReleaseAll();
+        }
+
+        Rect GetPixelRect()
+        {
+            if (m_OverridePixelRect != null)
+                return m_OverridePixelRect.Value;
+            else
+                return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
         #endregion
     }

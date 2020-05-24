@@ -257,13 +257,13 @@ namespace UnityEditor.VFX
                 }
 
                 if (exposeAlphaThreshold)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping"))), 0.5f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", new RangeAttribute(0.0f, 1.0f), new TooltipAttribute("Alpha threshold used for pixel clipping")), 0.5f);
 
                 if (hasSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticleFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.001f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticleFadeDistance", new MinAttribute(0.001f)), 1.0f);
 
                 if (hasExposure && useExposureWeight)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "exposureWeight", new RangeAttribute(0.0f, 1.0f)), 1.0f);
             }
         }
 

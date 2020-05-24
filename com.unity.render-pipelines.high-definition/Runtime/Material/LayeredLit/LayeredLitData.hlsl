@@ -494,7 +494,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLod
     // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
     float4 maskVertexColor = vertexColor;
 #if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    blendMasks *= maskVertexColor;
+    blendMasks *= saturate(maskVertexColor);
 #elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
     blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
 #endif
@@ -816,7 +816,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.tangentToWorld[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, layerTexCoord.base0, builtinData);
 
 #ifdef _ALPHATEST_ON
     // Used for sharpening by alpha to mask

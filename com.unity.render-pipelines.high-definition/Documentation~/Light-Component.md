@@ -55,7 +55,7 @@ To make the Light work with the **Animation window**, when you click on the **Ad
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
 | **Type**        | Defines the Light’s type. Lights of different Types behave differently, so when you change the **Type**, the properties change in the Inspector. Possible types are:<br />&#8226; Directional<br />&#8226; Point<br />&#8226; Spot<br />&#8226; Area |
-| **Mode**        | Specify the [Light Mode](https://docs.unity3d.com/Manual/LightModes.html) that HDRP uses to determine how to bake a Light, if at all. Possible modes are:<br />&#8226; [Realtime](https://docs.unity3d.com/Manual/LightMode-Realtime.html) <br />&#8226; [Mixed](https://docs.unity3d.com/Manual/LightMode-Mixed.html) <br />&#8226; [Baked](https://docs.unity3d.com/Manual/LightMode-Baked.html) |
+| **Mode**        | Specify the [Light Mode](https://docs.unity3d.com/Manual/LightModes.html) that HDRP uses to determine how to bake a Light, if at all. Possible modes are:<br />&#8226; [Realtime](https://docs.unity3d.com/Manual/LightMode-Realtime.html): Unity performs the lighting calculations for Realtime Lights at runtime, once per frame. <br />&#8226; [Mixed](https://docs.unity3d.com/Manual/LightMode-Mixed.html): Mixed Lights combine elements of both realtime and baked lighting. <br />&#8226; [Baked](https://docs.unity3d.com/Manual/LightMode-Baked.html): Unity performs lighting calculations for Baked Lights in the Unity Editor, and saves the results to disk as lighting data. Note that soft falloff/range attenuation is not supported for Baked Area Lights. |
 | **Light Layer** | A  mask that allows you to choose which Light Layers this Light affects. The affected Light only lights up Mesh Renderers with a matching **Rendering Layer Mask**.<br />This property only appears when you enable [more options](More-Options.html) for this section. |
 
 #### Light Types guide
@@ -77,7 +77,7 @@ These settings define the area this Light affects. Each Light **Type** has its o
 
 | **Property**        | **Description**                                              |
 | ------------------- | ------------------------------------------------------------ |
-| **Shape**           | HDRP Spot Lights can use three shapes.<br />&#8226; **Cone** : Projects light from a single point at the GameObject’s position, out to a circular base, like a cone. Alter the radius of the circular base  by changing the **Outer Angle** and the **Range**.<br />&#8226; **Pyramid** : Projects light from a single point at the GameObject’s position onto a base that is a square with its side length equal to the diameter of the **Cone**.<br />&#8226; **Box** : Projects light evenly across a rectangular area defined by a horizontal and vertical size. |
+| **Shape**           | HDRP Spot Lights can use three shapes.<br />&#8226; **Cone** : Projects light from a single point at the GameObject’s position, out to a circular base, like a cone. Alter the radius of the circular base  by changing the **Outer Angle** and the **Range**.<br />&#8226; **Pyramid** : Projects light from a single point at the GameObject’s position onto a base that is a square with its side length equal to the diameter of the **Cone**.<br />&#8226; **Box** : Projects light evenly across a rectangular area defined by a horizontal and vertical size. This light has no attenuation unless **Range Attenuation** is checked. |
 | **Outer Angle**     | The angle in degrees at the base of a Spot Light’s cone. This property is only for Lights with a **Cone Shape**. |
 | **Inner Angle (%)** | Determines where the attenuation between the inner cone and the outer cone starts. Higher values cause the light at the edges of the Spot Light to fade out. Lower values stop the light from fading at the edges. This property is only for Lights with a **Cone Shape**. |
 | **Spot Angle**      | The angle in degrees used to determine the size of a Spot Light using a **Pyramid** shape. |
@@ -184,7 +184,7 @@ These settings define the volumetric behavior of this Light. Alter these setting
 
 ### **Shadows**
 
-Use this section to adjust the Shadows cast by this Light. Note that Area Lights can't currently cast shadows for GameObjects that use a **StackLit** Material.
+Use this section to adjust the Shadows cast by this Light.
 
 Unity exposes extra properties in this section depending on the **Mode** you set in the [General](#GeneralProperties) section. Unity also exposes extra properties depending on the **Filtering Quality** set in your Unity Project’s [HDRP Asset](HDRP-Asset.html).
 

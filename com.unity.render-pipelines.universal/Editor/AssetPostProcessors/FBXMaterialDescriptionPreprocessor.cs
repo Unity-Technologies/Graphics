@@ -1,6 +1,7 @@
 using System.IO;
 using UnityEditor.AssetImporters;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -23,8 +24,9 @@ namespace UnityEditor.Rendering.Universal
             var lowerCaseExtension = Path.GetExtension(assetPath).ToLower();
             if (lowerCaseExtension != ".fbx" && lowerCaseExtension != ".obj" && lowerCaseExtension != ".blend" && lowerCaseExtension != ".mb" && lowerCaseExtension != ".ma" && lowerCaseExtension != ".max")
                 return;
-            
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
+
+            string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
+            var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
             if (shader == null)
                 return;
             

@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent materialSectionTitle = EditorGUIUtility.TrTextContent("Material");
             public static readonly GUIContent postProcessSectionTitle = EditorGUIUtility.TrTextContent("Post-processing");
             public static readonly GUIContent xrTitle = EditorGUIUtility.TrTextContent("XR");
+            public static readonly GUIContent virtualTexturingTitle = EditorGUIUtility.TrTextContent("Virtual Texturing");
             public static readonly GUIContent lightLoopSubTitle = EditorGUIUtility.TrTextContent("Lights");
             public static readonly GUIContent postProcessQualitySubTitle = EditorGUIUtility.TrTextContent("Post-processing Quality Settings");
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
@@ -81,6 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportSSRContent = EditorGUIUtility.TrTextContent("Screen Space Reflection", "When enabled, HDRP allocates memory for processing screen space reflection (SSR). This allows you to use SSR in your Unity Project.");
             public static readonly GUIContent supportSSRTransparentContent = EditorGUIUtility.TrTextContent("Transparent Screen Space Reflection", "When enabled, HDRP executes additional steps to achieve screen space reflection (SSR) on transparent objects.");
             public static readonly GUIContent supportSSAOContent = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion", "When enabled, HDRP allocates memory for processing screen space ambient occlusion (SSAO). This allows you to use SSAO in your Unity Project.");
+            public static readonly GUIContent supportSSGIContent = EditorGUIUtility.TrTextContent("Screen Space Global Illumination", "When enabled, HDRP allocates memory for processing screen space global illumination (SSGI). This allows you to use SSGI in your Unity Project.");
             public static readonly GUIContent supportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering", "When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
             public static readonly GUIContent sssSampleBudget = EditorGUIUtility.TrTextContent("Sample Budget", "Maximum number of samples the Subsurface Scattering algorithm is allowed to take.");
             public static readonly GUIContent supportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
@@ -109,6 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportTransparentDepthPrepass = EditorGUIUtility.TrTextContent("Transparent Depth Prepass", "When disabled, HDRP removes all transparent depth prepass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportTransparentDepthPostpass = EditorGUIUtility.TrTextContent("Transparent Depth Postpass", "When disabled, HDRP removes all transparent depth postpass Shader variants when you build for the Unity Player. This decreases build time.");
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
+            public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
@@ -154,9 +157,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent maxPonctualContent = EditorGUIUtility.TrTextContent("Maximum Punctual on Screen", "Sets the maximum number of Point and Spot Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxAreaContent = EditorGUIUtility.TrTextContent("Maximum Area on Screen", "Sets the maximum number of area Lights HDRP can handle on screen at once.");
             public static readonly GUIContent maxEnvContent = EditorGUIUtility.TrTextContent("Maximum Reflection Probes on Screen", "Sets the maximum number of Planar and Reflection Probes HDRP can handle on screen at once.");
-            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Decals on Screen", "Sets the maximum number of Decals HDRP can handle on screen at once.");
+            public static readonly GUIContent maxDecalContent = EditorGUIUtility.TrTextContent("Maximum Clustered Decals on Screen", "Sets the maximum number of decals that can affect transparent GameObjects on screen.");
 
             public static readonly GUIContent resolutionContent = EditorGUIUtility.TrTextContent("Resolution", "Specifies the resolution of the shadow Atlas.");
+            public static readonly GUIContent cachedShadowAtlasResolution = EditorGUIUtility.TrTextContent("Cached Shadow Atlas Resolution", "Specifies the resolution of the shadow Atlas that contains the cached shadow maps.");
             public static readonly GUIContent directionalShadowPrecisionContent = EditorGUIUtility.TrTextContent("Directional Shadow Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent precisionContent = EditorGUIUtility.TrTextContent("Precision", "Select the shadow map bit depth, this forces HDRP to use selected bit depth for shadow maps.");
             public static readonly GUIContent dynamicRescaleContent = EditorGUIUtility.TrTextContent("Dynamic Rescale", "When enabled, scales the shadow map size using the screen size of the Light to leave more space for other shadows in the atlas.");
