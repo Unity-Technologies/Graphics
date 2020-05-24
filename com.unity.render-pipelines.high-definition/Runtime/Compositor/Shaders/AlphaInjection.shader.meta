@@ -1,9 +1,14 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesAmbientOcclusion.cs.hlsl.meta
+guid: 4f3f0e8f82d03e8408702e2c10ede656
+=======
 guid: 4edd96259a5e8b44c90479928f0cd11e
+>>>>>>> master:com.unity.render-pipelines.high-definition/Runtime/Compositor/Shaders/AlphaInjection.shader.meta
 ShaderImporter:
   externalObjects: {}
   defaultTextures: []
   nonModifiableTextures: []
+  preprocessorOverride: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 

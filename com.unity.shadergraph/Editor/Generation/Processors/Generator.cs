@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -331,11 +331,11 @@ namespace UnityEditor.ShaderGraph
             // Includes
             using (var preGraphIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.includes != null)
+                if (pass.includes != null)
                 {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
                     {
-                        if(include.TestActive(activeFields))
+                        if (include.TestActive(activeFields))
                             preGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
@@ -345,11 +345,11 @@ namespace UnityEditor.ShaderGraph
             }
             using (var postGraphIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.includes != null)
+                if (pass.includes != null)
                 {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
                     {
-                        if(include.TestActive(activeFields))
+                        if (include.TestActive(activeFields))
                             postGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
@@ -512,10 +512,7 @@ namespace UnityEditor.ShaderGraph
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            if (m_OutputNode is SubGraphOutputNode)
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, true);
-            else
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, m_OutputNode is SubGraphOutputNode, pass.virtualTextureFeedback);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             GenerationUtils.GenerateSurfaceDescriptionFunction(
@@ -532,7 +529,8 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphOutputName,
                 null,
                 pixelSlots,
-                pixelGraphInputName);
+                pixelGraphInputName,
+                pass.virtualTextureFeedback);
 
             using (var pixelBuilder = new ShaderStringBuilder())
             {
@@ -550,7 +548,7 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Graph Functions
 
-            if(functionBuilder.length == 0)
+            if (functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
             spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
 
@@ -579,10 +577,10 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            int instancedPropCount = propertyCollector.GetDotsInstancingPropertiesCount(m_Mode);
+            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -598,7 +596,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");

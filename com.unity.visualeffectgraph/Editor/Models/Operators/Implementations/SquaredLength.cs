@@ -29,11 +29,11 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override sealed VFXPropertyAttribute[] expectedOutputAttributes
+        protected override sealed VFXPropertyAttributes expectedOutputAttributes
         {
             get
             {
-                return VFXPropertyAttribute.Create(new TooltipAttribute("The squared length of x."));
+                return new VFXPropertyAttributes(new TooltipAttribute("The squared length of x."));
             }
         }
 

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
 - Add tooltips in LookDev's toolbar.
+- Add XRGraphicsAutomatedTests helper class.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
@@ -40,6 +41,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's camera button layout.
 - Fix LookDev's layout vanishing on domain reload.
 - Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
+- Fixed division by zero in `V_SmithJointGGX` function.
+- Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
+- Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

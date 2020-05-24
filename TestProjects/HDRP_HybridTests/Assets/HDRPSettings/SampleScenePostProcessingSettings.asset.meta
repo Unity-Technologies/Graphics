@@ -1,8 +1,12 @@
 fileFormatVersion: 2
+<<<<<<< HEAD:TestProjects/HDRP_HybridTests/Assets/HDRPSettings/Presets/HDRTexture.preset.meta
+guid: 78830bb1431cab940b74be615e2a739f
+=======
 guid: 183cbd347d25080429f42b520742bbd8
+>>>>>>> master:TestProjects/HDRP_HybridTests/Assets/HDRPSettings/SampleScenePostProcessingSettings.asset.meta
 NativeFormatImporter:
   externalObjects: {}
-  mainObjectFileID: 11400000
+  mainObjectFileID: 2655988077585873504
   userData: 
   assetBundleName: 
   assetBundleVariant: 
