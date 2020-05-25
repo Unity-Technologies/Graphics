@@ -120,7 +120,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     lightDataGI.cookieID = add.IESSpot.GetInstanceID();
                                 else
                                     lightDataGI.cookieID = 0;
-                                break;
                             }
                             break;
 
