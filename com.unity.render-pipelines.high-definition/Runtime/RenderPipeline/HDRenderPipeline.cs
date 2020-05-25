@@ -1485,9 +1485,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                     bool cameraRequestedDynamicRes = false;
-                    HDAdditionalCameraData hdCam;
-                    if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
+                    HDCameraData hdCam;
+                    if (camera.additionalData is HDCameraData hdCameraTmp)
                     {
+                        hdCam = hdCameraTmp;
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution;
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
@@ -1769,10 +1770,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
-                        var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                        if (!(camera.additionalData is HDCameraData))
+                            camera.AddExtension(typeof(HDCameraData));
 
-                        if (additionalCameraData == null)
-                            additionalCameraData = camera.gameObject.AddComponent<HDAdditionalCameraData>();
+                        var additionalCameraData = (HDCameraData)camera.additionalData;
+
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
@@ -1820,11 +1822,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
 
-                        HDAdditionalCameraData hdCam;
-                        camera.TryGetComponent<HDAdditionalCameraData>(out hdCam);
+                        HDCameraData hdCam;
+                        camera.TryGetComponent<HDCameraData>(out hdCam);
                         hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
-                                ? HDAdditionalCameraData.FlipYMode.ForceFlipY
-                                : HDAdditionalCameraData.FlipYMode.Automatic;
+                                ? HDCameraData.FlipYMode.ForceFlipY
+                                : HDCameraData.FlipYMode.Automatic;
 
                         if (!visibleProbe.realtimeTexture.IsCreated())
                             visibleProbe.realtimeTexture.Create();
@@ -2048,8 +2050,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
-                                HDAdditionalCameraData acd;
-                                if (renderRequest.hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd) && acd.xrRendering)
+                                HDCameraData acd;
+                                if (renderRequest.hdCamera.camera.TryGetComponent<HDCameraData>(out acd) && acd.xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
                                 }
@@ -2837,7 +2839,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.dstTexArraySlice = -1;
             }
 
-            parameters.flip = hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
+            parameters.flip = hdCamera.flipYMode == HDCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView;
             parameters.blitMaterial = HDUtils.GetBlitMaterial(TextureXR.useTexArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D, singleSlice: parameters.srcTexArraySlice >= 0);
 
             return parameters;
@@ -2895,7 +2897,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool TryCalculateFrameParameters(
             Camera camera,
             XRPass xrPass,
-            out HDAdditionalCameraData additionalCameraData,
+            out HDCameraData additionalCameraData,
             out HDCamera hdCamera,
             out ScriptableCullingParameters cullingParams
         )
@@ -3119,7 +3121,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                renderContext.DrawWireOverlay(camera);
+//                renderContext.DrawWireOverlay(camera);
             }
         }
 #endif
@@ -4889,13 +4891,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Clear the HDR target
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ClearHDRTarget)))
                 {
-                    if (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Color ||
+                    if (hdCamera.clearColorMode == HDCameraData.ClearColorMode.Color ||
                         // If the luxmeter is enabled, the sky isn't rendered so we clear the background color
                         m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter ||
                         // If the matcap view is enabled, the sky isn't updated so we clear the background color
                         m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera) ||
                         // If we want the sky but the sky don't exist, still clear with background color
-                        (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
+                        (hdCamera.clearColorMode == HDCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid(hdCamera)) ||
                         // Special handling for Preview we force to clear with background color (i.e black)
                         // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
                         HDUtils.IsRegularPreviewCamera(hdCamera.camera)
@@ -5005,7 +5007,7 @@ namespace UnityEngine.Rendering.HighDefinition
             result.postProcessIsFinalPass = HDUtils.PostProcessIsFinalPass(hdCamera);
             // Y-Flip needs to happen during the post process pass only if it's the final pass and is the regular game view
             // SceneView flip is handled by the editor internal code and GameView rendering into render textures should not be flipped in order to respect Unity texture coordinates convention
-            result.flipYInPostProcess = result.postProcessIsFinalPass && (hdCamera.flipYMode == HDAdditionalCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
+            result.flipYInPostProcess = result.postProcessIsFinalPass && (hdCamera.flipYMode == HDCameraData.FlipYMode.ForceFlipY || hdCamera.isMainGameView);
             result.blueNoise = m_BlueNoise;
 
             result.useDepthBuffer = !hdCamera.IsTAAEnabled() && hdCamera.frameSettings.IsEnabled(FrameSettingsField.ZTestAfterPostProcessTAA);
@@ -5111,18 +5113,17 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture depthBuffer = null;
             Texture depthBuffer1 = null;
 
-            HDAdditionalCameraData acd = null;
-            hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd);
+            HDCameraData acd = hdCamera.camera.additionalData as HDCameraData;
 
-            HDAdditionalCameraData.BufferAccessType externalAccess = new HDAdditionalCameraData.BufferAccessType();
+            HDCameraData.BufferAccessType externalAccess = new HDCameraData.BufferAccessType();
             if (acd != null)
                 externalAccess = acd.GetBufferAccess();
 
             // Figure out which client systems need which buffers
             // Only VFX systems for now
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-            needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
-            needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
+            needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDCameraData.BufferAccessType.Normal) != 0);
+            needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDCameraData.BufferAccessType.Depth) != 0);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || ValidIndirectDiffuseState(hdCamera))
             {
                 needNormalBuffer = true;

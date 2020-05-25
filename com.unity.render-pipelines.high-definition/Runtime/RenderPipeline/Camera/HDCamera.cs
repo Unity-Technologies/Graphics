@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCameraData.AntialiasingMode;
 
     // This holds all the matrix data we need for rendering, including data from the previous frame
     // (which is the main reason why we need to keep them around for a minimum of one frame).
@@ -246,7 +246,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get { return m_AdditionalCameraData != null ? m_AdditionalCameraData.clearDepth : camera.clearFlags != CameraClearFlags.Nothing; }
         }
 
-        internal HDAdditionalCameraData.ClearColorMode clearColorMode
+        internal HDCameraData.ClearColorMode clearColorMode
         {
             get
             {
@@ -256,15 +256,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 if (camera.clearFlags == CameraClearFlags.Skybox)
-                    return HDAdditionalCameraData.ClearColorMode.Sky;
+                    return HDCameraData.ClearColorMode.Sky;
                 else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                    return HDAdditionalCameraData.ClearColorMode.Color;
+                    return HDCameraData.ClearColorMode.Color;
                 else // None
-                    return HDAdditionalCameraData.ClearColorMode.None;
+                    return HDCameraData.ClearColorMode.None;
             }
         }
 
-        HDAdditionalCameraData.ClearColorMode m_PreviousClearColorMode = HDAdditionalCameraData.ClearColorMode.None;
+        HDCameraData.ClearColorMode m_PreviousClearColorMode = HDCameraData.ClearColorMode.None;
 
 
         internal Color backgroundColorHDR
@@ -281,13 +281,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal HDAdditionalCameraData.FlipYMode flipYMode
+        internal HDCameraData.FlipYMode flipYMode
         {
             get
             {
                 if (m_AdditionalCameraData != null)
                     return m_AdditionalCameraData.flipYMode;
-                return HDAdditionalCameraData.FlipYMode.Automatic;
+                return HDCameraData.FlipYMode.Automatic;
             }
         }
 
@@ -295,8 +295,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
 
-        internal HDAdditionalCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDAdditionalCameraData.SMAAQualityLevel.Medium;
-        internal HDAdditionalCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDAdditionalCameraData.TAAQualityLevel.Medium;
+        internal HDCameraData.SMAAQualityLevel SMAAQuality { get; private set; } = HDCameraData.SMAAQualityLevel.Medium;
+        internal HDCameraData.TAAQualityLevel TAAQuality { get; private set; } = HDCameraData.TAAQualityLevel.Medium;
 
         internal bool resetPostProcessingHistory = true;
 
@@ -400,9 +400,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowHistoryUsage = new ShadowHistoryUsage[hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots];
             }
 
-            // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
+            // store a shortcut on HDCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            camera.TryGetComponent<HDAdditionalCameraData>(out m_AdditionalCameraData);
+            if (camera.additionalData is HDCameraData additional)
+                m_AdditionalCameraData = additional;
+            else
+                m_AdditionalCameraData = HDCameraData.k_DefaultInstance;
 
             UpdateVolumeAndPhysicalParameters();
 
@@ -827,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static Dictionary<(Camera, int), HDCamera> s_Cameras = new Dictionary<(Camera, int), HDCamera>();
         static List<(Camera, int)> s_Cleanup = new List<(Camera, int)>(); // Recycled to reduce GC pressure
 
-        HDAdditionalCameraData  m_AdditionalCameraData = null; // Init in Update
+        HDCameraData            m_AdditionalCameraData = null; // Init in Update
         BufferedRTHandleSystem  m_HistoryRTSystem = new BufferedRTHandleSystem();
         int                     m_NumColorPyramidBuffersAllocated = 0;
         int                     m_NumVolumetricBuffersAllocated   = 0;
@@ -1117,7 +1120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     bool needFallback = true;
                     if (mainCamera != null)
                     {
-                        if (mainCamera.TryGetComponent<HDAdditionalCameraData>(out var mainCamAdditionalData))
+                        if (mainCamera.TryGetComponent<HDCameraData>(out var mainCamAdditionalData))
                         {
                             volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
                             volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;

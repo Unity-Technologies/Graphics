@@ -113,8 +113,10 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                 var go = new GameObject("TestObject");
                 m_ToClean = go;
                 var cam = go.AddComponent<Camera>();
+                if (!(cam.additionalData is HDCameraData))
+                    cam.AddExtension(typeof(HDCameraData));
 
-                var add = cam.GetComponent<HDAdditionalCameraData>() ?? cam.gameObject.AddComponent<HDAdditionalCameraData>();
+                var add = (HDCameraData)cam.additionalData;
                 Assert.True(add != null && !add.Equals(null));
 
                 add.renderingPathCustomFrameSettings = fs;

@@ -2,7 +2,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
 #if UNITY_EDITOR
     using UnityEditor;
-    using AntialiasingMode = HDAdditionalCameraData.AntialiasingMode;
+    using AntialiasingMode = HDCameraData.AntialiasingMode;
 
     [InitializeOnLoad]
     static class HDAdditionalSceneViewSettings

@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Check camera clear mode dirtiness
-            bool enabled = (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky);
+            bool enabled = (hdCamera.clearColorMode == HDCameraData.ClearColorMode.Sky);
             if (enabled != m_CameraSkyEnabled)
             {
                 m_CameraSkyEnabled = enabled;

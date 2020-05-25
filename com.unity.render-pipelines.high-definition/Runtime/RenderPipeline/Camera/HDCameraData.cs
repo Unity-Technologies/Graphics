@@ -4,138 +4,15 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// Holds the physical settings set on cameras.
-    /// </summary>
-    [Serializable]
-    public class HDPhysicalCamera
+    [CustomAdditionalDataName("HD", typeof(HDRenderPipelineAsset))]
+    public class HDCameraData : Camera.IAdditionalData, IFrameSettingsHistoryContainer
     {
-        /// <summary>
-        /// The minimum allowed aperture.
-        /// </summary>
-        public const float kMinAperture = 1f;
+        internal static readonly HDCameraData k_DefaultInstance = new HDCameraData();
 
-        /// <summary>
-        /// The maximum allowed aperture.
-        /// </summary>
-        public const float kMaxAperture = 32f;
+        // Temporary wrappers
+        public Camera camera => Camera.current;
+        public string name => camera.name;
 
-        /// <summary>
-        /// The minimum blade count for the aperture diaphragm.
-        /// </summary>
-        public const int kMinBladeCount = 3;
-
-        /// <summary>
-        /// The maximum blade count for the aperture diaphragm.
-        /// </summary>
-        public const int kMaxBladeCount = 11;
-
-        // Camera body
-        [SerializeField] [Min(1f)] int m_Iso = 200;
-        [SerializeField] [Min(0f)] float m_ShutterSpeed = 1f / 200f;
-
-        // Lens
-        // Note: focalLength is already defined in the regular camera component
-        [SerializeField] [Range(kMinAperture, kMaxAperture)] float m_Aperture = 16f;
-
-        // Aperture shape
-        [SerializeField] [Range(kMinBladeCount, kMaxBladeCount)] int m_BladeCount = 5;
-        [SerializeField] Vector2 m_Curvature = new Vector2(2f, 11f);
-        [SerializeField] [Range(0f, 1f)] float m_BarrelClipping = 0.25f;
-        [SerializeField] [Range(-1f, 1f)] float m_Anamorphism = 0f;
-
-        /// <summary>
-        /// The sensor sensitivity (ISO).
-        /// </summary>
-        public int iso
-        {
-            get => m_Iso;
-            set => m_Iso = Mathf.Max(value, 1);
-        }
-
-        /// <summary>
-        /// The exposure time, in second.
-        /// </summary>
-        public float shutterSpeed
-        {
-            get => m_ShutterSpeed;
-            set => m_ShutterSpeed = Mathf.Max(value, 0f);
-        }
-
-        /// <summary>
-        /// The aperture number, in f-stop.
-        /// </summary>
-        public float aperture
-        {
-            get => m_Aperture;
-            set => m_Aperture = Mathf.Clamp(value, kMinAperture, kMaxAperture);
-        }
-
-        /// <summary>
-        /// The number of diaphragm blades.
-        /// </summary>
-        public int bladeCount
-        {
-            get => m_BladeCount;
-            set => m_BladeCount = Mathf.Clamp(value, kMinBladeCount, kMaxBladeCount);
-        }
-
-        /// <summary>
-        /// Maps an aperture range to blade curvature.
-        /// </summary>
-        public Vector2 curvature
-        {
-            get => m_Curvature;
-            set
-            {
-                m_Curvature.x = Mathf.Max(value.x, kMinAperture);
-                m_Curvature.y = Mathf.Min(value.y, kMaxAperture);
-            }
-        }
-
-        /// <summary>
-        /// The strength of the "cat eye" effect on bokeh (optical vignetting).
-        /// </summary>
-        public float barrelClipping
-        {
-            get => m_BarrelClipping;
-            set => m_BarrelClipping = Mathf.Clamp01(value);
-        }
-
-        /// <summary>
-        /// Stretches the sensor to simulate an anamorphic look. Positive values distort the Camera
-        /// vertically, negative will distort the Camera horizontally.
-        /// </summary>
-        public float anamorphism
-        {
-            get => m_Anamorphism;
-            set => m_Anamorphism = Mathf.Clamp(value, -1f, 1f);
-        }
-
-        /// <summary>
-        /// Copies the settings of this instance to another instance.
-        /// </summary>
-        /// <param name="c">The instance to copy the settings to.</param>
-        public void CopyTo(HDPhysicalCamera c)
-        {
-            c.iso = iso;
-            c.shutterSpeed = shutterSpeed;
-            c.aperture = aperture;
-            c.bladeCount = bladeCount;
-            c.curvature = curvature;
-            c.barrelClipping = barrelClipping;
-            c.anamorphism = anamorphism;
-        }
-    }
-
-    /// <summary>
-    /// Additional component that holds HDRP specific parameters for Cameras.
-    /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
-    [DisallowMultipleComponent, ExecuteAlways]
-    [RequireComponent(typeof(Camera))]
-    public partial class HDAdditionalCameraData : MonoBehaviour, IFrameSettingsHistoryContainer
-    {
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.
         /// </summary>
@@ -495,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Copy HDAdditionalCameraData.
         /// </summary>
         /// <param name="data">Component to copy to.</param>
-        public void CopyTo(HDAdditionalCameraData data)
+        public void CopyTo(HDCameraData data)
         {
             data.clearColorMode = clearColorMode;
             data.backgroundColorHDR = backgroundColorHDR;
@@ -548,8 +425,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CameraRegisterName = name;
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera.cameraType != CameraType.Reflection)
                 {
-                    //DebugDisplaySettings.RegisterCamera(this);
-                    //VolumeDebugSettings.RegisterCamera(this);
+                    DebugDisplaySettings.RegisterCamera(this);
+                    VolumeDebugSettings.RegisterCamera(this);
                 }
                 m_IsDebugRegistered = true;
             }
@@ -563,8 +440,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Do not attempt to not register them till this issue persist.
                 if (m_Camera.cameraType != CameraType.Preview && m_Camera?.cameraType != CameraType.Reflection)
                 {
-                    //VolumeDebugSettings.UnRegisterCamera(this);
-                    //DebugDisplaySettings.UnRegisterCamera(this);
+                    VolumeDebugSettings.UnRegisterCamera(this);
+                    DebugDisplaySettings.UnRegisterCamera(this);
                 }
                 m_IsDebugRegistered = false;
             }
@@ -576,7 +453,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
             // When LDR, unity render in 8bitSRGB, then do a final shader with sRGB conversion
             // What should be done is just in our Post process we convert to sRGB and store in a linear 10bit, but require C++ change...
-            m_Camera = GetComponent<Camera>();
+            m_Camera = camera;
             if (m_Camera == null)
                 return;
 
@@ -613,9 +490,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
-        internal static void InitDefaultHDAdditionalCameraData(HDAdditionalCameraData cameraData)
+        internal static void InitDefaultHDAdditionalCameraData(HDCameraData cameraData)
         {
-            var camera = cameraData.gameObject.GetComponent<Camera>();
+            var camera = cameraData.camera;
 
             cameraData.clearDepth = camera.clearFlags != CameraClearFlags.Nothing;
 

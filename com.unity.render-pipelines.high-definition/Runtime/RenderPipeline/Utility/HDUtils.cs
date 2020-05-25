@@ -956,16 +956,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
-        internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
-        {
-            if (camera == null || camera.Equals(null))
-                return s_DefaultHDAdditionalCameraData;
-
-            if (camera.TryGetComponent<HDAdditionalCameraData>(out var hdCamera))
-                return hdCamera;
-
-            return s_DefaultHDAdditionalCameraData;
-        }
+        internal static HDCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
+            => camera != null && !camera.Equals(null)
+                && camera.additionalData is HDCameraData hdCamera ? hdCamera : HDCameraData.k_DefaultInstance;
 
         static Dictionary<GraphicsFormat, int> graphicsFormatSizeCache = new Dictionary<GraphicsFormat, int>
         {
