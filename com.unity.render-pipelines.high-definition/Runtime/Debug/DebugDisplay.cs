@@ -921,6 +921,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         });
                 }
 
+            exposureFoldout.children.Add(
+                    new DebugUI.FloatField
+                    {
+                        displayName = "Debug Lens Attenuation",
+                        getter = () => Mathf.Clamp01(data.lightingDebugSettings.debugLensAttenuation),
+                        setter = value => data.lightingDebugSettings.debugLensAttenuation = Mathf.Clamp01(value),
+                        min = () => 0.1f,
+                        max = () => 0.78f
+
+                    });
+
                 exposureFoldout.children.Add(
                     new DebugUI.FloatField
                     {
