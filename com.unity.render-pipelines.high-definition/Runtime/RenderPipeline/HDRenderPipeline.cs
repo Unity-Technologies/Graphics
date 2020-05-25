@@ -771,13 +771,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
             // HDRP always enable baking of cookie by default
-            #if UNITY_2020_2_OR_NEWER
             m_PreviousEnableCookiesInLightmapper = UnityEditor.EditorSettings.enableCookiesInLightmapper;
             UnityEditor.EditorSettings.enableCookiesInLightmapper = true;
-            #else
-            m_PreviousEnableCookiesInLightmapper = UnityEditor.EditorSettings.disableCookiesInLightmapper;
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = false;
-            #endif
 
             SceneViewDrawMode.SetupDrawMode();
 
@@ -873,11 +868,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmapping.ResetDelegate();
 
 #if UNITY_EDITOR
-            #if UNITY_2020_2_OR_NEWER
             UnityEditor.EditorSettings.enableCookiesInLightmapper = m_PreviousEnableCookiesInLightmapper;
-            #else
-            UnityEditor.EditorSettings.disableCookiesInLightmapper = m_PreviousEnableCookiesInLightmapper;
-            #endif
 #endif
         }
 
@@ -2798,6 +2789,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
             cmd.SetViewport(hdCamera.finalViewport);
 
+            if (camera.cameraType == CameraType.SceneView)
+                RenderWireOverlay(cmd, camera, renderContext);
+
             // Render overlay Gizmos
             if (showGizmos)
                 RenderGizmos(cmd, camera, renderContext, GizmoSubset.PostImageEffects);
@@ -3117,6 +3111,18 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
         }
+
+#if UNITY_EDITOR
+        void RenderWireOverlay(CommandBuffer cmd, Camera camera, ScriptableRenderContext renderContext)
+        {
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderWireFrame)))
+            {
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                renderContext.DrawWireOverlay(camera);
+            }
+        }
+#endif
 
         static RendererListDesc CreateOpaqueRendererListDesc(
             CullingResults cull,
