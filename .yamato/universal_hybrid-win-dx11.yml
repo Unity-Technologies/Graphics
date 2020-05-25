@@ -15,7 +15,7 @@ Universal_Hybrid_Win_DX11_Standalone_trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -36,7 +36,7 @@ Build_Universal_Hybrid_Win_DX11_Player_trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -101,7 +101,7 @@ Universal_Hybrid_Win_DX11_Standalone_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -122,7 +122,7 @@ Build_Universal_Hybrid_Win_DX11_Player_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -188,7 +188,7 @@ Universal_Hybrid_Win_DX11_Standalone_CUSTOM-REVISION:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -210,7 +210,7 @@ Build_Universal_Hybrid_Win_DX11_Player_CUSTOM-REVISION:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalHybridTest/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/UniversalHybridTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/UniversalHybridTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsDX11Linear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:

@@ -75,7 +75,7 @@ HDRP_Win_Vulkan_Standalone_trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -96,7 +96,7 @@ Build_HDRP_Win_Vulkan_Player_trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -181,7 +181,7 @@ HDRP_Win_Vulkan_Standalone_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -202,7 +202,7 @@ Build_HDRP_Win_Vulkan_Player_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
@@ -291,7 +291,7 @@ HDRP_Win_Vulkan_Standalone_CUSTOM-REVISION:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=players --player-connection-ip=auto
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
     artifacts:
         logs:
             paths:
@@ -313,7 +313,7 @@ Build_HDRP_Win_Vulkan_Player_CUSTOM-REVISION:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_RuntimeTests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=players --build-only
+      -  cd TestProjects/HDRP_RuntimeTests && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
     artifacts:
         logs:
             paths:
