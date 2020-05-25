@@ -270,10 +270,16 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
 float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 {
 #if FADE_SHADOWS
-    float3 fragToCamVec = _WorldSpaceCameraPos - positionWS;
-    float distanceFragToCam2 = dot(fragToCamVec, fragToCamVec);
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
+    float shadowDist = _MainLightShadowParams.z*0.8;
+#else
     float shadowDist = _MainLightShadowParams.z;
-    float fade = saturate((distanceFragToCam2 - shadowDist * 0.8) / (shadowDist - shadowDist * 0.8));
+#endif
+    float startShadowFadeDist = shadowDist * 0.9;
+
+    float fade = saturate((distanceCamToPixel2 - startShadowFadeDist) / (shadowDist - startShadowFadeDist));
     return shadowAttenuation + (1 - shadowAttenuation) * fade;
 #else
     return shadowAttenuation;
