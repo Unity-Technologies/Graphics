@@ -110,11 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     // Get settings for Target
                     var context = new TargetPropertyGUIContext();
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
-
-                    foreach(var property in context.properties)
-                    {
-                        element.Add(property);
-                    }
+                    element.Add(context);
                 }
             }
 

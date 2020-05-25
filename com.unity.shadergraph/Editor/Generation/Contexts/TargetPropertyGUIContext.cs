@@ -8,13 +8,11 @@ using UnityEditor.ShaderGraph.Drawing;
 namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
-    internal class TargetPropertyGUIContext
+    internal class TargetPropertyGUIContext : VisualElement
     {
-        public List<PropertyRow> properties { get; private set; }
-
         public TargetPropertyGUIContext()
         {
-            properties = new List<PropertyRow>();
+            
         }
 
         public void AddProperty<T>(string label, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
@@ -54,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
             var propertyRow = new PropertyRow(new Label(labelText));
             propertyRow.Add(field);
-            properties.Add(propertyRow);
+            this.hierarchy.Add(propertyRow);
         }
 
         public void AddLabel(string label, int indentLevel)
@@ -67,7 +65,7 @@ namespace UnityEditor.ShaderGraph
             labelText += label;
 
             var propertyRow = new PropertyRow(new Label(labelText));
-            properties.Add(propertyRow);
+            this.hierarchy.Add(propertyRow);
         }
     }
 }
