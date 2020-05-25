@@ -4790,7 +4790,7 @@
     },
     "m_Name": "PupilRadius",
     "m_DefaultReferenceName": "Vector1_DFF948F3",
-    "m_OverrideReferenceName": "",
+    "m_OverrideReferenceName": "PupilRadius",
     "m_GeneratePropertyBlock": true,
     "m_Precision": 0,
     "m_GPUInstanced": false,

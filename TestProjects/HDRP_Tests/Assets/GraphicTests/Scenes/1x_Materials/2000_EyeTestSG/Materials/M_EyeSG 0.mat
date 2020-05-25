@@ -142,6 +142,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - Boolean_8D34052F: 0
+    - PupilRadius: 0
     - Vector1_2D21A623: 0.05
     - Vector1_49C490F5: 0.758
     - Vector1_6A11346D: 0.5
@@ -160,7 +161,7 @@ Material:
     - Vector1_EF58F7DF: 0.0477
     - Vector1_F084AE9E: 0.88
     - Vector1_FC0895C8: 0.41
-    - Vector1_FEA38ABB: 0.5
+    - Vector1_FEA38ABB: 0.8
     - _AORemapMax: 1
     - _AORemapMin: 0
     - _ATDistance: 1
