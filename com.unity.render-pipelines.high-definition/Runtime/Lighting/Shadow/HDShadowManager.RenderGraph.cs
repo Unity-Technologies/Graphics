@@ -6,8 +6,10 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct ShadowResult
     {
         public TextureHandle punctualShadowResult;
+        public TextureHandle cachedPunctualShadowResult;
         public TextureHandle directionalShadowResult;
         public TextureHandle areaShadowResult;
+        public TextureHandle cachedAreaShadowResult;
     }
 
     partial class HDShadowManager
@@ -22,6 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.directionalShadowResult = builder.ReadTexture(shadowResult.directionalShadowResult);
             if (shadowResult.areaShadowResult.IsValid())
                 result.areaShadowResult = builder.ReadTexture(shadowResult.areaShadowResult);
+            if (shadowResult.cachedPunctualShadowResult.IsValid())
+                result.cachedPunctualShadowResult = builder.ReadTexture(shadowResult.cachedPunctualShadowResult);
+            if (shadowResult.cachedAreaShadowResult.IsValid())
+                result.cachedAreaShadowResult = builder.ReadTexture(shadowResult.cachedAreaShadowResult);
 
             return result;
         }
@@ -35,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 result.punctualShadowResult = m_Atlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Punctual Lights Shadows rendering");
                 result.directionalShadowResult = m_CascadeAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Directional Light Shadows rendering");
                 result.areaShadowResult = m_AreaLightShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Area Light Shadows rendering");
+            	result.cachedPunctualShadowResult = cachedShadowManager.punctualShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Punctual Lights Shadows rendering");
+            	result.cachedAreaShadowResult = cachedShadowManager.areaShadowAtlas.RenderShadows(renderGraph, cullResults, globalCB, hdCamera.frameSettings, "Cached Area Lights Shadows rendering");
             }
 
             // TODO RENDERGRAPH

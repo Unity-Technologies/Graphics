@@ -5,9 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class PostProcessSystem
     {
-        public void Render( RenderGraph                 renderGraph,
-                            HDCamera                    hdCamera,
-                            BlueNoise                   blueNoise,
+        public void Render( RenderGraph     renderGraph,
+                            HDCamera        hdCamera,
+                            BlueNoise       blueNoise,
                             TextureHandle   colorBuffer,
                             TextureHandle   afterPostProcessTexture,
                             TextureHandle   depthBuffer,
