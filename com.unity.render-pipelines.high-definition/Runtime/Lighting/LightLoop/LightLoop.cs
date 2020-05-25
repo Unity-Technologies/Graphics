@@ -775,10 +775,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager = HDShadowManager.instance;
             m_ShadowManager.InitShadowManager(
                 defaultResources,
-                m_ShadowInitParameters.directionalShadowsDepthBits,
-                m_ShadowInitParameters.punctualLightShadowAtlas,
-                m_ShadowInitParameters.areaLightShadowAtlas,
-                m_ShadowInitParameters.maxShadowRequests,
+                m_ShadowInitParameters,
                 defaultResources.shaders.shadowClearPS
             );
         }
@@ -1194,7 +1191,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var lightData = new DirectionalLightData();
 
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             // Light direction for directional is opposite to the forward direction
             lightData.forward = light.GetForward();
@@ -1345,7 +1342,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightType = processedData.lightType;
 
             var visibleLightAxisAndPosition = light.GetAxisAndPosition();
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             lightData.lightType = gpuLightType;
 
@@ -1883,7 +1880,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             InfluenceVolume influence = probe.influenceVolume;
-            envLightData.lightLayers = probe.lightLayersAsUInt;
+            envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
@@ -2609,6 +2606,8 @@ namespace UnityEngine.Rendering.HighDefinition
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
 
+            HDShadowManager.cachedShadowManager.AssignSlotsInAtlases();
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU)))
             {
                 Camera camera = hdCamera.camera;
@@ -2670,8 +2669,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     int processedProbesCount = PreprocessVisibleProbes(hdCamera, cullResults, hdProbeCullingResults, aovRequest);
                     PrepareGPUProbeData(cmd, hdCamera, cullResults, hdProbeCullingResults, processedProbesCount);
                 }
-
-                HDShadowManager.instance.CheckForCulledCachedShadows();
 
                 if (decalDatasCount > 0)
                 {
@@ -2757,6 +2754,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 PushLightDataGlobalParams(cmd);
+                PushShadowGlobalParams(cmd);
             }
 
             m_EnableBakeShadowMask = m_EnableBakeShadowMask && hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask);
@@ -3463,20 +3461,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return add;
         }
 
-        struct ShadowGlobalParameters
-        {
-            public HDCamera hdCamera;
-            public HDShadowManager shadowManager;
-        }
-
-        ShadowGlobalParameters PrepareShadowGlobalParameters(HDCamera hdCamera)
-        {
-            ShadowGlobalParameters parameters = new ShadowGlobalParameters();
-            parameters.hdCamera = hdCamera;
-            parameters.shadowManager = m_ShadowManager;
-            return parameters;
-        }
-
         struct LightLoopGlobalParameters
         {
             public HDCamera                 hdCamera;
@@ -3570,16 +3554,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalBuffer(HDShaderIDs._DirectionalLightDatas, m_LightLoopLightData.directionalLightData);
         }
 
-        static void PushShadowGlobalParams(in ShadowGlobalParameters param, CommandBuffer cmd)
+        void PushShadowGlobalParams(CommandBuffer cmd)
         {
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PushShadowGlobalParameters)))
-            {
-                Camera camera = param.hdCamera.camera;
-
-                // Shadows
-                param.shadowManager.SyncData();
-                param.shadowManager.BindResources(cmd);
-            }
+            m_ShadowManager.PushGlobalParameters(cmd);
         }
 
         static void PushLightLoopGlobalParams(in LightLoopGlobalParameters param, CommandBuffer cmd)
@@ -3610,8 +3587,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShadowManager.RenderShadows(renderContext, cmd, globalCB, cullResults, hdCamera);
 
             // Bind the shadow data
-            var globalParams = PrepareShadowGlobalParameters(hdCamera);
-            PushShadowGlobalParams(globalParams, cmd);
+            m_ShadowManager.BindResources(cmd);
         }
 
         bool WillRenderContactShadow()
@@ -3667,7 +3643,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             rayTracingEnabled;
             public RayTracingShader contactShadowsRTS;
             public RayTracingAccelerationStructure accelerationStructure;
-            public float            rayTracingBias;
             public int              actualWidth;
             public int              actualHeight;
             public int              depthTextureParameterName;
@@ -3687,9 +3662,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.rayTracingEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
-                RayTracingSettings raySettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
                 parameters.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;
-                parameters.rayTracingBias = raySettings.rayBias.value;
                 parameters.accelerationStructure = RequestAccelerationStructure();
 
                 parameters.actualWidth = hdCamera.actualWidth;
@@ -3745,7 +3718,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.rayTracingEnabled)
             {
                 cmd.SetRayTracingShaderPass(parameters.contactShadowsRTS, "VisibilityDXR");
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, parameters.rayTracingBias);
                 cmd.SetRayTracingAccelerationStructure(parameters.contactShadowsRTS, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
 
                 cmd.SetRayTracingVectorParam(parameters.contactShadowsRTS, HDShaderIDs._ContactShadowParamsParameters, parameters.params1);
@@ -4208,12 +4180,20 @@ namespace UnityEngine.Rendering.HighDefinition
                             parameters.shadowManager.DisplayShadowAtlas(atlasTextures.punctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
+                        case ShadowMapDebugMode.VisualizeCachedPunctualLightAtlas:
+                            parameters.shadowManager.DisplayCachedPunctualShadowAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
                         case ShadowMapDebugMode.VisualizeDirectionalLightAtlas:
                             parameters.shadowManager.DisplayShadowCascadeAtlas(atlasTextures.cascadeShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
                         case ShadowMapDebugMode.VisualizeAreaLightAtlas:
                             parameters.shadowManager.DisplayAreaLightShadowAtlas(atlasTextures.areaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
+                            HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
+                            break;
+                        case ShadowMapDebugMode.VisualizeCachedAreaLightAtlas:
+                            parameters.shadowManager.DisplayCachedAreaShadowAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, parameters.debugShadowMapMaterial, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, mpb);
                             HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera);
                             break;
                         default:

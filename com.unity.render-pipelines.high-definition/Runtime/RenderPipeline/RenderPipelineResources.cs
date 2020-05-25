@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugFullScreenPS;
             [Reload("Runtime/Debug/DebugColorPicker.Shader")]
             public Shader debugColorPickerPS;
+            [Reload("Runtime/Debug/DebugExposure.Shader")]
+            public Shader debugExposurePS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -164,6 +166,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
+            public Shader customPassUtils;
             [Reload("Runtime/Core/CoreResources/ProjectCubeTo2D.compute")]
             public ComputeShader projectCubeTo2DCS;
             [Reload("Runtime/Core/CoreResources/GPUArithmetic.compute")]
@@ -221,6 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/HistogramExposure.compute")]
+            public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
