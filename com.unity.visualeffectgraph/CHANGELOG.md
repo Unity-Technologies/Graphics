@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New Construct Matrix from Vector4 operator
 - Allow filtering enums in VFXModels' VFXSettings.
 - Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
+- New built-in operator providing new times access
+- More efficient update modes inspector
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
