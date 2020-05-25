@@ -125,7 +125,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (description.TryGetProperty("roughness_map", out textureProperty))
             {
-                material.SetTexture("RoughnessMap", textureProperty.texture);
+                material.SetTexture("_SpecGlossMap", textureProperty.texture);
                 material.SetFloat("_UseRoughnessMap", 1.0f);
             }
             else
@@ -135,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (description.TryGetProperty("metalness_map", out textureProperty))
             {
-                material.SetTexture("_MetallicMap", textureProperty.texture);
+                material.SetTexture("_MetallicGlossMap", textureProperty.texture);
                 material.SetFloat("_UseMetallicMap", 1.0f);
             }
             else
