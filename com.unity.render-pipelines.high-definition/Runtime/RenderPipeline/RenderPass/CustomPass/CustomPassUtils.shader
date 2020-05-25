@@ -16,6 +16,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float4      _SourceScaleBias;
     float4      _ViewportScaleBias;
     float4      _SourceSize;
+    float4      _SourceScaleFactor;
 
     float           _Radius;
     float           _SampleCount;
@@ -44,9 +45,11 @@ Shader "Hidden/HDRP/CustomPassUtils"
     float2 ClampUVs(float2 uv)
     {
         // Clamp UV to the current viewport:
+        // Note that uv here are scaled with _RTHandleScale.xy to support sampling from RTHandle
         float2 offset = _ViewportScaleBias.zw * _RTHandleScale.xy;
-        float2 halfPixelSize = _ViewPortSize.zw / 2;
-        uv = clamp(uv, offset + halfPixelSize, rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy + offset - halfPixelSize);
+        float2 size = rcp(_ViewportScaleBias.xy) * _RTHandleScale.xy;
+        float2 halfPixelSize = _SourceSize.zw * _RTHandleScale.xy / 2 * _SourceScaleFactor.zw;
+        uv = clamp(uv, offset + halfPixelSize, size + offset - halfPixelSize);
         return saturate(uv);
     }
 
