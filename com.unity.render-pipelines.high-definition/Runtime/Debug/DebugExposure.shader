@@ -97,11 +97,6 @@ Shader "Hidden/HDRP/DebugExposure"
         return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4));
     }
 
-    float GetHistogramBinUV()
-    {
-        return 0.0f;
-    }
-
     // Returns true if it drew the location of the indicator.
     void DrawHeatSideBar(float2 uv, float2 startSidebar, float2 endSidebar, float evValueRange, float3 indicatorColor, float2 sidebarSize, float extremeMargin, inout float3 sidebarColor)
     {
@@ -444,7 +439,7 @@ Shader "Hidden/HDRP/DebugExposure"
             // ---- Draw Tonemap curve ----
             if (_DrawTonemapCurve)
             {
-                val = GetTonemappedValueAtLocation(uv.x, currExposure);
+                val = GetTonemappedValueAtLocation(unormCoord.x / _ScreenSize.x, currExposure);
                 val *= 0.95 * (frameHeight - heightLabelBar);
                 val += heightLabelBar;
 
