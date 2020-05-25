@@ -918,9 +918,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             displayName = "Show Tonemap curve",
                             getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
                             setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
-                            displayName = "Show Tonemap Curve",
-                            getter = () => data.lightingDebugSettings.showTonemapCurve,
-                            setter = value => data.lightingDebugSettings.showTonemapCurve = value
                         });
                     exposureFoldout.children.Add(
                         new DebugUI.BoolField()
