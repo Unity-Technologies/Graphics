@@ -304,7 +304,7 @@ namespace UnityEditor.VFX.Operator
             return SampleVertexAttribute(source, vertexIndex, vertexAttributes);
         }
 
-        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression x, IEnumerable<VertexAttribute> vertexAttributes)
+        public static IEnumerable<VFXExpression> SampleEdgeAttribute(VFXExpression source, VFXExpression index, VFXExpression lerp, IEnumerable<VertexAttribute> vertexAttributes)
         {
             bool skinnedMesh = source.valueType == UnityEngine.VFX.VFXValueType.SkinnedMeshRenderer;
             var mesh = !skinnedMesh ? source : new VFXExpressionMeshFromSkinnedMeshRenderer(source);
@@ -323,7 +323,7 @@ namespace UnityEditor.VFX.Operator
             nextIndex = new VFXExpressionBranch(predicat, nextIndex, nextIndex - threeUint);
 
             var sampledIndex_A = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
-            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, index, meshIndexFormat);
+            var sampledIndex_B = new VFXExpressionSampleIndex(mesh, nextIndex, meshIndexFormat);
 
             var sampling_A = SampleVertexAttribute(source, sampledIndex_A, vertexAttributes).ToArray();
             var sampling_B = SampleVertexAttribute(source, sampledIndex_B, vertexAttributes).ToArray();
@@ -331,7 +331,7 @@ namespace UnityEditor.VFX.Operator
             for (int i = 0; i < vertexAttributes.Count(); ++i)
             {
                 var outputValueType = sampling_A[i].valueType;
-                var s = VFXOperatorUtility.CastFloat(x, outputValueType);
+                var s = VFXOperatorUtility.CastFloat(lerp, outputValueType);
                 yield return VFXOperatorUtility.Lerp(sampling_A[i], sampling_B[i], s);
             }
         }
