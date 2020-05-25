@@ -227,7 +227,6 @@ TEXTURECUBE(unity_SpecCube0);
 TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube0);
 SAMPLER(samplerunity_SpecCube1);
-real4 unity_SpecCube0_BoxMin;
 
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
