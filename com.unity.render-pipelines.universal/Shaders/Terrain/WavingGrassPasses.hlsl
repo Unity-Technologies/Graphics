@@ -149,7 +149,6 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     AlphaDiscard(alpha, _Cutoff);
     alpha *= input.color.a;
 
-    outSurfaceData = (SurfaceData)0;
     outSurfaceData.alpha = alpha;
     outSurfaceData.albedo = diffuse;
     outSurfaceData.metallic = 0.0; // unused
