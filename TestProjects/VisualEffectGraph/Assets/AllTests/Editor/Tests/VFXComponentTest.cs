@@ -666,12 +666,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator Create_Component_With_All_Basic_Type_Exposed_Check_Exposed_API()
         {
             var graph = VFXTestCommon.MakeTemporaryGraph();
-            var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
-                .Where(e => e != VFXValueType.Spline
-                    && e != VFXValueType.Buffer             //TODO : Remove this when Buffer as exposed property is possible
-                    && e != VFXValueType.None).ToArray();
-
-            foreach (var type in types)
+            foreach (var type in s_supportedValueType)
             {
                 var parameterDesc = VFXLibrary.GetParameters().First(o => VFXExpression.GetVFXValueTypeFromType(o.model.type) == type);
                 var newInstance = parameterDesc.CreateInstance();
@@ -689,7 +684,7 @@ namespace UnityEditor.VFX.Test
 
             var exposedProperties = new List<VFXExposedProperty>();
             vfxAsset.GetExposedProperties(exposedProperties);
-            foreach (var type in types)
+            foreach (var type in s_supportedValueType)
             {
                 var expectedType = VFXExpression.TypeToType(type);
                 var whereExpectedType = exposedProperties.Where(o => o.type == expectedType);
@@ -717,7 +712,7 @@ namespace UnityEditor.VFX.Test
                     Assert.IsFalse(VFXExpression.IsTexture(type));
                 }
             }
-            Assert.AreEqual(types.Length, exposedProperties.Count);
+            Assert.AreEqual(s_supportedValueType.Length, exposedProperties.Count);
         }
 
         private object GetValue_A_Type(Type type)
@@ -1048,6 +1043,26 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        static readonly VFXValueType[] s_supportedValueType =
+        {
+            VFXValueType.Float,
+            VFXValueType.Float2,
+            VFXValueType.Float3,
+            VFXValueType.Float4,
+            VFXValueType.Int32,
+            VFXValueType.Uint32,
+            VFXValueType.Curve,
+            VFXValueType.ColorGradient,
+            VFXValueType.Mesh,
+            VFXValueType.Texture2D,
+            VFXValueType.Texture2DArray,
+            VFXValueType.Texture3D,
+            VFXValueType.TextureCube,
+            VFXValueType.TextureCubeArray,
+            VFXValueType.Boolean,
+            VFXValueType.Matrix4x4
+        };
+
         [UnityTest]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("trueOrFalse")] bool linkMode, [ValueSource("trueOrFalse")] bool bindingModes)
         {
@@ -1073,15 +1088,11 @@ namespace UnityEditor.VFX.Test
                 graph.AddChild(output);
             }
 
-            var types = Enum.GetValues(typeof(VFXValueType)).Cast<VFXValueType>()
-                .Where(e => e != VFXValueType.Spline
-                    &&  e != VFXValueType.Buffer     //TODO : Remove this when Buffer as exposed property is possible
-                    &&  e != VFXValueType.None).ToArray();
             foreach (var parameter in VFXLibrary.GetParameters())
             {
                 var newInstance = parameter.CreateInstance();
 
-                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
+                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(newInstance.type) == e);
                 if (type != VFXValueType.None)
                 {
                     newInstance.SetSettingValue("m_ExposedName", commonBaseName + newInstance.type.UserFriendlyName());
@@ -1095,7 +1106,7 @@ namespace UnityEditor.VFX.Test
 
             if (linkMode)
             {
-                foreach (var type in types)
+                foreach (var type in s_supportedValueType)
                 {
                     VFXSlot slot = null;
                     for (int i = 0; i < allType.GetNbInputSlots(); ++i)
@@ -1151,7 +1162,7 @@ namespace UnityEditor.VFX.Test
             //Check default Value_A & change to Value_B (At this stage, it's useless to access with SerializedProperty)
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
@@ -1185,7 +1196,7 @@ namespace UnityEditor.VFX.Test
             //Compare new setted values
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
@@ -1220,7 +1231,7 @@ namespace UnityEditor.VFX.Test
             //Test ResetOverride function
             foreach (var parameter in VFXLibrary.GetParameters())
             {
-                VFXValueType type = types.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
+                VFXValueType type = s_supportedValueType.FirstOrDefault(e => VFXExpression.GetVFXValueTypeFromType(parameter.model.type) == e);
                 if (type == VFXValueType.None)
                     continue;
                 var currentName = commonBaseName + parameter.model.type.UserFriendlyName();
