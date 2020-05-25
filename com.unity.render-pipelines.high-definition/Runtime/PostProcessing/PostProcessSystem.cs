@@ -167,11 +167,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Grading specific
             m_HableCurve = new HableCurve();
 
-            m_DebugExposureData = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                enableRandomWrite: true, name: "Debug Exposure Info"
-            );
-
-
             m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
             // TODO: Remove this line when atomic bug in HLSLcc is fixed.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan);
