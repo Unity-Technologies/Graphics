@@ -146,6 +146,38 @@ namespace UnityEngine.Rendering.HighDefinition
             positionArraySize = outSortedBricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
         }
 
+        internal void SubdivideBricks(List<Brick> inBricks, List<Brick> outSubdividedBricks)
+        {
+            // reserve enough space
+            outSubdividedBricks.Capacity = outSubdividedBricks.Count + inBricks.Count * ProbeBrickPool.kBrickCellCount * ProbeBrickPool.kBrickCellCount;
+
+            foreach (var brick in inBricks)
+            {
+                if (brick.size == 0)
+                    continue;
+
+                Brick b = new Brick();
+                b.size = brick.size - 1;
+                int offset = cellSize(b.size);
+
+                for (int z = 0; z < ProbeBrickPool.kBrickCellCount; z++)
+                {
+                    b.position.z = b.position.z + z * offset;
+
+                    for (int y = 0; y < ProbeBrickPool.kBrickCellCount; y++)
+                    {
+                        b.position.y = b.position.y + y * offset;
+
+                        for (int x = 0; x < ProbeBrickPool.kBrickCellCount; x++)
+                        {
+                            b.position.x = b.position.x + x * offset;
+                            outSubdividedBricks.Add(b);
+                        }
+                    }
+                }
+            }
+        }
+
         internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
             Matrix4x4 m = GetRefSpaceToWS();
