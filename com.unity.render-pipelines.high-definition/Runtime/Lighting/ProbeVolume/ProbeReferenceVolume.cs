@@ -162,15 +162,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for (int z = 0; z < ProbeBrickPool.kBrickCellCount; z++)
                 {
-                    b.position.z = b.position.z + z * offset;
+                    b.position.z = brick.position.z + z * offset;
 
                     for (int y = 0; y < ProbeBrickPool.kBrickCellCount; y++)
                     {
-                        b.position.y = b.position.y + y * offset;
+                        b.position.y = brick.position.y + y * offset;
 
                         for (int x = 0; x < ProbeBrickPool.kBrickCellCount; x++)
                         {
-                            b.position.x = b.position.x + x * offset;
+                            b.position.x = brick.position.x + x * offset;
                             outSubdividedBricks.Add(b);
                         }
                     }

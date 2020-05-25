@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024);
             refVol.SetGridDensity(minCellSize, 4);
 
-            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubDivideBricks;
+            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubdivisionAlgorithm;
 
             // get a list of bricks for this volume
             bricks = new List<ProbeReferenceVolume.Brick>();
@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * 5));
 
-            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubDivideBricks;
+            ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubdivisionAlgorithm;
 
             // get a list of bricks for this volume
             List<ProbeReferenceVolume.Brick> sortedBricks = new List<ProbeReferenceVolume.Brick>();
