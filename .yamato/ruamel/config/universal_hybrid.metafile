@@ -4,7 +4,7 @@ project:
 test_platforms:
   - Standalone
   - playmode
-  - editmode
+#  - editmode
 platforms:
   - name: Win
     apis:
@@ -14,7 +14,7 @@ platforms:
   - name: OSX 
     apis:
       - Metal
-      # - OpenGLCore
+#      - OpenGLCore
   - name: Linux
     apis: 
       - Vulkan

@@ -21,7 +21,10 @@ class PreviewPublish_PublishJob():
             f'{pb_filepath()}#{pb_job_id_wait_for_nightly()}']
         for editor in editors:
             for platform in platforms:
-                dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], editor["version"])}')
+                if package["type"].lower() == 'package':
+                    dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], editor["version"])}')
+                else:
+                    raise Exception(f'Unknown package type in PreviewPublish_PublishJob {package["type"]}')
 
         # construct job
         job = YMLJob()
