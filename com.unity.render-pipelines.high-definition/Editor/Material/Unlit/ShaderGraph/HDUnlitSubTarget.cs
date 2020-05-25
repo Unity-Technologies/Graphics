@@ -356,7 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -367,7 +367,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBaseNoCrossFade,
+                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
             };
@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static class UnlitIncludes
         {
             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
-            
+
             public static IncludeCollection Meta = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
