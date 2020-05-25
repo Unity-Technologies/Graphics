@@ -28,7 +28,7 @@
         },
         {
             "name": "com.unity.rendering.hybrid",
-            "expression": "0.7.0",
+            "expression": "0.6.9",
             "define": "HYBRID_0_7_0_OR_NEWER"
         }
     ],
