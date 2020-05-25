@@ -486,6 +486,7 @@ namespace UnityEngine.Rendering.Universal
 
             EndXRRendering(cmd, context, ref renderingData.cameraData);
 
+            DrawWireOverlay(context, camera);
             DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context, cameraData.resolveFinalTarget);
@@ -1025,6 +1026,14 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
             if (UnityEditor.Handles.ShouldRenderGizmos())
                 context.DrawGizmos(camera, gizmoSubset);
+#endif
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        void DrawWireOverlay(ScriptableRenderContext context, Camera camera)
+        {
+#if UNITY_EDITOR
+            context.DrawWireOverlay(camera);
 #endif
         }
 
