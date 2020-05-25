@@ -1,19 +1,37 @@
 # Shader Quality
-The shader quality can be set to be one of three settings __Low__, __Medium__ or __High__.
-## Default values:
-If the shader quality is not defined at compile time then the shader quality will be defined to be:
-__Low__ if OpenGL ES 2.0/WebGL 1.0 is targeted. __Medium__ if the mobile platform is targeted. __High__ is chosen if the other 2 does not apply to the target.
 
-## Feature support:
-The supported features for each setting can be seen in the table below.
-| __Feature__         | __Description__           | __Low__    | __Medium__ | __High__   |
-| ------------------- | ------------------------- | ---------- | ---------- | ---------- |
-| __Reflection Probe__| This enables reflection probes. | x | x | x |
-| __Bump Scale__ | This enables scaling the bump map. |||x|
-| __Shadow Fading__   | This enables blending between the visible shadows and the invisible shadows when the shadows are too far away to be rendered. |  | x | x |
+This setting defines the available features and behavior of shaders in the Player.
+
+Available values: __Low__, __Medium__, __High__.
+
+## Shader feature support:
+
+The following table shows the shader features that different Shader Quality settings support.
+
+| __Feature__         | __Description__           | __HLSL field__ | __Low__    | __Medium__ | __High__   |
+| ------------------- | ------------------------- | --- | ---------- | ---------- | ---------- |
+| __Reflection probe__| Enables reflection probes.        | REFLECTION_PROBE | Yes | Yes | Yes |
+| __Bump scale__      | Enables scaling of the bump map.     | BUMP_SCALE |   |   | Yes |
+| __Shadow fading__   | Enables blending between the visible shadows and the invisible shadows when the shadows are too far away to be rendered.              | FADE_SHADOWS |   | Yes | Yes |
 
 ## Normalization of normals:
-The normalization of the normals also changes with the shader quality:
-__Low__: Normalize either per-vertex or per-pixel depending if normal map is sampled.
-__Medium__: Always normalize per-vertex. Normalize per-pixel only if using normal map
-__High__: Normalize in both vertex and pixel shaders.
+
+The following list shows how Unity normalizes the normals with different Shader Quality settings.
+
+* __Low__: Use the per-pixel normalization if the normal map is defined, otherwise use the per-vertex normalization.
+* __Medium__: Always use the per-vertex normalization. Use the per-pixel normalization only if the normal map is defined.
+* __High__: Always use the per-vertex and the per-pixel normalization.
+
+## Default values for platforms
+
+To use the Shader Quality setting from the URP asset, a shader must have the following keyword definition:
+
+```
+#pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
+```
+
+If such definition is missing in a shader, Unity uses the following default settings depending on the target platform:
+
+* OpenGL ES 2.0/WebGL 1.0: __Low__.
+* Mobile platforms: __Medium__.
+* Other platforms: __High__.
