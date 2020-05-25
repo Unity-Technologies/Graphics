@@ -759,7 +759,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (serialized.type == HDLightType.Spot && serialized.iesSpot.objectReferenceValue != null)
+            if (serialized.type == HDLightType.Spot &&
+                serialized.spotLightShape.enumValueIndex == (int)SpotLightShape.Cone &&
+                serialized.iesSpot.objectReferenceValue != null)
             {
                 EditorGUILayout.PropertyField(serialized.spotIESCutoffPercent, s_Styles.spotIESCutoffPercent);
             }

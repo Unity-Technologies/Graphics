@@ -1459,6 +1459,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // These are the neutral values allowing GetAngleAnttenuation in shader code to return 1.0
                 lightData.angleScale = 0.0f;
                 lightData.angleOffset = 1.0f;
+                lightData.iesCut = 1.0f;
             }
 
             if (lightData.lightType != GPULightType.Directional && lightData.lightType != GPULightType.ProjectorBox)
@@ -1484,8 +1485,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (lightComponent != null && additionalLightData != null &&
                 (
-                    ((lightType == HDLightType.Spot || (lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle)) && (lightComponent.cookie != null || additionalLightData.IESSpot)) ||
-                    (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint))
+                    (lightType == HDLightType.Spot && (lightComponent.cookie != null || additionalLightData.IESPoint != null)) ||
+                    ((lightType == HDLightType.Area && lightData.lightType == GPULightType.Rectangle) && (lightComponent.cookie != null || additionalLightData.IESSpot != null)) ||
+                    (lightType == HDLightType.Point && (lightComponent.cookie != null || additionalLightData.IESPoint != null))
                 ))
             {
                 switch (lightType)
@@ -1496,8 +1498,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie, additionalLightData.IESSpot);
                         else if (lightComponent.cookie != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
-                        else //if (additionalLightData.IESSpot != null)
+                        else if (additionalLightData.IESSpot != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.IESSpot);
+                        else
+                            lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
                         break;
                     case HDLightType.Point:
                         lightData.cookieMode = CookieMode.Repeat;

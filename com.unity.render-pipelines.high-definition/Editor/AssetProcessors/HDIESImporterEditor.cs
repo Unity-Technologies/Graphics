@@ -47,8 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
         {
-            // Before enabling this feature, more experimentation is needed with the addition of a Volume in the PreviewRenderUtility scene.
-
             HDAdditionalLightData hdLight = light.GetComponent<HDAdditionalLightData>();
 
             if (useIESMaximumIntensityProp.boolValue)
@@ -66,9 +64,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnEnable();
 
-            var entryPoint0 = new PropertyFetcher<HDIESImporter>(serializedObject);
+            PropertyFetcher<HDIESImporter> entryPoint0 = new PropertyFetcher<HDIESImporter>(serializedObject);
             SerializedProperty entryPoint1 = entryPoint0.Find<IESImporter>(x => x.commonIESImporter);
-            Debug.Log("001");
             SerializedProperty entryPoint = entryPoint1.FindPropertyRelative("iesMetaData");
 
             iesImporterEditor.CommonOnEnable(entryPoint);

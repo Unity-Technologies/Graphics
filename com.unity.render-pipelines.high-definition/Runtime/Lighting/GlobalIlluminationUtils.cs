@@ -114,6 +114,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 spot.angularFalloff = AngularFalloffType.AnalyticAndInnerAngle;
                                 lightDataGI.Init(ref spot, ref cookie);
                                 lightDataGI.shape1 = (float)AngularFalloffType.AnalyticAndInnerAngle;
+                                if (add.areaLightCookie != null)
+                                    lightDataGI.cookieID = light.cookie.GetInstanceID();
+                                else if (add.IESSpot != null)
+                                    lightDataGI.cookieID = add.IESSpot.GetInstanceID();
+                                else
+                                    lightDataGI.cookieID = 0;
+                                break;
                             }
                             break;
 
@@ -194,7 +201,12 @@ namespace UnityEngine.Rendering.HighDefinition
                             // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                             lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                             lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
-                            lightDataGI.cookieID = add.areaLightCookie ? add.areaLightCookie.GetInstanceID() : 0;
+                            if (add.areaLightCookie != null)
+                                lightDataGI.cookieID = add.areaLightCookie.GetInstanceID();
+                            else if (add.IESSpot != null)
+                                lightDataGI.cookieID = add.IESSpot.GetInstanceID();
+                            else
+                                lightDataGI.cookieID = 0;
                             break;
 
                         case AreaLightShape.Tube:

@@ -26,10 +26,10 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
     float3  hitPosition = hitDistance * normal;
     hitPosition -= origin;  // Relative to bottom-left corner
 
-                            // Here, right and up vectors are not necessarily orthonormal
-                            // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
-                            //  ortho = up - (up.right') * right'
-                            // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
+    // Here, right and up vectors are not necessarily orthonormal
+    // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
+    //  ortho = up - (up.right') * right'
+    // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
     float   recSqLengthRight = 1.0 / dot(right, right);
     float   upRightMixing = dot(up, right);
     float3  ortho = up - upRightMixing * right * recSqLengthRight;
