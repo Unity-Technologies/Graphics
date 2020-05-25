@@ -37,6 +37,9 @@ ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}
 
+// Due to a bug in HLSL compiler, disable spurious "unitialized variable" due to mid function return statement
+#pragma warning(push)
+#pragma warning(disable : 4000)
 #if HAS_STRIPS
 bool GetParticleIndex(inout uint particleIndex, uint stripIndex)
 {
@@ -52,6 +55,7 @@ bool GetParticleIndex(inout uint particleIndex, uint stripIndex)
     return true;
 }
 #endif
+#pragma warning(pop)
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 groupId          : SV_GroupID,
