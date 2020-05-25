@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
         }
 
-        internal int   cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
+        internal static int cellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float brickSize( int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
         internal float minBrickSize() { return m_Transform.scale; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             positionArraySize = outSortedBricks.Count * ProbeBrickPool.kBrickProbeCountTotal;
         }
 
-        internal void SubdivideBricks(List<Brick> inBricks, List<Brick> outSubdividedBricks)
+        internal static void SubdivideBricks(List<Brick> inBricks, List<Brick> outSubdividedBricks)
         {
             // reserve enough space
             outSubdividedBricks.Capacity = outSubdividedBricks.Count + inBricks.Count * ProbeBrickPool.kBrickCellCount * ProbeBrickPool.kBrickCellCount;
