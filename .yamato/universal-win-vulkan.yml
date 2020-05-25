@@ -1,0 +1,262 @@
+Universal_Win_Vulkan_Standalone_trunk:
+    name: Universal on Win_Vulkan_Standalone on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
+         rerun: always
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_trunk
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_Universal_Win_Vulkan_Player_trunk:
+    name: Build Universal on Win_Vulkan_Player on version trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+Universal_Win_Vulkan_playmode_trunk:
+    name: Universal on Win_Vulkan_playmode on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Win_Vulkan_editmode_trunk:
+    name: Universal on Win_Vulkan_editmode on version trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Win_Vulkan_Standalone_fast-trunk:
+    name: Universal on Win_Vulkan_Standalone on version fast-trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+         rerun: always
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_fast-trunk
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_Universal_Win_Vulkan_Player_fast-trunk:
+    name: Build Universal on Win_Vulkan_Player on version fast-trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+Universal_Win_Vulkan_playmode_fast-trunk:
+    name: Universal on Win_Vulkan_playmode on version fast-trunk
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Win_Vulkan_editmode_fast-trunk:
+    name: Universal on Win_Vulkan_editmode on version fast-trunk
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Win_Vulkan_Standalone_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_Standalone on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+      -  path: .yamato/universal-win-vulkan.yml#Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --artifacts_path=test-results --timeout=1200 --player-load-path=../../players --player-connection-ip=auto
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+    skip_checkout: true
+Build_Universal_Win_Vulkan_Player_CUSTOM-REVISION:
+    name: Build Universal on Win_Vulkan_Player on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.xlarge
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --extra-editor-arg="-executemethod" --extra-editor-arg="CustomBuild.BuildWindowsVulkanLinear" --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200 --player-save-path=../../players --build-only
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+        players:
+            paths:
+              -  "players/**"
+Universal_Win_Vulkan_playmode_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_playmode on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Win_Vulkan_editmode_CUSTOM-REVISION:
+    name: Universal on Win_Vulkan_editmode on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM
+        image: sdet/gamecode_win10:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-vulkan"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"

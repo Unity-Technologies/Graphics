@@ -1,0 +1,122 @@
+Universal_OSX_OpenGLCore_playmode_trunk:
+    name: Universal on OSX_OpenGLCore_playmode on version trunk
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_OSX_OpenGLCore_editmode_trunk:
+    name: Universal on OSX_OpenGLCore_editmode on version trunk
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_OSX_OpenGLCore_playmode_fast-trunk:
+    name: Universal on OSX_OpenGLCore_playmode on version fast-trunk
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_OSX_OpenGLCore_editmode_fast-trunk:
+    name: Universal on OSX_OpenGLCore_editmode on version fast-trunk
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_OSX_OpenGLCore_playmode_CUSTOM-REVISION:
+    name: Universal on OSX_OpenGLCore_playmode on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION:
+    name: Universal on OSX_OpenGLCore_editmode on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::osx
+        image: buildfarm/mac:stable
+        flavor: m1.mac
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:macos
+         rerun: always
+    commands:
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  cd TestProjects/UniversalGraphicsTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"

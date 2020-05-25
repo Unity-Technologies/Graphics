@@ -1,0 +1,47 @@
+override_editors:
+  - version: trunk
+publishing:
+  auto_publish: true
+  auto_version: true
+platforms:
+  - os: OSX
+  - os: Win
+packages:
+  - name: core
+    path: com.unity.render-pipelines.core
+    type: package
+    publish_source: true
+    standalone: true
+  - name: universal
+    path: com.unity.render-pipelines.universal
+    type: package
+    publish_source: true
+    standalone: true
+  - name: hdrp
+    path: com.unity.render-pipelines.high-definition
+    type: package
+    publish_source: true
+    standalone: true
+  - name: shadergraph
+    path: com.unity.shadergraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: vfx
+    path: com.unity.visualeffectgraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: config
+    path: com.unity.render-pipelines.high-definition-config
+    type: package
+    publish_source: true
+    standalone: true
+  - name: lwrp
+    path: com.unity.render-pipelines.lightweight
+    type: package
+    publish_source: true
+    standalone: false
+agent_publish: win_large_package_ci
+agent_promote: win_large_package_ci
+agent_auto_version: ubuntu_large_package_ci
