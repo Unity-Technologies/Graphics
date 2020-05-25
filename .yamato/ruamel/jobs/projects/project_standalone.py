@@ -28,11 +28,14 @@ class Project_StandaloneJob():
         job = _job(project["name"], test_platform["name"], editor, platform, api, cmd(project_folder, platform, api, test_platform["args"]))
 
         if build_job is not None:
-            job.set_skip_checkout(True)
+
             job.add_dependencies([{
                     'path' : f'{project_filepath_specific(project["name"], platform["name"], api)}#{build_job.job_id}',
                     'rerun' : f'{editor["rerun_strategy"]}'
                 }])
+            
+            if not (project["name"].lower() == 'universal' and platform["name"].lower() == 'win' and test_platform["name"].lower() == 'standalone') :
+                job.set_skip_checkout(True)
             
         return job
 

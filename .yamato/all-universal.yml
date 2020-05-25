@@ -7,15 +7,13 @@ All_Universal_trunk:
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_trunk
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_trunk
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_trunk
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_trunk
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_trunk
+         rerun: always
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_XR_trunk
          rerun: always
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_trunk
          rerun: always
@@ -28,15 +26,13 @@ All_Universal_fast-trunk:
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_fast-trunk
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_fast-trunk
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_fast-trunk
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_fast-trunk
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_fast-trunk
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_fast-trunk
+         rerun: always
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_XR_fast-trunk
          rerun: always
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_fast-trunk
          rerun: always
@@ -49,15 +45,13 @@ All_Universal_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_playmode_CUSTOM-REVISION
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_Standalone_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_XR_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_CUSTOM-REVISION
          rerun: always

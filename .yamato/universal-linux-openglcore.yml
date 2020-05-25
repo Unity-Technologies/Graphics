@@ -40,6 +40,27 @@ Universal_Linux_OpenGLCore_editmode_trunk:
         logs:
             paths:
               -  "**/test-results/**"
+Universal_Linux_OpenGLCore_playmode_XR_trunk:
+    name: Universal on Linux_OpenGLCore_playmode_XR on version trunk
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:trunk:linux
+         rerun: always
+    commands:
+      -  sudo -H pip install --upgrade pip
+      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
 Universal_Linux_OpenGLCore_playmode_fast-trunk:
     name: Universal on Linux_OpenGLCore_playmode on version fast-trunk
     agent:
@@ -78,6 +99,27 @@ Universal_Linux_OpenGLCore_editmode_fast-trunk:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Linux_OpenGLCore_playmode_XR_fast-trunk:
+    name: Universal on Linux_OpenGLCore_playmode_XR on version fast-trunk
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:linux
+         rerun: always
+    commands:
+      -  sudo -H pip install --upgrade pip
+      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
@@ -122,6 +164,28 @@ Universal_Linux_OpenGLCore_editmode_CUSTOM-REVISION:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
       -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 utr/utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
+    artifacts:
+        logs:
+            paths:
+              -  "**/test-results/**"
+Universal_Linux_OpenGLCore_playmode_XR_CUSTOM-REVISION:
+    name: Universal on Linux_OpenGLCore_playmode_XR on version CUSTOM-REVISION
+    agent:
+        type: Unity::VM::GPU
+        image: cds-ops/ubuntu-18.04-base:stable
+        flavor: b1.large
+    variables:
+        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+        CUSTOM_REVISION: custom_revision_not_set
+    dependencies:
+      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:linux
+         rerun: always
+    commands:
+      -  sudo -H pip install --upgrade pip
+      -  sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
+      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/UniversalGraphicsTest/utr
+      -  cd TestProjects/UniversalGraphicsTest && sudo unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
+      -  cd TestProjects/UniversalGraphicsTest && DISPLAY=:0.0 utr/utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-glcore"
     artifacts:
         logs:
             paths:
