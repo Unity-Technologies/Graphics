@@ -68,9 +68,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static SelectedFrameSettings selectedFrameSettings;
 
-#if ENABLE_VIRTUALTEXTURES
         internal static VirtualTexturingSettingsUI virtualTexturingSettingsUI = new VirtualTexturingSettingsUI();
-#endif
 
         static HDRenderPipelineUI()
         {
@@ -103,10 +101,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.bloomQualitySettings, Expandable.BloomQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionBloomQualitySettings),
                     CED.FoldoutGroup(Styles.chromaticAberrationQualitySettings, Expandable.ChromaticAberrationQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionChromaticAberrationQualitySettings)
                     ),
-                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings)
-#if ENABLE_VIRTUALTEXTURES
-                ,CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
-#endif
+                CED.FoldoutGroup(Styles.xrTitle, Expandable.XR, k_ExpandedState, Drawer_SectionXRSettings),
+                CED.FoldoutGroup(Styles.virtualTexturingTitle, Expandable.VirtualTexturing, k_ExpandedState, Drawer_SectionVTSettings)
             );
 
             // fix init of selection along what is serialized
@@ -558,12 +554,10 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.xrSettings.cameraJitter, Styles.XRCameraJitter);
         }
 
-#if ENABLE_VIRTUALTEXTURES
         static void Drawer_SectionVTSettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             virtualTexturingSettingsUI.OnGUI(serialized, owner);
         }
-#endif
 
         static private bool m_ShowDoFLowQualitySection = false;
         static private bool m_ShowDoFMediumQualitySection = false;
