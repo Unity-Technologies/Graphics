@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.Test
         static VFXModelDescriptor<VFXOperator> GetTotalTimeOperator()
         {
             string opName = ObjectNames.NicifyVariableName(VFXExpressionOperation.TotalTime.ToString());
-            return VFXLibrary.GetOperators().First(o => o.name == opName);
+            return VFXLibrary.GetOperators().First(o => o.name.StartsWith(opName));
         }
 
         [UnityTest]
