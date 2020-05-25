@@ -22,4 +22,4 @@ platforms:
     components:
       - editor
       - iOS
-agent: ubuntu_small_cds_ops
+agent: cds_ops_ubuntu_small

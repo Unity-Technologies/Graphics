@@ -34,8 +34,8 @@ nightly:
       all: true
 smoke_test: # specifications for smoke tests
   folder: SRP_SmokeTest
-  agent: win_large_sdet # used for editmode
-  agent_gpu: win_large_sdet_gpu  # used for non-editmode
+  agent: sdet_win_large # used for editmode
+  agent_gpu: sdet_win_large_gpu  # used for non-editmode
   test_platforms:
     - Standalone
     - playmode

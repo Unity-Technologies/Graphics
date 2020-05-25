@@ -119,31 +119,27 @@ project_platforms:
       image: mobile/macos-10.13-testing:stable
       flavor: b1.large
 non_project_agents:
-  ubuntu_small_cds_ops:
+  cds_ops_ubuntu_small:
     type: Unity::VM
     image: cds-ops/ubuntu-16.04-base:stable
     flavor: b1.small
-  ubuntu_large_cds_ops:
-    type: Unity::VM
-    image: cds-ops/ubuntu-16.04-base:stable
-    flavor: b1.large
-  ubuntu_large_package_ci:
+  package_ci_ubuntu_large:
     type: Unity::VM
     image: package-ci/ubuntu:stable
     flavor: b1.large
-  win_large_package_ci:
+  package_ci_win_large:
     type: Unity::VM
     image: package-ci/win10:stable
     flavor: b1.large
-  win_large_sdet:
+  package_ci_mac:
+    type: Unity::VM::osx
+    image: package-ci/mac:stable
+    flavor: m1.mac
+  sdet_win_large:
     type: Unity::VM
     image: sdet/gamecode_win10:stable
     flavor: b1.large
-  win_large_sdet_gpu:
+  sdet_win_large_gpu:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
     flavor: b1.large
-  osx_mac_buildfarm:
-    type: Unity::VM::osx
-    image: buildfarm/mac:stable
-    flavor: m1.mac
