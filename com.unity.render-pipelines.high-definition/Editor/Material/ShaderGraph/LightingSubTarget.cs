@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, lightingData, systemData);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData);
         }
     }
 }
