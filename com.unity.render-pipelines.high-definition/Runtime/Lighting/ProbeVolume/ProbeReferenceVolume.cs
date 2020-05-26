@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class ProbeReferenceVolume
     {
         // a few constants
-        internal const int kMaxSubdivisionLevels  = 15; // 4 bits
+        internal const int kMaxSubdivisionLevels = 15; // 4 bits
 
         internal struct Volume
         {
@@ -68,6 +68,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal struct BrickFlags
+        {
+            uint  flags;
+
+            public bool discard { get { return (flags & 1) != 0; } set { flags = (flags & (~1u)) | (value ? 1u : 0); } }
+            public bool subdivide { get { return (flags & 2) != 0; } set { flags = (flags & (~2u)) | (value ? 2u : 0); } }
+        }
+
         internal struct RefVolTransform
         {
             public Matrix4x4   refSpaceToWS;
@@ -76,13 +84,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public float       scale;
         }
 
-        private RefVolTransform m_Transform;
-        private int             m_MaxSubdivision;
-        private ProbeBrickPool  m_Pool;
-        private List<Brick>     m_TmpBricks  = new List<Brick>();
-        private List<Chunk>     m_TmpSrcChunks = new List<Chunk>();
-        private List<Chunk>     m_TmpDstChunks = new List<Chunk>();
-        private float[]         m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
+        private RefVolTransform     m_Transform;
+        private int                 m_MaxSubdivision;
+        private ProbeBrickPool      m_Pool;
+        private List<Brick>[]       m_TmpBricks = new List<Brick>[2];
+        private List<BrickFlags>    m_TmpFlags = new List<BrickFlags>();
+        private List<Chunk>         m_TmpSrcChunks = new List<Chunk>();
+        private List<Chunk>         m_TmpDstChunks = new List<Chunk>();
+        private float[]             m_PositionOffsets = new float[ProbeBrickPool.kBrickProbeCountPerDim];
 
         // index related
         Texture3D indexTex;
@@ -95,6 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Transform.refSpaceToWS = Matrix4x4.identity;
 
             m_Pool = new ProbeBrickPool(AllocationSize, MemoryBudget);
+
+            m_TmpBricks[0] = new List<Brick>();
+            m_TmpBricks[1] = new List<Brick>();
 
             // initialize offsets
             m_PositionOffsets[0] = 0.0f;
@@ -118,16 +130,38 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
         internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
 
-        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<Brick> outBricks);
+        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
         internal void CreateBricks(ref Volume volume, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
             Volume vol;
             Transform(volume, out vol);
-            m_TmpBricks.Clear();
+            m_TmpBricks[0].Clear();
             // rasterize bricks according to the coarsest grid
-            Rasterize(vol, m_TmpBricks);
-            subdivider(m_Transform, m_TmpBricks, outSortedBricks);
+            Rasterize(vol, m_TmpBricks[0]);
+
+            // iterative subdivision
+            while( m_TmpBricks[0].Count > 0 )
+            {
+                m_TmpBricks[1].Clear();
+                m_TmpFlags.Clear();
+                m_TmpFlags.Capacity = Mathf.Max(m_TmpFlags.Capacity, m_TmpBricks[0].Count);
+
+                subdivider(m_Transform, m_TmpBricks[0], m_TmpFlags);
+                Debug.Assert(m_TmpBricks[0].Count == m_TmpFlags.Count);
+
+                for(int i = 0; i < m_TmpFlags.Count; i++)
+                {
+                    if (!m_TmpFlags[i].discard)
+                        outSortedBricks.Add(m_TmpBricks[0][i]);
+                    if (m_TmpFlags[i].subdivide)
+                        m_TmpBricks[1].Add(m_TmpBricks[0][i]);
+                }
+
+                m_TmpBricks[0].Clear();
+                SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
+            }
+
             // sort from larger to smaller bricks
             outSortedBricks.Sort( (Brick lhs, Brick rhs) =>
             {

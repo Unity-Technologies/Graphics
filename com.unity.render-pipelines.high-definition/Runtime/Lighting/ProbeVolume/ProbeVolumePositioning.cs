@@ -5,40 +5,28 @@ using UnityEditor;
 namespace UnityEngine.Rendering.HighDefinition
 {
     using Brick = ProbeReferenceVolume.Brick;
+    using Flags = ProbeReferenceVolume.BrickFlags;
     using Volume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
     internal static class ProbeVolumePositioning
     {
-        internal static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Brick> outBricks)
+        internal static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
         {
-            List<Brick> level1 = new List<Brick>(inBricks);
-            List<Brick> level2 = new List<Brick>();
-
-            while (level1.Count != 0)
-            {           
-                ProbeReferenceVolume.SubdivideBricks(level1, level2);
-
-                DiscardBricks(ref refTrans, level2);
-
-                outBricks.AddRange(level2);
-
-                var tmp = level1;
-                level1 = level2;
-                level2 = tmp;
-
-                level2.Clear();
-            }          
-        }
-
-        private static void DiscardBricks(ref RefTrans refTrans, List<Brick> level)
-        {
-            for(int i = level.Count - 1; i >= 0; i--)
+            Flags f = new Flags();
+            for( int i = 0; i < inBricks.Count; i++ )
             {
-                if (!ShouldKeepBrick(ref refTrans, level[i]))
+                if( ShouldKeepBrick( ref refTrans, inBricks[i] ) )
                 {
-                    level.RemoveAt(i);
+                    f.discard = false;
+                    f.subdivide = true;
                 }
+                else
+                {
+                    f.discard = true;
+                    f.subdivide = false;
+                }
+                outFlags.Add(f);
             }
         }
 
