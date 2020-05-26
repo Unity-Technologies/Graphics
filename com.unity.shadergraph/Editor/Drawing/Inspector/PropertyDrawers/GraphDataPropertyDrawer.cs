@@ -96,6 +96,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 // Create foldout
                 var foldout = new Foldout() { text = targetName, value = foldoutActive, name = "foldout" };
                 element.Add(foldout);
+                foldout.AddToClassList("MainFoldout");
                 foldout.RegisterValueChangedCallback(evt =>
                 {
                     // Update foldout value and rebuild
