@@ -23,6 +23,9 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
+        [Tooltip("")]
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(4, 0, 16);
+
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
 
