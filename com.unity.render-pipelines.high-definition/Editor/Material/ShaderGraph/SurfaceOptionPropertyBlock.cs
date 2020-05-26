@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class SurfaceOptionPropertyBlock : SubTargetPropertyBlock
     {
         [Flags]
+        // TODO: remove ?
         public enum Features
         {
             None            = 0,

@@ -59,7 +59,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 case DistortionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
                 case ScreenSpaceRefraction.RefractionModel e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
                 case SpecularOcclusionMode e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
-                default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant.");
+                case FabricData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                case EyeData.MaterialType e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                case StackLit.BaseParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                case StackLit.DualSpecularLobeParametrization e: elemEnum = new EnumField(e) { value = e, tooltip = displayName.tooltip } as BaseField<Enum>; break;
+                default: throw new Exception($"Can't create UI field for type {getter().GetType()}, please add it if it's relevant. If you can't consider using TargetPropertyGUIContext.AddProperty instead.");
             }
 
             if (elem != null)

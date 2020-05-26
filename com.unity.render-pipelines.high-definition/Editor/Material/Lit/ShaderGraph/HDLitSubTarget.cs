@@ -131,26 +131,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
             blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
-            blockList.AddPropertyBlock(new DistortionPropertyBlock());
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new DistortionPropertyBlock());
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
-        }
-
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            // Fixup the material settings:
-            material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
-            material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
-            material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
-            material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
-            material.SetFloat(kZTestTransparent, (int)systemData.zTest);
-            material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
-
-            // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
-
-            HDLitGUI.SetupMaterialKeywordsAndPass(material);
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()

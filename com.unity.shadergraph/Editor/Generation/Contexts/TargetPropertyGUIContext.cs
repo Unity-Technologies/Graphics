@@ -61,9 +61,9 @@ namespace UnityEditor.ShaderGraph
             this.hierarchy.Add(propertyRow);
         }
 
-        void ApplyPadding(VisualElement element, int indentLevel)
+        void ApplyPadding(PropertyRow row, int indentLevel)
         {
-            element.style.paddingLeft = (globalIndentLevel + indentLevel) * kIndentWidthInPixel;
+            row.Q(className: "unity-label").style.marginLeft = (globalIndentLevel + indentLevel) * kIndentWidthInPixel;
         }
     }
 }
