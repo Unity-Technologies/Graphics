@@ -107,7 +107,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var bricks = ProbeVolumeManager.manager.bricks;
 
             if (debugMesh == null)
-                debugMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+                debugMesh = Resources.GetBuiltinResource<Mesh>("icosphere.fbx");
 
             instanceData = new Stack<ProbeBatch>();
             for (int k = 0; k < (int)largestBrickSize + 1; k++)
