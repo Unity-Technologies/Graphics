@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ReceiveSSR                  = 1 << 8,
             ShowAfterPostProcessPass    = 1 << 9,
             AlphaToMask                 = 1 << 10,
+            ShowPrePassAndPostPass      = 1 << 11,
             Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
             Lit                         = All,
             All                         = ~0,
@@ -99,6 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
         }
@@ -508,11 +510,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if (transparentDepthPrepassEnable != null)
-                    materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
+                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
+                {
+                    if (transparentDepthPrepassEnable != null)
+                        materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                if (transparentDepthPostpassEnable != null)
-                    materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
+                    if (transparentDepthPostpassEnable != null)
+                        materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
+                }
 
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
@@ -736,7 +741,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
-                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
+                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRTransparentText);
                 else
                     materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }

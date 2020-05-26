@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
+            //TODO
             // blockList.AddPropertyBlock(new DecalPropertyBlock());
         }
 

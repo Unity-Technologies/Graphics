@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Stencil state for unlit:
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null);
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -376,8 +376,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingVisibility },
             };
 
