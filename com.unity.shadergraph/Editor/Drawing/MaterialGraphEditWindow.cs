@@ -422,18 +422,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (newPath != path)
                 {
-                    var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                    foreach (var subGraphNode in subGraphNodes)
-                    {
-                        var subGraphAssetPath = AssetDatabase.GUIDToAssetPath(subGraphNode.asset.assetGuid);
-                        if (subGraphAssetPath == newPath)
-                        {
-                            Debug.Log("SubGraph recursion detected. SubGraphs are not allowed to reference themselves. Save not carried out. ");
-                            return false;
-                        }
-                    }
                     if (!string.IsNullOrEmpty(newPath))
                     {
+                        // If the newPath already exists, we are overwriting an existing file, and could be creating recursions. Let's check.
+                        var overwriteGUID = AssetDatabase.AssetPathToGUID(newPath);
+
+                        var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                        foreach (var sgNode in subGraphNodes)
+                        {
+                            if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                            {
+                                Debug.Log("Save As CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + newPath + "'");
+                                return false;
+                            }
+                        }
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
                         AssetDatabase.ImportAsset(newPath);
                         if (success)

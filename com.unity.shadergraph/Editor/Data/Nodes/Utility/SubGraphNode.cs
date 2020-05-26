@@ -110,7 +110,6 @@ namespace UnityEditor.ShaderGraph
                 m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
                 if (m_SubGraph == null)
                 {
-                    Debug.Log("Failed to load subgraph asset at: " + assetPath);
                     return;
                 }
                 m_SubGraph.LoadGraphData();
@@ -452,7 +451,7 @@ namespace UnityEditor.ShaderGraph
                 return;
             }
 
-            if (asset.isRecursive || owner.isSubGraph && (asset.descendents.Contains(owner.assetGuid) || asset.assetGuid == owner.assetGuid))
+            if (owner.isSubGraph && (asset.descendents.Contains(owner.assetGuid) || asset.assetGuid == owner.assetGuid))
             {
                 hasError = true;
                 owner.AddValidationError(objectId, $"Detected a recursion in Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");

@@ -33,8 +33,6 @@ namespace UnityEditor.ShaderGraph
     {
         public bool isValid;
 
-        public bool isRecursive;
-
         public long processedAt;
 
         public string functionName;
@@ -66,9 +64,9 @@ namespace UnityEditor.ShaderGraph
 
         public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
 
-        public List<string> children = new List<string>();
+        public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
 
         public ShaderStageCapability effectiveShaderStage;
 
