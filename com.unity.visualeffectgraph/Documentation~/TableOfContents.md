@@ -45,8 +45,12 @@
         * [Multiply](Operator-Multiply.md)
         * [Negate](Operator-Negate.md)
         * [One Minus](Operator-OneMinus)
+        * [Power](Operator-Power.md)
+        * [Reciprocal](Operator-Reciprocal.md)
         * [Sign](Operator-Sign.md)
+        * [Smoothstep](Operator-Smoothstep.md)
         * [Square Root](Operator-SquareRoot.md)
+        * [Step](Operator-Step.md)
         * [Subtract](Operator-Subtract.md)
       * Trigonometry
         * [Acos](Operator-Acos.md)
