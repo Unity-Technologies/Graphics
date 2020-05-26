@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
 - Add api documentation for TextureCombiner.
 - Add tooltips in LookDev's toolbar.
+- Add XRGraphicsAutomatedTests helper class.
 
 ### Fixed
 - Fixed compile errors for platforms with no VR support
