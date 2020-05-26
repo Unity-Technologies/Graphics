@@ -246,15 +246,15 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _DISPLACEMENT_LOCK_TILING_SCALE
     #pragma shader_feature_local_fragment _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
     #pragma shader_feature_local_fragment _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
-    #pragma shader_feature_local_raytracing _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
+    //// #pragma shader_feature_local_raytracing _ _REFRACTION_PLANE _REFRACTION_SPHERE _REFRACTION_THIN
 
     #pragma shader_feature_local_fragment _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
-    #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
+    // #pragma shader_feature_local_raytracing _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR _EMISSIVE_MAPPING_BASE
 
     #pragma shader_feature_local _ _MAPPING_PLANAR _MAPPING_TRIPLANAR
 
     #pragma shader_feature_local_fragment _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
+    //// #pragma shader_feature_local_raytracing _NORMALMAP_TANGENT_SPACE
 
     #pragma shader_feature_local _ _REQUIRE_UV2 _REQUIRE_UV3
 
@@ -262,17 +262,17 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_fragment _MASKMAP
     #pragma shader_feature_local_fragment _BENTNORMALMAP
     #pragma shader_feature_local_fragment _EMISSIVE_COLOR_MAP
-    #pragma shader_feature_local_raytracing _MASKMAP
-    #pragma shader_feature_local_raytracing _BENTNORMALMAP
-    #pragma shader_feature_local_raytracing _EMISSIVE_COLOR_MAP
+    //// #pragma shader_feature_local_raytracing _MASKMAP
+    //// #pragma shader_feature_local_raytracing _BENTNORMALMAP
+    //// #pragma shader_feature_local_raytracing _EMISSIVE_COLOR_MAP
 
     // _ENABLESPECULAROCCLUSION keyword is obsolete but keep here for compatibility. Do not used
     // _ENABLESPECULAROCCLUSION and _SPECULAR_OCCLUSION_X can't exist at the same time (the new _SPECULAR_OCCLUSION replace it)
     // When _ENABLESPECULAROCCLUSION is found we define _SPECULAR_OCCLUSION_X so new code to work
     #pragma shader_feature_local_fragment _ENABLESPECULAROCCLUSION
     #pragma shader_feature_local_fragment _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
-    #pragma shader_feature_local_raytracing _ENABLESPECULAROCCLUSION
-    #pragma shader_feature_local_raytracing _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+    // #pragma shader_feature_local_raytracing _ENABLESPECULAROCCLUSION
+    // #pragma shader_feature_local_raytracing _ _SPECULAR_OCCLUSION_NONE _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #ifdef _ENABLESPECULAROCCLUSION
     #define _SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
     #endif
@@ -287,28 +287,28 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_fragment _SPECULARCOLORMAP
     #pragma shader_feature_local_fragment _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature_local_raytracing _ANISOTROPYMAP
-    #pragma shader_feature_local_raytracing _DETAIL_MAP
-    #pragma shader_feature_local_raytracing _SUBSURFACE_MASK_MAP
-    #pragma shader_feature_local_raytracing _THICKNESSMAP
-    #pragma shader_feature_local_raytracing _IRIDESCENCE_THICKNESSMAP
-    #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
-    #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
+    // #pragma shader_feature_local_raytracing _ANISOTROPYMAP
+    // #pragma shader_feature_local_raytracing _DETAIL_MAP
+    // #pragma shader_feature_local_raytracing _SUBSURFACE_MASK_MAP
+    // #pragma shader_feature_local_raytracing _THICKNESSMAP
+    // #pragma shader_feature_local_raytracing _IRIDESCENCE_THICKNESSMAP
+    // #pragma shader_feature_local_raytracing _SPECULARCOLORMAP
+    // #pragma shader_feature_local_raytracing _TRANSMITTANCECOLORMAP
 
     #pragma shader_feature_local_fragment _DISABLE_DECALS
     #pragma shader_feature_local_fragment _DISABLE_SSR
     #pragma shader_feature_local_fragment _DISABLE_SSR_TRANSPARENT
-    #pragma shader_feature_local_raytracing _DISABLE_DECALS
-    #pragma shader_feature_local_raytracing _DISABLE_SSR
-    #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
+    // #pragma shader_feature_local_raytracing _DISABLE_DECALS
+    // #pragma shader_feature_local_raytracing _DISABLE_SSR
+    // #pragma shader_feature_local_raytracing _DISABLE_SSR_TRANSPARENT
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature_local_fragment _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature_local_fragment _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
-    #pragma shader_feature_local_raytracing _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
-    #pragma shader_feature_local_raytracing _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
+    // #pragma shader_feature_local_raytracing _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
+    // #pragma shader_feature_local_raytracing _BLENDMODE_PRESERVE_SPECULAR_LIGHTING
 
     #pragma shader_feature_local_fragment _ENABLE_FOG_ON_TRANSPARENT
     #pragma shader_feature_local _TRANSPARENT_WRITES_MOTION_VEC
@@ -320,12 +320,12 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local_fragment _MATERIAL_FEATURE_CLEAR_COAT
     #pragma shader_feature_local_fragment _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature_local_fragment _MATERIAL_FEATURE_SPECULAR_COLOR
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_TRANSMISSION
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_ANISOTROPY
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_CLEAR_COAT
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_IRIDESCENCE
-    #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_TRANSMISSION
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_ANISOTROPY
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_CLEAR_COAT
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_IRIDESCENCE
+    // #pragma shader_feature_local_raytracing _MATERIAL_FEATURE_SPECULAR_COLOR
 
     #pragma shader_feature_local_fragment _ADD_PRECOMPUTED_VELOCITY
 
