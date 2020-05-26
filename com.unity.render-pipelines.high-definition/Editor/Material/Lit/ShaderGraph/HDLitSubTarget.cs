@@ -231,7 +231,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering, lightingData.receiveSSR, litData.receiveSSRTransparent);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering,
+                systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent, lightingData.receiveSSR, lightingData.receiveSSRTransparent);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,
@@ -548,7 +549,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { LitPasses.MotionVectors },
                     { LitPasses.DistortionVectors, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { LitPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { LitPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { LitPasses.Forward },
                     { LitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                     { LitPasses.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
@@ -944,6 +953,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = LitDefines.RaytracingVisibility,
                 includes = CoreIncludes.Raytracing,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Lit, HDFields.ShaderPass.RaytracingVisibility },
             };
 
