@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");
         public static FieldDescriptor RefractionBox =           new FieldDescriptor(string.Empty, "RefractionBox", "_REFRACTION_PLANE 1");
         public static FieldDescriptor RefractionSphere =        new FieldDescriptor(string.Empty, "RefractionSphere", "_REFRACTION_SPHERE 1");
+        public static FieldDescriptor RefractionThin =          new FieldDescriptor(string.Empty, "RefractionThin", "_REFRACTION_THIN 1");
 
         // Base Parametrization
         public static FieldDescriptor BaseParamSpecularColor =  new FieldDescriptor(kBaseParametrization, "SpecularColor", "_MATERIAL_FEATURE_SPECULAR_COLOR");
@@ -173,7 +174,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static FieldDescriptor Lit = new FieldDescriptor(kSubShader, "Lit Subshader", "");
             public static FieldDescriptor Fabric = new FieldDescriptor(kSubShader, "Fabric SubShader", "");
+            public static FieldDescriptor StackLit = new FieldDescriptor(kSubShader, "StackLit SubShader", "");
             public static FieldDescriptor Unlit = new FieldDescriptor(kSubShader, "Unlit SubShader", "");
+            public static FieldDescriptor Hair = new FieldDescriptor(kSubShader, "Hair SubShader", "");
         }
 
 #endregion

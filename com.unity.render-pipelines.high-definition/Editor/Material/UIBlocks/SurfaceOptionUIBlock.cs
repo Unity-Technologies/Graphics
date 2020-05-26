@@ -25,7 +25,9 @@ namespace UnityEditor.Rendering.HighDefinition
             BackThenFrontRendering      = 1 << 7,
             ReceiveSSR                  = 1 << 8,
             ShowAfterPostProcessPass    = 1 << 9,
-            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass,
+            AlphaToMask                 = 1 << 10,
+            ShowPrePassAndPostPass      = 1 << 11,
+            Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
             Lit                         = All,
             All                         = ~0,
         }
@@ -52,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent alphaCutoffShadowText = new GUIContent("Shadow Threshold", "Controls the threshold for shadow pass alpha clipping.");
             public static GUIContent alphaCutoffPrepassText = new GUIContent("Prepass Threshold", "Controls the threshold for transparent depth prepass alpha clipping.");
             public static GUIContent alphaCutoffPostpassText = new GUIContent("Postpass Threshold", "Controls the threshold for transparent depth postpass alpha clipping.");
+            public static GUIContent alphaToMaskText = new GUIContent("Alpha To Mask", "When enabled and using MSAA, HDRP enables alpha to coverage during the depth prepass.");
             public static GUIContent transparentDepthPostpassEnableText = new GUIContent("Transparent Depth Postpass", "When enabled, HDRP renders a depth postpass for transparent objects. This improves post-processing effects like depth of field.");
             public static GUIContent transparentDepthPrepassEnableText = new GUIContent("Transparent Depth Prepass", "When enabled, HDRP renders a depth prepass for transparent GameObjects. This improves sorting.");
             public static GUIContent transparentBackfaceEnableText = new GUIContent("Back Then Front Rendering", "When enabled, HDRP renders the back face and then the front face, in two separate draw calls, to better sort transparent meshes.");
@@ -97,6 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // SSR
             public static GUIContent receivesSSRText = new GUIContent("Receive SSR", "When enabled, this Material can receive screen space reflections.");
+            public static GUIContent receivesSSRTransparentText = new GUIContent("Receive SSR Transparent", "When enabled, this Material can receive screen space reflections.");
 
             public static string afterPostProcessZTestInfoBox = "After post-process material wont be ZTested. Enable the \"ZTest For After PostProcess\" checkbox in the Frame Settings to force the depth-test if the TAA is disabled.";
         }
@@ -116,6 +120,8 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kAlphaCutoffPrepass = "_AlphaCutoffPrepass";
         MaterialProperty alphaCutoffPostpass = null;
         const string kAlphaCutoffPostpass = "_AlphaCutoffPostpass";
+        MaterialProperty alphaToMask = null;
+        const string kAlphaToMask = "_AlphaToMask";
         MaterialProperty transparentDepthPrepassEnable = null;
         const string kTransparentDepthPrepassEnable = "_TransparentDepthPrepassEnable";
         MaterialProperty transparentDepthPostpassEnable = null;
@@ -275,6 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
             alphaCutoffShadow = FindProperty(kAlphaCutoffShadow);
             alphaCutoffPrepass = FindProperty(kAlphaCutoffPrepass);
             alphaCutoffPostpass = FindProperty(kAlphaCutoffPostpass);
+            alphaToMask = FindProperty(kAlphaToMask);
             transparentDepthPrepassEnable = FindProperty(kTransparentDepthPrepassEnable);
             transparentDepthPostpassEnable = FindProperty(kTransparentDepthPostpassEnable);
 
@@ -403,6 +410,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                if ((m_Features & Features.AlphaToMask) != 0)
+                {
+                    if (alphaToMask != null)
+                        materialEditor.ShaderProperty(alphaToMask, Styles.alphaToMaskText);
+                }
+
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
                 if (surfaceTypeValue == SurfaceType.Transparent)
@@ -419,7 +432,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUI.indentLevel--;
             }
-            
+            else if ((m_Features & Features.AlphaToMask) != 0)
+            {
+                if (alphaToMask != null)
+                    alphaToMask.floatValue = 0.0f;
+            }
+
+
             // Update the renderqueue when we change the alphaTest
             if (EditorGUI.EndChangeCheck())
             {
@@ -491,11 +510,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
-                if (transparentDepthPrepassEnable != null)
-                    materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
+                if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
+                {
+                    if (transparentDepthPrepassEnable != null)
+                        materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                if (transparentDepthPostpassEnable != null)
-                    materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
+                    if (transparentDepthPostpassEnable != null)
+                        materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
+                }
 
                 if (transparentWritingMotionVec != null)
                     materialEditor.ShaderProperty(transparentWritingMotionVec, Styles.transparentWritingMotionVecText);
@@ -719,7 +741,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
-                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRText);
+                    materialEditor.ShaderProperty(receivesSSRTransparent, Styles.receivesSSRTransparentText);
                 else
                     materialEditor.ShaderProperty(receivesSSR, Styles.receivesSSRText);
             }

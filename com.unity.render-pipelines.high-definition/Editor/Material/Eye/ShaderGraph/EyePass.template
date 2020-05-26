@@ -262,6 +262,11 @@ Pass
         // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+        #endif
+
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;

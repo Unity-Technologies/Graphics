@@ -48,7 +48,6 @@ Pass
     #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
         #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         #define HAS_LIGHTLOOP
-        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
     #endif
 
     // Dots Instancing
@@ -153,12 +152,23 @@ Pass
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+        #endif
+
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+#endif
 
         #if (SHADERPASS == SHADERPASS_DISTORTION)
             builtinData.distortion = surfaceDescription.Distortion;
             builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

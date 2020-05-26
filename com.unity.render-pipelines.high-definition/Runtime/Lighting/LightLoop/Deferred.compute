@@ -34,6 +34,8 @@
 
 #pragma multi_compile _ SHADOWS_SHADOWMASK
 
+#pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+
 #ifdef DEBUG_DISPLAY
     // Don't care about this warning in debug
 #   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
@@ -84,7 +86,7 @@ CBUFFER_END
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 //-------------------------------------------------------------------------------------
 // variable declaration

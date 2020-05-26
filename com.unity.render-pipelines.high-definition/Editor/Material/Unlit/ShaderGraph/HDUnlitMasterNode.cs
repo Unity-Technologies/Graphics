@@ -205,6 +205,22 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
         int m_SortPriority;
 
         public int sortPriority
@@ -430,6 +446,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                      alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
                 new ConditionalField(HDFields.DoAlphaTest,                  alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                     surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,            addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.EnableShadowMatte,            enableShadowMatte.isOn),
@@ -551,12 +568,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, false, false, false);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaTest.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
@@ -565,8 +583,11 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSided.isOn ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, false, false);
 
             base.CollectShaderProperties(collector, generationMode);
         }
+
+        public bool supportsVirtualTexturing => true;
     }
 }

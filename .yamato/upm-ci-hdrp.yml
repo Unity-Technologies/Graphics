@@ -1,8 +1,4 @@
 editors:
-  - version: 2020.1
-    rerun_strategy: on-new-revision
-  - version: fast-2020.1
-    rerun_strategy: on-new-revision
   - version: trunk
     rerun_strategy: on-new-revision
   - version: fast-trunk
@@ -13,8 +9,8 @@ platforms:
   - name: Win
     os: windows
     type: Unity::VM::GPU
-    image: sdet/gamecode_win10:stable
-    flavor: b1.large
+    image: graphics-foundation/win10-dxr:latest
+    flavor: b1.xlarge
     components:
       - editor
       - il2cpp
@@ -75,17 +71,18 @@ linux_apis:
     type: Unity::VM
     {% else %}
     type: {{ platform.type }}
-    #model: rtx2080
+    model: rtx2080
     {% endif %}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
-    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
+    - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
 
     - cd TestProjects/{{ project.folder }} && unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
 
@@ -116,28 +113,29 @@ linux_apis:
     type: {{ platform.type }}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr   
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple'"
-    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
+    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
 
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/ScriptableRenderPipeline/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
     
     {% if testplatform.name == "Standalone" %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/{{ project.folder }} && ~/Graphics/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/Graphics/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results --timeout=1200'
     {% else %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/{{ project.folder }} && ~/Graphics/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/Graphics/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results'
     {% endif %}
       UTR_RESULT=$?
       mkdir -p TestProjects/{{ project.folder }}/test-results/
-      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
+      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
       exit $UTR_RESULT
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
@@ -164,14 +162,14 @@ linux_apis:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
-    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple
-    - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only
@@ -223,17 +221,24 @@ All_{{ project.name }}_{{ editor.version }}:
   {% elsif platform.name == "OSX_Metal" %}
   #skip
   {% elsif platform.name == "Linux" %}
-  #skip
-  
+  #skip  
   {% elsif platform.name == "Win" %}
+
   {% for win_api in win_apis %}
-  {% if win_api.name == "Vulkan" %}
-  #skip
-  {% elsif  win_api.name == "DX12" %}
-  #skip
-  {% else %}
-    - .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
-  {% endif %}
+    {% if win_api.name == "Vulkan" and testplatform.name == "playmode XR" %}
+    #skip - Vulkan don't support VR
+    {% elsif win_api.name == "Vulkan" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11
+    {% elsif win_api.name == "DX12" and testplatform.name == "editmode" %}
+    #skip - not needed, cover by dx11	
+    {% else %}
+      - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ win_api.name }}_{{ testplatform.name }}_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}    
+      {% if win_api.name == "DX12" and testplatform.name == "playmode" %}
+      - path: .yamato/upm-ci-hdrp_dxr.yml#HDRP_DXR_Win_DX12_playmode_{{ editor.version }}
+        rerun: {{ editor.rerun_strategy }}
+      {% endif %}
+    {% endif %}
   {% endfor %}
 
   {% else %}

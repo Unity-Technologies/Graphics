@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MinCookieSize = 2;
 
         readonly Material m_MaterialFilterAreaLights;
-        MaterialPropertyBlock m_MPBFilterAreaLights;
+        MaterialPropertyBlock m_MPBFilterAreaLights = new MaterialPropertyBlock();
 
         readonly Material m_CubeToPanoMaterial;
 
@@ -62,9 +62,6 @@ namespace UnityEngine.Rendering.HighDefinition
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
             cookieAtlasLastValidMip = gLightLoopSettings.cookieAtlasLastValidMip;
-
-            if (PowerOfTwoTextureAtlas.GetApproxCacheSizeInByte(1, cookieAtlasSize, true, cookieFormat) > HDRenderPipeline.k_MaxCacheSize)
-                cookieAtlasSize = PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, true, cookieFormat);
 
             m_CookieAtlas = new PowerOfTwoTextureAtlas(cookieAtlasSize, gLightLoopSettings.cookieAtlasLastValidMip, cookieFormat, name: "Cookie Atlas (Punctual Lights)", useMipMap: true);
 
@@ -159,11 +156,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Start by copying the source texture to the array slice's mip 0
                 {
-                    cmd.SetGlobalTexture(s_texSource, source);
-                    cmd.SetGlobalInt(s_sourceMipLevel, 0);
+                    m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
+                    m_MPBFilterAreaLights.SetTexture(s_texSource, source);
+
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
                     cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
-                    cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1);
+                    cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                 }
 
                 // Then operate on all the remaining mip levels
@@ -177,13 +175,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewportWidth = Mathf.Max(1, viewportWidth >> 1);
                         targetWidth = Mathf.Max(1, targetWidth  >> 1);
 
+                        m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture0);
+                        m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
+                        m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
+                        m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
+
                         cmd.SetRenderTarget(m_TempRenderTexture1, mipIndex-1);    // Temp texture is already 1 mip lower than source
                         cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
-                        cmd.SetGlobalTexture(s_texSource, m_TempRenderTexture0);
-                        cmd.SetGlobalInt(s_sourceMipLevel, mipIndex-1);          // Use previous mip as source
-                        cmd.SetGlobalVector(s_sourceSize, sourceSize);
-                        cmd.SetGlobalVector(s_uvLimits, uvLimits);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 1, MeshTopology.Triangles, 3, 1);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 1, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                     }
 
                     sourceWidth = targetWidth;
@@ -195,13 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewportHeight = Mathf.Max(1, viewportHeight >> 1);
                         targetHeight = Mathf.Max(1, targetHeight >> 1);
 
+                        m_MPBFilterAreaLights.SetTexture(s_texSource, m_TempRenderTexture1);
+                        m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, mipIndex - 1);
+                        m_MPBFilterAreaLights.SetVector(s_sourceSize, sourceSize);
+                        m_MPBFilterAreaLights.SetVector(s_uvLimits, uvLimits);
+
                         cmd.SetRenderTarget(m_TempRenderTexture0, mipIndex);
                         cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
-                        cmd.SetGlobalTexture(s_texSource, m_TempRenderTexture1);
-                        cmd.SetGlobalInt(s_sourceMipLevel, mipIndex-1);
-                        cmd.SetGlobalVector(s_sourceSize, sourceSize);
-                        cmd.SetGlobalVector(s_uvLimits, uvLimits);
-                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 2, MeshTopology.Triangles, 3, 1);
+                        cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 2, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                     }
 
                     sourceHeight = targetHeight;

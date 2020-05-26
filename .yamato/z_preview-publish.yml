@@ -32,7 +32,7 @@ auto-version:
     {{ v[0] }}: {{ v[1]}}
 {% endfor -%}
   commands:
-  - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+  - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
   - >
     upm-ci utils auto-version bump
 {% for test in testables -%}
@@ -43,12 +43,12 @@ auto-version:
     packages:
       paths:
         - "upm-ci~/**/*"
-{% if publishing.auto_version == "true" -%}
-  triggers:
-    branches:
-      only:
-        - "{{ repo.branches.integration }}"
-{% endif -%}
+# {% if publishing.auto_version == "true" -%}
+#   triggers:
+#     branches:
+#       only:
+#         - "{{ repo.branches.integration }}"
+# {% endif -%}
 
 
 {% for test in testables -%}
@@ -64,7 +64,7 @@ publish_{{ test.name }}:
     {{ v[0] }}: {{ v[1]}}
     {% endfor %}
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - >
       upm-ci {{ test.type }} publish
       --{{ test.type }}-path {{ test.path }}
@@ -72,13 +72,8 @@ publish_{{ test.name }}:
     packages:
         paths:
             - "upm-ci~/packages/*.tgz"
-{% if publishing.auto_publish == "true" -%}
-  triggers:
-    recurring:
-      - branch: "{{ repo.branches.integration }}"
-        frequency: daily
-{% endif -%}
   dependencies:
+    - .yamato/z_preview-publish.yml#wait_for_nightly
 {% for testing in extra_jobs.testing -%}
     - {{ testing }}
 {% endfor -%}
@@ -86,18 +81,36 @@ publish_{{ test.name }}:
 {% for editor in editors -%}
 {% for platform in platforms -%}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-# Disabled for linux since it requires GPUs
-# {% if platform.os != "linux" -%}
-# {% if test.standalone == "true" -%}
-# {% for backend in scripting_backends -%}
-    # - .yamato/package-test.yml#{{ test.name }}:{{ platform.os }}:{{ editor.version }}:standalone:{{ backend }}
-# {% endfor -%}
-# {% endif -%} # test.standalone
-# {% endif -%} # platform.os
 {% endfor -%}
 {% endfor -%}
 {% endif -%} # publish_source
 {% endfor -%}
+
+publish_all_preview:
+  name: "Publish all preview packages - nightly"
+  # {% if publishing.auto_publish == "true" %}
+  # triggers:
+  #   recurring:
+  #     - branch: "{{ repo.branches.integration }}"
+  #       frequency: daily
+  # {% endif %}
+  dependencies:
+    {% for test in testables %}
+    - .yamato/z_preview-publish.yml#publish_{{ test.name }}
+    {% endfor %}
+
+wait_for_nightly:
+  name: "z_Wait for nightly"
+  dependencies:
+    - .yamato/upm-ci-abv.yml#all_project_ci_nightly_trunk
+  {% for test in testables %}
+    - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
+  {% for editor in editors %}
+  {% for platform in platforms %}
+    - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
+  {% endfor %}
+  {% endfor %}
+  {% endfor %}
     
 
 {% for test in testables -%}
@@ -111,7 +124,7 @@ promote_{{ test.name }}:
   variables:
     UPMCI_PROMOTION: 1
   commands:
-    - npm install upm-ci-utils@stable -g --registry https://api.bintray.com/npm/unity/unity-npm
+    - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - >
       upm-ci {{ test.type }} promote
       --{{ test.type }}-path {{ test.path }}

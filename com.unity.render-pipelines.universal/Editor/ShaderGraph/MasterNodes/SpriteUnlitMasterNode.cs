@@ -88,6 +88,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
                 // Blend Mode
                 new ConditionalField(Fields.BlendAlpha,          true),
+
+                // Culling
+                new ConditionalField(Fields.DoubleSided,         true),
             };
         }
 
@@ -142,5 +145,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
             return validSlots.OfType<IMayRequireTangent>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresTangent(stageCapability));
         }
+
+        public bool supportsVirtualTexturing => false;
     }
 }

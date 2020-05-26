@@ -141,8 +141,8 @@ void ClosestHitForward(inout RayIntersection rayIntersection : SV_RayPayload, At
     #endif
 #endif
 
-    // We only launch a ray if there is still some depth be used
-    if (rayIntersection.remainingDepth > 0)
+    // We only launch a ray if there is still some depth be used and if the reflection smoothnes threshold was not reached.
+    if (rayIntersection.remainingDepth > 0 && RecursiveRenderingReflectionPerceptualSmoothness(bsdfData) >= _RaytracingReflectionMinSmoothness)
     {
         // Compute the reflected direction
         float3 reflectedDir = reflect(rayIntersection.incidentDirection, surfaceData.normalWS);

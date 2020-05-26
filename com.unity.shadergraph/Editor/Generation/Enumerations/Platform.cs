@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -13,7 +13,7 @@ namespace UnityEditor.ShaderGraph
         Vulkan,
         D3D9,
         XboxOne,
-        PS4,
+        Playstation,
         Switch,
     }
 
@@ -40,8 +40,8 @@ namespace UnityEditor.ShaderGraph
                     return "d3d11_9x";
                 case Platform.XboxOne:
                     return "xboxone";
-                case Platform.PS4:
-                    return "ps4";
+                case Platform.Playstation:
+                    return "playstation";
                 case Platform.Switch:
                     return "switch";
                 default:

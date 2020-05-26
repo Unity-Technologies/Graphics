@@ -60,8 +60,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-        internal int eyeIndex { get; set; }
-
         internal bool overrideCameraTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
@@ -80,7 +78,6 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
-            eyeIndex = 0;
         }
 
         /// <summary>
@@ -170,6 +167,19 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// This method is called by the renderer before rendering a camera
+        /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
+        /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
+        /// You should never call CommandBuffer.SetRenderTarget. Instead call <c>ConfigureTarget</c> and <c>ConfigureClear</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to enqueue rendering commands. This will be executed by the pipeline.</param>
+        /// <param name="renderingData">Current rendering state information</param>
+        /// <seealso cref="ConfigureTarget"/>
+        /// <seealso cref="ConfigureClear"/>
+        public virtual void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {}
+
+        /// <summary>
         /// This method is called by the renderer before executing the render pass.
         /// Override this method if you need to to configure render targets and their clear state, and to create temporary render target textures.
         /// If a render pass doesn't override this method, this render pass renders to the active Camera's render target.
@@ -182,6 +192,7 @@ namespace UnityEngine.Rendering.Universal
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
 
+
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
         /// by this render
@@ -189,8 +200,10 @@ namespace UnityEngine.Rendering.Universal
         /// This method be called for all cameras in a camera stack.
         /// </summary>
         /// <param name="cmd">Use this CommandBuffer to cleanup any generated data</param>
-        public virtual void FrameCleanup(CommandBuffer cmd)
-        {}
+        public virtual void OnCameraCleanup(CommandBuffer cmd)
+        {
+
+        }
 
         /// <summary>
         /// Called upon finish rendering a camera stack. You can use this callback to release any resources created
@@ -284,20 +297,11 @@ namespace UnityEngine.Rendering.Universal
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
 
-        // TODO: Remove this. Currently only used by FinalBlit pass.
-        internal void SetRenderTarget(
-            CommandBuffer cmd,
-            RenderTargetIdentifier colorAttachment,
-            RenderBufferLoadAction colorLoadAction,
-            RenderBufferStoreAction colorStoreAction,
-            ClearFlag clearFlags,
-            Color clearColor,
-            TextureDimension dimension)
-        {
-            if (dimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlags, clearColor, 0, CubemapFace.Unknown, -1);
-            else
-                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
-        }
+        #region Obsolete
+
+        [Obsolete("This method is obsolete. Please use OnCameraCleanup()", false)]
+        public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
+
+        #endregion
     }
 }

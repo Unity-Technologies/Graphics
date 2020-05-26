@@ -19,6 +19,9 @@ namespace UnityEditor.Rendering.HighDefinition
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
+            bool alphaToMaskEnable = alphaTestEnable && material.HasProperty(kAlphaToMask) && material.GetFloat(kAlphaToMask) > 0.0f;
+            CoreUtils.SetKeyword(material, "_ALPHATOMASK_ON", alphaToMaskEnable);
+            
             SurfaceType surfaceType = material.GetSurfaceType();
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
@@ -297,7 +300,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(kTransparentDepthPrepassEnable))
             {
                 bool depthWriteEnable = (material.GetFloat(kTransparentDepthPrepassEnable) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable);
+                bool ssrTransparent = material.HasProperty(kReceivesSSRTransparent) ? (material.GetFloat(kReceivesSSRTransparent) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent) : false;
+                material.SetShaderPassEnabled(HDShaderPassNames.s_TransparentDepthPrepassStr, depthWriteEnable || ssrTransparent);
             }
 
             if (material.HasProperty(kTransparentDepthPostpassEnable))

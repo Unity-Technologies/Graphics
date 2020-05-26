@@ -57,11 +57,12 @@ namespace UnityEditor.Rendering.LookDev
                 Add(new Label() { text = label });
         }
 
-        public void AddRadio(string text = null, Texture2D icon = null)
+        public void AddRadio(string text = null, Texture2D icon = null, string tooltip = null)
         {
             var toggle = new ToolbarToggle();
             toggle.RegisterValueChangedCallback(InnerValueChanged(radioLength));
             toggle.SetValueWithoutNotify(radioLength == (m_CanDeselectAll ? -1 : 0));
+            toggle.tooltip = tooltip;
             radios.Add(toggle);
             if (icon != null)
             {
@@ -83,6 +84,11 @@ namespace UnityEditor.Rendering.LookDev
             foreach (var label in labels)
                 AddRadio(label);
         }
+        public void AddRadios((string text, string tooltip)[] labels)
+        {
+            foreach (var label in labels)
+                AddRadio(label.text, null, label.tooltip);
+        }
 
         public void AddRadios(Texture2D[] icons)
         {
@@ -94,6 +100,18 @@ namespace UnityEditor.Rendering.LookDev
         {
             foreach (var label in labels)
                 AddRadio(label.text, label.icon);
+        }
+        
+        public void AddRadios((Texture2D icon, string tooltip)[] labels)
+        {
+            foreach (var label in labels)
+                AddRadio(null, label.icon, label.tooltip);
+        }
+
+        public void AddRadios((string text, Texture2D icon, string tooltip)[] labels)
+        {
+            foreach (var label in labels)
+                AddRadio(label.text, label.icon, label.tooltip);
         }
 
         EventCallback<ChangeEvent<bool>> InnerValueChanged(int radioIndex)

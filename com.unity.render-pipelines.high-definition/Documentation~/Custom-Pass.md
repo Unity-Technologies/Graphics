@@ -16,7 +16,7 @@ Custom Passes have been implemented through a volume system, but note that it's 
 
 Like in volumes, there is two modes for the custom pass volume: `Local` and `Global`. The `Local` mode uses colliders attached to the GameObject where the custom pass is to define a zone where the effect will be executed. `Global` volumes are executed everywhere in your scene.  
 The priority is used to determine the execution order when you have multiple custom pass volumes in your scene that share the same injection point.  
-A `fade` system is also available to allow you to smooth the transition between your normal rendering and the custom custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
+A `fade` system is also available to allow you to smooth the transition between your normal rendering and the custom pass. The control over the distance of the fade is done by the **Fade Radius** field in the UI of the Custom Pass Volume Component, the radius is exposed in meter and is not scaled with the object transform.  
 Because we give the full control over what can be done in the custom passes, the fading must be manually included in your effects. To help you, there is a builtin variable `_FadeValue` in the shader and `CustomPass.fadeValue` in the C# that contains a value between 0 and 1 representing how far the camera is from the collider bounding volume. If you want more details about the fading in script, you can [jump to the scripting API tag](#ScriptingAPI).
 
 Here you can see an example of a custom pass with a box collider (solid transparent box) and the fade radius is represented by the wireframe cube.
@@ -101,7 +101,7 @@ In this snippet, we fetch a lot of useful input data that you might need in your
 
 ### DrawRenderers Custom Pass
 
-This pass will allow you to draw a subset of objects that are in the camera view (result of the camera culling).  
+This pass will allow you to draw a subset of objects that are in the camera view (the result of the camera culling).  
 Here is how the inspector for the DrawRenderers pass looks like:
 
 ![CustomPassDrawRenderers_Inspector](Images/CustomPassDrawRenderers_Inspector.png)
@@ -121,11 +121,11 @@ Before Transparent            | Unlit + Lit forward only with refraction
 Before Post Process           | Unlit + Lit forward only with refraction
 After Post Process            | Unlit + Lit forward only with refraction
 
-If you try to render a material in a unsupported configuration, it will result in an undefined behavior. For example rendering lit objects during `After Opaque Depth And Normal` will produce unexpected results.
+If you try to render material in an unsupported configuration, it will result in an undefined behavior. For example rendering lit objects during `After Opaque Depth And Normal` will produce unexpected results.
 
 The pass name is also used to select which pass of the shader we will render, on a ShaderGraph or an HDRP unlit material it is useful because the default pass is the `SceneSelectionPass` and the pass used to render the object is `ForwardOnly`. You might also want to use the `DepthForwardOnly` pass if you want to only render the depth of the object.
 
-To create advanced effects, you can use the **Custom Renderers Pass** shader that will create an unlit one pass HDRP shader and inside the `GetSurfaceAndBuiltinData` function you will be able ot put your fragment shader code:
+To create advanced effects, you can use the **Custom Renderers Pass** shader that will create an unlit one pass HDRP shader and inside the `GetSurfaceAndBuiltinData` function you will be able to put your fragment shader code:
 
 ```HLSL
 // Put the code to render the objects in your custom pass in this function
@@ -219,7 +219,7 @@ class #SCRIPTNAME# : CustomPass
 {
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) {}
 
-    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult) {}
+    protected override void Execute(CustomPassContext ctx) {}
 
     protected override void Cleanup() {}
 }
@@ -233,7 +233,7 @@ To code your custom pass, you have three entry point:
 
 In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRenderContext](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.html) and a [CommandBuffer](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.html), these two classes contains everything you need to render pretty much everything but here we will focus on these two functions [ScriptableRenderContext.DrawRenderers](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.ScriptableRenderContext.DrawRenderers.html) and [CommandBuffer.DrawProcedural](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/Rendering.CommandBuffer.DrawProcedural.html).
 
-> **Important:** if the a shader is never referenced in any of your scenes it won't get built and the effect will not work when running the game outside of the editor. Either add it to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html) or put it in the **Always Included Shaders** list in `Edit -> Project Settings -> Graphics`. Be careful with this especially if you load shaders using `Shader.Find()` otherwise, you'll end up with a black screen.
+> **Important:** if the shader is never referenced in any of your scenes it won't get built and the effect will not work when running the game outside of the editor. Either add it to a [Resources folder](https://docs.unity3d.com/Manual/LoadingResourcesatRuntime.html) or put it in the **Always Included Shaders** list in `Edit -> Project Settings -> Graphics`. Be careful with this especially if you load shaders using `Shader.Find()` otherwise, you'll end up with a black screen.
 
 
 > **Pro Tips:**  
@@ -249,9 +249,13 @@ In the `Setup` and `Execute` functions, we gives you access to the [ScriptableRe
 
 Now that you have allocated your resources you're ready to start doing stuff in the `Execute` function.
 
+### CustomPassUtils API functions
+
+The CustomPassUtils class contains powerful utility functions to help you build your effects, to learn more, check out the [Custom Pass API User Manual](Custom-Pass-API-User-Manual.md).
+
 ### Calling a FullScreen Pass in C\#
 
-To do a FullScreen pass using a material, we uses `CoreUtils.DrawFullScreen` which under the hood call `DrawProcedural` on the Command Buffer in parameter. So when we do a FullScreen Pass the code looks like this:
+To do a FullScreen pass using a material, we uses `CoreUtils.DrawFullScreen` which under the hood call `DrawProcedural` on the Command Buffer. So when we do a FullScreen Pass the code looks like this:
 
 ```CSharp
 SetCameraRenderTarget(cmd); // Bind the camera color buffer along with depth without clearing the buffers.
@@ -261,9 +265,20 @@ CoreUtils.DrawFullScreen(cmd, material, shaderPassId: 0);
 
 Where `cmd` is the command buffer and shaderPassId is the equivalent of `Pass Name` in the UI but with indices instead. Note that in this example the `SetCameraRenderTarget` is optional because the render target bound when the `Execute` function is called is the one set in the UI with the `Target Color Buffer` and `Target Depth Buffer` fields.
 
-### Calling DrawRenderers inC\#
+Alternatively, you can also use HDUtils.DrawFullScreen function which takes in parameter the buffer you want to write to, like this:
+```CSharp
+HDUtils.DrawFullScreen(cmd, material, targetBuffer, shaderPassId: shaderPassId);
+```
 
-Calling the DrawRenderers function on the ScriptableRenderContext require a lot of boilerplate code and to simplify this, HDRP provides a simpler interface:
+### Calling DrawRenderers in C\#
+
+Calling the DrawRenderers function on the ScriptableRenderContext require a lot of boilerplate code and to simplify this, the CustomPassUtils class provides a function that takes less arguments:
+
+```CSharp
+CustomPassUtils.DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overideMaterialIndex = 0)
+```
+
+But because it is simpler, it is also less flexible so you'll probably need more controls and in this case you can use this more complex syntax:
 
 ```CSharp
 var result = new RendererListDesc(shaderTags, cullingResult, hdCamera.camera)
@@ -284,9 +299,11 @@ For the `renderQueueRange`, you can use the `GetRenderQueueRange` function in th
 
 > **⚠️ WARNING: Be careful with the override material pass index:** when you call the DrawRenderers with an [override material](https://docs.unity3d.com/ScriptReference/Rendering.DrawingSettings-overrideMaterial.html), then you need to select which pass you're going to render using the override material pass index. But in build, this index can be changed after that the shader stripper removed passes from shader (like every HDRP shaders) and that will shift the pass indices in the shader and so your index will become invalid. To prevent this issue, we recommend to store the name of the pass and then use `Material.FindPass` when issuing the draw.
 
+> **⚠️ WARNING: Opaque objects may not be visible** if they are rendered only during the custom pass, because we assume that they already are in the depth pre-pass, we set the `Depth Test` to `Depth Equal`. Because of this you may need to override the `Depth Test` to `Less Equal` using the `depthState` property of the [RenderStateBlock](https://docs.unity3d.com/ScriptReference/Rendering.RenderStateBlock.html).
+
 ### Scripting the volume component
 
-You can retrieve the `CustomPassVolume` in script using [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) and access most of the things available from the UI like `isGlobal`, `fadeRadius` and `injectionPoint`.
+You can retrieve the `CustomPassVolume` in a script using [GetComponent](https://docs.unity3d.com/2019.3/Documentation/ScriptReference/GameObject.GetComponent.html) and access most of the things available from the UI like `isGlobal`, `fadeRadius` and `injectionPoint`.
 
 You can also dynamically change the list of Custom Passes executed by modifying the `customPasses` list.
 
@@ -323,7 +340,24 @@ When you create a custom pass drawer, even if your DoPassGUI is empty, you'll ha
 protected override PassUIFlag commonPassUIFlags => PassUIFlag.Name | PassUIFlag.TargetColorBuffer;
 ```
 
-### Other API functions
+### Troubleshooting
+
+#### Scaling issues
+
+They can appear when you have two cameras that are not using the same resolution (most common case in-game and scene views) and can be caused by:
+
+- Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
+- In the shader, a missing multiplication by `_RTHandleScale.xy` for the UVs when sampling an RTHandle buffer.
+
+#### Shuriken Particle System
+
+When you render a particle system that is only visible in the custom pass and your particles are facing the wrong direction it's probably because you didn't override the `AggregateCullingParameters`. The orientation of the particles in Shuriken is computed during the culling so if you don't have the correct setup it will not be rendered properly.
+
+#### Decals
+
+Decals applied on objects rendered with custom passes will only be applied to transparent objects rendered after the `After Depth and Normal` injection point. Decals will be ignored with Opaque objects.
+
+#### Culling issues
 
 Sometimes you want to render objects only in a custom pass and not in the camera. To achieve this, you disable the layer of your objects in the camera culling mask, but it also means that the cullingResult you receive in the `Execute` function won't contain this object (because by default this cullingResult is the camera cullingResult). To overcome this issue, you can override this function in the CustomPass class:
 
@@ -331,18 +365,20 @@ Sometimes you want to render objects only in a custom pass and not in the camera
 protected virtual void AggregateCullingParameters(ref ScriptableCullingParameters cullingParameters, HDCamera camera) {}
 ```
 
-it will allow you to add more layers / custom culling option to the cullingResult you receive in the `Execute` function.
+it will allow you to add more layers / custom culling options to the cullingResult you receive in the `Execute` function.
 
-> **⚠️ WARNING: Opaque objects may not be visible** if they are rendered only during the custom pass, because we assume that they already are in the depth pre-pass, we set the `Depth Test` to `Depth Equal`. Because of this you may need to override the `Depth Test` to `Less Equal` using the `depthState` property of the [RenderStateBlock](https://docs.unity3d.com/ScriptReference/Rendering.RenderStateBlock.html).
+## How to debug ?
 
-### Troubleshooting
+When writing your effect, you'll probably arrive at a point where you want to debug and analyze what's going on.
 
-**Scaling issues**, they can appear when you have two cameras that are not using the same resolution (most common case in game and scene views) and can be caused by:
+The frame debugger is here to help you, enabling it in the game view allow you to examine every draw calls you issued in the custom pass. To find your pass, you just need to search for the name of custom pass you set in the UI.  
+For example, in this image I'm debugging the outline pass which I called "My Outline Pass" in the inspector:
+![](Images/CustomPass_FrameDebugger.png)
 
-- Calls to [CommandBuffer.SetRenderTarget()](https://docs.unity3d.com/ScriptReference/Rendering.CommandBuffer.SetRenderTarget.html) instead of [CoreUtils.SetRenderTarget()](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest/index.html?subfolder=/api/UnityEngine.Rendering.CoreUtils.html#UnityEngine_Rendering_CoreUtils_SetRenderTarget_CommandBuffer_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_RTHandle_UnityEngine_Rendering_ClearFlag_System_Int32_CubemapFace_System_Int32_). Note that the CoreUtils one also sets the viewport.
-- In the shader, a missing multiplication by `_RTHandleScale.xy` for the UVs when sampling an RTHandle buffer.
-
-**Shuriken Particle System**, when you render a particle system that is only visible in the custom pass and your particles are facing the wrong direction it's probably because you didn't override the `AggregateCullingParameters`. The orientation of the particles in Shuriken is computed during the culling so if you don't have the correct setup it will not be rendered properly.
+You can now clearly see the steps executed by the custom pass:
+- `Clear` on the 'Outline Buffer'
+- `RenderLoopNewBatcher.Draw` is a call to DrawRenderers, it will draw meshes we selected using the SRP Batcher.
+- `Draw Procedural` is our fullscreen pass which takes the outline buffer in parameter and blits the outline to our camera color buffer.
 
 ## Example: Glitch Effect (without code)
 
@@ -389,57 +425,34 @@ class Outline : CustomPass
     Shader                  outlineShader;
 
     Material                fullscreenOutline;
-    MaterialPropertyBlock   outlineProperties;
-    ShaderTagId[]           shaderTags;
     RTHandle                outlineBuffer;
 
     protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
     {
         outlineShader = Shader.Find("Hidden/Outline");
         fullscreenOutline = CoreUtils.CreateEngineMaterial(outlineShader);
-        outlineProperties = new MaterialPropertyBlock();
-
-        // List all the materials that will be replaced in the frame
-        shaderTags = new ShaderTagId[3]
-        {
-            new ShaderTagId("Forward"),
-            new ShaderTagId("ForwardOnly"),
-            new ShaderTagId("SRPDefaultUnlit"),
-        };
 
         outlineBuffer = RTHandles.Alloc(
             Vector2.one, TextureXR.slices, dimension: TextureXR.dimension,
-            colorFormat: GraphicsFormat.B10G11R11_UFloatPack32,
+            colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // We don't need alpha for this effect
             useDynamicScale: true, name: "Outline Buffer"
         );
     }
 
-    void DrawOutlineMeshes(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult)
+    protected override void Execute(CustomPassContext ctx)
     {
-        var result = new RendererListDesc(shaderTags, cullingResult, hdCamera.camera)
-        {
-            // We need the lighting render configuration to support rendering lit objects
-            rendererConfiguration = PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.Lightmaps,
-            renderQueueRange = RenderQueueRange.all,
-            sortingCriteria = SortingCriteria.BackToFront,
-            excludeObjectMotionVectors = false,
-            layerMask = outlineLayer,
-        };
+        // Render meshes we want to outline in the outline buffer
+        CoreUtils.SetRenderTarget(ctx.cmd, outlineBuffer, ClearFlag.Color);
+        CustomPassUtils.DrawRenderers(ctx, outlineLayer);
 
-        CoreUtils.SetRenderTarget(cmd, outlineBuffer, ClearFlag.Color);
-        HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(result));
-    }
+        // Setup outline effect properties
+        ctx.propertyBlock.SetColor("_OutlineColor", outlineColor);
+        ctx.propertyBlock.SetTexture("_OutlineBuffer", outlineBuffer);
+        ctx.propertyBlock.SetFloat("_Threshold", threshold);
 
-    protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera camera, CullingResults cullingResult)
-    {
-        DrawOutlineMeshes(renderContext, cmd, camera, cullingResult);
-
-        SetCameraRenderTarget(cmd);
-
-        outlineProperties.SetColor("_OutlineColor", outlineColor);
-        outlineProperties.SetTexture("_OutlineBuffer", outlineBuffer);
-        outlineProperties.SetFloat("_Threshold", threshold);
-        CoreUtils.DrawFullScreen(cmd, fullscreenOutline, outlineProperties, shaderPassId: 0);
+        // Render the outline as a fullscreen alpha-blended pass on top of the camera color
+        CoreUtils.SetRenderTarget(ctx.cmd, ctx.cameraColorBuffer, ClearFlag.None);
+        CoreUtils.DrawFullScreen(ctx.cmd, fullscreenOutline, ctx.propertyBlock, shaderPassId: 0);
     }
 
     protected override void Cleanup()
@@ -465,7 +478,7 @@ Shader "Hidden/Outline"
     #pragma vertex Vert
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassCommon.hlsl"
 

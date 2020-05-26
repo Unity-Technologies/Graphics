@@ -229,6 +229,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
+        
+        [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         [SerializeField]
         bool m_AlphaTestDepthPrepass;
@@ -717,7 +732,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Eye.MotionVectors)),
+                                                                                        !pass.Equals(HDEyeSubTarget.EyePasses.MotionVectors)),
 
                 // Material
                 new ConditionalField(HDFields.Eye,                                  materialType == MaterialType.Eye),
@@ -732,6 +747,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Misc
                 new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
                 new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                            alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
@@ -862,12 +878,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, RequiresSplitLighting(), receiveSSR.isOn, receiveSSR.isOn, false);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
@@ -876,8 +893,11 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, false);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }
+
+        public bool supportsVirtualTexturing => true;
     }
 }

@@ -293,6 +293,15 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                         toggle.OnToggleChanged(ChangeAlphaTestShadow);
                     });
                 });
+
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
+                    });
+                });
                 --indentLevel;
             }
 
@@ -340,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel((m_Node.surfaceType == SurfaceType.Transparent) ? "Receive SSR Transparent" : "Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
@@ -707,6 +716,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             ToggleData td = m_Node.supportLodCrossFade;
             td.isOn = evt.newValue;
             m_Node.supportLodCrossFade = td;
+        }
+
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
         }
 
         void ChangeZWrite(ChangeEvent<bool> evt)
