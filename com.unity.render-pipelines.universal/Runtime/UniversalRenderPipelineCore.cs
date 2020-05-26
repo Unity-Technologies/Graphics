@@ -140,8 +140,6 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool IsCameraProjectionMatrixFlipped()
         {
-            // Users only have access to CameraData on URP rendering scope. The current renderer should never be null.
-            var renderer = ScriptableRenderer.current;
             Debug.Assert(renderer != null, "IsCameraProjectionMatrixFlipped is being called outside camera rendering scope.");
 
             if (renderer != null)

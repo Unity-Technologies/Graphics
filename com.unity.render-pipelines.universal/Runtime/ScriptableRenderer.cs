@@ -82,13 +82,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// The renderer we are currently rendering with, for low-level render control only.
-        /// <c>current</c> is null outside rendering scope.
-        /// Similar to https://docs.unity3d.com/ScriptReference/Camera-current.html
-        /// </summary>
-        internal static ScriptableRenderer current = null;
-
-        /// <summary>
         /// Set camera matrices. This method will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to camera matrices.
         /// Additionally this will also set <c>unity_CameraProjection</c> and <c>unity_CameraProjection</c>.
         /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
@@ -339,7 +332,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if camera depth is none, this means we have a created depth implicitly by
                     // requesting a color texture + depth bits
-                    if (current.cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
+                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
                         return cameraColorTarget;
                     
                     return cameraDepth;
@@ -627,6 +620,7 @@ namespace UnityEngine.Rendering.Universal
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+            renderPass.Configure(cmd, renderingData);
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
@@ -850,6 +844,20 @@ namespace UnityEngine.Rendering.Universal
                 depthAttachment, depthLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
+        internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, ClearFlag clearFlag, Color clearColor)
+        {
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.None;
+            
+            RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
+                RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
+
+            SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
+        }
+
         static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
@@ -873,7 +881,7 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor)
         {
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
-			if (depthAttachment == GetRenderTexture(UniversalRenderTextureType.CameraTarget) ||
+            if (depthAttachment == GetRenderTexture(UniversalRenderTextureType.CameraTarget) ||
                 depthAttachment == GetRenderTexture(UniversalRenderTextureType.None))
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);

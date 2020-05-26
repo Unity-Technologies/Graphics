@@ -88,13 +88,13 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="depthType">Render texture type to use as depth render texture.</param>
         /// <seealso cref="Configure"/>
         /// <seealso cref="UniversalRenderTextureType"/>
-        public void ConfigureTarget(UniversalRenderTextureType colorType, UniversalRenderTextureType depthType = UniversalRenderTextureType.None)
-        {
-            var renderer = ScriptableRenderer.current;
-            var colorBuffer = renderer.GetRenderTexture(colorType);
-            var depthBuffer = renderer.GetRenderTexture(depthType);
-            ConfigureTarget(colorBuffer, depthBuffer);
-        }
+//        public void ConfigureTarget(UniversalRenderTextureType colorType, UniversalRenderTextureType depthType = UniversalRenderTextureType.None)
+//        {
+//            var renderer = ScriptableRenderer.current;
+//            var colorBuffer = renderer.GetRenderTexture(colorType);
+//            var depthBuffer = renderer.GetRenderTexture(depthType);
+//            ConfigureTarget(colorBuffer, depthBuffer);
+//        }
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -191,7 +191,9 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ConfigureClear"/>
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
-
+        
+        public virtual void Configure(CommandBuffer cmd, RenderingData renderingData)
+        {}
 
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created
@@ -235,8 +237,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="ScriptableRenderer"/>
         public void Blit(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier destination, Material material = null, int passIndex = 0)
         {
-            var renderer = ScriptableRenderer.current;
-            renderer.SetRenderTarget(cmd, destination, renderer.GetRenderTexture(UniversalRenderTextureType.CameraTarget), clearFlag, clearColor);
+            ScriptableRenderer.SetRenderTarget(cmd, destination, clearFlag, clearColor);
             cmd.Blit(source, destination, material, passIndex);
         }
 
