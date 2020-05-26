@@ -10,8 +10,13 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static readonly HDCameraData k_DefaultInstance = new HDCameraData();
 
         // Temporary wrappers
-        public Camera camera => Camera.current;
+        public Camera camera => m_Owner;
         public string name => camera.name;
+
+        [NonSerialized]
+        Camera m_Owner;
+
+        void Camera.IAdditionalData.Awake(Camera owner) => m_Owner = owner;
 
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.

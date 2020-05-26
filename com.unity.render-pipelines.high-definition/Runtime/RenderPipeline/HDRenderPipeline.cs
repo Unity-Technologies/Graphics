@@ -1770,11 +1770,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
-                        if (!(camera.additionalData is HDCameraData))
-                            camera.AddExtension(typeof(HDCameraData));
-
-                        var additionalCameraData = (HDCameraData)camera.additionalData;
-
+                        var additionalCameraData = camera.ChangeActiveExtentionTo<HDCameraData>(true);
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
@@ -1822,8 +1818,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
 
-                        HDCameraData hdCam;
-                        camera.TryGetComponent<HDCameraData>(out hdCam);
+                        var hdCam = camera.ChangeActiveExtentionTo<HDCameraData>(true);
                         hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
                                 ? HDCameraData.FlipYMode.ForceFlipY
                                 : HDCameraData.FlipYMode.Automatic;
@@ -2050,8 +2045,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
-                                HDCameraData acd;
-                                if (renderRequest.hdCamera.camera.TryGetComponent<HDCameraData>(out acd) && acd.xrRendering)
+                                var acd = (HDCameraData)renderRequest.hdCamera.camera.additionalData;
+                                if (acd != null && acd.xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
                                 }
