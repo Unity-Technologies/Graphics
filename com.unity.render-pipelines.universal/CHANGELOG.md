@@ -92,6 +92,7 @@ The version number for this package has increased due to a version update of a r
 - Default color values for Lit and SimpleLit shaders changed to white due to issues with texture based workflows.
 
 ### Fixed
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
 - Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
