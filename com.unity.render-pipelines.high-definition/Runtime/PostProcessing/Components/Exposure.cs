@@ -86,10 +86,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter adaptationSpeedLightToDark = new MinFloatParameter(1f, 0.001f);
 
         /// <summary>
-        /// Sets the texture mask used to weight the pixels in the buffer when computing exposure. Used only with .
+        /// Sets the texture mask used to weight the pixels in the buffer when computing exposure.
         /// </summary>
-        [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure..")]
+        [Tooltip("Sets the texture mask to be used to weight the pixels in the buffer for the sake of computing exposure.")]
         public NoInterpTextureParameter weightTextureMask = new NoInterpTextureParameter(null);
+
+        /// <summary>
+        /// These values are the lower and upper percentages of the histogram that will be used to
+        /// find a stable average luminance. Values outside of this range will be discarded and won't
+        /// contribute to the average luminance.
+        /// </summary>
+        [Tooltip("Sets the range of values (in terms of percentages) of the histogram that are accepted while finding a stable average exposure. Anything outside the value is discarded.")]
+        public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(40.0f, 90.0f), 0.0f, 100.0f);
+
+        /// <summary>
+        /// Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode)
+        /// </summary>
+        [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
+        public BoolParameter histogramUseCurveRemapping = new BoolParameter(false);
 
         /// <summary>
         /// Tells if the effect needs to be rendered or not.
@@ -116,6 +130,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Automatically sets the exposure depending on what is on screen.
         /// </summary>
         Automatic,
+
+        /// <summary>
+        /// Automatically sets the exposure depending on what is on screen and can filter out outliers based on provided settings.
+        /// </summary>
+        AutomaticHistogram,
 
         /// <summary>
         /// Maps the current Scene exposure to a custom curve.
