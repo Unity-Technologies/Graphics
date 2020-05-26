@@ -84,22 +84,6 @@ namespace UnityEngine.Rendering.Universal
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
         /// </summary>
-        /// <param name="colorType">Render texture type to use as color render texture.</param>
-        /// <param name="depthType">Render texture type to use as depth render texture.</param>
-        /// <seealso cref="Configure"/>
-        /// <seealso cref="UniversalRenderTextureType"/>
-//        public void ConfigureTarget(UniversalRenderTextureType colorType, UniversalRenderTextureType depthType = UniversalRenderTextureType.None)
-//        {
-//            var renderer = ScriptableRenderer.current;
-//            var colorBuffer = renderer.GetRenderTexture(colorType);
-//            var depthBuffer = renderer.GetRenderTexture(depthType);
-//            ConfigureTarget(colorBuffer, depthBuffer);
-//        }
-
-        /// <summary>
-        /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
-        /// This method should be called inside Configure.
-        /// </summary>
         /// <param name="colorAttachment">Color attachment identifier.</param>
         /// <param name="depthAttachment">Depth attachment identifier.</param>
         /// <seealso cref="Configure"/>
@@ -189,11 +173,27 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraTextureDescriptor">Render texture descriptor of the camera render target.</param>
         /// <seealso cref="ConfigureTarget"/>
         /// <seealso cref="ConfigureClear"/>
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
-        
+
         public virtual void Configure(CommandBuffer cmd, RenderingData renderingData)
-        {}
+        {
+            // if overrideCameraTarget is true that means derived class has configure camera target
+            // in that case we do nothing, otherwise we configure camera target with default (render to camera target)
+            if (!overrideCameraTarget)
+            {
+                var renderer = renderingData.cameraData.renderer;
+                var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
+                var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
+                ConfigureTarget(colorBuffer, depthBuffer);
+                ConfigureClear(clearFlag, clearColor);
+            }
+            else
+            {
+                Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
+            }
+        }
 
         /// <summary>
         /// Called upon finish rendering a camera. You can use this callback to release any resources created

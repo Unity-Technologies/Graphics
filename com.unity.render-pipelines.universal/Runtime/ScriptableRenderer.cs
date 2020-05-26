@@ -619,7 +619,6 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-            renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.Configure(cmd, renderingData);
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
@@ -630,14 +629,6 @@ namespace UnityEngine.Rendering.Universal
 
             RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
             RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
-
-            // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-            // which might be backbuffer or the framebuffer render textures.
-            if (!renderPass.overrideCameraTarget)
-            {
-                passColorAttachment = m_CameraColorTarget;
-                passDepthAttachment = m_CameraDepthTarget;
-            }
 
             var renderTextureNone = GetRenderTexture(UniversalRenderTextureType.None);
             if (passColorAttachment == currentActiveTarget)
