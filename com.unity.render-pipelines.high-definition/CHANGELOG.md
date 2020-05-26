@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
+### Fixed
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+
 ## [8.1.0] - 2020-04-21
 
 ### Added
@@ -74,6 +77,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.

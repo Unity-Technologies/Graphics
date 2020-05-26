@@ -6,12 +6,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- The 2D Renderer now supports camera stacking.
+
 ### Fixed
 - Fixed an issue where grid lines were being drawn on top of opaque objects in the preview window [case 1240723](https://issuetracker.unity3d.com/issues/urp-grid-is-rendered-in-front-of-the-model-in-the-inspector-animation-preview-window-when-depth-or-opaque-texture-is-enabled)
 - Fixed an issue where objects in the preview window were being affected by layer mask settings in the default renderer [case 1204376](https://issuetracker.unity3d.com/issues/urp-prefab-preview-is-blank-when-a-custom-forward-renderer-data-and-default-layer-mask-is-mixed-are-used)
 - Fixed issues with performance when importing fbx files
 - Fixed issues with NullReferenceException happening with URP shaders
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering playmode.
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
 - Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
 - Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
 - Fixed UI text of RenderObjects feature to display LightMode tag instead of Shader Pass Name. [case 1201696](https://issuetracker.unity3d.com/issues/render-feature-slash-pass-ui-has-a-field-for-shader-pass-name-when-it-actually-expects-shader-pass-lightmode)
@@ -169,6 +174,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
 - Fixed an issue where Post-Processing caused nothing to render on GLES2.
 - Fixed an issue that caused depth texture to be flipped when sampling from shaders [case 1225362](https://issuetracker.unity3d.com/issues/game-object-is-rendered-incorrectly-in-the-game-view-when-sampling-depth-texture)
+- Fixed an issue with not being able to remove Light Mode Tags [case 1240895](https://issuetracker.unity3d.com/issues/urp-unable-to-remove-added-lightmode-tags-of-filters-property-in-render-object)
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
