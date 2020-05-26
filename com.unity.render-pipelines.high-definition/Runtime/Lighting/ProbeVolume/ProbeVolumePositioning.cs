@@ -37,23 +37,84 @@ namespace UnityEngine.Rendering.HighDefinition
             return IntersectsProbeVolume(ref refTrans, brick);
         }
 
-        // TODO: Full OBB-OBB collision, perhaps using SAT. Take refvol translation and rotation into account
+        // TODO: Take refvol translation and rotation into account
         internal static bool IntersectsProbeVolume(ref RefTrans refTrans, Brick brick)
         {
-            Vector3 scaledSize = refTrans.scale * Mathf.Pow(3, brick.size) * Vector3.one;
-            Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position) + scaledSize / 2;
-            Bounds bounds = new Bounds(scaledPos, scaledSize);
+            float scaledSize = Mathf.Pow(3, brick.size);
+            Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
-            bool result = false;
+            Volume bounds;
+            bounds.Corner = scaledPos;
+            bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
+            bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
+            bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
+
             foreach (ProbeVolume v in ProbeVolumeManager.manager.volumes)
             {
                 var OBB = new Volume(Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.parameters.size));
-                if (bounds.Intersects(OBB.CalculateAABB()))
+                if (OBBIntersect(ref bounds, ref OBB))
                 {
-                    result = true;
+                    return true;
                 }
             }
-            return result;
+
+            return false;
+        }
+
+        internal static bool OBBIntersect(ref Volume a, ref Volume b)
+        {
+            Vector3[] axises =
+            {
+                a.X.normalized,
+                a.Y.normalized,
+                a.Z.normalized,
+                b.X.normalized,
+                b.Y.normalized,
+                b.Z.normalized
+            };
+
+            foreach (Vector3 axis in axises)
+            {
+                Vector2 aProj = ProjectOBB(ref a, axis);
+                Vector2 bProj = ProjectOBB(ref b, axis);
+
+                if (aProj.y < bProj.x || bProj.y < aProj.x)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static Vector2 ProjectOBB(ref Volume a, Vector3 axis)
+        {
+            float min = Vector3.Dot(axis, a.Corner);
+            float max = min;
+
+            for (int x = 0; x < 2; x++)
+            {
+                for (int y = 0; y < 2; y++)
+                {
+                    for (int z = 0; z < 2; z++)
+                    {
+                        Vector3 vert = a.Corner + a.X * x + a.Y * y + a.Z * z;
+
+                        float proj = Vector3.Dot(axis, vert);
+
+                        if (proj < min)
+                        {
+                            min = proj;
+                        }
+                        else if (proj > max)
+                        {
+                            max = proj;
+                        }
+                    }
+                }
+            }
+
+            return new Vector2(min, max);
         }
     }
 }
