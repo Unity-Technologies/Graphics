@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
 
 ### Fixed
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
 - Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
