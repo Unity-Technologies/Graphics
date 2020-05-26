@@ -52,6 +52,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
 - URP shaders that contain a priority slider now no longer have an offset of 50 by default.
 - Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was smapled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project.
 
 ## [7.3.0] - 2020-03-11
 
