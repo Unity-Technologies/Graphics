@@ -51,6 +51,13 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: 54443f41976c13246b6b67ce1dc2a06f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
+  - FilteredScene: {fileID: 102900000, guid: 54443f41976c13246b6b67ce1dc2a06f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
@@ -142,6 +149,13 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: c9a611601b514da47a39335dc899c5f3, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
+  - FilteredScene: {fileID: 102900000, guid: c9a611601b514da47a39335dc899c5f3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
@@ -212,17 +226,24 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Not working
-  - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -272,6 +293,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 9bdb6076c41f9d64099cfd338b8f4c8b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: 9bdb6076c41f9d64099cfd338b8f4c8b, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -377,6 +405,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable
+  - FilteredScene: {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: c64196eb7ce78e84bb835b2ea858ee19, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
