@@ -72,44 +72,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
-
-        // System data specific fields:
-        protected void AddSystemDataFields(ref TargetFieldContext context)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            // Features
-            context.AddField(Fields.LodCrossFade,          systemData.supportLodCrossFade);
-
+            // Common properties between all HD master nodes
             // Surface Type
             context.AddField(Fields.SurfaceOpaque,         systemData.surfaceType == SurfaceType.Opaque);
             context.AddField(Fields.SurfaceTransparent,    systemData.surfaceType != SurfaceType.Opaque);
 
             // Dots
             context.AddField(HDFields.DotsInstancing,      systemData.dotsInstancing);
-
-            // Blend Mode
-            context.AddField(Fields.BlendAdd,              systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
-            context.AddField(Fields.BlendAlpha,            systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
-            context.AddField(Fields.BlendPremultiply,      systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
-
-            // Double Sided
-            context.AddField(HDFields.DoubleSided,         systemData.doubleSidedMode != DoubleSidedMode.Disabled);
-
-            // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,             systemData.alphaTest
-                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
-                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
-
-            context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass
-                && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass
-                && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
-
-            context.AddField(HDFields.TransparentDepthPrePass,              systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,             systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
         }
+
+        protected abstract IEnumerable<SubShaderDescriptor> EnumerateSubShaders();
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+            var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, null, null);
+            AddInspectorPropertyBlocks(gui);
+            context.Add(gui);
+        }
+
+        protected abstract void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList);
 
         public override object saveContext
         {

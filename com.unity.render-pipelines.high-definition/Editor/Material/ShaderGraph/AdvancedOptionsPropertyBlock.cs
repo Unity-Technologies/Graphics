@@ -1,0 +1,34 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.ShaderGraph;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
+using UnityEngine;
+
+// We share the name of the properties in the UI to avoid duplication
+using static UnityEditor.Rendering.HighDefinition.AdvancedOptionsUIBlock.Styles;
+using static UnityEditor.Rendering.HighDefinition.SurfaceOptionUIBlock.Styles;
+
+namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
+{
+    class AdvancedOptionsPropertyBlock : SubTargetPropertyBlock
+    {
+        class Styles
+        {
+            public static GUIContent overrideBakedGI = new GUIContent("Override Baked GI", "TODO");
+            public static GUIContent supportLodCrossFade = new GUIContent("Support LOD CrossFade", "TODO");
+        }
+
+        protected override string title => "Advanced Options";
+        protected override int foldoutIndex => 3;
+
+        protected override void CreatePropertyGUI()
+        {
+            AddProperty(specularOcclusionModeText, () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
+            AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
+            AddProperty(Styles.supportLodCrossFade, () => systemData.supportLodCrossFade, (newValue) => systemData.supportLodCrossFade = newValue);
+        }
+    }
+}

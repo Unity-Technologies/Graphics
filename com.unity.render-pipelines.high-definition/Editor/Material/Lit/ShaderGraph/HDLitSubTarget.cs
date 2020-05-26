@@ -46,12 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            AddSystemDataFields(ref context);
+            base.GetFields(ref context);
             AddDistortionFields(ref context);
-            AddNormalDropOffFields(ref context);
-            AddSpecularOcclusionFields(ref context);
-            AddSurfaceMiscFields(ref context);
-            AddLitMiscFields(ref context);
 
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
@@ -98,8 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
-            AddVertexBlocks(ref context);
-            AddSurfaceBlocks(ref context);
+            base.GetActiveBlocks(ref context);
             AddDistortionBlocks(ref context);
             AddNormalBlocks(ref context);
 
@@ -126,63 +121,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                                         litData.materialType == HDLitData.MaterialType.Iridescence);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
-        {
-            // TODO
-            // SystemDataPropertiesGUI.AddProperties(systemData, ref context, onChange, registerUndo);
-            // var settingsView = new HDLitSettingsView(this);
-            // settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
-        }
-
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
-            // ShaderGraph doesn't use this property, so currently it inserts a dummy color (white). This dummy color may be removed entirely once the following PR has been merged in trunk: Pull request #74105
-            // The user will then need to explicitly disable emissive GI if it is not needed.
-            // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
-            // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
-            {
-                overrideReferenceName = "_EmissionColor",
-                hidden = true,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
-            });
-            // ShaderGraph only property used to send the RenderQueueType to the material
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = "_RenderQueueType",
-                hidden = true,
-                value = (int)systemData.renderingPass,
-            });
+            base.CollectShaderProperties(collector, generationMode);
 
-            //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering, lightingData.receiveSSR, litData.receiveSSRTransparent);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                systemData.surfaceType,
-                systemData.blendMode,
-                systemData.sortPriority,
-                builtinData.alphaToMask,
-                systemData.zWrite,
-                systemData.transparentCullMode,
-                systemData.zTest,
-                builtinData.backThenFrontRendering,
-                builtinData.transparencyFog
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
             HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
+        }
+
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
+        {
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            blockList.AddPropertyBlock(new DistortionPropertyBlock());
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         public override void ProcessPreviewMaterial(Material material)

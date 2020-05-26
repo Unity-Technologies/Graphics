@@ -79,10 +79,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            // SystemDataPropertiesGUI.AddProperties(ref context, onChange, registerUndo);
-            // DecalDataPropertiesGUI.
+            // blockList.AddPropertyBlock(new DecalPropertyBlock());
         }
 
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
