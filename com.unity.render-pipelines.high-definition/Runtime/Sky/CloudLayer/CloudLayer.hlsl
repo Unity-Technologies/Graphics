@@ -18,8 +18,8 @@ float4 _CloudParam; // x upper hemisphere only, y scroll factor, zw scroll direc
 float3 sampleCloud(float3 dir, float3 sky)
 {
     float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, GetLatLongCoords(dir, _CloudUpperHemisphere), 0);
-    float f = max(sky.x, max(sky.y, max(sky.z, 1.0))); // factor to balance sky exposure, there may be a better solution
-    return lerp(sky, cloudLayerColor.rgb*f, cloudLayerColor.a);
+    float f = (sky.r+sky.g+sky.b) / 3.0;
+    return lerp(sky, (cloudLayerColor.rgb + 1.0) * f,cloudLayerColor.a);
 }
 
 float3 CloudRotationUp(float3 p, float2 cos_sin)

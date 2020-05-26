@@ -126,7 +126,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     {
         const float alpha = (_GroundLevel - _WorldSpaceCameraPos.y)/dir.y;
 
-        return (float3)_WorldSpaceCameraPos + alpha*dir;
+        return _WorldSpaceCameraPos + alpha*dir;
     }
 
     float GetSDF(out float scale, float2 position)
@@ -299,7 +299,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float blend;
         if (IsBackplateHitWithBlend(finalPos, blend, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - (float3)_WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
         }
         else
         {
@@ -338,7 +338,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float depth;
         if (IsBackplateHit(finalPos, viewDirWS))
         {
-            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - (float3)_WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
+            depth = ComputeNormalizedDeviceCoordinatesWithZ(finalPos - _WorldSpaceCameraPos, UNITY_MATRIX_VP).z;
         }
         else
         {
