@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public int GBufferLightingIndex { get { return 3; } }
         public int GBufferAdditionalDepthIndex { get { return 4; }}
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-        public int GBufferSliceCount { get { return 5; } }
+        public int GBufferSliceCount { get { return SystemInfo.supportedRenderTargetCount > 4 ? 5 : 4; } }
 #else
         public int GBufferSliceCount { get { return 4; } }
 #endif
@@ -299,7 +299,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             GBufferDescriptors[GBufferNormalSmoothnessIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferNormalSmoothnessIndex));
             // Skipping GBufferDescriptors[GBufferLightingIndex] as it's set in EnqueueDeferred as active camera color descriptor
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            GBufferDescriptors[GBufferAdditionalDepthIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferAdditionalDepthIndex));
+            if (SystemInfo.supportedRenderTargetCount > 4)
+                GBufferDescriptors[GBufferAdditionalDepthIndex] = new AttachmentDescriptor(GetGBufferFormat(GBufferAdditionalDepthIndex));
 #endif
             // Initialize hierarchical tilers. Next tiler processes 4x4 of the tiles of the previous tiler.
             // Tiler 0 has finest tiles, coarser tilers follow.
@@ -591,7 +592,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             deferredInputs[2] = GBufferDescriptors[GBufferNormalSmoothnessIndex];
             // Passing the last element of GBufferDescriptors for it to be the correct depth input
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            deferredInputs[3] = GBufferDescriptors[GBufferAdditionalDepthIndex];
+            deferredInputs[3] = SystemInfo.supportedRenderTargetCount > 4 ? GBufferDescriptors[GBufferAdditionalDepthIndex] : deferredDepthInput;
 #else
             deferredInputs[3] = deferredDepthInput;
 #endif

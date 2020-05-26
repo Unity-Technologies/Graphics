@@ -41,7 +41,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             gBufferAttachments[2] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferNormalSmoothnessIndex];
             gBufferAttachments[3] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferLightingIndex];
 #if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            gBufferAttachments[4] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAdditionalDepthIndex];
+            if (SystemInfo.supportedRenderTargetCount > 4)
+                gBufferAttachments[4] = m_DeferredLights.GBufferDescriptors[deferredLights.GBufferAdditionalDepthIndex];
 #endif
         }
 
