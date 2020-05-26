@@ -10,7 +10,9 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class TargetPropertyGUIContext : VisualElement
     {
-        const int kIndentWidthInPixel = 20;
+        const int kIndentWidthInPixel = 15;
+
+        public int globalIndentLevel {get; set;} = 0;
 
         public TargetPropertyGUIContext()
         {
@@ -61,7 +63,7 @@ namespace UnityEditor.ShaderGraph
 
         void ApplyPadding(VisualElement element, int indentLevel)
         {
-            element.style.paddingLeft = indentLevel * kIndentWidthInPixel;
+            element.style.paddingLeft = (globalIndentLevel + indentLevel) * kIndentWidthInPixel;
         }
     }
 }
