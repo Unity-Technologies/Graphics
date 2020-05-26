@@ -17,9 +17,11 @@ static DirectionalShadowType g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
-RW_TEXTURE2D_X(uint, _DebugQuadLockUAV) :register(u2);
-RW_TEXTURE2D_X(uint, _DebugQuadOverdrawUAV) :register(u3);
-RW_TEXTURE2D_X(uint, _DebugVertexDensityUAV) :register(u4);
+// For quad overdraw, we need two halfscreen UAV (because a quad is 2x2 pixels). For vertex density, we need one fullscreen UAV.
+// These modes are exclusive so we make only one fullscreen allocation for both.
+// For vertex density, it stores the number of vertex projected in each pixel.
+// For quad overdraw, each 2x2 quad of the UAV contains the overdraw count in top-left pixel and the locked quad in the bottom-right pixel. The two other pixels of the quad are unused.
+RW_TEXTURE2D_X(uint, _DebugDisplayUAV) :register(u2);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
@@ -256,7 +258,7 @@ void IncrementVertexDensityCounter(float4 positionCS)
     if (all(ndc == saturate(ndc)))
     {
         uint2 pixel = (uint2)(ndc.xy * _ScreenSize.xy);
-        InterlockedAdd(_DebugVertexDensityUAV[COORD_TEXTURE2D_X(pixel)], 1);
+        InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(pixel)], 1);
     }
 }
 

@@ -3524,8 +3524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugQuadLockRTI());
-                cmd.SetRandomWriteTarget(3, m_SharedRTManager.GetDebugQuadOverdrawRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayBufferRTI());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -3556,7 +3555,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(4, m_SharedRTManager.GetDebugVertexDensityRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayBufferRTI());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -4414,9 +4413,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material         debugFullScreenMaterial;
             public int              depthPyramidMip;
             public ComputeBuffer    depthPyramidOffsets;
-            public RenderTargetIdentifier quadLockRTI;
-            public RenderTargetIdentifier quadOverdrawRTI;
-            public RenderTargetIdentifier vertexDensityRTI;
+            public RenderTargetIdentifier debugDisplayBufferRTI;
 
             // Sky
             public Texture skyReflectionTexture;
@@ -4445,9 +4442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMip = (int)(parameters.debugDisplaySettings.data.fullscreenDebugMip * depthMipInfo.mipLevelCount);
             parameters.depthPyramidOffsets = depthMipInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-            parameters.quadLockRTI = m_SharedRTManager.GetDebugQuadLockRTI();
-            parameters.quadOverdrawRTI = m_SharedRTManager.GetDebugQuadOverdrawRTI();
-            parameters.vertexDensityRTI = m_SharedRTManager.GetDebugVertexDensityRTI();
+            parameters.debugDisplayBufferRTI = m_SharedRTManager.GetDebugDisplayBufferRTI();
 
             parameters.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
@@ -4476,9 +4471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, parameters.depthPyramidOffsets);
             mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
 
-            cmd.SetRandomWriteTarget(2, parameters.quadLockRTI);
-            cmd.SetRandomWriteTarget(3, parameters.quadOverdrawRTI);
-            cmd.SetRandomWriteTarget(4, parameters.vertexDensityRTI);
+            cmd.SetRandomWriteTarget(2, parameters.debugDisplayBufferRTI);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 

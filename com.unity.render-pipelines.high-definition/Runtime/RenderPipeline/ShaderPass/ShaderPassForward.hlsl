@@ -78,7 +78,7 @@ void Frag(PackedVaryingsToPS packedInput,
     , out float outputDepth : SV_Depth
 #endif
 #ifdef DEBUG_DISPLAY
-    , uint id : SV_PrimitiveID
+    , uint primitiveID : SV_PrimitiveID
 #endif
 )
 {
@@ -186,7 +186,8 @@ void Frag(PackedVaryingsToPS packedInput,
         }
         else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
         {
-            uint2 quad = posInput.positionSS*0.5;
+            // https://blog.selfshadow.com/2012/11/12/counting-quads/
+            uint2 quad = ((uint2)posInput.positionSS.xy) & ~1;
             uint  prevID;
 
             uint unlockedID = 0xffffffff;
@@ -196,23 +197,23 @@ void Frag(PackedVaryingsToPS packedInput,
             for (int i = 0; i < 16; i++)
             {
                 if (!processed)
-                    InterlockedCompareExchange(_DebugQuadLockUAV[COORD_TEXTURE2D_X(quad)], unlockedID, id, prevID);
+                    InterlockedCompareExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], unlockedID, primitiveID, prevID);
 
                 [branch]
                 if (prevID == unlockedID)
                 {
                     // Wait a bit, then unlock for other quads
                     if (++lockCount == 2)
-                        InterlockedExchange(_DebugQuadLockUAV[COORD_TEXTURE2D_X(quad)], unlockedID, prevID);
+                        InterlockedExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], unlockedID, prevID);
                     processed = true;
                 }
 
-                if (prevID == id)
+                if (prevID == primitiveID)
                     processed = true;
             }
 
             if (lockCount)
-                InterlockedAdd(_DebugQuadOverdrawUAV[COORD_TEXTURE2D_X(quad)], 1);
+                InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)], 1);
         }
         else
 #endif

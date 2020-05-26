@@ -159,7 +159,8 @@ VaryingsMeshType VertMesh(AttributesMesh input)
         output.tangentWS = tangentWS;
 #endif
 #ifdef DEBUG_DISPLAY
-        IncrementVertexDensityCounter(output.positionCS);
+        if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+            IncrementVertexDensityCounter(output.positionCS);
 #endif
 #endif // TESSELLATION_ON
 
@@ -198,7 +199,8 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     output.positionCS = TransformWorldToHClip(input.positionRWS);
 
 #ifdef DEBUG_DISPLAY
-    IncrementVertexDensityCounter(output.positionCS);
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
+        IncrementVertexDensityCounter(output.positionCS);
 #endif
 
 #ifdef VARYINGS_NEED_POSITION_WS

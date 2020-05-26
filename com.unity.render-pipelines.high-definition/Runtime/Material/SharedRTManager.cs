@@ -24,11 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
-        // UAVs used for quad overshading debug mode
-        RTHandle m_DebugQuadLockUAV;
-        RTHandle m_DebugQuadOverdrawUAV;
-        // UAVs used for vertex density debug mode
-        RTHandle m_DebugVertexDensityUAV;
+        // UAVs used for quad overshading and vertex density debug modes
+        RTHandle m_DebugDisplayUAV;
 
         ComputeBuffer m_CoarseStencilBuffer = null;
 
@@ -120,9 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_NormalRT = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
             }
 
-            m_DebugQuadLockUAV = RTHandles.Alloc(new Vector2(0.5f, 0.5f), colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugQuadLockUAV");
-            m_DebugQuadOverdrawUAV = RTHandles.Alloc(new Vector2(0.5f, 0.5f), TextureXR.slices, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugOverdrawUAV");
-            m_DebugVertexDensityUAV = RTHandles.Alloc(Vector2.one, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugVertexDensityUAV");
+            m_DebugDisplayUAV = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "DebugDisplayUAV");
         }
 
         public bool IsConsolePlatform()
@@ -170,22 +165,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Function that will return the UAV used to lock quads for quad overdraw debug
-        public RenderTargetIdentifier GetDebugQuadLockRTI()
+        // Function that will return the UAV for quad overshading and vertex density debug modes
+        public RenderTargetIdentifier GetDebugDisplayBufferRTI()
         {
-            return m_DebugQuadLockUAV.nameID;
-        }
-
-        // Function that will return the UAV used to count quad overdraw for debug
-        public RenderTargetIdentifier GetDebugQuadOverdrawRTI()
-        {
-            return m_DebugQuadOverdrawUAV.nameID;
-        }
-
-        // Function that will return the UAV used to count vertex density for debug
-        public RenderTargetIdentifier GetDebugVertexDensityRTI()
-        {
-            return m_DebugVertexDensityUAV.nameID;
+            return m_DebugDisplayUAV.nameID;
         }
 
         // Request the normal buffer (MSAA or not)
@@ -307,9 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void Cleanup()
         {
-            RTHandles.Release(m_DebugVertexDensityUAV);
-            RTHandles.Release(m_DebugQuadOverdrawUAV);
-            RTHandles.Release(m_DebugQuadLockUAV);
+            RTHandles.Release(m_DebugDisplayUAV);
 
             if (!m_ReuseGBufferMemory)
             {

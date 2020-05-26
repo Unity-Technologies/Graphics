@@ -320,12 +320,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
                 {
-                    uint2 quad = (uint2)(input.positionCS*0.5);
+                    uint2 quad = ((uint2)input.positionCS.xy) & ~1;
                     float4 color = (float4)0;
 
-                    float quadCost = (float)_DebugQuadOverdrawUAV[COORD_TEXTURE2D_X(quad)];
-                    _DebugQuadLockUAV[COORD_TEXTURE2D_X(quad)] = 0xffffffff;
-                    _DebugQuadOverdrawUAV[COORD_TEXTURE2D_X(quad)] = 0;
+                    float quadCost = (float)_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)];
+                    _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0; // Overdraw
+                    _DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)] = 0xffffffff; // Lock
 
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));
@@ -336,8 +336,8 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     uint2 quad = (uint2)input.positionCS;
                     float4 color = (float4)0;
 
-                    float density = (float)_DebugVertexDensityUAV[COORD_TEXTURE2D_X(quad)];
-                    _DebugVertexDensityUAV[COORD_TEXTURE2D_X(quad)] = 0;
+                    float density = (float)_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)];
+                    _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0;
 
                     if ((density > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _VertexDensityMaxPixelCost) * density), 1.0, 1.0));
