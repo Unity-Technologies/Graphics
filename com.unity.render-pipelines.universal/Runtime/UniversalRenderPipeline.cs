@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                 XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
             }
@@ -357,7 +357,7 @@ namespace UnityEngine.Rendering.Universal
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
-#if ENABLE_VR && ENABLE_VR_MODULE
+#if ENABLE_VR && ENABLE_XR_MODULE
                             if (baseCameraData.xr.enabled)
                                 m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
 #endif
