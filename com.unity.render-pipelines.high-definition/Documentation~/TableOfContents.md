@@ -70,6 +70,7 @@
     * [Decal](Master-Node-Decal)
     * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
+    * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
     * [Emission](SGNode-Emission)
