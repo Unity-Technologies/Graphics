@@ -339,11 +339,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal struct ComputeBufferResource
         {
-            public ComputeBuffer computeBuffer;
+            public ComputeBuffer    computeBuffer;
+            public bool             imported;
 
-            internal ComputeBufferResource(ComputeBuffer computeBuffer)
+            internal ComputeBufferResource(ComputeBuffer computeBuffer, bool imported)
             {
                 this.computeBuffer = computeBuffer;
+                this.imported = imported;
             }
         }
         #endregion
@@ -488,8 +490,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
-            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer));
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer, imported: true));
             return new ComputeBufferHandle(newHandle);
+        }
+
+        internal bool IsComputeBufferImported(ComputeBufferHandle handle)
+        {
+            return handle.IsValid() ? GetComputeBufferResource(handle).imported : false;
         }
 
         internal int GetComputeBufferResourceCount()
