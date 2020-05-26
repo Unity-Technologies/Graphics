@@ -107,6 +107,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 material.SetTexture("_MainTex", textureProperty.texture);
                 material.SetFloat("_UseColorMap", 1.0f);
+                material.SetColor("_UvTiling", new Vector4(textureProperty.scale.x, textureProperty.scale.y, 0.0f, 0.0f));
+                material.SetColor("_UvOffset", new Vector4(textureProperty.offset.x, textureProperty.offset.y, 0.0f, 0.0f));
             }
             else
             {
