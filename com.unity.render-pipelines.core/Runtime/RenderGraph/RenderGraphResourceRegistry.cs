@@ -32,6 +32,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
 
+        /// <summary>
+        /// Equals Override.
+        /// </summary>
+        /// <param name="obj">Other handle to test against.</param>
+        /// <returns>True if both handle are equals.</returns>
+        public override bool Equals(System.Object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                TextureHandle texture = (TextureHandle)obj;
+                return texture.handle == handle && texture.m_IsValid == m_IsValid;
+            }
+        }
+
+        /// <summary>
+        /// GetHashCode override.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return (handle << 2) ^ (m_IsValid ? 333 : 444);
+        }
     }
 
     /// <summary>
