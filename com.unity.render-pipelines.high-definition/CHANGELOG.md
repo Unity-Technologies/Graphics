@@ -11,6 +11,7 @@ The version number for this package has increased due to a version update of a r
 
 ### Fixed
 - Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 
 ## [8.1.0] - 2020-04-21
 
