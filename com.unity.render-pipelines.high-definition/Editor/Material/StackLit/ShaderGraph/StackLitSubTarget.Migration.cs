@@ -46,11 +46,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = stackLitMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = stackLitMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = stackLitMasterNode.m_ReceiveSSR;
-            lightingData.energyConservingSpecular = stackLitMasterNode.m_EnergyConservingSpecular;
             lightingData.subsurfaceScattering = stackLitMasterNode.m_SubsurfaceScattering;
             lightingData.transmission = stackLitMasterNode.m_Transmission;
             lightingData.overrideBakedGI = stackLitMasterNode.m_overrideBakedGI;
 
+            stackLitData.energyConservingSpecular = stackLitMasterNode.m_EnergyConservingSpecular;
             stackLitData.baseParametrization = stackLitMasterNode.m_BaseParametrization;
             stackLitData.dualSpecularLobeParametrization = stackLitMasterNode.m_DualSpecularLobeParametrization;
             stackLitData.anisotropy = stackLitMasterNode.m_Anisotropy;

@@ -58,5 +58,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         //     get => m_DiffusionProfile;
         //     set => m_DiffusionProfile = value;
         // }
+
+        [SerializeField]
+        bool m_EnergyConservingSpecular = true;
+        public bool energyConservingSpecular
+        {
+            get => m_EnergyConservingSpecular;
+            set => m_EnergyConservingSpecular = value;
+        }
     }
 }

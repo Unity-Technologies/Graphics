@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
 
-            context.AddField(HDFields.EnergyConservingSpecular,             lightingData.energyConservingSpecular);
+            context.AddField(HDFields.EnergyConservingSpecular,             litData.energyConservingSpecular);
             context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
             context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);

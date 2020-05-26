@@ -42,12 +42,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = fabricMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = fabricMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = fabricMasterNode.m_ReceivesSSR;
-            lightingData.energyConservingSpecular = fabricMasterNode.m_EnergyConservingSpecular;
             lightingData.specularOcclusionMode = fabricMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = fabricMasterNode.m_overrideBakedGI;
             lightingData.transmission = fabricMasterNode.m_Transmission;
             lightingData.subsurfaceScattering = fabricMasterNode.m_SubsurfaceScattering;
             
+            fabricData.energyConservingSpecular = fabricMasterNode.m_EnergyConservingSpecular;
             fabricData.materialType = (FabricData.MaterialType)fabricMasterNode.m_MaterialType;
             target.customEditorGUI = fabricMasterNode.m_OverrideEnabled ? fabricMasterNode.m_ShaderGUIOverride : "";
 

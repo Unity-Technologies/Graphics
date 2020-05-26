@@ -111,13 +111,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 stackLitData.baseParametrization = (StackLit.BaseParametrization)evt.newValue;
                 onChange();
             });
-            context.AddProperty("Energy Conserving Specular", 1, new Toggle() { value = lightingData.energyConservingSpecular }, stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor, (evt) =>
+            context.AddProperty("Energy Conserving Specular", 1, new Toggle() { value = stackLitData.energyConservingSpecular }, stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor, (evt) =>
             {
-                if (Equals(lightingData.energyConservingSpecular, evt.newValue))
+                if (Equals(stackLitData.energyConservingSpecular, evt.newValue))
                     return;
 
                 registerUndo("Energy Conserving Specular");
-                lightingData.energyConservingSpecular = evt.newValue;
+                stackLitData.energyConservingSpecular = evt.newValue;
                 onChange();
             });
 

@@ -48,14 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_EnergyConservingSpecular = true;
-        public bool energyConservingSpecular
-        {
-            get => m_EnergyConservingSpecular;
-            set => m_EnergyConservingSpecular = value;
-        }
-
-        [SerializeField]
         bool m_Transmission = false;
         public bool transmission
         {

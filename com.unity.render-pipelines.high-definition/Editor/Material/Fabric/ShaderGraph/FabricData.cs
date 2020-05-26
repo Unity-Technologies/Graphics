@@ -19,5 +19,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_MaterialType;
             set => m_MaterialType = value;
         }
+
+        [SerializeField]
+        bool m_EnergyConservingSpecular = true;
+        public bool energyConservingSpecular
+        {
+            get => m_EnergyConservingSpecular;
+            set => m_EnergyConservingSpecular = value;
+        }
     }
 }

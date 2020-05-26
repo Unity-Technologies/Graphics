@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.SubsurfaceScattering,                 lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                         lightingData.transmission);
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.EnergyConservingSpecular,             lightingData.energyConservingSpecular);
+            context.AddField(HDFields.EnergyConservingSpecular,             fabricData.energyConservingSpecular);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -79,8 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            //TODO
-            // blockList.AddPropertyBlock(new DecalPropertyBlock());
+            blockList.AddPropertyBlock(new FabricSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, fabricData));
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         public override void ProcessPreviewMaterial(Material material)

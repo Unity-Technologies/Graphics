@@ -266,5 +266,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DevMode;
             set => m_DevMode = value;
         }
+
+        [SerializeField]
+        bool m_EnergyConservingSpecular = true;
+        public bool energyConservingSpecular
+        {
+            get => m_EnergyConservingSpecular;
+            set => m_EnergyConservingSpecular = value;
+        }
     }
 }

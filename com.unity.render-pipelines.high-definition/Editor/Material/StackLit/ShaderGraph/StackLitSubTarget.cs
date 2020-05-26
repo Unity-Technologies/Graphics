@@ -191,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.EnergyConservingSpecular,     lightingData.energyConservingSpecular);
+            context.AddField(HDFields.EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
             context.AddField(HDFields.Tangent,                      context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:

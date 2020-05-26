@@ -123,12 +123,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = hdLitMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = hdLitMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = hdLitMasterNode.m_ReceivesSSR;
-            lightingData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             lightingData.specularAA = hdLitMasterNode.m_SpecularAA;
             lightingData.specularOcclusionMode = hdLitMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hdLitMasterNode.m_overrideBakedGI;
             lightingData.receiveSSRTransparent = hdLitMasterNode.m_ReceivesSSRTransparent;
             
+            litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             litData.rayTracing = hdLitMasterNode.m_RayTracing;
             litData.refractionModel = hdLitMasterNode.m_RefractionModel; 
             litData.materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
