@@ -40,6 +40,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
+            #pragma target 4.5
 
             #pragma vertex vert
             #pragma fragment frag
@@ -50,6 +51,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "UnlitInput.hlsl"
 
@@ -178,7 +180,7 @@ Shader "Universal Render Pipeline/Unlit"
             #pragma prefer_hlslcc gles
             #pragma only_renderers gles gles3
             #pragma target 2.0
-            
+
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature _ALPHATEST_ON
@@ -261,11 +263,11 @@ Shader "Universal Render Pipeline/Unlit"
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
-            
+
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
-                        
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
