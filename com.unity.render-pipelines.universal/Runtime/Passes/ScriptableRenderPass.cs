@@ -89,8 +89,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
-            m_DepthAttachment = depthAttachment;
             ConfigureTarget(colorAttachment);
+            m_DepthAttachment = depthAttachment;
         }
 
         /// <summary>
@@ -125,6 +125,8 @@ namespace UnityEngine.Rendering.Universal
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
+
+            m_DepthAttachment = BuiltinRenderTextureType.None;
         }
 
         /// <summary>
@@ -135,7 +137,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.CameraTarget);
+            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.None);
         }
 
         /// <summary>

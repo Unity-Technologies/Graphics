@@ -817,14 +817,9 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        
         internal void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = 0;
-
-            m_ActiveDepthAttachment = depthAttachment;
-
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
@@ -837,19 +832,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, ClearFlag clearFlag, Color clearColor)
         {
-            m_ActiveColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = 0;
-
-            m_ActiveDepthAttachment = BuiltinRenderTextureType.None;
-            
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store, clearFlag, clearColor);
         }
 
-        static void SetRenderTarget(
+        internal static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -857,10 +846,15 @@ namespace UnityEngine.Rendering.Universal
             ClearFlag clearFlags,
             Color clearColor)
         {
+            m_ActiveColorAttachments[0] = colorAttachment;
+            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                m_ActiveColorAttachments[i] = 0;
+
+            m_ActiveDepthAttachment = BuiltinRenderTextureType.None;
             CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
         }
 
-        void SetRenderTarget(
+        internal static void SetRenderTarget(
             CommandBuffer cmd,
             RenderTargetIdentifier colorAttachment,
             RenderBufferLoadAction colorLoadAction,
@@ -872,13 +866,19 @@ namespace UnityEngine.Rendering.Universal
             Color clearColor)
         {
             // XRTODO: Revisit the logic. Why treat CameraTarget depth specially?
-            if (depthAttachment == GetRenderTexture(UniversalRenderTextureType.CameraTarget) ||
-                depthAttachment == GetRenderTexture(UniversalRenderTextureType.None))
+            if (depthAttachment == BuiltinRenderTextureType.CameraTarget ||
+                depthAttachment == BuiltinRenderTextureType.None)
             {
                 SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlags, clearColor);
             }
             else
             {
+                m_ActiveColorAttachments[0] = colorAttachment;
+                for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
+                    m_ActiveColorAttachments[i] = 0;
+
+                m_ActiveDepthAttachment = depthAttachment;
+                
                 CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
                         depthAttachment, depthLoadAction, depthStoreAction, clearFlags, clearColor);
             }

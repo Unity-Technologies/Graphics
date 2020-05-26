@@ -44,9 +44,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
             descriptor.msaaSamples = 1;
             if (this.AllocateRT)
-                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point); 
+        }
 
-            // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
+        public override void Configure(CommandBuffer cmd, RenderingData renderingData)
+        {
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);
         }
