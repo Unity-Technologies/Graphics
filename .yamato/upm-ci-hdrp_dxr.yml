@@ -1,6 +1,8 @@
 editors:
   - version: 2020.1
+    rerun_strategy: on-new-revision
   - version: fast-2020.1
+    rerun_strategy: on-new-revision
   - version: trunk
     rerun_strategy: on-new-revision
   - version: fast-trunk
