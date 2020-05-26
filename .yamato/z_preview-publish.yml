@@ -28,31 +28,31 @@ auto-version:
   variables:
     PATH: /home/bokken/bin:/home/bokken/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/sbin:/home/bokken/.npm-global/bin
     DISPLAY: ":0"
-{% for v in template_environment_variables -%}
+{% for v in template_environment_variables %}
     {{ v[0] }}: {{ v[1]}}
-{% endfor -%}
+{% endfor %}
   commands:
   - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
   - >
     upm-ci utils auto-version bump
-{% for test in testables -%}
+{% for test in testables %}
     --{{ test.type }}-path {{ test.path }}
-{% endfor -%}
+{% endfor %}
   - upm-ci utils auto-version commit --push
   artifacts:
     packages:
       paths:
         - "upm-ci~/**/*"
-{% if publishing.auto_version == "true" -%}
+{% if publishing.auto_version == "true" %}
   triggers:
     branches:
       only:
         - "{{ repo.branches.integration }}"
-{% endif -%}
+{% endif %}
 
 
-{% for test in testables -%}
-{% if test.publish_source == "true" -%}
+{% for test in testables %}
+{% if test.publish_source == "true" %}
 publish_{{ test.name }}:
   name: "[{{ test.name }}] Candidates Publish"
   agent:
@@ -74,17 +74,17 @@ publish_{{ test.name }}:
             - "upm-ci~/packages/*.tgz"
   dependencies:
     - .yamato/z_preview-publish.yml#wait_for_nightly
-{% for testing in extra_jobs.testing -%}
+{% for testing in extra_jobs.testing %}
     - {{ testing }}
-{% endfor -%}
+{% endfor %}
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
-{% for editor in editors -%}
-{% for platform in platforms -%}
+{% for editor in editors %}
+{% for platform in platforms %}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-{% endfor -%}
-{% endfor -%}
-{% endif -%} # publish_source
-{% endfor -%}
+{% endfor %}
+{% endfor %}
+{% endif %} # publish_source
+{% endfor %}
 
 publish_all_preview:
   name: "Publish all preview packages - nightly"
@@ -113,8 +113,8 @@ wait_for_nightly:
   {% endfor %}
     
 
-{% for test in testables -%}
-{% if test.publish_source == "true" -%}
+{% for test in testables %}
+{% if test.publish_source == "true" %}
 promote_{{ test.name }}:
   name: "[{{ test.name }}] Production Promote"
   agent:
@@ -135,10 +135,10 @@ promote_{{ test.name }}:
   dependencies:
     - .yamato/upm-ci-packages.yml#pack_{{ test.name }}
     - .yamato/z_preview-publish.yml#publish_{{ test.name }}
-  {% for editor in editors -%}
-  {% for platform in platforms -%}
+  {% for editor in editors %}
+  {% for platform in platforms %}
     - .yamato/upm-ci-packages.yml#test_{{ test.name }}_{{ platform.os }}_{{ editor.version }}
-  {% endfor -%}
-  {% endfor -%}
-{% endif -%} # publish_source
+  {% endfor %}
+  {% endfor %}
+{% endif %} # publish_source
 {% endfor %}
