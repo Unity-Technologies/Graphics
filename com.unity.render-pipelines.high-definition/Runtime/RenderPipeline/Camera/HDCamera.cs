@@ -402,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // store a shortcut on HDCameraData (done here and not in the constructor as
             // we don't create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
-            m_AdditionalCameraData = camera.ChangeActiveExtentionTo<HDCameraData>(true);
+            m_AdditionalCameraData = camera.SwitchActiveExtensionTo<HDCameraData>();
 
             UpdateVolumeAndPhysicalParameters();
 

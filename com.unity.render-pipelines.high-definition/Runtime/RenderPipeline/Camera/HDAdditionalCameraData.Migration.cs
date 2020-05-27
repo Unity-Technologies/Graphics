@@ -1,10 +1,59 @@
 using System;
+using UnityEditor;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDAdditionalCameraData : IVersionable<HDAdditionalCameraData.Version>
     {
+        [ContextMenu("Migrate to Camera extension")]
+        void MigrateToCameraExtension()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                Undo.IncrementCurrentGroup();
+                var group = Undo.GetCurrentGroup();
+
+                var camera = GetComponent<Camera>();
+                Undo.RecordObject(camera, "Migrate HDRP Camera to extension.");
+
+                var extension = camera.GetOrCreateExtension<HDCameraData>();
+
+                extension.antialiasing = (HDCameraData.AntialiasingMode)antialiasing;
+                extension.dithering = dithering;
+                extension.clearDepth = clearDepth;
+                extension.fullscreenPassthrough = fullscreenPassthrough;
+                extension.physicalParameters = physicalParameters;
+                extension.profilingSampler = profilingSampler;
+                extension.xrRendering = xrRendering;
+                extension.allowDynamicResolution = allowDynamicResolution;
+                extension.clearColorMode = (HDCameraData.ClearColorMode)clearColorMode;
+                extension.customRenderingSettings = customRenderingSettings;
+                extension.defaultFrameSettings = defaultFrameSettings;
+                extension.flipYMode = (HDCameraData.FlipYMode)flipYMode;
+                extension.hasPersistentHistory = hasPersistentHistory;
+                extension.invertFaceCulling = invertFaceCulling;
+                extension.probeLayerMask = probeLayerMask;
+                extension.stopNaNs = stopNaNs;
+                extension.taaAntiFlicker = taaAntiFlicker;
+                extension.taaHistorySharpening = taaHistorySharpening;
+                extension.taaSharpenStrength = taaSharpenStrength;
+                extension.taaAntiHistoryRinging = taaAntiHistoryRinging;
+                extension.taaMotionVectorRejection = taaMotionVectorRejection;
+                extension.TAAQuality = (HDCameraData.TAAQualityLevel)TAAQuality;
+                extension.volumeAnchorOverride = volumeAnchorOverride;
+                extension.volumeLayerMask = volumeLayerMask;
+                extension.probeCustomFixedExposure = probeCustomFixedExposure;
+                extension.backgroundColorHDR = backgroundColorHDR;
+                extension.isEditorCameraPreview = isEditorCameraPreview;
+                extension.renderingPathCustomFrameSettings = renderingPathCustomFrameSettings;
+                extension.renderingPathCustomFrameSettingsOverrideMask = renderingPathCustomFrameSettingsOverrideMask;
+
+                Undo.DestroyObjectImmediate(this);
+                Undo.CollapseUndoOperations(group);
+            };
+        }
+
         /// <summary>
         /// Define migration versions of the HDAdditionalCameraData
         /// </summary>

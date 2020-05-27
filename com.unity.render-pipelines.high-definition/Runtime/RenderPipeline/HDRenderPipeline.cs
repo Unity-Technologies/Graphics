@@ -1485,20 +1485,16 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
                     bool cameraRequestedDynamicRes = false;
-                    HDCameraData hdCam;
-                    if (camera.additionalData is HDCameraData hdCameraTmp)
-                    {
-                        hdCam = hdCameraTmp;
-                        cameraRequestedDynamicRes = hdCam.allowDynamicResolution;
+                    var hdCam = camera.GetOrCreateExtension<HDCameraData>();
+                    cameraRequestedDynamicRes = hdCam.allowDynamicResolution;
 
-                        // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
-                        // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
-                        // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
-                        bool isMetal = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
-                        if (isMetal || (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution))
-                        {
-                            dynResHandler.ForceSoftwareFallback();
-                        }
+                    // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
+                    // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
+                    // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
+                    bool isMetal = (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal);
+                    if (isMetal || (dynResHandler.RequestsHardwareDynamicResolution() && cameraRequestedDynamicRes && !camera.allowDynamicResolution))
+                    {
+                        dynResHandler.ForceSoftwareFallback();
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
@@ -1770,7 +1766,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int j = 0; j < cameraSettings.Count; ++j)
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
-                        var additionalCameraData = camera.ChangeActiveExtentionTo<HDCameraData>(true);
+                        if (!camera.HasExtension<HDCameraData>()) camera.CreateExtension<HDCameraData>();
+                        var additionalCameraData = camera.SwitchActiveExtensionTo<HDCameraData>();
                         additionalCameraData.hasPersistentHistory = true;
 
                         // We need to set a targetTexture with the right otherwise when setting pixelRect, it will be rescaled internally to the size of the screen
@@ -1818,8 +1815,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         hdCamera.parentCamera = parentCamera; // Used to inherit the properties of the view
 
-                        var hdCam = camera.ChangeActiveExtentionTo<HDCameraData>(true);
-                        hdCam.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
+                        additionalCameraData.flipYMode = visibleProbe.type == ProbeSettings.ProbeType.ReflectionProbe
                                 ? HDCameraData.FlipYMode.ForceFlipY
                                 : HDCameraData.FlipYMode.Automatic;
 
@@ -2045,7 +2041,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
                             {
-                                var acd = (HDCameraData)renderRequest.hdCamera.camera.additionalData;
+                                var acd = renderRequest.hdCamera.camera.GetExtension<HDCameraData>();
                                 if (acd != null && acd.xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
@@ -5108,7 +5104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Texture depthBuffer = null;
             Texture depthBuffer1 = null;
 
-            HDCameraData acd = hdCamera.camera.additionalData as HDCameraData;
+            var acd = hdCamera.camera.GetExtension<HDCameraData>();
 
             HDCameraData.BufferAccessType externalAccess = new HDCameraData.BufferAccessType();
             if (acd != null)

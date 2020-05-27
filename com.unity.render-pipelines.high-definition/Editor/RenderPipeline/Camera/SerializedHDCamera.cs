@@ -7,10 +7,10 @@ namespace UnityEditor.Rendering.HighDefinition
     class SerializedHDCamera
     {
         public SerializedObject serializedObject;
-        public SerializedObject serializedAdditionalDataObject;
+        public SerializedProperty serializedAdditionalDataObject;
 
         //public SerializedProperty backgroundColor;
-        
+
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
         public SerializedProperty aperture;
@@ -47,29 +47,20 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public SerializedProperty probeLayerMask;
 
-        public SerializedHDCamera(SerializedObject serializedObject)
+        public SerializedHDCamera(SerializedProperty root)
         {
-            this.serializedObject = serializedObject;
-
+            this.serializedObject = root.serializedObject;
             projectionMatrixMode = serializedObject.FindProperty("m_projectionMatrixMode");
-
-            var additionals = CoreEditorUtils.GetAdditionalData<HDAdditionalCameraData>(serializedObject.targetObjects, HDAdditionalCameraData.InitDefaultHDAdditionalCameraData);
-            serializedAdditionalDataObject = new SerializedObject(additionals);
-
-            var hideFlags = serializedAdditionalDataObject.FindProperty("m_ObjectHideFlags");
-            // We don't hide additional camera data anymore on UX team request. To be compatible with already author scene we force to be visible
-            if ((hideFlags.intValue & (int)HideFlags.HideInInspector) > 0)
-                hideFlags.intValue = (int)HideFlags.None;
-            serializedAdditionalDataObject.ApplyModifiedProperties();
+            serializedAdditionalDataObject = root;
 
             //backgroundColor = serializedObject.FindProperty("m_BackGroundColor");
-            iso = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Iso");
-            shutterSpeed = serializedAdditionalDataObject.FindProperty("physicalParameters.m_ShutterSpeed");
-            aperture = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Aperture");
-            bladeCount = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BladeCount");
-            curvature = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Curvature");
-            barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
-            anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
+            iso = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_Iso");
+            shutterSpeed = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_ShutterSpeed");
+            aperture = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_Aperture");
+            bladeCount = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_BladeCount");
+            curvature = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_Curvature");
+            barrelClipping = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_BarrelClipping");
+            anamorphism = serializedAdditionalDataObject.FindPropertyRelative("physicalParameters.m_Anamorphism");
 
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
@@ -92,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
             volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
             frameSettings = new SerializedFrameSettings(
-                serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
+                serializedAdditionalDataObject.FindPropertyRelative("m_RenderingPathCustomFrameSettings"),
                 serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
                 );
 
@@ -106,7 +97,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public void Update()
         {
             serializedObject.Update();
-            serializedAdditionalDataObject.Update();
 
             // Be sure legacy HDR option is disable on camera as it cause banding in SceneView. Yes, it is a contradiction, but well, Unity...
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
@@ -118,7 +108,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public void Apply()
         {
             serializedObject.ApplyModifiedProperties();
-            serializedAdditionalDataObject.ApplyModifiedProperties();
         }
     }
 }

@@ -4,8 +4,8 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [CustomAdditionalDataName("HD", typeof(HDRenderPipelineAsset))]
-    public class HDCameraData : Camera.IAdditionalData, IFrameSettingsHistoryContainer
+    [CustomExtensionName("HDRP", typeof(HDRenderPipeline))]
+    public class HDCameraData : Camera.IExtension, IFrameSettingsHistoryContainer
     {
         internal static readonly HDCameraData k_DefaultInstance = new HDCameraData();
 
@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [NonSerialized]
         Camera m_Owner;
 
-        void Camera.IAdditionalData.Awake(Camera owner) => m_Owner = owner;
+        void Camera.IExtension.Awake(Camera owner) => m_Owner = owner;
 
         /// <summary>
         /// How the camera should handle vertically flipping the frame at the end of rendering.

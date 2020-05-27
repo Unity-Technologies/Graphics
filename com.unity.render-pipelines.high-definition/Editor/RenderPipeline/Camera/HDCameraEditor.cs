@@ -6,9 +6,8 @@ using System.Linq;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
-    [CanEditMultipleObjects]
-    partial class HDCameraEditor : Editor
+    [CustomEditor(typeof(HDCameraData))]
+    class HDCameraDataEditor : CameraEditor.IExtensionEditor
     {
         SerializedHDCamera m_SerializedCamera;
 
@@ -16,9 +15,66 @@ namespace UnityEditor.Rendering.HighDefinition
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
 
+        void CameraEditor.IExtensionEditor.Init(SerializedProperty serializedAdditionalData, CameraEditor.Settings settings)
+        {
+            m_SerializedCamera = new SerializedHDCamera(serializedAdditionalData);
+
+            m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
+            m_PreviewCamera.enabled = false;
+            m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
+            m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
+            // Say that we are a camera editor preview and not just a regular preview
+            m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
+        }
+
+        void CameraEditor.IExtensionEditor.OnInspectorGUI()
+        {
+            m_SerializedCamera.Update();
+
+            HDCameraUI.Inspector.Draw(m_SerializedCamera, null);
+
+            m_SerializedCamera.Apply();
+        }
+
+        void OnDisable()
+        {
+            if (m_PreviewTexture != null)
+            {
+                m_PreviewTexture.Release();
+                m_PreviewTexture = null;
+            }
+            //DestroyImmediate(m_PreviewCamera.gameObject);
+            m_PreviewCamera = null;
+        }
+
+        RenderTexture GetPreviewTextureWithSize(int width, int height)
+        {
+            if (m_PreviewTexture == null || m_PreviewTexture.width != width || m_PreviewTexture.height != height)
+            {
+                if (m_PreviewTexture != null)
+                    m_PreviewTexture.Release();
+
+                m_PreviewTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                m_PreviewTexture.enableRandomWrite = true;
+                m_PreviewTexture.Create();
+            }
+            return m_PreviewTexture;
+        }
+    }
+
+    //[CustomEditorForRenderPipeline(typeof(Camera), typeof(HDRenderPipelineAsset))]
+    [CanEditMultipleObjects]
+    partial class HDCameraEditor : Editor
+    {
+        SerializedHDCamera m_SerializedCamera = null;
+
+        RenderTexture m_PreviewTexture;
+        Camera m_PreviewCamera;
+        HDAdditionalCameraData m_PreviewAdditionalCameraData;
+
         void OnEnable()
         {
-            m_SerializedCamera = new SerializedHDCamera(serializedObject);
+            //m_SerializedCamera = new SerializedHDCamera(serializedObject);
 
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
             m_PreviewCamera.enabled = false;
@@ -62,7 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return m_PreviewTexture;
         }
     }
-    
+
     [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
     class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
     {
@@ -85,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             Undo.DestroyObjectImmediate(camera);
         }
-        
+
         [MenuItem("CONTEXT/Camera/Reset", false, 0)]
         static void ResetCamera(MenuCommand menuCommand)
         {
