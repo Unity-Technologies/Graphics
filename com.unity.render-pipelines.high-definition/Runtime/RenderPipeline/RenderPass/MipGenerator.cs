@@ -146,6 +146,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 useDynamicScale: true,
                 name: "Temporary Downsampled Pyramid"
                 );
+
+                Graphics.SetRenderTarget(m_TempDownsamplePyramid[rtIndex], 0);
+                GL.Clear(false, true, Color.clear);
             }
 
             float sourceScaleX = (float)size.x / source.width;

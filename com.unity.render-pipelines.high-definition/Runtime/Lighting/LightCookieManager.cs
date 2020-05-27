@@ -142,6 +142,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     name = cacheName + "TempAreaLightRT0"
                 };
 
+                // Clear the textures to avoid filtering with NaNs on consoles.
+                for (int mipIdx = 0; mipIdx < mipMapCount; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_TempRenderTexture0, mipIdx);
+                    GL.Clear(false, true, Color.clear);
+                }
+
                 // We start by a horizontal gaussian into mip 1 that reduces the width by a factor 2 but keeps the same height
                 m_TempRenderTexture1 = new RenderTexture(sourceWidth >> 1, sourceHeight, 1, cookieFormat)
                 {
@@ -150,6 +157,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     autoGenerateMips = false,
                     name = cacheName + "TempAreaLightRT1"
                 };
+
+                // Clear the textures to avoid filtering with NaNs on consoles.
+                for (int mipIdx = 0; mipIdx < mipMapCount-1; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_TempRenderTexture1, mipIdx);
+                    GL.Clear(false, true, Color.clear);
+                }
             }
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AreaLightCookieConvolution)))
