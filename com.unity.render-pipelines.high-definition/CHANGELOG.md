@@ -625,6 +625,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
 - Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
