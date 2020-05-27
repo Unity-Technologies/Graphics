@@ -876,7 +876,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.renderScale *= RenderScaleMultiplier;
 
             // TODO
-            if (!cameraData.isStereoEnabled)
+            if (!cameraData.xr.enabled)
             {
                 cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
                 cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
