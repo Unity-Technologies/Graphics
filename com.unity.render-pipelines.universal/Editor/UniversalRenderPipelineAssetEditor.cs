@@ -322,12 +322,17 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
-                EditorGUI.BeginChangeCheck();
-                EditorUtils.Unit unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter"), m_State.value);
-                if (EditorGUI.EndChangeCheck())
+                EditorUtils.Unit unit = EditorUtils.Unit.Metric;
+                if (m_ShadowCascadesProp.intValue != 0)
                 {
-                    m_State.value = unit;
+                    EditorGUI.BeginChangeCheck();
+                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter"), m_State.value);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_State.value = unit;
+                    }
                 }
+
                 CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
                 ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
