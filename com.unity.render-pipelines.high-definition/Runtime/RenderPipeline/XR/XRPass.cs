@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Debug.LogWarning("If you're trying to enable XR single-pass after the first frame, you need to set TextureXR.maxViews to 2 before the render pipeline is created (typically in a script with Awake()).");
                 }
-                
+
                 throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
         }
@@ -272,6 +272,31 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
                 }
+            }
+        }
+
+        static readonly int _unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
+        static readonly int _unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
+        static readonly int _unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
+        Matrix4x4[] builtinViewMatrix = new Matrix4x4[2];
+        Matrix4x4[] builtinProjMatrix = new Matrix4x4[2];
+        Matrix4x4[] builtinViewProjMatrix = new Matrix4x4[2];
+
+        // Maintain compatibility with builtin renderer
+        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd)
+        {
+            if (singlePassEnabled)
+            {
+                for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
+                {
+                    builtinViewMatrix[viewIndex] = GetViewMatrix(viewIndex);
+                    builtinProjMatrix[viewIndex] = GL.GetGPUProjectionMatrix(GetProjMatrix(viewIndex), true);
+                    builtinViewProjMatrix[viewIndex] = builtinProjMatrix[viewIndex] * builtinViewMatrix[viewIndex];
+                }
+
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixV, builtinViewMatrix);
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixP, builtinProjMatrix);
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixVP, builtinViewProjMatrix);
             }
         }
     }
