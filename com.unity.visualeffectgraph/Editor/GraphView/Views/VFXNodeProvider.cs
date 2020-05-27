@@ -18,7 +18,6 @@ namespace UnityEditor.VFX.UI
 
     abstract class SubGraphCache
     {
-
         protected SubGraphCache()
         {
         }
@@ -108,7 +107,6 @@ namespace UnityEditor.VFX.UI
                         }
                         else
                             m_Items.Add(item);
-
                     }
                 }
             }
@@ -225,10 +223,11 @@ namespace UnityEditor.VFX.UI
             }
             if (m_AcceptedTypes == null)
             {
-                AddTemplatesFromDirectory(VisualEffectAssetEditorUtility.templatePath, "System", ref descs);
+                var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
 
-                if ((VFXViewPreference.userTemplateDirectory.Length > 0) && System.IO.Directory.Exists(VFXViewPreference.userTemplateDirectory))
-                    AddTemplatesFromDirectory(VFXViewPreference.userTemplateDirectory, "User Systems", ref descs);
+                var systemDesc = systemFiles.Select(t => new Descriptor() { modelDescriptor = t.Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath), category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t) });
+
+                descs = descs.Concat(systemDesc);
             }
             var groupNodeDesc = new Descriptor()
             {
@@ -243,22 +242,6 @@ namespace UnityEditor.VFX.UI
                 return descs;
             else
                 return descs.Where(t => m_Filter(t));
-        }
-
-        protected void AddTemplatesFromDirectory(string directory, string menuCategory, ref IEnumerable<Descriptor> descriptors)
-        {
-            var subDirectories = System.IO.Directory.GetDirectories(directory);
-
-            Array.Sort(subDirectories, (x, y) => String.Compare(x, y, true));
-
-            foreach (var subDirectory in subDirectories)
-                AddTemplatesFromDirectory(subDirectory, subDirectory.Replace(directory,menuCategory), ref descriptors);
-
-            var discoveredTemplates = System.IO.Directory.GetFiles(directory).Where(t => Path.GetExtension(t) == VisualEffectResource.Extension).Select(t => t.Replace("\\", "/"));
-
-            var templateDescriptors = discoveredTemplates.Select(t => new Descriptor() { modelDescriptor = t, category = menuCategory.Replace("\\", "/"), name = System.IO.Path.GetFileNameWithoutExtension(t) });
-
-            descriptors = descriptors.Concat(templateDescriptors);
         }
     }
 }
