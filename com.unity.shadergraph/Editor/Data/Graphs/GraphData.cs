@@ -2031,7 +2031,7 @@ namespace UnityEditor.ShaderGraph
                             throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
                         }
                         //right thing to do?
-                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true);
+                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true, true);
                         m_BlockFieldDescriptors.Add(block.descriptor);
                     }
                     block.contextData = contextData;
