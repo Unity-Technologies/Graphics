@@ -35,12 +35,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/017_xr_Particles_Additive.unity
     guid: 65d99b408a8134214906126ccdea532f
-  - enabled: 1
-    path: Assets/Scenes/018_xr_Particles_Multiply.unity
-    guid: dae78502f2e214f498d8e5e4b4adf79d
-  - enabled: 1
-    path: Assets/Scenes/019_xr_Particles_AlphaBlend.unity
-    guid: f5b47e7b559724329bbd9f437a652f52
   - enabled: 0
     path: Assets/Scenes/020_xr_Lighting_ReflectionProbe.unity
     guid: 0feef353efdf045989e9c2b501774338
