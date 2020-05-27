@@ -30,129 +30,134 @@ namespace UnityEditor.VFX
         public int maxLength { get; set; }
     }
 
-    [Serializable]
-    class VFXPropertyAttribute
+    struct VFXPropertyAttributes
     {
-        private static readonly Dictionary<System.Type, Func<object, VFXPropertyAttribute>> s_RegisteredAttributes = new Dictionary<System.Type, Func<object, VFXPropertyAttribute>>()
+        [Flags]
+        public enum Type
         {
-            { typeof(RangeAttribute), o => new VFXPropertyAttribute(Type.kRange, (o as RangeAttribute).min, (o as RangeAttribute).max) },
-            { typeof(MinAttribute), o => new VFXPropertyAttribute(Type.kMin, (o as MinAttribute).min) },
-            { typeof(NormalizeAttribute), o => new VFXPropertyAttribute(Type.kNormalize) },
-            { typeof(TooltipAttribute), o => new VFXPropertyAttribute(Type.kTooltip, (o as TooltipAttribute).tooltip) },
-            { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
-            { typeof(ShowAsColorAttribute), o => new VFXPropertyAttribute(Type.kColor) },
-            { typeof(RegexAttribute), o => new VFXPropertyAttribute(Type.kRegex, (o as RegexAttribute).pattern, (o as RegexAttribute).maxLength) },
-            { typeof(DelayedAttribute), o => new VFXPropertyAttribute(Type.kDelayed) },
-            { typeof(BitFieldAttribute), o => new VFXPropertyAttribute(Type.kBitField) },
-        };
+            Range       = GraphAttribute | (1 << 0),
+            Min         = GraphAttribute | (1 << 1),
+            Normalized  = GraphAttribute | (1 << 2),
+            Tooltip     = 1 << 3,
+            Angle       = 1 << 4,
+            Color       = 1 << 5,
+            Regex       = 1 << 6,
+            Delayed     = 1 << 7,
+            BitField    = 1 << 8,
 
-        public static VFXPropertyAttribute[] Create(params object[] attributes)
-        {
-            if (attributes.Any(a => !(a is Attribute)))
-                throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
-
-            return attributes.Where(t => t != null).SelectMany(a => s_RegisteredAttributes.Where(o => o.Key.IsAssignableFrom(a.GetType()))
-                .Select(o => o.Value(a))).ToArray();
+            // Tells whether this attribute modifies the expression graph
+            GraphAttribute = 1 << 31,
         }
 
-        public static VFXExpression ApplyToExpressionGraph(VFXPropertyAttribute[] attributes, VFXExpression exp)
+        private static readonly Dictionary<System.Type, Type> s_RegisteredAttributes = new Dictionary<System.Type, Type>()
         {
-            if (attributes != null)
+            { typeof(RangeAttribute),       Type.Range },
+            { typeof(MinAttribute),         Type.Min },
+            { typeof(NormalizeAttribute),   Type.Normalized },
+            { typeof(TooltipAttribute),     Type.Tooltip },
+            { typeof(AngleAttribute),       Type.Angle },
+            { typeof(ShowAsColorAttribute), Type.Color },
+            { typeof(RegexAttribute),       Type.Regex },
+            { typeof(DelayedAttribute),     Type.Delayed },
+            { typeof(BitFieldAttribute),    Type.BitField }
+        };
+
+        public VFXPropertyAttributes(params object[] attributes) : this()
+        {
+            if (attributes != null && attributes.Length != 0)
             {
-                foreach (VFXPropertyAttribute attribute in attributes)
+                if (attributes.Any(a => !(a is Attribute)))
+                    throw new ArgumentException("Only C# attributes are allowed to be passed to this method");
+
+                m_AllAttributes = attributes.Where(o => s_RegisteredAttributes.ContainsKey(o.GetType())).Cast<Attribute>().ToArray();
+                m_GraphAttributes = m_AllAttributes.Where(o => (s_RegisteredAttributes[o.GetType()] & Type.GraphAttribute) != 0).ToArray();
+
+                foreach (var attribute in m_AllAttributes)
                 {
-                    switch (attribute.m_Type)
+                    Type attributeType = s_RegisteredAttributes[attribute.GetType()];
+                    // Check multi inclusion of the same attribute
+                    if (Is(attributeType))
+                        throw new ArgumentException($"The same property attribute type ({attribute.GetType()}) was added twice");
+                    m_Flag |= attributeType;
+                }
+            }  
+        }
+
+        public VFXExpression ApplyToExpressionGraph(VFXExpression exp)
+        {
+            if (m_GraphAttributes == null)
+                return exp;
+
+            foreach (PropertyAttribute attribute in m_GraphAttributes)
+            {
+                if (attribute is RangeAttribute)
+                {
+                    var rangeAttribute = (RangeAttribute)attribute;
+                    switch (exp.valueType)
                     {
-                        case Type.kRange:
-                            switch (exp.valueType)
-                            {
-                                case VFXValueType.Int32:
-                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((int)attribute.m_Min), VFXValue.Constant((int)attribute.m_Max), false);
-                                    break;
-                                case VFXValueType.Uint32:
-                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((uint)attribute.m_Min), VFXValue.Constant((uint)attribute.m_Max), false);
-                                    break;
-                                case VFXValueType.Float:
-                                case VFXValueType.Float2:
-                                case VFXValueType.Float3:
-                                case VFXValueType.Float4:
-                                    exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(attribute.m_Min), VFXValue.Constant(attribute.m_Max));
-                                    break;
-                                default:
-                                    throw new NotImplementedException(string.Format("Cannot use RangeAttribute on value of type: {0}", exp.valueType));
-                            }
+                        case VFXValueType.Int32:
+                            exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((int)rangeAttribute.min), VFXValue.Constant((int)rangeAttribute.max), false);
                             break;
-                        case Type.kMin:
-                            switch (exp.valueType)
-                            {
-                                case VFXValueType.Int32:
-                                    exp = new VFXExpressionMax(exp, VFXValue.Constant((int)attribute.m_Min));
-                                    break;
-                                case VFXValueType.Uint32:
-                                    exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)attribute.m_Min));
-                                    break;
-                                case VFXValueType.Float:
-                                case VFXValueType.Float2:
-                                case VFXValueType.Float3:
-                                case VFXValueType.Float4:
-                                    exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(attribute.m_Min), exp.valueType));
-                                    break;
-                                default:
-                                    throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
-                            }
+                        case VFXValueType.Uint32:
+                            exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant((uint)rangeAttribute.min), VFXValue.Constant((uint)rangeAttribute.max), false);
                             break;
-                        case Type.kNormalize:
-                            exp = VFXOperatorUtility.Normalize(exp);
-                            break;
-                        case Type.kTooltip:
-                        case Type.kAngle:
-                        case Type.kColor:
-                        case Type.kRegex:
-                        case Type.kDelayed:
-                        case Type.kBitField:
+                        case VFXValueType.Float:
+                        case VFXValueType.Float2:
+                        case VFXValueType.Float3:
+                        case VFXValueType.Float4:
+                            exp = VFXOperatorUtility.Clamp(exp, VFXValue.Constant(rangeAttribute.min), VFXValue.Constant(rangeAttribute.max));
                             break;
                         default:
-                            throw new NotImplementedException();
+                            throw new NotImplementedException(string.Format("Cannot use RangeAttribute on value of type: {0}", exp.valueType));
                     }
                 }
+                else if (attribute is MinAttribute)
+                {
+                    var minAttribute = (MinAttribute)attribute;
+                    switch (exp.valueType)
+                    {
+                        case VFXValueType.Int32:
+                            exp = new VFXExpressionMax(exp, VFXValue.Constant((int)minAttribute.min));
+                            break;
+                        case VFXValueType.Uint32:
+                            exp = new VFXExpressionMax(exp, VFXValue.Constant((uint)minAttribute.min));
+                            break;
+                        case VFXValueType.Float:
+                        case VFXValueType.Float2:
+                        case VFXValueType.Float3:
+                        case VFXValueType.Float4:
+                            exp = new VFXExpressionMax(exp, VFXOperatorUtility.CastFloat(VFXValue.Constant(minAttribute.min), exp.valueType));
+                            break;
+                        default:
+                            throw new NotImplementedException(string.Format("Cannot use MinAttribute on value of type: {0}", exp.valueType));
+                    }
+                }
+                else if (attribute is NormalizeAttribute)
+                {
+                    exp = VFXOperatorUtility.Normalize(exp);
+                }
+                else
+                    throw new NotImplementedException("Unrecognized expression attribute: "+ attribute);
             }
 
             return exp;
         }
 
-        public static void ApplyToGUI(VFXPropertyAttribute[] attributes, ref string label, ref string tooltip)
+        public void ApplyToGUI(ref string label, ref string tooltip)
         {
             string tooltipAddon = "";
-            if (attributes != null)
-            {
-                foreach (VFXPropertyAttribute attribute in attributes)
+            if (m_AllAttributes != null)
+                foreach (var attribute in m_AllAttributes)
                 {
-                    switch (attribute.m_Type)
-                    {
-                        case Type.kRange:
-                            break;
-                        case Type.kMin:
-                            tooltipAddon += string.Format(CultureInfo.InvariantCulture, " (Min: {0})", attribute.m_Min);
-                            break;
-                        case Type.kNormalize:
-                            tooltipAddon += " (Normalized)";
-                            break;
-                        case Type.kTooltip:
-                            tooltip = attribute.m_Tooltip;
-                            break;
-                        case Type.kAngle:
-                            tooltipAddon += " (Angle)";
-                            break;
-                        case Type.kColor:
-                        case Type.kRegex:
-                        case Type.kDelayed:
-                        case Type.kBitField:
-                            break;
-                        default:
-                            throw new NotImplementedException();
-                    }
+                    if (attribute is MinAttribute)
+                        tooltipAddon += string.Format(CultureInfo.InvariantCulture, " (Min: {0})", ((MinAttribute)attribute).min);
+                    else if (attribute is NormalizeAttribute)
+                        tooltipAddon += " (Normalized)";
+                    else if (attribute is TooltipAttribute)
+                        tooltip = ((TooltipAttribute)attribute).tooltip;
+                    else if (attribute is AngleAttribute)
+                        tooltipAddon += " (Angle)";
                 }
-            }
 
             if (string.IsNullOrEmpty(tooltip))
                 tooltip = label;
@@ -160,114 +165,43 @@ namespace UnityEditor.VFX
             tooltip = tooltip + tooltipAddon;
         }
 
-        public static Vector2 FindRange(VFXPropertyAttribute[] attributes)
+        public Vector2 FindRange()
         {
-            if (attributes != null)
+            if (Is(Type.Range))
             {
-                VFXPropertyAttribute attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kRange);
-                if (attribute != null)
-                    return new Vector2(attribute.m_Min, attribute.m_Max);
-
-                attribute = attributes.FirstOrDefault(o => o.m_Type == Type.kMin);
-                if (attribute != null)
-                    return new Vector2(attribute.m_Min, Mathf.Infinity);
+                var attribute = m_AllAttributes.OfType<RangeAttribute>().First();
+                return new Vector2(attribute.min, attribute.max);
+            }
+            else if (Is(Type.Min))
+            {
+                var attribute = m_AllAttributes.OfType<MinAttribute>().First();
+                return new Vector2(attribute.min, Mathf.Infinity);
             }
 
             return Vector2.zero;
         }
-
-        public static bool IsAngle(VFXPropertyAttribute[] attributes)
+        public string ApplyRegex(object obj)
         {
-            if (attributes != null)
-                return attributes.Any(o => o.m_Type == Type.kAngle);
-            return false;
-        }
-
-        public static bool IsColor(VFXPropertyAttribute[] attributes)
-        {
-            if (attributes != null)
-                return attributes.Any(o => o.m_Type == Type.kColor);
-            return false;
-        }
-
-        public static bool IsDelayed(VFXPropertyAttribute[] attributes)
-        {
-            if (attributes != null)
-                return attributes.Any(o => o.m_Type == Type.kDelayed);
-            return false;
-        }
-
-        public static bool IsBitField(VFXPropertyAttribute[] attributes)
-        {
-            if (attributes != null)
-                return attributes.Any(o => o.m_Type == Type.kBitField);
-            return false;
-        }
-
-        public static string ApplyRegex(VFXPropertyAttribute[] attributes, object obj)
-        {
-            if (attributes != null)
+            if (Is(Type.Regex))
             {
-                var attrib = attributes.FirstOrDefault(o => o.m_Type == Type.kRegex);
-                if (attrib != null)
-                {
-                    string str = (string)obj;
-                    str = Regex.Replace(str, attrib.m_Regex, "");
-                    return str.Substring(0, Math.Min(str.Length, attrib.m_RegexMaxLength));
-                }
+                var attribute = m_AllAttributes.OfType<RegexAttribute>().First();
+                string str = (string)obj;
+                str = Regex.Replace(str, attribute.pattern, "");
+                return str.Substring(0, Math.Min(str.Length, attribute.maxLength));
             }
 
             return null;
         }
 
-        public enum Type
+        public bool Is(VFXPropertyAttributes.Type type)
         {
-            kRange,
-            kMin,
-            kNormalize,
-            kTooltip,
-            kAngle,
-            kColor,
-            kRegex,
-            kDelayed,
-            kBitField
+            return (m_Flag & type) == type;
         }
 
-        public VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
-        {
-            m_Type = type;
-            m_Min = min;
-            m_Max = max;
-        }
+        public IReadOnlyCollection<Attribute> attributes => m_AllAttributes != null ? m_AllAttributes : new Attribute[0];
 
-        public VFXPropertyAttribute(Type type, string str, int regexMaxLength = int.MaxValue)
-        {
-            m_Type = type;
-            m_Min = -Mathf.Infinity;
-            m_Max = Mathf.Infinity;
-
-            if (type == Type.kTooltip)
-            {
-                m_Tooltip = str;
-            }
-            else
-            {
-                m_Regex = str;
-                m_RegexMaxLength = regexMaxLength;
-            }
-        }
-
-        [SerializeField]
-        private Type m_Type;
-        [SerializeField]
-        private float m_Min;
-        [SerializeField]
-        private float m_Max;
-        [SerializeField]
-        private string m_Tooltip;
-        [SerializeField]
-        private string m_Regex;
-        [SerializeField]
-        private int m_RegexMaxLength;
+        private Attribute[] m_GraphAttributes;
+        private Attribute[] m_AllAttributes;
+        private Type m_Flag;
     }
 }
