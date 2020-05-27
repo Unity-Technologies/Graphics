@@ -227,8 +227,8 @@ MonoBehaviour:
       cookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
       cookieAreaTextureArraySize: 16
-      planarReflectionAtlasSize: 8192
-      reflectionProbeCacheSize: 64
+      planarReflectionAtlasSize: 1024
+      reflectionProbeCacheSize: 16
       reflectionCubemapSize: 256
       reflectionCacheCompressed: 0
       planarReflectionCacheCompressed: 0
@@ -242,9 +242,9 @@ MonoBehaviour:
       maxAreaLightsOnScreen: 64
       maxEnvLightsOnScreen: 64
       maxDecalsOnScreen: 512
-      maxPlanarReflectionOnScreen: 16
+      maxPlanarReflectionOnScreen: 2
     hdShadowInitParams:
-      maxShadowRequests: 128
+      maxShadowRequests: 16
       directionalShadowsDepthBits: 32
       shadowFilteringQuality: 2
       punctualLightShadowAtlas:
@@ -275,8 +275,8 @@ MonoBehaviour:
       screenSpaceShadowBufferFormat: 48
     decalSettings:
       drawDistance: 1000
-      atlasWidth: 4096
-      atlasHeight: 4096
+      atlasWidth: 1024
+      atlasHeight: 1024
       perChannelMask: 1
     postProcessSettings:
       m_LutSize: 32
