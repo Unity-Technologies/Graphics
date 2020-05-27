@@ -356,7 +356,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = passTemplatePath,
+                passTemplatePath = raytracingPassTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
