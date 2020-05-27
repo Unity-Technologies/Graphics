@@ -2,27 +2,28 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Flags]
+    enum ShaderFeatures
+    {
+        MainLight = (1 << 0),
+        MainLightShadows = (1 << 1),
+        AdditionalLights = (1 << 2),
+        AdditionalLightShadows = (1 << 3),
+        VertexLighting = (1 << 4),
+        SoftShadows = (1 << 5),
+        MixedLighting = (1 << 6),
+        TerrainHoles = (1 << 7)
+    }
+
     internal class ShaderPreprocessor : IPreprocessShaders
     {
-        [Flags]
-        enum ShaderFeatures
-        {
-            MainLight = (1 << 0),
-            MainLightShadows = (1 << 1),
-            AdditionalLights = (1 << 2),
-            AdditionalLightShadows = (1 << 3),
-            VertexLighting = (1 << 4),
-            SoftShadows = (1 << 5),
-            MixedLighting = (1 << 6),
-            TerrainHoles = (1 << 7)
-        }
-
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
@@ -210,17 +211,24 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-            ShaderFeatures features = GetSupportedShaderFeatures(urpAsset);
-
             int prevVariantCount = compilerDataList.Count;
-
-            for (int i = 0; i < compilerDataList.Count; ++i)
+            
+            var inputShaderVariantCount = compilerDataList.Count;
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                if (StripUnused(features, shader, snippetData, compilerDataList[i]))
-                {
+                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                if (removeInput)
+                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                else
+                    ++i;
+            }
+            
+            if(compilerDataList is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+            {
+                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
-                    --i;
-                }
             }
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
@@ -230,8 +238,47 @@ namespace UnityEditor.Rendering.Universal
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
         }
+    }
+    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        public static ShaderFeatures supportedFeatures
+        {
+            get
+            {
+                if (_supportedFeatures <= 0)
+                {
+                    FetchAllSupportedFeatures();
+                }
+                return _supportedFeatures;
+            }
+        }
 
-        ShaderFeatures GetSupportedShaderFeatures(UniversalRenderPipelineAsset pipelineAsset)
+        private static ShaderFeatures _supportedFeatures = 0;
+        public int callbackOrder { get { return 0; } }
+
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            FetchAllSupportedFeatures();
+        }
+
+        private static void FetchAllSupportedFeatures()
+        {
+            List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
+            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
+            for (int i = 0; i < QualitySettings.names.Length; i++)
+            {
+                urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
+            }
+            foreach (UniversalRenderPipelineAsset urp in urps)
+            {
+                if (urp != null)
+                {
+                    _supportedFeatures |= GetSupportedShaderFeatures(urp);
+                }
+            }
+        }
+
+        private static ShaderFeatures GetSupportedShaderFeatures(UniversalRenderPipelineAsset pipelineAsset)
         {
             ShaderFeatures shaderFeatures;
             shaderFeatures = ShaderFeatures.MainLight;

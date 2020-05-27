@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Made the StaticLightingSky class public so that users can change it by script for baking purpose.
 - Changed default exposure compensation to 0.
 
+### Fixed
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
+
 ## [8.1.0] - 2020-04-21
 
 ### Added
