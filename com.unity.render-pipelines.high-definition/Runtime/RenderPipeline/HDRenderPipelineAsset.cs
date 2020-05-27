@@ -18,13 +18,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
 
         HDRenderPipelineAsset()
         {
+            
         }
 
         void Reset() => OnValidate();
@@ -374,5 +375,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 #endif
+
+        // Implement IVirtualTexturingEnabledRenderPipeline
+        public bool virtualTexturingEnabled { get { return true; } }
     }
 }
