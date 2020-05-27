@@ -76,7 +76,9 @@ namespace UnityEditor.ShaderGraph
                 var propNode = node as PropertyNode;
                 var graph = node.owner as GraphData;
 
-                shaderInputPropertyDrawer.GetPropertyData(graph.isSubGraph,
+                shaderInputPropertyDrawer.GetPropertyData(
+                    graph.isSubGraph,
+                    graph,
                     this.ChangeExposedField,
                     this.ChangeReferenceNameField,
                     () => graph.ValidateGraph(),
@@ -229,6 +231,12 @@ namespace UnityEditor.ShaderGraph
 
         public void UpdatePortInputTypes()
         {
+        }
+
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = output as ShaderPort;
+            return port != null && port.slot.slotReference.Equals(slot);
         }
 
         public void OnModified(ModificationScope scope)
