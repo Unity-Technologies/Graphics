@@ -65,12 +65,14 @@
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
     * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
+    * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
     * [Emission](SGNode-Emission)

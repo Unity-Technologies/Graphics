@@ -48,6 +48,8 @@ half4 SampleSpecularSmoothness(half2 uv, half alpha, half4 specColor, TEXTURE2D_
 
 inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
+    outSurfaceData = (SurfaceData)0;
+
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     outSurfaceData.alpha = albedoAlpha.a * _BaseColor.a;
     AlphaDiscard(outSurfaceData.alpha, _Cutoff);

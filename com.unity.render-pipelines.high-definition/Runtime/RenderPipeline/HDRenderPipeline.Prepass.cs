@@ -492,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BuildCoarseStencilAndResolveParameters parameters;
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
-            public ComputeBuffer coarseStencilBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
         void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -501,8 +501,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
                 passData.inputDepth = output.depthBuffer;
-                passData.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
-                passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+                passData.coarseStencilBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_SharedRTManager.GetCoarseStencilBuffer()));
+                if (passData.parameters.resolveIsNecessary)
+                    passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
                 builder.SetRenderFunc(
                 (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
@@ -510,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(data.parameters,
                         res.GetTexture(data.inputDepth),
                         res.GetTexture(data.resolvedStencil),
-                        data.coarseStencilBuffer,
+                        res.GetComputeBuffer(data.coarseStencilBuffer),
                         context.cmd);
                 }
                 );
