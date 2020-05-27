@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This texture stores a set of depth values that are required for evaluating a bunch of effects in MSAA mode (R = Samples Max Depth, G = Samples Min Depth, G =  Samples Average Depth)
         RTHandle m_CameraDepthValuesBuffer = null;
 
-        // UAVs used for quad overshading and vertex density debug modes
+        // UAV used for quad overshading and vertex density debug modes
         RTHandle m_DebugDisplayUAV;
 
         ComputeBuffer m_CoarseStencilBuffer = null;
@@ -165,12 +165,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // Function that will return the UAV for quad overshading and vertex density debug modes
-        public RenderTargetIdentifier GetDebugDisplayBufferRTI()
-        {
-            return m_DebugDisplayUAV.nameID;
-        }
-
         // Request the normal buffer (MSAA or not)
         public RTHandle GetNormalBuffer(bool isMSAA = false)
         {
@@ -255,6 +249,12 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Debug.Assert(m_MSAASupported);
             return m_CameraDepthValuesBuffer;
+        }
+
+        // Function that will return the UAV for quad overshading and vertex density debug modes
+        public RTHandle GetDebugDisplayUAV()
+        {
+            return m_DebugDisplayUAV;
         }
 
         public void SetNumMSAASamples(MSAASamples msaaSamples)

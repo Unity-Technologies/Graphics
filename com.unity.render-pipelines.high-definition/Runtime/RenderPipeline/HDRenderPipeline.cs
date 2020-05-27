@@ -3524,7 +3524,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayBufferRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -3555,7 +3555,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayBufferRTI());
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -4413,7 +4413,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material         debugFullScreenMaterial;
             public int              depthPyramidMip;
             public ComputeBuffer    depthPyramidOffsets;
-            public RenderTargetIdentifier debugDisplayBufferRTI;
+            public RTHandle         debugDisplayUAV;
 
             // Sky
             public Texture skyReflectionTexture;
@@ -4442,7 +4442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.depthPyramidMip = (int)(parameters.debugDisplaySettings.data.fullscreenDebugMip * depthMipInfo.mipLevelCount);
             parameters.depthPyramidOffsets = depthMipInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
 
-            parameters.debugDisplayBufferRTI = m_SharedRTManager.GetDebugDisplayBufferRTI();
+            parameters.debugDisplayUAV = m_SharedRTManager.GetDebugDisplayUAV();
 
             parameters.skyReflectionTexture = m_SkyManager.GetSkyReflection(hdCamera);
             parameters.debugLatlongMaterial = m_DebugDisplayLatlong;
@@ -4471,7 +4471,7 @@ namespace UnityEngine.Rendering.HighDefinition
             mpb.SetBuffer(HDShaderIDs._DebugDepthPyramidOffsets, parameters.depthPyramidOffsets);
             mpb.SetInt(HDShaderIDs._DebugContactShadowLightIndex, parameters.debugDisplaySettings.data.fullScreenContactShadowLightIndex);
 
-            cmd.SetRandomWriteTarget(2, parameters.debugDisplayBufferRTI);
+            cmd.SetRandomWriteTarget(2, parameters.debugDisplayUAV);
 
             HDUtils.DrawFullScreen(cmd, parameters.debugFullScreenMaterial, output, mpb, 0);
 
