@@ -42,6 +42,8 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 | **Fade Factor**         | Allows you to manually fade the decal in and out. A value of 0 makes the decal fully transparent, and a value of 1 makes the decal as opaque as defined by the **Material**. The **Material** manages the maximum opacity of the decal using **Global Opacity** and an opacity map. |
 | **Affects Transparent** | Enable the checkbox to allow HDRP to draw the projector’s decal on top of transparent surfaces. HDRP packs all Textures from decals with **Affects Transparency** enabled into an atlas, which can affect memory and performance. You can edit the dimensions of this atlas in the **Decals** section of your Unity Project’s [HDRP Asset](HDRP-Asset.html#Decals). |
 
-## Know limitation
+## Limitations
 
-- Decal texture tiling is ignored when projected on transparent surface
+- If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.
+- When you project a decal onto a surface, the emissive component of the decal affects the surface regardless of whether you enable **Receive Decal** on the surface's Material or not.
+- In **Project Settings > Graphics**, if **Instancing Variants** is set to **Strip All**, Unity strips the Decal Shader this component references when you build your Project. This happens even if you include the Shader in the **Always Included Shaders** list. If Unity strips the Shader during the build process, the decal does not appear in your built Application.

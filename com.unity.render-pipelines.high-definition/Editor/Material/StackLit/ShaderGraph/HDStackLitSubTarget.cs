@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -36,6 +36,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { StackLitPasses.DepthForwardOnly },
                     { StackLitPasses.MotionVectors },
                     { StackLitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
+                    { StackLitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { StackLitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { StackLitPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { StackLitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                     { StackLitPasses.ForwardOnly },
                 },
             };
@@ -221,6 +231,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = StackLitIncludes.Distortion,
             };
 
+            public static PassDescriptor TransparentDepthPrepass = new PassDescriptor()
+            {
+                // Definition
+                displayName = "TransparentDepthPrepass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "TransparentDepthPrepass",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentTransparentDepthPrepass,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = StackLitRenderStates.TransparentDepthPrePass,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.TransparentDepthPrepass,
+                keywords = CoreKeywords.HDBase,
+                includes = StackLitIncludes.DepthOnly,
+            };
+
             public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
@@ -248,6 +284,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = StackLitIncludes.ForwardOnly,
             };
 
+            public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()
+            {
+                // Definition
+                displayName = "TransparentDepthPostpass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "TransparentDepthPostpass",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = passTemplatePath,
+                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // Port Mask
+                vertexPorts = StackLitPortMasks.Vertex,
+                pixelPorts = StackLitPortMasks.FragmentTransparentDepthPostpass,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = CoreKeywords.HDBase,
+                includes = StackLitIncludes.DepthOnly,
+            };
+
             public static PassDescriptor RaytracingIndirect = new PassDescriptor()
             {
                 // Definition
@@ -268,7 +330,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = StackLitDefines.RaytracingForwardIndirect,
+                defines = StackLitDefines.RaytracingIndirect,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingIndirect },
@@ -294,7 +356,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
+                defines = StackLitDefines.RaytracingVisibility,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingVisibility },
             };
@@ -319,7 +382,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = StackLitDefines.RaytracingForwardIndirect,
+                defines = StackLitDefines.RaytracingForward,
                 keywords = CoreKeywords.RaytracingGBufferForward,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.StackLit, HDFields.ShaderPass.RaytracingForward },
@@ -470,6 +533,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 StackLitMasterNode.DepthOffsetSlotId,
             };
 
+            public static int[] FragmentTransparentDepthPrepass = new int[]
+            {
+                StackLitMasterNode.AlphaSlotId,
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
+                StackLitMasterNode.NormalSlotId,
+                StackLitMasterNode.SmoothnessASlotId,
+                StackLitMasterNode.SmoothnessBSlotId,
+            };
+
             public static int[] FragmentForward = new int[]
             {
                 StackLitMasterNode.BaseColorSlotId,
@@ -514,6 +587,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 StackLitMasterNode.BackLightingSlotId,
                 StackLitMasterNode.DepthOffsetSlotId,
             };
+            
+            public static int[] FragmentTransparentDepthPostpass = new int[]
+            {
+                StackLitMasterNode.AlphaSlotId,
+                StackLitMasterNode.AlphaClipThresholdSlotId,
+                StackLitMasterNode.DepthOffsetSlotId,
+            };
         }
 #endregion
 
@@ -546,21 +626,56 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pass = "Replace",
                 }) },
             };
+
+            public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
+            {
+                { RenderState.Blend(Blend.One, Blend.Zero) },
+                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+                { RenderState.ZWrite(ZWrite.On) },
+                { RenderState.Stencil(new StencilDescriptor()
+                {
+                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
+                    Comp = "Always",
+                    Pass = "Replace",
+                }) },
+            };
         }
 #endregion
 
 #region Defines
         static class StackLitDefines
         {
-            public static DefineCollection RaytracingForwardIndirect = new DefineCollection
+            public static DefineCollection RaytracingForward = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
+            };
+
+            public static DefineCollection RaytracingIndirect = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
                 { CoreKeywordDescriptors.HasLightloop, 1 },
             };
 
             public static DefineCollection RaytracingGBuffer = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingVisibility = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingPathTracing = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
             };
         }
 #endregion

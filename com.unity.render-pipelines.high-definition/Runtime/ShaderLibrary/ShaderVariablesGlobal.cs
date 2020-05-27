@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Global = 0,
         XR = 1,
         PBRSky = 2,
+        RayTracing = 3,
+        RayTracingLightLoop = 4,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -47,10 +49,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 _PrevInvViewProjMatrix; // non-jittered
 
 #if !USING_STEREO_MATRICES
-        public Vector3 _WorldSpaceCameraPos_Internal;
-        public float   _Pad0;
-        public Vector3 _PrevCamPosRWS_Internal;
-        public float _Pad1;
+        public Vector4 _WorldSpaceCameraPos_Internal;
+        public Vector4 _PrevCamPosRWS_Internal;
 #endif
         public Vector4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
 
@@ -116,13 +116,18 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public Vector3  _Pad2;
+        public float    _Pad0;
+        public float    _Pad1;
+        public float    _Pad2;
         public Vector4  _MipFogParameters;
-        public Vector3  _HeightFogBaseScattering;
+        public Vector4  _HeightFogBaseScattering;
         public float    _HeightFogBaseExtinction;
-        public Vector2  _HeightFogExponents; // { 1/H, H }
         public float    _HeightFogBaseHeight;
         public float    _GlobalFogAnisotropy;
+        public float    _Pad3;
+        public Vector2  _HeightFogExponents; // { 1/H, H }
+        public float    _Pad4;
+        public float    _Pad5;
 
         // VBuffer
         public Vector4  _VBufferViewportSize;           // { w, h, 1/w, 1/h }
@@ -141,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
+        public Vector4 _CachedShadowAtlasSize;
+        public Vector4 _CachedAreaShadowAtlasSize;
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
@@ -175,7 +182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;
         public uint  _ProbeVolumeCount;
-        public float _Pad5;
+        public float _Pad6;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;
@@ -195,7 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _NumTileClusteredX;
         public uint     _NumTileClusteredY;
         public int      _EnvSliceSize;
-        public float    _Pad6;
+        public float    _Pad7;
 
         // Subsurface scattering
         // Use float4 to avoid any packing issue between compute and pixel shaders
@@ -228,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int      _RaytracedIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
+        public int      _UseIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
         public int      _UseRayTracedReflections;
         public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint     _EnableRecursiveRayTracing;

@@ -1,4 +1,4 @@
-﻿Varyings BuildVaryings(Attributes input)
+Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -19,7 +19,7 @@
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
 #endif
-    
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalize(normalWS);
 #endif

@@ -118,6 +118,11 @@ Pass
         // Builtin Data
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
+
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+#endif
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------
