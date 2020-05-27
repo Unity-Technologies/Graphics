@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
