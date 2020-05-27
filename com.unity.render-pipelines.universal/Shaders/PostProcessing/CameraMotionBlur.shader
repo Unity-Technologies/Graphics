@@ -11,9 +11,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D_X(_MainTex);
-        TEXTURE2D_X_FLOAT(_CameraDepthTexture);
 
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;

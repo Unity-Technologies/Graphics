@@ -110,7 +110,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Clear Shadow Atlas**               | Enable the checkbox to clear the shadow atlas every frame.   |
 | **Shadow Range Minimum Value**       | Set the minimum shadow value to display in the various shadow debug overlays. |
 | **Shadow Range Maximum Value**       | Set the maximum shadow value to display in the various shadow debug overlays. |
-| **Lighting Debug Mode**              | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, and Directional Light shadow cascades. |
+| **Lighting Debug Mode**              | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
 | **Light Hierarchy Debug Mode**       | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
 | **Fullscreen Debug Mode**            | Use the drop-down to select a fullscreen lighting effect to debug. For example, you can visualize [Contact Shadows](Override-Contact-Shadows.html), the depth pyramid, and indirect diffuse lighting. |
 | **Override Smoothness**              | Enable the checkbox to override the smoothness for the entire Scene. |

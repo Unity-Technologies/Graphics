@@ -255,7 +255,13 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
 #ifdef DEBUG_DISPLAY
     // Don't sample atmospheric scattering when lighting debug more are enabled so fog is not visible
-    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_DIRECT_SPECULAR_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTION_LIGHTING ||
+        _DebugLightingMode == DEBUGLIGHTINGMODE_REFRACTION_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        return;
+
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER || _DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
         return;
 #endif
 

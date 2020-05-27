@@ -1163,7 +1163,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var lightData = new DirectionalLightData();
 
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             // Light direction for directional is opposite to the forward direction
             lightData.forward = light.GetForward();
@@ -1318,8 +1318,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var lightData = new LightData();
 
             var visibleLightAxisAndPosition = light.GetAxisAndPosition();
-
-            lightData.lightLayers = additionalLightData.GetLightLayers();
+            lightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? additionalLightData.GetLightLayers() : uint.MaxValue;
 
             lightData.lightType = gpuLightType;
 
@@ -1816,7 +1815,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
             InfluenceVolume influence = probe.influenceVolume;
-            envLightData.lightLayers = probe.lightLayersAsUInt;
+            envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
@@ -2409,15 +2408,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     var probe = cullResults.visibleReflectionProbes[probeIndex];
 
+                    if (probe.reflectionProbe == null
+                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
+                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
+                        continue;
+
                     ref ProcessedProbeData processedData = ref m_ProcessedReflectionProbeData[probeIndex];
                     PreprocessReflectionProbeData(ref processedData, probe, hdCamera);
 
                     if (TrivialRejectProbe(processedData, hdCamera))
-                        continue;
-
-                    if (probe.reflectionProbe == null
-                        || probe.reflectionProbe.Equals(null) || !probe.reflectionProbe.isActiveAndEnabled
-                        || !aovRequest.IsLightEnabled(probe.reflectionProbe.gameObject))
                         continue;
 
                     // Work around the data issues.
@@ -2650,7 +2649,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
                 case HDLightType.Spot:
                     // Projectors lights must always have a cookie texture.
-                    m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie ?? Texture2D.whiteTexture);
+                    if (hdLightData.spotLightShape != SpotLightShape.Cone || light?.cookie != null)
+                        m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie ?? Texture2D.whiteTexture);
                     break;
                 case HDLightType.Area:
                     // Only rectnagles can have cookies
@@ -3150,7 +3150,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Note we clear the whole content and not just the header since it is fast enough, happens only in one frame and is a bit more robust
                     // to changes to the inner workings of the lists.
                     // Also, we clear all the lists and to be resilient to changes in pipeline.
-                    ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))
+                        ClearLightList(hdCamera, cmd, resources.tileAndClusterData.bigTileLightList);
                     ClearLightList(hdCamera, cmd, resources.tileAndClusterData.lightList);
                     ClearLightList(hdCamera, cmd, resources.tileAndClusterData.perVoxelOffset);
 
@@ -3870,7 +3871,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayCookieAtlas)))
                 {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.cookieAtlasMipLevel);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.cookieManager.atlasTexture);
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
@@ -3883,7 +3884,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPointLightCookieArray)))
                 {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 0.0f);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputCubemap, parameters.cookieManager.cubeCache);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, 0);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
@@ -3903,7 +3904,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DisplayPlanarReflectionProbeAtlas)))
                 {
-                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._DebugExposure, lightingDebug.debugExposure);
+                    m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
                     m_LightLoopDebugMaterialProperties.SetFloat(HDShaderIDs._Mipmap, lightingDebug.planarReflectionProbeMipLevel);
                     m_LightLoopDebugMaterialProperties.SetTexture(HDShaderIDs._InputTexture, parameters.planarProbeCache.GetTexCache());
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));

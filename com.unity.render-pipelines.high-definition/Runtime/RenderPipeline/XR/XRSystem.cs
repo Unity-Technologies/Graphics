@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
+        	if (GraphicsSettings.currentRenderPipeline == null)
+                return;
             SubsystemManager.GetInstances(displayList);
 
             for (int i = 0; i < displayList.Count; i++)

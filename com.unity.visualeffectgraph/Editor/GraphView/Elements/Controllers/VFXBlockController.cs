@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
                 {
                     (model as VFXSubgraphBlock).RecreateCopy();
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Debug.LogException(e);
                 }

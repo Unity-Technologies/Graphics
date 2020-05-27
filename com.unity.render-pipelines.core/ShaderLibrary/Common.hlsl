@@ -499,6 +499,51 @@ uint FastLog2(uint x)
 // Note: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx pow(0, >0) == 0
 TEMPLATE_2_REAL(PositivePow, base, power, return pow(abs(base), power))
 
+// SafePositivePow: Same as pow(x,y) but considers x always positive and never exactly 0 such that
+// SafePositivePow(0,y) will numerically converge to 1 as y -> 0, including SafePositivePow(0,0) returning 1.
+//
+// First, like PositivePow, SafePositivePow removes this warning for when you know the x value is positive or 0 and you know
+// you avoid a NaN:
+// ie you know that x == 0 and y > 0, such that pow(x,y) == pow(0, >0) == 0
+// SafePositivePow(0, y) will however return close to 1 as y -> 0, see below.
+//
+// Also, pow(x,y) is most probably approximated as exp2(log2(x) * y), so pow(0,0) will give exp2(-inf * 0) == exp2(NaN) == NaN.
+//
+// SafePositivePow avoids NaN in allowing SafePositivePow(x,y) where (x,y) == (0,y) for any y including 0 by clamping x to a
+// minimum of FLT_EPS. The consequences are:
+//
+// -As a replacement for pow(0,y) where y >= 1, the result of SafePositivePow(x,y) should be close enough to 0.
+// -For cases where we substitute for pow(0,y) where 0 < y < 1, SafePositivePow(x,y) will quickly reach 1 as y -> 0, while
+// normally pow(0,y) would give 0 instead of 1 for all 0 < y.
+// eg: if we #define FLT_EPS  5.960464478e-8 (for fp32), 
+// SafePositivePow(0, 0.1)   = 0.1894646
+// SafePositivePow(0, 0.01)  = 0.8467453
+// SafePositivePow(0, 0.001) = 0.9835021
+//
+// Depending on the intended usage of pow(), this difference in behavior might be a moot point since:
+// 1) by leaving "y" free to get to 0, we get a NaNs
+// 2) the behavior of SafePositivePow() has more continuity when both x and y get closer together to 0, since
+// when x is assured to be positive non-zero, pow(x,x) -> 1 as x -> 0.
+//
+// TL;DR: SafePositivePow(x,y) avoids NaN and is safe for positive (x,y) including (x,y) == (0,0),
+//        but SafePositivePow(0, y) will return close to 1 as y -> 0, instead of 0, so watch out
+//        for behavior depending on pow(0, y) giving always 0, especially for 0 < y < 1.
+//
+// Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb509636(v=vs.85).aspx
+TEMPLATE_2_REAL(SafePositivePow, base, power, return pow(max(abs(base), real(REAL_EPS)), power))
+
+// Helpers for making shadergraph functions consider precision spec through the same $precision token used for variable types
+TEMPLATE_2_FLT(SafePositivePow_float, base, power, return pow(max(abs(base), float(FLT_EPS)), power))
+TEMPLATE_2_HALF(SafePositivePow_half, base, power, return pow(max(abs(base), half(HALF_EPS)), power))
+
+float Eps_float() { return FLT_EPS; }
+float Min_float() { return FLT_MIN; }
+float Max_float() { return FLT_MAX; }
+half Eps_half() { return HALF_EPS; }
+half Min_half() { return HALF_MIN; }
+half Max_half() { return HALF_MAX; }
+
+
 // Composes a floating point value with the magnitude of 'x' and the sign of 's'.
 // See the comment about FastSign() below.
 float CopySign(float x, float s, bool ignoreNegZero = true)

@@ -71,10 +71,11 @@ win_apis:
     type: Unity::VM::GPU
     image: sdet/gamecode_win10:stable
   skip_checkout: true
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade  
@@ -98,10 +99,11 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     flavor: b1.xlarge
     type: Unity::VM
     image: sdet/gamecode_win10:stable
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade 
@@ -132,10 +134,11 @@ Build_{{ project.name }}_Win_{{ win_api.name }}_Player_{{ editor.version }}:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -167,10 +170,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -196,10 +200,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
       image: buildfarm/mac:stable
       flavor: m1.mac
   skip_checkout: true
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -224,10 +229,11 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: Unity::VM::osx
     image: buildfarm/mac:stable
     flavor: m1.mac
-  {% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-  {% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git  TestProjects/{{ project.folder }}/utr
     - pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade 
@@ -264,29 +270,30 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     type: {{ platform.type }}
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
-    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/ScriptableRenderPipeline
+    - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r $YAMATO_SOURCE_DIR bokken@$BOKKEN_DEVICE_IP:~/Graphics
     - scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" ~/.ssh/id_rsa_macmini bokken@$BOKKEN_DEVICE_IP:~/.ssh/id_rsa_macmini
 
-    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/ScriptableRenderPipeline/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
+    - ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP '/Users/bokken/Library/Python/3.7/bin/unity-downloader-cli --source-file ~/Graphics/unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only'
     
     {% if testplatform.name == "Standalone" %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results --timeout=1200'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/{{ project.folder }} && ~/Graphics/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }}OSX  --testproject=/Users/bokken/Graphics/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results --timeout=1200'
     {% else %}
     - |
-      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }} && ~/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results'
+      ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP 'cd ~/Graphics/TestProjects/{{ project.folder }} && ~/Graphics/TestProjects/{{ project.folder }}/utr/utr {{ testplatform.args }} --testproject=/Users/bokken/Graphics/TestProjects/{{ project.folder }} --editor-location=/Users/bokken/.Editor --artifacts_path=/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results'
     {% endif %}
       UTR_RESULT=$?
       mkdir -p TestProjects/{{ project.folder }}/test-results/
-      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/ScriptableRenderPipeline/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
+      scp -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" -r bokken@$BOKKEN_DEVICE_IP:/Users/bokken/Graphics/TestProjects/{{ project.folder }}/test-results/ TestProjects/{{ project.folder }}/test-results/
       exit $UTR_RESULT
   dependencies:
     - path: .yamato/z_editor.yml#editor:priming:{{ editor.version }}:{{ platform.os }}
@@ -313,14 +320,14 @@ Build_{{ project.name }}_OSX_OpenGLCore_Player_{{ editor.version }}:
     {% endif %} 
     image: {{ platform.image }}      
     flavor: {{ platform.flavor }}
-{% if editor.version == 'CUSTOM-REVISION' %}
   variables:
+    UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
+    {% if editor.version == 'CUSTOM-REVISION' %}
     CUSTOM_REVISION: custom_revision_not_set
-{% endif %}
+    {% endif %}
   commands:
     - sudo -H pip install --upgrade pip
     - sudo -H pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-    - sudo npm install upm-ci-utils -g --registry https://api.bintray.com/npm/unity/unity-npm
     - git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/{{ project.folder }}/utr
     
     - cd TestProjects/{{ project.folder }} && sudo unity-downloader-cli --source-file ../../unity_revision.txt {% for component in platform.components %}-c {{ component }} {% endfor %}--wait --published-only

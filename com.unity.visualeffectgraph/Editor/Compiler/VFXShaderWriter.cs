@@ -34,6 +34,7 @@ namespace UnityEditor.VFX
         {
             builder.Append(initialValue);
         }
+
         public static string GetValueString(VFXValueType type, object value)
         {
             var format = "";
@@ -406,12 +407,13 @@ namespace UnityEditor.VFX
 
             WriteFormat("{0} {1};\n", VFXExpression.TypeToCode(type), variableName);
         }
-        public void WriteDeclaration(VFXValueType type, string variableName,string semantic)
+
+        public void WriteDeclaration(VFXValueType type, string variableName, string semantic)
         {
             if (!VFXExpression.IsTypeValidOnGPU(type))
                 throw new ArgumentException(string.Format("Invalid GPU Type: {0}", type));
 
-            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName,semantic);
+            WriteFormat("VFX_OPTIONAL_INTERPOLATION {0} {1} : {2};\n", VFXExpression.TypeToCode(type), variableName, semantic);
         }
 
         public void WriteVariable(VFXExpression exp, Dictionary<VFXExpression, string> variableNames)

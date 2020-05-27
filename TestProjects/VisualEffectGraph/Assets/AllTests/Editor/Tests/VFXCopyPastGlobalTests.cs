@@ -60,10 +60,10 @@ namespace UnityEditor.VFX.Test
 
         private static CutBefore[] cutBeforeSource = new CutBefore[]
         {
-        new CutBefore() { taskType = VFXTaskType.Spawner },
-        new CutBefore() { taskType = VFXTaskType.Initialize },
-        new CutBefore() { taskType = VFXTaskType.Update },
-        new CutBefore() { taskType = VFXTaskType.Output },
+            new CutBefore() { taskType = VFXTaskType.Spawner },
+            new CutBefore() { taskType = VFXTaskType.Initialize },
+            new CutBefore() { taskType = VFXTaskType.Update },
+            new CutBefore() { taskType = VFXTaskType.Output },
         };
         [UnityTest]
         public IEnumerator CopyPast_Context_And_Relink([ValueSource("cutBeforeSource")] CutBefore cutBeforeEncapsultor)

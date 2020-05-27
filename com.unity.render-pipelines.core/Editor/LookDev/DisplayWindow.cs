@@ -3,6 +3,8 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+using RenderPipelineManager = UnityEngine.Rendering.RenderPipelineManager;
+
 namespace UnityEditor.Rendering.LookDev
 {
     /// <summary>Interface that must implement the viewer to communicate with the compositor and data management</summary>
@@ -257,9 +259,15 @@ namespace UnityEditor.Rendering.LookDev
 
             ApplyLayout(viewLayout);
             ApplySidePanelChange(layout.showedSidePanel);
+
+            Undo.undoRedoPerformed += FullRefreshEnvironmentList;
         }
 
-        void OnDisable() => OnClosedInternal?.Invoke();
+        void OnDisable()
+        {
+            Undo.undoRedoPerformed -= FullRefreshEnvironmentList;
+            OnClosedInternal?.Invoke();
+        }
 
         void CreateToolbar()
         {
@@ -678,6 +686,17 @@ namespace UnityEditor.Rendering.LookDev
                     rootVisualElement.styleSheets.Add(styleSheet);
                 if (!EditorGUIUtility.isProSkin && !rootVisualElement.styleSheets.Contains(styleSheetLight))
                     rootVisualElement.styleSheets.Add(styleSheetLight);
+            }
+
+            // [case 1245086] Guard in case the SRP asset is set to null (or to a not supported SRP) when the lookdev window is already open
+            // Note: After an editor reload, we might get a null OnUpdateRequestedInternal and null SRP for a couple of frames, hence the check. 
+            if (!LookDev.supported && OnUpdateRequestedInternal !=null)
+            {
+                // Print an error and close the Lookdev window (to avoid spamming the console)
+                Debug.LogError($"LookDev is not supported by this Scriptable Render Pipeline: "
+                    + (RenderPipelineManager.currentPipeline == null ? "No SRP in use" : RenderPipelineManager.currentPipeline.ToString()));
+                LookDev.Close();
+                return;
             }
 
             OnUpdateRequestedInternal?.Invoke();

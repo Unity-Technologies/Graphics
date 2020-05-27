@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.Universal
     }
     internal class ShaderPreprocessor : IPreprocessShaders
     {
-
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
@@ -211,6 +210,7 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
+
             int prevVariantCount = compilerDataList.Count;
 
             for (int i = 0; i < compilerDataList.Count; ++i)
@@ -229,14 +229,13 @@ namespace UnityEditor.Rendering.Universal
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
         }
-
-        
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
         public static ShaderFeatures supportedFeatures
         {
-            get {
+            get
+            {
                 if (_supportedFeatures <= 0)
                 {
                     FetchAllSupportedFeatures();
@@ -257,7 +256,7 @@ namespace UnityEditor.Rendering.Universal
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
             urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-            for(int i = 0; i < QualitySettings.names.Length; i++)
+            for (int i = 0; i < QualitySettings.names.Length; i++)
             {
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }

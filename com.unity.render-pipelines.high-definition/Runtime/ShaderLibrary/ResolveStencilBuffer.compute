@@ -79,7 +79,10 @@ void KERNEL_NAME(uint3 groupId          : SV_GroupID,
 
 #else
 
-    bool isFirstThread = WaveIsFirstLane();
+    // Need to workaround a warning incorrectly triggered when on Xbox One, so instead of using WaveIsFirstLane()
+    // we check the groupThreadId as in the non intrinsic version.
+    //bool isFirstThread = WaveIsFirstLane();
+    bool isFirstThread = groupThreadId.x == 0 && groupThreadId.y == 0;
     uint coarseStencilValue = WaveActiveBitOr(resolvedStencil);
 
 #endif
