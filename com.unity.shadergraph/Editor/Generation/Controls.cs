@@ -135,12 +135,4 @@ namespace UnityEditor.ShaderGraph
             return ShaderGraphRequirements.none;
         }
     }
-
-    public class UnknownControl : IControl
-    {
-        public ShaderGraphRequirements GetRequirements()
-        {
-            return ShaderGraphRequirements.none;
-        }
-    }
 }

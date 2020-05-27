@@ -414,6 +414,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_ActiveTargets.Add(m_ValidTargets[i]);
                     }
+                    //if we no longer have an unknown target as active, remove it
                     else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
                     {
                         invalidTargetsToRemove.Add(m_ValidTargets[i]);
@@ -431,6 +432,7 @@ namespace UnityEditor.ShaderGraph
                 ValidateGraph();
                 NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
             }
+            //deal with the fact that target order might switch if unknown targets are collected
             activeTargets.Sort(targetComparison);
         }
 
@@ -639,9 +641,10 @@ namespace UnityEditor.ShaderGraph
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
         {
             // Set Blocks as active based on supported Block list
+            //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                if (vertexBlock.value?.descriptor?.control == null)
+                if (vertexBlock.value?.descriptor?.isUnknown == true)
                 {
                     vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
                 }
@@ -653,7 +656,7 @@ namespace UnityEditor.ShaderGraph
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                if (fragmentBlock.value?.descriptor?.control == null)
+                if (fragmentBlock.value?.descriptor?.isUnknown == true)
                 {
                     fragmentBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
                 }
@@ -677,7 +680,8 @@ namespace UnityEditor.ShaderGraph
                     if(!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
                         var slot = block.value.FindSlot<MaterialSlot>(0);
-                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.control == null) // TODO: How to check default value
+                        //Need to check if a slot is not default value OR is an untracked unknown block type
+                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.isUnknown) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
                         }

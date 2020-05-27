@@ -24,8 +24,7 @@ namespace UnityEditor.ShaderGraph
         Vector1,
         Dynamic,
         Boolean,
-        VirtualTexture,
-        Unknown
+        VirtualTexture
     }
 
     enum ConcreteSlotValueType
@@ -44,8 +43,7 @@ namespace UnityEditor.ShaderGraph
         Vector2,
         Vector1,
         Boolean,
-        VirtualTexture,
-        Unknown
+        VirtualTexture
     }
 
     static class SlotValueHelper
