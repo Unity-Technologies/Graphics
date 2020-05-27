@@ -5,9 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class PostProcessSystem
     {
-        public void Render( RenderGraph                 renderGraph,
-                            HDCamera                    hdCamera,
-                            BlueNoise                   blueNoise,
+        public void Render( RenderGraph     renderGraph,
+                            HDCamera        hdCamera,
+                            BlueNoise       blueNoise,
                             TextureHandle   colorBuffer,
                             TextureHandle   afterPostProcessTexture,
                             TextureHandle   depthBuffer,
@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
-                passData.alphaTexture = builder.ReadTexture(m_KeepAlpha ? alphaTexture : renderGraph.ImportTexture(TextureXR.GetWhiteTexture()));
+                passData.alphaTexture = builder.ReadTexture(m_KeepAlpha ? alphaTexture : renderGraph.defaultResources.whiteTextureXR);
                 passData.destination = builder.WriteTexture(finalRT);
 
                 builder.SetRenderFunc(

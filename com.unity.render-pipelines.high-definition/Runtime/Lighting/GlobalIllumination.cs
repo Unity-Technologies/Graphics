@@ -3,15 +3,115 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
-    /// A volume component that holds settings for the ray traced global illumination.
+    /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Global Illumination (Preview)")]
-    public sealed class GlobalIllumination : VolumeComponent
+    [Serializable, VolumeComponentMenu("Lighting/Global Illumination")]
+    public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         /// <summary>
-        /// Enable ray traced global illumination.
+        /// Enable screen space global illumination.
         /// </summary>
-        [Tooltip("Enable ray traced global illumination.")]
+        [Tooltip("Enable screen space global illumination.")]
+        public BoolParameter enable = new BoolParameter(false);
+
+        /// <summary>
+        /// The thickness of the depth buffer value used for the ray marching step
+        /// </summary>
+        [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1.0f);
+
+        /// <summary>
+        /// The number of steps that should be used during the ray marching pass.
+        /// </summary>
+        public int raySteps
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_RaySteps.value;
+                else
+                    return GetLightingQualitySettings().SSGIRaySteps[(int)quality.value];
+            }
+            set { m_RaySteps.value = value; }
+        }
+        [SerializeField]
+        [Tooltip("Controls the number of steps used for ray marching.")]
+        public ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
+
+        /// <summary>
+        /// The maximal world space radius from which we should get indirect lighting contribution.
+        /// </summary>
+        public float maximalRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_MaximalRadius.value;
+                else
+                    return GetLightingQualitySettings().SSGIRadius[(int)quality.value];
+            }
+            set { m_MaximalRadius.value = value; }
+        }
+        [SerializeField]
+        [Tooltip("Controls the maximal world space radius from which we should get indirect lighting contribution.")]
+        public ClampedFloatParameter m_MaximalRadius = new ClampedFloatParameter(2.0f, 0.01f, 50.0f);
+
+        /// <summary>
+        /// Defines if the effect should be evaluated at full resolution.
+        /// </summary>
+        public bool fullResolutionSS
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_FullResolutionSS.value;
+                else
+                    return GetLightingQualitySettings().SSGIFullResolution[(int)quality.value];
+            }
+            set { m_FullResolutionSS.value = value; }
+        }
+        [SerializeField]
+        public BoolParameter m_FullResolutionSS = new BoolParameter(true);
+
+        /// <summary>
+        /// Defines if the effect should be evaluated at full resolution.
+        /// </summary>
+        public float clampValueSS
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_ClampValueSS.value;
+                else
+                    return GetLightingQualitySettings().SSGIClampValue[(int)quality.value];
+            }
+            set { m_ClampValueSS.value = value; }
+        }
+        [SerializeField]
+        public ClampedFloatParameter m_ClampValueSS = new ClampedFloatParameter(2.0f, 0.01f, 10.0f);
+
+        /// <summary>
+        /// Defines the radius for the spatial filter
+        /// </summary>
+        public int filterRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_FilterRadius.value;
+                else
+                    return GetLightingQualitySettings().SSGIFilterRadius[(int)quality.value];
+            }
+            set { m_FilterRadius.value = value; }
+        }
+        [Tooltip("Filter Radius")]
+        [SerializeField]
+        public ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+
+        /// <summary>
+        /// Toggles ray traced global illumination.
+        /// </summary>
+        [Tooltip("Toggles ray traced global illumination.")]
         public BoolParameter rayTracing = new BoolParameter(false);
 
         /// <summary>

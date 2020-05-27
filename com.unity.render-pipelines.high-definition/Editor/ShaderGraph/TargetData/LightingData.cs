@@ -40,6 +40,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        bool m_ReceiveSSRTransparent = true;
+        public bool receiveSSRTransparent
+        {
+            get => m_ReceiveSSRTransparent;
+            set => m_ReceiveSSRTransparent = value;
+        }
+
+        [SerializeField]
         bool m_EnergyConservingSpecular = true;
         public bool energyConservingSpecular
         {

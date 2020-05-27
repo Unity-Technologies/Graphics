@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                   historyRT.referenceSize.y * historyRT.scaleFactor.y);
                     var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                    var aoParameters = PrepareRenderAOParameters(hdCamera, renderGraph.rtHandleProperties, historySize * rtScaleForHistory, frameCount);
+                    var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount);
 
                     var packedData = RenderAO(renderGraph, aoParameters, depthPyramid);
                     result = DenoiseAO(renderGraph, aoParameters, motionVectors, packedData, currentHistory, outputHistory);
@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = parameters;
                 passData.packedData = builder.ReadTexture(aoPackedData);
                 passData.motionVectors = builder.ReadTexture(motionVectors);
-                passData.packedDataBlurred = builder.WriteTexture(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } ));
+                passData.packedDataBlurred = builder.CreateTransientTexture(
+                    new TextureDesc(Vector2.one * scaleFactor, true, true) { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "AO Packed blurred data" } );
                 passData.currentHistory = builder.ReadTexture(currentHistory); // can also be written on first frame, but since it's an imported resource, it doesn't matter in term of lifetime.
                 passData.outputHistory = builder.WriteTexture(outputHistory);
 

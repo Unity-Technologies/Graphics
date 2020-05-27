@@ -86,6 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 displayList[i].disableLegacyRenderer = true;
                 displayList[i].sRGB = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
 #endif

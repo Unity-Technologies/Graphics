@@ -148,7 +148,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, lightingData.receiveSSR);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, false,
+                systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent, lightingData.receiveSSR, lightingData.receiveSSRTransparent);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 systemData.surfaceType,
