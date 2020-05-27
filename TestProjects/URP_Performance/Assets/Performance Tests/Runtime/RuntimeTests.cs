@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using System;
 using UnityEngine.Rendering;
 using NUnit.Framework;
@@ -31,8 +32,8 @@ public class RuntimeTests : PerformanceTests
     // return the list of all markers we want to profile
     static IEnumerable<ProfilingSampler> GetAllMarkers()
     {
-        foreach (var val in Enum.GetValues(typeof(HDProfileId)))
-            yield return ProfilingSampler.Get((HDProfileId)val);
+        foreach (var val in Enum.GetValues(typeof(URPProfileId)))
+            yield return ProfilingSampler.Get((URPProfileId)val);
     }
 
     // This is the actual test function, note the Performance attribute here.
