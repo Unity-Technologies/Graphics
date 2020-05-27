@@ -7,9 +7,15 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Class describing the logic for importer an IES file an generating the IESObject associated
+    /// </summary>
     [CustomEditor(typeof(HDIESImporter))]
     public partial class HDIESImporterEditor : ScriptedImporterEditor
     {
+        /// <summary>
+        /// IES Importer Editor, common to Core and HDRP
+        /// </summary>
         public UnityEditor.Rendering.IESImporterEditor iesImporterEditor = new UnityEditor.Rendering.IESImporterEditor();
 
         internal void SetupRenderPipelinePreviewCamera(Camera camera)
@@ -60,6 +66,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
         public override void OnEnable()
         {
             base.OnEnable();
@@ -71,6 +80,9 @@ namespace UnityEditor.Rendering.HighDefinition
             iesImporterEditor.CommonOnEnable(entryPoint);
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
         public override void OnInspectorGUI()
         {
             iesImporterEditor.CommonOnInspectorGUI(this as ScriptedImporterEditor);
@@ -78,6 +90,9 @@ namespace UnityEditor.Rendering.HighDefinition
             base.ApplyRevertGUI();
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
         protected override void Apply()
         {
             base.Apply();
@@ -85,6 +100,10 @@ namespace UnityEditor.Rendering.HighDefinition
             iesImporterEditor.CommonApply();
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
+        /// <returns>If this importer has a preview or not</returns>
         public override bool HasPreviewGUI()
         {
             return iesImporterEditor.CommonHasPreviewGUI(
@@ -107,11 +126,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 );
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
+        /// <returns>The title of the Preview</returns>
         public override GUIContent GetPreviewTitle()
         {
             return iesImporterEditor.CommonGetPreviewTitle();
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
+        /// <param name="r">Rectangle of the preview.</param>
+        /// <param name="background">Style of the background of the preview.</param>
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
             iesImporterEditor.CommonOnPreviewGUI(r, background, target as HDIESImporter,
@@ -121,6 +149,9 @@ namespace UnityEditor.Rendering.HighDefinition
                                     });
         }
 
+        /// <summary>
+        /// Call back for ScriptedImporterEditor
+        /// </summary>
         public override void OnDisable()
         {
             base.OnDisable();

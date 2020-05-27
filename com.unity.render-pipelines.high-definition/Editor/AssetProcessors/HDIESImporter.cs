@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public partial class HDIESImporter : ScriptedImporter
     {
         /// <summary>
-        /// Data of the IES importer which is common between Core & HDRP
+        /// Data of the IES importer which is common between Core and HDRP
         /// </summary>
         public UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
 
@@ -37,6 +37,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Callback when the Importer is done
         /// </summary>
+        /// <param name="ctx">Asset Importer context.</param>
         public override void OnImportAsset(AssetImportContext ctx)
         {
             commonIESImporter.engine.TextureGenerationType = TextureImporterType.Default;

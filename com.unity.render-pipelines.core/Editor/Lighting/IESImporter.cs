@@ -5,14 +5,32 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Common class use to share code between implementation of IES Importeres
+    /// </summary>
     [System.Serializable]
     public class IESImporter
     {
+        /// <summary>
+        /// IES Engine
+        /// </summary>
         public IESEngine    engine      = new IESEngine();
+
+        /// <summary>
+        /// IES Meta data stored in the ies file
+        /// </summary>
         public IESMetaData  iesMetaData = new IESMetaData();
 
+        /// <summary>
+        /// Delegate prototype which will be sent by the pipeline implementation of the IES Importer
+        /// </summary>
         public delegate void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies);
 
+        /// <summary>
+        /// Common method performing the import of the asset
+        /// </summary>
+        /// <param name="ctx">Asset importer context.</param>
+        /// <param name="setupRenderPipelinePrefabLight">Delegate needed to perform operation which are "Render Pipeline specific" here setuping the prefab of light</param>
         public void CommonOnImportAsset(AssetImportContext ctx, SetupRenderPipelinePrefabLight setupRenderPipelinePrefabLight)
         {
             Texture cookieTextureCube   = null;

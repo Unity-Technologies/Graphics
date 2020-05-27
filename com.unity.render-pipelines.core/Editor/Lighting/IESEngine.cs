@@ -24,11 +24,20 @@ namespace UnityEditor.Rendering
         internal string FileFormatVersion { get => m_IesReader.FileFormatVersion; }
 
         internal TextureImporterType m_TextureGenerationType = TextureImporterType.Cookie;
+
+        /// <summary>
+        /// setter for the Texture generation Type
+        /// </summary>
         public TextureImporterType TextureGenerationType
         {
             set { m_TextureGenerationType = value; }
         }
 
+        /// <summary>
+        /// Method to read the IES File
+        /// </summary>
+        /// <param name="iesFilePath">Path to the IES file in the Disk.</param>
+        /// <returns>An error message or warning otherwise null if no error</returns>
         public string ReadFile(string iesFilePath)
         {
             if (!File.Exists(iesFilePath))
@@ -50,11 +59,20 @@ namespace UnityEditor.Rendering
             return errorMessage;
         }
 
+        /// <summary>
+        /// Check a keyword
+        /// </summary>
+        /// <param name="keyword">A keyword to check if exist.</param>
+        /// <returns>A Keyword if exist inside the internal Dictionary</returns>
         public string GetKeywordValue(string keyword)
         {
             return m_IesReader.GetKeywordValue(keyword);
         }
 
+        /// <summary>
+        /// Getter (as a string) for the Photometric Type
+        /// </summary>
+        /// <returns>The current Photometric Type</returns>
         public string GetPhotometricType()
         {
             switch (m_IesReader.PhotometricType)
@@ -68,6 +86,10 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Get the CUrrent Max intensity
+        /// </summary>
+        /// <returns>A pair of the intensity follow by the used unit (candelas or lumens)</returns>
         public (float, string) GetMaximumIntensity()
         {
             if (m_IesReader.TotalLumens == -1f) // absolute photometry
@@ -80,6 +102,12 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Generated a Cube texture based on the internal PhotometricType
+        /// </summary>
+        /// <param name="compression">Compression parameter requestted.</param>
+        /// <param name="textureSize">The resquested size.</param>
+        /// <returns>A Cubemap representing this IES</returns>
         public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression, int textureSize)
         {
             int width  = 2 * textureSize;
@@ -105,6 +133,14 @@ namespace UnityEditor.Rendering
 
         // Gnomonic projection reference:
         // http://speleotrove.com/pangazer/gnomonic_projection.html
+        /// <summary>
+        /// Generating a 2D Texture of this cookie, using a Gnomonic projection of the bottom of the IES
+        /// </summary>
+        /// <param name="compression">Compression parameter requestted.</param>
+        /// <param name="coneAngle">Cone angle used to performe the Gnomonic projection.</param>
+        /// <param name="textureSize">The resquested size.</param>
+        /// <param name="applyLightAttenuation">Bool to enable or not the Light Attenuation based on the squared distance.</param>
+        /// <returns>A Generated 2D texture doing the projection of the IES using the Gnomonic projection of the bottom half hemisphere with the given 'cone angle'</returns>
         public (string, Texture) Generate2DCookie(TextureImporterCompression compression, float coneAngle, int textureSize, bool applyLightAttenuation)
         {
             NativeArray<Color32> colorBuffer;
@@ -125,7 +161,7 @@ namespace UnityEditor.Rendering
             return GenerateTexture(m_TextureGenerationType, TextureImporterShape.Texture2D, compression, textureSize, textureSize, colorBuffer);
         }
 
-        public (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
+        private (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
         {
             int width  = 2 * textureSize;
             int height = textureSize;

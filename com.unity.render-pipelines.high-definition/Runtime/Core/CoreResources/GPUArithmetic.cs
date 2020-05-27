@@ -3,6 +3,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Helper to do some basic Arithmetic operation on Texture via compute shaders
+    /// </summary>
     public class GPUArithmetic
     {
         /// <summary>
@@ -31,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// </summary>
             MAD,
             /// <summary>
-            /// MAD_RB: Multiply and Addition (with each needed informations are stored on red & green channels: in.r*x + in.b)
+            /// MAD_RG: Multiply and Addition (with each needed informations are stored on red and green channels: in.r*x + in.b)
             /// </summary>
             MAD_RG
         }
@@ -213,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="output">Output (Internally supported: +=, *=, /= ...)</param>
         /// <param name="input">Input (Internally supported: +=, *=, /= ...)</param>
-        /// <param name="params">Parameters for add, mult, ... {paramsRT[uint2(0, 0)], paramsRT[uint2(1, 0)]}, or paramsRT[uint2(0, 0)].xy</param>
+        /// <param name="param">Parameters for add, mult, ... {paramsRT[uint2(0, 0)], paramsRT[uint2(1, 0)]}, or paramsRT[uint2(0, 0)].xy</param>
         /// <param name="cmd">Command Buffer (can be null for immediate context)</param>
         /// <param name="operation">Supported {Add: output = input + param, Mult: output = input*param, Div: output = input/param, Mean: output = dot(input, float3(1.0f/3.0f).xxx), MAD: output = param[0]*input + param[1], MAD_RG: output = param[0].x*input + param[0].y}</param>
         static public void ComputeOperation(RTHandle output, RTHandle input, Vector4 param, CommandBuffer cmd, Operation operation)

@@ -572,9 +572,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        public Texture m_AreaLightEmissive = null;
+        Texture m_AreaLightEmissive = null;
 
-        // Internal texture used for emissive for rectangular area lights
+        /// <summary>
+        /// Internal texture used for emissive for rectangular area lights
+        /// </summary>
         public Texture areaLightEmissive
         {
             get => m_AreaLightEmissive;
@@ -1759,7 +1761,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
-            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0) 
+            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this);
             }
@@ -2104,7 +2106,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
-                    // Technically the rendering has not happened yet, but it is scheduled. 
+                    // Technically the rendering has not happened yet, but it is scheduled.
                     HDShadowManager.cachedShadowManager.MarkShadowAsRendered(cachedShadowID, shadowMapType);
                 }
 
@@ -3037,7 +3039,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowResolution.useOverride = useOverride;
                 RefreshCachedShadow();
             }
-        } 
+        }
 
         /// <summary>
         /// Set the near plane of the shadow.

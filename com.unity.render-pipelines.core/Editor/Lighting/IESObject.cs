@@ -10,7 +10,13 @@ namespace UnityEditor.Rendering
     /// </summary>
     public enum IESLightType
     {
+        /// <summary>
+        /// Point for the IES
+        /// </summary>
         Point,
+        /// <summary>
+        /// Spot for IES (compatible with Area Light)
+        /// </summary>
         Spot,
     }
 
@@ -99,6 +105,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Get Hash describing an unique IES
         /// </summary>
+        /// <returns>The Hash of the IES Object</returns>
         public override int GetHashCode()
         {
             int hash = base.GetHashCode();

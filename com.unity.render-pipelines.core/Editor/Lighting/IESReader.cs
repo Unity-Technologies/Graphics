@@ -68,6 +68,8 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Main function to read the file
         /// </summary>
+        /// <param name="iesFilePath">The path to the IES File on disk.</param>
+        /// <returns>Return the error during the import otherwise null if no error</returns>
         public string ReadFile(string iesFilePath)
         {
 

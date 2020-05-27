@@ -38,16 +38,35 @@ namespace UnityEditor.Rendering
 
         protected PreviewRenderUtility m_PreviewRenderUtility = null;
 
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void LayoutRenderPipelineUseIesMaximumIntensity();
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void SetupRenderPipelinePreviewCamera(Camera camera);
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void SetupRenderPipelinePreviewLight(Light light);
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void SetupRenderPipelinePreviewWallRenderer(MeshRenderer wallRenderer);
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
+        /// <summary>
+        /// Delegate prototype sent by the specialization of the IESImporterEditor per Render Pipeline
+        /// </summary>
         public delegate void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp);
 
         /// <summary>
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
+        /// <param name="serializedObject">Serialized object which can be linked to IESMetadata</param>
         public void CommonOnEnable(SerializedProperty serializedObject)
         {
             m_WordWrapStyle.wordWrap = true;
@@ -75,6 +94,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
+        /// <param name="scriptedImporter">The current specialized scripted importer using the common code</param>
         public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter)
         {
             scriptedImporter.serializedObject.Update();
@@ -142,6 +162,10 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
+        /// <param name="setupRenderPipelinePreviewCamera">Delegate provided by the Render pipeline to setup the Preview Camera</param>
+        /// <param name="setupRenderPipelinePreviewFloorRenderer">Delegate provided by the Render pipeline to setup the Preview Light</param>
+        /// <param name="setupRenderPipelinePreviewLight">Delegate provided by the Render pipeline to setup the Preview Wall</param>
+        /// <param name="setupRenderPipelinePreviewWallRenderer">Delegate provided by the Render pipeline to setup the Preview Floor</param>
         public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera        setupRenderPipelinePreviewCamera,
                                         SetupRenderPipelinePreviewLight         setupRenderPipelinePreviewLight,
                                         SetupRenderPipelinePreviewWallRenderer  setupRenderPipelinePreviewWallRenderer,
@@ -210,6 +234,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
+        /// <returns>The title of the Preview</returns>
         public GUIContent CommonGetPreviewTitle()
         {
             return new GUIContent("IES Luminaire Profile");
@@ -218,6 +243,10 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
         /// </summary>
+        /// <param name="background">Background of the Preview</param>
+        /// <param name="r">Rect of the Preview</param>
+        /// <param name="target">ScriptedImporter targeted</param>
+        /// <param name="setupRenderPipelinePreviewLightIntensity">Delegate provided by the Rendering Pipeline to setup the Light Intensity</param>
         public void CommonOnPreviewGUI(Rect r, GUIStyle background, ScriptedImporter target,
                                         SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
         {
