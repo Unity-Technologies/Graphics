@@ -645,7 +645,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
             // Prepare the bokeh kernel constant buffer
-            int hash = m_DepthOfField.GetHashCode(); // TODO: GC fix
+            int hash = m_DepthOfField.GetHashCode();
             if (hash != m_BokehHash)
             {
                 m_BokehHash = hash;
