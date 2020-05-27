@@ -61,6 +61,9 @@
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
 
+* [Customizing URP](customizing-urp.md)
+  * [beginCameraRendering event](using-begincamerarendering.md)
+
 * [2D](2d-index.md)
   * [Introduction to Lights 2D](Lights-2D-intro.md)
   * [Requirements and setup](Setup.md)
