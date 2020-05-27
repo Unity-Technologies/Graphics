@@ -176,7 +176,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
             context.AddField(HDFields.SubsurfaceScattering,         lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.Transmission,                 lightingData.transmission);
+            context.AddField(HDFields.Transmission,                 stackLitData.transmission);
             context.AddField(HDFields.DualSpecularLobe,             stackLitData.dualSpecularLobe);
 
             // Base Parametrization
@@ -218,10 +218,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //
             // (Note we can achieve the same results in the template on just single predicates by making defines out of them,
             // and using #if defined() && etc)
-            context.AddField(HDFields.GeometricSpecularAA,          stackLitData.geometricSpecularAA &&
+            context.AddField(HDFields.GeometricSpecularAA,          lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
-            context.AddField(HDFields.SpecularAA,                   stackLitData.geometricSpecularAA &&
+            context.AddField(HDFields.SpecularAA,                   lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
             context.AddField(HDFields.SpecularOcclusion,            stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
@@ -296,8 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       lightingData.subsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            lightingData.transmission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || lightingData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            stackLitData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || stackLitData.transmission);
 
             // Base Metallic
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,               stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
@@ -342,8 +342,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIRClamp, stackLitData.iridescence && stackLitData.coat);
 
             // Specular AA
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, stackLitData.geometricSpecularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  stackLitData.geometricSpecularAA);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

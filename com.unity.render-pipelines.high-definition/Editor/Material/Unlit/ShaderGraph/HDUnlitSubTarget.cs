@@ -68,7 +68,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            blockList.AddPropertyBlock(new SurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Unlit));
+            blockList.AddPropertyBlock(new HDUnlitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Unlit, unlitData));
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new DistortionPropertyBlock());
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 

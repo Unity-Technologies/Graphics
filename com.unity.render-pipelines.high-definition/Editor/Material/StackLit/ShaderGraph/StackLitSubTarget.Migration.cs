@@ -47,9 +47,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.receiveDecals = stackLitMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = stackLitMasterNode.m_ReceiveSSR;
             lightingData.subsurfaceScattering = stackLitMasterNode.m_SubsurfaceScattering;
-            lightingData.transmission = stackLitMasterNode.m_Transmission;
             lightingData.overrideBakedGI = stackLitMasterNode.m_overrideBakedGI;
+            lightingData.specularAA = stackLitMasterNode.m_GeometricSpecularAA;
 
+            stackLitData.transmission = stackLitMasterNode.m_Transmission;
             stackLitData.energyConservingSpecular = stackLitMasterNode.m_EnergyConservingSpecular;
             stackLitData.baseParametrization = stackLitMasterNode.m_BaseParametrization;
             stackLitData.dualSpecularLobeParametrization = stackLitMasterNode.m_DualSpecularLobeParametrization;
@@ -59,7 +60,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stackLitData.dualSpecularLobe = stackLitMasterNode.m_DualSpecularLobe;
             stackLitData.capHazinessWrtMetallic = stackLitMasterNode.m_CapHazinessWrtMetallic;
             stackLitData.iridescence = stackLitMasterNode.m_Iridescence;
-            stackLitData.geometricSpecularAA = stackLitMasterNode.m_GeometricSpecularAA;
             stackLitData.screenSpaceSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionBaseMode;
             stackLitData.dataBasedSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)stackLitMasterNode.m_DataBasedSpecularOcclusionBaseMode;
             stackLitData.screenSpaceSpecularOcclusionAOConeSize = (StackLitData.SpecularOcclusionAOConeSize)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionAOConeSize;
@@ -192,12 +192,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 blockMap.Add(HDBlockFields.SurfaceDescription.SubsurfaceMask, StackLitMasterNode1.SubsurfaceMaskSlotId);
             }
 
-            if (lightingData.transmission)
+            if (stackLitData.transmission)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.Thickness, StackLitMasterNode1.ThicknessSlotId);
             }
 
-            if (lightingData.subsurfaceScattering || lightingData.transmission)
+            if (lightingData.subsurfaceScattering || stackLitData.transmission)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.DiffusionProfileHash, StackLitMasterNode1.DiffusionProfileHashSlotId);
             }
@@ -217,7 +217,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, StackLitMasterNode1.DistortionBlurSlotId);
             }
 
-            if (stackLitData.geometricSpecularAA)
+            if (lightingData.specularAA)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, StackLitMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, StackLitMasterNode1.SpecularAAThresholdSlotId);

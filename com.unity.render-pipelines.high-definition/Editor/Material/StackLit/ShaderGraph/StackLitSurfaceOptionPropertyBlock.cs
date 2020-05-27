@@ -47,10 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddProperty("Iridescence", () => stackLitData.iridescence, (newValue) => stackLitData.iridescence = newValue, 1);
             if (systemData.surfaceType != SurfaceType.Transparent)
                 AddProperty("Subsurface Scattering", () => lightingData.subsurfaceScattering, (newValue) => lightingData.subsurfaceScattering = newValue, 1);
-            AddProperty("Transmission", () => lightingData.transmission, (newValue) => lightingData.transmission = newValue, 1);
-
-            // TODO: Can this use lightingData.specularAA?
-            AddProperty("Geometric Specular AA", () => stackLitData.geometricSpecularAA, (newValue) => stackLitData.geometricSpecularAA = newValue, 0);
+            AddProperty("Transmission", () => stackLitData.transmission, (newValue) => stackLitData.transmission = newValue, 1);
 
             // SpecularOcclusion from SSAO
             if (stackLitData.devMode)

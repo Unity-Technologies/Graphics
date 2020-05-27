@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            // blockList.AddPropertyBlock(new DecalPropertyBlock());
+            blockList.AddPropertyBlock(new DecalPropertyBlock(decalData));
         }
 
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;

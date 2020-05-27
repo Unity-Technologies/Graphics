@@ -26,8 +26,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(specularOcclusionModeText, () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
-            AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
+            if (lightingData != null)
+            {
+                AddProperty(specularOcclusionModeText, () => lightingData.specularOcclusionMode, (newValue) => lightingData.specularOcclusionMode = newValue);
+                AddProperty(Styles.overrideBakedGI, () => lightingData.overrideBakedGI, (newValue) => lightingData.overrideBakedGI = newValue);
+            }
             AddProperty(Styles.supportLodCrossFade, () => systemData.supportLodCrossFade, (newValue) => systemData.supportLodCrossFade = newValue);
             AddProperty(addPrecomputedVelocityText, () => builtinData.addPrecomputedVelocity, (newValue) => builtinData.addPrecomputedVelocity = newValue);
         }
