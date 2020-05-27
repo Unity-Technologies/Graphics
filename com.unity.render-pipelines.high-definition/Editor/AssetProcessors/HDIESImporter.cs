@@ -6,9 +6,15 @@ using UnityEditor.Experimental.AssetImporters;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Class to describe an IES file
+    /// </summary>
     [ScriptedImporter(1, "ies")]
     public partial class HDIESImporter : ScriptedImporter
     {
+        /// <summary>
+        /// Data of the IES importer which is common between Core & HDRP
+        /// </summary>
         public UnityEditor.Rendering.IESImporter commonIESImporter = new UnityEditor.Rendering.IESImporter();
 
         internal void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies)
@@ -28,6 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Callback when the Importer is done
+        /// </summary>
         public override void OnImportAsset(AssetImportContext ctx)
         {
             commonIESImporter.engine.TextureGenerationType = TextureImporterType.Default;

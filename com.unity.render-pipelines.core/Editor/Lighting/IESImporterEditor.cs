@@ -6,6 +6,9 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Common class for IES Importer Editor (currently implemented only on HDRP)
+    /// </summary>
     public class IESImporterEditor
     {
         GUIStyle m_WordWrapStyle = new GUIStyle();
@@ -42,6 +45,9 @@ namespace UnityEditor.Rendering
         public delegate void SetupRenderPipelinePreviewFloorRenderer(MeshRenderer floorRenderer);
         public delegate void SetupRenderPipelinePreviewLightIntensity(Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp);
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public void CommonOnEnable(SerializedProperty serializedObject)
         {
             m_WordWrapStyle.wordWrap = true;
@@ -66,6 +72,9 @@ namespace UnityEditor.Rendering
             m_LightAimAxisRotationProp    = serializedObject.FindPropertyRelative("LightAimAxisRotation");
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public void CommonOnInspectorGUI(ScriptedImporterEditor scriptedImporter)
         {
             scriptedImporter.serializedObject.Update();
@@ -118,6 +127,9 @@ namespace UnityEditor.Rendering
             scriptedImporter.serializedObject.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public void CommonApply()
         {
             if (m_PreviewRenderUtility != null)
@@ -127,6 +139,9 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera        setupRenderPipelinePreviewCamera,
                                         SetupRenderPipelinePreviewLight         setupRenderPipelinePreviewLight,
                                         SetupRenderPipelinePreviewWallRenderer  setupRenderPipelinePreviewWallRenderer,
@@ -192,11 +207,17 @@ namespace UnityEditor.Rendering
             return true;
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public GUIContent CommonGetPreviewTitle()
         {
             return new GUIContent("IES Luminaire Profile");
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public void CommonOnPreviewGUI(Rect r, GUIStyle background, ScriptedImporter target,
                                         SetupRenderPipelinePreviewLightIntensity setupRenderPipelinePreviewLightIntensity)
         {
@@ -258,6 +279,9 @@ namespace UnityEditor.Rendering
             }
         }
 
+        /// <summary>
+        /// Callback called on the Implemented IESImporterEditor (currently on HDRP Only)
+        /// </summary>
         public void CommonOnDisable()
         {
             if (m_PreviewRenderUtility != null)

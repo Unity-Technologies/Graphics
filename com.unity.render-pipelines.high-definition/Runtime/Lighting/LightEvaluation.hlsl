@@ -333,7 +333,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
         // Box lights have no range attenuation, so we must clip manually.
         bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5*r) - 0.5*r + 1) <= light.boxLightSafeExtent;
-        if (lightType == GPULIGHTTYPE_SPOT)
+        if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
         {
             isInBounds = isInBounds & dot(positionCS, positionCS) <= light.iesCut * light.iesCut;
         }

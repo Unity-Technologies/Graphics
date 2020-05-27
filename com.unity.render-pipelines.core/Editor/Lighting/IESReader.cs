@@ -6,28 +6,43 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Class to Parse IES File
+    /// </summary>
     [System.Serializable]
     public class IESReader
     {
         string m_FileFormatVersion;
+        /// <summary>
+        /// Version of the IES File
+        /// </summary>
         public string FileFormatVersion
         {
             get { return m_FileFormatVersion; }
         }
 
         float m_TotalLumens;
+        /// <summary>
+        /// Total light intensity (in Lumens) stored on the file, usage of it is optional (through the prefab subasset inside the IESObject)
+        /// </summary>
         public float TotalLumens
         {
             get { return m_TotalLumens; }
         }
 
         float m_MaxCandelas;
+        /// <summary>
+        /// Maximum of Candela in the IES File
+        /// </summary>
         public float MaxCandelas
         {
             get { return m_MaxCandelas; }
         }
 
         int m_PhotometricType;
+        /// <summary>
+        /// Type of Photometric light in the IES file, varying per IES-Type & version
+        /// </summary>
         public int PhotometricType
         {
             get { return m_PhotometricType; }
@@ -50,6 +65,9 @@ namespace UnityEditor.Rendering
         // https://www.ies.org/product/standard-file-format-for-electronic-transfer-of-photometric-data/
         // http://lumen.iee.put.poznan.pl/kw/iesna.txt
         // https://seblagarde.wordpress.com/2014/11/05/ies-light-format-specification-and-reader/
+        /// <summary>
+        /// Main function to read the file
+        /// </summary>
         public string ReadFile(string iesFilePath)
         {
 
@@ -379,12 +397,12 @@ namespace UnityEditor.Rendering
             return null;
         }
 
-        public string GetKeywordValue(string keyword)
+        internal string GetKeywordValue(string keyword)
         {
             return m_KeywordDictionary.ContainsKey(keyword) ? m_KeywordDictionary[keyword] : string.Empty;
         }
 
-        public int GetMinVerticalSampleCount()
+        internal int GetMinVerticalSampleCount()
         {
             if (m_PhotometricType == 2) // type B
             {
@@ -397,7 +415,7 @@ namespace UnityEditor.Rendering
             }
         }
 
-        public int GetMinHorizontalSampleCount()
+        internal int GetMinHorizontalSampleCount()
         {
             switch (m_PhotometricType)
             {
@@ -412,17 +430,17 @@ namespace UnityEditor.Rendering
             }
         }
 
-        public float ComputeVerticalAnglePosition(float angle)
+        internal float ComputeVerticalAnglePosition(float angle)
         {
             return ComputeAnglePosition(angle, m_VerticalAngles);
         }
 
-        public float ComputeTypeAorBHorizontalAnglePosition(float angle) // angle in range [-180..+180] degrees
+        internal float ComputeTypeAorBHorizontalAnglePosition(float angle) // angle in range [-180..+180] degrees
         {
             return ComputeAnglePosition(((m_FirstHorizontalAngle == 0f) ? Mathf.Abs(angle) : angle), m_HorizontalAngles);
         }
 
-        public float ComputeTypeCHorizontalAnglePosition(float angle) // angle in range [0..360] degrees
+        internal float ComputeTypeCHorizontalAnglePosition(float angle) // angle in range [0..360] degrees
         {
             switch (m_LastHorizontalAngle)
             {
@@ -442,7 +460,7 @@ namespace UnityEditor.Rendering
             return ComputeAnglePosition(angle, m_HorizontalAngles);
         }
 
-        float ComputeAnglePosition(float value, float[] angles)
+        internal float ComputeAnglePosition(float value, float[] angles)
         {
             int start = 0;
             int end   = angles.Length - 1;
@@ -490,7 +508,7 @@ namespace UnityEditor.Rendering
             return start + fraction;
         }
 
-        public float InterpolateBilinear(float x, float y)
+        internal float InterpolateBilinear(float x, float y)
         {
             int ix = (int)Mathf.Floor(x);
             int iy = (int)Mathf.Floor(y);
@@ -509,7 +527,7 @@ namespace UnityEditor.Rendering
             return Mathf.Lerp(p0, p1, fractionX);
         }
 
-        float InterpolatePoint(int x, int y)
+        internal float InterpolatePoint(int x, int y)
         {
             x %= m_HorizontalAngles.Length;
             y %= m_VerticalAngles.Length;

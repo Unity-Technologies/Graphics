@@ -5,42 +5,100 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Various possible type for IES, in HDRP for Rectangular light we use spot version
+    /// </summary>
     public enum IESLightType
     {
         Point,
         Spot,
     }
 
+    /// <summary>
+    /// Common class to store metadata of an IES file
+    /// </summary>
     [System.Serializable]
     public class IESMetaData
     {
+        /// <summary>
+        /// Version of the IES File
+        /// </summary>
         public string FileFormatVersion;
+        /// <summary>
+        /// Total light intensity (in Lumens) stored on the file, usage of it is optional (through the prefab subasset inside the IESObject)
+        /// </summary>
         public string IESPhotometricType;
+        /// <summary>
+        /// IES Max Intensity depends on the various information stored on the IES file
+        /// </summary>
         public float  IESMaximumIntensity;
+        /// <summary>
+        /// Unit used to measure the IESMaximumIntensity
+        /// </summary>
         public string IESMaximumIntensityUnit;
 
         // IES luminaire product information.
+        /// <summary>
+        /// Manufacturer of the current IES file
+        /// </summary>
         public string Manufacturer;           // IES keyword MANUFAC
+        /// <summary>
+        /// Luninaire Catalog Number
+        /// </summary>
         public string LuminaireCatalogNumber; // IES keyword LUMCAT
+        /// <summary>
+        /// Luminaire Description
+        /// </summary>
         public string LuminaireDescription;   // IES keyword LUMINAIRE
+        /// <summary>
+        /// Lamp Catalog Number
+        /// </summary>
         public string LampCatalogNumber;      // IES keyword LAMPCAT
+        /// <summary>
+        /// Lamp Description
+        /// </summary>
         public string LampDescription;        // IES keyword LAMP
 
+        /// <summary>
+        /// Prefab Light Type (optional to generate the texture used by the renderer)
+        /// </summary>
         public IESLightType PrefabLightType = IESLightType.Point;
 
+        /// <summary>
+        /// Spot angle used for the Gnomonic projection of the IES. This parameter will be responsible of the pixel footprint in the 2D Texture
+        /// https://en.wikipedia.org/wiki/Gnomonic_projection
+        /// </summary>
         [Range(1f, 179f)]
         public float SpotAngle = 120f;
+        /// <summary>
+        /// IES Size of the texture used (same parameter for Point & Spot)
+        /// </summary>
         [Range(16f, 2048f)]
         public int  iesSize = 128;
 
+        /// <summary>
+        /// Enable attenuation used for Spot recommanded to be true, particulary with large angle of "SpotAngle" (cf. Gnomonic Projection)
+        /// </summary>
         public bool  ApplyLightAttenuation  = true;
+        /// <summary>
+        /// Enable max intensity for the texture generation
+        /// </summary>
         public bool  UseIESMaximumIntensity = true;
 
-        public TextureImporterCompression CookieCompression = TextureImporterCompression.Uncompressed;
+        /// <summary>
+        /// Compression used to generate the texture (CompressedHQ by default (BC7))
+        /// </summary>
+        public TextureImporterCompression CookieCompression = TextureImporterCompression.CompressedHQ;
 
+        /// <summary>
+        /// Internally we use 2D projection, we have to choose one axis to project the IES propertly
+        /// </summary>
         [Range(-180f, 180f)]
         public float LightAimAxisRotation = -90f;
 
+        /// <summary>
+        /// Get Hash describing an unique IES
+        /// </summary>
         public override int GetHashCode()
         {
             int hash = base.GetHashCode();
@@ -68,9 +126,15 @@ namespace UnityEditor.Rendering
         }
     }
 
+    /// <summary>
+    /// IESObject manipulated internally (in the UI)
+    /// </summary>
     [System.Serializable]
     public class IESObject : ScriptableObject
     {
+        /// <summary>
+        /// Metadata of the IES file
+        /// </summary>
         public IESMetaData  iesMetaData = new IESMetaData();
     }
 }

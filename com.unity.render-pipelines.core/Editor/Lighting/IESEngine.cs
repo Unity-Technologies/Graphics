@@ -9,6 +9,9 @@ namespace UnityEditor.Rendering
     // Photometric type coordinate system references:
     // https://www.ies.org/product/approved-method-guide-to-goniometer-measurements-and-types-and-photometric-coordinate-systems/
     // https://support.agi32.com/support/solutions/articles/22000209748-type-a-type-b-and-type-c-photometry
+    /// <summary>
+    /// IES class which is common for the Importers
+    /// </summary>
 
     [System.Serializable]
     public class IESEngine
