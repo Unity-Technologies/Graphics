@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     //TODO:
     // clamp in shader code the ranged() properties
     // or let inputs (eg mask?) follow invalid values ? Lit does that (let them free running).
-    sealed class StackLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<StackLitData>
+    sealed partial class StackLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<StackLitData>
     {
         const string kAssetGuid = "5f7ba34a143e67647b202a662748dae3";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
@@ -159,8 +159,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
+            AddDistortionFields(ref context);
 
-            // Structs
+            // StackLit specific properties
             context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(StackLitSubTarget.StackLitPasses.MotionVectors));
 
             // Material
@@ -175,14 +176,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
             context.AddField(HDFields.SubsurfaceScattering,         lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.Transmission,                 lightingData.transmission);
+            context.AddField(HDFields.Transmission,                 stackLitData.transmission);
             context.AddField(HDFields.DualSpecularLobe,             stackLitData.dualSpecularLobe);
-
-            // Normal Drop Off Space
-            AddNormalDropOffFields(ref context);
-
-            // Distortion
-            AddDistortionFields(ref context);
 
             // Base Parametrization
             // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
@@ -195,10 +190,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            AddLitMiscFields(ref context);
-            AddSurfaceMiscFields(ref context);
             context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.EnergyConservingSpecular,     lightingData.energyConservingSpecular);
+            context.AddField(HDFields.EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
             context.AddField(HDFields.Tangent,                      context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
@@ -225,10 +218,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //
             // (Note we can achieve the same results in the template on just single predicates by making defines out of them,
             // and using #if defined() && etc)
-            context.AddField(HDFields.GeometricSpecularAA,          stackLitData.geometricSpecularAA &&
+            context.AddField(HDFields.GeometricSpecularAA,          lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
-            context.AddField(HDFields.SpecularAA,                   stackLitData.geometricSpecularAA &&
+            context.AddField(HDFields.SpecularAA,                   lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
             context.AddField(HDFields.SpecularOcclusion,            stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
@@ -292,29 +285,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Vertex
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            base.GetActiveBlocks(ref context);
+            AddDistortionBlocks(ref context);
 
             // Common
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.Tangent);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           stackLitData.anisotropy);
             context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       lightingData.subsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            lightingData.transmission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || lightingData.transmission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold,     systemData.alphaTest);
-
-            // Normal
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,               lightingData.normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            stackLitData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || stackLitData.transmission);
 
             // Base Metallic
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,               stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
@@ -358,31 +340,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIR, stackLitData.iridescence && stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIRClamp, stackLitData.iridescence && stackLitData.coat);
 
-            // Distortion
-            var hasDistortion = systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion;
-            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,           hasDistortion);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,       hasDistortion);
-
             // Specular AA
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, stackLitData.geometricSpecularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  stackLitData.geometricSpecularAA);
-
-            // Baked GI
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,              lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,          lightingData.overrideBakedGI);
-
-            // Misc
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            var settingsView = new StackLitSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
+            blockList.AddPropertyBlock(new StackLitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, stackLitData));
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new DistortionPropertyBlock());
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            base.CollectShaderProperties(collector, generationMode);
+
             if (stackLitData.debug)
             {
                 // We have useful debug options in StackLit, so add them always, and let the UI editor (non shadergraph) handle displaying them
@@ -424,67 +398,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     value = new Vector4(2.0f, 2.0f, 1.0f, 2.0f)
                 });
             }
-
-            // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
-            // ShaderGraph doesn't use this property, so currently it inserts a dummy color (white). This dummy color may be removed entirely once the following PR has been merged in trunk: Pull request #74105
-            // The user will then need to explicitly disable emissive GI if it is not needed.
-            // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
-            // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
-            {
-                overrideReferenceName = "_EmissionColor",
-                hidden = true,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
-            });
-
-            //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, lightingData.subsurfaceScattering,
-                systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent, lightingData.receiveSSR, lightingData.receiveSSRTransparent);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                systemData.surfaceType,
-                systemData.blendMode,
-                systemData.sortPriority,
-                builtinData.alphaToMask,
-                systemData.zWrite,
-                systemData.transparentCullMode,
-                systemData.zTest,
-                false,
-                builtinData.transparencyFog
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, false);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
-        }
-
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            // Fixup the material settings:
-            material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
-            material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
-            material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
-            material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
-            material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
-            material.SetFloat(kZTestTransparent, (int)systemData.zTest);
-            material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
-
-            // No sorting priority for shader graph preview
-            var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
-
-            StackLitGUI.SetupMaterialKeywordsAndPass(material);
         }
 
         public static bool SpecularOcclusionModeUsesVisibilityCone(StackLitData.SpecularOcclusionBaseMode soMethod)
@@ -509,228 +422,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return (soConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostBSDFRoughness
                 || soConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt);
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            if(!(masterNode is StackLitMasterNode1 stackLitMasterNode))
-                return false;
-
-            // Set data
-            systemData.surfaceType = (SurfaceType)stackLitMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)stackLitMasterNode.m_AlphaMode);
-            systemData.alphaTest = stackLitMasterNode.m_AlphaTest;
-            systemData.sortPriority = stackLitMasterNode.m_SortPriority;
-            systemData.doubleSidedMode = stackLitMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = stackLitMasterNode.m_ZWrite;
-            systemData.transparentCullMode = stackLitMasterNode.m_transparentCullMode;
-            systemData.zTest = stackLitMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
-            systemData.dotsInstancing = stackLitMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = stackLitMasterNode.m_MaterialNeedsUpdateHash;
-
-            builtinData.transparencyFog = stackLitMasterNode.m_TransparencyFog;
-            builtinData.distortion = stackLitMasterNode.m_Distortion;
-            builtinData.distortionMode = stackLitMasterNode.m_DistortionMode;
-            builtinData.distortionDepthTest = stackLitMasterNode.m_DistortionDepthTest;
-            builtinData.addPrecomputedVelocity = stackLitMasterNode.m_AddPrecomputedVelocity;
-            builtinData.depthOffset = stackLitMasterNode.m_depthOffset;
-            builtinData.alphaToMask = stackLitMasterNode.m_AlphaToMask;
-
-            lightingData.normalDropOffSpace = stackLitMasterNode.m_NormalDropOffSpace;
-            lightingData.blendPreserveSpecular = stackLitMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = stackLitMasterNode.m_ReceiveDecals;
-            lightingData.receiveSSR = stackLitMasterNode.m_ReceiveSSR;
-            lightingData.energyConservingSpecular = stackLitMasterNode.m_EnergyConservingSpecular;
-            lightingData.subsurfaceScattering = stackLitMasterNode.m_SubsurfaceScattering;
-            lightingData.transmission = stackLitMasterNode.m_Transmission;
-            lightingData.overrideBakedGI = stackLitMasterNode.m_overrideBakedGI;
-
-            stackLitData.baseParametrization = stackLitMasterNode.m_BaseParametrization;
-            stackLitData.dualSpecularLobeParametrization = stackLitMasterNode.m_DualSpecularLobeParametrization;
-            stackLitData.anisotropy = stackLitMasterNode.m_Anisotropy;
-            stackLitData.coat = stackLitMasterNode.m_Coat;
-            stackLitData.coatNormal = stackLitMasterNode.m_CoatNormal;
-            stackLitData.dualSpecularLobe = stackLitMasterNode.m_DualSpecularLobe;
-            stackLitData.capHazinessWrtMetallic = stackLitMasterNode.m_CapHazinessWrtMetallic;
-            stackLitData.iridescence = stackLitMasterNode.m_Iridescence;
-            stackLitData.geometricSpecularAA = stackLitMasterNode.m_GeometricSpecularAA;
-            stackLitData.screenSpaceSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionBaseMode;
-            stackLitData.dataBasedSpecularOcclusionBaseMode = (StackLitData.SpecularOcclusionBaseMode)stackLitMasterNode.m_DataBasedSpecularOcclusionBaseMode;
-            stackLitData.screenSpaceSpecularOcclusionAOConeSize = (StackLitData.SpecularOcclusionAOConeSize)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionAOConeSize;
-            stackLitData.screenSpaceSpecularOcclusionAOConeDir = (StackLitData.SpecularOcclusionAOConeDir)stackLitMasterNode.m_ScreenSpaceSpecularOcclusionAOConeDir;
-            stackLitData.dataBasedSpecularOcclusionAOConeSize = (StackLitData.SpecularOcclusionAOConeSize)stackLitMasterNode.m_DataBasedSpecularOcclusionAOConeSize;
-            stackLitData.specularOcclusionConeFixupMethod = (StackLitData.SpecularOcclusionConeFixupMethod)stackLitMasterNode.m_SpecularOcclusionConeFixupMethod;      
-            stackLitData.anisotropyForAreaLights = stackLitMasterNode.m_AnisotropyForAreaLights;
-            stackLitData.recomputeStackPerLight = stackLitMasterNode.m_RecomputeStackPerLight;
-            stackLitData.honorPerLightMinRoughness = stackLitMasterNode.m_HonorPerLightMinRoughness;
-            stackLitData.shadeBaseUsingRefractedAngles = stackLitMasterNode.m_ShadeBaseUsingRefractedAngles;
-            stackLitData.debug = stackLitMasterNode.m_Debug;
-            stackLitData.devMode = stackLitMasterNode.m_DevMode;
-            
-            target.customEditorGUI = stackLitMasterNode.m_OverrideEnabled ? stackLitMasterNode.m_ShaderGUIOverride : "";
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>();
-            blockMap.Add(BlockFields.VertexDescription.Position, StackLitMasterNode1.PositionSlotId);
-            blockMap.Add(BlockFields.VertexDescription.Normal, StackLitMasterNode1.VertexNormalSlotId);
-            blockMap.Add(BlockFields.VertexDescription.Tangent, StackLitMasterNode1.VertexTangentSlotId);
-
-            // Handle mapping of Normal block specifically
-            BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
-            {
-                case NormalDropOffSpace.Object:
-                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    break;
-                case NormalDropOffSpace.World:
-                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    break;
-                default:
-                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    break;
-            }
-            blockMap.Add(normalBlock, StackLitMasterNode1.NormalSlotId);
-
-            blockMap.Add(HDBlockFields.SurfaceDescription.BentNormal, StackLitMasterNode1.BentNormalSlotId);
-            blockMap.Add(HDBlockFields.SurfaceDescription.Tangent, StackLitMasterNode1.TangentSlotId);
-            blockMap.Add(BlockFields.SurfaceDescription.BaseColor, StackLitMasterNode1.BaseColorSlotId);
-
-            if (stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic)
-            {
-                blockMap.Add(BlockFields.SurfaceDescription.Metallic, StackLitMasterNode1.MetallicSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.DielectricIor, StackLitMasterNode1.DielectricIorSlotId);
-            }
-            else if (stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor)
-            {
-                blockMap.Add(BlockFields.SurfaceDescription.Specular, StackLitMasterNode1.SpecularColorSlotId);
-            }
-
-            blockMap.Add(BlockFields.SurfaceDescription.Smoothness, StackLitMasterNode1.SmoothnessASlotId);
-
-            if (stackLitData.anisotropy)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.Anisotropy, StackLitMasterNode1.AnisotropyASlotId);
-            }
-
-            blockMap.Add(BlockFields.SurfaceDescription.Occlusion, StackLitMasterNode1.AmbientOcclusionSlotId);
-
-            if (stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Custom)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularOcclusion, StackLitMasterNode1.SpecularOcclusionSlotId);
-            }
-
-            if (SpecularOcclusionUsesBentNormal(stackLitData) && stackLitData.specularOcclusionConeFixupMethod != StackLitData.SpecularOcclusionConeFixupMethod.Off)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SOFixupVisibilityRatioThreshold, StackLitMasterNode1.SOFixupVisibilityRatioThresholdSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.SOFixupStrengthFactor, StackLitMasterNode1.SOFixupStrengthFactorSlotId);
-
-                if (SpecularOcclusionConeFixupMethodModifiesRoughness(stackLitData.specularOcclusionConeFixupMethod))
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.SOFixupMaxAddedRoughness, StackLitMasterNode1.SOFixupMaxAddedRoughnessSlotId);
-                }
-            }
-
-            if (stackLitData.coat)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatIor, StackLitMasterNode1.CoatIorSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatThickness, StackLitMasterNode1.CoatThicknessSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatExtinction, StackLitMasterNode1.CoatExtinctionSlotId);
-
-                if (stackLitData.coatNormal)
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormal, StackLitMasterNode1.CoatNormalSlotId);
-                }
-
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
-            }
-
-            if (stackLitData.dualSpecularLobe)
-            {
-                if (stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.Direct)
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.SmoothnessB, StackLitMasterNode1.SmoothnessBSlotId);
-                    blockMap.Add(HDBlockFields.SurfaceDescription.LobeMix, StackLitMasterNode1.LobeMixSlotId);
-                }
-                else if (stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss)
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.Haziness, StackLitMasterNode1.HazinessSlotId);
-                    blockMap.Add(HDBlockFields.SurfaceDescription.HazeExtent, StackLitMasterNode1.HazeExtentSlotId);
-
-                    if (stackLitData.capHazinessWrtMetallic && stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic) // the later should be an assert really
-                    {
-                        blockMap.Add(HDBlockFields.SurfaceDescription.HazyGlossMaxDielectricF0, StackLitMasterNode1.HazyGlossMaxDielectricF0SlotId);
-                    }
-                }
-
-                if (stackLitData.anisotropy)
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.AnisotropyB, StackLitMasterNode1.AnisotropyBSlotId);
-                }
-            }
-
-            if (stackLitData.iridescence)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.IridescenceMask, StackLitMasterNode1.IridescenceMaskSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.IridescenceThickness, StackLitMasterNode1.IridescenceThicknessSlotId);
-
-                if (stackLitData.coat)
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIR, StackLitMasterNode1.IridescenceCoatFixupTIRSlotId);
-                    blockMap.Add(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIRClamp, StackLitMasterNode1.IridescenceCoatFixupTIRClampSlotId);
-                }
-            }
-
-            if (lightingData.subsurfaceScattering)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SubsurfaceMask, StackLitMasterNode1.SubsurfaceMaskSlotId);
-            }
-
-            if (lightingData.transmission)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.Thickness, StackLitMasterNode1.ThicknessSlotId);
-            }
-
-            if (lightingData.subsurfaceScattering || lightingData.transmission)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.DiffusionProfileHash, StackLitMasterNode1.DiffusionProfileHashSlotId);
-            }
-
-            blockMap.Add(BlockFields.SurfaceDescription.Alpha, StackLitMasterNode1.AlphaSlotId);
-
-            if (systemData.alphaTest)
-            {
-                blockMap.Add(BlockFields.SurfaceDescription.AlphaClipThreshold, StackLitMasterNode1.AlphaClipThresholdSlotId);
-            }
-
-            blockMap.Add(BlockFields.SurfaceDescription.Emission, StackLitMasterNode1.EmissionSlotId);
-
-            if (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, StackLitMasterNode1.DistortionSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, StackLitMasterNode1.DistortionBlurSlotId);
-            }
-
-            if (stackLitData.geometricSpecularAA)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, StackLitMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, StackLitMasterNode1.SpecularAAThresholdSlotId);
-            }
-
-            if (lightingData.overrideBakedGI)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, StackLitMasterNode1.LightingSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, StackLitMasterNode1.BackLightingSlotId);
-            }
-
-            if (builtinData.depthOffset)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, StackLitMasterNode1.DepthOffsetSlotId);
-            }
-
-            return true;
         }
 
 #region SubShaders

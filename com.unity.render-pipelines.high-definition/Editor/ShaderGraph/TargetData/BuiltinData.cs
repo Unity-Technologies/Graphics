@@ -69,5 +69,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_TransparencyFog;
             set => m_TransparencyFog = value;
         }
+
+        [SerializeField]
+        bool m_AlphaTestShadow;
+        public bool alphaTestShadow
+        {
+            get => m_AlphaTestShadow;
+            set => m_AlphaTestShadow = value;
+        }
+
+        [SerializeField]
+        bool m_BackThenFrontRendering;
+        public bool backThenFrontRendering
+        {
+            get => m_BackThenFrontRendering;
+            set => m_BackThenFrontRendering = value;
+        }
     }
 }

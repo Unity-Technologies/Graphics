@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
@@ -7,14 +8,11 @@ using UnityEditor.UIElements;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    abstract class TargetDataPropertiesGUI<T> where T : HDTargetData
+    class HDPropertiesHeader : Toggle
     {
-        protected T targetData;
-
-        public TargetDataPropertiesGUI(T targetData)
+        public HDPropertiesHeader(string label) : base(label)
         {
-            this.targetData = targetData;
+            
         }
-
     }
 }
