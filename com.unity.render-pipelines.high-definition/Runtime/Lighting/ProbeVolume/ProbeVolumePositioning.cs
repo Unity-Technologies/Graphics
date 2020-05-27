@@ -34,11 +34,11 @@ namespace UnityEngine.Rendering.HighDefinition
         // currently just keeps subdividing inside probe volumes
         internal static bool ShouldKeepBrick(ref RefTrans refTrans, Brick brick)
         {
-            return IntersectsProbeVolume(ref refTrans, brick);
+            return true;
         }
 
         // TODO: Take refvol translation and rotation into account
-        internal static bool IntersectsProbeVolume(ref RefTrans refTrans, Brick brick)
+        internal static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
         {
             float scaledSize = Mathf.Pow(3, brick.size);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
@@ -49,16 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
             bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
 
-            foreach (ProbeVolume v in ProbeVolumeManager.manager.volumes)
-            {
-                var OBB = new Volume(Matrix4x4.TRS(v.transform.position, v.transform.rotation, v.parameters.size));
-                if (OBBIntersect(ref bounds, ref OBB))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return OBBIntersect(ref bounds, ref volume);
         }
 
         internal static bool OBBIntersect(ref Volume a, ref Volume b)

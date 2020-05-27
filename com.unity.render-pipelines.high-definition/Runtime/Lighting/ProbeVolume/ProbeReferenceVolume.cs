@@ -160,6 +160,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_TmpBricks[0].Clear();
                 SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
+
+                // Cull out of bounds bricks
+                for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
+                {
+                    if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref volume))
+                    {
+                        m_TmpBricks[0].RemoveAt(i);
+                    }
+                }
             }
 
             // sort from larger to smaller bricks
