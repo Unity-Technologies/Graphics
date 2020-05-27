@@ -130,6 +130,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
+- Added support for multiple path-traced views at once (e.g., scene and game views).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
