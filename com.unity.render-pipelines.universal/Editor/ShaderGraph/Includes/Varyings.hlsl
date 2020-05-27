@@ -1,4 +1,4 @@
-#if defined(SHADERPASS_SHADOWCASTER)
+#if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     float3 _LightDirection;
 #endif
 
@@ -14,12 +14,12 @@ Varyings BuildVaryings(Attributes input)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-    
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.VertexPosition;
     #if defined(VARYINGS_NEED_NORMAL_WS)
         input.normalOS = vertexDescription.VertexNormal;
-    #endif //FEATURES_GRAPH_NORMAL  
+    #endif //FEATURES_GRAPH_NORMAL
     #if defined(VARYINGS_NEED_TANGENT_WS)
         input.tangentOS.xyz = vertexDescription.VertexTangent.xyz;
     #endif //FEATURES GRAPH TANGENT
@@ -51,7 +51,7 @@ Varyings BuildVaryings(Attributes input)
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionWS = positionWS;
 #endif
-    
+
 #ifdef VARYINGS_NEED_NORMAL_WS
     output.normalWS = normalWS;			// normalized in TransformObjectToWorldNormal()
 #endif
@@ -60,7 +60,7 @@ Varyings BuildVaryings(Attributes input)
     output.tangentWS = tangentWS;		// normalized in TransformObjectToWorldDir()
 #endif
 
-#if defined(SHADERPASS_SHADOWCASTER)
+#if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Define shadow pass specific clip position for Universal
     output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
     #if UNITY_REVERSED_Z
@@ -68,7 +68,7 @@ Varyings BuildVaryings(Attributes input)
     #else
         output.positionCS.z = max(output.positionCS.z, output.positionCS.w * UNITY_NEAR_CLIP_VALUE);
     #endif
-#elif defined(SHADERPASS_META)
+#elif (SHADERPASS == SHADERPASS_META)
     output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
@@ -92,14 +92,14 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
+    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
 #endif
 
 #ifdef VARYINGS_NEED_SCREENPOSITION
     output.screenPosition = ComputeScreenPos(output.positionCS, _ProjectionParams.x);
 #endif
 
-#if defined(SHADERPASS_FORWARD)
+#if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif
@@ -110,9 +110,10 @@ Varyings BuildVaryings(Attributes input)
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 #endif
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     output.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 
     return output;
 }
+

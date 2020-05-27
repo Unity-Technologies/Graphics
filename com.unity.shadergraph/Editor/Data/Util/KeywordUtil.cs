@@ -84,6 +84,19 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static string ToDefineString(this KeywordDescriptor keyword, int value)
+        {
+            switch(keyword.type)
+            {
+                case KeywordType.Boolean:
+                    return value == 1 ? $"#define {keyword.referenceName}" : string.Empty;
+                case KeywordType.Enum:
+                    return $"#define {keyword.referenceName}_{keyword.entries[value].referenceName}";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         public static int GetKeywordPermutationCount(this GraphData graph)
         {
             // Gather all unique keywords from the Graph including Sub Graphs
@@ -128,6 +141,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             return sb.ToString();
+        }
+
+        public static string GetKeywordPermutationConditional(int permutation)
+        {
+            return $"#if defined(KEYWORD_PERMUTATION_{permutation})";
         }
 
         public static void GetKeywordPermutationDeclarations(ShaderStringBuilder sb, List<List<KeyValuePair<ShaderKeyword, int>>> permutations)

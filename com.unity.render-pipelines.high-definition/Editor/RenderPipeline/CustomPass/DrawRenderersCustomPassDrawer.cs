@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             public static float reorderableListHandleIndentWidth = 12;
             public static float indentSpaceInPixels = 16;
+            public static float helpBoxHeight = EditorGUIUtility.singleLineHeight * 2;
             public static GUIContent callback = new GUIContent("Event", "Chose the Callback position for this render pass object.");
             public static GUIContent enabled = new GUIContent("Enabled", "Enable or Disable the custom pass");
 
@@ -54,10 +55,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static string unlitShaderMessage = "HDRP Unlit shaders will force the shader passes to \"ForwardOnly\"";
             public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a custom pass";
+            public static string opaqueObjectWithDeferred = "Your HDRP settings does not support ForwardOnly, some object might not render.";
+            public static string objectRendererTwiceWithMSAA = "MSAA is enabled, re-rendering same object twice will cause depth test artifacts in Before/After Post Process injection points";
         }
 
         //Headers and layout
-        private int m_FilterLines = 3;
+        private int m_FilterLines = 2;
         private int m_MaterialLines = 2;
 
         // Foldouts
@@ -83,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_DepthWrite;
 
         ReorderableList         m_ShaderPassesList;
+
+        CustomPassVolume        m_Volume;
 
         bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
@@ -110,6 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
             m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
 
+            m_Volume = customPass.serializedObject.targetObject as CustomPassVolume;
+
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
             m_ShaderPassesList.drawElementCallback =
@@ -130,6 +137,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
         {
+            if (ShowMsaaObjectInfo())
+            {
+                Rect helpBoxRect = rect;
+                helpBoxRect.height = Styles.helpBoxHeight;
+                EditorGUI.HelpBox(helpBoxRect, Styles.objectRendererTwiceWithMSAA, MessageType.Info);
+                rect.y += Styles.helpBoxHeight;
+            }
+
             DoFilters(ref rect);
 
             m_RendererFoldout.boolValue = EditorGUI.Foldout(rect, m_RendererFoldout.boolValue, Styles.renderHeader, true);
@@ -146,12 +161,40 @@ namespace UnityEditor.Rendering.HighDefinition
 #endif
 
                 // TODO: remove all this code when the fix for SerializedReference lands
-                // EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
-                m_SortingCriteria.intValue = (int)(SortingCriteria)EditorGUI.EnumPopup(rect, Styles.sortingCriteria, (SortingCriteria)m_SortingCriteria.intValue);
+                EditorGUI.PropertyField(rect, m_SortingCriteria, Styles.sortingCriteria);
                 rect.y += Styles.defaultLineSpace;
 
                 EditorGUI.indentLevel--;
             }
+        }
+
+        // Tell if we need to show a warning for rendering opaque object and we're in deferred.
+        bool ShowOpaqueObjectWarning()
+        {
+            // Only opaque objects are concerned
+            RenderQueueRange currentRange = CustomPassUtils.GetRenderQueueRangeFromRenderQueueType((CustomPass.RenderQueueType)m_RenderQueue.intValue);
+            var allOpaque = HDRenderQueue.k_RenderQueue_AllOpaque;
+            bool customPassQueueContainsOpaqueObjects = currentRange.upperBound >= allOpaque.lowerBound && currentRange.lowerBound <= allOpaque.upperBound;
+            if (!customPassQueueContainsOpaqueObjects)
+                return false;
+
+            // Only Deferred rendering
+            if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+                return false;
+
+            return true;
+        }
+
+        // Tell if we need to show the MSAA message info
+        bool ShowMsaaObjectInfo()
+        {
+            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                return false;
+            
+            if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)
+                return false;
+
+            return true;
         }
 
         void DoFilters(ref Rect rect)
@@ -161,15 +204,23 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_FilterFoldout.boolValue)
             {
                 EditorGUI.indentLevel++;
-                //Render queue filter
+                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
                 // EditorGUI.PropertyField(rect, m_RenderQueue, Styles.renderQueueFilter);
-                // TODO: remove all this code when the fix for SerializedReference lands
                 m_RenderQueue.intValue = (int)(CustomPass.RenderQueueType)EditorGUI.EnumPopup(rect, Styles.renderQueueFilter, (CustomPass.RenderQueueType)m_RenderQueue.intValue);
+                EditorGUI.EndProperty();
                 rect.y += Styles.defaultLineSpace;
+                if (ShowOpaqueObjectWarning())
+                {
+                    Rect helpBoxRect = rect;
+                    helpBoxRect.xMin += EditorGUI.indentLevel * Styles.indentSpaceInPixels;
+                    helpBoxRect.height = Styles.helpBoxHeight;
+                    EditorGUI.HelpBox(helpBoxRect, Styles.opaqueObjectWithDeferred, MessageType.Error);
+                    rect.y += Styles.helpBoxHeight;
+                }
                 //Layer mask
                 EditorGUI.PropertyField(rect, m_LayerMask, Styles.layerMask);
                 rect.y += Styles.defaultLineSpace;
-                //Shader pass list
                 EditorGUI.indentLevel--;
             }
         }
@@ -178,9 +229,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             //Override material
             EditorGUI.BeginChangeCheck();
-            // TODO: remove all this code when the fix for SerializedReference lands
-            m_OverrideMaterial.objectReferenceValue = EditorGUI.ObjectField(rect, Styles.overrideMaterial, m_OverrideMaterial.objectReferenceValue, typeof(Material), false);
-            // EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
+            EditorGUI.PropertyField(rect, m_OverrideMaterial, Styles.overrideMaterial);
             if (EditorGUI.EndChangeCheck())
             {
                 var mat = m_OverrideMaterial.objectReferenceValue as Material;
@@ -193,37 +242,49 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel++;
             if (m_OverrideMaterial.objectReferenceValue)
             {
-                var mat = m_OverrideMaterial.objectReferenceValue as Material;
-                EditorGUI.BeginChangeCheck();
-                int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
-                index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
-                if (EditorGUI.EndChangeCheck())
-                    m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+                EditorGUI.BeginProperty(rect, Styles.overrideMaterialPass, m_OverrideMaterialPassName);
+                {
+                    var mat = m_OverrideMaterial.objectReferenceValue as Material;
+                    EditorGUI.BeginChangeCheck();
+                    int index = mat.FindPass(m_OverrideMaterialPassName.stringValue);
+                    index = EditorGUI.IntPopup(rect, Styles.overrideMaterialPass, index, GetMaterialPassNames(mat), Enumerable.Range(0, mat.passCount).ToArray());
+                    if (EditorGUI.EndChangeCheck())
+                        m_OverrideMaterialPassName.stringValue = mat.GetPassName(index);
+                }
+                EditorGUI.EndProperty();
             }
             else
             {
+                EditorGUI.BeginProperty(rect, Styles.renderQueueFilter, m_RenderQueue);
+				// There is still a bug with SerializedReference and PropertyField so we can't use it yet
+                // EditorGUI.PropertyField(rect, m_ShaderPass, Styles.shaderPass);
                 m_ShaderPass.intValue = (int)(DrawRenderersCustomPass.ShaderPass)EditorGUI.EnumPopup(rect, Styles.shaderPass, (DrawRenderersCustomPass.ShaderPass)m_ShaderPass.intValue);
+                EditorGUI.EndProperty();
             }
             EditorGUI.indentLevel--;
 
             rect.y += Styles.defaultLineSpace;
-            if (customDepthIsNone)
+            EditorGUI.BeginProperty(rect, Styles.overrideDepth, m_OverrideDepthState);
             {
-                using (new EditorGUI.DisabledScope(true))
-                    EditorGUI.Toggle(rect, Styles.overrideDepth, false);
+                if (customDepthIsNone)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                        EditorGUI.Toggle(rect, Styles.overrideDepth, false);
+                }
+                else
+                {
+                    EditorGUI.PropertyField(rect, m_OverrideDepthState, Styles.overrideDepth);
+                }
             }
-            else
-            {
-                m_OverrideDepthState.boolValue = EditorGUI.Toggle(rect, Styles.overrideDepth, m_OverrideDepthState.boolValue);
-            }
+            EditorGUI.EndProperty();
 
             if (m_OverrideDepthState.boolValue && !customDepthIsNone)
             {
                 EditorGUI.indentLevel++;
                 rect.y += Styles.defaultLineSpace;
-                m_DepthCompareFunction.intValue = (int)(CompareFunction)EditorGUI.EnumPopup(rect, Styles.depthCompareFunction, (CompareFunction)m_DepthCompareFunction.intValue);
+                EditorGUI.PropertyField(rect, m_DepthCompareFunction, Styles.depthCompareFunction);
                 rect.y += Styles.defaultLineSpace;
-                m_DepthWrite.boolValue = EditorGUI.Toggle(rect, Styles.depthWrite, m_DepthWrite.boolValue);
+                EditorGUI.PropertyField(rect, m_DepthWrite, Styles.depthWrite);
                 EditorGUI.indentLevel--;
             }
         }
@@ -268,7 +329,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override float GetPassHeight(SerializedProperty customPass)
         {
-            float height = Styles.defaultLineSpace * (m_FilterFoldout.boolValue ? m_FilterLines : 1);
+            float height = Styles.defaultLineSpace;
+
+            height += ShowMsaaObjectInfo() ? Styles.helpBoxHeight : 0;
+
+            if (m_FilterFoldout.boolValue)
+            {
+                height += Styles.defaultLineSpace * m_FilterLines;
+                height += ShowOpaqueObjectWarning() ? Styles.helpBoxHeight : 0;
+            }
 
             height += Styles.defaultLineSpace; // add line for overrides dropdown
             if (m_RendererFoldout.boolValue)

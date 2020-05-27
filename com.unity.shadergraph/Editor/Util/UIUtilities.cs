@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.Graphing.Util
@@ -64,5 +65,18 @@ namespace UnityEditor.Graphing.Util
                 return Enumerable.Empty<Type>();
             }
         }
+
+        public static Vector2 CalculateCentroid(IEnumerable<Vector2> nodePositions)
+        {
+            Vector2 centroid = Vector2.zero;
+            int count = 1;
+            foreach (var position in nodePositions)
+            {
+                centroid = centroid + (position - centroid) / count;
+                ++count;
+            }
+            return centroid;
+        }
+
     }
 }

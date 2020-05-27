@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering;
-using UnityEngine.Experimental.Rendering;
 using System;
 using UnityEngine.Serialization;
 
@@ -67,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolume    owner;
         SharedRTManager     currentRTManager;
         HDCamera            currentHDCamera;
+
+        MaterialPropertyBlock userMaterialPropertyBlock;
 
         /// <summary>
         /// Mirror of the value in the CustomPassVolume where this custom pass is listed
@@ -172,12 +172,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Setup(renderContext, cmd);
                     isSetup = true;
+                    userMaterialPropertyBlock = new MaterialPropertyBlock();
                 }
 
                 SetCustomPassTarget(cmd);
 
+                // Create the custom pass context:
+                bool msaa = IsMSAAEnabled(hdCamera);
+                CustomPassContext ctx = new CustomPassContext(
+                    renderContext, cmd, hdCamera,
+                    cullingResult, msaa ? targets.cameraColorMSAABuffer : targets.cameraColorBuffer,
+                    rtManager.GetDepthStencilBuffer(msaa),
+                    rtManager.GetNormalBuffer(msaa),
+                    targets.customColorBuffer,
+                    targets.customDepthBuffer,
+                    userMaterialPropertyBlock
+                );
+
                 isExecuting = true;
-                Execute(renderContext, cmd, hdCamera, cullingResult);
+                Execute(ctx);
                 isExecuting = false;
 
                 // Set back the camera color buffer if we were using a custom buffer as target
@@ -249,14 +262,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="hdCamera"></param>
         /// <param name="cullingResult"></param>
-        protected abstract void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult);
+        [Obsolete("This Execute signature is obsolete and will be removed in the future. Please use Execute(CustomPassContext) instead")]
+        protected virtual void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) {}
+
+        /// <summary>
+        /// Called when your pass needs to be executed by a camera
+        /// </summary>
+        /// <param name="ctx">The context of the custom pass. Contains command buffer, render context, buffer, etc.</param>
+        // TODO: move this function to abstract when we remove the method above
+        protected virtual void Execute(CustomPassContext ctx)
+        {
+#pragma warning disable CS0618 // Member is obsolete
+                Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
+#pragma warning restore CS0618
+        }
 
         /// <summary>
         /// Called before the first execution of the pass occurs.
         /// Allow you to allocate custom buffers.
         /// </summary>
-        /// <param name="renderContext"></param>
-        /// <param name="cmd"></param>
+        /// <param name="renderContext">The render context</param>
+        /// <param name="cmd">Current command buffer of the frame</param>
         protected virtual void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd) {}
 
         /// <summary>
@@ -271,6 +297,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the camera depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
         protected void SetCameraRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
@@ -288,6 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="cmd"></param>
         /// <param name="bindDepth">if true we bind the custom depth buffer in addition to the color</param>
         /// <param name="clearFlags"></param>
+        [Obsolete("Use directly CoreUtils.SetRenderTarget with the render target of your choice.")]
         protected void SetCustomRenderTarget(CommandBuffer cmd, bool bindDepth = true, ClearFlag clearFlags = ClearFlag.None)
         {
             if (!isExecuting)
@@ -326,6 +354,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the camera color buffer</param>
         /// <param name="depthBuffer">outputs the camera depth buffer</param>
+        [Obsolete("GetCameraBuffers is obsolete and will be removed in the future. All camera buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected void GetCameraBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -341,6 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="colorBuffer">outputs the custom color buffer</param>
         /// <param name="depthBuffer">outputs the custom depth buffer</param>
+        [Obsolete("GetCustomBuffers is obsolete and will be removed in the future. All custom buffers are now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected void GetCustomBuffers(out RTHandle colorBuffer, out RTHandle depthBuffer)
         {
             if (!isExecuting)
@@ -354,6 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Get the current normal buffer (can be MSAA)
         /// </summary>
         /// <returns></returns>
+        [Obsolete("GetNormalBuffer is obsolete and will be removed in the future. Normal buffer is now avaliable directly in the CustomPassContext in parameter of the Execute function")]
         protected RTHandle GetNormalBuffer()
         {
             if (!isExecuting)
@@ -375,24 +406,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="type">The custom pass render queue type.</param>
         /// <returns>Returns a render queue range compatible with a ScriptableRenderContext.DrawRenderers.</returns>
         protected RenderQueueRange GetRenderQueueRange(CustomPass.RenderQueueType type)
-        {
-            switch (type)
-            {
-                case CustomPass.RenderQueueType.OpaqueNoAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueNoAlphaTest;
-                case CustomPass.RenderQueueType.OpaqueAlphaTest: return HDRenderQueue.k_RenderQueue_OpaqueAlphaTest;
-                case CustomPass.RenderQueueType.AllOpaque: return HDRenderQueue.k_RenderQueue_AllOpaque;
-                case CustomPass.RenderQueueType.AfterPostProcessOpaque: return HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque;
-                case CustomPass.RenderQueueType.PreRefraction: return HDRenderQueue.k_RenderQueue_PreRefraction;
-                case CustomPass.RenderQueueType.Transparent: return HDRenderQueue.k_RenderQueue_Transparent;
-                case CustomPass.RenderQueueType.LowTransparent: return HDRenderQueue.k_RenderQueue_LowTransparent;
-                case CustomPass.RenderQueueType.AllTransparent: return HDRenderQueue.k_RenderQueue_AllTransparent;
-                case CustomPass.RenderQueueType.AllTransparentWithLowRes: return HDRenderQueue.k_RenderQueue_AllTransparentWithLowRes;
-                case CustomPass.RenderQueueType.AfterPostProcessTransparent: return HDRenderQueue.k_RenderQueue_AfterPostProcessTransparent;
-                case CustomPass.RenderQueueType.All:
-                default:
-                    return HDRenderQueue.k_RenderQueue_All;
-            }
-        }
+            => CustomPassUtils.GetRenderQueueRangeFromRenderQueueType(type);
 
         /// <summary>
         /// Create a custom pass to execute a fullscreen pass

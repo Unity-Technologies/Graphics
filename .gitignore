@@ -19,6 +19,7 @@
 *.csproj
 *.exe
 *.ini
+*.log
 *.map
 *.mdb
 *.npmrc

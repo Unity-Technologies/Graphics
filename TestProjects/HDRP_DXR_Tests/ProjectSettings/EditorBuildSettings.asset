@@ -54,6 +54,12 @@ EditorBuildSettings:
     path: Assets/Scenes/306_GlobalIlluminationDenoised2.unity
     guid: 3c5f2e2a2f8d9f948ae301330bd63680
   - enabled: 1
+    path: Assets/Scenes/307_GlobalIlluminationFog.unity
+    guid: 8a5a48512a640734394f6427d94fd0f8
+  - enabled: 0
+    path: Assets/Scenes/308_ScreenSpaceGlobalIllumination.unity
+    guid: ccf33fc5169d0624c91b9116ebf44c7f
+  - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
   - enabled: 1
@@ -63,14 +69,38 @@ EditorBuildSettings:
     path: Assets/Scenes/501_RecursiveRendering.unity
     guid: 9a47aa07fa8a82341a976363fec6b1d2
   - enabled: 1
+    path: Assets/Scenes/501_RecursiveRenderingTransparent.unity
+    guid: 0aa69ee950a3fa049b5220e96247f794
+  - enabled: 1
+    path: Assets/Scenes/502_RecursiveRenderingDisabled.unity
+    guid: 57e38207c84f9e943b0202ebdece2187
+  - enabled: 1
+    path: Assets/Scenes/505_RecursiveRenderingFog.unity
+    guid: 59b393015a21d114d908a93adc455494
+  - enabled: 1
     path: Assets/Scenes/601_LightCluster.unity
     guid: ae5dc8f852816f04f974d29fcc766c4d
+  - enabled: 1
+    path: Assets/Scenes/602_LightClusterSmall.unity
+    guid: 4f29fd1bb501f354ca927714cf28048d
   - enabled: 1
     path: Assets/Scenes/701_DirectionalColorShadow.unity
     guid: 142a7be56d6440d43b4f83a92b10b2b1
   - enabled: 1
+    path: Assets/Scenes/701_DirectionalColorShadowSG.unity
+    guid: ebe458a334d4ac1488f836b86f4814a3
+  - enabled: 1
     path: Assets/Scenes/702_DirectionalShadow.unity
     guid: fef4168c8e3f3bd47b3edad8d968de9f
+  - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowSG.unity
+    guid: 97247f075d9ed4c4ab30894abe19320e
+  - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowFiltering.unity
+    guid: 8b86ef43f75119a4dbf4af23c2b4e52e
+  - enabled: 1
+    path: Assets/Scenes/702_PunctualShadowFiltering.unity
+    guid: 0a4486ce519fe6c459180d0438847319
   - enabled: 1
     path: Assets/Scenes/703_PointShadow.unity
     guid: 85d29280c924e314aa9bbe4130570252
@@ -87,12 +117,63 @@ EditorBuildSettings:
     path: Assets/Scenes/707_SpotContactShadow.unity
     guid: 8c2434edc9ef0ff468dcb254cf0a17ba
   - enabled: 1
-    path: Assets/Scenes/801_SubSurfaceScattering.unity
+    path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
-    path: Assets/Scenes/3001_AreaShadows.unity
+    path: Assets/Scenes/802_SubSurfaceScatteringForward.unity
+    guid: 45325940ed3cc4d44a619c66066ec3d6
+  - enabled: 1
+    path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
+    guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
+  - enabled: 1
+    path: Assets/Scenes/901_Materials_HDRP_Variants.unity
+    guid: 38deab1a2d6be0241b8c263d055b4ff4
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Fabric.unity
+    guid: 8b9cd2af11aea234c97ee5cdee88a7d6
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Hair.unity
+    guid: 034219978a2f81049b231504161409e5
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Lit.unity
+    guid: 144910001ec5a1f499c7dddc124aeed4
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_StackLit.unity
+    guid: b30ee4049c0d7354c9be3dd0a32d7958
+  - enabled: 1
+    path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
+    guid: 5b672860fdf88f84fa93bf94214514f1
+  - enabled: 1
+    path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
+    guid: cc33ef2ea5450204ab4fab18d90afaec
+  - enabled: 1
+    path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
   - enabled: 1
-    path: Assets/Scenes/3002_AreaShadows_Denoiser.unity
+    path: Assets/Scenes/3001_AreaShadowsForward.unity
+    guid: 18a3a10168d8d3847abf880a745f365e
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsDeferred_Denoiser.unity
+    guid: 41b45b20479911741adc4a16ec5a07f0
+  - enabled: 1
+    path: Assets/Scenes/3002_AreaShadowsForward_Denoiser.unity
     guid: 22e35301dfb0fdf468a423c8a8390b13
+  - enabled: 1
+    path: Assets/Scenes/5001_PathTracing.unity
+    guid: 3666dc8006745714997c368c4375f316
+  - enabled: 1
+    path: Assets/Scenes/5002_PathTracing_GI.unity
+    guid: 0ab35aa39f371ab4c8d53b46c225d0a5
+  - enabled: 1
+    path: Assets/Scenes/5003_PathTracing_transparency.unity
+    guid: 1f55baf6eaf625e4fab7fa2e4228a3d0
+  - enabled: 1
+    path: Assets/Scenes/5004_PathTracing_arealight.unity
+    guid: 0bd00ddb543475c41bdd787c636d904f
+  - enabled: 1
+    path: Assets/Scenes/5005_PathTracing_Fog.unity
+    guid: 9f38d7cbc64ad534485db5107427e269
+  - enabled: 1
+    path: Assets/Scenes/5006_PathTracing_DoF.unity
+    guid: c163eeeb7af1c194590ab367fb84a376
   m_configObjects: {}

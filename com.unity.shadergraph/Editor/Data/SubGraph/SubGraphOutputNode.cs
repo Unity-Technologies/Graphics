@@ -14,6 +14,18 @@ namespace UnityEditor.ShaderGraph
     class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
     {
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
+        static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
+        {
+            ConcreteSlotValueType.Vector1,
+            ConcreteSlotValueType.Vector2,
+            ConcreteSlotValueType.Vector3,
+            ConcreteSlotValueType.Vector4,
+            ConcreteSlotValueType.Matrix2,
+            ConcreteSlotValueType.Matrix3,
+            ConcreteSlotValueType.Matrix4,
+            ConcreteSlotValueType.Boolean
+        };
+        public bool IsFirstSlotValid = true;
 
         public SubGraphOutputNode()
         {
@@ -56,22 +68,35 @@ namespace UnityEditor.ShaderGraph
                 var error = NodeUtils.ValidateSlotName(slot.RawDisplayName(), out string errorMessage);
                 if (error)
                 {
-                    owner.AddValidationError(tempId, errorMessage);
+                    owner.AddValidationError(objectId, errorMessage);
                     break;
                 }
             }
         }
 
+        void ValidateSlotType()
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
+
+            if (!slots.Any())
+            {
+                owner.AddValidationError(objectId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Error);
+            }
+            else if (!s_ValidSlotTypes.Contains(slots.FirstOrDefault().concreteValueType))
+            {
+                IsFirstSlotValid = false;
+                owner.AddValidationError(objectId, "Preview can only compile if the first output slot is a Vector, Matrix, or Boolean type. Please adjust slot types.", ShaderCompilerMessageSeverity.Error);
+            }
+        }
+
         public override void ValidateNode()
         {
-            ValidateShaderStage();
-
-            if (!this.GetInputSlots<MaterialSlot>().Any())
-            {
-                owner.AddValidationError(tempId, s_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
-            }
-
             base.ValidateNode();
+            IsFirstSlotValid = true;
+            ValidateSlotType();
+            if (IsFirstSlotValid)
+                ValidateShaderStage();
         }
 
         protected override void OnSlotsChanged()
@@ -82,7 +107,7 @@ namespace UnityEditor.ShaderGraph
 
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
-            var index = this.GetInputSlots<ISlot>().Count() + 1;
+            var index = this.GetInputSlots<MaterialSlot>().Count() + 1;
             name = NodeUtils.GetDuplicateSafeNameForSlot(this, index, "Out_" + concreteValueType.ToString());
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));

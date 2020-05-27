@@ -23,7 +23,7 @@ There are properties on the Master Node, and properties on each Material. Master
 
 ![](Images/MasterNodeDecal1.png))
 
-The following table describes the input ports on a Decal Master Node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader Stage]([https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Shader-Stage.html](https://docs.unity3d.com/Packages/com.unity.shadergraph@6.9/manual/Shader-Stage.html)).
+The following table describes the input ports on a Decal Master Node, including the property type and Shader stage used for each port. For more information on Shader stages, see [Shader Stage](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Shader-Stage.html).
 
 | Property              | Type     | Stage    | Description                                                  |
 | --------------------- | -------- | -------- | ------------------------------------------------------------ |
@@ -55,12 +55,14 @@ To view these properties, click the **Cog** in the top right of the Master Node.
 | **Affects Ambient Occlusion** | Enable or disable the effect of the **Ambient Occlusion** property. |
 | **Affects Smoothness**        | Enable or disable the effect of the **Smoothness** property. |
 | **Affects Emission**          | Enable or disable the effect of the **Emission** property.   |
+| **Override ShaderGUI**        | Lets you override the [ShaderGUI](https://docs.unity3d.com/ScriptReference/ShaderGUI.html) that this Shader Graph uses. If `true`, the **ShaderGUI** property appears, which lets you specify the ShaderGUI to use. |
+| **- ShaderGUI**                 | The full name of the ShaderGUI class to use, including the class path. |
 
 <a name="MaterialProperties"></a>
 
 ### Material Properties
 
-These properties are in the **Exposed Properties** section of the Inspector, alongside the properties that you exposed in the Shader Graph's Blackboard.
+These properties are in the **Exposed Properties** section of the Inspector, alongside the properties that you exposed in the Shader Graph's Blackboard. If you set **Override ShaderGUI** to `true`, the Material Properties section does not appear, and instead, the ShaderGUI you specified appears.
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |

@@ -4,8 +4,6 @@ The **CameraSwitcher** component allows you to define a List of Cameras in the S
 
 ## Properties
 
-![](Images/CameraSwitcher1.png)
-
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
 | **Cameras**  | Drag and drop GameObjects that have a Camera component attached to add them to this List of Cameras. The Debug Window can switch between the Cameras in this List. |

@@ -26,7 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected static class Styles
         {
-            public static readonly string header = "Exposed Properties";
+            public const string header = "Exposed Properties";
+            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
         }
 
         Expandable  m_ExpandableBit;
@@ -96,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Filter out properties we don't want to draw:
             PropertiesDefaultGUI(properties);
 
-            // If we change a property in a shadergraph, we trigger a material keyword reset 
+            // If we change a property in a shadergraph, we trigger a material keyword reset
             if (CheckPropertyChanged(properties))
             {
                 foreach (var material in materials)
@@ -146,10 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawEmissionGI()
         {
-            if (materialEditor.EmissionEnabledProperty())
-            {
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
-            }
+            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
         }
 
         // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
@@ -221,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawDiffusionProfileUI()
         {
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"));
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"), 0);
         }
     }
 }

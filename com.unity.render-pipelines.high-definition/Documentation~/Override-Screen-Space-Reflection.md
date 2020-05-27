@@ -1,12 +1,12 @@
 # Screen Space Reflection
 
-The **Screen Space Reflection** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate reflections. For information about how screen space refraction works in HDRP, see the [Screen space refraction documentation](Reflection-in-HDRP.html#ScreenSpaceReflection).
+The **Screen Space Reflection** (SSR) override is a High Definition Render Pipeline (HDRP) feature that uses the depth and color buffer of the screen to calculate reflections. For information about how SSR works in HDRP, see the [reflection documentation](Reflection-in-HDRP.md#ScreenSpaceReflection).
 
 ## Using Screen Space Reflection
 
-To use SSR in your Scene, you must enable it for your Cameras. In the Inspector for your [HDRP Asset](HDRP-Asset.html), go to the **Default Frame Settings > Lighting > Reflections** section and enable the **Screen Space Reflection** checkbox.
+To use SSR in your Scene, you must enable it for your Cameras. In the Inspector for your [HDRP Asset](HDRP-Asset.md), go to the **Default Frame Settings > Lighting > Reflections** section and enable the **Screen Space Reflection** checkbox.
 
-HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Reflection** override to a [Volume](Volumes.html) in your Scene. To add **Screen Space Reflection** to a Volume:
+HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and modify SSR properties, you must add a **Screen Space Reflection** override to a [Volume](Volumes.md) in your Scene. To add **Screen Space Reflection** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click **Screen Space Reflection**. 
@@ -23,4 +23,4 @@ HDRP uses the [Volume](Volumes.html) framework to calculate SSR, so to enable an
 | **Object Thickness**          | Use the slider to control the thickness of the GameObjects on screen. Because the SSR algorithm can not distinguish thin GameObjects from thick ones, this property helps trace rays behind GameObjects. The algorithm applies this property to every GameObject uniformly. |
 | **Min Smoothness**            | Use the slider to set the minimum amount of surface smoothness at which HDRP performs SSR tracing. Lower values result in HDRP performing SSR tracing for less smooth GameObjects. |
 | **Smoothness Fade Start**     | Use the slider to set the smoothness value at which SSR reflections begin to fade out. Lower values result in HDRP fading out SSR reflections for less smooth GameObjects |
-| **Reflect Sky**               | Enable the checkbox to make SSR handle sky reflection. Disable this checkbox to make rays that intersect with the skybox always use the local Reflection Probe. |
+| **Reflect Sky**               | Indicates whether HDRP should use SSR to handle sky reflection. If you disable this property, pixels that reflect the sky use the next level of the [reflection hierarchy](Reflection-in-HDRP.md#ReflectionHierarchy).<br />**Note**: SSR uses the depth buffer to calculate reflection and HDRP does not add transparent GameObjects to the depth buffer. If you enable this property, transparent GameObject that appear over the sky in the color buffer can cause visual artifacts and incorrect looking reflection. This is a common limitation for SSR techniques. |

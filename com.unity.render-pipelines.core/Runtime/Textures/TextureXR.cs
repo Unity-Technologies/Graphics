@@ -38,16 +38,13 @@ namespace UnityEngine.Rendering
                 {
                     case GraphicsDeviceType.Direct3D11:
                     case GraphicsDeviceType.Direct3D12:
-                        return SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne;
-
                     case GraphicsDeviceType.PlayStation4:
-                        return true;
-
                     case GraphicsDeviceType.Vulkan:
                         return true;
-                }
 
-                return false;
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -94,9 +91,11 @@ namespace UnityEngine.Rendering
         /// <returns>The default magenta texture.</returns>
         public static RTHandle GetMagentaTexture() { return useTexArray ? m_MagentaTexture2DArrayRTH : m_MagentaTextureRTH; }
 
+        static Texture3D        m_BlackTexture3D;
         static Texture2DArray   m_BlackTexture2DArray;
         static RTHandle         m_BlackTexture2DArrayRTH;
         static RTHandle         m_BlackTextureRTH;
+        static RTHandle         m_BlackTexture3DRTH;
         /// <summary>
         /// Default black texture.
         /// </summary>
@@ -107,6 +106,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <returns>The default black texture array.</returns>
         public static RTHandle GetBlackTextureArray() { return m_BlackTexture2DArrayRTH; }
+        /// <summary>
+        /// Default black texture 3D.
+        /// </summary>
+        /// <returns>The default black texture 3D.</returns>
+        public static RTHandle GetBlackTexture3D() { return m_BlackTexture3DRTH; }
 
         static Texture2DArray   m_WhiteTexture2DArray;
         static RTHandle         m_WhiteTexture2DArrayRTH;
@@ -160,6 +164,9 @@ namespace UnityEngine.Rendering
                 RTHandles.Release(m_BlackTexture2DArrayRTH);
                 m_BlackTexture2DArray = CreateTexture2DArrayFromTexture2D(Texture2D.blackTexture, "Black Texture2DArray");
                 m_BlackTexture2DArrayRTH = RTHandles.Alloc(m_BlackTexture2DArray);
+                RTHandles.Release(m_BlackTexture3DRTH);
+                m_BlackTexture3D = CreateBlackTexture3D("Black Texture3D");
+                m_BlackTexture3DRTH = RTHandles.Alloc(m_BlackTexture3D);
 
                 // White
                 RTHandles.Release(m_WhiteTextureRTH);
@@ -225,6 +232,15 @@ namespace UnityEngine.Rendering
             cmd.DispatchCompute(clearR32_UIntShader, kernel, 1, 1, slices);
 
             return blackUIntTexture2D as Texture;
+        }
+
+        static Texture3D CreateBlackTexture3D(string name)
+        {
+            Texture3D texture3D = new Texture3D(width: 1, height: 1, depth: 1, textureFormat: TextureFormat.RGBA32, mipChain: false);
+            texture3D.name = name;
+            texture3D.SetPixel(0, 0, 0, Color.black, 0);
+            texture3D.Apply(updateMipmaps: false);
+            return texture3D;
         }
     }
 }

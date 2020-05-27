@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.Drawing
 {
-    class FabricSettingsView : VisualElement
+    class FabricSettingsView : MasterNodeSettingsView
     {
         FabricMasterNode m_Node;
 
@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             return new Label(label + text);
         }
 
-        public FabricSettingsView(FabricMasterNode node)
+        public FabricSettingsView(FabricMasterNode node) : base(node)
         {
             m_Node = node;
             PropertySheet ps = new PropertySheet();
@@ -74,6 +74,24 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     });
                 });
 
+                ps.Add(new PropertyRow(CreateLabel("Transparent Depth Prepass", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTestDepthPrepass.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTestPrepass);
+                    });
+                });
+
+                ps.Add(new PropertyRow(CreateLabel("Transparent Depth Postpass", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaTestDepthPostpass.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaTestPostpass);
+                    });
+                });
+
                 ps.Add(new PropertyRow(CreateLabel("Depth Write", indentLevel)), (row) =>
                 {
                     row.Add(new Toggle(), (toggle) =>
@@ -115,6 +133,20 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                     toggle.OnToggleChanged(ChangeAlphaTest);
                 });
             });
+
+            if (m_Node.alphaTest.isOn)
+            {
+                ++indentLevel;
+                ps.Add(new PropertyRow(CreateLabel("Alpha to Mask", indentLevel)), (row) =>
+                {
+                    row.Add(new Toggle(), (toggle) =>
+                    {
+                        toggle.value = m_Node.alphaToMask.isOn;
+                        toggle.OnToggleChanged(ChangeAlphaToMask);
+                    });
+                });
+                --indentLevel;
+            }
 
             ps.Add(new PropertyRow(CreateLabel("Double-Sided", indentLevel)), (row) =>
             {
@@ -173,12 +205,20 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("Receive SSR", indentLevel)), (row) =>
+            ps.Add(new PropertyRow(CreateLabel((m_Node.surfaceType == SurfaceType.Transparent) ? "Receive SSR Transparent" : "Receive SSR", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
                 {
-                    toggle.value = m_Node.receiveSSR.isOn;
-                    toggle.OnToggleChanged(ChangeSSR);
+                    if (m_Node.surfaceType == SurfaceType.Transparent)
+                    {
+                        toggle.value = m_Node.receiveSSRTransparent.isOn;
+                        toggle.OnToggleChanged(ChangeSSRTransparent);
+                    }
+                    else
+                    {
+                        toggle.value = m_Node.receiveSSR.isOn;
+                        toggle.OnToggleChanged(ChangeSSR);
+                    }
                 });
             });
 
@@ -218,15 +258,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
                 });
             });
 
-            ps.Add(new PropertyRow(CreateLabel("DOTS instancing", indentLevel)), (row) =>
-            {
-                row.Add(new Toggle(), (toggle) =>
-                {
-                    toggle.value = m_Node.dotsInstancing.isOn;
-                    toggle.OnToggleChanged(ChangeDotsInstancing);
-                });
-            });
-
             ps.Add(new PropertyRow(CreateLabel("Support LOD CrossFade", indentLevel)), (row) =>
             {
                 row.Add(new Toggle(), (toggle) =>
@@ -237,6 +268,7 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             });
 
             Add(ps);
+            Add(GetShaderGUIOverridePropertySheet());
         }
 
         void ChangeSurfaceType(ChangeEvent<Enum> evt)
@@ -336,6 +368,30 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
             td.isOn = evt.newValue;
             m_Node.alphaTest = td;
         }
+        
+        void ChangeAlphaTestPrepass(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Prepass Change");
+            ToggleData td = m_Node.alphaTestDepthPrepass;
+            td.isOn = evt.newValue;
+            m_Node.alphaTestDepthPrepass = td;
+        }
+
+        void ChangeAlphaTestPostpass(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha Test Depth Postpass Change");
+            ToggleData td = m_Node.alphaTestDepthPostpass;
+            td.isOn = evt.newValue;
+            m_Node.alphaTestDepthPostpass = td;
+        }
+
+        void ChangeAlphaToMask(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("Alpha to Mask Change");
+            ToggleData td = m_Node.alphaToMask;
+            td.isOn = evt.newValue;
+            m_Node.alphaToMask = td;
+        }
 
         void ChangeDecal(ChangeEvent<bool> evt)
         {
@@ -349,6 +405,14 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Change");
             ToggleData td = m_Node.receiveSSR;
+            td.isOn = evt.newValue;
+            m_Node.receiveSSR = td;
+        }
+
+        void ChangeSSRTransparent(ChangeEvent<bool> evt)
+        {
+            m_Node.owner.owner.RegisterCompleteObjectUndo("SSR Transparent Change");
+            ToggleData td = m_Node.receiveSSRTransparent;
             td.isOn = evt.newValue;
             m_Node.receiveSSR = td;
         }
@@ -410,14 +474,6 @@ namespace UnityEditor.Rendering.HighDefinition.Drawing
 
             m_Node.owner.owner.RegisterCompleteObjectUndo("ZTest Change");
             m_Node.zTest = (CompareFunction)evt.newValue;
-        }
-
-        void ChangeDotsInstancing(ChangeEvent<bool> evt)
-        {
-            m_Node.owner.owner.RegisterCompleteObjectUndo("DotsInstancing Change");
-            ToggleData td = m_Node.dotsInstancing;
-            td.isOn = evt.newValue;
-            m_Node.dotsInstancing = td;
         }
 
         void ChangeSupportLODCrossFade(ChangeEvent<bool> evt)

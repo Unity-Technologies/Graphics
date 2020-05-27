@@ -9,6 +9,10 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
+        /// <summary>Enable Screen Space Reflections.</summary>
+        [Tooltip("Enable Screen Space Reflections.")]
+        public BoolParameter enabled = new BoolParameter(true);
+
         /// <summary>
         /// Enable ray traced reflections.
         /// </summary>

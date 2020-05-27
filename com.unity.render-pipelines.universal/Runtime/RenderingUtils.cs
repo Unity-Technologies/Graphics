@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -74,7 +75,6 @@ namespace UnityEngine.Rendering.Universal
                 //    (deviceType == GraphicsDeviceType.Metal || deviceType == GraphicsDeviceType.Vulkan ||
                 //     deviceType == GraphicsDeviceType.PlayStation4 || deviceType == GraphicsDeviceType.XboxOne);
             }
-            
         }
 
         static Material s_ErrorMaterial;
@@ -98,7 +98,118 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        // This is used to render materials that contain built-in shader passes not compatible with URP. 
+        /// <summary>
+        /// Set view and projection matrices.
+        /// This function will set <c>UNITY_MATRIX_V</c>, <c>UNITY_MATRIX_P</c>, <c>UNITY_MATRIX_VP</c> to given view and projection matrices.
+        /// If <c>setInverseMatrices</c> is set to true this function will also set <c>UNITY_MATRIX_I_V</c> and <c>UNITY_MATRIX_I_VP</c>.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="viewMatrix">View matrix to be set.</param>
+        /// <param name="projectionMatrix">Projection matrix to be set.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        public static void SetViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4 viewMatrix, Matrix4x4 projectionMatrix, bool setInverseMatrices)
+        {
+            Matrix4x4 viewAndProjectionMatrix = projectionMatrix * viewMatrix;
+            cmd.SetGlobalMatrix(ShaderPropertyId.viewMatrix, viewMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.projectionMatrix, projectionMatrix);
+            cmd.SetGlobalMatrix(ShaderPropertyId.viewAndProjectionMatrix, viewAndProjectionMatrix);
+
+            if (setInverseMatrices)
+            {
+                Matrix4x4 inverseMatrix = Matrix4x4.Inverse(viewMatrix);
+                // Note: inverse projection is currently undefined
+                Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewMatrix, inverseMatrix);
+                cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
+            }
+        }
+
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
+        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
+        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
+        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixIP");
+        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
+        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
+        internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
+
+        // Hold the stereo matrices in this class to avoid allocating arrays every frame
+        internal class StereoConstants
+        {
+            public Matrix4x4[] viewProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invViewMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invProjMatrix = new Matrix4x4[2];
+            public Matrix4x4[] invViewProjMatrix = new Matrix4x4[2];
+            public Vector4[] worldSpaceCameraPos = new Vector4[2];
+        };
+
+        static readonly StereoConstants stereoConstants = new StereoConstants();
+
+        /// <summary>
+        /// Helper function to set all view and projection related matrices
+        /// Should be called before draw call and after cmd.SetRenderTarget
+        /// Internal usage only, function name and signature may be subject to change
+        /// </summary>
+        /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
+        /// <param name="viewMatrix">View matrix to be set. Array size is 2.</param>
+        /// <param name="projectionMatrix">Projection matrix to be set.Array size is 2.</param>
+        /// <param name="setInverseMatrices">Set this to true if you also need to set inverse camera matrices.</param>
+        /// <returns>Void</c></returns>
+        internal static void SetStereoViewAndProjectionMatrices(CommandBuffer cmd, Matrix4x4[] viewMatrix, Matrix4x4[] projMatrix, bool setInverseMatrices)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                stereoConstants.viewProjMatrix[i] = projMatrix[i] * viewMatrix[i];
+                stereoConstants.invViewMatrix[i] = Matrix4x4.Inverse(viewMatrix[i]);
+                stereoConstants.invProjMatrix[i] = Matrix4x4.Inverse(projMatrix[i]);
+                stereoConstants.invViewProjMatrix[i] = Matrix4x4.Inverse(stereoConstants.viewProjMatrix[i]);
+                stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
+            }
+
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
+            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
+            if (setInverseMatrices)
+            {
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
+                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
+            }
+            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
+        }
+#endif
+
+        internal static void Blit(CommandBuffer cmd,
+            RenderTargetIdentifier source,
+            RenderTargetIdentifier destination,
+            Material material,
+            int passIndex = 0,
+            bool useDrawProcedural = false,
+            RenderBufferLoadAction colorLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction colorStoreAction = RenderBufferStoreAction.Store,
+            RenderBufferLoadAction depthLoadAction = RenderBufferLoadAction.Load,
+            RenderBufferStoreAction depthStoreAction = RenderBufferStoreAction.Store)
+        {
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
+            if (useDrawProcedural)
+            {
+                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
+                    colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
+            }
+            else
+            {
+                cmd.SetRenderTarget(destination, colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
+                cmd.Blit(source, BuiltinRenderTextureType.CurrentActive, material, passIndex);
+            }
+        }
+
+        // This is used to render materials that contain built-in shader passes not compatible with URP.
         // It will render those legacy passes with error/pink shader.
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         internal static void RenderObjectsWithError(ScriptableRenderContext context, ref CullingResults cullResults, Camera camera, FilteringSettings filterSettings, SortingCriteria sortFlags)
@@ -108,7 +219,7 @@ namespace UnityEngine.Rendering.Universal
             // Proper fix is to add a fence on asset import.
             if (errorMaterial == null)
                 return;
-            
+
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortFlags };
             DrawingSettings errorSettings = new DrawingSettings(m_LegacyShaderPassNames[0], sortingSettings)
             {
@@ -122,12 +233,14 @@ namespace UnityEngine.Rendering.Universal
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
 
-        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
+        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
+        static Dictionary<GraphicsFormat, bool> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, bool>();
 
         internal static void ClearSystemInfoCache()
         {
             m_RenderTextureFormatSupport.Clear();
+            m_GraphicsFormatSupport.Clear();
         }
 
         /// <summary>
@@ -142,6 +255,24 @@ namespace UnityEngine.Rendering.Universal
             {
                 support = SystemInfo.SupportsRenderTextureFormat(format);
                 m_RenderTextureFormatSupport.Add(format, support);
+            }
+
+            return support;
+        }
+
+        /// <summary>
+        /// Checks if a texture format is supported by the run-time system.
+        /// Similar to <see cref="SystemInfo.IsFormatSupported"/>, but doesn't allocate memory.
+        /// </summary>
+        /// <param name="format">The format to look up.</param>
+        /// <param name="usage">The format usage to look up.</param>
+        /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c></returns>
+        public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
+        {
+            if (!m_GraphicsFormatSupport.TryGetValue(format, out var support))
+            {
+                support = SystemInfo.IsFormatSupported(format, usage);
+                m_GraphicsFormatSupport.Add(format, support);
             }
 
             return support;

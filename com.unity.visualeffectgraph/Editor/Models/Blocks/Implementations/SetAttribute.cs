@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Block
             else
                 builder.Append("Inherit Source ");
 
-            builder.Append( ObjectNames.NicifyVariableName(attribute));
+            builder.Append(ObjectNames.NicifyVariableName(attribute));
             if (!libraryName && currentAttribute.variadic == VFXVariadic.True)
                 builder.AppendFormat(".{0}", channels.ToString());
 
@@ -305,27 +305,27 @@ namespace UnityEditor.VFX.Block
                     {
                         var attrib = currentAttribute;
 
-                        VFXPropertyAttribute[] attr = null;
+                        VFXPropertyAttributes attr = new VFXPropertyAttributes();
                         var field = typeof(VFXAttribute).GetField(attrib.name.Substring(0, 1).ToUpper() + attrib.name.Substring(1), System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
 
                         TooltipAttribute tooltip = null;
 
-                        if( field != null)
+                        if (field != null)
                             tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
 
                         if (attrib.Equals(VFXAttribute.Color))
                         {
                             if (tooltip != null)
-                                attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute(), tooltip);
+                                attr = new VFXPropertyAttributes(new ShowAsColorAttribute(), tooltip);
                             else
-                                attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+                                attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
                         }
                         else
                         {
-                            if(tooltip != null)
-                                attr = VFXPropertyAttribute.Create(tooltip);
+                            if (tooltip != null)
+                                attr = new VFXPropertyAttributes(tooltip);
                         }
-                            
+
 
                         Type slotType = VFXExpression.TypeToType(attrib.type);
                         object content = attrib.value.GetContent();
@@ -371,17 +371,17 @@ namespace UnityEditor.VFX.Block
 
                         if (Random == RandomMode.Off)
                         {
-                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) { attributes = attr }, content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name), attr), content);
                         }
                         else
                         {
-                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "A") { attributes = attr }, content);
-                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "B") { attributes = attr }, content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "A", attr), content);
+                            yield return new VFXPropertyWithValue(new VFXProperty(slotType, "B", attr), content);
                         }
                     }
 
                     if (Composition == AttributeCompositionMode.Blend)
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))));
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend", new RangeAttribute(0.0f, 1.0f)));
                 }
             }
         }

@@ -74,6 +74,9 @@ MonoBehaviour:
   quality:
     m_OverrideState: 0
     m_Value: 1
+  enabled:
+    m_OverrideState: 0
+    m_Value: 0
   rayTracing:
     m_OverrideState: 0
     m_Value: 0
@@ -357,6 +360,9 @@ MonoBehaviour:
   quality:
     m_OverrideState: 0
     m_Value: 1
+  enabled:
+    m_OverrideState: 0
+    m_Value: 0
   rayTracing:
     m_OverrideState: 0
     m_Value: 0

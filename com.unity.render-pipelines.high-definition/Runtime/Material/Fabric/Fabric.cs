@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1300)]
         public struct SurfaceData
         {
-            [SurfaceDataAttributes("MaterialFeatures")]
+            [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
             // Standard

@@ -1,27 +1,29 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace UnityEditor.Graphing.Util
 {
     class MessageManager
     {
-        protected Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>> m_Messages =
-            new Dictionary<object, Dictionary<Identifier, List<ShaderMessage>>>();
+        protected Dictionary<object, Dictionary<string, List<ShaderMessage>>> m_Messages =
+            new Dictionary<object, Dictionary<string, List<ShaderMessage>>>();
 
-        Dictionary<Identifier, List<ShaderMessage>> m_Combined = new Dictionary<Identifier, List<ShaderMessage>>();
+        Dictionary<string, List<ShaderMessage>> m_Combined = new Dictionary<string, List<ShaderMessage>>();
 
         public bool nodeMessagesChanged { get; private set; }
 
-        Dictionary<Identifier, List<ShaderMessage>> m_FoundMessages;
+        Dictionary<string, List<ShaderMessage>> m_FoundMessages;
 
-        public void AddOrAppendError(object errorProvider, Identifier nodeId, ShaderMessage error)
+        public void AddOrAppendError(object errorProvider, string nodeId, ShaderMessage error)
         {
             if (!m_Messages.TryGetValue(errorProvider, out var messages))
             {
-                messages = new Dictionary<Identifier, List<ShaderMessage>>();
+                messages = new Dictionary<string, List<ShaderMessage>>();
                 m_Messages[errorProvider] = messages;
             }
 
@@ -44,9 +46,9 @@ namespace UnityEditor.Graphing.Util
             return m1.severity > m2.severity ? 1 : m2.severity > m1.severity ? -1 : 0;
         }
 
-        public IEnumerable<KeyValuePair<Identifier, List<ShaderMessage>>> GetNodeMessages()
+        public IEnumerable<KeyValuePair<string, List<ShaderMessage>>> GetNodeMessages()
         {
-            var fixedNodes = new List<Identifier>();
+            var fixedNodes = new List<string>();
             m_Combined.Clear();
             foreach (var messageMap in m_Messages)
             {
@@ -79,7 +81,7 @@ namespace UnityEditor.Graphing.Util
             return m_Combined;
         }
 
-        public void RemoveNode(Identifier nodeId)
+        public void RemoveNode(string nodeId)
         {
             foreach (var messageMap in m_Messages)
             {
@@ -107,7 +109,7 @@ namespace UnityEditor.Graphing.Util
             {
                 foreach (var node in nodes)
                 {
-                    if (m_FoundMessages.TryGetValue(node.tempId, out var messages))
+                    if (m_FoundMessages.TryGetValue(node.objectId, out var messages))
                     {
                         nodeMessagesChanged |= messages.Count > 0;
                         messages.Clear();
@@ -131,7 +133,7 @@ namespace UnityEditor.Graphing.Util
                 output.AppendFormat("\tFrom Provider {0}:\n", messageMap.Key.GetType());
                 foreach (var messageList in messageMap.Value)
                 {
-                    output.AppendFormat("\t\tNode {0} has {1} messages:\n", messageList.Key.index, messageList.Value.Count);
+                    output.AppendFormat("\t\tNode {0} has {1} messages:\n", messageList.Key, messageList.Value.Count);
                     foreach (var message in messageList.Value)
                     {
                         output.AppendFormat("\t\t\t{0}\n", message.message);
@@ -152,6 +154,24 @@ namespace UnityEditor.Graphing.Util
             {
                 Debug.LogWarning(errString, context);
             }
+        }
+
+        public bool AnyError()
+        {
+            foreach(var messages in m_Messages.Values)
+            {
+                foreach(List<ShaderMessage> messageList in messages.Values)
+                {
+                    foreach(var message in messageList)
+                    {
+                        if(message.severity == ShaderCompilerMessageSeverity.Error)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
     }
 }

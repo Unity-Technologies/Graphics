@@ -21,13 +21,16 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Opacity", precision = FieldPrecision.Real)]
             public float opacity;
 
+            [SurfaceDataAttributes("AlphaClipTreshold", precision = FieldPrecision.Real)]
+            public float alphaClipTreshold;
+
             // These are lighting data.
             // We would prefer to split lighting and material information but for performance reasons,
             // those lighting information are fill
             // at the same time than material information.
-            [SurfaceDataAttributes("Bake Diffuse Lighting", false, true, FieldPrecision.Real)]
+            [SurfaceDataAttributes("Baked Diffuse Lighting", false, true, FieldPrecision.Real)]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
-            [SurfaceDataAttributes("Back Bake Diffuse Lighting", false, true, FieldPrecision.Real)]
+            [SurfaceDataAttributes("Back Baked Diffuse Lighting", false, true, FieldPrecision.Real)]
             public Vector3 backBakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume from the back for transmission
 
             // Use for float instead of vector4 to ease the debug (no performance impact)
@@ -45,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3 emissiveColor;
 
             // These is required for motion blur and temporalAA
-            [SurfaceDataAttributes("MotionVector", precision = FieldPrecision.Real)]
+            [SurfaceDataAttributes("Motion Vector", precision = FieldPrecision.Real)]
             public Vector2 motionVector;
 
             // Distortion
@@ -55,11 +58,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public float distortionBlur;           // Define the color buffer mipmap level to use
 
             // Misc
-            [SurfaceDataAttributes("RenderingLayers")]
+            [SurfaceDataAttributes("Rendering Layers")]
             public uint renderingLayers;
 
             [SurfaceDataAttributes("Depth Offset")]
             public float depthOffset; // define the depth in unity unit to add in Z forward direction
+
+            [SurfaceDataAttributes("VT Packed Feedback", precision = FieldPrecision.Real)]
+            public Vector4 vtPackedFeedback;
         };
 
         //-----------------------------------------------------------------------------

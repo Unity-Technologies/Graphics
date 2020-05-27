@@ -2,7 +2,7 @@
 
 A render pipeline must sort objects before rendering them to make sure that they appear on the screen in the correct order. The render pipeline must draw objects that are far away from the Camera first, so that it can draw closer objects over the top of them later. If the order is not correct, objects further away from the Camera can appear in front of closer objects.
 
-The built-it Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.htm) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials do not expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
+The built-it Unity render pipeline sorts GameObjects according to their [Rendering Mode](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterRenderingMode.html) and [renderQueue](https://docs.unity3d.com/ScriptReference/Material-renderQueue.html). HDRP uses the render queue in a different way, in that HDRP Materials do not expose the render queue directly. Instead, HDRP introduces two methods of control. Sorting by [Material](#SortingByMaterial) and sorting by [Renderer](#SortingByRenderer).
 
 HDRP uses these two sorting methods together to control the render queue. To calculate the order of the render queue, HDRP:
 

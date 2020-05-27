@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
             public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
-            public const string migrateLights = "Upgrade Unity Builtin Scene Light Intensity for High Definition";
+            public const string migrateLights = "Multiply Unity Builtin Directional Light Intensity to match High Definition";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
@@ -108,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Default scene prefab must be set to create HD templated scene!");
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
-                error: "Default volume profile must be assigned in the HDRP asset!");
+                error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
@@ -544,19 +544,22 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo) =>
                 {
-                    // installed is not used because this one will be always installed
+                    // With recent introduction of preview srp version, our HDRP wizard don't work with Version() call
+                    // patch it for now until this is solve.
+                    bool compatibleWithVersionCall = version.ToString().Contains("preview") ? false : true;
 
+                    // installed is not used because this one will be always installed
                     if (packageInfo.source == PackageManager.PackageSource.Local)
                     {
                         helpBox.kind = HelpBox.Kind.Info;
                         helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
                     }
-                    else if(new Version(packageInfo.version) < new Version(version))
+                    else if(compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
                     {
                         helpBox.kind = HelpBox.Kind.Warning;
                         helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
                     }
-                    else if (new Version(packageInfo.version) == new Version(version))
+                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) == new Version(version)))
                     {
                         helpBox.kind = HelpBox.Kind.Info;
                         helpBox.text = String.Format(Style.hdrpVersionLast, version);

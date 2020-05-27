@@ -104,17 +104,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState, DrawShapeContent),
                 CED.Conditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
                     CED.FoldoutGroup(s_Styles.celestialBodyHeader, Expandable.CelestialBody, k_ExpandedState, DrawCelestialBodyContent)),
-                //CED.TernaryConditional((serialized, owner) => serialized.type == HDLightType.Directional && !serialized.settings.isCompletelyBaked,
-                //    CED.AdvancedFoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                //        (serialized, owner) => GetAdvanced(AdvancedMode.Shape, serialized, owner),
-                //        (serialized, owner) => SwitchAdvanced(AdvancedMode.Shape, serialized, owner),
-                //        DrawShapeContent,
-                //        DrawShapeAdvancedContent
-                //        ),
-                //    CED.FoldoutGroup(s_Styles.shapeHeader, Expandable.Shape, k_ExpandedState,
-                //        DrawShapeContent
-                //        )
-                //),
                 CED.AdvancedFoldoutGroup(s_Styles.emissionHeader, Expandable.Emission, k_ExpandedState,
                     (serialized, owner) => GetAdvanced(AdvancedMode.Emission, serialized, owner),
                     (serialized, owner) => SwitchAdvanced(AdvancedMode.Emission, serialized, owner),
@@ -184,6 +173,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUI.BeginChangeCheck();
             Rect lineRect = EditorGUILayout.GetControlRect();
+            HDLightType lightType = serialized.type;
             HDLightType updatedLightType;
 
             //Partial support for prefab. There is no way to fully support it at the moment.
@@ -191,7 +181,6 @@ namespace UnityEditor.Rendering.HighDefinition
             //(This will continue unless we remove AdditionalDatas)
             using (new SerializedHDLight.LightTypeEditionScope(lineRect, s_Styles.shape, serialized))
             {
-                HDLightType lightType = serialized.type;
                 EditorGUI.showMixedValue = lightType == (HDLightType)(-1);
                 int index = Array.FindIndex((HDLightType[])Enum.GetValues(typeof(HDLightType)), x => x == lightType);
                 updatedLightType = (HDLightType)EditorGUI.Popup(lineRect, s_Styles.shape, index, s_Styles.shapeNames);
@@ -226,6 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
                 serialized.needUpdateAreaLightEmissiveMeshComponents = true;
+                serialized.FetchAreaLightEmissiveMeshComponents();
                 SetLightsDirty(owner); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
             EditorGUI.showMixedValue = false;
@@ -409,6 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         case AreaLightShape.Disc:
                             //draw the built-in area light control at the moment as everything is handled by built-in
                             serialized.settings.DrawArea();
+                            serialized.displayAreaLightEmissiveMesh.boolValue = false; //force deactivate emissive mesh for Disc (not supported)
                             break;
                         case (AreaLightShape)(-1): //multiple different values
                             using (new EditorGUI.DisabledScope(true))
@@ -593,7 +584,6 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // Match const defined in EditorGUI.cs
             const int k_IndentPerLevel = 15;
-            const int k_PrefixPaddingRight = 2;
 
             const int k_ValueUnitSeparator = 2;
             const int k_UnitWidth = 100;
@@ -604,10 +594,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Rect valueRect = lineRect;
             Rect labelRect = lineRect;
             labelRect.width = EditorGUIUtility.labelWidth;
-            valueRect.x += labelRect.width - indent + k_PrefixPaddingRight;
+
             // We use PropertyField to draw the value to keep the handle at left of the field
-            // This will apply the indent again thus we need to remove it two time for alignment
-            valueRect.width -= labelRect.width + k_UnitWidth - indent - indent + k_PrefixPaddingRight + k_ValueUnitSeparator;
+            // This will apply the indent again thus we need to remove it time for alignment
+            valueRect.width += indent - k_ValueUnitSeparator - k_UnitWidth;
             Rect unitRect = valueRect;
             unitRect.x += valueRect.width - indent + k_ValueUnitSeparator;
             unitRect.width = k_UnitWidth + .5f;
@@ -621,8 +611,8 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
-
-            EditorGUI.PropertyField(valueRect, serialized.intensity, GUIContent.none);
+            
+            EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
             if (EditorGUI.EndChangeCheck())
@@ -721,12 +711,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUI.indentLevel--;
                 }
 
-                ShowCookieTextureWarnings(serialized.settings.cookie);
+                ShowCookieTextureWarnings(serialized.settings.cookie, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
-            else if (serialized.areaLightShape == AreaLightShape.Rectangle)
+            else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
                 EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
-                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture);
+                ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -736,7 +726,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void ShowCookieTextureWarnings(Texture cookie)
+        static void ShowCookieTextureWarnings(Texture cookie, bool useBaking)
         {
             if (cookie == null)
                 return;
@@ -766,6 +756,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
+            if (useBaking && !UnityEditor.EditorSettings.enableCookiesInLightmapper)
+                EditorGUILayout.HelpBox(s_Styles.cookieBaking, MessageType.Warning);
             if (cookie.width != cookie.height)
                 EditorGUILayout.HelpBox(s_Styles.cookieNonPOT, MessageType.Warning);
             if (cookie.width < LightCookieManager.k_MinCookieSize || cookie.height < LightCookieManager.k_MinCookieSize)
@@ -784,23 +776,111 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.PropertyField(serialized.affectSpecular, s_Styles.affectSpecular);
                 if (lightType != HDLightType.Directional)
                 {
-                    if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
-                        EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+                    EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                     EditorGUILayout.PropertyField(serialized.fadeDistance, s_Styles.fadeDistance);
                 }
                 EditorGUILayout.PropertyField(serialized.lightDimmer, s_Styles.lightDimmer);
             }
-            else if (lightType == HDLightType.Point
-                    || lightType == HDLightType.Spot && serialized.spotLightShape.GetEnumValue<SpotLightShape>() != SpotLightShape.Box)
+            else if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
                 EditorGUILayout.PropertyField(serialized.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
 
-            // Emissive mesh for area light only
-            if (lightType == HDLightType.Area)
+            // Emissive mesh for area light only (and not supported on Disc currently)
+            if (lightType == HDLightType.Area && serialized.areaLightShape != AreaLightShape.Disc)
             {
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serialized.displayAreaLightEmissiveMesh, s_Styles.displayAreaLightEmissiveMesh);
                 if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.FetchAreaLightEmissiveMeshComponents();
                     serialized.needUpdateAreaLightEmissiveMeshComponents = true;
+                }
+
+                bool showSubArea = serialized.displayAreaLightEmissiveMesh.boolValue && !serialized.displayAreaLightEmissiveMesh.hasMultipleDifferentValues;
+                ++EditorGUI.indentLevel;
+
+                Rect lineRect = EditorGUILayout.GetControlRect();
+                ShadowCastingMode newCastShadow;
+                EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshCastShadow.hasMultipleDifferentValues;
+                EditorGUI.BeginChangeCheck();
+                using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshCastShadow, showSubArea, serialized.areaLightEmissiveMeshCastShadow, serialized.deportedAreaLightEmissiveMeshCastShadow))
+                {
+                    newCastShadow = (ShadowCastingMode)EditorGUI.EnumPopup(lineRect, s_Styles.areaLightEmissiveMeshCastShadow, (ShadowCastingMode)serialized.areaLightEmissiveMeshCastShadow.intValue);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.UpdateAreaLightEmissiveMeshCastShadow(newCastShadow);
+                }
+                EditorGUI.showMixedValue = false;
+
+                lineRect = EditorGUILayout.GetControlRect();
+                SerializedHDLight.MotionVector newMotionVector;
+                EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshMotionVector.hasMultipleDifferentValues;
+                EditorGUI.BeginChangeCheck();
+                using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshMotionVector, showSubArea, serialized.areaLightEmissiveMeshMotionVector, serialized.deportedAreaLightEmissiveMeshMotionVector))
+                {
+                    newMotionVector = (SerializedHDLight.MotionVector)EditorGUI.EnumPopup(lineRect, s_Styles.areaLightEmissiveMeshMotionVector, (SerializedHDLight.MotionVector)serialized.areaLightEmissiveMeshMotionVector.intValue);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.UpdateAreaLightEmissiveMeshMotionVectorGeneration(newMotionVector);
+                }
+                EditorGUI.showMixedValue = false;
+
+                EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues || serialized.lightLayer.hasMultipleDifferentValues;
+                EditorGUI.BeginChangeCheck();
+                bool toggle;
+                using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshSameLayer, showSubArea, serialized.areaLightEmissiveMeshLayer, serialized.deportedAreaLightEmissiveMeshLayer))
+                {
+                    toggle = EditorGUILayout.Toggle(s_Styles.areaLightEmissiveMeshSameLayer, serialized.areaLightEmissiveMeshLayer.intValue == -1);
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.UpdateAreaLightEmissiveMeshLayer(serialized.lightLayer.intValue);
+                    if (toggle)
+                        serialized.areaLightEmissiveMeshLayer.intValue = -1;
+                }
+                EditorGUI.showMixedValue = false;
+
+                ++EditorGUI.indentLevel;
+                if (toggle || serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues)
+                {
+                    using (new EditorGUI.DisabledScope(true))
+                    {
+                        lineRect = EditorGUILayout.GetControlRect();
+                        EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues || serialized.lightLayer.hasMultipleDifferentValues;
+                        EditorGUI.LayerField(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, serialized.lightLayer.intValue);
+                        EditorGUI.showMixedValue = false;
+                    }
+                }
+                else
+                {
+                    EditorGUI.showMixedValue = serialized.areaLightEmissiveMeshLayer.hasMultipleDifferentValues;
+                    lineRect = EditorGUILayout.GetControlRect();
+                    int layer;
+                    EditorGUI.BeginChangeCheck();
+                    using (new SerializedHDLight.AreaLightEmissiveMeshDrawScope(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, showSubArea, serialized.areaLightEmissiveMeshLayer, serialized.deportedAreaLightEmissiveMeshLayer))
+                    {
+                        layer = EditorGUI.LayerField(lineRect, s_Styles.areaLightEmissiveMeshCustomLayer, serialized.areaLightEmissiveMeshLayer.intValue);
+                    }
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serialized.UpdateAreaLightEmissiveMeshLayer(layer);
+                    }
+                    // or if the value of layer got changed using the layer change including child mechanism (strangely apply even if object not editable),
+                    // discard the change: the child is not saved anyway so the value in HDAdditionalLightData is the only serialized one.
+                    else if (!EditorGUI.showMixedValue
+                        && serialized.deportedAreaLightEmissiveMeshLayer != null
+                        && !serialized.deportedAreaLightEmissiveMeshLayer.Equals(null)
+                        && serialized.areaLightEmissiveMeshLayer.intValue != serialized.deportedAreaLightEmissiveMeshLayer.intValue)
+                    {
+                        GUI.changed = true; //force register change to handle update and apply later
+                        serialized.UpdateAreaLightEmissiveMeshLayer(layer);
+                    }
+                    EditorGUI.showMixedValue = false;
+                }
+                --EditorGUI.indentLevel;
+
+                --EditorGUI.indentLevel;
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -923,7 +1003,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
                             EditorGUILayout.PropertyField(serialized.numRayTracingSamples, s_Styles.numRayTracingSamples);
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
+                            EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
+                            EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
+                            EditorGUI.indentLevel--;
                             EditorGUI.indentLevel--;
                         }
                     }
@@ -1028,7 +1111,8 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             // If we're not in decoupled mode for light layers, we sync light with shadow layers:
             foreach (Light target in owner.targets)
-                target.renderingLayerMask = serialized.lightlayersMask.intValue;
+                if (target.renderingLayerMask != serialized.lightlayersMask.intValue)
+                    target.renderingLayerMask = serialized.lightlayersMask.intValue;
         }
 
         static void DrawContactShadowsContent(SerializedHDLight serialized, Editor owner)

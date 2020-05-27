@@ -7,6 +7,8 @@
 
 #pragma kernel CopyHistorySingle                                COPY_HISTORY=CopyHistorySingle SINGLE_CHANNEL
 #pragma kernel CopyHistorySingleArray                           COPY_HISTORY=CopyHistorySingleArray SINGLE_CHANNEL OUTPUT_IS_ARRAY
+#pragma kernel CopyHistorySingleArrayNoValidity                 COPY_HISTORY=CopyHistorySingleArrayNoValidity SINGLE_CHANNEL OUTPUT_IS_ARRAY NO_VALIDITY
+
 #pragma kernel CopyHistoryColor                                 COPY_HISTORY=CopyHistoryColor 
 #pragma kernel CopyHistoryColorArray                            COPY_HISTORY=CopyHistoryColorArray OUTPUT_IS_ARRAY
 
@@ -238,7 +240,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     #endif
 }
 
-#ifdef OUTPUT_IS_ARRAY
+#if defined(OUTPUT_IS_ARRAY) && !defined(NO_VALIDITY)
     // This is an additional history texture that holds the validity of the currently accumulated signal
     RW_TEXTURE2D_ARRAY(float4, _ValidityOutputTextureRW);
 #endif
@@ -257,19 +259,25 @@ void COPY_HISTORY(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         // In the case the output being an array, we only need to override the channels that we are currently processing
         float4 previousHistoryValues = _DenoiseOutputTextureRW[targetPixel];
+    #if !defined(NO_VALIDITY)
         float4 previousValidityValues = _ValidityOutputTextureRW[targetPixel];
+    #endif
 
     #if SINGLE_CHANNEL
         _DenoiseOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousHistoryValues 
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).x;
+        #if !defined(NO_VALIDITY)
         _ValidityOutputTextureRW[targetPixel] = (1.0 - _DenoisingHistoryMask) * previousValidityValues 
                                               + _DenoisingHistoryMask * LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).y;
+        #endif
     #else
         // If this is a color data, it means we need to override the first three channels
         _DenoiseOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).xyz
                                                                                 , previousHistoryValues.w);
+        #if !defined(NO_VALIDITY)
         _ValidityOutputTextureRW[targetPixel] = float4(LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy).www
                                                                                 , previousValidityValues.w);
+        #endif
     #endif
 #else
     _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = LOAD_TEXTURE2D_X(_DenoiseInputTexture, dispatchThreadId.xy);

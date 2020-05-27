@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector3 forward;
         public CookieMode cookieMode;
-        
+
         public Vector4 cookieScaleOffset;
 
         public Vector3 right;                   // Rescaled by (2 / shapeWidth)
@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public CookieMode cookieMode;
         public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
         public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
-        
+
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas
         public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL]
     enum EnvConstants
     {
-        SpecCubeLodStep = 6
+        ConvolutionMipCount = 7,
     }
 
 

@@ -1,6 +1,7 @@
+using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
-using UnityEditor;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -24,6 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // In case the shader is not HDRP
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;
+
+            HDRenderPipeline.currentPipeline.ResetPathTracing();
 
             if (!hdSaveContext.updateMaterials)
                 return;
@@ -55,13 +58,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
                     if ((i % 200 == 0) && i != 0)
-                        EditorUtility.UnloadUnusedAssetsImmediate(false);
+                        EditorUtility.UnloadUnusedAssetsImmediate(true);
                 }
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
-                EditorUtility.UnloadUnusedAssetsImmediate(false);
+                EditorUtility.UnloadUnusedAssetsImmediate(true);
             }
         }
     }

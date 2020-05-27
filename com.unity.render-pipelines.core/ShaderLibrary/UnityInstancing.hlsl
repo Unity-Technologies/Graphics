@@ -34,11 +34,14 @@
 #if defined(UNITY_SUPPORT_INSTANCING) && defined(PROCEDURAL_INSTANCING_ON)
     #define UNITY_PROCEDURAL_INSTANCING_ENABLED
 #endif
+#if defined(UNITY_SUPPORT_INSTANCING) && defined(DOTS_INSTANCING_ON)
+    #define UNITY_DOTS_INSTANCING_ENABLED
+#endif
 #if defined(UNITY_SUPPORT_STEREO_INSTANCING) && defined(STEREO_INSTANCING_ON)
     #define UNITY_STEREO_INSTANCING_ENABLED
 #endif
 
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
     #define UNITY_ANY_INSTANCING_ENABLED 1
 #else
     #define UNITY_ANY_INSTANCING_ENABLED 0
@@ -57,7 +60,7 @@
 // basic instancing setups
 // - UNITY_VERTEX_INPUT_INSTANCE_ID     Declare instance ID field in vertex shader input / output struct.
 // - UNITY_GET_INSTANCE_ID              (Internal) Get the instance ID from input struct.
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if UNITY_ANY_INSTANCING_ENABLED
 
     // A global instance ID variable that functions can directly access.
     static uint unity_InstanceID;
@@ -107,12 +110,12 @@
         #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO                          uint stereoTargetEyeIndexAsBlendIdx0 : BLENDINDICES0;
         #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output)       output.stereoTargetEyeIndexAsBlendIdx0 = unity_StereoEyeIndex;
         #define DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(input, output)  output.stereoTargetEyeIndexAsBlendIdx0 = input.stereoTargetEyeIndexAsBlendIdx0;
-        #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)     unity_StereoEyeIndex = input.stereoTargetEyeIndexAsBlendIdx0;        
+        #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)     unity_StereoEyeIndex = input.stereoTargetEyeIndexAsBlendIdx0;
     #else
         #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO                          uint stereoTargetEyeIndexAsRTArrayIdx : SV_RenderTargetArrayIndex; uint stereoTargetEyeIndexAsBlendIdx0 : BLENDINDICES0;
         #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output)       output.stereoTargetEyeIndexAsRTArrayIdx = unity_StereoEyeIndex; output.stereoTargetEyeIndexAsBlendIdx0 = unity_StereoEyeIndex;
         #define DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(input, output)  output.stereoTargetEyeIndexAsBlendIdx0 = input.stereoTargetEyeIndexAsBlendIdx0;
-        #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)     unity_StereoEyeIndex = input.stereoTargetEyeIndexAsBlendIdx0;                
+        #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)     unity_StereoEyeIndex = input.stereoTargetEyeIndexAsBlendIdx0;
     #endif
 #else
     #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO                          uint stereoTargetEyeIndexAsRTArrayIdx : SV_RenderTargetArrayIndex;
@@ -158,7 +161,7 @@
 //                                  Also procedural function is called to setup instance data.
 // - UNITY_TRANSFER_INSTANCE_ID     Copy instance ID from input struct to output struct. Used in vertex shader.
 
-#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_PROCEDURAL_INSTANCING_ENABLED) || defined(UNITY_STEREO_INSTANCING_ENABLED)
+#if UNITY_ANY_INSTANCING_ENABLED
     void UnitySetupInstanceID(uint inputInstanceID)
     {
         #ifdef UNITY_STEREO_INSTANCING_ENABLED
@@ -209,7 +212,7 @@
 
 ////////////////////////////////////////////////////////
 // instanced property arrays
-#if defined(UNITY_INSTANCING_ENABLED)
+#if defined(UNITY_INSTANCING_ENABLED) || defined(UNITY_DOTS_INSTANCING_ENABLED)
 
     #ifdef UNITY_FORCE_MAX_INSTANCE_COUNT
         #define UNITY_INSTANCED_ARRAY_SIZE  UNITY_FORCE_MAX_INSTANCE_COUNT
@@ -225,10 +228,28 @@
         #endif
     #endif
 
+#if defined(UNITY_DOTS_INSTANCING_ENABLED)
+    #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf)
+    #define UNITY_INSTANCING_BUFFER_END(arr)        UNITY_INSTANCING_CBUFFER_SCOPE_END
+    #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
+    #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityDOTSInstancing.hlsl"
+
+#else
     #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
     #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
     #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
     #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
+
+    #define UNITY_DOTS_INSTANCING_START(name)
+    #define UNITY_DOTS_INSTANCING_END(name)
+    #define UNITY_DOTS_INSTANCED_PROP(type, name)
+
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP(type, var) var
+    #define UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(type, metadata_underscore_var) This_macro_cannot_be_called_without_UNITY_DOTS_INSTANCING_ENABLED
+    #define UNITY_ACCESS_DOTS_AND_TRADITIONAL_INSTANCED_PROP(type, arr, var) UNITY_ACCESS_INSTANCED_PROP(arr, var)
+#endif
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.
     #ifdef UNITY_ASSUME_UNIFORM_SCALING
@@ -263,6 +284,7 @@
         #endif
     #endif
 
+    #if !defined(UNITY_DOTS_INSTANCING_ENABLED)
     UNITY_INSTANCING_BUFFER_START(PerDraw0)
         #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_ObjectToWorldArray)
@@ -278,8 +300,10 @@
             UNITY_DEFINE_INSTANCED_PROP(float, unity_RenderingLayerArray)
             #define unity_RenderingLayer UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_RenderingLayerArray).xxxx
         #endif
-        #if defined(SHADER_GRAPH_GENERATED)
-                DOTS_CUSTOM_ADDITIONAL_MATERIAL_VARS
+
+        // TODO: Hybrid V1 compatibility, remove once Hybrid V1 is removed
+        #if defined(UNITY_HYBRID_V1_INSTANCING_ENABLED) && defined(HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS)
+            HYBRID_V1_CUSTOM_ADDITIONAL_MATERIAL_VARS
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -327,19 +351,42 @@
             #define unity_ProbesOcclusion UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_ProbesOcclusionArray)
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
+    #endif
+
+    // TODO: What about UNITY_DONT_INSTANCE_OBJECT_MATRICES for DOTS?
+    #if defined(UNITY_DOTS_INSTANCING_ENABLED)
+        #undef UNITY_MATRIX_M
+        #undef UNITY_MATRIX_I_M
+        #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject))
+        #else
+            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+        #endif
+    #else
 
     #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
-        #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
-        #define CALL_MERGE_UNITY_BUILTINS_INDEX(X)  MERGE_UNITY_BUILTINS_INDEX(X)
+
+        // Use #if instead of preprocessor concatenation to avoid really hard to debug
+        // preprocessing issues in some cases.
+        #if UNITY_WORLDTOOBJECTARRAY_CB == 0
+            #define UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY unity_Builtins0
+        #else
+            #define UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY unity_Builtins1
+        #endif
+
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
             #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray))
         #else
             #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(CALL_MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+            #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(UNITY_BUILTINS_WITH_WORLDTOOBJECTARRAY, unity_WorldToObjectArray)
         #endif
+    #endif
+
     #endif
 
 #else // UNITY_INSTANCING_ENABLED

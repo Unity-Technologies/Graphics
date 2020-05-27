@@ -1,3 +1,6 @@
+#ifndef UNITY_RAYTRACING_INTERSECTION_INCLUDED
+#define UNITY_RAYTRACING_INTERSECTION_INCLUDED
+
 // Engine includes
 #include "UnityRaytracingMeshUtils.cginc"
 
@@ -29,8 +32,6 @@ struct RayIntersection
 	uint rayCount;
 	// Pixel coordinate from which the initial ray was launched
 	uint2 pixelCoord;
-	// Max roughness (encountered along the path, used in path tracing)
-	float maxRoughness;
 	// Velocity for the intersection point
 	float velocity;
 };
@@ -112,3 +113,5 @@ void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionV
 	outVertex.texCoord2Area = abs((v1.texCoord2.x - v0.texCoord2.x) * (v2.texCoord2.y - v0.texCoord2.y) - (v2.texCoord2.x - v0.texCoord2.x) * (v1.texCoord2.y - v0.texCoord2.y));
 	outVertex.texCoord3Area = abs((v1.texCoord3.x - v0.texCoord3.x) * (v2.texCoord3.y - v0.texCoord3.y) - (v2.texCoord3.x - v0.texCoord3.x) * (v1.texCoord3.y - v0.texCoord3.y));
 }
+
+#endif // UNITY_RAYTRACING_INTERSECTION_INCLUDED

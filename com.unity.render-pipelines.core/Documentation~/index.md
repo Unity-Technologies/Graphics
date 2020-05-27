@@ -1,26 +1,11 @@
-# Scriptable Render Pipeline
+# SRP Core
+
 ![](https://blogs.unity3d.com/wp-content/uploads/2018/01/image5_rs.png)
-## What is the Scriptable Render Pipeline
 
-The Scriptable Render Pipeline (SRP) is a feature that gives you full control over Unity's render pipeline and provides the tools you need to create modern, high-fidelity graphics in Unity.
+The Scriptable Render Pipeline (SRP) is a Unity feature that allows you to write C# scripts to control the way Unity renders each frame. SRP Core is a package that makes it easier to create or customize an SRP.
 
-SRP allows you to write C# scripts to control the way Unity renders each frame. Exposing the render pipeline to you in C# makes Unity less of a “black box” when it comes to rendering. Unlike the original built-in render pipeline, SRP allows you to see and control exactly what happens during the rendering process. 
+SRP Core contains reusable code, including boilerplate code for working with platform-specific graphics APIs, utility functions for common rendering operations, and the shader libraries used in the High Definition Render Pipeline (HDRP) and Universal Render Pipeline (URP).
 
-Unity provides you with two prebuilt Scriptable Render Pipelines which you can use in your Project as a base for your own custom SRP:
-* The Universal Render Pipeline (URP) offers graphics that scale from mobile platforms to higher-end consoles and PCs.
-* The High Definition Render Pipeline (HDRP) utilizes physically-based lighting techniques to offer high-fidelity graphics to target modern, Compute Shader compatible, platforms.
+If you are creating a custom SRP from scratch or customizing a prebuilt SRP, using SRP Core will save you time.
 
-Rather than developing your own SRP from scratch, you can use either of these prebuilt SRPs as a base to modify and adapt to your own requirements.
-
-## What is SRP Core
-
-SRP Core is a collection of API's that exposes many of the rendering internals and configuration to you. This allows you to configure exactly how you want rendering to work in your project.
-
-The SRP API offers a new interface to many familiar Unity constructs which include:
-
-- Lights
-- Materials
-- Cameras
-- Command Buffers
-
-The thing that SRP changes is the *way* that you interact with Unity. For performance reasons, when you write a custom SRP, you work with groups of renderers, not individual items.
+For more information on SRP, including a guide to getting started with a custom SRP, see the [SRP documentation](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html). For more information on Unity's prebuilt SRPs, see the [Universal Render Pipeline (URP) documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest), or the [High Definition Render Pipeline (HDRP) documentation](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest).

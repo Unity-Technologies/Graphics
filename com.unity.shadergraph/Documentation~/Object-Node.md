@@ -8,8 +8,7 @@ Note: The behaviour of the Position [Port](Port.md) can be defined per Render Pi
 
 #### Unity Render Pipelines Support
 - Universal Render Pipeline
-
-The High Definition Render Pipeline does **not** support this Node.
+- High Definition Render Pipeline
 
 ## Ports
 

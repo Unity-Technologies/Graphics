@@ -68,12 +68,11 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { OutputSlotId, TextureInputId, SamplerInputId, PositionInputId, NormalInputId, TileInputId, BlendInputId });
         }
 
-        public override void ValidateNode()
+        public override void Setup()
         {
+            base.Setup();
             var textureSlot = FindInputSlot<Texture2DInputMaterialSlot>(TextureInputId);
             textureSlot.defaultType = (textureType == TextureType.Normal ? Texture2DShaderProperty.DefaultType.Bump : Texture2DShaderProperty.DefaultType.White);
-
-            base.ValidateNode();
         }
 
         // Node generations
@@ -92,7 +91,8 @@ namespace UnityEditor.ShaderGraph
                 // Whiteout blend method
                 // https://medium.com/@bgolus/normal-mapping-for-a-triplanar-shader-10bf39dca05a
                 case TextureType.Normal:
-                    sb.AppendLine("$precision3 {0}_Blend = max(pow(abs({1}), {2}), 0);"
+                    // See comment for default case.
+                    sb.AppendLine("$precision3 {0}_Blend = SafePositivePow_$precision({1}, min({2}, floor(log2(Min_$precision())/log2(1/sqrt(3)))) );"
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode)
                         , GetSlotValue(BlendInputId, generationMode));
@@ -134,7 +134,16 @@ namespace UnityEditor.ShaderGraph
                         , GetVariableNameForNode());
                     break;
                 default:
-                    sb.AppendLine("$precision3 {0}_Blend = pow(abs({1}), {2});"
+                    // We want the sum of the 3 blend weights (by which we normalize them) to be > 0.
+                    // Max safe exponent is log2(REAL_MIN)/log2(1/sqrt(3)):
+                    // Take the set of all possible normalized vectors, make a set from selecting the maximum component of each 3-vectors from the previous set,
+                    // the minimum (:= min_of_max) of that new set is 1/sqrt(3) (by the fact vectors are normalized).
+                    // We then want a maximum exponent such that
+                    //                            precision_min < min_of_max^exponent_max
+                    // where exponent_max is blend,
+                    //                       log(precision_min) < log(min_of_max) * exponent_max
+                    //     log(precision_min) / log(min_of_max) > exponent_max
+                    sb.AppendLine("$precision3 {0}_Blend = SafePositivePow_$precision({1}, min({2}, floor(log2(Min_$precision())/log2(1/sqrt(3)))) );"
                         , GetVariableNameForNode()
                         , GetSlotValue(NormalInputId, generationMode)
                         , GetSlotValue(BlendInputId, generationMode));

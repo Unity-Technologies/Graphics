@@ -1,5 +1,0 @@
-status = ["[Yamato] _ABV for SRP repository - fast-2020.1"]
-timeout_sec = 10800
-required_approvals = 1
-delete_merged_branches = false
-use_squash_merge = true

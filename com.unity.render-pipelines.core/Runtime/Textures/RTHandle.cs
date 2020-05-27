@@ -50,6 +50,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public string name { get { return m_Name; } }
 
+        /// <summary>
+        /// Returns true is MSAA is enabled, false otherwise.
+        /// </summary>
+        public bool isMSAAEnabled { get { return m_EnableMSAA; } }
+
         // Keep constructor private
         internal RTHandle(RTHandleSystem owner)
         {
@@ -100,6 +105,13 @@ namespace UnityEngine.Rendering
             m_RT = null;
             m_ExternalTexture = tex;
             m_NameID = new RenderTargetIdentifier(tex);
+        }
+
+        internal void SetTexture(RenderTargetIdentifier tex)
+        {
+            m_RT = null;
+            m_ExternalTexture = null;
+            m_NameID = tex;
         }
 
         /// <summary>

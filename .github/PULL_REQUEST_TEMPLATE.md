@@ -1,34 +1,21 @@
-**DONT FORGET TO ADD A CHANGELOG**
+**Guide** : https://github.com/Unity-Technologies/Graphics/blob/master/.github/pr-read.png.md
 
-### Checklist for PR maker
-- [ ] Have you added a backport label (if needed)? For example, the `need-backport-2019.3` label. After you backport the PR, the label changes to `backported-2019.3`.
-- [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
-- [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR.
-- [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
+**Display Addon** : https://userstyles.org/styles/182991/unity-graphics-pr-readme
 
----
-### Purpose of this PR
-Why is this PR needed, what hard problem is it solving/fixing?
+# Purpose of this PR
 
----
-### Testing status
+> Why is this PR needed, what hard problem is it solving/fixing?
 
-**Manual Tests**: What did you do?
-- [ ] Opened test project + Run graphic tests locally
-- [ ] Built a player
-- [ ] Checked new UI names with UX convention
-- [ ] Tested UI multi-edition + Undo/Redo + Prefab overrides + Alignment in Preset
-- [ ] C# and shader warnings (supress shader cache to see them)
-- [ ] Checked new resources path for the reloader (in devloper mode, you have a button at end of resources that check the pathes)
-- Other: 
+# Testing status
+## Manual Tests
+> What have you tested?
 
-**Automated Tests**: What did you setup? (Add a screenshot or the reference image of the test please)
+## Automated Tests
+> What did you setup? (Add a screenshot or the reference image of the test please)
 
-**Yamato**: (Select your branch):
-https://yamato.prd.cds.internal.unity3d.com/jobs/78-ScriptableRenderPipeline
+## Links
+**Yamato**: (Select your branch) https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
+> Any test projects or documents to go with this to help reviewers?
 
-Any test projects to go with this to help reviewers?
-
----
-### Comments to reviewers
-Notes for the reviewers you have assigned.
+# Comments to reviewers
+> Notes for the reviewers you have assigned.

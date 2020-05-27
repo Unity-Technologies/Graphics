@@ -9,11 +9,11 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
     }
 
 	HLSLINCLUDE
-	
+
 	#pragma multi_compile __ _ALPHATEST_ON
-	
+
 	ENDHLSL
-	
+
     SubShader
     {
         Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
@@ -89,6 +89,67 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"
+            ENDHLSL
+        }
+
+        // ------------------------------------------------------------------
+        //  GBuffer pass. Does GI + emission. All additional lights are done deferred as well as fog
+        Pass
+        {
+            Name "GBuffer"
+            Tags{"LightMode" = "UniversalGBuffer"}
+
+            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
+            // This is a Lit material.
+            Stencil {
+                Ref 32       // 0b00100000
+                WriteMask 96 // 0b01100000
+                Comp Always
+                Pass Replace
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
+            #pragma target 2.0
+
+            // -------------------------------------
+            // Material Keywords
+            #define _METALLICSPECGLOSSMAP 1
+            #define _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A 1
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile _ _SHADOWS_SOFT
+            //#pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
+
+            #pragma vertex SplatmapVert
+            #pragma fragment SplatmapFragment
+
+            #pragma shader_feature_local _NORMALMAP
+            // Sample normal in pixel shader when doing instancing
+            #pragma shader_feature_local _TERRAIN_INSTANCED_PERPIXEL_NORMAL
+            #define TERRAIN_SPLAT_BASEPASS 1
+            #define TERRAIN_GBUFFER 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Terrain/TerrainLitPasses.hlsl"

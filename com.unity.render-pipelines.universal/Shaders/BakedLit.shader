@@ -21,7 +21,7 @@ Shader "Universal Render Pipeline/Baked Lit"
     }
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }
+        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="4.5"}
         LOD 100
 
         Blend [_SrcBlend][_DstBlend]
@@ -31,12 +31,13 @@ Shader "Universal Render Pipeline/Baked Lit"
         Pass
         {
             Name "BakedLit"
-            Tags{ "LightMode" = "UniversalForward" }
+            Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
 
             #pragma vertex vert
             #pragma fragment frag
@@ -50,6 +51,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
             #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
 
             // Lighting include is needed because of GI
@@ -71,10 +73,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             {
                 float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
                 DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
-                half3 normal                    : TEXCOORD2;
+                half3 normalWS                  : TEXCOORD2;
     #if defined(_NORMALMAP)
-                half3 tangent                   : TEXCOORD3;
-                half3 bitangent                 : TEXCOORD4;
+                half4 tangentWS                 : TEXCOORD3;
     #endif
                 float4 vertex : SV_POSITION;
 
@@ -95,14 +96,17 @@ Shader "Universal Render Pipeline/Baked Lit"
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
 
+                // normalWS and tangentWS already normalize.
+                // this is required to avoid skewing the direction during interpolation
+                // also required for per-vertex SH evaluation
                 VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-                output.normal = normalInput.normalWS;
+                output.normalWS = normalInput.normalWS;
     #if defined(_NORMALMAP)
-                output.tangent = normalInput.tangentWS;
-                output.bitangent = normalInput.bitangentWS;
+                real sign = input.tangentOS.w * GetOddNegativeScale();
+                output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
                 OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
-                OUTPUT_SH(output.normal, output.vertexSH);
+                OUTPUT_SH(output.normalWS, output.vertexSH);
 
                 return output;
             }
@@ -124,15 +128,17 @@ Shader "Universal Render Pipeline/Baked Lit"
 
     #if defined(_NORMALMAP)
                 half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
-                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangent, input.bitangent, input.normal));
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
     #else
-                half3 normalWS = input.normal;
+                half3 normalWS = input.normalWS;
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
-                
+
                 return half4(color, alpha);
             }
             ENDHLSL
@@ -148,8 +154,8 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
@@ -161,6 +167,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
@@ -178,7 +185,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
+
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaBakedLit
 
@@ -199,7 +208,208 @@ Shader "Universal Render Pipeline/Baked Lit"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
+
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
+            ENDHLSL
+        }
+    }
+
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel"="2.0"}
+        LOD 100
+
+        Blend [_SrcBlend][_DstBlend]
+        ZWrite [_ZWrite]
+        Cull [_Cull]
+
+        Pass
+        {
+            Name "BakedLit"
+            Tags{ "LightMode" = "UniversalForwardOnly" }
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma only_renderers gles gles3
+            #pragma target 2.0
+
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma shader_feature _ _NORMALMAP
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+
+            // Lighting include is needed because of GI
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS       : POSITION;
+                float2 uv               : TEXCOORD0;
+                float2 lightmapUV       : TEXCOORD1;
+                float3 normalOS         : NORMAL;
+                float4 tangentOS        : TANGENT;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float3 uv0AndFogCoord           : TEXCOORD0; // xy: uv0, z: fogCoord
+                DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 1);
+                half3 normalWS                  : TEXCOORD2;
+    #if defined(_NORMALMAP)
+                half4 tangentWS                 : TEXCOORD3;
+    #endif
+                float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_TRANSFER_INSTANCE_ID(input, output);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
+                output.vertex = vertexInput.positionCS;
+                output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+                output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+
+                // normalWS and tangentWS already normalize.
+                // this is required to avoid skewing the direction during interpolation
+                // also required for per-vertex SH evaluation
+                VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
+                output.normalWS = normalInput.normalWS;
+    #if defined(_NORMALMAP)
+                real sign = input.tangentOS.w * GetOddNegativeScale();
+                output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
+    #endif
+                OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
+                OUTPUT_SH(output.normalWS, output.vertexSH);
+
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                half2 uv = input.uv0AndFogCoord.xy;
+                half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+                half3 color = texColor.rgb * _BaseColor.rgb;
+                half alpha = texColor.a * _BaseColor.a;
+                AlphaDiscard(alpha, _Cutoff);
+
+#ifdef _ALPHAPREMULTIPLY_ON
+                color *= alpha;
+#endif
+
+    #if defined(_NORMALMAP)
+                half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent, input.normalWS));
+    #else
+                half3 normalWS = input.normalWS;
+    #endif
+                normalWS = NormalizeNormalPerPixel(normalWS);
+                color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                color = MixFog(color, input.uv0AndFogCoord.z);
+                alpha = OutputAlpha(alpha);
+
+                return half4(color, alpha);
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Tags{"LightMode" = "DepthOnly"}
+
+            ZWrite On
+            ColorMask 0
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma only_renderers gles gles3
+            #pragma target 2.0
+            
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _ALPHATEST_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
+
+        // This pass it not used during regular rendering, only for lightmap baking.
+        Pass
+        {
+            Name "Meta"
+            Tags{"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma only_renderers gles gles3
+            #pragma target 2.0
+
+            #pragma vertex UniversalVertexMeta
+            #pragma fragment UniversalFragmentMetaBakedLit
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitMetaPass.hlsl"
+
+            ENDHLSL
+        }
+        Pass
+        {
+            Name "Universal2D"
+            Tags{ "LightMode" = "Universal2D" }
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard srp library
+            #pragma prefer_hlslcc gles
+            #pragma only_renderers gles gles3
+            #pragma target 2.0
 
             #pragma vertex vert
             #pragma fragment frag

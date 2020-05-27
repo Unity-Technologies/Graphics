@@ -1,6 +1,6 @@
-// Each #kernel tells which function to compile; you can have many kernels
-#pragma kernel DeferredContactShadow                DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadow
-#pragma kernel DeferredContactShadowMSAA            DEFERRED_CONTACT_SHADOW_GENERIC=DeferredContactShadowMSAA         ENABLE_MSAA
+#pragma kernel DeferredContactShadow
+
+#pragma multi_compile _ ENABLE_MSAA
 
 #ifdef SHADER_API_PSSL
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
@@ -11,15 +11,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 #define USE_FPTL_LIGHTLIST // Use light tiles for contact shadows
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
 
-// We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile. 
+// We perform scalarization all the time here as we don't know if we have clustered data structure or not at this point. 
 // More info on scalarization: https://flashypixels.wordpress.com/2018/11/10/intro-to-gpu-scalarization-part-2-scalarize-all-the-lights/
-#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER) && SHADERPASS == SHADERPASS_FORWARD)
+#define SCALARIZE_LIGHT_LOOP (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -147,6 +146,9 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
         //Here LightDirection is not the light direction but the light position
         float rayLength = _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor);
         occluded = ScreenSpaceShadowRayCast(posInput.positionWS, direction, rayLength, posInput.positionSS, fade);
+        // Fade in
+        fade *= saturate((posInput.linearDepth - _ContactShadowMinDistance) * rcp(_ContactShadowFadeInEnd));
+        // Fade out
         fade *= saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
 
         globalFade = max(globalFade, fade);
@@ -156,7 +158,7 @@ bool ComputeContactShadow(PositionInputs posInput, float3 direction, inout float
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
-void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
+void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID, uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
@@ -172,7 +174,7 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
     // discard the shadow if we're on the sky or outside of the contact shadow range
-    if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1)
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1 || posInput.linearDepth < _ContactShadowMinDistance)
     {
         _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = 0;
 
@@ -228,26 +230,35 @@ void DEFERRED_CONTACT_SHADOW_GENERIC(uint2 groupThreadId : SV_GroupThreadID, uin
                 lightStart = startFirstLane;
             }
 
-            for (uint lightListOffset = 0; lightListOffset < lightCount; lightListOffset++)
+            uint v_lightIdx = lightStart;
+            uint v_lightListOffset = 0;
+            while (v_lightListOffset < lightCount)
             {
-                uint v_lightIdx = FetchIndex(lightStart, lightListOffset);
+                v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
                 uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
                 if (s_lightIdx == -1)
                     break;
 
-                LightData light = FetchLight(s_lightIdx); // Scalar load
+                LightData s_lightData = FetchLight(s_lightIdx);
 
-                if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 0.0)
+                // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
+                // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
+                // end up with a unique v_lightIdx value that is smaller than s_lightIdx hence being stuck in a loop. All the active lanes will not have this problem.
+                if (s_lightIdx >= v_lightIdx)
                 {
-                    // Compute light ray direction:
-                    float3 direction = normalize(light.positionRWS.xyz - posInput.positionWS);
+                    v_lightListOffset++;
+                    if (s_lightData.contactShadowMask != 0 && s_lightData.isRayTracedContactShadow == 0.0)
+                    {
+                        // Compute light ray direction:
+                        float3 direction = normalize(s_lightData.positionRWS.xyz - posInput.positionWS);
 
-                    bool occluded = ComputeContactShadow(posInput, direction, globalFade);
+                        bool occluded = ComputeContactShadow(posInput, direction, globalFade);
 
-                    // light.contactShadowMask contains one bit at the position of the contact shadow index that will
-                    // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
-                    // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
-                    contactShadowMask |= light.contactShadowMask * occluded;
+                        // light.contactShadowMask contains one bit at the position of the contact shadow index that will
+                        // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
+                        // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
+                        contactShadowMask |= s_lightData.contactShadowMask * occluded;
+                    }
                 }
             }
         }

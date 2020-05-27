@@ -111,8 +111,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76db615e524a19c4990482d75a475543, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panelPrefab: {fileID: 224481716535368988, guid: daa46a58178a6ad41ae1ddc2dc7f856d,
-    type: 3}
+  panelPrefab: {fileID: 224481716535368988, guid: daa46a58178a6ad41ae1ddc2dc7f856d, type: 3}
   prefabs:
   - type: UnityEngine.Rendering.DebugUI+Value, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -161,12 +160,16 @@ MonoBehaviour:
     prefab: {fileID: 224284813447651300, guid: 38a07789c9e87004dad98c2909f58369, type: 3}
   - type: UnityEngine.Rendering.DebugUI+BitField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    prefab: {fileID: 5833802642077810669, guid: 7c78b588b2e1f7c4a86ca4a985cf6e4a,
-      type: 3}
+    prefab: {fileID: 5833802642077810669, guid: 7c78b588b2e1f7c4a86ca4a985cf6e4a, type: 3}
   - type: UnityEngine.Rendering.DebugUI+HistoryBoolField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     prefab: {fileID: 108402283379224504, guid: 5088d0220f0c4df439cf06c5c270eacb, type: 3}
   - type: UnityEngine.Rendering.DebugUI+HistoryEnumField, Unity.RenderPipelines.Core.Runtime,
       Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    prefab: {fileID: 8535926254376877601, guid: b2da6b27df236b144b3516ed8e7d36ac,
-      type: 3}
+    prefab: {fileID: 8535926254376877601, guid: b2da6b27df236b144b3516ed8e7d36ac, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+Table, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224284813447651300, guid: 38a07789c9e87004dad98c2909f58369, type: 3}
+  - type: UnityEngine.Rendering.DebugUI+Table+Row, Unity.RenderPipelines.Core.Runtime,
+      Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    prefab: {fileID: 224053494956566916, guid: 2d019437ff89b8d44949727731cd9357, type: 3}

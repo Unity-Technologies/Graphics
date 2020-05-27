@@ -231,15 +231,24 @@ namespace UnityEditor.Rendering.Universal
             if (urpAsset == null || compilerDataList == null || compilerDataList.Count == 0)
                 return;
 
-
             int prevVariantCount = compilerDataList.Count;
-            for (int i = 0; i < compilerDataList.Count; ++i)
+            
+            var inputShaderVariantCount = compilerDataList.Count;
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))
-                {
+                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                if (removeInput)
+                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                else
+                    ++i;
+            }
+            
+            if(compilerDataList is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+            {
+                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
-                    --i;
-                }
             }
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
@@ -250,38 +259,40 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+        
+    }
+    class ShaderBuildPreprocessor : IPreprocessBuildWithReport
+    {
+        public static ShaderFeatures supportedFeatures
         {
-
-            public static ShaderFeatures supportedFeatures
-            {
-                get
+            get {
+                if (_supportedFeatures <= 0)
                 {
-                    if (_supportedFeatures <= 0)
-                    {
-                        FetchAllSupportedFeatures();
-                    }
-                    return _supportedFeatures;
+                    FetchAllSupportedFeatures();
                 }
+                return _supportedFeatures;
             }
+        }
 
-            private static ShaderFeatures _supportedFeatures = 0;
-            public int callbackOrder { get { return 0; } }
+        private static ShaderFeatures _supportedFeatures = 0;
+        public int callbackOrder { get { return 0; } }
 
-            public void OnPreprocessBuild(BuildReport report)
+        public void OnPreprocessBuild(BuildReport report)
+        {
+            FetchAllSupportedFeatures();
+        }
+
+        private static void FetchAllSupportedFeatures()
+        {
+            List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
+            urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
+            for(int i = 0; i < QualitySettings.names.Length; i++)
             {
-                FetchAllSupportedFeatures();
+                urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }
-
-            private static void FetchAllSupportedFeatures()
+            foreach (UniversalRenderPipelineAsset urp in urps)
             {
-                List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
-                urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-                for (int i = 0; i < QualitySettings.names.Length; i++)
-                {
-                    urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
-                }
-                foreach (UniversalRenderPipelineAsset urp in urps)
+                if (urp != null)
                 {
                     _supportedFeatures |= GetSupportedShaderFeatures(urp);
                 }

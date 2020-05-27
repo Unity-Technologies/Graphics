@@ -32,19 +32,6 @@ namespace UnityEngine.VFX.Test
             m_previousMaxDeltaTime = UnityEngine.VFX.VFXManager.maxDeltaTime;
         }
 
-        static readonly string[] ExcludedTestsButKeepLoadScene =
-        {
-            "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
-            "ConformAndSDF", // Turbulence is not deterministic
-            "13_Decals", //doesn't render TODO investigate why <= this one is in world space
-            "05_MotionVectors", //possible GPU Hang on this, skip it temporally
-        };
-
-        static readonly string[] UnstableMetalTests =
-        {
-            // Currently known unstable results, could be Metal or more generic HLSLcc issue across multiple graphics targets
-        };
-
         [UnityTest, Category("VisualEffect")]
         [PrebuildSetup("SetupGraphicsTestCases")]
         [UseGraphicsTestCases]
@@ -74,11 +61,18 @@ namespace UnityEngine.VFX.Test
                 simulateTime = vfxTestSettingsInScene.simulateTime;
                 captureFrameRate = vfxTestSettingsInScene.captureFrameRate;
             }
-            float frequency = 1.0f / captureFrameRate;
+            float period = 1.0f / captureFrameRate;
 
             Time.captureFramerate = captureFrameRate;
-            UnityEngine.VFX.VFXManager.fixedTimeStep = frequency;
-            UnityEngine.VFX.VFXManager.maxDeltaTime = frequency;
+            UnityEngine.VFX.VFXManager.fixedTimeStep = period;
+            UnityEngine.VFX.VFXManager.maxDeltaTime = period;
+
+            //Waiting for the capture frame rate to be effective
+            const int maxFrameWaiting = 8;
+            int maxFrame = maxFrameWaiting;
+            while (Time.deltaTime != period && maxFrame-- > 0)
+                yield return null;
+            Assert.Greater(maxFrame, 0);
 
             int captureSizeWidth = 512;
             int captureSizeHeight = 512;
@@ -92,33 +86,18 @@ namespace UnityEngine.VFX.Test
             if (camera)
             {
                 var vfxComponents = Resources.FindObjectsOfTypeAll<VisualEffect>();
-#if UNITY_EDITOR
-                var vfxAssets = vfxComponents.Select(o => o.visualEffectAsset).Where(o => o != null).Distinct();
-                foreach (var vfx in vfxAssets)
-                {
-                    //Use Reflection as workaround of the access issue in .net 4 (TODO : Clean this as soon as possible)
-                    //var graph = vfx.GetResource().GetOrCreateGraph(); is possible with .net 3.5 but compilation fail with 4.0
-                    var visualEffectAssetExt = AppDomain.CurrentDomain.GetAssemblies()  .Select(o => o.GetType("UnityEditor.VFX.VisualEffectAssetExtensions"))
-                                                                                        .Where(o => o != null)
-                                                                                        .FirstOrDefault();
-                    var fnGetResource = visualEffectAssetExt.GetMethod("GetResource");
-                    fnGetResource = fnGetResource.MakeGenericMethod(new Type[]{ typeof(VisualEffectAsset)});
-                    var resource = fnGetResource.Invoke(null, new object[] { vfx });
-                    if (resource == null)	
-                        continue; //could occurs if VisualEffectAsset is in AssetBundle
-                    var fnGetOrCreate = visualEffectAssetExt.GetMethod("GetOrCreateGraph");
-                    var graph = fnGetOrCreate.Invoke(null, new object[] { resource }) as VFXGraph;
-                    graph.RecompileIfNeeded();
-                }
-#endif
 
                 var rt = RenderTexture.GetTemporary(captureSizeWidth, captureSizeHeight, 24);
                 camera.targetTexture = rt;
 
-                foreach (var component in vfxComponents)
-                {
+                //Waiting for the rendering to be ready, if at least one component has been culled, camera is ready
+                maxFrame = maxFrameWaiting;
+                while (vfxComponents.All(o => o.culled) && maxFrame-- > 0)
+                    yield return null;
+                Assert.Greater(maxFrame, 0);
+
+                foreach (var component in vfxComponents) 
                     component.Reinit();
-                }
 
 #if UNITY_EDITOR
                 //When we change the graph, if animator was already enable, we should reinitialize animator to force all BindValues
@@ -132,16 +111,17 @@ namespace UnityEngine.VFX.Test
                 var paramBinders = Resources.FindObjectsOfTypeAll<VFXPropertyBinder>();
                 foreach (var paramBinder in paramBinders)
                 {
-                    var binders = paramBinder.GetParameterBinders<VFXBinderBase>();
+                    var binders = paramBinder.GetPropertyBinders<VFXBinderBase>();
                     foreach (var binder in binders)
                     {
                         binder.Reset();
                     }
                 }
 
-                int waitFrameCount = (int)(simulateTime / frequency);
+                int waitFrameCount = (int)(simulateTime / period);
                 int startFrameIndex = Time.frameCount;
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;
+
                 while (Time.frameCount != expectedFrameIndex)
                 {
                     yield return null;
@@ -168,15 +148,8 @@ namespace UnityEngine.VFX.Test
                         imageComparisonSettings.AverageCorrectnessThreshold = testSettingsInScene.ImageComparisonSettings.AverageCorrectnessThreshold;
                     }
 
-                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)) &&
-                        !(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal && UnstableMetalTests.Any(o => testCase.ScenePath.Contains(o))))
-                    {
-                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
-                    }
-                    else
-                    {
-                        Debug.LogFormat("GraphicTest '{0}' result has been ignored", testCase.ReferenceImage);
-                    }
+                    ImageAssert.AreEqual(testCase.ReferenceImage, actual, imageComparisonSettings);
+
                 }
                 finally
                 {
@@ -201,7 +174,6 @@ namespace UnityEngine.VFX.Test
             Time.captureFramerate = m_previousCaptureFrameRate;
             UnityEngine.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
             UnityEngine.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
-
         }
     }
 }

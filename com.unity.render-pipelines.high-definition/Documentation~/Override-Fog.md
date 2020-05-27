@@ -62,5 +62,5 @@ The **Fog** override of the active Volume controls the appearance of the global 
 The [Light component](Light-Component.html) has several properties that are useful for volumetric lighting:
 
 - **Emission Radius** is useful to simulate fill lighting. It acts by virtually "pushing" the light away from the Scene. As a result, it softens the core of [punctual lights](Glossary.html#PunctualLight). Always use a non-zero value to reduce ghosting artifacts resulting from reprojection.
-- **Volumetric Dimmer** only affects the fog and replaces the Light Dimmer that HDRP uses for surfaces.
+- **Volumetric Multiplier** only affects the fog and replaces the Light Multiplier that HDRP uses for surfaces.
 - **Shadow Dimmer** only affects the fog and replaces the Shadow Dimmer that HDRP uses for surfaces.

@@ -16,24 +16,24 @@ namespace UnityEditor.Rendering
     /// in the inspector:
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [CustomEditor(typeof(VolumeProfile))]
     /// public class CustomVolumeProfileEditor : Editor
     /// {
     ///     VolumeComponentListEditor m_ComponentList;
-    /// 
+    ///
     ///     void OnEnable()
     ///     {
     ///         m_ComponentList = new VolumeComponentListEditor(this);
     ///         m_ComponentList.Init(target as VolumeProfile, serializedObject);
     ///     }
-    /// 
+    ///
     ///     void OnDisable()
     ///     {
     ///         if (m_ComponentList != null)
     ///             m_ComponentList.Clear();
     ///     }
-    /// 
+    ///
     ///     public override void OnInspectorGUI()
     ///     {
     ///         serializedObject.Update();
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering
         Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
         List<VolumeComponentEditor> m_Editors;
 
-        static VolumeComponent s_ClipboardContent;
+        int m_CurrentHashCode;
 
         /// <summary>
         /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
@@ -197,9 +197,12 @@ namespace UnityEditor.Rendering
             if (asset == null)
                 return;
 
-            if (asset.isDirty)
+            // Even if the asset is not dirty, the list of component may have been changed by another inspector.
+            // In this case, only the hash will tell us that we need to refresh.
+            if (asset.isDirty || asset.GetHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
+                m_CurrentHashCode = asset.GetHashCode();
                 asset.isDirty = false;
             }
 
@@ -416,33 +419,33 @@ namespace UnityEditor.Rendering
             m_Editors[id] = prev;
         }
 
-        // Copy/pasting is simply done by creating an in memory copy of the selected component and
-        // copying over the serialized data to another; it doesn't use nor affect the OS clipboard
         static bool CanPaste(VolumeComponent targetComponent)
         {
-            return s_ClipboardContent != null
-                && s_ClipboardContent.GetType() == targetComponent.GetType();
+            if (string.IsNullOrWhiteSpace(EditorGUIUtility.systemCopyBuffer))
+                return false;
+
+            string clipboard = EditorGUIUtility.systemCopyBuffer;
+            int separator = clipboard.IndexOf('|');
+
+            if (separator < 0)
+                return false;
+
+            return targetComponent.GetType().AssemblyQualifiedName == clipboard.Substring(0, separator);
         }
 
         static void CopySettings(VolumeComponent targetComponent)
         {
-            if (s_ClipboardContent != null)
-            {
-                CoreUtils.Destroy(s_ClipboardContent);
-                s_ClipboardContent = null;
-            }
-
-            s_ClipboardContent = (VolumeComponent)ScriptableObject.CreateInstance(targetComponent.GetType());
-            EditorUtility.CopySerializedIfDifferent(targetComponent, s_ClipboardContent);
+            string typeName = targetComponent.GetType().AssemblyQualifiedName;
+            string typeData = JsonUtility.ToJson(targetComponent);
+            EditorGUIUtility.systemCopyBuffer = $"{typeName}|{typeData}";
         }
 
         static void PasteSettings(VolumeComponent targetComponent)
         {
-            Assert.IsNotNull(s_ClipboardContent);
-            Assert.AreEqual(s_ClipboardContent.GetType(), targetComponent.GetType());
-
+            string clipboard = EditorGUIUtility.systemCopyBuffer;
+            string typeData = clipboard.Substring(clipboard.IndexOf('|') + 1);
             Undo.RecordObject(targetComponent, "Paste Settings");
-            EditorUtility.CopySerializedIfDifferent(s_ClipboardContent, targetComponent);
+            JsonUtility.FromJsonOverwrite(typeData, targetComponent);
         }
     }
 }

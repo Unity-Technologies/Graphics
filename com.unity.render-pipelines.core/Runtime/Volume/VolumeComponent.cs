@@ -154,11 +154,12 @@ namespace UnityEngine.Rendering
                 var stateParam = state.parameters[i];
                 var toParam = parameters[i];
 
-                // Keep track of the override state for debugging purpose
-                stateParam.overrideState = toParam.overrideState;
-
                 if (toParam.overrideState)
+                {
+                    // Keep track of the override state for debugging purpose
+                    stateParam.overrideState = toParam.overrideState;
                     stateParam.Interp(stateParam, toParam, interpFactor);
+                }
             }
         }
 
@@ -208,6 +209,20 @@ namespace UnityEngine.Rendering
 
                 return hash;
             }
+        }
+
+        /// <summary>
+        /// Unity calls this method before the object is destroyed. 
+        /// </summary>
+        protected virtual void OnDestroy() => Release();
+
+        /// <summary>
+        /// Releases all the allocated resources.
+        /// </summary>
+        public void Release()
+        {
+            for (int i = 0; i < parameters.Count; i++)
+                parameters[i].Release();
         }
     }
 }

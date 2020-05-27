@@ -16,11 +16,11 @@ namespace UnityEditor.VFX.UI
 {
     class VFXSubParameterController : Controller, IPropertyRMProvider
     {
-
         public const int ExpandedChange = 1;
         public override void ApplyChanges()
         {
         }
+
         VFXParameterController m_Parameter;
         //int m_Field;
         int[] m_FieldPath;
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
 
 
         object[] m_CustomAttributes;
-        VFXPropertyAttribute[] m_Attributes;
+        VFXPropertyAttributes m_Attributes;
 
         string m_MemberPath;
 
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
                 type = info.FieldType;
             }
             m_CustomAttributes = m_FieldInfos[m_FieldInfos.Length - 1].GetCustomAttributes(true);
-            m_Attributes = VFXPropertyAttribute.Create(m_CustomAttributes);
+            m_Attributes = new VFXPropertyAttributes(m_CustomAttributes);
         }
 
         public VFXSubParameterController[] children
@@ -67,6 +67,7 @@ namespace UnityEditor.VFX.UI
                 return m_Children;
             }
         }
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
 
         VFXCoordinateSpace IPropertyRMProvider.space
         {
@@ -112,7 +113,7 @@ namespace UnityEditor.VFX.UI
 
         object[] IPropertyRMProvider.customAttributes { get { return m_CustomAttributes; } }
 
-        VFXPropertyAttribute[] IPropertyRMProvider.attributes { get { return m_Attributes; } }
+        VFXPropertyAttributes IPropertyRMProvider.attributes { get { return m_Attributes; } }
 
         int IPropertyRMProvider.depth { get { return m_FieldPath.Length; } }
 
@@ -213,14 +214,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
         public string name
         {
             get { return m_Min ? "Min" : "Max"; }
         }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
-            get { return new VFXPropertyAttribute[] {}; }
+            get { return new VFXPropertyAttributes(); }
         }
 
         public object[] customAttributes
@@ -312,7 +314,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXParameterController(VFXParameter model, VFXViewController viewController) : base(viewController, model)
         {
-            m_Slot = isOutput?model.inputSlots[0]:model.outputSlots[0];
+            m_Slot = isOutput ? model.inputSlots[0] : model.outputSlots[0];
             viewController.RegisterNotification(m_Slot, OnSlotChanged);
 
             exposedName = MakeNameUnique(exposedName);
@@ -336,6 +338,7 @@ namespace UnityEditor.VFX.UI
                 return;
             NotifyChange(ValueChanged);
         }
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
 
         Dictionary<string, VFXSubParameterController> m_ChildrenByPath = new Dictionary<string, VFXSubParameterController>();
 
@@ -717,7 +720,6 @@ namespace UnityEditor.VFX.UI
                     m_Slot = model.isOutput ? model.inputSlots[0] : model.outputSlots[0];
                     viewController.RegisterNotification(m_Slot, OnSlotChanged);
                 }
-
             }
         }
 
@@ -737,7 +739,7 @@ namespace UnityEditor.VFX.UI
         public Bounds GetGizmoBounds(VisualEffect component)
         {
             if (isOutput)
-                return  new Bounds();
+                return new Bounds();
             if (m_Context == null)
             {
                 m_Context = new ParameterGizmoContext(this);
@@ -800,7 +802,7 @@ namespace UnityEditor.VFX.UI
         public bool UpdateControllers()
         {
             bool changed = false;
-            var nodes = model.nodes.GroupBy(t=>t.id).ToDictionary(t => t.Key, t => t.First());
+            var nodes = model.nodes.GroupBy(t => t.id).ToDictionary(t => t.Key, t => t.First());
 
             foreach (var removedController in m_Controllers.Where(t => !nodes.ContainsKey(t.Key)).ToArray())
             {
@@ -848,15 +850,15 @@ namespace UnityEditor.VFX.UI
 
         public object[] customAttributes { get { return new object[] {}; } }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
             get
             {
                 if (canHaveRange)
                 {
-                    return VFXPropertyAttribute.Create(new object[] { new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)) });
+                    return new VFXPropertyAttributes(new RangeAttribute(RangeToFloat(minValue), RangeToFloat(maxValue)));
                 }
-                return new VFXPropertyAttribute[] {};
+                return new VFXPropertyAttributes();
             }
         }
 

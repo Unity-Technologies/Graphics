@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
 
     class ReadWritableAttributeProvider : IStringProvider
     {
-        public string[] GetAvailableString() 
+        public string[] GetAvailableString()
         {
             return VFXAttribute.AllIncludingVariadicReadWritable.ToArray();
         }
@@ -99,9 +99,9 @@ namespace UnityEditor.VFX
                     tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
 
 
-                VFXPropertyAttribute[] attr = null;
-                if( tooltip != null)
-                    attr = VFXPropertyAttribute.Create(tooltip);
+                VFXPropertyAttributes attr = new VFXPropertyAttributes();
+                if (tooltip != null)
+                    attr = new VFXPropertyAttributes(tooltip);
 
                 if (attribute.variadic == VFXVariadic.True)
                 {

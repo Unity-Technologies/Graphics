@@ -75,8 +75,8 @@ namespace UnityEditor.VFX.UI
             {
                 m_BlockProvider = new VFXBlockProvider(controller, (d, mPos) =>
                 {
-                    if( d is VFXBlockProvider.NewBlockDescriptor)
-                        AddBlock(mPos, (d as VFXBlockProvider.NewBlockDescriptor).newBlock );
+                    if (d is VFXBlockProvider.NewBlockDescriptor)
+                        AddBlock(mPos, (d as VFXBlockProvider.NewBlockDescriptor).newBlock);
                     else
                     {
                         var subgraphBlock = AssetDatabase.LoadAssetAtPath<VisualEffectSubgraphBlock>((d as VFXBlockProvider.SubgraphBlockDescriptor).item.path);
@@ -88,7 +88,6 @@ namespace UnityEditor.VFX.UI
 
                         controller.AddBlock(blockIndex, newModel);
                     }
-
                 });
             }
             Profiler.EndSample();
@@ -372,7 +371,7 @@ namespace UnityEditor.VFX.UI
 
                 if (index > 0)
                 {
-                    y = (y + blocks[controller.blockControllers[index-1]].layout.yMax) * 0.5f;
+                    y = (y + blocks[controller.blockControllers[index - 1]].layout.yMax) * 0.5f;
                 }
             }
 
@@ -424,8 +423,8 @@ namespace UnityEditor.VFX.UI
                 if (references.Count() > 0 && (!controller.viewController.model.isSubgraph || !references.Any(t => t.GetResource().GetOrCreateGraph().subgraphDependencies.Contains(controller.viewController.model.subgraph) || t.GetResource() == controller.viewController.model)))
                 {
                     var context = references.First().GetResource().GetOrCreateGraph().children.OfType<VFXBlockSubgraphContext>().FirstOrDefault();
-                    if( context != null && (context.compatibleContextType & controller.model.contextType) == controller.model.contextType)
-                    { 
+                    if (context != null && (context.compatibleContextType & controller.model.contextType) == controller.model.contextType)
+                    {
                         DragAndDrop.visualMode = DragAndDropVisualMode.Link;
                         evt.StopPropagation();
                         DraggingBlocks(Enumerable.Empty<VFXBlockUI>(), blockIndex);
@@ -592,7 +591,7 @@ namespace UnityEditor.VFX.UI
                         {
                             blockUI = InstantiateBlock(blockController);
                             m_BlockContainer.Add(blockUI);
-                            m_BlockContainer.Insert(prevBlock == null ? 0: m_BlockContainer.IndexOf(prevBlock) +1, blockUI);
+                            m_BlockContainer.Insert(prevBlock == null ? 0 : m_BlockContainer.IndexOf(prevBlock) + 1, blockUI);
                         }
                         prevBlock = blockUI;
                     }
@@ -773,9 +772,9 @@ namespace UnityEditor.VFX.UI
             var contextType = controller.model.GetType();
             foreach (var setting in newContextController.model.GetSettings(true))
             {
-                if((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
+                if ((newContextController.model is VFXPlanarPrimitiveOutput || newContextController.model.GetType().Name == "VFXLitPlanarPrimitiveOutput") && setting.field.Name == "primitiveType")
                     continue;
-                
+
                 if (!setting.valid || setting.field.GetCustomAttributes(typeof(VFXSettingAttribute), true).Length == 0)
                     continue;
 
@@ -806,21 +805,21 @@ namespace UnityEditor.VFX.UI
                 VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.name == slot.name);
                 if (mySlot == null)
                 {
-                    if(slot.valueType == VFXValueType.Texture2D && firstTextureSlot == null)
+                    if (slot.valueType == VFXValueType.Texture2D && firstTextureSlot == null)
                         firstTextureSlot = slot;
                     continue;
                 }
-                    
+
                 object value;
                 if (VFXConverter.TryConvertTo(mySlot.value, slot.property.type, out value))
                     slot.value = value;
             }
             //Hack to copy the first texture in the first texture slot if not found by name
-            if( firstTextureSlot != null)
+            if (firstTextureSlot != null)
             {
                 VFXSlot mySlot = controller.model.inputSlots.FirstOrDefault(t => t.valueType == VFXValueType.Texture2D);
 
-                if(mySlot != null)
+                if (mySlot != null)
                     firstTextureSlot.value = mySlot.value;
             }
 
@@ -898,7 +897,7 @@ namespace UnityEditor.VFX.UI
         {
             controller.model.label = m_TextField.value
                 .Trim()
-                .Replace("/","")
+                .Replace("/", "")
                 .Replace("\\", "")
                 .Replace(":", "")
                 .Replace("<", "")
@@ -907,12 +906,13 @@ namespace UnityEditor.VFX.UI
                 .Replace("?", "")
                 .Replace("\"", "")
                 .Replace("|", "")
-                ;
+            ;
             m_TextField.style.display = DisplayStyle.None;
         }
+
         void OnTitleRelayout(GeometryChangedEvent e)
         {
-            if(m_TextField.style.display != DisplayStyle.None)
+            if (m_TextField.style.display != DisplayStyle.None)
                 UpdateTitleFieldRect();
         }
 
@@ -920,6 +920,5 @@ namespace UnityEditor.VFX.UI
         {
             m_Label.text = m_TextField.value;
         }
-
     }
 }

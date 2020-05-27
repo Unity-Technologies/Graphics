@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent rendererHeaderText = EditorGUIUtility.TrTextContent("Renderer List", "Lists all the renderers available to this Render Pipeline Asset.");
             public static GUIContent rendererDefaultText = EditorGUIUtility.TrTextContent("Default", "This renderer is currently the default for the render pipeline.");
             public static GUIContent rendererSetDefaultText = EditorGUIUtility.TrTextContent("Set Default", "Makes this renderer the default for the render pipeline.");
-            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("Settings", "Opens settings for this renderer.");
+            public static GUIContent rendererSettingsText = EditorGUIUtility.TrIconContent("_Menu", "Opens settings for this renderer.");
             public static GUIContent rendererMissingText = EditorGUIUtility.TrIconContent("console.warnicon.sml", "Renderer missing. Click this to select a new renderer.");
             public static GUIContent rendererDefaultMissingText = EditorGUIUtility.TrIconContent("console.erroricon.sml", "Default renderer missing. Click this to select a new renderer.");
             public static GUIContent requireDepthTextureText = EditorGUIUtility.TrTextContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
             // Quality
             public static GUIContent hdrText = EditorGUIUtility.TrTextContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaText = EditorGUIUtility.TrTextContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
-            public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When VR is enabled, this is overridden by XRSettings.");
+            public static GUIContent renderScaleText = EditorGUIUtility.TrTextContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
             public static GUIContent shaderQualityText = EditorGUIUtility.TrTextContent("Shader Quality", "Controls the URP and Shader Graph shaders quality.");
 
             // Main light
@@ -247,9 +247,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_HDR, Styles.hdrText);
                 EditorGUILayout.PropertyField(m_MSAA, Styles.msaaText);
-                EditorGUI.BeginDisabledGroup(XRGraphics.enabled);
                 m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleText, m_RenderScale.floatValue, UniversalRenderPipeline.minRenderScale, UniversalRenderPipeline.maxRenderScale);
-                EditorGUI.EndDisabledGroup();
                 EditorGUILayout.PropertyField(m_ShaderQuality, Styles.shaderQualityText);
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();

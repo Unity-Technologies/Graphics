@@ -100,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 foreach (Camera camera in Camera.allCameras)
                 {
                     UniversalAdditionalCameraData additionalCameraData = camera.GetComponent<UniversalAdditionalCameraData>();
-                    ScriptableRenderer renderer = additionalCameraData.scriptableRenderer;
+                    ScriptableRenderer renderer = additionalCameraData?.scriptableRenderer;
                     Renderer2D renderer2D = renderer as Renderer2D;
                     if (renderer2D != null)
                         return renderer2D.GetRenderer2DData();

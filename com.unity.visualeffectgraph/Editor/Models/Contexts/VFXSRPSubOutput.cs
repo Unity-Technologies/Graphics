@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 
 namespace UnityEditor.VFX
@@ -14,7 +15,7 @@ namespace UnityEditor.VFX
             if (owner == null)
                 throw new NullReferenceException("Owner cannot be null");
 
-            m_Owner = owner;    
+            m_Owner = owner;
         }
 
         private VFXAbstractRenderedOutput m_Owner;
@@ -23,6 +24,9 @@ namespace UnityEditor.VFX
         // Caps
         public virtual bool supportsExposure { get { return false; } }
         public virtual bool supportsMotionVector { get { return false; } }
+
+        // Sealed override as SRP suboutputs cannot have dependencies
+        public sealed override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true) {}
 
         public virtual string GetBlendModeStr()
         {
@@ -48,7 +52,7 @@ namespace UnityEditor.VFX
                 case BlendMode.AlphaPremultiplied:
                     return "Transparent";
                 case BlendMode.Opaque:
-                    if(owner.hasAlphaClipping)
+                    if (owner.hasAlphaClipping)
                         return "AlphaTest";
                     else
                         return "Geometry";

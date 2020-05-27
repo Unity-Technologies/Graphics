@@ -36,7 +36,7 @@ HDRP provides you with the [Render Pipeline Wizard](Render-Pipeline-Wizard.html)
 
 ## Volumes
 
-[Volumes](Volumes.html) allow you to partition your Scene into areas so that you can control lighting and effects at a finer level, rather than tuning an entire Scene. You can add as many volumes to your Scene as you want, to create different spaces, and then light them all individually for realistic effect. Each volume has an environment, so you can adjust its sky, fog, and shadow settings. You can also create custom [Volume Profiles](Volume-Profiles.html) and switch between them.
+[Volumes](Volumes.html) allow you to partition your Scene into areas so that you can control lighting and effects at a finer level, rather than tuning an entire Scene. You can add as many volumes to your Scene as you want, to create different spaces, and then light them all individually for realistic effect. Each volume has an environment, so you can adjust its sky, fog, and shadow settings. You can also create custom [Volume Profiles](Volume-Profile.html) and switch between them.
 
 To add a Volume to your Scene and edit its Volume Profile:
 

@@ -283,6 +283,29 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void AppendOperator_With_Direction()
+        {
+            var append = ScriptableObject.CreateInstance<Operator.AppendVector>();
+            append.SetOperandType(0, typeof(DirectionType));
+            append.SetOperandType(1, typeof(float));
+
+            append.inputSlots[0].value = new DirectionType() { direction = new Vector3(1.0f, 1.0f, 0) };
+            append.inputSlots[1].value = 3.0f;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var outputValue = context.Compile(append.outputSlots[0].GetExpression());
+
+            var expressionValue = outputValue.Get<Vector4>();
+            //Direction expects a normalize
+            var expectedValue = new Vector4(1.0f / Mathf.Sqrt(2), 1.0f / Mathf.Sqrt(2), 0.0f, 3.0f);
+
+            Assert.AreEqual(expectedValue.x, expressionValue.x, 1e-5f);
+            Assert.AreEqual(expectedValue.y, expressionValue.y, 1e-5f);
+            Assert.AreEqual(expectedValue.z, expressionValue.z, 1e-5f);
+            Assert.AreEqual(expectedValue.w, expressionValue.w, 1e-5f);
+        }
+
+        [Test]
         public void BranchOperator_With_Sphere()
         {
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
@@ -335,7 +358,7 @@ namespace UnityEditor.VFX.Test
             branch.inputSlots[1].value = transformA;
             branch.inputSlots[2].value = transformB;
 
-            Func<Transform, Transform, bool> fnCompareTransform = delegate (Transform aS, Transform bS)
+            Func<Transform, Transform, bool> fnCompareTransform = delegate(Transform aS, Transform bS)
             {
                 //Only compare position => didn't modify something else above
                 if (aS.position.x != bS.position.x) return false;
@@ -344,7 +367,7 @@ namespace UnityEditor.VFX.Test
                 return true;
             };
 
-            Func<VFXSlot, Transform> fnSlotToTransform = delegate (VFXSlot slot)
+            Func<VFXSlot, Transform> fnSlotToTransform = delegate(VFXSlot slot)
             {
                 var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
                 var position = context.Compile(slot[0].GetExpression());
