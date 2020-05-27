@@ -38,8 +38,17 @@ Shader "Hidden/Universal Render Pipeline/BokehDepthOfField"
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
+            uint w;
+            uint h;
+#if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+            uint x;
+            _CameraDepthTexture.GetDimensions(w, h, x);
+#else
+            _CameraDepthTexture.GetDimensions(w, h);
+#endif
+
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, float2(w, h) * uv).x;
             float linearEyeDepth = LinearEyeDepth(depth, _ZBufferParams);
 
             half coc = (1.0 - FocusDist / linearEyeDepth) * MaxCoC;

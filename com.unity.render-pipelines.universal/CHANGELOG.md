@@ -10,7 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the option to specify the maximum number of visible lights. If you set a value, lights are sorted based on their distance from the Camera.
 
 ### Changed
-- The maximum number of visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
+- The number of maximum visible lights is now set to 32 if the platform is mobile or if the graphics API is OpenGLCore, otherwise it is set to 256.
+- UniversalRenderPipelineAsset no longer supports presets [case 1197020](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-on-preset-of-universalrenderpipelineassets)
+- The Metallic property value of a Material is now linear, which is the correct behavior for the PBR approach. In the previous URP package version, those values were interpreted as gamma values. This change might affect the look of Materials that use this property after upgrading from the previous package version.
+- The pipeline is now computing tangent space in per fragment.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
 - The 2D Renderer now supports camera stacking.
 
@@ -43,6 +46,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
 - Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
 - Fixed an issue with URP switching such that every avaiable URP makes a total set of supported features such that all URPs are taken into consideration. [case 1157420](https://issuetracker.unity3d.com/issues/lwrp-srp-switching-doesnt-work-even-with-manually-adding-shadervariants-per-scene)
+- Fixed an issue that causes viewport to not work correctly when rendering to textures. [case 1225103](https://issuetracker.unity3d.com/issues/urp-the-viewport-rect-isnt-correctly-applied-when-the-camera-is-outputting-into-a-rendertexture)
+- Fixed an issue that caused incorrect sampling of HDR reflection probe textures.
+- Fixed an issue that caused Android GLES to render blank screen when Depth texture was enabled without Opaque texture [case 1219325](https://issuetracker.unity3d.com/issues/scene-is-not-rendered-on-android-8-and-9-when-depth-texture-is-enabled-in-urp-asset)
+- Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
+- URP shaders that contain a priority slider now no longer have an offset of 50 by default.
+- Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was smapled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project.
 
 ## [7.3.0] - 2020-03-11
 
@@ -133,7 +143,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed incorrect light attenuation on Nintendo Switch.
 - Fixed XR SDK single-pass incorrectly switching to multipass issue. Add query for XR SDK single-pass availability using XR SDK renderpass descriptors.
 - Fixed a performance issue in Hololens when using renderer with custom render passes.
-
+-
 ## [7.1.8] - 2020-01-20
 
 ### Fixed

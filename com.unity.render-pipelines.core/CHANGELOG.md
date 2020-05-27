@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's layout vanishing on domain reload.
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 
 ## [7.3.0] - 2020-03-11
 

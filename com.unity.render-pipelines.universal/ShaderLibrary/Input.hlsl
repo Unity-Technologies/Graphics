@@ -37,6 +37,12 @@ float4 _ScaledScreenParams;
 float4 _MainLightPosition;
 half4 _MainLightColor;
 
+// Global object render pass data containing various settings.
+// x,y,z are currently unused
+// w is used for knowing whether the object is opaque(1) or alpha blended(0)
+half4 _DrawObjectPassData;
+
+
 half4 _AdditionalLightsCount;
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<LightData> _AdditionalLightsBuffer;
