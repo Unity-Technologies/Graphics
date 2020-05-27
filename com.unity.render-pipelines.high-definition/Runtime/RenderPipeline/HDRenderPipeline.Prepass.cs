@@ -549,6 +549,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
         }
 
+        static string[] s_DBufferNames = { "DBuffer0", "DBuffer1", "DBuffer2", "DBuffer3" };
+
         void SetupDBufferTargets(RenderGraph renderGraph, RenderDBufferPassData passData, bool use4RTs, ref PrepassOutput output, RenderGraphBuilder builder)
         {
             GraphicsFormat[] rtFormat;
@@ -558,7 +560,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int dbufferIndex = 0; dbufferIndex < passData.dBufferCount; ++dbufferIndex)
             {
                 passData.mrt[dbufferIndex] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                    new TextureDesc(Vector2.one, true, true) { colorFormat = rtFormat[dbufferIndex], name = string.Format("DBuffer{0}", dbufferIndex) }, HDShaderIDs._DBufferTexture[dbufferIndex]), dbufferIndex);
+                    new TextureDesc(Vector2.one, true, true) { colorFormat = rtFormat[dbufferIndex], name = s_DBufferNames[dbufferIndex] }, HDShaderIDs._DBufferTexture[dbufferIndex]), dbufferIndex);
             }
 
             passData.depthStencilBuffer = builder.UseDepthBuffer(output.resolvedDepthBuffer, DepthAccess.Write);

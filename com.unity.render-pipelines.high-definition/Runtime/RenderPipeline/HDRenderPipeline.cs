@@ -330,6 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // RENDER GRAPH
+        static bool enableRenderGraphTests { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-rendergraph-tests"); }
         RenderGraph m_RenderGraph;
         bool        m_EnableRenderGraph;
 
@@ -536,6 +537,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
+
+            if (enableRenderGraphTests)
+                EnableRenderGraph(true);
         }
 
 #if UNITY_EDITOR
@@ -4732,7 +4736,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureTexture, currentExposure);
             parameters.debugExposureMaterial.SetTexture(HDShaderIDs._ExposureWeightMask, exposureSettings.weightTextureMask.value);
             parameters.debugExposureMaterial.SetBuffer(HDShaderIDs._HistogramBuffer, histogramBuffer);
-            
+
 
             int passIndex = 0;
             if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.MeteringWeighted)

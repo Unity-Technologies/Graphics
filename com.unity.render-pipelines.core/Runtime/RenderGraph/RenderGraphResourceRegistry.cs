@@ -569,7 +569,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.cachedHash = hashCode;
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -586,12 +586,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }

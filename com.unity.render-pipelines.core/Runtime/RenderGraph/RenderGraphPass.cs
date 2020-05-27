@@ -32,12 +32,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<ComputeBufferHandle>   m_BufferWriteList = new List<ComputeBufferHandle>();
         List<RendererListHandle>    m_UsedRendererListList = new List<RendererListHandle>();
 
-        public IReadOnlyCollection<TextureHandle>       textureReadList { get { return m_TextureReadList; } }
-        public IReadOnlyCollection<TextureHandle>       textureWriteList { get { return m_TextureWriteList; } }
-        public IReadOnlyCollection<TextureHandle>       transientTextureList { get { return m_TransientTextureList; } }
-        public IReadOnlyCollection<ComputeBufferHandle> bufferReadList { get { return m_BufferReadList; } }
-        public IReadOnlyCollection<ComputeBufferHandle> bufferWriteList { get { return m_BufferWriteList; } }
-        public IReadOnlyCollection<RendererListHandle> usedRendererListList { get { return m_UsedRendererListList; } }
+        public List<TextureHandle> textureReadList { get { return m_TextureReadList; } }
+        public List<TextureHandle> textureWriteList { get { return m_TextureWriteList; } }
+        public List<TextureHandle> transientTextureList { get { return m_TransientTextureList; } }
+        public List<ComputeBufferHandle> bufferReadList { get { return m_BufferReadList; } }
+        public List<ComputeBufferHandle> bufferWriteList { get { return m_BufferWriteList; } }
+        public List<RendererListHandle> usedRendererListList { get { return m_UsedRendererListList; } }
+
+        //public IReadOnlyCollection<TextureHandle> textureReadList { get { return m_TextureReadList; } }
+        //public IReadOnlyCollection<TextureHandle> textureWriteList { get { return m_TextureWriteList; } }
+        //public IReadOnlyCollection<TextureHandle> transientTextureList { get { return m_TransientTextureList; } }
+        //public IReadOnlyCollection<ComputeBufferHandle> bufferReadList { get { return m_BufferReadList; } }
+        //public IReadOnlyCollection<ComputeBufferHandle> bufferWriteList { get { return m_BufferWriteList; } }
+        //public IReadOnlyCollection<RendererListHandle> usedRendererListList { get { return m_UsedRendererListList; } }
 
         public void Clear()
         {
@@ -144,7 +151,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             renderGraphContext.renderGraphPool.Release(data);
             data = null;
             renderFunc = null;
-            renderGraphContext.renderGraphPool.Release(this);
+            segkhl
+            renderGraphContext.renderGraphPool.Release<RenderGraphPass<PassData>>(this);
         }
 
         public override bool HasRenderFunc()

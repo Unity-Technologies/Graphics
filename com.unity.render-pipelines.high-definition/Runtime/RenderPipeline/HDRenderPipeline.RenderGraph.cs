@@ -4,8 +4,11 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
     public partial class HDRenderPipeline
     {
+        class TempPassData { };
+
         void ExecuteWithRenderGraph(    RenderRequest           renderRequest,
                                         AOVRequestData          aovRequest,
                                         List<RTHandle>          aovBuffers,
@@ -105,6 +108,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 //        RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
                 //    }
                 //}
+
+                // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
+                using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
+                {
+                    builder.SetRenderFunc(
+                    (TempPassData data, RenderGraphContext context) =>
+                    {
+                        BindBlackIndirectDiffuseTexture(context.cmd);
+                    });
+                }
+
 
                 // TODO RENDERGRAPH
                 //using (new ProfilingSample(cmd, "Render screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
