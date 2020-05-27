@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         public IEnumerable<TextureInfo> textureInfos { get => m_TextureInfos; }
 
-        internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures )
+        internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
             m_TextureInfos = textures.Select(t => new TextureInfo() { name = t.name, texture = EditorUtility.InstanceIDToObject(t.textureId) as Texture }).ToArray();
         }
@@ -112,7 +112,14 @@ namespace UnityEditor.ShaderGraph.Internal
             internal set { m_OutputStructName = value; }
         }
 
-        public List<AbstractShaderProperty> properties => m_Data.m_Properties.SelectValue().ToList();
+        public List<AbstractShaderProperty> properties 
+        {
+            get
+            {
+                EnsureProperties();
+                return m_Data.m_Properties.SelectValue().ToList();
+            }
+        }
 
         internal void SetProperties(List<AbstractShaderProperty> propertiesList)
         {
@@ -129,13 +136,13 @@ namespace UnityEditor.ShaderGraph.Internal
 
         void EnsureProperties()
         {
-            if(!String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
+            if((m_Data == null || m_Data.m_Properties == null || !m_Data.m_Properties.Any()) && !String.IsNullOrEmpty(m_SerializedVfxAssetData.JSONnodeData))
             {
                 m_Data = new ShaderGraphVfxAssetData();
                 MultiJson.Deserialize(m_Data , m_SerializedVfxAssetData.JSONnodeData);
             }
 
-            foreach (var property in properties)
+            foreach (var property in m_Data.m_Properties.SelectValue())
             {
                 property.ValidateConcretePrecision(m_ConcretePrecision);
             }
