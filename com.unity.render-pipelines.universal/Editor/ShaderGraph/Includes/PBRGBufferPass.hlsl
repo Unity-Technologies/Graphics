@@ -49,7 +49,12 @@ FragmentOutput frag(PackedVaryings packedInput)
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _AlphaClip
-        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+        float alpha = surfaceDescription.Alpha;
+        clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #elif _SURFACE_TYPE_TRANSPARENT
+        float alpha = surfaceDescription.Alpha;
+    #else
+        float alpha = 1;
     #endif
 
     InputData inputData;
@@ -66,7 +71,7 @@ FragmentOutput frag(PackedVaryings packedInput)
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
-    InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, surfaceDescription.Alpha, brdfData);
+    InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);
     
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?

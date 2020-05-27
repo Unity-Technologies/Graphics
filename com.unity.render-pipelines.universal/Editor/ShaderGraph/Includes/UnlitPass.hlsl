@@ -15,13 +15,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-#if _AlphaClip
-    clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
-#endif
-
-    half alpha = 1;
-    #if _SURFACE_TYPE_TRANSPARENT
-        alpha = surfaceDescription.Alpha;
+    #if _AlphaClip
+        float alpha = surfaceDescription.Alpha;
+        clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #elif _SURFACE_TYPE_TRANSPARENT
+        float alpha = surfaceDescription.Alpha;
+    #else
+        float alpha = 1;
     #endif
 
 #ifdef _ALPHAPREMULTIPLY_ON
