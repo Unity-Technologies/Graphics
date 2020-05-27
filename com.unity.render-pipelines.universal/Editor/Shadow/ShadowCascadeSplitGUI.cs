@@ -177,7 +177,6 @@ namespace UnityEditor.Rendering.Universal
 #else
                                 s_OldSceneLightingMode = s_RestoreSceneView.m_SceneLighting;
 #endif
-                                s_RestoreSceneView.cameraMode = SceneView.GetBuiltinCameraMode(DrawCameraMode.ShadowCascades);
                             }
                         }
                     }
