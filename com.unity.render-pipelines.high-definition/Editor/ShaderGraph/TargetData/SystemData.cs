@@ -123,6 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_DOTSInstancing;
             set => m_DOTSInstancing = value;
         }
+
+        internal int inspectorFoldoutMask;
     }
 
     static class HDSystemDataExtensions

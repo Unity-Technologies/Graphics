@@ -40,27 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_ReceiveSSRTransparent = true;
+        bool m_ReceiveSSRTransparent = false;
         public bool receiveSSRTransparent
         {
             get => m_ReceiveSSRTransparent;
             set => m_ReceiveSSRTransparent = value;
-        }
-
-        [SerializeField]
-        bool m_EnergyConservingSpecular = true;
-        public bool energyConservingSpecular
-        {
-            get => m_EnergyConservingSpecular;
-            set => m_EnergyConservingSpecular = value;
-        }
-
-        [SerializeField]
-        bool m_Transmission = false;
-        public bool transmission
-        {
-            get => m_Transmission;
-            set => m_Transmission = value;
         }
 
         [SerializeField]
@@ -111,22 +95,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_OverrideBakedGI;
             set => m_OverrideBakedGI = value;
-        }
-
-        [SerializeField]
-        bool m_AlphaTestShadow;
-        public bool alphaTestShadow
-        {
-            get => m_AlphaTestShadow;
-            set => m_AlphaTestShadow = value;
-        }
-
-        [SerializeField]
-        bool m_BackThenFrontRendering;
-        public bool backThenFrontRendering
-        {
-            get => m_BackThenFrontRendering;
-            set => m_BackThenFrontRendering = value;
         }
     }
 }

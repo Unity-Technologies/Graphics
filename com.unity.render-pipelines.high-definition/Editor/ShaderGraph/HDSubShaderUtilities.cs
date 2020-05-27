@@ -67,8 +67,21 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool ssrStencil, bool receiveSSROpaque, bool receiveSSRTransparent)
+        public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData)
         {
+            bool ssrStencil = false;
+            bool splitLighting = false;
+            bool receiveSSROpaque = false;
+            bool receiveSSRTransparent = false;
+
+            if (lightingData != null)
+            {
+                ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
+                splitLighting = lightingData.subsurfaceScattering;
+                receiveSSROpaque = lightingData.receiveSSR;
+                receiveSSRTransparent = lightingData.receiveSSRTransparent;
+            }
+
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV

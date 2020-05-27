@@ -148,15 +148,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_Iridescence = value;
         }
 
-        // TODO: Can this re-use HDLightingData.m_SpecularAA instead?
-        [SerializeField]
-        bool m_GeometricSpecularAA;
-        public bool geometricSpecularAA
-        {
-            get => m_GeometricSpecularAA;
-            set => m_GeometricSpecularAA = value;
-        }
-
         [SerializeField]
         SpecularOcclusionBaseMode m_ScreenSpaceSpecularOcclusionBaseMode = SpecularOcclusionBaseMode.DirectFromAO;
         public SpecularOcclusionBaseMode screenSpaceSpecularOcclusionBaseMode
@@ -265,6 +256,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_DevMode;
             set => m_DevMode = value;
+        }
+
+        [SerializeField]
+        bool m_EnergyConservingSpecular = true;
+        public bool energyConservingSpecular
+        {
+            get => m_EnergyConservingSpecular;
+            set => m_EnergyConservingSpecular = value;
+        }
+
+        [SerializeField]
+        bool m_Transmission = false;
+        public bool transmission
+        {
+            get => m_Transmission;
+            set => m_Transmission = value;
         }
     }
 }

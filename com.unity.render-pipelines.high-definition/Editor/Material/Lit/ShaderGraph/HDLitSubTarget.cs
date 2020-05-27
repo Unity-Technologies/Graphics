@@ -13,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
+    sealed partial class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
     {
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
 
@@ -22,36 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
         protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
-        protected override string renderQueue
-        {
-            get
-            {
-                if(systemData.renderingPass == HDRenderQueue.RenderQueueType.Unknown)
-                {
-                    switch(systemData.surfaceType)
-                    {
-                        case SurfaceType.Opaque:
-                            systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
-                            break;
-                        case SurfaceType.Transparent:
-                        #pragma warning disable CS0618 // Type or member is obsolete
-                            if (litData.drawBeforeRefraction)
-                            {
-                                litData.drawBeforeRefraction = false;
-                        #pragma warning restore CS0618 // Type or member is obsolete
-                                systemData.renderingPass = HDRenderQueue.RenderQueueType.PreRefraction;
-                            }
-                            else
-                            {
-                                systemData.renderingPass = HDRenderQueue.RenderQueueType.Transparent;
-                            }
-                            break;
-                    }
-                }
-                int queue = HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest);
-                return HDRenderQueue.GetShaderTagValue(queue);
-            }
-        }
 
         HDLitData m_LitData;
 
@@ -77,14 +47,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            
             AddDistortionFields(ref context);
-            AddNormalDropOffFields(ref context);
-            AddSpecularOcclusionFields(ref context);
 
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
-            // Structs
+            // Lit specific properties
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
 
             context.AddField(HDFields.DotsProperties,                       context.hasDotsProperties);
@@ -111,14 +78,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
+                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
 
             // Misc
-            AddSurfaceMiscFields(ref context);
-            AddLitMiscFields(ref context);
 
-            context.AddField(HDFields.DisableSSRTransparent,                !litData.receiveSSRTransparent);
-            context.AddField(HDFields.EnergyConservingSpecular,             lightingData.energyConservingSpecular);
+            context.AddField(HDFields.EnergyConservingSpecular,             litData.energyConservingSpecular);
             context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
             context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);
@@ -130,46 +94,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
 
             // Vertex
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            base.GetActiveBlocks(ref context);
+            AddDistortionBlocks(ref context);
 
             // Common
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-
-            // Alpha Test
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold,     systemData.alphaTest);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && lightingData.alphaTestShadow);
-
-            // Specular AA
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionColor,      hasRefraction);
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionDistance,   hasRefraction);
-
-            // Distortion
-            context.AddBlock(HDBlockFields.SurfaceDescription.Distortion,           hasDistortion);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DistortionBlur,       hasDistortion);
-
-            // Baked GI
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,              lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,          lightingData.overrideBakedGI);
-
-            // Normal
-            context.AddBlock(BlockFields.SurfaceDescription.NormalOS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddBlock(BlockFields.SurfaceDescription.NormalWS,               lightingData.normalDropOffSpace == NormalDropOffSpace.World);
 
             // Material
             context.AddBlock(HDBlockFields.SurfaceDescription.Tangent,              litData.materialType == HDLitData.MaterialType.Anisotropy);
@@ -184,352 +118,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,               litData.materialType == HDLitData.MaterialType.Standard || 
                                                                                         litData.materialType == HDLitData.MaterialType.Anisotropy ||
                                                                                         litData.materialType == HDLitData.MaterialType.Iridescence);
-
-            // Misc
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,    lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
-        }
-
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
-        {
-            // TODO
-            // SystemDataPropertiesGUI.AddProperties(systemData, ref context, onChange, registerUndo);
-            // var settingsView = new HDLitSettingsView(this);
-            // settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
-            // ShaderGraph doesn't use this property, so currently it inserts a dummy color (white). This dummy color may be removed entirely once the following PR has been merged in trunk: Pull request #74105
-            // The user will then need to explicitly disable emissive GI if it is not needed.
-            // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
-            // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
-            {
-                overrideReferenceName = "_EmissionColor",
-                hidden = true,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
-            });
-            // ShaderGraph only property used to send the RenderQueueType to the material
-            collector.AddShaderProperty(new Vector1ShaderProperty
-            {
-                overrideReferenceName = "_RenderQueueType",
-                hidden = true,
-                value = (int)systemData.renderingPass,
-            });
+            base.CollectShaderProperties(collector, generationMode);
 
-            //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering,
-                systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent, lightingData.receiveSSR, lightingData.receiveSSRTransparent);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                systemData.surfaceType,
-                systemData.blendMode,
-                systemData.sortPriority,
-                builtinData.alphaToMask,
-                systemData.zWrite,
-                systemData.transparentCullMode,
-                systemData.zTest,
-                lightingData.backThenFrontRendering,
-                builtinData.transparencyFog
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, lightingData.alphaTestShadow);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
             HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
         }
 
-        public override void ProcessPreviewMaterial(Material material)
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            // Fixup the material settings:
-            material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
-            material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
-            material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
-            material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
-            material.SetFloat(kZTestTransparent, (int)systemData.zTest);
-            material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
-
-            // No sorting priority for shader graph preview
-            material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
-
-            HDLitGUI.SetupMaterialKeywordsAndPass(material);
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new DistortionPropertyBlock());
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
         protected override int ComputeMaterialNeedsUpdateHash()
         {
+            bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
             int hash = base.ComputeMaterialNeedsUpdateHash();
-            // Be careful to not use a shift index used by the base function!
-            hash |= (litData.receiveSSRTransparent ? 0 : 1) << 4;
-            // TODO: should materialType also change lightingData.subsurfaceScattering ?
-            // If yes, we don't need this line
-            hash |= (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering ? 0 : 1) << 5;
+
+            unchecked
+            {
+                hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
+                hash = hash * 23 + subsurfaceScattering.GetHashCode();
+            }
+
             return hash;
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            switch(masterNode)
-            {
-                case PBRMasterNode1 pbrMasterNode:
-                    UpgradePBRMasterNode(pbrMasterNode, out blockMap);
-                    return true;
-                case HDLitMasterNode1 hdLitMasterNode:
-                    UpgradeHDLitMasterNode(hdLitMasterNode, out blockMap);
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        void UpgradePBRMasterNode(PBRMasterNode1 pbrMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            // Set data
-            systemData.surfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
-            systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
-            systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
-            systemData.dotsInstancing = pbrMasterNode.m_DOTSInstancing;
-            builtinData.addPrecomputedVelocity = false;
-            lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
-            litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
-            target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
-
-            // Handle mapping of Normal block specifically
-            BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
-            {
-                case NormalDropOffSpace.Object:
-                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    break;
-                case NormalDropOffSpace.World:
-                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    break;
-                default:
-                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    break;
-            }
-
-            // PBRMasterNode adds/removes Metallic/Specular based on settings
-            BlockFieldDescriptor specularMetallicBlock;
-            int specularMetallicId;
-            if(litData.materialType == HDLitData.MaterialType.SpecularColor)
-            {
-                specularMetallicBlock = BlockFields.SurfaceDescription.Specular;
-                specularMetallicId = 3;
-            }
-            else
-            {
-                specularMetallicBlock = BlockFields.SurfaceDescription.Metallic;
-                specularMetallicId = 2;
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>()
-            {
-                { BlockFields.VertexDescription.Position, 9 },
-                { BlockFields.VertexDescription.Normal, 10 },
-                { BlockFields.VertexDescription.Tangent, 11 },
-                { BlockFields.SurfaceDescription.BaseColor, 0 },
-                { normalBlock, 1 },
-                { specularMetallicBlock, specularMetallicId },
-                { BlockFields.SurfaceDescription.Emission, 4 },
-                { BlockFields.SurfaceDescription.Smoothness, 5 },
-                { BlockFields.SurfaceDescription.Occlusion, 6 },
-                { BlockFields.SurfaceDescription.Alpha, 7 },
-                { BlockFields.SurfaceDescription.AlphaClipThreshold, 8 },
-            };
-        }
-
-        void UpgradeHDLitMasterNode(HDLitMasterNode1 hdLitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            // Set data
-            systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
-            systemData.renderingPass = hdLitMasterNode.m_RenderingPass;
-            systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
-            systemData.sortPriority = hdLitMasterNode.m_SortPriority;
-            systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = hdLitMasterNode.m_ZWrite;
-            systemData.transparentCullMode = hdLitMasterNode.m_transparentCullMode;
-            systemData.zTest = hdLitMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = hdLitMasterNode.m_SupportLodCrossFade;
-            systemData.dotsInstancing = hdLitMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = hdLitMasterNode.m_MaterialNeedsUpdateHash;
-
-            builtinData.transparencyFog = hdLitMasterNode.m_TransparencyFog;
-            builtinData.distortion = hdLitMasterNode.m_Distortion;
-            builtinData.distortionMode = hdLitMasterNode.m_DistortionMode;
-            builtinData.distortionDepthTest = hdLitMasterNode.m_DistortionDepthTest;
-            builtinData.transparentWritesMotionVec = hdLitMasterNode.m_TransparentWritesMotionVec;
-            builtinData.addPrecomputedVelocity = hdLitMasterNode.m_AddPrecomputedVelocity;
-            builtinData.depthOffset = hdLitMasterNode.m_depthOffset;
-            builtinData.alphaToMask = hdLitMasterNode.m_AlphaToMask;
-
-            lightingData.alphaTestShadow = hdLitMasterNode.m_AlphaTestShadow;
-            lightingData.backThenFrontRendering = hdLitMasterNode.m_BackThenFrontRendering;
-            lightingData.normalDropOffSpace = hdLitMasterNode.m_NormalDropOffSpace;
-            lightingData.blendPreserveSpecular = hdLitMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = hdLitMasterNode.m_ReceiveDecals;
-            lightingData.receiveSSR = hdLitMasterNode.m_ReceivesSSR;
-            lightingData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
-            lightingData.specularAA = hdLitMasterNode.m_SpecularAA;
-            lightingData.specularOcclusionMode = hdLitMasterNode.m_SpecularOcclusionMode;
-            lightingData.overrideBakedGI = hdLitMasterNode.m_overrideBakedGI;
-            
-            litData.rayTracing = hdLitMasterNode.m_RayTracing;
-            litData.refractionModel = hdLitMasterNode.m_RefractionModel; 
-            litData.materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
-            litData.sssTransmission = hdLitMasterNode.m_SSSTransmission;
-            litData.receiveSSRTransparent = hdLitMasterNode.m_ReceivesSSRTransparent;
-            
-            target.customEditorGUI = hdLitMasterNode.m_OverrideEnabled ? hdLitMasterNode.m_ShaderGUIOverride : "";
-
-            // Handle mapping of Normal block specifically
-            BlockFieldDescriptor normalBlock;
-            switch(lightingData.normalDropOffSpace)
-            {
-                case NormalDropOffSpace.Object:
-                    normalBlock = BlockFields.SurfaceDescription.NormalOS;
-                    break;
-                case NormalDropOffSpace.World:
-                    normalBlock = BlockFields.SurfaceDescription.NormalWS;
-                    break;
-                default:
-                    normalBlock = BlockFields.SurfaceDescription.NormalTS;
-                    break;
-            }
-
-            // Convert SlotMask to BlockMap entries
-            var blockMapLookup = new Dictionary<HDLitMasterNode1.SlotMask, BlockFieldDescriptor>()
-            {
-                { HDLitMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
-                { HDLitMasterNode1.SlotMask.Normal, normalBlock },
-                { HDLitMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { HDLitMasterNode1.SlotMask.Tangent, HDBlockFields.SurfaceDescription.Tangent },
-                { HDLitMasterNode1.SlotMask.Anisotropy, HDBlockFields.SurfaceDescription.Anisotropy },
-                { HDLitMasterNode1.SlotMask.SubsurfaceMask, HDBlockFields.SurfaceDescription.SubsurfaceMask },
-                { HDLitMasterNode1.SlotMask.Thickness, HDBlockFields.SurfaceDescription.Thickness },
-                { HDLitMasterNode1.SlotMask.DiffusionProfile, HDBlockFields.SurfaceDescription.DiffusionProfileHash },
-                { HDLitMasterNode1.SlotMask.IridescenceMask, HDBlockFields.SurfaceDescription.IridescenceMask },
-                { HDLitMasterNode1.SlotMask.IridescenceLayerThickness, HDBlockFields.SurfaceDescription.IridescenceThickness },
-                { HDLitMasterNode1.SlotMask.Specular, BlockFields.SurfaceDescription.Specular },
-                { HDLitMasterNode1.SlotMask.CoatMask, HDBlockFields.SurfaceDescription.CoatMask },
-                { HDLitMasterNode1.SlotMask.Metallic, BlockFields.SurfaceDescription.Metallic },
-                { HDLitMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness },
-                { HDLitMasterNode1.SlotMask.Occlusion, BlockFields.SurfaceDescription.Occlusion },
-                { HDLitMasterNode1.SlotMask.SpecularOcclusion, HDBlockFields.SurfaceDescription.SpecularOcclusion },
-                { HDLitMasterNode1.SlotMask.Emission, BlockFields.SurfaceDescription.Emission },
-                { HDLitMasterNode1.SlotMask.Alpha, BlockFields.SurfaceDescription.Alpha },
-                { HDLitMasterNode1.SlotMask.AlphaThreshold, BlockFields.SurfaceDescription.AlphaClipThreshold },
-                { HDLitMasterNode1.SlotMask.AlphaThresholdDepthPrepass, HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass },
-                { HDLitMasterNode1.SlotMask.AlphaThresholdDepthPostpass, HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass },
-                { HDLitMasterNode1.SlotMask.AlphaThresholdShadow, HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow },
-            };
-
-            // Legacy master node slots have additional slot conditions, test them here
-            bool AdditionalSlotMaskTests(HDLitMasterNode1.SlotMask slotMask)
-            {
-                switch(slotMask)
-                {
-                    case HDLitMasterNode1.SlotMask.Thickness:
-                        return litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent;
-                    case HDLitMasterNode1.SlotMask.SpecularOcclusion:
-                        return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
-                    case HDLitMasterNode1.SlotMask.AlphaThreshold:
-                        return systemData.alphaTest;
-                    case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass;
-                    case HDLitMasterNode1.SlotMask.AlphaThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass;
-                    case HDLitMasterNode1.SlotMask.AlphaThresholdShadow:
-                        return systemData.alphaTest && lightingData.alphaTestShadow;
-                    default:
-                        return true;
-                }
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>();
-
-            // First handle vertex blocks. We ran out of SlotMask bits for VertexNormal and VertexTangent
-            // so do all Vertex blocks here to maintain correct block order (Position is not in blockMapLookup)
-            blockMap.Add(BlockFields.VertexDescription.Position, HDLitMasterNode1.PositionSlotId);
-            blockMap.Add(BlockFields.VertexDescription.Normal, HDLitMasterNode1.VertexNormalSlotID);
-            blockMap.Add(BlockFields.VertexDescription.Tangent, HDLitMasterNode1.VertexTangentSlotID);
-
-            // Now handle the SlotMask cases
-            foreach(HDLitMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HDLitMasterNode1.SlotMask)))
-            {
-                if(hdLitMasterNode.MaterialTypeUsesSlotMask(slotMask))
-                {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
-                        continue;
-
-                    if(!AdditionalSlotMaskTests(slotMask))
-                        continue;
-                    
-                    var slotId = Mathf.Log((int)slotMask, 2);
-                    blockMap.Add(blockFieldDescriptor, (int)slotId);
-                }
-            }
-            
-            // Specular AA
-            if(lightingData.specularAA)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, HDLitMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, HDLitMasterNode1.SpecularAAThresholdSlotId);
-            }
-
-            // Refraction
-            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
-            if(hasRefraction)
-            {
-                if(!blockMap.TryGetValue(HDBlockFields.SurfaceDescription.Thickness, out _))
-                {
-                    blockMap.Add(HDBlockFields.SurfaceDescription.Thickness, HDLitMasterNode1.ThicknessSlotId);
-                }
-
-                blockMap.Add(HDBlockFields.SurfaceDescription.RefractionIndex, HDLitMasterNode1.RefractionIndexSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.RefractionColor, HDLitMasterNode1.RefractionColorSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.RefractionDistance, HDLitMasterNode1.RefractionDistanceSlotId);
-            }
-
-            // Distortion
-            bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
-            if(hasDistortion)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, HDLitMasterNode1.DistortionSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, HDLitMasterNode1.DistortionBlurSlotId);
-            }
-
-            // Override Baked GI
-            if(lightingData.overrideBakedGI)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, HDLitMasterNode1.LightingSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, HDLitMasterNode1.BackLightingSlotId);
-            }
-
-            // Depth Offset (Removed from SlotMask because of missing bits)
-            if(builtinData.depthOffset)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, HDLitMasterNode1.DepthOffsetSlotId);
-            }
         }
 
 #region SubShaders
