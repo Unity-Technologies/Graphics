@@ -96,7 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Vertex
             base.GetActiveBlocks(ref context);
             AddDistortionBlocks(ref context);
-            AddNormalBlocks(ref context);
 
             // Common
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask);
