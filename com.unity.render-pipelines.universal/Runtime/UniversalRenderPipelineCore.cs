@@ -24,6 +24,9 @@ namespace UnityEngine.Rendering.Universal
         public PostProcessingData postProcessingData;
         public bool supportsDynamicBatching;
         public PerObjectData perObjectData;
+        /// <summary>
+        /// The ShaderQuality used for rendering.
+        /// </summary>
         public ShaderQuality shaderQuality;
 
         /// <summary>

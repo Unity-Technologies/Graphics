@@ -201,10 +201,9 @@ real4 unity_ShadowColor;
 
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
-TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube0);
+TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube1);
-real4 unity_SpecCube0_BoxMin;
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);

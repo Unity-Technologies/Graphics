@@ -535,6 +535,9 @@ namespace UnityEngine.Rendering.Universal
             set { m_RenderScale = ValidateRenderScale(value); }
         }
 
+        /// <summary>
+        /// Gets or Sets the ShaderQuality of the current render pipeline.
+        /// </summary>
         public ShaderQuality shaderQuality
         {
             get { return m_ShaderQuality; }
