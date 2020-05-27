@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor Thickness = new BlockFieldDescriptor(SurfaceDescription.name, "Thickness", "SURFACEDESCRIPTION_THICKNESS", 
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static CustomSlotBlockFieldDescriptor DiffusionProfileHash = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "DiffusionProfileHash", "Diffusion Profile", "SURFACEDESCRIPTION_DIFFUSIONPROFILEHASH", 
-                new DiffusionProfileInputMaterialSlot(0, "Diffusion Profile", "DiffusionProfileHash", ShaderStageCapability.Fragment));
+                () => { return new DiffusionProfileInputMaterialSlot(0, "Diffusion Profile", "DiffusionProfileHash", ShaderStageCapability.Fragment); });
             public static BlockFieldDescriptor IridescenceMask = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceMask", "Iridescence Mask", "SURFACEDESCRIPTION_IRIDESCENCEMASK", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor IridescenceThickness = new BlockFieldDescriptor(SurfaceDescription.name, "IridescenceThickness", "Iridescence Thickness", "SURFACEDESCRIPTION_IRIDESCENCETHICKNESS", 
@@ -54,10 +54,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor SpecularAAThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "SpecularAAThreshold", "Specular AA Threshold", "SURFACEDESCRIPTION_SPECULARAATHRESHOLD", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
-            public static CustomSlotBlockFieldDescriptor BakedGI = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "BakedGI", "Baked GI", "SURFACEDESCRIPTION_BAKEDGI", 
-                new DefaultMaterialSlot(0, "Baked GI", "BakedGI", ShaderStageCapability.Fragment));
-            public static CustomSlotBlockFieldDescriptor BakedBackGI = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "BakedBackGI", "Baked Back GI", "SURFACEDESCRIPTION_BAKEDBACKGI", 
-                new DefaultMaterialSlot(0, "Baked Back GI", "BakedBackGI", ShaderStageCapability.Fragment));
+            public static CustomSlotBlockFieldDescriptor BakedGI = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "BakedGI", "Baked GI", "SURFACEDESCRIPTION_BAKEDGI",
+                () => { return new DefaultMaterialSlot(0, "Baked GI", "BakedGI", ShaderStageCapability.Fragment); });
+            public static CustomSlotBlockFieldDescriptor BakedBackGI = new CustomSlotBlockFieldDescriptor(SurfaceDescription.name, "BakedBackGI", "Baked Back GI", "SURFACEDESCRIPTION_BAKEDBACKGI",
+                () => { return new DefaultMaterialSlot(0, "Baked Back GI", "BakedBackGI", ShaderStageCapability.Fragment); });
             public static BlockFieldDescriptor DepthOffset = new BlockFieldDescriptor(SurfaceDescription.name, "DepthOffset", "Depth Offset", "SURFACEDESCRIPTION_DEPTHOFFSET", 
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor RefractionIndex = new BlockFieldDescriptor(SurfaceDescription.name, "RefractionIndex", "Refraction Index", "SURFACEDESCRIPTION_REFRACTIONINDEX", 

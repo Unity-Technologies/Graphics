@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -13,7 +13,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         static BlockFieldDescriptor s_DescriptorB = new BlockFieldDescriptor("Test", "BlockB", string.Empty, new NormalControl(CoordinateSpace.World), ShaderStage.Fragment, true);
 
         static Vector3MaterialSlot s_MaterialSlot = new Vector3MaterialSlot(0, "Test", "BlockB", SlotType.Input, Vector3.one);
-        static CustomSlotBlockFieldDescriptor s_CustomSlotDescriptor = new CustomSlotBlockFieldDescriptor("Test", "CustomBlock", string.Empty, s_MaterialSlot);
+        static CustomSlotBlockFieldDescriptor s_CustomSlotDescriptor = new CustomSlotBlockFieldDescriptor("Test", "CustomBlock", string.Empty,
+            () => { return new Vector3MaterialSlot(0, "Test", "BlockB", SlotType.Input, Vector3.one); });
 
         [OneTimeSetUp]
         public void RunBeforeAnyTests()
