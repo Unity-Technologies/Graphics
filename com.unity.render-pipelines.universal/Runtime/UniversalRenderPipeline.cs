@@ -73,7 +73,8 @@ namespace UnityEngine.Rendering.Universal
         {
             get
             {
-                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore)
+                // GLES can be selected as platform on Windows (not a mobile platform) but uniform buffer size so we must use a low light count.
+                return (Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2 || SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3)
                     ? k_MaxVisibleAdditionalLightsMobile : k_MaxVisibleAdditionalLightsNonMobile;
             }
         }
@@ -332,16 +333,22 @@ namespace UnityEngine.Rendering.Universal
                             if (data == null || data.renderType != CameraRenderType.Overlay)
                             {
                                 Debug.LogWarning(string.Format("Stack can only contain Overlay cameras. {0} will skip rendering.", currCamera.name));
+                                continue;
                             }
-                            else if (data?.scriptableRenderer.GetType() != baseCameraRendererType)
+
+                            var currCameraRendererType = data?.scriptableRenderer.GetType();
+                            if (currCameraRendererType != baseCameraRendererType)
                             {
-                                Debug.LogWarning(string.Format("Only cameras with the same renderer type as the base camera can be stacked. {0} will skip rendering", currCamera.name));
+                                var renderer2DType = typeof(Experimental.Rendering.Universal.Renderer2D);
+                                if (currCameraRendererType != renderer2DType && baseCameraRendererType != renderer2DType)
+                                {
+                                    Debug.LogWarning(string.Format("Only cameras with compatible renderer types can be stacked. {0} will skip rendering", currCamera.name));
+                                    continue;
+                                }
                             }
-                            else
-                            {
-                                anyPostProcessingEnabled |= data.renderPostProcessing;
-                                lastActiveOverlayCameraIndex = i;
-                            }
+
+                            anyPostProcessingEnabled |= data.renderPostProcessing;
+                            lastActiveOverlayCameraIndex = i;
                         }
                     }
                 }

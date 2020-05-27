@@ -9,9 +9,9 @@ Property Binders are C# Behaviors you can attach to a GameObject with a [Visual 
 
 ![](Images/PropertyBinder.png)
 
-You can add Property Binders through a common MonoBehaviour called **VFX Property Binder**. This behavior enables the use of one or many **Property Bindings**. Each property binding is in charge of creating a relationship between an [Exposed Property](Blackboard.md#exposed-properties-in-inspector) and a runtime or scene element. 
+You can add Property Binders through a common MonoBehaviour called **VFX Property Binder**. This behavior enables the use of one or many **Property Bindings**. Each property binding is in charge of creating a relationship between an [Exposed Property](Blackboard.md#exposed-properties-in-inspector) and a runtime or scene element.
 
-> Alternatively, you can add directly Property binders through the Add Component Menu. If a VFX Property Binder component is not present, it will be created. 
+> Alternatively, you can add directly Property binders through the Add Component Menu. If a VFX Property Binder component is not present, it will be created.
 
 ## Built-in Property Binders
 
@@ -54,7 +54,7 @@ You can write property binders by adding new C# classes to your project, and ext
 
 Extending the `VFXBinderBase` class will require you to implement the following methods:
 
-* `bool IsValid(VisualEffect component)` : a method that validates that the binding can be made. The VFX Property Binder component will only perform the `UpdateBinding()` if this method returns true. You need to implement all checks in this method in order to determine if the binding 
+* `bool IsValid(VisualEffect component)` : a method that validates that the binding can be made. The VFX Property Binder component will only perform the `UpdateBinding()` if this method returns true. You need to implement all checks in this method in order to determine if the binding
 * `void UpdateBinding(VisualEffect component)` : the method that applies the bindings if `IsValid` returns true.
 
 #### Example Code

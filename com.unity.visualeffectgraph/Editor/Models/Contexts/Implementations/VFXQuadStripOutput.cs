@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the axisZ attribute is used to orient the strip instead of facing the Camera.")]
         private bool UseCustomZAxis = false;
 
-        protected VFXQuadStripOutput() : base(true) { }
+        protected VFXQuadStripOutput() : base(true) {}
         public override string name { get { return "Output ParticleStrip Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
@@ -33,7 +33,7 @@ namespace UnityEditor.VFX
         public class CustomUVInputProperties
         {
             [Tooltip("Specifies the texture coordinate value (u or v depending on swap UV being enabled) used along the strip.")]
-            public float texCoord = 0.0f; 
+            public float texCoord = 0.0f;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
@@ -82,7 +82,6 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
-
 
 
         public override IEnumerable<string> additionalDefines
