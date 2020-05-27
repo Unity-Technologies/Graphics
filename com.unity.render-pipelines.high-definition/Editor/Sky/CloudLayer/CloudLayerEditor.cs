@@ -11,8 +11,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedDataParameter m_Enabled;
 
-        SerializedDataParameter m_UpperHemisphereOnly;
         SerializedDataParameter m_CloudMap;
+        SerializedDataParameter m_UpperHemisphereOnly;
+        SerializedDataParameter m_Brightness;
+        SerializedDataParameter m_Opacity;
 
         SerializedDataParameter m_EnableDistortion;
         SerializedDataParameter m_Procedural;
@@ -29,8 +31,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Enabled                   = Unpack(o.Find(x => x.enabled));
 
-            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
             m_CloudMap                  = Unpack(o.Find(x => x.cloudMap));
+            m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
+            m_Brightness                = Unpack(o.Find(x => x.brightness));
+            m_Opacity                   = Unpack(o.Find(x => x.opacity));
 
             m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
             m_Procedural                = Unpack(o.Find(x => x.procedural));
@@ -58,6 +62,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox("The cloud map needs to be a 2D Texture in LatLong layout.", MessageType.Info);
 
             PropertyField(m_UpperHemisphereOnly);
+            PropertyField(m_Brightness);
+            PropertyField(m_Opacity);
 
             PropertyField(m_EnableDistortion);
             if (m_EnableDistortion.value.boolValue)

@@ -19,6 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
+        /// <summary>Controls the brightness of the cloud layer.</summary>
+        [Tooltip("Controls the brightness of the cloud layer.")]
+        public ClampedFloatParameter    brightness          = new ClampedFloatParameter(0.3f, 0.0f, 1.0f);
+        /// <summary>Opacity of the cloud layer.</summary>
+        [Tooltip("Blending factor between the sky and the cloud layer.")]
+        public ClampedFloatParameter    opacity             = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         /// <summary>Enable to have cloud distortion.</summary>
         [Tooltip("Enable or disable cloud distortion.")]
@@ -64,6 +70,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyMaterial.EnableKeyword("USE_CLOUD_MAP");
                 skyMaterial.SetTexture(HDShaderIDs._CloudMap, layer.cloudMap.value);
                 skyMaterial.SetVector(HDShaderIDs._CloudParam, cloudParam);
+                skyMaterial.SetFloat(HDShaderIDs._CloudBrightness, layer.brightness.value);
+                skyMaterial.SetFloat(HDShaderIDs._CloudOpacity, layer.opacity.value);
 
                 if (layer.enableDistortion.value == true)
                 {
@@ -96,7 +104,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_2019_3 // In 2019.3, when we call GetHashCode on a VolumeParameter it generate garbage (due to the boxing of the generic parameter)
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.value.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
+                hash = hash * 23 + enabled.value.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
+                hash = hash * 23 + brightness.value.GetHashCode();
+                hash = hash * 23 + opacity.value.GetHashCode();
                 hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
                 hash = hash * 23 + scrollDirection.value.GetHashCode();
@@ -104,7 +115,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.overrideState.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
+                hash = hash * 23 + enabled.overrideState.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
+                hash = hash * 23 + brightness.overrideState.GetHashCode();
+                hash = hash * 23 + opacity.overrideState.GetHashCode();
                 hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
                 hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
@@ -112,7 +126,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #else
                 hash = cloudMap.value != null ? hash * 23 + cloudMap.GetHashCode() : hash;
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
+                hash = hash * 23 + enabled.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
+                hash = hash * 23 + brightness.GetHashCode();
+                hash = hash * 23 + opacity.GetHashCode();
                 hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();

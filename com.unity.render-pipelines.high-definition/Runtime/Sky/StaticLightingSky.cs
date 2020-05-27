@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     foreach (var sky in m_VolumeSkyList)
                     {
-                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()))
+                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()) && sky.active)
                         {
                             skyType = sky.GetType();
                             skySetting = sky;
@@ -188,7 +188,11 @@ namespace UnityEngine.Rendering.HighDefinition
         void GetCloudFromVolume(VolumeProfile profile, out CloudLayer cloudLayer)
         {
             if (profile != null)
+            {
                 profile.TryGet(out cloudLayer);
+                if (cloudLayer != null && !cloudLayer.active)
+                    cloudLayer = null;
+            }
             else
                 cloudLayer = null;
         }
