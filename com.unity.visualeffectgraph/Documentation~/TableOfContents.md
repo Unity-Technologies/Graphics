@@ -33,6 +33,12 @@
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
+    * Logic
+      * [And](Operator-LogicAnd.md)
+      * [Nand](Operator-LogicNand.md)
+      * [Nor](Operator-LogicNor.md)
+      * [Not](Operator-LogicNot.md)
+      * [Or](Operator-LogicOr.md)
     * Math
       * Arithmetic
         * [Absolute](Operator-Absolute.md)
