@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
         Material m_TileDeferredMaterial;
         Material m_StencilDeferredMaterial;
 
-        public bool AccurateGbufferNormals { get { return m_DeferredLights.AccurateGbufferNormals; } }
+        internal bool AccurateGbufferNormals { get { return m_DeferredLights.AccurateGbufferNormals; } }
 
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
