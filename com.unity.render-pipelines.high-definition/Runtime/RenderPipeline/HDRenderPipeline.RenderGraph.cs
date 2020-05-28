@@ -356,12 +356,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public RendererListHandle   rendererList;
             public TextureHandle[]      renderTarget = new TextureHandle[3];
-            public int                          renderTargetCount;
+            public int                  renderTargetCount;
             public TextureHandle        depthBuffer;
-            public ComputeBuffer                lightListBuffer;
-            public FrameSettings                frameSettings;
-            public bool                         decalsEnabled;
-            public bool                         renderMotionVecForTransparent;
+            public ComputeBuffer        lightListBuffer;
+            public FrameSettings        frameSettings;
+            public bool                 decalsEnabled;
+            public bool                 renderMotionVecForTransparent;
+            public DBufferOutput?       dbuffer;
         }
 
         void PrepareForwardPassData(RenderGraph renderGraph, RenderGraphBuilder builder, ForwardPassData data, bool opaque, FrameSettings frameSettings, RendererListDesc rendererListDesc, TextureHandle depthBuffer, ShadowResult shadowResult, DBufferOutput? dbuffer = null)
@@ -379,7 +380,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDShadowManager.ReadShadowResult(shadowResult, builder);
             if (dbuffer != null)
-                ReadDBuffer(dbuffer.Value, builder);
+                data.dbuffer = ReadDBuffer(dbuffer.Value, builder);
         }
 
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
@@ -424,10 +425,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ForwardPassData data, RenderGraphContext context) =>
                 {
-                    // TODO: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
+                    // TODO RENDERGRAPH: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
                     var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.renderTargetCount);
                     for (int i = 0; i < data.renderTargetCount; ++i)
                         mrt[i] = context.resources.GetTexture(data.renderTarget[i]);
+
+                    if (data.dbuffer != null)
+                        BindDBufferGlobalData(data.dbuffer.Value, context);
 
                     RenderForwardRendererList(data.frameSettings,
                             context.resources.GetRendererList(data.rendererList),

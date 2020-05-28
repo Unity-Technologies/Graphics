@@ -3453,6 +3453,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 m_DbufferManager.GetRTHandles(),
                                 m_SharedRTManager.GetDepthStencilBuffer(),
                                 RendererList.Create(PrepareMeshDecalsRendererList(cullingResults, hdCamera, use4RTs)),
+                                m_DbufferManager.propertyMaskBuffer,
                                 renderContext, cmd);
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DecalPropertyMaskBufferSRV, m_DbufferManager.propertyMaskBuffer);
@@ -3461,20 +3462,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void DecalNormalPatch(  HDCamera        hdCamera,
-                                CommandBuffer   cmd)
+        void DecalNormalPatch(HDCamera hdCamera, CommandBuffer cmd)
         {
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals) &&
                 !hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)) // MSAA not supported
             {
                 var parameters = PrepareDBufferNormalPatchParameters(hdCamera);
-                DecalNormalPatch(parameters, m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetNormalBuffer(), cmd);
+                DecalNormalPatch(parameters, m_DbufferManager.GetRTHandles(), m_SharedRTManager.GetDepthStencilBuffer(), m_SharedRTManager.GetNormalBuffer(), cmd);
             }
         }
 
         struct DBufferNormalPatchParameters
         {
             public Material decalNormalBufferMaterial;
+            public int dBufferCount;
             public int stencilRef;
             public int stencilMask;
         }
@@ -3482,6 +3483,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DBufferNormalPatchParameters PrepareDBufferNormalPatchParameters(HDCamera hdCamera)
         {
             var parameters = new DBufferNormalPatchParameters();
+            parameters.dBufferCount = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask ? 4 : 3;
             parameters.decalNormalBufferMaterial = m_DecalNormalBufferMaterial;
             switch (hdCamera.frameSettings.litShaderMode)
             {
@@ -3501,21 +3503,24 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         static void DecalNormalPatch(   DBufferNormalPatchParameters    parameters,
+                                        RTHandle[]                      dBuffer,
                                         RTHandle                        depthStencilBuffer,
                                         RTHandle                        normalBuffer,
                                         CommandBuffer                   cmd)
         {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
-                {
-                    parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, parameters.stencilMask);
-                    parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, parameters.stencilRef);
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DBufferNormal)))
+            {
+                parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, parameters.stencilMask);
+                parameters.decalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, parameters.stencilRef);
+                for (int i = 0; i < parameters.dBufferCount; ++i)
+                    parameters.decalNormalBufferMaterial.SetTexture(HDShaderIDs._DBufferTexture[i], dBuffer[i]);
 
                 CoreUtils.SetRenderTarget(cmd, depthStencilBuffer);
                 cmd.SetRandomWriteTarget(1, normalBuffer);
-                    cmd.DrawProcedural(Matrix4x4.identity, parameters.decalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
-                    cmd.ClearRandomWriteTargets();
-                }
+                cmd.DrawProcedural(Matrix4x4.identity, parameters.decalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
+                cmd.ClearRandomWriteTargets();
             }
+        }
 
         RendererListDesc PrepareMeshDecalsRendererList(CullingResults cullingResults, HDCamera hdCamera, bool use4RTs)
         {
@@ -3547,7 +3552,6 @@ namespace UnityEngine.Rendering.HighDefinition
         struct RenderDBufferParameters
         {
             public bool use4RTs;
-            public ComputeBuffer propertyMaskBuffer;
             public ComputeShader clearPropertyMaskBufferCS;
             public int clearPropertyMaskBufferKernel;
             public int propertyMaskBufferSize;
@@ -3557,7 +3561,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var parameters = new RenderDBufferParameters();
             parameters.use4RTs = m_Asset.currentPlatformRenderPipelineSettings.decalSettings.perChannelMask;
-            parameters.propertyMaskBuffer = m_DbufferManager.propertyMaskBuffer;
             parameters.clearPropertyMaskBufferCS = m_DbufferManager.clearPropertyMaskBufferShader;
             parameters.clearPropertyMaskBufferKernel = m_DbufferManager.clearPropertyMaskBufferKernel;
             parameters.propertyMaskBufferSize = m_DbufferManager.propertyMaskBufferSize;
@@ -3569,6 +3572,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     RTHandle[]                  rtHandles,
                                     RTHandle                    depthStencilBuffer,
                                     RendererList                meshDecalsRendererList,
+                                    ComputeBuffer               propertyMaskBuffer,
                                     ScriptableRenderContext     renderContext,
                                     CommandBuffer               cmd)
         {
@@ -3601,9 +3605,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // clear decal property mask buffer
-            cmd.SetComputeBufferParam(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, parameters.propertyMaskBuffer);
+            cmd.SetComputeBufferParam(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, HDShaderIDs._DecalPropertyMaskBuffer, propertyMaskBuffer);
             cmd.DispatchCompute(parameters.clearPropertyMaskBufferCS, parameters.clearPropertyMaskBufferKernel, parameters.propertyMaskBufferSize / 64, 1, 1);
-            cmd.SetRandomWriteTarget(parameters.use4RTs ? 4 : 3, parameters.propertyMaskBuffer);
+            cmd.SetRandomWriteTarget(parameters.use4RTs ? 4 : 3, propertyMaskBuffer);
 
             HDUtils.DrawRendererList(renderContext, cmd, meshDecalsRendererList);
             DecalSystem.instance.RenderIntoDBuffer(cmd);
