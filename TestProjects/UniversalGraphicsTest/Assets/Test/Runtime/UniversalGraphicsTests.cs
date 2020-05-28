@@ -6,6 +6,8 @@ using UnityEngine.TestTools;
 using UnityEngine.XR;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.Experimental.Rendering.Universal;
 
 public class UniversalGraphicsTests
 {
@@ -85,22 +87,27 @@ public class UniversalGraphicsTests
 
         ImageAssert.AreEqual(testCase.ReferenceImage, cameras.Where(x => x != null), settings.ImageComparisonSettings);
 
-#if CHECK_ALLOCATIONS_WHEN_RENDERING
         // Does it allocate memory when it renders what's on the main camera?
         bool allocatesMemory = false;
         var mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-        try
-        {
-            ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
-        }
-        catch (AssertionException)
-        {
-            allocatesMemory = true;
-        }
-        if (allocatesMemory)
-            Assert.Fail("Allocated memory when rendering what is on main camera");
-#endif
 
+        // 2D Renderer is currently allocating memory, skip it as it will always fail GC alloc tests.
+        var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
+        bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
+        
+        if (!is2DRenderer)
+        {
+            try
+            {
+                ImageAssert.AllocatesMemory(mainCamera, settings?.ImageComparisonSettings);
+            }
+            catch (AssertionException)
+            {
+                allocatesMemory = true;
+            }
+            if (allocatesMemory)
+                Assert.Fail("Allocated memory when rendering what is on main camera");
+        }
     }
 
 #if UNITY_EDITOR
