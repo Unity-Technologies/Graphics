@@ -138,12 +138,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override int ComputeMaterialNeedsUpdateHash()
         {
-            bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
             int hash = base.ComputeMaterialNeedsUpdateHash();
 
             unchecked
             {
-                hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
+            bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
             }
 
