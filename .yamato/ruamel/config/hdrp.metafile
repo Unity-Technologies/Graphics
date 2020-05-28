@@ -33,10 +33,20 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
+        - Standalone
     - platform: Win
       api: Vulkan
       test_platforms:
         - playmode
+        - Standalone
+    - platform: OSX
+      api: Metal
+      test_platforms:
+        - Standalone
+    - platform: Linux
+      api: Vulkan
+      test_platforms:
+        - Standalone
     - project: HDRP_DXR
       platform: Win
       api: DX12
