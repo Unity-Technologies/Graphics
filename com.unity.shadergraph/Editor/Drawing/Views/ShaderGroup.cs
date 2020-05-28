@@ -32,6 +32,11 @@ namespace UnityEditor.ShaderGraph
 
         public override bool AcceptsElement(GraphElement element, ref string reasonWhyNotAccepted)
         {
+            if (element is StackNode stackNode)
+            {
+                reasonWhyNotAccepted = "Vertex and Pixel Stacks cannot be grouped";
+                return false;
+            }
 
             var nodeView = element as IShaderNodeView;
             if (nodeView == null)
