@@ -8,7 +8,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal struct BrickChunkAlloc
         {
             internal int x, y, z;
-            internal int flattenedIndex;
+
+            internal int flattenIndex(int sx, int sy) { return z * (sx * sy) + y * sx + x; }
         }
 
         internal struct DataLocation
@@ -42,6 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AllocationSize = AllocationSize;
             m_MemoryBudget = MemoryBudget;
 
+            m_FreeList = new Stack<BrickChunkAlloc>(256);
+
             int width, height, depth;
             DerivePoolSizeFromBudget(AllocationSize, MemoryBudget, out width, out height, out depth);
 
@@ -49,6 +52,8 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
+        internal int GetPoolWidth() { return m_Pool.width; }
+        internal int GetPoolHeight() { return m_Pool.height; }
 
         internal void Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
         {
@@ -78,7 +83,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_NextFreeChunk.y = 0;
                         m_NextFreeChunk.z += kBrickProbeCountPerDim;
                     }
-                    m_NextFreeChunk.flattenedIndex = m_NextFreeChunk.x + m_Pool.width * m_NextFreeChunk.y + (m_Pool.width * m_Pool.height) * m_NextFreeChunk.z;
                 }
             }
         }
@@ -153,18 +157,18 @@ namespace UnityEngine.Rendering.HighDefinition
                             loc.TexL0.SetPixel(bx + x, by + y, bz + z, c);
 
                             c.r = shl1[shidx].shAr[1];
-                            c.r = shl1[shidx].shAr[2];
-                            c.r = shl1[shidx].shAr[3];
+                            c.g = shl1[shidx].shAr[2];
+                            c.b = shl1[shidx].shAr[3];
                             loc.TexL1_R.SetPixel(bx + x, by + y, bz + z, c);
 
                             c.r = shl1[shidx].shAg[1];
-                            c.r = shl1[shidx].shAg[2];
-                            c.r = shl1[shidx].shAg[3];
+                            c.g = shl1[shidx].shAg[2];
+                            c.b = shl1[shidx].shAg[3];
                             loc.TexL1_G.SetPixel(bx + x, by + y, bz + z, c);
 
                             c.r = shl1[shidx].shAb[1];
-                            c.r = shl1[shidx].shAb[2];
-                            c.r = shl1[shidx].shAb[3];
+                            c.g = shl1[shidx].shAb[2];
+                            c.b = shl1[shidx].shAb[3];
                             loc.TexL1_B.SetPixel(bx + x, by + y, bz + z, c);
 
                             shidx++;

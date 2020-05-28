@@ -161,19 +161,19 @@ namespace UnityEngine.Rendering.HighDefinition
         // TODO: Obviously don't store these fields here
         // Cached fields currently used for debug rendering 
         internal ProbeReferenceVolume refVol;
-        internal List<ProbeReferenceVolume.Brick> bricks;
+        internal List<ProbeBrickIndex.Brick> bricks;
         internal Vector3[] probePositions;
 
         // This method build a brick structure of all user placed probe volumes and populates the above fields
         internal void BuildBrickStructure(float minCellSize)
         {
-            refVol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024);
+            refVol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 1024, 64));
             refVol.SetGridDensity(minCellSize, 4);
 
             ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubdivisionAlgorithm;
 
             // get a list of bricks for this volume
-            bricks = new List<ProbeReferenceVolume.Brick>();
+            bricks = new List<ProbeBrickIndex.Brick>();
             foreach (ProbeVolume volume in volumes)
             {
                 var vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AdaptiveExample()
         {
-            ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024);
+            ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 1024, 64));
             refvol.SetGridDensity(0.25f, 4);
 
             ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * 5));
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubdivisionAlgorithm;
 
             // get a list of bricks for this volume
-            List<ProbeReferenceVolume.Brick> sortedBricks = new List<ProbeReferenceVolume.Brick>();
+            List<ProbeBrickIndex.Brick> sortedBricks = new List<ProbeBrickIndex.Brick>();
             int numProbes;
             refvol.CreateBricks(ref vol, subdivDel, sortedBricks, out numProbes);
 

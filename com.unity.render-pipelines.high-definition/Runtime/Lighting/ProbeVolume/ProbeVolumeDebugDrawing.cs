@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Handles.color = Color.blue;
                 Handles.matrix = ProbeVolumeManager.manager.refVol.GetRefSpaceToWS();
 
-                foreach (ProbeReferenceVolume.Brick b in ProbeVolumeManager.manager.bricks)
+                foreach (ProbeBrickIndex.Brick b in ProbeVolumeManager.manager.bricks)
                 {
                     Vector3 scaledSize = Vector3.one * Mathf.Pow(3, b.size);
                     Vector3 scaledPos = b.position + scaledSize / 2;

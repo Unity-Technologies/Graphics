@@ -4,7 +4,7 @@ using UnityEditor;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    using Brick = ProbeReferenceVolume.Brick;
+    using Brick = ProbeBrickIndex.Brick;
     using Flags = ProbeReferenceVolume.BrickFlags;
     using Volume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;

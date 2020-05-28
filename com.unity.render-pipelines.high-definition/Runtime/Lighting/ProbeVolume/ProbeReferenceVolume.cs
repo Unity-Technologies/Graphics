@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAlloc;
+using Brick = UnityEngine.Rendering.HighDefinition.ProbeBrickIndex.Brick;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     internal class ProbeReferenceVolume
     {
-        // a few constants
-        internal const int kMaxSubdivisionLevels = 15; // 4 bits
-
         internal struct Volume
         {
             public Vector3 Corner;
@@ -51,23 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal struct BrickIndex
-        {
-            internal uint packedIndex;
-        }
-
-        internal struct Brick
-        {
-            internal Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            internal int size;              // size as factor covered elementary cells
-
-            internal Brick(Vector3Int position, int size)
-            {
-                this.position = position;
-                this.size = size;
-            }
-        }
-
         internal struct BrickFlags
         {
             uint  flags;
@@ -87,6 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private RefVolTransform     m_Transform;
         private int                 m_MaxSubdivision;
         private ProbeBrickPool      m_Pool;
+        private ProbeBrickIndex     m_Index;
         private List<Brick>[]       m_TmpBricks = new List<Brick>[2];
         private List<BrickFlags>    m_TmpFlags = new List<BrickFlags>();
         private List<Chunk>         m_TmpSrcChunks = new List<Chunk>();
@@ -96,14 +78,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // index related
         Texture3D indexTex;
 
-        internal ProbeReferenceVolume(int AllocationSize, int MemoryBudget)
+        internal ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
         {
             m_Transform.posWS = Vector3.zero;
             m_Transform.rot = Quaternion.identity;
             m_Transform.scale = 1.0f;
             m_Transform.refSpaceToWS = Matrix4x4.identity;
 
-            m_Pool = new ProbeBrickPool(AllocationSize, MemoryBudget);
+            m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+            m_Index = new ProbeBrickIndex(indexDimensions);
 
             m_TmpBricks[0] = new List<Brick>();
             m_TmpBricks[1] = new List<Brick>();
@@ -118,7 +101,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void SetGridDensity(float minBrickSize, int maxSubdivision)
         {
-            m_MaxSubdivision = System.Math.Min(maxSubdivision, kMaxSubdivisionLevels);
+            m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
 
             m_Transform.scale = minBrickSize;
             m_Transform.refSpaceToWS = Matrix4x4.TRS(m_Transform.posWS, m_Transform.rot, Vector3.one * m_Transform.scale);
@@ -252,14 +235,44 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        // Runtime API starts here
         internal void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             m_TmpSrcChunks.Clear();
             m_TmpDstChunks.Clear();
-            m_Pool.Allocate(bricks.Count / m_Pool.GetChunkSize(), m_TmpDstChunks);
+
+            // calculate the number of chunks necessary
+            int chunk_size = m_Pool.GetChunkSize();
+            m_Pool.Allocate((bricks.Count + chunk_size - 1) / chunk_size, m_TmpDstChunks);
 
             // fill m_TmpSrcChunks
+            m_TmpSrcChunks.Capacity = m_TmpDstChunks.Count;
+            Chunk c;
+            c.x = 0;
+            c.y = 0;
+            c.z = 0;
+
+            // currently this code assumes that the texture width is a multiple of the allocation chunk size
+            for( int i = 0; i < m_TmpDstChunks.Count; i++ )
+            {
+                m_TmpSrcChunks.Add(c);
+                c.x += chunk_size * ProbeBrickPool.kBrickProbeCountPerDim;
+                if( c.x >= dataloc.width )
+                {
+                    c.x = 0;
+                    c.y += ProbeBrickPool.kBrickProbeCountPerDim;
+                    if( c.y >= dataloc.height )
+                    {
+                        c.y = 0;
+                        c.z += ProbeBrickPool.kBrickProbeCountPerDim;
+                    }
+                }
+            }
+
+            // Update the pool and index and ignore any potential frame latency related issues
             m_Pool.Update(dataloc, m_TmpSrcChunks, m_TmpDstChunks);
+            m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
         }
 
         private void Transform(Volume inVolume, out Volume outVolume)
