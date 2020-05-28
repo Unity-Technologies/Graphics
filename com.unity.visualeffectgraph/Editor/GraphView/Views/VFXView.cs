@@ -146,6 +146,7 @@ namespace UnityEditor.VFX.UI
             return new Type[] { typeof(VFXOperator) };
         }
 
+
         public VisualEffect attachedComponent
         {
             get
@@ -225,7 +226,9 @@ namespace UnityEditor.VFX.UI
             {
                 string path = d.modelDescriptor as string;
 
-                if (!path.StartsWith(VisualEffectAssetEditorUtility.templatePath))
+                if(path.StartsWith(VisualEffectAssetEditorUtility.templatePath) || ((VFXViewPreference.userTemplateDirectory.Length > 0) && path.StartsWith(VFXViewPreference.userTemplateDirectory)) )
+                    CreateTemplateSystem(path, mPos, groupNode);
+                else
                 {
                     if (Path.GetExtension(path) == VisualEffectSubgraphOperator.Extension)
                     {
@@ -243,8 +246,6 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
-                else
-                    CreateTemplateSystem(path, mPos, groupNode);
             }
             else if (d.modelDescriptor is GroupNodeAdder)
             {
@@ -482,6 +483,7 @@ namespace UnityEditor.VFX.UI
                 return DropdownMenuAction.Status.Normal;
         }
 
+
         public void SetBoardToFront(GraphElement board)
         {
             board.SendToBack();
@@ -718,6 +720,7 @@ namespace UnityEditor.VFX.UI
                     this.RemoveManipulator(m_RectangleSelector);
                     m_LockedElement.Focus();
                 }
+
             }
             else
             {
@@ -728,6 +731,7 @@ namespace UnityEditor.VFX.UI
                     this.AddManipulator(m_RectangleSelector);
                 }
             }
+
         }
 
         public void FrameNewController()
@@ -1147,6 +1151,7 @@ namespace UnityEditor.VFX.UI
                 VFXGraph.explicitCompile = false;
             }
         }
+
 
         public EventPropagation Compile()
         {
@@ -1590,6 +1595,7 @@ namespace UnityEditor.VFX.UI
 
         public string SerializeElements(IEnumerable<GraphElement> elements)
         {
+
             Profiler.BeginSample("VFXCopy.SerializeElements");
             string result = VFXCopy.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
             Profiler.EndSample();
@@ -1901,6 +1907,7 @@ namespace UnityEditor.VFX.UI
                 ope.controller.superCollapsed = collapse;
         }
 
+
         public bool SelectionHasCompleteSystems()
         {
             HashSet<VFXContextUI> selectedContexts = new HashSet<VFXContextUI>(selection.OfType<VFXContextUI>());
@@ -1920,16 +1927,17 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
+
         void ToSubgraphBlock(DropdownMenuAction a)
         {
             VFXConvertSubgraph.ConvertToSubgraphBlock(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
         }
 
+
         void ToSubgraphOperator(DropdownMenuAction a)
         {
             VFXConvertSubgraph.ConvertToSubgraphOperator(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
         }
-
         void ToSubgraphContext(DropdownMenuAction a)
         {
             VFXConvertSubgraph.ConvertToSubgraphContext(this, selection.OfType<IControlledElement>().Select(t => t.controller), GetElementsBounds(selection.Where(t => !(t is Edge)).Cast<GraphElement>()));
@@ -2020,6 +2028,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+
 
         void OnDragPerform(DragPerformEvent e)
         {
