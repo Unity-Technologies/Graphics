@@ -323,7 +323,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Fabric, HDFields.ShaderPass.RaytracingVisibility },
             };

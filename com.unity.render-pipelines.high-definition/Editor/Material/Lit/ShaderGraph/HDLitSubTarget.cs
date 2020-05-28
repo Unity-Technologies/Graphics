@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -73,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.Refraction,                           hasRefraction);
             context.AddField(HDFields.RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
             context.AddField(HDFields.RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
+            context.AddField(HDFields.RefractionThin,                       hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
 
             // AlphaTest
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template

@@ -42,37 +42,35 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties between all "surface" master nodes (everything except decal right now)
 
             // Blend Mode
-            context.AddField(Fields.BlendAdd,              systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
-            context.AddField(Fields.BlendAlpha,            systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
-            context.AddField(Fields.BlendPremultiply,      systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
+            context.AddField(Fields.BlendAdd,                       systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
+            context.AddField(Fields.BlendAlpha,                     systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
+            context.AddField(Fields.BlendPremultiply,               systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
 
             // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,             systemData.alphaTest
+            context.AddField(Fields.AlphaTest,                      systemData.alphaTest
                 && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
                     || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
                 || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
 
             // Double Sided
-            context.AddField(HDFields.DoubleSided,         systemData.doubleSidedMode != DoubleSidedMode.Disabled);
+            context.AddField(HDFields.DoubleSided,                  systemData.doubleSidedMode != DoubleSidedMode.Disabled);
 
-            context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass
-                && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass
-                && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
+            context.AddField(HDFields.DoAlphaTestPrepass,           systemData.alphaTest && systemData.alphaTestDepthPrepass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
+            context.AddField(HDFields.DoAlphaTestPostpass,          systemData.alphaTest && systemData.alphaTestDepthPostpass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
+            context.AddField(HDFields.DoAlphaTestShadow,            systemData.alphaTest && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
 
-            context.AddField(HDFields.TransparentDepthPrePass,              systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,             systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
+            context.AddField(HDFields.TransparentDepthPrePass,      systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
+            context.AddField(HDFields.TransparentDepthPostPass,     systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
 
             // Features & Misc
-            context.AddField(Fields.LodCrossFade,          systemData.supportLodCrossFade);
-            context.AddField(Fields.VelocityPrecomputed,                    builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.TransparentWritesMotionVec,           systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
-            context.AddField(Fields.AlphaToMask,                            systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.DepthOffset,                          builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
-            context.AddField(HDFields.AlphaFog,                             systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
-            context.AddField(HDFields.DoAlphaTestShadow,                    systemData.alphaTest && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
-            context.AddField(HDFields.TransparentBackFace,                  systemData.surfaceType != SurfaceType.Opaque && builtinData.backThenFrontRendering);
+            context.AddField(Fields.LodCrossFade,                   systemData.supportLodCrossFade);
+            context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
+            context.AddField(HDFields.TransparentWritesMotionVec,   systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
+            context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
+            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
+            context.AddField(HDFields.AlphaFog,                     systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
+            context.AddField(HDFields.TransparentBackFace,          systemData.surfaceType != SurfaceType.Opaque && builtinData.backThenFrontRendering);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
