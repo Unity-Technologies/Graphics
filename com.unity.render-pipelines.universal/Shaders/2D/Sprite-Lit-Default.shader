@@ -82,6 +82,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SHAPE_LIGHT(3)
             #endif
 
+            float _MyDepth;
+
             Varyings CombinedShapeLightVertex(Attributes v)
             {
                 Varyings o = (Varyings)0;
@@ -89,6 +91,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
+                o.positionCS.xy /= o.positionCS.w;
+                o.positionCS.z = _MyDepth;
+                o.positionCS.w = 1.0f;
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 float4 clipVertex = o.positionCS / o.positionCS.w;
                 o.lightingUV = ComputeScreenPos(clipVertex).xy;
@@ -214,6 +219,49 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             {
                 float4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 return mainTex;
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Tags { "LightMode" = "DepthRendering" "Queue"="Geometry" "RenderType"="Opaque"}
+            Blend Off
+            Cull Off
+            ColorMask 0
+            ZWrite On
+            ZTest LEqual
+
+            HLSLPROGRAM
+            #pragma prefer_hlslcc gles
+            #pragma vertex DepthVertex
+            #pragma fragment DepthFragment
+
+            float _MyDepth;
+
+            struct Attributes
+            {
+                float3 positionOS   : POSITION;
+            };
+
+            struct Varyings
+            {
+                float4  positionCS		: SV_POSITION;
+            };
+
+            Varyings DepthVertex(Attributes attributes)
+            {
+                Varyings o = (Varyings)0;
+                o.positionCS = TransformObjectToHClip(attributes.positionOS);
+                o.positionCS.xy /= o.positionCS.w;
+                o.positionCS.z = _MyDepth;
+                o.positionCS.w = 1.0f;
+                return o;
+            }
+
+            float4 DepthFragment(Varyings i) : SV_Target
+            {
+                return 0;
             }
             ENDHLSL
         }
