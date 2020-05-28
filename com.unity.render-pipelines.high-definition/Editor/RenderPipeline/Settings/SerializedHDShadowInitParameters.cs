@@ -36,6 +36,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxScreenSpaceShadowSlots;
         public SerializedProperty screenSpaceShadowBufferFormat;
 
+        public SerializedProperty cachedPunctualShadowAtlasResolution;
+        public SerializedProperty cachedAreaShadowAtlasResolution;
+
         public SerializedHDShadowInitParameters(SerializedProperty root)
         {
             this.root = root;
@@ -56,6 +59,9 @@ namespace UnityEditor.Rendering.HighDefinition
             maxDirectionalShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxDirectionalShadowMapResolution);
             maxPunctualShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxPunctualShadowMapResolution);
             maxAreaShadowMapResolution = root.Find((HDShadowInitParameters s) => s.maxAreaShadowMapResolution);
+
+            cachedPunctualShadowAtlasResolution = root.Find((HDShadowInitParameters s) => s.cachedPunctualLightShadowAtlas);
+            cachedAreaShadowAtlasResolution = root.Find((HDShadowInitParameters s) => s.cachedAreaLightShadowAtlas);
 
             shadowFilteringQuality = root.Find((HDShadowInitParameters s) => s.shadowFilteringQuality);
             supportScreenSpaceShadows = root.Find((HDShadowInitParameters s) => s.supportScreenSpaceShadows);
