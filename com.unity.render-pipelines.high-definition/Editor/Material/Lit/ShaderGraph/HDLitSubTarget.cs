@@ -96,7 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Vertex
             base.GetActiveBlocks(ref context);
             AddDistortionBlocks(ref context);
-            AddNormalBlocks(ref context);
 
             // Common
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask);
@@ -142,7 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             unchecked
             {
-            bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
+                bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
             }
 

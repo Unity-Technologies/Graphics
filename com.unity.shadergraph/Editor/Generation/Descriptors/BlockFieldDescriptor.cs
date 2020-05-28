@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.ShaderGraph
+using System;
+
+namespace UnityEditor.ShaderGraph
 {
     internal class BlockFieldDescriptor : FieldDescriptor
     {
@@ -32,18 +34,18 @@
     // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
     internal class CustomSlotBlockFieldDescriptor : BlockFieldDescriptor
     {
-        public MaterialSlot slot { get; }
+        public Func<MaterialSlot> createSlot;
 
-        public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string define, MaterialSlot slot)
+        public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string define, Func<MaterialSlot> createSlot)
             : base (tag, referenceName, define, null, ShaderStage.Fragment)
         {
-            this.slot = slot;
+            this.createSlot = createSlot;
         }
 
-        public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string displayName, string define, MaterialSlot slot)
+        public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string displayName, string define, Func<MaterialSlot> createSlot)
             : base (tag, referenceName, displayName, define, null, ShaderStage.Fragment)
         {
-            this.slot = slot;
+            this.createSlot = createSlot;
         }
     }
 }

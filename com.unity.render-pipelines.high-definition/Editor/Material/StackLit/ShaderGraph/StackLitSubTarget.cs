@@ -286,7 +286,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
-            AddNormalBlocks(ref context);
             AddDistortionBlocks(ref context);
 
             // Common
