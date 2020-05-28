@@ -202,6 +202,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
+    supportSSGI: 0
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000
@@ -241,10 +242,9 @@ MonoBehaviour:
       atlasOctahedralDepthWidth: 2048
       atlasOctahedralDepthHeight: 2048
     lightLoopSettings:
-      cookieAtlasSize: 4096
+      cookieAtlasSize: 16384
       cookieFormat: 74
       pointCookieSize: 512
-      cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 1
       planarReflectionAtlasSize: 2048
@@ -275,6 +275,8 @@ MonoBehaviour:
         shadowAtlasResolution: 4096
         shadowAtlasDepthBits: 32
         useDynamicViewportRescale: 0
+      cachedPunctualLightShadowAtlas: 2048
+      cachedAreaLightShadowAtlas: 1024
       shadowResolutionDirectional:
         m_Values: 00010000000200000004000000000000
         m_SchemaId:
