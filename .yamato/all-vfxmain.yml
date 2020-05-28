@@ -7,6 +7,8 @@ All_VFXMain_trunk:
          rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_trunk
          rerun: always
+      -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_XR_trunk
+         rerun: always
 All_VFXMain_fast-trunk:
     name: All VFXMain CI - fast-trunk
     dependencies:
@@ -16,6 +18,8 @@ All_VFXMain_fast-trunk:
          rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_fast-trunk
          rerun: always
+      -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_XR_fast-trunk
+         rerun: always
 All_VFXMain_CUSTOM-REVISION:
     name: All VFXMain CI - CUSTOM-REVISION
     dependencies:
@@ -24,6 +28,8 @@ All_VFXMain_CUSTOM-REVISION:
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_XR_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
