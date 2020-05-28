@@ -210,7 +210,10 @@ namespace UnityEditor.ShaderGraph
         public override void OnBeforeSerialize()
         {
             base.OnBeforeSerialize();
-            m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+            if (descriptor != null)
+            {
+                m_SerializedDescriptor = $"{m_Descriptor.tag}.{m_Descriptor.name}";
+            }
         }
     }
 }
