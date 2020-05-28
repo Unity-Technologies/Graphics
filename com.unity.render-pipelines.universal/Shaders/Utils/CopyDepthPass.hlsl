@@ -13,7 +13,7 @@
     #define MSAA_SAMPLES 1
 #endif
 
-half4 _ScaleBiasRt;
+half4 _ScaleBiasDstUV;
 
 struct Attributes
 {
@@ -51,7 +51,7 @@ Varyings vert(Attributes input)
     // If URP is NOT rendering to RT neither rendering with OpenGL:
     //  - Source Depth is NOT fliped. We CANNOT flip when copying depth and don't flip when sampling. (ProjectionParams.x == 1)
     output.positionCS = float4(input.positionHCS.xyz, 1.0);
-    output.positionCS.y *= _ScaleBiasRt.x;
+    output.positionCS.y *= _ScaleBiasDstUV.x;
     return output;
 }
 

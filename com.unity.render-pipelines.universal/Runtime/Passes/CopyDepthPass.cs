@@ -103,13 +103,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
             // If you replace this Blit with a Draw* that sets projection matrix double check
             // to also update shader.
-            // scaleBias.x = flipSign
-            // scaleBias.y = scale
-            // scaleBias.z = bias
-            // scaleBias.w = unused
+            // scaleBiasDstUV.x = flipSign
+            // scaleBiasDstUV.y = scale
+            // scaleBiasDstUV.z = bias
+            // scaleBiasDstUV.w = unused
             float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBiasRt = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+            Vector4 scaleBiasDstUV = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasDstUV, scaleBiasDstUV);
 
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 

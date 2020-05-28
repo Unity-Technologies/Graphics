@@ -339,14 +339,14 @@ namespace UnityEngine.Rendering.Universal
                         {
                             blitDesc.GetBlitParameter(i, out var blitParam);
 
-                            Vector4 scaleBias = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
+                            Vector4 scaleBiasSrcUV = yflip ? new Vector4(blitParam.srcRect.width, -blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.height + blitParam.srcRect.y) :
                                                         new Vector4(blitParam.srcRect.width, blitParam.srcRect.height, blitParam.srcRect.x, blitParam.srcRect.y);
-                            Vector4 scaleBiasRt = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
+                            Vector4 scaleBiasDstUV = new Vector4(blitParam.destRect.width, blitParam.destRect.height, blitParam.destRect.x, blitParam.destRect.y);
 
                             mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (!display.sRGB || blitParam.srcTex.sRGB) ? 0 : 1);
                             mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, blitParam.srcTex);
-                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
-                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
+                            mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasDstUV, scaleBiasDstUV);
                             mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, blitParam.srcTexArraySlice);
 
                             int shaderPass = (blitParam.srcTex.dimension == TextureDimension.Tex2DArray) ? 1 : 0;
@@ -388,19 +388,19 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetViewport(viewport);
                     cmd.SetRenderTarget(rt == null ? new RenderTargetIdentifier(BuiltinRenderTextureType.CameraTarget) : rt);
 
-                    Vector4 scaleBias   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
-                    Vector4 scaleBiasRT = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                    Vector4 scaleBiasSrcUV   = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                    Vector4 scaleBiasDstUV = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
-                    if (rt == null)
-                    {
-                        scaleBias.y = -1.0f;
-                        scaleBias.w = 1.0f;
+                    if (rt == null) // we need to y-flip when blitting from render texture to backbuffer
+                    { 
+                        scaleBiasSrcUV.y = -1.0f;
+                        scaleBiasSrcUV.w = 1.0f;
                     }
 
                     mirrorViewMaterialProperty.SetInt(XRShaderIDs._SRGBRead, (rt != null && rt.sRGB) ? 0 : 1);
                     mirrorViewMaterialProperty.SetTexture(ShaderPropertyId.sourceTex, testRenderTexture);
-                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBias, scaleBias);
-                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasRt, scaleBiasRT);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
+                    mirrorViewMaterialProperty.SetVector(ShaderPropertyId.scaleBiasDstUV, scaleBiasDstUV);
 
                     // Copy result from the second slice
                     mirrorViewMaterialProperty.SetInt(XRShaderIDs._SourceTexArraySlice, 1);

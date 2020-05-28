@@ -126,14 +126,6 @@ namespace UnityEngine.Rendering.Universal
 
 
 #if ENABLE_VR && ENABLE_XR_MODULE
-        internal static readonly int UNITY_STEREO_MATRIX_V = Shader.PropertyToID("unity_StereoMatrixV");
-        internal static readonly int UNITY_STEREO_MATRIX_IV = Shader.PropertyToID("unity_StereoMatrixInvV");
-        internal static readonly int UNITY_STEREO_MATRIX_P = Shader.PropertyToID("unity_StereoMatrixP");
-        internal static readonly int UNITY_STEREO_MATRIX_IP = Shader.PropertyToID("unity_StereoMatrixIP");
-        internal static readonly int UNITY_STEREO_MATRIX_VP = Shader.PropertyToID("unity_StereoMatrixVP");
-        internal static readonly int UNITY_STEREO_MATRIX_IVP = Shader.PropertyToID("unity_StereoMatrixIVP");
-        internal static readonly int UNITY_STEREO_VECTOR_CAMPOS = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
-
         // Hold the stereo matrices in this class to avoid allocating arrays every frame
         internal class StereoConstants
         {
@@ -167,16 +159,16 @@ namespace UnityEngine.Rendering.Universal
                 stereoConstants.worldSpaceCameraPos[i] = stereoConstants.invViewMatrix[i].GetColumn(3);
             }
 
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_V, viewMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_P, projMatrix);
-            cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_VP, stereoConstants.viewProjMatrix);
+            cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoViewMatrix, viewMatrix);
+            cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoProjectionMatrix, projMatrix);
+            cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoViewProjectionMatrix, stereoConstants.viewProjMatrix);
             if (setInverseMatrices)
             {
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IV, stereoConstants.invViewMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IP, stereoConstants.invProjMatrix);
-                cmd.SetGlobalMatrixArray(UNITY_STEREO_MATRIX_IVP, stereoConstants.invViewProjMatrix);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoInverseViewMatrix, stereoConstants.invViewMatrix);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoInverseProjectionMatrix, stereoConstants.invProjMatrix);
+                cmd.SetGlobalMatrixArray(ShaderPropertyId.stereoInverseViewProjectionMatrix, stereoConstants.invViewProjMatrix);
             }
-            cmd.SetGlobalVectorArray(UNITY_STEREO_VECTOR_CAMPOS, stereoConstants.worldSpaceCameraPos);
+            cmd.SetGlobalVectorArray(ShaderPropertyId.stereoCameraPosVector, stereoConstants.worldSpaceCameraPos);
         }
 #endif
 
@@ -194,10 +186,10 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
             if (useDrawProcedural)
             {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
+                Vector4 scaleBiasSrcUV = new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasDstUV = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasDstUV, scaleBiasDstUV);
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);

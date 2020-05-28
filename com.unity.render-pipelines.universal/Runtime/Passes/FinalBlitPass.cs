@@ -70,8 +70,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // 1) we are bliting from render texture to back buffer(UV starts at bottom) and
                 // 2) renderTexture starts UV at top
                 bool yflip = !cameraData.xr.renderTargetIsRenderTexture && SystemInfo.graphicsUVStartsAtTop;
-                Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                Vector4 scaleBiasSrcUV = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
 
                 cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4);
             }

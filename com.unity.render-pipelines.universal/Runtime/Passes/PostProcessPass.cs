@@ -239,8 +239,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, source);
             if (m_UseDrawProcedural)
             {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                Vector4 scaleBiasSrcUV = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
                     RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
@@ -256,8 +256,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (m_UseDrawProcedural)
             {
-                Vector4 scaleBias = new Vector4(1, 1, 0, 0);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                Vector4 scaleBiasSrcUV = new Vector4(1, 1, 0, 0);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }
             else
@@ -420,8 +420,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // 1) we are bliting from render texture to back buffer and
                     // 2) renderTexture starts UV at top
                     bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
-                    Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
-                    cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                    Vector4 scaleBiasSrcUV = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
+                    cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
                     cmd.DrawProcedural(Matrix4x4.identity, m_Materials.uber, 0, MeshTopology.Quads, 4, 1, null);
 
                     // TODO: We need a proper camera texture swap chain in URP.
@@ -434,8 +434,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                         cmd.SetRenderTarget(new RenderTargetIdentifier(m_Source.id, 0, CubemapFace.Unknown, -1),
                             colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                        scaleBias = new Vector4(1, 1, 0, 0); ;
-                        cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                        scaleBiasSrcUV = new Vector4(1, 1, 0, 0); ;
+                        cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
                         cmd.DrawProcedural(Matrix4x4.identity, m_BlitMaterial, 0, MeshTopology.Quads, 4, 1, null);
                     }
                 }
@@ -1141,11 +1141,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 // 2) renderTexture starts UV at top
                 bool yflip = isRenderToBackBufferTarget && SystemInfo.graphicsUVStartsAtTop;
 
-                Vector4 scaleBias = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
+                Vector4 scaleBiasSrcUV = yflip ? new Vector4(1, -1, 0, 1) : new Vector4(1, 1, 0, 0);
 
                 cmd.SetRenderTarget(new RenderTargetIdentifier(cameraTarget, 0, CubemapFace.Unknown, -1),
                     colorLoadAction, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
+                cmd.SetGlobalVector(ShaderPropertyId.scaleBiasSrcUV, scaleBiasSrcUV);
                 cmd.DrawProcedural(Matrix4x4.identity, material, 0, MeshTopology.Quads, 4, 1, null);
             }
             else

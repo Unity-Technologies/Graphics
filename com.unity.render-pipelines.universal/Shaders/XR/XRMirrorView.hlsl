@@ -8,8 +8,8 @@ TEXTURE2D(_SourceTex);
 #endif
 
 SamplerState sampler_LinearClamp;
-uniform float4 _ScaleBias;
-uniform float4 _ScaleBiasRt;
+uniform float4 _ScaleBiasSrcUV;
+uniform float4 _ScaleBiasDstUV;
 uniform uint _SourceTexArraySlice;
 uniform uint _SRGBRead;
 
@@ -27,9 +27,9 @@ struct Varyings
 Varyings VertQuad(Attributes input)
 {
     Varyings output;
-    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_ScaleBiasRt.x, _ScaleBiasRt.y, 1, 1) + float4(_ScaleBiasRt.z, _ScaleBiasRt.w, 0, 0);
+    output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_ScaleBiasDstUV.x, _ScaleBiasDstUV.y, 1, 1) + float4(_ScaleBiasDstUV.z, _ScaleBiasDstUV.w, 0, 0);
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-    output.texcoord = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
+    output.texcoord = GetQuadTexCoord(input.vertexID) * _ScaleBiasSrcUV.xy + _ScaleBiasSrcUV.zw;
     return output;
 }
 

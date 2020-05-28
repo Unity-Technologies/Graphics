@@ -265,8 +265,18 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
         public static readonly int sourceTex = Shader.PropertyToID("_SourceTex");
-        public static readonly int scaleBias = Shader.PropertyToID("_ScaleBias");
-        public static readonly int scaleBiasRt = Shader.PropertyToID("_ScaleBiasRt");
+        public static readonly int scaleBiasSrcUV = Shader.PropertyToID("_ScaleBiasSrcUV");
+        public static readonly int scaleBiasDstUV = Shader.PropertyToID("_ScaleBiasDstUV");
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        public static readonly int stereoViewMatrix = Shader.PropertyToID("unity_StereoMatrixV");
+        public static readonly int stereoInverseViewMatrix = Shader.PropertyToID("unity_StereoMatrixInvV");
+        public static readonly int stereoProjectionMatrix = Shader.PropertyToID("unity_StereoMatrixP");
+        public static readonly int stereoInverseProjectionMatrix = Shader.PropertyToID("unity_StereoMatrixIP");
+        public static readonly int stereoViewProjectionMatrix = Shader.PropertyToID("unity_StereoMatrixVP");
+        public static readonly int stereoInverseViewProjectionMatrix = Shader.PropertyToID("unity_StereoMatrixIVP");
+        public static readonly int stereoCameraPosVector = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
+#endif
     }
 
     public struct PostProcessingData
