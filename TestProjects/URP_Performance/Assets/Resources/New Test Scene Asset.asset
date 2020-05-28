@@ -13,12 +13,51 @@ MonoBehaviour:
   m_Name: New Test Scene Asset
   m_EditorClassIdentifier: 
   counterTestSuite:
-    scenes: []
-    srpAssets: []
+    scenes:
+    - scene: 
+      sceneLabels: 
+      scenePath: 
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
   memoryTestSuite:
-    scenes: []
-    srpAssets: []
+    scenes:
+    - scene: 
+      sceneLabels: 
+      scenePath: 
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
   buildTestSuite:
-    scenes: []
-    srpAssets: []
+    scenes:
+    - scene: 
+      sceneLabels: 
+      scenePath: 
+      enabled: 1
+    srpAssets:
+    - asset: {fileID: 11400000, guid: 19ba41d7c0026c3459d37c2fe90c55a0, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: a31e9f9f9c9d4b9429ed0d1234e22103, type: 2}
+      assetLabels: Default
+      alias: 
+    - asset: {fileID: 11400000, guid: d847b876476d3d6468f5dfcd34266f96, type: 2}
+      assetLabels: Default
+      alias: 
   srpAssetAliases: []

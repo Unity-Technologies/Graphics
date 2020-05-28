@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e106e93a76c4c9d47a878fe43b5a3db7, type: 3}
   m_Name: PerformanceTestsSettings
   m_EditorClassIdentifier: 
-  testDescriptionAsset: 
-  staticAnalysisAsset: 
+  testDescriptionAsset: New Test Scene Asset
+  staticAnalysisAsset: StaticAnalysis

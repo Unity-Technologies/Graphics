@@ -6,6 +6,30 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: d1c3109bdb54ad54c8a2b2838528e640
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
+  - enabled: 1
+    path: Assets/InitTestScene637262697836639390.unity
+    guid: ea23c4eb0d6484e38ac69ea3b6026ab4
   m_configObjects: {}
