@@ -63,6 +63,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hash;
         }
 
+        protected override bool supportsLighting => true;
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);

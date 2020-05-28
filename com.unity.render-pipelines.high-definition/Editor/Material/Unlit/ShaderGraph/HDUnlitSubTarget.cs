@@ -15,17 +15,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed partial class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
     {
+        public HDUnlitSubTarget() => displayName = "Unlit";
+
+
+        // TODO: remove this line
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
+
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
         // TODO: This should be resolved so we can delete the second pass template
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
-        static string raytracingPassTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
 
-        public HDUnlitSubTarget() => displayName = "Unlit";
+        protected override bool supportDistortion => true;
 
         HDUnlitData m_UnlitData;
 
@@ -41,16 +47,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_UnlitData = value;
         }
 
-        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
+        protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
-            yield return SubShaders.Unlit;
-            yield return SubShaders.UnlitRaytracing;
+            if (unlitData.distortionOnly)
+            {
+                return new SubShaderDescriptor
+                {
+                    generatesPreview = true,
+                    passes = new PassCollection{ distortionPass }
+                };
+                // TODO
+            }
+            else
+            {
+                return base.GetSubShaderDescriptor();
+            }
         }
 
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            AddDistortionFields(ref context);
 
             // Unlit specific properties
             context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
@@ -60,7 +76,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
-            AddDistortionBlocks(ref context);
 
             // Unlit specific blocks
             context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
@@ -108,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { UnlitPasses.SceneSelection },
                     { UnlitPasses.DepthForwardOnly },
                     { UnlitPasses.MotionVectors },
-                    { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
+                    // { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
                     { UnlitPasses.ForwardOnly },
                 },
             };
@@ -262,32 +277,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = UnlitIncludes.MotionVectors,
             };
 
-            public static PassDescriptor Distortion = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DistortionVectors",
-                referenceName = "SHADERPASS_DISTORTION",
-                lightMode = "DistortionVectors",
-                useInPreview = true,
-
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // Block Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = UnlitBlockMasks.FragmentDistortion,
-
-                // Collections
-                structs = CoreStructCollections.Default,
-                requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = UnlitRenderStates.Distortion,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
-                keywords = CoreKeywords.HDBase,
-                includes = UnlitIncludes.Distortion,
-            };
-
             public static PassDescriptor ForwardOnly = new PassDescriptor()
             {
                 // Definition
@@ -325,7 +314,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -350,7 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -375,7 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -400,7 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -425,7 +414,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -528,25 +517,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     Pass = "Replace",
                 }) },
             };
-
-            public static RenderStateCollection Distortion = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
-                { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
-                { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
-                { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
-                { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
         }
         #endregion
 
@@ -593,6 +563,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
+        protected override string subShaderInclude => CoreIncludes.kUnlit;
 
 #region Includes
         static class UnlitIncludes

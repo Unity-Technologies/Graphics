@@ -15,12 +15,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed partial class HairSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HairData>
     {
-        static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template";
+        public HairSubTarget() => displayName = "Hair";
+
+        // TODO: remove this line
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template";
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template";
         protected override string customInspector => "Rendering.HighDefinition.HairGUI";
         protected override string subTargetAssetGuid => "7e681cc79dd8e6c46ba1e8412d519e26"; // HairSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
-
-        public HairSubTarget() => displayName = "Hair";
 
         HairData m_HairData;
 
@@ -647,6 +650,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
+        protected override string subShaderInclude => CoreIncludes.kHair;
 
 #region Includes
         static class HairIncludes
@@ -686,13 +690,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.kLighting, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph },
                 { CoreIncludes.kHair, IncludeLocation.Pregraph },
+                // { postLightLoopIncludes, IncludeLocation.Pregraph },
                 { CoreIncludes.kLightLoop, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
+                // { postDecalIncludes, IncludeLocation.Pregraph },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
             };
         }
+
+        // public override IncludeCollection postLightLoopIncludes => { CoreIncludes.kHair, ""};
+        // public override IncludeCollection postDecalIncludes => new IncludeCollection { ""};
+
 #endregion
     }
 }

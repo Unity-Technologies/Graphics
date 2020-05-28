@@ -18,13 +18,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     // or let inputs (eg mask?) follow invalid values ? Lit does that (let them free running).
     sealed partial class StackLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<StackLitData>
     {
-        const string kAssetGuid = "5f7ba34a143e67647b202a662748dae3";
-        static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
+        public StackLitSubTarget() => displayName = "StackLit";
+
+        // TODO: remove this line
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
         protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
         protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
 
-        public StackLitSubTarget() => displayName = "StackLit";
+        protected override bool supportDistortion => true;
 
         StackLitData m_StackLitData;
 
@@ -159,7 +163,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            AddDistortionFields(ref context);
 
             // StackLit specific properties
             context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(StackLitSubTarget.StackLitPasses.MotionVectors));
@@ -287,7 +290,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.GetActiveBlocks(ref context);
             AddNormalBlocks(ref context);
-            AddDistortionBlocks(ref context);
 
             // Common
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
@@ -995,6 +997,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
+        protected override string subShaderInclude => CoreIncludes.kStackLit;
 
 #region Includes
         static class StackLitIncludes

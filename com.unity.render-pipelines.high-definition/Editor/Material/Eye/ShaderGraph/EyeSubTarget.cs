@@ -15,12 +15,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed partial class EyeSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<EyeData>
     {
-        static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
+        public EyeSubTarget() => displayName = "Eye";
+
+        // TODO: remove this line
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
-
-        public EyeSubTarget() => displayName = "Eye";
 
         EyeData m_EyeData;
 
@@ -312,6 +315,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
+        protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
 
 #region Includes
         static class EyeIncludes

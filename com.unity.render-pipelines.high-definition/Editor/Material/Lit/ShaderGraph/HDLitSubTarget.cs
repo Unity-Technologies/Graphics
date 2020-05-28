@@ -15,13 +15,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed partial class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
     {
-        static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
-
         public HDLitSubTarget() => displayName = "Lit";
 
+        // TODO: remove this line
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
         protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
         protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+
+        protected override bool supportDistortion => true;
 
         HDLitData m_LitData;
 
@@ -47,7 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
-            AddDistortionFields(ref context);
 
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
@@ -95,7 +98,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Vertex
             base.GetActiveBlocks(ref context);
-            AddDistortionBlocks(ref context);
             AddNormalBlocks(ref context);
 
             // Common
@@ -969,6 +971,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 #endregion
+
+        protected override string subShaderInclude => CoreIncludes.kLit;
 
 #region Includes
         static class LitIncludes

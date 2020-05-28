@@ -76,6 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.alphaToMask = hdUnlitMasterNode.m_AlphaToMask;
             builtinData.addPrecomputedVelocity = hdUnlitMasterNode.m_AddPrecomputedVelocity;
 
+            unlitData.distortionOnly = hdUnlitMasterNode.m_DistortionOnly;
             unlitData.enableShadowMatte = hdUnlitMasterNode.m_EnableShadowMatte;
             target.customEditorGUI = hdUnlitMasterNode.m_OverrideEnabled ? hdUnlitMasterNode.m_ShaderGUIOverride : "";
 
