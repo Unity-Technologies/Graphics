@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
 
         protected override bool supportDistortion => true;
+        protected override bool supportForward => true;
 
         HDUnlitData m_UnlitData;
 
@@ -48,14 +49,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
-            if (unlitData.distortionOnly)
+            if (unlitData.distortionOnly && builtinData.distortion)
             {
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection{ distortionPass }
+                    passes = new PassCollection{ { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(HDFields.TransparentDistortion, true) } }
                 };
-                // TODO
             }
             else
             {
@@ -446,14 +446,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
-            };
-
-            public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
-            {
-                BlockFields.SurfaceDescription.Alpha,
-                BlockFields.SurfaceDescription.AlphaClipThreshold,
-                HDBlockFields.SurfaceDescription.Distortion,
-                HDBlockFields.SurfaceDescription.DistortionBlur,
             };
 
             public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]

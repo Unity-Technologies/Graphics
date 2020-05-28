@@ -970,6 +970,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Public Pregraph Misc
         public const string kShaderGraphFunctions = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderGraphFunctions.hlsl";
         public const string kDecalUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl";
+        public const string kPassPlaceholder = "Pass Include Placeholder, replace me !";
+        public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
+        public const string kPostGraphPlaceholder = "After Graph Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";

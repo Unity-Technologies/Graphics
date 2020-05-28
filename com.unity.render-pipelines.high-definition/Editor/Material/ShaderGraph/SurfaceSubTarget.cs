@@ -36,10 +36,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected virtual bool supportForward => false;
-        protected virtual bool supportsLighting => false;
+        protected virtual bool supportLighting => false;
         protected virtual bool supportDistortion => false;
         protected virtual bool supportRaytracing => false;
         protected virtual bool supportPathtracing => false;
+
+        protected abstract string subShaderInclude { get; }
+        protected virtual string postDecalsIncludes => null;
+        protected virtual string postGraphIncludes => null;
 
         // TODO: put this method as sealed when the new pass system is done
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
@@ -62,36 +66,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    // distortionPass,
-                    // ShadowCaster,
-                    // META,
-                    // SceneSelection,
+                    HDShaderPasses.GenerateSceneSelectionPass(),
+                    HDShaderPasses.GenerateShadowCasterPass(supportLighting),
+                    HDShaderPasses.GenerateMETAPass(supportLighting),
                     // MotionVector
                 };
-                
-                // if (supportForward)
+
+                if (supportForward)
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnly(supportLighting));
                     // passes.Add();
                 if (supportDistortion)
-                    passes.Add(distortionPass);
+                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
                 
                 return passes;
             }
-        }
-
-        // TODO: remove ?
-        SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor descriptor)
-        {
-            if (String.IsNullOrEmpty(descriptor.pipelineTag))
-                descriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
-            
-            return descriptor;
         }
 
         protected virtual SubShaderDescriptor GetRaytracingSubShaderDescriptor()
         {
             return new SubShaderDescriptor
             {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
                 generatesPreview = true,
             };
 
@@ -105,6 +99,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 
             //     return passes;
             // }
+        }
+
+        SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
+        {
+            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
+                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
+            
+            var passes = subShaderDescriptor.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+                passDescriptor.passTemplatePath = templatePath;
+                passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
+
+                IncludeCollection finalIncludes = new IncludeCollection();
+                var includeList = passDescriptor.includes.Select(i => i.descriptor).ToList();
+        
+
+                // Replace include placeholders if necessary:
+                foreach (var include in passDescriptor.includes)
+                {
+                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
+                        include.descriptor.value = subShaderInclude;
+                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
+                        include.descriptor.value = postDecalsIncludes;
+                    if (include.descriptor.value == CoreIncludes.kPostGraphPlaceholder)
+                        include.descriptor.value = postGraphIncludes;
+
+                    if (!String.IsNullOrEmpty(include.descriptor.value))
+                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                }
+
+                passDescriptor.includes = finalIncludes;
+
+                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+            }
+
+            subShaderDescriptor.passes = finalPasses;
+
+            return subShaderDescriptor;
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -350,78 +385,101 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         //     includes = UnlitIncludes.DepthOnly,
         // };
 
-        protected PassDescriptor distortionPass => new PassDescriptor()
-        {
-            // Definition
-            displayName = "DistortionVectors",
-            referenceName = "SHADERPASS_DISTORTION",
-            lightMode = "DistortionVectors",
-            useInPreview = true,
+        // protected PassDescriptor sceneSelectionPass => new PassDescriptor()
+        // {
+        //     // Definition
+        //     displayName = "SceneSelectionPass",
+        //     referenceName = "SHADERPASS_DEPTH_ONLY",
+        //     lightMode = "SceneSelectionPass",
+        //     useInPreview = false,
 
-            // Template
-            passTemplatePath = templatePath,
-            sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+        //     // Template
+        //     passTemplatePath = templatePath,
+        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-            // Port mask
-            validVertexBlocks = CoreBlockMasks.Vertex,
-            validPixelBlocks = FragmentDistortion,
+        //     // Block Mask
+        //     validVertexBlocks = CoreBlockMasks.Vertex,
+        //     validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
-            // Collections
-            structs = CoreStructCollections.Default,
-            fieldDependencies = CoreFieldDependencies.Default,
-            renderStates = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
-                { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
-                { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
-                { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
-                { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
-                { RenderState.Stencil(new StencilDescriptor() {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            },
-            pragmas = CorePragmas.DotsInstancedInV1AndV2,
-            defines = CoreDefines.ShaderGraphRaytracingHigh,
-            keywords = CoreKeywords.HDBase,
-            includes = GenerateDistortionIncludes(),
-        };
+        //     // Collections
+        //     structs = CoreStructCollections.Default,
+        //     requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
+        //     fieldDependencies = CoreFieldDependencies.Default,
+        //     renderStates = UnlitRenderStates.SceneSelection,
+        //     pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
+        //     defines = CoreDefines.SceneSelection,
+        //     keywords = CoreKeywords.HDBase,
+        //     includes = UnlitIncludes.DepthOnly,
+        // };
 
-        IncludeCollection GenerateDistortionIncludes()
-        {
-            var includes = new IncludeCollection();
+        // protected PassDescriptor distortionPass => new PassDescriptor()
+        // {
+        //     // Definition
+        //     displayName = "DistortionVectors",
+        //     referenceName = "SHADERPASS_DISTORTION",
+        //     lightMode = "DistortionVectors",
+        //     useInPreview = true,
 
-            includes.Add(CoreIncludes.CorePregraph);
-            if (supportsLighting)
-                includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-            includes.Add(subShaderInclude, IncludeLocation.Pregraph);
-            includes.Add(CoreIncludes.CoreUtility);
-            if (supportsLighting)
-            {
-                includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-                includes.Add(postDecalsIncludes);
-            }
-            includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-            includes.Add(CoreIncludes.kDisortionVectors, IncludeLocation.Postgraph);
+        //     // Template
+        //     passTemplatePath = templatePath,
+        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-            return includes;
-        }
+        //     // Port mask
+        //     validVertexBlocks = CoreBlockMasks.Vertex,
+        //     validPixelBlocks = FragmentDistortion,
 
-        protected abstract string subShaderInclude { get; }
-        protected virtual IncludeCollection postDecalsIncludes => null;
-        protected virtual IncludeCollection postGraphIncludes => null;
+        //     // Collections
+        //     structs = CoreStructCollections.Default,
+        //     fieldDependencies = CoreFieldDependencies.Default,
+        //     renderStates = new RenderStateCollection
+        //     {
+        //         { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
+        //         { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
+        //         { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
+        //         { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
+        //         { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+        //         { RenderState.ZWrite(ZWrite.Off) },
+        //         { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
+        //         { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
+        //         { RenderState.Stencil(new StencilDescriptor() {
+        //             WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
+        //             Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
+        //             Comp = "Always",
+        //             Pass = "Replace",
+        //         }) },
+        //     },
+        //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+        //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+        //     keywords = CoreKeywords.HDBase,
+        //     includes = GenerateDistortionIncludes(),
+        // };
 
-        public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Distortion,
-            HDBlockFields.SurfaceDescription.DistortionBlur,
-        };
+        // IncludeCollection GenerateDistortionIncludes()
+        // {
+        //     var includes = new IncludeCollection();
+
+        //     includes.Add(CoreIncludes.CorePregraph);
+        //     if (supportsLighting)
+        //         includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+        //     includes.Add(subShaderInclude, IncludeLocation.Pregraph);
+        //     includes.Add(CoreIncludes.CoreUtility);
+        //     if (supportsLighting)
+        //     {
+        //         includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+        //         includes.Add(postDecalsIncludes);
+        //     }
+        //     includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+        //     includes.Add(CoreIncludes.kDisortionVectors, IncludeLocation.Postgraph);
+
+        //     return includes;
+        // }
+
+        // public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
+        // {
+        //     BlockFields.SurfaceDescription.Alpha,
+        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
+        //     HDBlockFields.SurfaceDescription.Distortion,
+        //     HDBlockFields.SurfaceDescription.DistortionBlur,
+        // };
     }
 }
