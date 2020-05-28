@@ -37,12 +37,21 @@ struct RayIntersection
     float3 lightPosition;
     float3 lightDirection;
     float3 lightOutgoing;
-    float pdf;
+    float lightIntensity;
+    float lightAngleScale;
+    float lightAngleOffset;
+    float lightValue;
+    float lightPDF;
     float3 value;
     float3 diffValue;
     float diffPdf;
     float3 specValue;
     float specPdf;
+
+    float bsdfWeight0;
+    float bsdfWeight1;
+    float bsdfWeight2;
+    float bsdfWeight3;
 };
 
 struct AttributeData
