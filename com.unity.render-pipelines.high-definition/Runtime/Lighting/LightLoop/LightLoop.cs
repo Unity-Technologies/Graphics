@@ -1536,22 +1536,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightData.cookieMode = CookieMode.Clamp;
                 lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, Texture2D.whiteTexture);
             }
-            else if (lightData.lightType == GPULightType.Rectangle &&
-                (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null))
+            else if (lightData.lightType == GPULightType.Rectangle)
             {
-                Texture emissveTexture = null;
+                if (additionalLightData.areaLightCookie != null || additionalLightData.IESPoint != null)
+                {
+                    Texture emissveTexture = null;
 
-                lightData.cookieMode = CookieMode.Clamp;
-                if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
-                else if (additionalLightData.IESSpot != null)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
-                else if (additionalLightData.areaLightCookie != null)
-                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
+                    lightData.cookieMode = CookieMode.Clamp;
+                    if (additionalLightData.areaLightCookie != null && additionalLightData.IESSpot != null && additionalLightData.areaLightCookie != additionalLightData.IESSpot)
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, additionalLightData.IESSpot, ref emissveTexture);
+                    else if (additionalLightData.IESSpot != null)
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.IESSpot, ref emissveTexture);
+                    else if (additionalLightData.areaLightCookie != null)
+                        lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchAreaCookie(cmd, additionalLightData.areaLightCookie, ref emissveTexture);
+                    else
+                        emissveTexture = null;
+
+                    additionalLightData.areaLightEmissive = emissveTexture;
+                }
                 else
-                    emissveTexture = null;
-
-                additionalLightData.areaLightEmissive = emissveTexture;
+                {
+                    additionalLightData.areaLightEmissive = Texture2D.whiteTexture;
+                }
             }
 
             float shadowDistanceFade         = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, Mathf.Min(shadowSettings.maxShadowDistance.value, additionalLightData.shadowFadeDistance));

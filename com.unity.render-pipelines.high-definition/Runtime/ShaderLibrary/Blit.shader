@@ -250,6 +250,67 @@ Shader "Hidden/HDRP/Blit"
             ENDHLSL
         }
 
+        /// Version 4, 5, 6, 7 with Alpha Blending 0.5
+        // 9: Nearest quad with padding alpha blend (4 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragNearest
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
+
+        // 10: Bilinear quad with padding alpha blend (5 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragBilinear
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
+
+        // 11: Nearest quad with padding alpha blend (6 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragNearestRepeat
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
+
+        // 12: Bilinear quad with padding alpha blend (7 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragBilinearRepeat
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
+
+        // 13: Bilinear quad with padding alpha blend (for OctahedralTexture) (8 with alpha blend)
+        Pass
+        {
+            ZWrite Off ZTest Always Blend DstColor Zero Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragOctahedralBilinearRepeat
+                #define WITH_ALPHA_BLEND
+            ENDHLSL
+        }
+
     }
 
     Fallback Off
