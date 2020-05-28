@@ -72,6 +72,8 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ShadowAtlasSize;
     float4 _CascadeShadowAtlasSize;
     float4 _AreaShadowAtlasSize;
+    float4 _CachedShadowAtlasSize;
+    float4 _CachedAreaShadowAtlasSize;
     float4x4 _Env2DCaptureVP[32];
     float4 _Env2DCaptureForward[32];
     float4 _Env2DAtlasScaleOffset[32];
@@ -128,7 +130,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _XRViewCount;
     int _FrameCount;
     float4 _CoarseStencilBufferSize;
-    int _RaytracedIndirectDiffuse;
+    int _UseIndirectDiffuse;
     int _UseRayTracedReflections;
     int _RaytracingFrameIndex;
     uint _EnableRecursiveRayTracing;

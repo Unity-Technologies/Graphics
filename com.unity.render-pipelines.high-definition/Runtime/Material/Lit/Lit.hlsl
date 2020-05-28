@@ -207,11 +207,8 @@ float GetAmbientOcclusionForMicroShadowing(BSDFData bsdfData)
 {
     float sourceAO;
 #if (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING)
-    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion unless LIGHT_LAYERS is enabled
-    // so we use specularOcclusion instead
-    // The define LIGHT_LAYERS only exist for the GBuffer and the Forward pass. To avoid to add another
-    // variant to deferred.compute, we use dynamic branching instead with _EnableLightLayers.
-    sourceAO = _EnableLightLayers ? bsdfData.ambientOcclusion : bsdfData.specularOcclusion;
+    // Note: In deferred pass we don't have space in GBuffer to store ambientOcclusion so we use specularOcclusion instead
+    sourceAO = bsdfData.specularOcclusion;
 #else
     sourceAO = bsdfData.ambientOcclusion;
 #endif
@@ -2005,6 +2002,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 #else
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
 #endif
+
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
     // Subsurface scattering mode

@@ -50,6 +50,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define CENTRAL_FILTERING NO_FILTERING
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 0
     #define VELOCITY_REJECTION (defined(ENABLE_MV_REJECTION) && 0)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
@@ -63,6 +64,7 @@ Shader "Hidden/HDRP/TemporalAA"
     #define CENTRAL_FILTERING BLACKMAN_HARRIS
     #define HISTORY_CLIP DIRECT_CLIP
     #define ANTI_FLICKER 1
+    #define ANTI_FLICKER_MV_DEPENDENT 1
     #define VELOCITY_REJECTION defined(ENABLE_MV_REJECTION)
     #define PERCEPTUAL_SPACE 1
     #define PERCEPTUAL_SPACE_ONLY_END 0 && (PERCEPTUAL_SPACE == 0)
@@ -163,7 +165,13 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Get neighbourhood information and clamp history --------------- 
             float colorLuma = GetLuma(filteredColor);
             float historyLuma = GetLuma(history);
-            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker));
+
+#if ANTI_FLICKER_MV_DEPENDENT || VELOCITY_REJECTION
+            float motionVectorLength = length(motionVector);
+#else
+            float motionVectorLength = 0.0f;
+#endif
+            GetNeighbourhoodCorners(samples, historyLuma, colorLuma, float2(_AntiFlickerIntensity, _ContrastForMaxAntiFlicker), motionVectorLength);
 
             history = GetClippedHistory(filteredColor, history, samples.minNeighbour, samples.maxNeighbour);
             filteredColor = SharpenColor(samples, filteredColor, sharpenStrength);
@@ -189,7 +197,7 @@ Shader "Hidden/HDRP/TemporalAA"
             // --------------- Blend to final value and output ---------------
 
 #if VELOCITY_REJECTION
-            float lengthMV = length(motionVector) * 10;
+            float lengthMV = motionVectorLength * 10;
             blendFactor = ModifyBlendWithMotionVectorRejection(_InputVelocityMagnitudeHistory, lengthMV, prevUV, blendFactor, _SpeedRejectionIntensity);
 #endif
 
