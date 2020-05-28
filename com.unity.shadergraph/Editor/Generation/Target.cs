@@ -22,6 +22,8 @@ namespace UnityEditor.ShaderGraph
         public virtual void ProcessPreviewMaterial(Material material) { }
         public virtual object saveContext => null;
         public virtual bool IsNodeAllowedByTarget(Type nodeType) => NodeTypes.AllBuiltin.Contains(nodeType);
+
+        public abstract bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline);
         
     }
 }

@@ -122,5 +122,10 @@ namespace UnityEditor.ShaderGraph
 
             return true;
         }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
+        }
     }
 }

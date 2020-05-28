@@ -311,6 +311,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             blockMap = null;
             return false;
         }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline.GetType() == typeof(UniversalRenderPipelineAsset);
+        }
     }
 
 #region Passes
