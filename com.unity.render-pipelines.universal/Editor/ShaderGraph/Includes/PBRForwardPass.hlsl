@@ -51,7 +51,12 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
     #if _AlphaClip
-        clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
+        half alpha = surfaceDescription.Alpha;
+        clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #elif _SURFACE_TYPE_TRANSPARENT
+        half alpha = surfaceDescription.Alpha;
+    #else
+        half alpha = 1;
     #endif
 
     InputData inputData;
@@ -63,11 +68,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #else
         float3 specular = 0;
         float metallic = surfaceDescription.Metallic;
-    #endif
-
-    half alpha = 1;
-    #if _SURFACE_TYPE_TRANSPARENT
-        alpha = surfaceDescription.Alpha;
     #endif
 
     half4 color = UniversalFragmentPBR(

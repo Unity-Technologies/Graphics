@@ -95,8 +95,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.SpecularOcclusionCustom,              lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
         }
 
-        protected void AddLightingBlocks(ref TargetActiveBlockContext context)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            base.GetActiveBlocks(ref context);
+
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
@@ -111,10 +113,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,    lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
-        }
 
-        protected void AddNormalBlocks(ref TargetActiveBlockContext context)
-        {
+            // Normal dropoff space
             context.AddBlock(BlockFields.SurfaceDescription.NormalOS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,               lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddBlock(BlockFields.SurfaceDescription.NormalWS,               lightingData.normalDropOffSpace == NormalDropOffSpace.World);

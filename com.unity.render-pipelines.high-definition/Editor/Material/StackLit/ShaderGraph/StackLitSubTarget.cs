@@ -289,7 +289,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             base.GetActiveBlocks(ref context);
-            AddNormalBlocks(ref context);
 
             // Common
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);

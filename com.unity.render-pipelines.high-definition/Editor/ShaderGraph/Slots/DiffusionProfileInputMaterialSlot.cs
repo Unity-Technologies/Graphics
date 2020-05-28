@@ -133,6 +133,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (slot != null)
             {
                 m_SerializedDiffusionProfile = slot.m_SerializedDiffusionProfile;
+                m_DiffusionProfileAsset = null;
             }
         }
 

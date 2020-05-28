@@ -24,7 +24,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
         // TODO: This should be resolved so we can delete the second pass template
-        static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
@@ -85,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             blockList.AddPropertyBlock(new HDUnlitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Unlit, unlitData));
             if (systemData.surfaceType == SurfaceType.Transparent)
-                blockList.AddPropertyBlock(new DistortionPropertyBlock());
+                blockList.AddPropertyBlock(new HDUnlitDistortionPropertyBlock(unlitData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
