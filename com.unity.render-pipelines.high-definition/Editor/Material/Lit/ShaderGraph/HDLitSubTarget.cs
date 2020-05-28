@@ -408,7 +408,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = LitRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPrePass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -489,7 +489,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPostPass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = CoreKeywords.HDBase,
@@ -867,20 +867,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
                     Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.Zero) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
                     Comp = "Always",
                     Pass = "Replace",
                 }) },

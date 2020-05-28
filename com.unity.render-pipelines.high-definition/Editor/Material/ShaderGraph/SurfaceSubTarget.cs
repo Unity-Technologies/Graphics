@@ -154,6 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, systemData.alphaTestDepthPrepass, systemData.alphaTestDepthPostpass);
 
             // Add all shader properties required by the inspector
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
