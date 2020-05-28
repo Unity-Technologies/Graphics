@@ -466,6 +466,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 AABBBoundsBuffer = new ComputeBuffer(viewCount * 2 * maxLightOnScreen, 4 * sizeof(float));
                 convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
                 lightVolumeDataBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+
+                // Make sure to invalidate the content of the buffers
+                listsAreClear = false;
             }
 
             public void ReleaseResolutionDependentBuffers()

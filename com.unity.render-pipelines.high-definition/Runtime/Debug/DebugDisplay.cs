@@ -919,6 +919,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
                             setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
                         });
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Center Around Exposure",
+                            getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
+                            setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
+                        });
                 }
 
                 exposureFoldout.children.Add(

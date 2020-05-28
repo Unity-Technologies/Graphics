@@ -627,6 +627,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
