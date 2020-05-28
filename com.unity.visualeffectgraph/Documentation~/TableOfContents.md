@@ -58,6 +58,13 @@
         * [Square Root](Operator-SquareRoot.md)
         * [Step](Operator-Step.md)
         * [Subtract](Operator-Subtract.md)
+      * Geometry
+        * [Area (Circle)](Operator-Area(Circle).md)
+        * [Volume (Cone)](Operator-Volume(Cone).md)
+        * [Volume (Cylinder)](Operator-Volume(Cylinder).md)
+        * [Volume (Oriented Box)](Operator-Volume(OrientedBox).md)
+        * [Volume (Sphere)](Operator-Volume(Sphere).md)
+        * [Volume (Torus)](Operator-Volume(Torus).md)
       * Trigonometry
         * [Acos](Operator-Acos.md)
         * [Asin](Operator-Asin.md)
