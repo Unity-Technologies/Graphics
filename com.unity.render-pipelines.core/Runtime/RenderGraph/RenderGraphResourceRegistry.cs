@@ -447,9 +447,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
             if (m_CurrentBackbuffer != null)
-                m_RTHandleSystem.Release(m_CurrentBackbuffer);
-
-            m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+                m_CurrentBackbuffer.SetTexture(rt);
+            else
+                m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
 
             int newHandle = m_TextureResources.Add(new TextureResource(m_CurrentBackbuffer, 0));
             return new TextureHandle(newHandle);

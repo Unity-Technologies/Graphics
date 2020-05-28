@@ -786,12 +786,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             foreach (var texture in passInfo.textureReleaseList)
                 m_Resources.ReleaseTexture(rgContext, texture);
-
-            pass.Release(rgContext);
         }
 
         void ClearRenderPasses()
         {
+            foreach (var pass in m_RenderPasses)
+                pass.Release(m_RenderGraphPool);
             m_RenderPasses.Clear();
         }
 

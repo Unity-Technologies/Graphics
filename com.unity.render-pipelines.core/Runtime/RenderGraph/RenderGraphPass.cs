@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             where PassData : class, new() => ((RenderGraphPass<PassData>)this).renderFunc;
 
         public abstract void Execute(RenderGraphContext renderGraphContext);
-        public abstract void Release(RenderGraphContext renderGraphContext);
+        public abstract void Release(RenderGraphObjectPool pool);
         public abstract bool HasRenderFunc();
 
         public string           name { get; protected set; }
@@ -145,14 +145,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             customSampler = sampler;
         }
 
-        public override void Release(RenderGraphContext renderGraphContext)
+        public override void Release(RenderGraphObjectPool pool)
         {
             Clear();
-            renderGraphContext.renderGraphPool.Release(data);
+            pool.Release(data);
             data = null;
             renderFunc = null;
-            segkhl
-            renderGraphContext.renderGraphPool.Release<RenderGraphPass<PassData>>(this);
+
+            // We need to do the release from here because we need the final type.
+            pool.Release(this);
         }
 
         public override bool HasRenderFunc()

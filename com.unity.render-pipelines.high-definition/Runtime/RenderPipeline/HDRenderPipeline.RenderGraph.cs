@@ -986,7 +986,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableMSAA = msaa,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = string.Format("CameraColor{0}", msaa ? "MSAA" : "")});
+                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                });
         }
 
         class ResolveColorData
