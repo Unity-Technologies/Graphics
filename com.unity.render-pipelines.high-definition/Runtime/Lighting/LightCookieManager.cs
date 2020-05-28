@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return scaleBias;
         }
 
-        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, ref Texture emissive)
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie)
         {
             if (cookie.width < k_MinCookieSize || cookie.height < k_MinCookieSize)
                 return Vector4.zero;
@@ -284,12 +284,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
             }
 
-            emissive = cookie;
-
             return scaleBias;
         }
 
-        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies, ref Texture emissive)
+        public Vector4 FetchAreaCookie(CommandBuffer cmd, Texture cookie, Texture ies)
         {
             int width  = (int)Mathf.Max(cookie.width, ies.height);
             int height = (int)Mathf.Max(cookie.width, ies.height);
@@ -312,8 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 filteredProjected = FilterAreaLightTexture(cmd, ies, projectionSize, projectionSize);
                 m_CookieAtlas.BlitOctahedralTextureMultiply(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
             }
-
-            emissive = cookie;
 
             return scaleBias;
         }

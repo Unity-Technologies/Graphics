@@ -572,29 +572,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        Texture m_AreaLightEmissive = null;
-
-        /// <summary>
-        /// Internal texture used for emissive for rectangular area lights
-        /// </summary>
-        public Texture areaLightEmissive
-        {
-            get => m_AreaLightEmissive;
-            set
-            {
-                if (value.dimension == TextureDimension.Tex2D)
-                {
-                    m_AreaLightEmissive = value;
-                    UpdateAllLightValues();
-                }
-                else
-                {
-                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for Rectangular-Area Light.");
-                    m_AreaLightEmissive = null;
-                }
-            }
-        }
-
         // Optional IES (Cubemap for PointLight)
         [SerializeField]
         internal Texture m_IESPoint;
@@ -2742,9 +2719,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
 
+            bool enableEmissiveColorMap = false;
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", m_AreaLightEmissive);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", m_AreaLightEmissive != null);
+            if (displayEmissiveMesh && areaLightCookie != null && areaLightCookie != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+                enableEmissiveColorMap = true;
+            }
+            else if (displayEmissiveMesh && IESSpot != null && IESSpot != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", IESSpot);
+                enableEmissiveColorMap = true;
+            }
+            else
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", Texture2D.whiteTexture);
+            }
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", enableEmissiveColorMap);
         }
 
         void UpdateRectangleLightBounds()
