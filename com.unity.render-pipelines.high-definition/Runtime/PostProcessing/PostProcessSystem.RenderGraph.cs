@@ -270,6 +270,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
+                        // Temp until bloom is implemented.
+                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
+                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
+                        ctx.cmd.SetComputeVectorParam(data.parameters.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
+
+
                         DoUberPostProcess(  data.parameters,
                                             ctx.resources.GetTexture(data.source),
                                             ctx.resources.GetTexture(data.destination),
