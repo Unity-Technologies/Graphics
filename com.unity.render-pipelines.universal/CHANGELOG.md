@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Added option to enable/disable Adaptive Performance when it's package is available.
+
 ### Changed
 - The 2D Renderer now supports camera stacking.
 
