@@ -30,9 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
         readonly Material m_MaterialFilterAreaLights;
         MaterialPropertyBlock m_MPBFilterAreaLights = new MaterialPropertyBlock();
 
-        readonly ComputeShader m_ProjectCubeTo2D;
-        readonly int m_KernalFastOctahedral;
-
         RenderTexture m_TempRenderTexture0 = null;
         RenderTexture m_TempRenderTexture1 = null;
 
@@ -60,10 +57,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Also make sure to create the engine material that is used for the filtering
             m_MaterialFilterAreaLights = CoreUtils.CreateEngineMaterial(hdResources.shaders.filterAreaLightCookiesPS);
-
-            m_ProjectCubeTo2D = hdResources.shaders.projectCubeTo2DCS;
-
-            m_KernalFastOctahedral = m_ProjectCubeTo2D.FindKernel("CSMainFastOctahedral");
 
             int cookieAtlasSize = (int)gLightLoopSettings.cookieAtlasSize;
             cookieFormat = (GraphicsFormat)gLightLoopSettings.cookieFormat;
