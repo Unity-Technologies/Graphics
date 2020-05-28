@@ -10,7 +10,7 @@ Material:
   m_Name: DoubleSidedLitGraph_Flip
   m_Shader: {fileID: -6465566751694194690, guid: ab7890bc7ade004498d9949f88412847,
     type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT _DOUBLESIDED_ON
+  m_ShaderKeywords: _DOUBLESIDED_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
@@ -20,7 +20,6 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
-  - RayTracingPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -28,27 +27,7 @@ Material:
         m_Texture: {fileID: 2800000, guid: 72c21bad8ebd4a043882b302f9837ae3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_5c014fc59d1a40d7bd1f3ca2cf19d955_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_63e81f32ff56461fb51c5b00d6f8c8a1_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_74B26E6_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_81eb68f997044621808747fa75c99dd4_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_c6739464eecb42f6ae811e983bd3c8b1_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_e06b144f494045f88324d6ca398b51cf_Texture_1:
         m_Texture: {fileID: 2800000, guid: 6c9639b085103f447815e2965a30810a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -57,7 +36,6 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
-    - _AlphaToMask: 0
     - _BlendMode: 0
     - _CullMode: 0
     - _CullModeForward: 0
@@ -65,9 +43,7 @@ Material:
     - _DoubleSidedNormalMode: 0
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
-    - _RayTracing: 0
     - _ReceivesSSR: 1
-    - _ReceivesSSRTransparent: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
@@ -107,4 +83,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3
