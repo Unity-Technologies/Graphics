@@ -60,6 +60,11 @@
         * [Subtract](Operator-Subtract.md)
       * Geometry
         * [Area (Circle)](Operator-Area(Circle).md)
+        * [InvertTRS (Matrix)](Operator-InvertTRS(Matrix).md)
+        * [Transform (Direction)](Operator-Transform(Direction).md)
+        * [Transform (Matrix)](Operator-Transform(Matrix).md)
+        * [Transform (Position)](Operator-Transform(Position).md)
+        * [Volume (Axis Aligned Box)](Operator-Volume(AxisAlignedBox).md)
         * [Volume (Cone)](Operator-Volume(Cone).md)
         * [Volume (Cylinder)](Operator-Volume(Cylinder).md)
         * [Volume (Oriented Box)](Operator-Volume(OrientedBox).md)
