@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
 - Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
+- Added option to enable/disable Adaptive Performance when it's package is available.
 
 ### Changed
 

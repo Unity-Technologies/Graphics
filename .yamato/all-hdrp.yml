@@ -1,0 +1,59 @@
+All_HDRP_trunk:
+    name: All HDRP CI - trunk
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_trunk
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_trunk
+         rerun: always
+All_HDRP_fast-trunk:
+    name: All HDRP CI - fast-trunk
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-trunk
+         rerun: always
+All_HDRP_CUSTOM-REVISION:
+    name: All HDRP CI - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
