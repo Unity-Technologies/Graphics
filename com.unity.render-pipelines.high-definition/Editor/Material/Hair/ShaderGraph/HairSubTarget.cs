@@ -13,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HairSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HairData>
+    sealed partial class HairSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HairData>
     {
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template";
         protected override string customInspector => "Rendering.HighDefinition.HairGUI";
@@ -44,273 +44,52 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            // TODO: move this elsewhere:
+            // Make sure that we don't end up in an unsupported configuration
+            lightingData.subsurfaceScattering = false;
+
             base.GetFields(ref context);
 
-            // Structs
+            // Hair specific properties:
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HairSubTarget.HairPasses.MotionVectors));
-
-            // Material
             context.AddField(HDFields.KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
+            context.AddField(HDFields.HairStrandDirection,                  context.blocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
+            context.AddField(HDFields.RimTransmissionIntensity,             context.blocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
+            context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
+            context.AddField(HDFields.Transmittance,                        context.blocks.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
 
-            // Specular Occlusion
-            AddSpecularOcclusionFields(ref context);
-
-            // AlphaTest
-            // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,                              systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow) ||
-                                                                                context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass) || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(lightingData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
-            context.AddField(HDFields.DoAlphaTestPrepass,                   systemData.alphaTest && systemData.alphaTestDepthPrepass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,                  systemData.alphaTest && systemData.alphaTestDepthPostpass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
+                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
 
             // Misc
-            AddLitMiscFields(ref context);
-            AddSurfaceMiscFields(ref context);
-            
             context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
-            context.AddField(HDFields.HairStrandDirection,                  context.blocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
-            context.AddField(HDFields.Transmittance,                        context.blocks.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
-            context.AddField(HDFields.RimTransmissionIntensity,             context.blocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
-            context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
-            context.AddField(HDFields.TransparentDepthPrePass,              systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,             systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            // Vertex
-            context.AddBlock(BlockFields.VertexDescription.Position);
-            context.AddBlock(BlockFields.VertexDescription.Normal);
-            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            base.GetActiveBlocks(ref context);
 
-            // Hair
-            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularOcclusion,                lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom);
+            // Hair specific blocks
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
-            context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
-            context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
             context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
             context.AddBlock(HDBlockFields.SurfaceDescription.HairStrandDirection);
-            context.AddBlock(BlockFields.SurfaceDescription.Emission);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold,                 systemData.alphaTest);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,   systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,  systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,         systemData.alphaTest && lightingData.alphaTestShadow);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,    lightingData.specularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,              lightingData.specularAA);
             context.AddBlock(HDBlockFields.SurfaceDescription.SpecularTint);
             context.AddBlock(HDBlockFields.SurfaceDescription.SpecularShift);
             context.AddBlock(HDBlockFields.SurfaceDescription.SecondarySpecularTint);
             context.AddBlock(HDBlockFields.SurfaceDescription.SecondarySmoothness);
             context.AddBlock(HDBlockFields.SurfaceDescription.SecondarySpecularShift);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedGI,              lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.BakedBackGI,          lightingData.overrideBakedGI);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
         }
 
-        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
         {
-            var settingsView = new HairSettingsView(this);
-            settingsView.GetPropertiesGUI(ref context, onChange, registerUndo);
-        }
-
-        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
-        {
-            // Trunk currently relies on checking material property "_EmissionColor" to allow emissive GI. If it doesn't find that property, or it is black, GI is forced off.
-            // ShaderGraph doesn't use this property, so currently it inserts a dummy color (white). This dummy color may be removed entirely once the following PR has been merged in trunk: Pull request #74105
-            // The user will then need to explicitly disable emissive GI if it is not needed.
-            // To be able to automatically disable emission based on the ShaderGraph config when emission is black,
-            // we will need a more general way to communicate this to the engine (not directly tied to a material property).
-            collector.AddShaderProperty(new ColorShaderProperty()
-            {
-                overrideReferenceName = "_EmissionColor",
-                hidden = true,
-                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
-            });
-
-            //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
-            {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
-
-            // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, lightingData.receiveSSR);
-            HDSubShaderUtilities.AddBlendingStatesShaderProperties(
-                collector,
-                systemData.surfaceType,
-                systemData.blendMode,
-                systemData.sortPriority,
-                builtinData.alphaToMask,
-                systemData.zWrite,
-                systemData.transparentCullMode,
-                systemData.zTest,
-                lightingData.backThenFrontRendering,
-                builtinData.transparencyFog
-            );
-            HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, lightingData.alphaTestShadow);
-            HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
-        }
-
-        public override void ProcessPreviewMaterial(Material material)
-        {
-            // Fixup the material settings:
-            material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
-            material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
-            material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1.0f : 0.0f);
-            material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
-            material.SetFloat(kBlendMode, (int)systemData.blendMode);
-            material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
-            material.SetFloat(kZTestTransparent, (int)systemData.zTest);
-            material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
-
-            // No sorting priority for shader graph preview
-            var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-            material.renderQueue = (int)HDRenderQueue.ChangeType(renderingPass, offset: 0, alphaTest: systemData.alphaTest);
-
-            HairGUI.SetupMaterialKeywordsAndPass(material);
-        }
-
-        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
-        {
-            blockMap = null;
-            if(!(masterNode is HairMasterNode1 hairMasterNode))
-                return false;
-
-            // Set data
-            systemData.surfaceType = (SurfaceType)hairMasterNode.m_SurfaceType;
-            systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hairMasterNode.m_AlphaMode);
-            systemData.alphaTest = hairMasterNode.m_AlphaTest;
-            systemData.alphaTestDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
-            systemData.alphaTestDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
-            systemData.sortPriority = hairMasterNode.m_SortPriority;
-            systemData.doubleSidedMode = hairMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = hairMasterNode.m_ZWrite;
-            systemData.transparentCullMode = hairMasterNode.m_transparentCullMode;
-            systemData.zTest = hairMasterNode.m_ZTest;
-            systemData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
-            systemData.dotsInstancing = hairMasterNode.m_DOTSInstancing;
-            systemData.materialNeedsUpdateHash = hairMasterNode.m_MaterialNeedsUpdateHash;
-
-            builtinData.transparencyFog = hairMasterNode.m_TransparencyFog;
-            builtinData.transparentWritesMotionVec = hairMasterNode.m_TransparentWritesMotionVec;
-            builtinData.addPrecomputedVelocity = hairMasterNode.m_AddPrecomputedVelocity;
-            builtinData.depthOffset = hairMasterNode.m_depthOffset;
-            builtinData.alphaToMask = hairMasterNode.m_AlphaToMask;
-
-            lightingData.alphaTestShadow = hairMasterNode.m_AlphaTestShadow;
-            lightingData.backThenFrontRendering = hairMasterNode.m_BackThenFrontRendering;
-            lightingData.blendPreserveSpecular = hairMasterNode.m_BlendPreserveSpecular;
-            lightingData.receiveDecals = hairMasterNode.m_ReceiveDecals;
-            lightingData.receiveSSR = hairMasterNode.m_ReceivesSSR;
-            lightingData.specularAA = hairMasterNode.m_SpecularAA;
-            lightingData.specularOcclusionMode = hairMasterNode.m_SpecularOcclusionMode;
-            lightingData.overrideBakedGI = hairMasterNode.m_overrideBakedGI;
-            
-            hairData.materialType = (HairData.MaterialType)hairMasterNode.m_MaterialType;
-            hairData.useLightFacingNormal = hairMasterNode.m_UseLightFacingNormal;
-            target.customEditorGUI = hairMasterNode.m_OverrideEnabled ? hairMasterNode.m_ShaderGUIOverride : "";
-
-            // Convert SlotMask to BlockMap entries
-            var blockMapLookup = new Dictionary<HairMasterNode1.SlotMask, BlockFieldDescriptor>()
-            {
-                { HairMasterNode1.SlotMask.Position, BlockFields.VertexDescription.Position },
-                { HairMasterNode1.SlotMask.VertexNormal, BlockFields.VertexDescription.Normal },
-                { HairMasterNode1.SlotMask.VertexTangent, BlockFields.VertexDescription.Tangent },
-                { HairMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
-                { HairMasterNode1.SlotMask.SpecularOcclusion, HDBlockFields.SurfaceDescription.SpecularOcclusion },
-                { HairMasterNode1.SlotMask.Normal, BlockFields.SurfaceDescription.NormalTS },
-                { HairMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
-                { HairMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness },
-                { HairMasterNode1.SlotMask.Occlusion, BlockFields.SurfaceDescription.Occlusion },
-                { HairMasterNode1.SlotMask.Transmittance, HDBlockFields.SurfaceDescription.Transmittance },
-                { HairMasterNode1.SlotMask.RimTransmissionIntensity, HDBlockFields.SurfaceDescription.RimTransmissionIntensity },
-                { HairMasterNode1.SlotMask.HairStrandDirection, HDBlockFields.SurfaceDescription.HairStrandDirection },
-                { HairMasterNode1.SlotMask.Emission, BlockFields.SurfaceDescription.Emission },
-                { HairMasterNode1.SlotMask.Alpha, BlockFields.SurfaceDescription.Alpha },
-                { HairMasterNode1.SlotMask.AlphaClipThreshold, BlockFields.SurfaceDescription.AlphaClipThreshold },
-                { HairMasterNode1.SlotMask.AlphaClipThresholdDepthPrepass, HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass },
-                { HairMasterNode1.SlotMask.AlphaClipThresholdDepthPostpass, HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass },
-                { HairMasterNode1.SlotMask.AlphaClipThresholdShadow, HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow },
-                { HairMasterNode1.SlotMask.SpecularTint, HDBlockFields.SurfaceDescription.SpecularTint },
-                { HairMasterNode1.SlotMask.SpecularShift, HDBlockFields.SurfaceDescription.SpecularShift },
-                { HairMasterNode1.SlotMask.SecondarySpecularTint, HDBlockFields.SurfaceDescription.SecondarySpecularTint },
-                { HairMasterNode1.SlotMask.SecondarySmoothness, HDBlockFields.SurfaceDescription.SecondarySmoothness },
-                { HairMasterNode1.SlotMask.SecondarySpecularShift, HDBlockFields.SurfaceDescription.SecondarySpecularShift },
-            };
-
-            // Legacy master node slots have additional slot conditions, test them here
-            bool AdditionalSlotMaskTests(HairMasterNode1.SlotMask slotMask)
-            {
-                switch(slotMask)
-                {
-                    case HairMasterNode1.SlotMask.SpecularOcclusion:
-                        return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
-                    case HairMasterNode1.SlotMask.AlphaClipThreshold:
-                        return systemData.alphaTest;
-                    case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPrepass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass;
-                    case HairMasterNode1.SlotMask.AlphaClipThresholdDepthPostpass:
-                        return systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass;
-                    case HairMasterNode1.SlotMask.AlphaClipThresholdShadow:
-                        return systemData.alphaTest && lightingData.alphaTestShadow;
-                    default:
-                        return true;
-                }
-            }
-
-            // Set blockmap
-            blockMap = new Dictionary<BlockFieldDescriptor, int>();
-            foreach(HairMasterNode1.SlotMask slotMask in Enum.GetValues(typeof(HairMasterNode1.SlotMask)))
-            {
-                if(hairMasterNode.MaterialTypeUsesSlotMask(slotMask))
-                {
-                    if(!blockMapLookup.TryGetValue(slotMask, out var blockFieldDescriptor))
-                        continue;
-
-                    if(!AdditionalSlotMaskTests(slotMask))
-                        continue;
-                    
-                    var slotId = Mathf.Log((int)slotMask, 2);
-                    blockMap.Add(blockFieldDescriptor, (int)slotId);
-                }
-            }
-
-            // Specular AA
-            if(lightingData.specularAA)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, HairMasterNode1.SpecularAAScreenSpaceVarianceSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.SpecularAAThreshold, HairMasterNode1.SpecularAAThresholdSlotId);
-            }
-
-            // Override Baked GI
-            if(lightingData.overrideBakedGI)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedGI, HairMasterNode1.LightingSlotId);
-                blockMap.Add(HDBlockFields.SurfaceDescription.BakedBackGI, HairMasterNode1.BackLightingSlotId);
-            }
-
-            // Depth Offset
-            if(builtinData.depthOffset)
-            {
-                blockMap.Add(HDBlockFields.SurfaceDescription.DepthOffset, HairMasterNode1.DepthOffsetSlotId);
-            }
-
-            return true;
+            blockList.AddPropertyBlock(new SurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit));
+            blockList.AddPropertyBlock(new HairAdvancedOptionsPropertyBlock(hairData));
         }
 
 #region SubShaders

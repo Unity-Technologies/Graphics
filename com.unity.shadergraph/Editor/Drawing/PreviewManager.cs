@@ -210,7 +210,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (scope == ModificationScope.Topological ||
                 scope == ModificationScope.Graph)
             {
-                m_NodesShaderChanged.Add(node);     // this will trigger m_PreviewsShaderChanged downstream
+                m_NodesShaderChanged.Add(node);     // shader code for this node changed, this will trigger m_PreviewsShaderChanged for all nodes downstream
+                m_NodesPropertyChanged.Add(node);   // properties could also have changed at the same time and need to be re-collected
                 m_TopologyDirty = true;
             }
             else if (scope == ModificationScope.Node)

@@ -60,16 +60,18 @@ namespace UnityEditor.ShaderGraph
             // TODO: This needs to be removed but is currently required by HDRP for DiffusionProfileInputMaterialSlot
             if(m_Descriptor is CustomSlotBlockFieldDescriptor customSlotDescriptor)
             {
-                AddSlot(customSlotDescriptor.slot);
+                var newSlot = customSlotDescriptor.createSlot();
+                AddSlot(newSlot);
                 RemoveSlotsNameNotMatching(new int[] {0});
                 return;
             }
 
-            AddSlot();
+            AddSlotFromControlType();
         }
 
-        void AddSlot()
+        void AddSlotFromControlType()
         {
+            // TODO: this should really just use callbacks like the CustomSlotBlockFieldDescriptor.. then we wouldn't need this switch to make a copy
             var stageCapability = m_Descriptor.shaderStage.GetShaderStageCapability();
             switch(descriptor.control)
             {

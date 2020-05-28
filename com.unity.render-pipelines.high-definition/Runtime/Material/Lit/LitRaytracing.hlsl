@@ -27,6 +27,12 @@ IndirectLighting EvaluateBSDF_RaytracedRefraction(LightLoopContext lightLoopCont
 
     return lighting;
 }
+
+float RecursiveRenderingReflectionPerceptualSmoothness(BSDFData bsdfData)
+{
+    return PerceptualRoughnessToPerceptualSmoothness(bsdfData.perceptualRoughness);
+}
+
 #if HAS_REFRACTION
 void OverrideRefractionData(SurfaceData surfaceData, float refractionDistance, float3 refractionPositionWS, inout BSDFData bsdfData, inout PreLightData preLightData)
 {

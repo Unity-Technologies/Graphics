@@ -167,6 +167,8 @@ Pass
             builtinData.distortion = surfaceDescription.Distortion;
             builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------
