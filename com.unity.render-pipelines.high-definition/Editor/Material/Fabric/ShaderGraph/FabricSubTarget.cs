@@ -62,7 +62,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Fabric specific blocks
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(BlockFields.SurfaceDescription.Specular);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || fabricData.transmission);
@@ -97,7 +96,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { FabricPasses.SceneSelection },
                     { FabricPasses.DepthForwardOnly },
                     { FabricPasses.MotionVectors },
+                    { FabricPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { FabricPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { FabricPasses.TransparentDepthPrepass, new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { FabricPasses.ForwardOnly },
+                    { FabricPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 },
             };
 
@@ -469,6 +478,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 HDBlockFields.SurfaceDescription.SpecularOcclusion,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Specular,
@@ -492,6 +503,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor[] FragmentDepthMotionVectors = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
@@ -514,6 +527,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 HDBlockFields.SurfaceDescription.SpecularOcclusion,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Occlusion,
