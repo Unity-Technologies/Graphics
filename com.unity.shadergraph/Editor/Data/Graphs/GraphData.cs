@@ -66,6 +66,10 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedInputs; }
         }
 
+        [NonSerialized]
+        bool m_MovedContexts = false;
+        public bool movedContexts => m_MovedContexts;
+
         public string assetGuid { get; set; }
 
         #endregion
@@ -454,6 +458,7 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
+            m_MovedContexts = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -1374,6 +1379,8 @@ namespace UnityEditor.ShaderGraph
 
             concretePrecision = other.concretePrecision;
             m_OutputNode = other.m_OutputNode;
+
+            m_MovedContexts = true;
 
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {

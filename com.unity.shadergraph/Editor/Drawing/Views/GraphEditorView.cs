@@ -805,6 +805,14 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             UpdateEdgeColors(nodesToUpdate);
 
+            if (m_Graph.movedContexts)
+            {
+                foreach (var context in m_GraphView.contexts)
+                {
+                    context.SetPosition(new Rect(context.contextData.position, Vector2.zero));
+                }
+            }
+
             // Checking if any new Group Nodes just got added
             if (m_Graph.mostRecentlyCreatedGroup != null)
             {
