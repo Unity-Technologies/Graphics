@@ -20,9 +20,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
-        protected override string windowTitle => "Inspector";
+        protected override string windowTitle => "Graph Inspector";
         protected override string elementName => "InspectorView";
         protected override string styleName => "InspectorView";
+        protected override string UxmlName => "GraphInspector";
+
+        private TabbedView m_GraphInspectorView;
+        private TabButton m_GraphSettingsTab;
+        private TabButton m_NodeSettingsTab;
+        protected VisualElement m_GraphSettingsContainer;
+        protected VisualElement m_NodeSettingsContainer;
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -60,8 +67,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 Debug.Log("Attempted to register property drawer: " + newPropertyDrawerType + " that isn't marked up with the SGPropertyDrawer attribute!");
         }
 
+        private TabButton AddTab(VisualElement element, string label)
+        {
+            TabButton tabButton = new TabButton(label, string.Empty, element);
+            tabButton.IsCloseable = false;
+            m_GraphInspectorView.AddTab(tabButton, true);
+            return tabButton;
+        }
+        private static void RemoveTab(TabButton tabButton)
+        {
+            tabButton.RemoveFromHierarchy();
+        }
+
         public InspectorView(GraphView graphView) : base(graphView)
         {
+            m_GraphInspectorView = m_MainContainer.Q<TabbedView>("GraphInspectorView");
+            subTitle = " ";
+            m_NodeSettingsTab = AddTab(m_GraphSettingsContainer, "Node Settings");
+            m_GraphSettingsTab = AddTab(m_NodeSettingsContainer, "Graph Settings");
+
             var unregisteredPropertyDrawerTypes = TypeCache.GetTypesDerivedFrom<IPropertyDrawer>().ToList();
 
             foreach (var type in unregisteredPropertyDrawerTypes)
@@ -95,6 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             try
             {
+                m_GraphInspectorView.Activate(m_NodeSettingsTab);
                 foreach (var selectable in selection)
                 {
                     if(selectable is IInspectable inspectable)
@@ -124,11 +149,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (selection.Count == 1)
             {
                 var inspectable = selection.First() as IInspectable;
-                subTitle = $"{inspectable?.inspectorTitle}.";
+                //subTitle = $"{inspectable?.inspectorTitle}.";
             }
             else if (selection.Count > 1)
             {
-                subTitle = $"{selection.Count} Objects.";
+                //subTitle = $"{selection.Count} Objects.";
             }
 
             m_ContentContainer.MarkDirtyRepaint();
@@ -150,8 +175,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public void ShowGraphSettings()
         {
             isShowingGraphSettings = true;
+            m_GraphInspectorView.Activate(m_GraphSettingsTab);
             ShowWindow();
-            ShowGraphSettings_Internal(m_ContentContainer);
+            ShowGraphSettings_Internal(m_GraphSettingsContainer);
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
@@ -161,8 +187,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if(graphEditorView == null)
                 return;
-
-            subTitle = $"{graphEditorView.assetName} (Graph)";
 
             contentContainer.Clear();
             DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);

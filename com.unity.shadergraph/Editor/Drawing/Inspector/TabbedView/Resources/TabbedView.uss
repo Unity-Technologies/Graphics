@@ -1,0 +1,13 @@
+unity-tabbed-view {
+
+}
+
+.unity-tabbed-view__tabs-container {
+	display: flex;
+	background-color: #1A1A1A;
+	flex-direction: row;
+}
+
+.unity-tabbed-view__content-container {
+	flex-grow: 1;
+}
