@@ -174,12 +174,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Graph Settings", EditorStyles.toolbarButton))
-                    {
-                        m_InspectorView?.ShowGraphSettings();
-                    }
-
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
@@ -190,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     GUILayout.Space(6);
 
-                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Graph Inspector", EditorStyles.toolbarButton);
 
                     GUILayout.Space(6);
 
@@ -287,6 +281,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
             m_Graph.UpdateActiveBlocks(activeBlocks);
+
+            //graph settings need to be initilaized after the target setup
+            m_InspectorView.InitializeGraphSettings();
         }
 
         private void CreateBlackboard()
