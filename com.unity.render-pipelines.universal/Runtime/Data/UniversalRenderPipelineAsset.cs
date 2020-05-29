@@ -194,7 +194,7 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = rendererData;
             else
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
-            
+
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
-                
+
                 string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
@@ -545,45 +545,72 @@ namespace UnityEngine.Rendering.Universal
             get { return (int)m_AdditionalLightsShadowmapResolution; }
         }
 
+        /// <summary>
+        /// Controls the distance the shadows are cast.
+        /// </summary>
         public float shadowDistance
         {
             get { return m_ShadowDistance; }
             set { m_ShadowDistance = Mathf.Max(0.0f, value); }
         }
 
+        /// <summary>
+        /// Controls the amount of cascades. 0, 2, 3 and 4.
+        /// </summary>
         public ShadowCascadesOption shadowCascadeOption
         {
             get { return m_ShadowCascades; }
             set { m_ShadowCascades = value; }
         }
 
+        /// <summary>
+        /// Returns the split value.
+        /// </summary>
+        /// <returns>Returns a Float with the split value.</returns>
         public float cascade2Split
         {
             get { return m_Cascade2Split; }
         }
 
+        /// <summary>
+        /// Returns the split values.
+        /// </summary>
+        /// <returns>Returns a Vector2 with the split values.</returns>
         public Vector2 cascade3Split
         {
             get { return m_Cascade3Split; }
         }
 
+        /// <summary>
+        /// Returns the split values.
+        /// </summary>
+        /// <returns>Returns a Vector3 with the split values.</returns>
         public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
         }
 
+        /// <summary>
+        /// The Shadow Depth Bias, controls the offset of the lit pixels.
+        /// </summary>
         public float shadowDepthBias
         {
             get { return m_ShadowDepthBias; }
             set { m_ShadowDepthBias = ValidateShadowBias(value); }
         }
 
+        /// <summary>
+        /// Controls the distance at which the shadow casting surfaces are shrunk along the surface normal.
+        /// </summary>
         public float shadowNormalBias
         {
             get { return m_ShadowNormalBias; }
             set { m_ShadowNormalBias = ValidateShadowBias(value); }
         }
 
+        /// <summary>
+        /// Returns true Soft Shadows are supported, false otherwise.
+        /// </summary>
         public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
@@ -685,7 +712,7 @@ namespace UnityEngine.Rendering.Universal
                     if (defaultShader != null)
                         return defaultShader;
                 }
-                
+
                 if (m_DefaultShader == null)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
