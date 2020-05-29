@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEngine.Rendering;
@@ -116,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy
         public MaterialType m_MaterialType;
         public bool m_ReceiveDecals;
         public bool m_ReceivesSSR;
+        public bool m_ReceiveSSRTransparent;
         public bool m_AddPrecomputedVelocity;
         public bool m_EnergyConservingSpecular;
         public SpecularOcclusionMode m_SpecularOcclusionMode;
