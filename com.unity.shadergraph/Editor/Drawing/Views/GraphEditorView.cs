@@ -281,6 +281,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             var activeBlocks = m_Graph.GetActiveBlocksForAllActiveTargets();
             m_Graph.UpdateActiveBlocks(activeBlocks);
+
+            //graph settings need to be initilaized after the target setup
+            m_InspectorView.InitializeGraphSettings();
         }
 
         private void CreateBlackboard()
