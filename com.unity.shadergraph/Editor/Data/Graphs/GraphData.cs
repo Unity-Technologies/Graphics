@@ -1380,7 +1380,13 @@ namespace UnityEditor.ShaderGraph
             concretePrecision = other.concretePrecision;
             m_OutputNode = other.m_OutputNode;
 
-            m_MovedContexts = true;
+            if ((this.vertexContext.position != other.vertexContext.position) ||
+                (this.fragmentContext.position != other.fragmentContext.position))
+            {
+                this.vertexContext.position = other.vertexContext.position;
+                this.fragmentContext.position = other.fragmentContext.position;
+                m_MovedContexts = true;
+            }
 
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
