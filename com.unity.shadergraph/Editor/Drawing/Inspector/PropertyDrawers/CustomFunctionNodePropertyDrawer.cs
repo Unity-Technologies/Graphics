@@ -6,6 +6,7 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.UIElements;
+using UnityEngine;
 
 namespace Drawing.Inspector.PropertyDrawers
 {
@@ -15,7 +16,7 @@ namespace Drawing.Inspector.PropertyDrawers
         VisualElement CreateGUI(CustomFunctionNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)
         {
-            var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel(attribute.labelName));
+            var propertySheet = new PropertySheet(PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold));
             var inputListView = new ReorderableSlotListView(node, SlotType.Input);
             inputListView.OnAddCallback += list => inspectorUpdateDelegate();
             inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
