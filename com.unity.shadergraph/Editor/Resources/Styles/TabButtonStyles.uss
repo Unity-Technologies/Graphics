@@ -18,7 +18,7 @@
 
 .unity-tab-button__content {
     flex-direction: row;
-		height: 14px;
+		height: 18px;
 		padding: 0px 6px 2px 6px;
 		align-items: center;
 		overflow: hidden;
