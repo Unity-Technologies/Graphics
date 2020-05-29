@@ -4,7 +4,7 @@ unity-tabbed-view {
 
 .unity-tabbed-view__tabs-container {
 	display: flex;
-	background-color: #1A1A1A;
+	background-color: #252525;
 	flex-direction: row;
 }
 

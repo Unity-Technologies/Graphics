@@ -25,7 +25,7 @@
 }
 
 .unity-tab-button--active .unity-tab-button__content {
-	background-color: #383838;
+	background-color: #2E2E2E;
 }
 
 .unity-tab-button__content-icon {

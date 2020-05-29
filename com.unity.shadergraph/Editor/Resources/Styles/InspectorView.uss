@@ -7,7 +7,7 @@
     border-bottom-width: 1px;
     border-radius: 5px;
     flex-direction: column;
-    background-color: #2b2b2b;
+    background-color: #2E2E2E;
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
