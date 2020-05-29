@@ -638,13 +638,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
         };
 
-        public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
+
+        public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
-            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                Ref = CoreRenderStates.Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection TransparentDepthPostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection Forward = new RenderStateCollection

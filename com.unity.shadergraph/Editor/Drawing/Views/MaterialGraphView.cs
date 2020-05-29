@@ -110,7 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // GraphView has UQueryState<Node> nodes built in to query for Nodes
         // We need this for Contexts but we might as well cast it to a list once
-        List<ContextView> contexts { get; set; }
+        public List<ContextView> contexts { get; set; }
 
         // We have to manually update Contexts
         // Currently only called during GraphEditorView ctor as our Contexts are static
