@@ -299,7 +299,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ContextView AddContext(string name, ContextData contextData, Direction portDirection)
             {
-                var contextView = new ContextView(name, contextData);
+                //need to eventually remove this reference to editor window in context views
+                var contextView = new ContextView(name, contextData, m_EditorWindow);
                 contextView.SetPosition(new Rect(contextData.position, Vector2.zero));
                 contextView.AddPort(portDirection);
                 m_GraphView.AddElement(contextView);
