@@ -3,7 +3,6 @@
 
 		<ui:VisualElement class="unity-tab-button__top-bar" picking-mode="Ignore"/>
 		<ui:VisualElement class="unity-tab-button__content" picking-mode="Ignore">
-			<ui:VisualElement name="Icon" class="unity-tab-button__content-icon" picking-mode="Ignore"/>
 			<ui:Label name="Label" class="unity-tab-button__content-label" picking-mode="Ignore"/>
 		</ui:VisualElement>
     

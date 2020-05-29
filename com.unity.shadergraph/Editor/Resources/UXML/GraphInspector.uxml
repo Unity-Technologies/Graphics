@@ -6,11 +6,13 @@
                 <ui:Label name="subTitleLabel" text="" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <TabbedView>
-            <ui:VisualElement name="GraphSettingsContainer" picking-mode="Ignore" />
-            <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore" />
-        </TabbedView>
-            <TabbedView name="GraphInspectorView"/>
+        <ui:VisualElement name="contentContainer" picking-mode="Ignore" />
+            <TabbedView name="GraphInspectorView" >
+                <TabButton name="NodeSettingsButton" text="Node Settings" target="NodeSettingsContainer" />
+                <TabButton name="GraphSettingsButton" text="Graph Settings" target="GraphSettingsContainer" />
+                <ui:VisualElement name="GraphSettingsContainer" picking-mode="Ignore" />
+                <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore" />
+            </TabbedView>
     </ui:VisualElement>
     <sg:ResizableElement pickingMode="Ignore" resizeRestriction="FlexDirection"/>
 </ui:UXML>

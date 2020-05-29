@@ -9,7 +9,6 @@ public class TabButton : VisualElement
     internal new class UxmlTraits : VisualElement.UxmlTraits
     {
         private readonly UxmlStringAttributeDescription m_Text = new UxmlStringAttributeDescription { name = "text" };
-        private readonly UxmlStringAttributeDescription m_Icon = new UxmlStringAttributeDescription { name = "icon" };
         private readonly UxmlStringAttributeDescription m_Target = new UxmlStringAttributeDescription { name = "target" };
 
         public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
@@ -19,8 +18,6 @@ public class TabButton : VisualElement
 
             item.m_Label.text = m_Text.GetValueFromBag(bag, cc);
             item.TargetId = m_Target.GetValueFromBag(bag, cc);
-            string iconPath = m_Icon.GetValueFromBag(bag, cc);
-            item.SetIcon(iconPath);
         }
     }
 
@@ -29,7 +26,6 @@ public class TabButton : VisualElement
     static readonly string s_UssActiveClassName = s_UssClassName + "--active";
     
     private Label m_Label;
-    private VisualElement m_Icon;
     
     public bool IsCloseable { get; set; }
     public string TargetId { get; private set; }
@@ -43,12 +39,11 @@ public class TabButton : VisualElement
         Init();
     }
 
-    public TabButton(string text, string icon, VisualElement target)
+    public TabButton(string text, VisualElement target)
     {
         Init();
         m_Label.text = text;
         Target = target;
-        SetIcon(icon);
     }
     
     private void PopulateContextMenu(ContextualMenuPopulateEvent populateEvent)
@@ -81,7 +76,6 @@ public class TabButton : VisualElement
         visualTree.CloneTree(this);
 
         m_Label = this.Q<Label>("Label");
-        m_Icon = this.Q("Icon");
         
         CreateContextMenu(this);
 
@@ -108,18 +102,6 @@ public class TabButton : VisualElement
         {
             Target.style.display = DisplayStyle.None;
             Target.style.flexGrow = 0;
-        }
-    }
-
-    private void SetIcon(string iconPath)
-    {
-        if (iconPath.Length != 0)
-        {
-            Texture2D texture = Resources.Load<Texture2D>(iconPath);
-            if (texture != null)
-            {
-                m_Icon.style.backgroundImage = texture;
-            }
         }
     }
 

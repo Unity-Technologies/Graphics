@@ -174,12 +174,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
 
-                    GUILayout.Space(6);
-                    if (GUILayout.Button("Graph Settings", EditorStyles.toolbarButton))
-                    {
-                        m_InspectorView?.ShowGraphSettings();
-                    }
-
                     GUILayout.FlexibleSpace();
 
                     EditorGUI.BeginChangeCheck();
