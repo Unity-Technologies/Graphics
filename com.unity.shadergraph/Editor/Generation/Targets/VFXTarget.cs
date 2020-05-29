@@ -45,6 +45,11 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return true;
+        }
+
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
