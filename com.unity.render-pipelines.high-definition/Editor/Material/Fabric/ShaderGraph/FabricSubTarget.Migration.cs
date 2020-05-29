@@ -42,6 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = fabricMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = fabricMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = fabricMasterNode.m_ReceivesSSR;
+            lightingData.receiveSSRTransparent = fabricMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = fabricMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = fabricMasterNode.m_overrideBakedGI;
             lightingData.subsurfaceScattering = fabricMasterNode.m_SubsurfaceScattering;
