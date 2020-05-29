@@ -1,3 +1,4 @@
+#pragma warning disable 0618
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -491,3 +492,4 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         protected virtual void OnCustomGUI(T path) { }
     }
 }
+#pragma warning restore 0618
