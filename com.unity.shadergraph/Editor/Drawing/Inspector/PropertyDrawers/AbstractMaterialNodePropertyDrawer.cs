@@ -29,11 +29,12 @@ namespace Drawing.Inspector.PropertyDrawers
 
         VisualElement CreateGUI(AbstractMaterialNode node, InspectableAttribute attribute, out VisualElement propertyVisualElement)
         {
-            VisualElement defaultRow = null;
+            VisualElement nodeSettings = new VisualElement();
+            var nameLabel = PropertyDrawerUtils.CreateLabel($"{node.name} Node", 0, FontStyle.Bold);
+            nodeSettings.Add(nameLabel);
             EnumField precisionField = null;
             if(node.canSetPrecision)
             {
-                defaultRow = new PropertyRow(PropertyDrawerUtils.CreateLabel(attribute.labelName));
                 precisionField = new EnumField(node.precision);
                 var propertyRow = new PropertyRow(new Label("Precision"));
                 propertyRow.Add(precisionField, (field) =>
@@ -51,12 +52,10 @@ namespace Drawing.Inspector.PropertyDrawers
                         node.Dirty(ModificationScope.Graph);
                     });
                 });
-
-                defaultRow.Add(precisionField);
-                defaultRow.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyRow"));
+                nodeSettings.Add(propertyRow);
             }
             propertyVisualElement = precisionField;
-            return defaultRow;
+            return nodeSettings;
         }
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {

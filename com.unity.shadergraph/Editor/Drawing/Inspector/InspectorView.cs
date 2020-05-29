@@ -119,16 +119,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             // Store this for update checks later, copying list deliberately as we dont want a reference
             m_CachedSelectionList = new List<ISelectable>(selection);
 
-            if (selection.Count == 1)
-            {
-                var inspectable = selection.First() as IInspectable;
-                //subTitle = $"{inspectable?.inspectorTitle}.";
-            }
-            else if (selection.Count > 1)
-            {
-                //subTitle = $"{selection.Count} Objects.";
-            }
-
             m_NodeSettingsContainer.MarkDirtyRepaint();
         }
 
