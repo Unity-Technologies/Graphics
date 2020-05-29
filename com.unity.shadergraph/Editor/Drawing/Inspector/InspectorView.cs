@@ -80,11 +80,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             // By default at startup, show graph settings
             m_GraphInspectorView.Activate(m_GraphInspectorView.Q<TabButton>("GraphSettingsButton"));
-        }
 
-        public void InitializeGraphSettings()
-        {
-            ShowGraphSettings_Internal(m_GraphSettingsContainer);
+            //graph data isn't initialized here so we need to wait to update to be able to display these settings
+            //we should ship with this, but it's needed for workflow testing
+            EditorApplication.CallbackFunction Jank = null;
+            Jank = () => { ShowGraphSettings_Internal(m_GraphSettingsContainer); EditorApplication.update -= Jank; } ;
+            EditorApplication.update += Jank;
         }
 
 
