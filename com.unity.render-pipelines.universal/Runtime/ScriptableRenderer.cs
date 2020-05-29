@@ -848,6 +848,7 @@ namespace UnityEngine.Rendering.Universal
             ClearAttachmentDescriptors();
 
             var attIdx = 0;
+
             //Go through all the ScriptableRenderPasses in the current Block, get all the required attachments and bind their indices for the RenderPass
             for (; rpStartIdx < endIdx; ++rpStartIdx)
             {
@@ -857,7 +858,7 @@ namespace UnityEngine.Rendering.Universal
                     continue;
 
                 rp.Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-
+                var bindingIdx = 0;
                 for (int i = 0; i < rp.colorAttachmentDescriptors.Length; i++)
                 {
                     if (rp.colorAttachmentDescriptors[i] == RenderingUtils.emptyAttachment)
@@ -865,6 +866,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var isTransient = RenderingUtils.IsAttachmentTransient(rp.colorAttachmentDescriptors[i]);
                     var descIdx = RenderingUtils.IndexOf(m_AttachmentDescriptorList, rp.colorAttachmentDescriptors[i]);
+
                     bool willAddAttachment = descIdx == -1 || isTransient;
                     // Transient attachments should only be used in a single sub pass, therefore no need to check for duplication
                     if (willAddAttachment)
@@ -876,7 +878,11 @@ namespace UnityEngine.Rendering.Universal
                     if (rp.colorAttachmentDescriptors[i].format == RenderTextureFormat.Depth)
                         depthAttachmentIdx = willAddAttachment ? attIdx - 1 : descIdx;
                     else
-                        rp.m_ColorBindings[i] = willAddAttachment ? attIdx - 1 : descIdx;
+                    {
+                        rp.m_ColorBindings[bindingIdx] = willAddAttachment ? attIdx - 1 : descIdx;
+                        bindingIdx++;
+                    }
+
 
                     if (rp.colorAttachmentDescriptors[i].loadStoreTarget == m_CameraColorTargetAttachment.loadStoreTarget)
                         m_FirstTimeCameraColorTargetIsBound = false;
