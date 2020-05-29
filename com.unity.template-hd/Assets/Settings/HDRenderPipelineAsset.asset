@@ -192,7 +192,7 @@ MonoBehaviour:
     supportSubsurfaceScattering: 1
     increaseSssSampleCount: 0
     supportVolumetrics: 1
-    increaseResolutionOfVolumetrics: 1
+    increaseResolutionOfVolumetrics: 0
     supportLightLayers: 1
     lightLayerName0: Light LayerDefault
     lightLayerName1: InteriorOnly
@@ -211,23 +211,23 @@ MonoBehaviour:
     customBufferFormat: 12
     supportedLitShaderMode: 2
     supportDecals: 1
-    msaaSampleCount: 1
+    msaaSampleCount: 2
     supportMotionVectors: 1
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
     supportRayTracing: 0
     lightLoopSettings:
-      cookieAtlasSize: 2048
+      cookieAtlasSize: 512
       cookieFormat: 74
-      pointCookieSize: 128
+      pointCookieSize: 256
       cubeCookieTexArraySize: 16
       cookieAtlasLastValidMip: 0
       cookieTexArraySize: 16
-      planarReflectionAtlasSize: 1024
-      reflectionProbeCacheSize: 64
+      planarReflectionAtlasSize: 256
+      reflectionProbeCacheSize: 16
       reflectionCubemapSize: 256
-      reflectionCacheCompressed: 0
+      reflectionCacheCompressed: 1
       planarReflectionCacheCompressed: 0
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
@@ -237,7 +237,7 @@ MonoBehaviour:
       maxDirectionalLightsOnScreen: 16
       maxPunctualLightsOnScreen: 512
       maxAreaLightsOnScreen: 64
-      maxEnvLightsOnScreen: 64
+      maxEnvLightsOnScreen: 32
       maxDecalsOnScreen: 512
       maxPlanarReflectionOnScreen: 16
     hdShadowInitParams:
@@ -267,7 +267,7 @@ MonoBehaviour:
       maxDirectionalShadowMapResolution: 2048
       maxPunctualShadowMapResolution: 2048
       maxAreaShadowMapResolution: 2048
-      supportScreenSpaceShadows: 0
+      supportScreenSpaceShadows: 1
       maxScreenSpaceShadowSlots: 4
       screenSpaceShadowBufferFormat: 48
     decalSettings:
@@ -277,7 +277,7 @@ MonoBehaviour:
       perChannelMask: 0
     postProcessSettings:
       m_LutSize: 32
-      lutFormat: 48
+      lutFormat: 52
       bufferFormat: 74
     dynamicResolutionSettings:
       enabled: 0
@@ -344,6 +344,7 @@ MonoBehaviour:
   diffusionProfileSettingsList:
   - {fileID: 11400000, guid: 26bdddf49760c61438938733f07fa2a2, type: 2}
   - {fileID: 11400000, guid: 78322c7f82657514ebe48203160e3f39, type: 2}
+  - {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
   afterPostProcessCustomPostProcesses: []
