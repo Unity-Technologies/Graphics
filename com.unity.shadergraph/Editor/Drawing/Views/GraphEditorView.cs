@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     GUILayout.Space(6);
 
-                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Inspector", EditorStyles.toolbarButton);
+                    m_UserViewSettings.isInspectorVisible = GUILayout.Toggle(m_UserViewSettings.isInspectorVisible, "Graph Inspector", EditorStyles.toolbarButton);
 
                     GUILayout.Space(6);
 
