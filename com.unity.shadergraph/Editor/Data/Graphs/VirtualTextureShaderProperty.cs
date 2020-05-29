@@ -57,12 +57,15 @@ namespace UnityEditor.ShaderGraph
         // this is used for properties exposed to the Material in the shaderlab Properties{} block
         internal override void AppendPropertyBlockStrings(ShaderStringBuilder builder)
         {
-            // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
-            for (int layer = 0; layer < value.layers.Count; layer++)
+            if (!value.procedural)
             {
-                string layerName = value.layers[layer].layerName;
-                string layerRefName = value.layers[layer].layerRefName;
-                builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
+                // adds properties in this format so: [TextureStack.MyStack(0)] [NoScaleOffset] Layer0("Layer0", 2D) = "white" {}
+                for (int layer = 0; layer < value.layers.Count; layer++)
+                {
+                    string layerName = value.layers[layer].layerName;
+                    string layerRefName = value.layers[layer].layerRefName;
+                    builder.AppendLine($"{hideTagString}[TextureStack.{referenceName}({layer})][NoScaleOffset]{layerRefName}(\"{layerName}\", 2D) = \"white\" {{}}");
+                }
             }
         }
 
@@ -89,12 +92,15 @@ namespace UnityEditor.ShaderGraph
             int numLayers = value.layers.Count;
             if (numLayers > 0)
             {
-                // declare regular texture properties (for fallback case)
-                for (int i = 0; i < value.layers.Count; i++)
+                if (!value.procedural)
                 {
-                    string layerRefName = value.layers[i].layerRefName;
-                    builder.AppendLine(
-                        $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                    // declare regular texture properties (for fallback case)
+                    for (int i = 0; i < value.layers.Count; i++)
+                    {
+                        string layerRefName = value.layers[i].layerRefName;
+                        builder.AppendLine(
+                            $"TEXTURE2D({layerRefName}); SAMPLER(sampler{layerRefName}); {concretePrecision.ToShaderString()}4 {layerRefName}_TexelSize;");
+                    }
                 }
                 // declare texture stack
                 builder.Append("DECLARE_STACK");

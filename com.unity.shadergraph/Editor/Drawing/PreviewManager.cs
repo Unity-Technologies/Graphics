@@ -390,7 +390,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var vt = prop.vtProperty.value;
                         for (int layer = 0; layer < vt.layers.Count; layer++)
                         {
-                            if (vt.layers[layer].layerTexture.texture != null)
+                            if (vt.layers[layer].layerTexture?.texture != null)
                             {
                                 int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
                                 if (propIndex != -1)

@@ -18,6 +18,7 @@ namespace UnityEditor.ShaderGraph
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
+        public const int kMinLayers = 1;
         public const int kMaxLayers = 4;
 
         // input slots
