@@ -4,29 +4,19 @@
 
 #ifndef SPHERICALHARMONICS_CS_HLSL
 #define SPHERICALHARMONICS_CS_HLSL
-// Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
+// Generated from UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL0
 // PackingRules = Exact
-struct SphericalHarmonicsL1
+struct SphericalHarmonicsL0
 {
-    float4 shAr;
-    float4 shAg;
-    float4 shAb;
+    float3 shrgb;
 };
 
 //
-// Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL1
+// Accessors for UnityEngine.Rendering.HighDefinition.SphericalHarmonicsL0
 //
-float4 GetShAr(SphericalHarmonicsL1 value)
+float3 GetShrgb(SphericalHarmonicsL0 value)
 {
-    return value.shAr;
-}
-float4 GetShAg(SphericalHarmonicsL1 value)
-{
-    return value.shAg;
-}
-float4 GetShAb(SphericalHarmonicsL1 value)
-{
-    return value.shAb;
+    return value.shrgb;
 }
 
 #endif

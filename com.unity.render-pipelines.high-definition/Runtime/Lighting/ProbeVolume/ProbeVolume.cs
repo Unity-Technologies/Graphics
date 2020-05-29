@@ -21,6 +21,258 @@ namespace UnityEngine.Rendering.HighDefinition
         Subtractive
     }
 
+    // Container structure for managing a probe volume's payload.
+    // Spherical Harmonics data is stored as a flat float coefficients array.
+    // encodingMode defines the view for dataSH, specifically the stride at which coefficients map to a single probe's SH sample.
+    // In the future, encodingMode could possibly be extended to handle different compression modes as well.
+    [Serializable]
+    internal struct ProbeVolumePayload
+    {
+        public ProbeVolumesEncodingModes encodingMode;
+        public float[] dataSH;
+        public float[] dataValidity;
+        public float[] dataOctahedralDepth;
+
+        public static int GetSHStride(ProbeVolumesEncodingModes encodingMode)
+        {
+            switch (encodingMode)
+            {
+                case ProbeVolumesEncodingModes.SphericalHarmonicsL0: return 3;
+                case ProbeVolumesEncodingModes.SphericalHarmonicsL1: return 12;
+                case ProbeVolumesEncodingModes.SphericalHarmonicsL2: return 27;
+                default:
+                {
+                    Debug.Assert(false, "Error: encountered invalid encodingMode.");
+                    return 0;
+                }
+            }
+        }
+
+        public static int GetLength(ref ProbeVolumePayload payload)
+        {
+            return payload.dataValidity.Length;
+        }
+
+        public static void Allocate(ref ProbeVolumePayload payload, ProbeVolumesEncodingModes encodingMode, int length)
+        {
+            payload.encodingMode = encodingMode;
+            payload.dataSH = new float[length * GetSHStride(encodingMode)];
+
+            // TODO: Only allocate dataValidity and dataOctahedralDepth if those payload slices are in use.
+            payload.dataValidity = new float[length];
+            payload.dataOctahedralDepth = new float[length * 8 * 8];
+        }
+
+        public static void Ensure(ref ProbeVolumePayload payload, ProbeVolumesEncodingModes encodingMode, int length)
+        {
+            if (payload.encodingMode != encodingMode
+                || payload.dataSH == null
+                || payload.dataSH.Length != (length * GetSHStride(encodingMode)))
+            {
+                ProbeVolumePayload.Dispose(ref payload);
+                ProbeVolumePayload.Allocate(ref payload, encodingMode, length);
+            }
+        }
+
+        public static void Dispose(ref ProbeVolumePayload payload)
+        {
+            payload.dataSH = null;
+            payload.dataValidity = null;
+            payload.dataOctahedralDepth = null;
+        }
+
+        public static void Copy(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst)
+        {
+            Debug.Assert(ProbeVolumePayload.GetLength(ref payloadSrc) == ProbeVolumePayload.GetLength(ref payloadDst));
+
+            ProbeVolumePayload.Copy(ref payloadSrc, ref payloadDst, ProbeVolumePayload.GetLength(ref payloadSrc));
+        }
+
+        public static void Copy(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, int length)
+        {
+            Debug.Assert(payloadSrc.encodingMode == payloadDst.encodingMode);
+
+            Array.Copy(payloadSrc.dataSH, payloadDst.dataSH, length * GetSHStride(payloadSrc.encodingMode));
+
+            Array.Copy(payloadSrc.dataValidity, payloadDst.dataValidity, length);
+
+            if (payloadSrc.dataOctahedralDepth != null && payloadDst.dataOctahedralDepth != null)
+            {
+                Array.Copy(payloadSrc.dataOctahedralDepth, payloadDst.dataOctahedralDepth, length * 8 * 8);
+            }
+        }
+
+        public static void GetSphericalHarmonicsL0FromIndex(ref SphericalHarmonicsL0 sh, ref ProbeVolumePayload payload, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            sh.shrgb.x = payload.dataSH[indexDataBase + 0];
+            sh.shrgb.y = payload.dataSH[indexDataBase + 1];
+            sh.shrgb.z = payload.dataSH[indexDataBase + 2];
+        }
+
+        public static void GetSphericalHarmonicsL1FromIndex(ref SphericalHarmonicsL1 sh, ref ProbeVolumePayload payload, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            sh.shAr.x = payload.dataSH[indexDataBase + 0];
+            sh.shAr.y = payload.dataSH[indexDataBase + 1];
+            sh.shAr.z = payload.dataSH[indexDataBase + 2];
+            sh.shAr.w = payload.dataSH[indexDataBase + 3];
+
+            sh.shAg.x = payload.dataSH[indexDataBase + 4];
+            sh.shAg.y = payload.dataSH[indexDataBase + 5];
+            sh.shAg.z = payload.dataSH[indexDataBase + 6];
+            sh.shAg.w = payload.dataSH[indexDataBase + 7];
+
+            sh.shAb.x = payload.dataSH[indexDataBase + 8];
+            sh.shAb.y = payload.dataSH[indexDataBase + 9];
+            sh.shAb.z = payload.dataSH[indexDataBase + 10];
+            sh.shAb.w = payload.dataSH[indexDataBase + 11];
+        }
+
+        public static void GetSphericalHarmonicsL2FromIndex(ref SphericalHarmonicsL2 sh, ref ProbeVolumePayload payload, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            sh[0, 0] = payload.dataSH[indexDataBase + 0];
+            sh[0, 1] = payload.dataSH[indexDataBase + 1];
+            sh[0, 2] = payload.dataSH[indexDataBase + 2];
+            sh[0, 3] = payload.dataSH[indexDataBase + 3];
+            sh[0, 4] = payload.dataSH[indexDataBase + 4];
+            sh[0, 5] = payload.dataSH[indexDataBase + 5];
+            sh[0, 6] = payload.dataSH[indexDataBase + 6];
+            sh[0, 7] = payload.dataSH[indexDataBase + 7];
+            sh[0, 8] = payload.dataSH[indexDataBase + 8];
+
+            sh[1, 0] = payload.dataSH[indexDataBase + 9];
+            sh[1, 1] = payload.dataSH[indexDataBase + 10];
+            sh[1, 2] = payload.dataSH[indexDataBase + 11];
+            sh[1, 3] = payload.dataSH[indexDataBase + 12];
+            sh[1, 4] = payload.dataSH[indexDataBase + 13];
+            sh[1, 5] = payload.dataSH[indexDataBase + 14];
+            sh[1, 6] = payload.dataSH[indexDataBase + 15];
+            sh[1, 7] = payload.dataSH[indexDataBase + 16];
+            sh[1, 8] = payload.dataSH[indexDataBase + 17];
+
+            sh[2, 0] = payload.dataSH[indexDataBase + 18];
+            sh[2, 1] = payload.dataSH[indexDataBase + 19];
+            sh[2, 2] = payload.dataSH[indexDataBase + 20];
+            sh[2, 3] = payload.dataSH[indexDataBase + 21];
+            sh[2, 4] = payload.dataSH[indexDataBase + 22];
+            sh[2, 5] = payload.dataSH[indexDataBase + 23];
+            sh[2, 6] = payload.dataSH[indexDataBase + 24];
+            sh[2, 7] = payload.dataSH[indexDataBase + 25];
+            sh[2, 8] = payload.dataSH[indexDataBase + 26];
+        }
+
+        public static void SetSphericalHarmonicsL0FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL0 sh, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            payload.dataSH[indexDataBase + 0] = sh.shrgb.x;
+            payload.dataSH[indexDataBase + 1] = sh.shrgb.y;
+            payload.dataSH[indexDataBase + 2] = sh.shrgb.z;
+        }
+
+        public static void SetSphericalHarmonicsL1FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL1 sh, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            payload.dataSH[indexDataBase + 0] = sh.shAr.x;
+            payload.dataSH[indexDataBase + 1] = sh.shAr.y;
+            payload.dataSH[indexDataBase + 2] = sh.shAr.z;
+            payload.dataSH[indexDataBase + 3] = sh.shAr.w;
+
+            payload.dataSH[indexDataBase + 4] = sh.shAg.x;
+            payload.dataSH[indexDataBase + 5] = sh.shAg.y;
+            payload.dataSH[indexDataBase + 6] = sh.shAg.z;
+            payload.dataSH[indexDataBase + 7] = sh.shAg.w;
+
+            payload.dataSH[indexDataBase + 8] = sh.shAb.x;
+            payload.dataSH[indexDataBase + 9] = sh.shAb.y;
+            payload.dataSH[indexDataBase + 10] = sh.shAb.z;
+            payload.dataSH[indexDataBase + 11] = sh.shAb.w;
+        }
+
+        public static void SetSphericalHarmonicsL2FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL2 sh, int indexProbe)
+        {
+            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+
+            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+            int indexDataBase = indexProbe * stride;
+            int indexDataEnd = indexDataBase + stride;
+
+            Debug.Assert(payload.dataSH != null);
+            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+
+            payload.dataSH[indexDataBase + 0] = sh[0, 0];
+            payload.dataSH[indexDataBase + 1] = sh[0, 1];
+            payload.dataSH[indexDataBase + 2] = sh[0, 2];
+            payload.dataSH[indexDataBase + 3] = sh[0, 3];
+            payload.dataSH[indexDataBase + 4] = sh[0, 4];
+            payload.dataSH[indexDataBase + 5] = sh[0, 5];
+            payload.dataSH[indexDataBase + 6] = sh[0, 6];
+            payload.dataSH[indexDataBase + 7] = sh[0, 7];
+            payload.dataSH[indexDataBase + 8] = sh[0, 8];
+
+            payload.dataSH[indexDataBase + 9] = sh[1, 0];
+            payload.dataSH[indexDataBase + 10] = sh[1, 1];
+            payload.dataSH[indexDataBase + 11] = sh[1, 2];
+            payload.dataSH[indexDataBase + 12] = sh[1, 3];
+            payload.dataSH[indexDataBase + 13] = sh[1, 4];
+            payload.dataSH[indexDataBase + 14] = sh[1, 5];
+            payload.dataSH[indexDataBase + 15] = sh[1, 6];
+            payload.dataSH[indexDataBase + 16] = sh[1, 7];
+            payload.dataSH[indexDataBase + 17] = sh[1, 8];
+
+            payload.dataSH[indexDataBase + 18] = sh[2, 0];
+            payload.dataSH[indexDataBase + 19] = sh[2, 1];
+            payload.dataSH[indexDataBase + 20] = sh[2, 2];
+            payload.dataSH[indexDataBase + 21] = sh[2, 3];
+            payload.dataSH[indexDataBase + 22] = sh[2, 4];
+            payload.dataSH[indexDataBase + 23] = sh[2, 5];
+            payload.dataSH[indexDataBase + 24] = sh[2, 6];
+            payload.dataSH[indexDataBase + 25] = sh[2, 7];
+            payload.dataSH[indexDataBase + 26] = sh[2, 8];
+        }
+    }
+
     // Rather than hashing all the inputs that define a Probe Volume's bake state into a 128-bit int (16-bytes),
     // we simply store the raw state values (56-bytes)
     // While this is 3.5x more memory, it's still fairly low, and avoids the runtime cost of string appending garbage creation.
@@ -36,6 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionX;
         public int resolutionY;
         public int resolutionZ;
+        public ProbeVolumesEncodingModes encodingMode;
+        public float backfaceTolerance;
+        public int dilationIterations;
+
     }
 
     [Serializable]
@@ -248,7 +504,10 @@ namespace UnityEngine.Rendering.HighDefinition
             size = Vector3.zero,
             resolutionX = 0,
             resolutionY = 0,
-            resolutionZ = 0
+            resolutionZ = 0,
+            encodingMode = (ProbeVolumesEncodingModes)0,
+            backfaceTolerance = 0.0f,
+            dilationIterations = 0
         };
 
         internal bool dataUpdated = false;
@@ -271,35 +530,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 size = Vector3.zero,
                 resolutionX = 0,
                 resolutionY = 0,
-                resolutionZ = 0
+                resolutionZ = 0,
+                encodingMode = (ProbeVolumesEncodingModes)0,
+                backfaceTolerance = 0.0f,
+                dilationIterations = 0
             };
         }
 
-        internal (SphericalHarmonicsL1[], float[], float[]) GetData()
+        internal ProbeVolumePayload GetPayload()
         {
             dataUpdated = false;
 
             if (!probeVolumeAsset)
-                return (null, null, null);
+            {
+                return new ProbeVolumePayload()
+                {
+                    encodingMode = ShaderConfig.s_ProbeVolumesEncodingMode,
+                    dataValidity = null,
+                    dataOctahedralDepth = null
+                };
+            }
 
-            return (probeVolumeAsset.dataSH, probeVolumeAsset.dataValidity, probeVolumeAsset.dataOctahedralDepth);
-        }
-
-        protected void Awake()
-        {
-            Migrate();
+            return probeVolumeAsset.payload;
         }
 
         bool CheckMigrationRequirement()
         {
-            if (probeVolumeAsset && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current)
-                return false;
-
-            return false;
-        }
-
-        void ApplyMigration()
-        {
+            if (probeVolumeAsset == null) return false;
+            if (probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.Current) return false;
+            return true;
         }
 
         void Migrate()
@@ -311,8 +570,51 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void ApplyMigration()
+        {
+            switch ((ProbeVolumeAsset.AssetVersion)probeVolumeAsset.Version)
+            {
+                case ProbeVolumeAsset.AssetVersion.First:
+                    ApplyMigrationAddProbeVolumesAtlasEncodingModes();
+                    break;
+
+                case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
+                default:
+                    // No migration required.
+                    break;
+            }
+        }
+
+        void ApplyMigrationAddProbeVolumesAtlasEncodingModes()
+        {
+            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.First);
+
+            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes;
+
+            int probeLength = probeVolumeAsset.dataSH.Length;
+            probeVolumeAsset.payload = new ProbeVolumePayload
+            {
+                encodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
+                dataSH = new float[probeLength * ProbeVolumePayload.GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1)],
+                dataValidity = probeVolumeAsset.dataValidity,
+                dataOctahedralDepth = probeVolumeAsset.dataOctahedralDepth
+            };
+            
+            int shStride = ProbeVolumePayload.GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+            for (int i = 0; i < probeLength; ++i)
+            {
+                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, ref probeVolumeAsset.dataSH[i], i);
+            }
+
+            probeVolumeAsset.dataSH = null;
+            probeVolumeAsset.dataValidity = null;
+            probeVolumeAsset.dataOctahedralDepth = null;
+        }
+
         protected void OnEnable()
         {
+            Migrate();
+
 #if UNITY_EDITOR
             OnValidate();
 #endif
@@ -347,7 +649,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return parameters.resolutionX == probeVolumeAsset.resolutionX &&
                        parameters.resolutionY == probeVolumeAsset.resolutionY &&
-                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
+                       parameters.resolutionZ == probeVolumeAsset.resolutionZ &&
+                       probeVolumeAsset.payload.encodingMode == ShaderConfig.s_ProbeVolumesEncodingMode; // TODO: Create runtime transforms between different encoding types to avoid having to rebake.
             }
 
             return false;
@@ -426,9 +729,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             int numProbes = parameters.resolutionX * parameters.resolutionY * parameters.resolutionZ;
-            SphericalHarmonicsL1[] data = new SphericalHarmonicsL1[numProbes];
-            float[] dataValidity = new float[numProbes];
-            float[] dataOctahedralDepth = new float[numProbes * 8 * 8];
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
@@ -436,31 +736,78 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
             {
-                // TODO: Remove this data copy.
-                for (int i = 0, iLen = data.Length; i < iLen; ++i)
-                {
-                    data[i].shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]);
-                    data[i].shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]);
-                    data[i].shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6]);
-
-                    dataValidity[i] = validity[i];
-
-                    for (int j = 0; j < 64; ++j)
-                    {
-                        dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
-                    }
-                }
-
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
 
                 probeVolumeAsset.instanceID = GetID();
-                probeVolumeAsset.dataSH = data;
-                probeVolumeAsset.dataValidity = dataValidity;
-                probeVolumeAsset.dataOctahedralDepth = dataOctahedralDepth;
                 probeVolumeAsset.resolutionX = parameters.resolutionX;
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
+
+                ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, ShaderConfig.s_ProbeVolumesEncodingMode, numProbes);
+                
+                int shStride = ProbeVolumePayload.GetSHStride(probeVolumeAsset.payload.encodingMode);
+
+                // TODO: Remove this data copy. Would require the lightmapper to have GetAdditionalBakedProbes with L0, L1, and L2 variants.
+                switch (probeVolumeAsset.payload.encodingMode)
+                {
+                    case ProbeVolumesEncodingModes.SphericalHarmonicsL0:
+                    {
+                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
+                        {
+                            SphericalHarmonicsL0 sh0 = new SphericalHarmonicsL0
+                            {
+                                // TODO: May need some additional data transform here to handle downgrading from SH2 to SH0.
+                                shrgb = new Vector3(sh[i][0, 0], sh[i][1, 0], sh[i][2, 0])
+                            };
+
+                            ProbeVolumePayload.SetSphericalHarmonicsL0FromIndex(ref probeVolumeAsset.payload, ref sh0, i);
+                        }
+                        break;
+                    }
+
+                    case ProbeVolumesEncodingModes.SphericalHarmonicsL1:
+                    {
+                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
+                        {
+                            SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1
+                            {
+                                shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]),
+                                shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]),
+                                shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6])
+                            };
+
+                            ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, ref sh1, i);
+                        }
+                        break;
+                    }
+
+                    case ProbeVolumesEncodingModes.SphericalHarmonicsL2:
+                    {
+                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
+                        {
+                            SphericalHarmonicsL2 sh2 = sh[i];
+                            ProbeVolumePayload.SetSphericalHarmonicsL2FromIndex(ref probeVolumeAsset.payload, ref sh2, i);
+                        }
+                        break;
+                    }
+
+                    default:
+                    {
+                        Debug.Assert(false, "Error: Encountered unsupported probe volume payload encoding mode: " + probeVolumeAsset.payload.encodingMode);
+                        break;
+                    }
+                }
+
+                for (int i = 0, iLen = sh.Length; i < iLen; ++i)
+                {
+                    probeVolumeAsset.payload.dataValidity[i] = validity[i];
+
+                    for (int j = 0; j < 64; ++j)
+                    {
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
+                    }
+                }
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
                     UnityEditor.EditorUtility.SetDirty(probeVolumeAsset);
@@ -494,7 +841,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 size = probeVolume.parameters.size,
                 resolutionX = probeVolume.parameters.resolutionX,
                 resolutionY = probeVolume.parameters.resolutionY,
-                resolutionZ = probeVolume.parameters.resolutionZ
+                resolutionZ = probeVolume.parameters.resolutionZ,
+                encodingMode = probeVolume.probeVolumeAsset.payload.encodingMode,
+                backfaceTolerance = probeVolume.parameters.backfaceTolerance,
+                dilationIterations = probeVolume.parameters.dilationIterations
             };
         }
 
@@ -506,7 +856,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.size == b.size)
                 && (a.resolutionX == b.resolutionX)
                 && (a.resolutionY == b.resolutionY)
-                && (a.resolutionZ == b.resolutionZ);
+                && (a.resolutionZ == b.resolutionZ)
+                && (a.encodingMode == b.encodingMode)
+                && (a.backfaceTolerance == b.backfaceTolerance)
+                && (a.dilationIterations == b.dilationIterations);
         }
 
         private void SetupProbePositions()

@@ -10,19 +10,30 @@ namespace UnityEngine.Rendering.HighDefinition
         internal enum AssetVersion
         {
             First,
+            AddProbeVolumesAtlasEncodingModes,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
         }
 
-        [SerializeField] protected internal int m_Version = (int)AssetVersion.First;
+        [SerializeField] protected internal int m_Version = (int)AssetVersion.Current;
         [SerializeField] internal int Version { get => m_Version; }
 
         [SerializeField] internal int instanceID;
 
+        // dataSH, dataValidity, and dataOctahedralDepth is from AssetVersion.First. In versions AddProbeVolumesAtlasEncodingModes or greater, this should be null.
         [SerializeField] internal SphericalHarmonicsL1[] dataSH = null;
         [SerializeField] internal float[] dataValidity = null;
         [SerializeField] internal float[] dataOctahedralDepth = null;
+
+
+        [SerializeField] internal ProbeVolumePayload payload = new ProbeVolumePayload()
+        {
+            encodingMode = ShaderConfig.s_ProbeVolumesEncodingMode,
+            dataSH = null,
+            dataValidity = null,
+            dataOctahedralDepth = null
+        };
 
         [SerializeField] internal int resolutionX;
         [SerializeField] internal int resolutionY;
@@ -83,6 +94,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return asset;
         }
 
+        internal bool IsDataAssigned()
+        {
+            return payload.dataSH != null;
+        }
+
         protected internal static Vector3Int[] s_Offsets = new Vector3Int[] {
             // middle slice
             new Vector3Int( 1,  0,  0),
@@ -120,74 +136,68 @@ namespace UnityEngine.Rendering.HighDefinition
             new Vector3Int( 0, -1, -1),
         };
 
-        protected internal int IndexAt(Vector3Int pos)
+        protected internal int ComputeIndex1DFrom3D(Vector3Int pos)
         {
             return pos.x + pos.y * resolutionX + pos.z * resolutionX * resolutionY;
         }
 
-        (SphericalHarmonicsL1, float) Sample(SphericalHarmonicsL1[] dataSH, float[] dataValidity, Vector3Int pos)
+        bool OverwriteInvalidProbe(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, Vector3Int index3D, float backfaceTolerance)
         {
-            if (pos.x < 0 || pos.y < 0 || pos.z < 0 || pos.x >= resolutionX || pos.y >= resolutionY || pos.z >= resolutionZ)
-                return (new SphericalHarmonicsL1(), 1);
+            Debug.Assert(payloadSrc.encodingMode == payloadDst.encodingMode);
 
-            int index = IndexAt(pos);
+            int shStride = ProbeVolumePayload.GetSHStride(payloadSrc.encodingMode);
+            int centerIndex = ComputeIndex1DFrom3D(index3D);
 
-            SphericalHarmonicsL1 sh = dataSH[index];
-            float v = dataValidity[index];
-
-            return (sh, v);
-        }
-
-        bool OverwriteInvalidProbe(SphericalHarmonicsL1[] dataSrc, SphericalHarmonicsL1[] dataDst, float[] dataValiditySrc, float[] dataValidityDst, Vector3Int pos, float backfaceTolerance)
-        {
-            (SphericalHarmonicsL1 center, float validityCenter) = Sample(dataSrc, dataValiditySrc, pos);
-
-            int centerIndex = IndexAt(pos);
-
-            dataDst[centerIndex] = center;
-            dataValidityDst[centerIndex] = validityCenter;
-
-            if (validityCenter <= backfaceTolerance)
-                return true;
-
-            int weights = 0;
-            SphericalHarmonicsL1 result = new SphericalHarmonicsL1();
-            float validity = 0;
+            // Account for center sample accumulation weight, already assigned.
+            float weights = 1.0f - payloadDst.dataValidity[centerIndex];
 
             foreach (Vector3Int offset in s_Offsets)
             {
-                Vector3Int samplePos = pos + offset;
+                Vector3Int sampleIndex3D = index3D + offset;
 
-                (SphericalHarmonicsL1 sample, float sampleValidity) = Sample(dataSrc, dataValiditySrc, samplePos);
-
-                if (sampleValidity > backfaceTolerance)
-                    // invalid sample, don't use
+                if (sampleIndex3D.x < 0 || sampleIndex3D.y < 0 || sampleIndex3D.z < 0
+                    || sampleIndex3D.x >= resolutionX || sampleIndex3D.y >= resolutionY || sampleIndex3D.z >= resolutionZ)
+                {
                     continue;
+                }
 
-                result.shAr += sample.shAr;
-                result.shAg += sample.shAg;
-                result.shAb += sample.shAb;
+                int sampleIndex1D = ComputeIndex1DFrom3D(sampleIndex3D);
 
-                validity += sampleValidity;
+                float sampleValidity = payloadSrc.dataValidity[sampleIndex1D];
+                if (sampleValidity > 0.999f)
+                {
+                    // Sample will have effectively zero contribution. Early out.
+                    continue;
+                }
 
-                weights++;
+                float sampleWeight = 1.0f - sampleValidity;
+                weights += sampleWeight;
+
+                for (int c = 0; c < shStride; ++c)
+                {
+                    payloadDst.dataSH[centerIndex * shStride + c] += payloadSrc.dataSH[sampleIndex1D * shStride + c] * sampleWeight;
+                }
+
+                payloadDst.dataValidity[centerIndex] += sampleValidity * sampleWeight;
             }
 
-            if (weights > 0)
+            if (weights > 0.0f)
             {
-                result.shAr /= weights;
-                result.shAg /= weights;
-                result.shAb /= weights;
-                validity /= weights;
+                float weightsNormalization = 1.0f / weights;
+                for (int c = 0; c < shStride; ++c)
+                {
+                    payloadDst.dataSH[centerIndex * shStride + c] *= weightsNormalization;
+                }
 
-                dataDst[centerIndex] = result;
-                dataValidityDst[centerIndex] = validity;
+                payloadDst.dataValidity[centerIndex] *= weightsNormalization;
 
                 return true;
             }
-
-            // Haven't managed to overwrite an invalid probe
-            return false;
+            else
+            {
+                // Haven't managed to overwrite an invalid probe
+                return false;
+            }
         }
 
         void DilateIntoInvalidProbes(float backfaceTolerance, int dilateIterations)
@@ -195,26 +205,49 @@ namespace UnityEngine.Rendering.HighDefinition
             if (dilateIterations == 0)
                 return;
 
-            SphericalHarmonicsL1[] dataBis = new SphericalHarmonicsL1[dataSH.Length];
-            float[] dataValidityBis = new float[dataSH.Length];
+            ProbeVolumePayload payloadBackbuffer = new ProbeVolumePayload();
+            ProbeVolumePayload.Allocate(ref payloadBackbuffer, payload.encodingMode, ProbeVolumePayload.GetLength(ref payload));
 
             int i = 0;
             for (; i < dilateIterations; ++i)
             {
                 bool invalidProbesRemaining = false;
 
+                // First, copy data from source to destination to seed our center sample.
+                ProbeVolumePayload.Copy(ref payload, ref payloadBackbuffer);
+
+                // Foreach probe, gather neighboring probe data, weighted by validity.
+                // TODO: "validity" is actually stored as how occluded the surface is, so it is really inverse validity.
+                // We should probably rename this to avoid confusion. 
                 for (int z = 0; z < resolutionZ; ++z)
+                {
                     for (int y = 0; y < resolutionY; ++y)
+                    {
                         for (int x = 0; x < resolutionX; ++x)
-                            invalidProbesRemaining |= !OverwriteInvalidProbe(dataSH, dataBis, dataValidity, dataValidityBis, new Vector3Int(x, y, z), backfaceTolerance);
+                        {
+                            Vector3Int index3D = new Vector3Int(x, y, z);
+                            int index1D = ComputeIndex1DFrom3D(index3D);
+                            float validity = payloadBackbuffer.dataValidity[index1D];
+                            if (validity <= backfaceTolerance)
+                            {
+                                // "validity" aka occlusion is low enough for our theshold.
+                                // No need to gather + filter neighbors.
+                                continue;
+                            }
+
+                            invalidProbesRemaining |= !OverwriteInvalidProbe(ref payload, ref payloadBackbuffer, index3D, backfaceTolerance);
+                        }
+                    }
+                }
 
                 // Swap buffers
-                (dataSH, dataBis) = (dataBis, dataSH);
-                (dataValidity, dataValidityBis) = (dataValidityBis, dataValidity);
+                (payload, payloadBackbuffer) = (payloadBackbuffer, payload);
 
                 if (!invalidProbesRemaining)
                     break;
             }
+
+            ProbeVolumePayload.Dispose(ref payloadBackbuffer);
         }
 
         internal void Dilate(float backfaceTolerance, int dilationIterations)
@@ -222,12 +255,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (backfaceTolerance == this.backfaceTolerance && dilationIterations == this.dilationIterations)
                 return;
 
-            float[] validityBackup = new float[dataValidity.Length];
-            Array.Copy(dataValidity, validityBackup, dataValidity.Length);
+            // Validity data will be overwritten during dilation as a per-probe quality heuristic.
+            // We want to retain original validity data for use bilateral filter on the GPU at runtime.
+            float[] validityBackup = new float[payload.dataValidity.Length];
+            Array.Copy(payload.dataValidity, validityBackup, payload.dataValidity.Length);
 
             DilateIntoInvalidProbes(backfaceTolerance, dilationIterations);
 
-            Array.Copy(validityBackup, dataValidity, validityBackup.Length);
+            Array.Copy(validityBackup, payload.dataValidity, validityBackup.Length);
 
             this.backfaceTolerance = backfaceTolerance;
             this.dilationIterations = dilationIterations;

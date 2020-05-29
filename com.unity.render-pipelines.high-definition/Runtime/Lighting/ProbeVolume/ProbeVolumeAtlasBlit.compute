@@ -6,10 +6,11 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SphericalHarmonics.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
-StructuredBuffer<SphericalHarmonicsL1> _ProbeVolumeAtlasReadBuffer;
+StructuredBuffer<float> _ProbeVolumeAtlasReadBuffer;
 StructuredBuffer<float> _ProbeVolumeAtlasReadValidityBuffer;
 RWTexture3D<float4> _ProbeVolumeAtlasWriteTextureSH;
 
@@ -50,10 +51,6 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
 
     writeIndex += (uint3)floor(_ProbeVolumeAtlasBias * _ProbeVolumeAtlasResolutionAndSliceCount.xyz);
 
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAr;
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAg;
-    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = _ProbeVolumeAtlasReadBuffer[readIndex].shAb;
-
     // Convert from "Occlusion" representation from Lightmapper into "Validity" representation which can be directly fed into bilateral filter.
     // This avoids computing 1.0 - occlusion terms per 8 probes per volume per pixel per frame.
     // TODO: Could additionally pre-compute and power transform here to modify curvature of validity data for filter.
@@ -61,5 +58,84 @@ void PROBE_VOLUME_ATLAS_BLIT_KERNEL(uint groupThreadId : SV_GroupThreadID, uint 
     float occlusion = _ProbeVolumeAtlasReadValidityBuffer[readIndex];
     float validity = 1.0 - occlusion;
 
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    const uint SH_STRIDE = 3;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 2],
+        validity // last channel in float4 is unused by SH0 terms, so we take this opportunity to pack validity into it.
+    );
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    const uint SH_STRIDE = 12;
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 3]
+    );
     _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = float4(validity, 0.0, 0.0, 0.0);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    const uint SH_STRIDE = 27;
+
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 0 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 1)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 4 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 2)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 8 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 12 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 12 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 12 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 12 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 4)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 16 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 16 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 16 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 16 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 5)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 20 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 20 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 20 + 2],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 20 + 3]
+    );
+    _ProbeVolumeAtlasWriteTextureSH[uint3(writeIndex.x, writeIndex.y, writeIndex.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6)] = float4(
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 24 + 0],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 24 + 1],
+        _ProbeVolumeAtlasReadBuffer[readIndex * SH_STRIDE + 24 + 2],
+        validity // last channel in float4 is unused by SH2 terms, so we take this opportunity to pack validity into it.
+    );
+
+#else
+    #error "Unsupported ShaderOptions.ProbeVolumesAtlasEncodingMode.";
+#endif    
 }

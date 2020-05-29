@@ -21,6 +21,14 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesEncodingModes
+    {
+        SphericalHarmonicsL0 = 0,
+        SphericalHarmonicsL1 = 1,
+        SphericalHarmonicsL2 = 2
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
@@ -45,8 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // and inside of the editor run:
         // Edit->Render Pipeline->Generate Shader Includes
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
-        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
+        ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.LightLoop,
         ProbeVolumesAdditiveBlending = 1,
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
 
         AreaLights = 1,
 
@@ -69,6 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
+        public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
         [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
