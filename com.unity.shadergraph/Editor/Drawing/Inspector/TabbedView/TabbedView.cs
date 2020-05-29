@@ -8,7 +8,7 @@ public class TabbedView : VisualElement
 {
     public new class UxmlFactory : UxmlFactory<TabbedView, UxmlTraits> { }
 
-    private const string s_UssPath = "TabbedView";
+    private const string k_styleName = "TabbedView";
     private const string s_UssClassName = "unity-tabbed-view";
     private const string s_ContentContainerClassName = "unity-tabbed-view__content-container";
     private const string s_TabsContainerClassName = "unity-tabbed-view__tabs-container";
@@ -25,7 +25,7 @@ public class TabbedView : VisualElement
     {
         AddToClassList(s_UssClassName);
 
-        styleSheets.Add(Resources.Load<StyleSheet>(s_UssPath));
+        styleSheets.Add(Resources.Load<StyleSheet>($"Styles/{k_styleName}"));
 
         m_TabContent = new VisualElement();
         m_TabContent.name = "unity-tabs-container";

@@ -21,7 +21,8 @@ public class TabButton : VisualElement
         }
     }
 
-    static readonly string s_UssPath = "TabButtonStyles";
+    static readonly string styleName = "TabButtonStyles";
+    static readonly string UxmlName = "TabButton";
     static readonly string s_UssClassName = "unity-tab-button";
     static readonly string s_UssActiveClassName = s_UssClassName + "--active";
     
@@ -70,9 +71,9 @@ public class TabButton : VisualElement
     private void Init()
     {
         AddToClassList(s_UssClassName);
-        styleSheets.Add(Resources.Load<StyleSheet>(s_UssPath));
+        styleSheets.Add(Resources.Load<StyleSheet>($"Styles/{styleName}"));
 
-        VisualTreeAsset visualTree = Resources.Load<VisualTreeAsset>("TabButton");
+        VisualTreeAsset visualTree = Resources.Load<VisualTreeAsset>($"UXML/{UxmlName}");
         visualTree.CloneTree(this);
 
         m_Label = this.Q<Label>("Label");
