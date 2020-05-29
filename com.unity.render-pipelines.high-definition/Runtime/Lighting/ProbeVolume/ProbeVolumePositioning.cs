@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     internal static class ProbeVolumePositioning
     {
+        internal static Vector3[] m_Axes = new Vector3[6];
+
         internal static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
         {
             Flags f = new Flags();
@@ -54,17 +56,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static bool OBBIntersect(ref Volume a, ref Volume b)
         {
-            Vector3[] axises =
-            {
-                a.X.normalized,
-                a.Y.normalized,
-                a.Z.normalized,
-                b.X.normalized,
-                b.Y.normalized,
-                b.Z.normalized
-            };
+            m_Axes[0] = a.X.normalized;
+            m_Axes[1] = a.Y.normalized;
+            m_Axes[2] = a.Z.normalized;
+            m_Axes[3] = b.X.normalized;
+            m_Axes[4] = b.Y.normalized;
+            m_Axes[5] = b.Z.normalized;
 
-            foreach (Vector3 axis in axises)
+            foreach (Vector3 axis in m_Axes)
             {
                 Vector2 aProj = ProjectOBB(ref a, axis);
                 Vector2 bProj = ProjectOBB(ref b, axis);
