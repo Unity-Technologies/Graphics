@@ -293,7 +293,7 @@ Shader "Hidden/HDRP/DebugExposure"
             uint halfBarSize = barSize / 2;
             uint lowerMidPoint = midXPoint - halfBarSize;
             uint higherMidPoint = midXPoint + halfBarSize;
-            if (coordOnX < lowerMidPoint)
+            if (coordOnX < float(lowerMidPoint))
             {
                 uint distanceFromCenter = lowerMidPoint - coordOnX;
                 float deltaBinFloat = distanceFromCenter / barSize;
@@ -301,7 +301,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 locWithinBin = frac(deltaBinFloat) * barSize;
                 binIndex = centerBin - deltaInBins;
             }
-            else if (coordOnX > higherMidPoint)
+            else if (coordOnX > float(higherMidPoint))
             {
                 uint distanceFromCenter = coordOnX - higherMidPoint;
                 float deltaBinFloat = distanceFromCenter / barSize;
