@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = hairMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = hairMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = hairMasterNode.m_ReceivesSSR;
+            lightingData.receiveSSRTransparent = hairMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularAA = hairMasterNode.m_SpecularAA;
             lightingData.specularOcclusionMode = hairMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hairMasterNode.m_overrideBakedGI;
