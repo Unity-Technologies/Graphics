@@ -67,22 +67,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateSceneSelection(),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
-                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
-                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
-                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 };
+
+                if (supportLighting)
+                {
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) });
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
+                }
+                else
+                {
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                }
 
                 if (supportForward)
                 {

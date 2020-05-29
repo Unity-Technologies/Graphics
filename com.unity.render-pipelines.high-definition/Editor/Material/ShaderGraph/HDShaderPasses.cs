@@ -94,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Scene Selection Pass
 
-        public static PassDescriptor GenerateSceneSelection()
+        public static PassDescriptor GenerateSceneSelection(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -115,8 +115,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
                 keywords = CoreKeywords.HDBase,
-                includes = SceneSelectionIncludes,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static BlockFieldDescriptor[] FragmentSceneSelection = new BlockFieldDescriptor[]
@@ -124,19 +144,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
             HDBlockFields.SurfaceDescription.DepthOffset,
-        };
-
-        public static IncludeCollection SceneSelectionIncludes = new IncludeCollection
-        {
-            { CoreIncludes.CorePregraph },
-            { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
-            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
-            { CoreIncludes.CoreUtility },
-            // We don't need decals for scene selection ?
-            // { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
-            // { kLitDecalData, IncludeLocation.Pregraph },
-            { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-            { CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph },
         };
 
 #endregion
@@ -374,6 +381,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = MotionVectorRequiredFields,
                 renderStates = GenerateRenderState(),
                 fieldDependencies = CoreFieldDependencies.Default,
+                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
@@ -520,6 +528,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             BlockFields.SurfaceDescription.BaseColor,
             HDBlockFields.SurfaceDescription.SpecularOcclusion,
             BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalOS,
+            BlockFields.SurfaceDescription.NormalWS,
             HDBlockFields.SurfaceDescription.BentNormal,
             BlockFields.SurfaceDescription.Smoothness,
             BlockFields.SurfaceDescription.Occlusion,
@@ -535,6 +545,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.BakedGI,
             HDBlockFields.SurfaceDescription.BakedBackGI,
             HDBlockFields.SurfaceDescription.DepthOffset,
+            HDBlockFields.SurfaceDescription.ShadowTint, // Unlit only field
+            // Eye fields
+            HDBlockFields.SurfaceDescription.IrisNormal,
+            HDBlockFields.SurfaceDescription.IOR,
+            HDBlockFields.SurfaceDescription.Mask,
         };
 
         public static FieldCollection ForwardOnlyFields = new FieldCollection()
@@ -574,6 +589,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.LitMinimal,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
@@ -641,6 +657,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.RefractionColor,
             HDBlockFields.SurfaceDescription.RefractionDistance,
             HDBlockFields.SurfaceDescription.DepthOffset,
+            // Hair only
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+
         };
 
 #endregion

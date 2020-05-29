@@ -60,7 +60,28 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
             else
             {
-                return base.GetSubShaderDescriptor();
+                var descriptor = base.GetSubShaderDescriptor();
+
+                // We need to add includes for shadow matte as it's a special case (Lighting includes in an unlit pass)
+                var forwardUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "ForwardOnly");
+
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
+
+    //                 { CoreIncludes.CorePregraph },
+//                 { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
+//                 { CoreIncludes.CoreUtility },
+//                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+//                 { CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+//                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+//                 { CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+//                 { CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
+//                 { kPassForwardUnlit, IncludeLocation.Postgraph },
+
+
+                return descriptor;
             }
         }
 
