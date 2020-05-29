@@ -13,7 +13,7 @@ using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed partial class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
+    sealed partial class HDUnlitSubTarget : ILegacyTarget
     {
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
             systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
-            systemData.zWrite = false;
+            systemData.transparentZWrite = false;
             builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
             target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
 
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTest = hdUnlitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdUnlitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdUnlitMasterNode.m_DoubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
-            systemData.zWrite = hdUnlitMasterNode.m_ZWrite;
+            systemData.transparentZWrite = hdUnlitMasterNode.m_ZWrite;
             systemData.transparentCullMode = hdUnlitMasterNode.m_transparentCullMode;
             systemData.zTest = hdUnlitMasterNode.m_ZTest;
             systemData.dotsInstancing = hdUnlitMasterNode.m_DOTSInstancing;

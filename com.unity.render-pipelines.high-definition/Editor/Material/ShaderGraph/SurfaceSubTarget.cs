@@ -42,8 +42,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportPathtracing => false;
 
         protected abstract string subShaderInclude { get; }
-        protected virtual string postDecalsIncludes => null;
-        protected virtual string postGraphIncludes => null;
+        protected virtual string postDecalsInclude => null;
+        // Maybe we should rename it custom forward pass include ?
+        // protected virtual string postGraphInclude => null;
 
         // TODO: put this method as sealed when the new pass system is done
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
@@ -66,18 +67,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateSceneSelectionPass(),
-                    HDShaderPasses.GenerateShadowCasterPass(supportLighting),
-                    HDShaderPasses.GenerateMETAPass(supportLighting),
-                    // MotionVector
+                    HDShaderPasses.GenerateSceneSelection(),
+                    HDShaderPasses.GenerateShadowCaster(supportLighting),
+                    HDShaderPasses.GenerateMETA(supportLighting),
+                    HDShaderPasses.GenerateMotionVectors(supportLighting),
+                    { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
+                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 };
 
                 if (supportForward)
-                    passes.Add(HDShaderPasses.GenerateDepthForwardOnly(supportLighting));
-                    // passes.Add();
+                {
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenereateForwardOnlyPass(supportLighting));
+                }
                 if (supportDistortion)
                     passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
-                
+
                 return passes;
             }
         }
@@ -124,9 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
                         include.descriptor.value = subShaderInclude;
                     if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
-                        include.descriptor.value = postDecalsIncludes;
-                    if (include.descriptor.value == CoreIncludes.kPostGraphPlaceholder)
-                        include.descriptor.value = postGraphIncludes;
+                        include.descriptor.value = postDecalsInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
@@ -150,6 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddDistortionFields(ref context);
 
             // Common properties between all "surface" master nodes (everything except decal right now)
+            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
 
             // Blend Mode
             context.AddField(Fields.BlendAdd,              systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
@@ -277,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.blendMode,
                 systemData.sortPriority,
                 builtinData.alphaToMask,
-                systemData.zWrite,
+                systemData.transparentZWrite,
                 systemData.transparentCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
@@ -290,196 +303,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Fixup the material settings:
             material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
             material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
+            material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1 : 0);
             material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
             material.SetFloat(kBlendMode, (int)systemData.blendMode);
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
+            material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);
 
             HDLitGUI.SetupMaterialKeywordsAndPass(material);
         }
-
-        // Common passes for all "surface" targets
-        
-        // protected virtual void EnumeratePassesForSubShader
-
-        // public static PassDescriptor META = new PassDescriptor()
-        // {
-        //     // Definition
-        //     displayName = "META",
-        //     referenceName = "SHADERPASS_LIGHT_TRANSPORT",
-        //     lightMode = "META",
-        //     useInPreview = false,
-
-        //     // Template
-        //     passTemplatePath = templatePath,
-        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-        //     // Block Mask
-        //     validPixelBlocks = UnlitBlockMasks.FragmentDefault,
-
-        //     // Collections
-        //     structs = CoreStructCollections.Default,
-        //     requiredFields = new FieldCollection(){ CoreRequiredFields.Meta, HDFields.SubShader.Unlit },
-        //     fieldDependencies = CoreFieldDependencies.Default,
-        //     renderStates = CoreRenderStates.Meta,
-        //     pragmas = CorePragmas.DotsInstancedInV2Only,
-        //     keywords = CoreKeywords.HDBase,
-        //     includes = UnlitIncludes.Meta,
-        // };
-
-        // public static PassDescriptor ShadowCaster = new PassDescriptor()
-        // {
-        //     // Definition
-        //     displayName = "ShadowCaster",
-        //     referenceName = "SHADERPASS_SHADOWS",
-        //     lightMode = "ShadowCaster",
-        //     useInPreview = false,
-
-        //     // Template
-        //     passTemplatePath = templatePath,
-        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-        //     // Block Mask
-        //     validVertexBlocks = CoreBlockMasks.Vertex,
-        //     validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
-
-        //     // Collections
-        //     structs = CoreStructCollections.Default,
-        //     requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
-        //     fieldDependencies = CoreFieldDependencies.Default,
-        //     renderStates = CoreRenderStates.ShadowCaster,
-        //     pragmas = CorePragmas.DotsInstancedInV2Only,
-        //     keywords = CoreKeywords.HDBase,
-        //     includes = UnlitIncludes.DepthOnly,
-        // };
-
-        // public static PassDescriptor SceneSelection = new PassDescriptor()
-        // {
-        //     // Definition
-        //     displayName = "SceneSelectionPass",
-        //     referenceName = "SHADERPASS_DEPTH_ONLY",
-        //     lightMode = "SceneSelectionPass",
-        //     useInPreview = false,
-
-        //     // Template
-        //     passTemplatePath = templatePath,
-        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-        //     // Block Mask
-        //     validVertexBlocks = CoreBlockMasks.Vertex,
-        //     validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
-
-        //     // Collections
-        //     structs = CoreStructCollections.Default,
-        //     requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
-        //     fieldDependencies = CoreFieldDependencies.Default,
-        //     renderStates = UnlitRenderStates.SceneSelection,
-        //     pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
-        //     defines = CoreDefines.SceneSelection,
-        //     keywords = CoreKeywords.HDBase,
-        //     includes = UnlitIncludes.DepthOnly,
-        // };
-
-        // protected PassDescriptor sceneSelectionPass => new PassDescriptor()
-        // {
-        //     // Definition
-        //     displayName = "SceneSelectionPass",
-        //     referenceName = "SHADERPASS_DEPTH_ONLY",
-        //     lightMode = "SceneSelectionPass",
-        //     useInPreview = false,
-
-        //     // Template
-        //     passTemplatePath = templatePath,
-        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-        //     // Block Mask
-        //     validVertexBlocks = CoreBlockMasks.Vertex,
-        //     validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
-
-        //     // Collections
-        //     structs = CoreStructCollections.Default,
-        //     requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
-        //     fieldDependencies = CoreFieldDependencies.Default,
-        //     renderStates = UnlitRenderStates.SceneSelection,
-        //     pragmas = CorePragmas.DotsInstancedInV2OnlyEditorSync,
-        //     defines = CoreDefines.SceneSelection,
-        //     keywords = CoreKeywords.HDBase,
-        //     includes = UnlitIncludes.DepthOnly,
-        // };
-
-        // protected PassDescriptor distortionPass => new PassDescriptor()
-        // {
-        //     // Definition
-        //     displayName = "DistortionVectors",
-        //     referenceName = "SHADERPASS_DISTORTION",
-        //     lightMode = "DistortionVectors",
-        //     useInPreview = true,
-
-        //     // Template
-        //     passTemplatePath = templatePath,
-        //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-        //     // Port mask
-        //     validVertexBlocks = CoreBlockMasks.Vertex,
-        //     validPixelBlocks = FragmentDistortion,
-
-        //     // Collections
-        //     structs = CoreStructCollections.Default,
-        //     fieldDependencies = CoreFieldDependencies.Default,
-        //     renderStates = new RenderStateCollection
-        //     {
-        //         { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
-        //         { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
-        //         { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
-        //         { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
-        //         { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-        //         { RenderState.ZWrite(ZWrite.Off) },
-        //         { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
-        //         { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
-        //         { RenderState.Stencil(new StencilDescriptor() {
-        //             WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
-        //             Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-        //             Comp = "Always",
-        //             Pass = "Replace",
-        //         }) },
-        //     },
-        //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
-        //     defines = CoreDefines.ShaderGraphRaytracingHigh,
-        //     keywords = CoreKeywords.HDBase,
-        //     includes = GenerateDistortionIncludes(),
-        // };
-
-        // IncludeCollection GenerateDistortionIncludes()
-        // {
-        //     var includes = new IncludeCollection();
-
-        //     includes.Add(CoreIncludes.CorePregraph);
-        //     if (supportsLighting)
-        //         includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
-        //     includes.Add(subShaderInclude, IncludeLocation.Pregraph);
-        //     includes.Add(CoreIncludes.CoreUtility);
-        //     if (supportsLighting)
-        //     {
-        //         includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
-        //         includes.Add(postDecalsIncludes);
-        //     }
-        //     includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-        //     includes.Add(CoreIncludes.kDisortionVectors, IncludeLocation.Postgraph);
-
-        //     return includes;
-        // }
-
-        // public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
-        // {
-        //     BlockFields.SurfaceDescription.Alpha,
-        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
-        //     HDBlockFields.SurfaceDescription.Distortion,
-        //     HDBlockFields.SurfaceDescription.DistortionBlur,
-        // };
     }
 }

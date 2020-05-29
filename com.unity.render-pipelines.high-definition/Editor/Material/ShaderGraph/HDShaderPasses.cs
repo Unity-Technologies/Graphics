@@ -12,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
 #region Distortion Pass
 
-        public static PassDescriptor GenerateDistortionPass(bool supportsLighting)
+        public static PassDescriptor GenerateDistortionPass(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -33,7 +33,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = new RenderStateCollection
+                renderStates = GenerateRenderState(),
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = CoreKeywords.HDBase,
+                includes = GenerateIncludes(),
+            };
+
+            RenderStateCollection GenerateRenderState()
+            {
+                return new RenderStateCollection
                 {
                     { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
                     { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
@@ -48,24 +57,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
                         Comp = "Always",
                         Pass = "Replace",
-                    }) },
-                },
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
-                includes = GenerateDistortionIncludes(),
-            };
+                    }) }
+                };
+            }
 
-            IncludeCollection GenerateDistortionIncludes()
+            IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.CorePregraph);
-                if (supportsLighting)
+                if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                if (supportsLighting)
+                if (supportLighting)
                 {
                     includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
@@ -89,7 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Scene Selection Pass
 
-        public static PassDescriptor GenerateSceneSelectionPass()
+        public static PassDescriptor GenerateSceneSelection()
         {
             return new PassDescriptor
             {
@@ -138,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Shadow Caster Pass
 
-        static public PassDescriptor GenerateShadowCasterPass(bool supportsLighting)
+        static public PassDescriptor GenerateShadowCaster(bool supportLighting)
         {
             return new PassDescriptor()
             {
@@ -158,19 +163,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = CoreKeywords.HDBase,
-                includes = GenerateShadowCasterIncludes(),
+                includes = GenerateIncludes(),
             };
 
-            IncludeCollection GenerateShadowCasterIncludes()
+            IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.CorePregraph);
-                if (supportsLighting)
+                if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                if (supportsLighting)
+                if (supportLighting)
                 {
                     includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
@@ -194,7 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region META pass
 
-        public static PassDescriptor GenerateMETAPass(bool supportsLighting)
+        public static PassDescriptor GenerateMETA(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -215,19 +220,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = CoreKeywords.HDBase,
-                includes = GenerateMETAIncludes(),
+                includes = GenerateIncludes(),
             };
 
-            IncludeCollection GenerateMETAIncludes()
+            IncludeCollection GenerateIncludes()
             {
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.CorePregraph);
-                if (supportsLighting)
+                if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                if (supportsLighting)
+                if (supportLighting)
                 {
                     includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                     includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
@@ -274,7 +279,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Depth Forward Only
 
-        public static PassDescriptor GenerateDepthForwardOnly(bool supportsLighting)
+        public static PassDescriptor GenerateDepthForwardOnlyPass(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -286,7 +291,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentDepthMotionVectors,
+                validPixelBlocks = FragmentDepthOnlyVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -294,7 +299,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = CoreDefines.DepthMotionVectors,
+                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
                 includes = GenerateIncludes(),
             };
@@ -324,11 +329,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var includes = new IncludeCollection();
 
                 includes.Add(CoreIncludes.CorePregraph);
-                if (supportsLighting)
+                if (supportLighting)
                     includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.CoreUtility);
-                if (supportsLighting)
+                if (supportLighting)
                     includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
                 includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
@@ -337,12 +342,486 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentDepthMotionVectors = new BlockFieldDescriptor[]
+        public static BlockFieldDescriptor[] FragmentDepthOnlyVectors = new BlockFieldDescriptor[]
         {
             BlockFields.SurfaceDescription.NormalTS,
             BlockFields.SurfaceDescription.Smoothness,
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+#endregion
+
+#region Motion Vectors
+
+        public static PassDescriptor GenerateMotionVectors(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "MotionVectors",
+                referenceName = "SHADERPASS_MOTION_VECTORS",
+                lightMode = "MotionVectors",
+                useInPreview = false,
+
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentMotionVectors,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = MotionVectorRequiredFields,
+                renderStates = GenerateRenderState(),
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                keywords = GenerateKeywords(),
+                includes = GenerateIncludes(),
+            };
+
+            RenderStateCollection GenerateRenderState()
+            {
+                var renderState = CoreRenderStates.MotionVectors;
+    
+                if (!supportLighting)
+                {
+                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal] 1"));
+                    renderState.Add(RenderState.ColorMask("ColorMask 0 2"));
+                }
+
+                return renderState;
+            }
+
+            KeywordCollection GenerateKeywords()
+            {
+                var keywords = new KeywordCollection
+                {
+                    { CoreKeywords.HDBase },
+                    { CoreKeywordDescriptors.WriteMsaaDepth },
+                    { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
+                };
+
+                if (supportLighting)
+                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                
+                return keywords;
+            }
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassMotionVectors, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+
+        static FieldCollection MotionVectorRequiredFields = new FieldCollection()
+        {
+            HDStructFields.AttributesMesh.normalOS,
+            HDStructFields.AttributesMesh.tangentOS,
+            HDStructFields.AttributesMesh.uv0,
+            HDStructFields.AttributesMesh.uv1,
+            HDStructFields.AttributesMesh.color,
+            HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.uv3,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.texCoord3,
+            HDStructFields.FragInputs.color,
+        };
+
+        public static BlockFieldDescriptor[] FragmentMotionVectors = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+#endregion
+
+#region Forward Only
+
+        public static PassDescriptor GenereateForwardOnlyPass(bool supportLighting)
+        {
+            return new PassDescriptor
+            { 
+                // Definition
+                displayName = "ForwardOnly",
+                referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
+                lightMode = "ForwardOnly",
+                useInPreview = true,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentForwardOnly,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = ForwardOnlyFields,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = CoreRenderStates.Forward,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = supportLighting ? CoreDefines.Forward : null,
+                keywords = CoreKeywords.Forward,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                else
+                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+ 
+                return includes;
+            }
+        }
+
+        public static BlockFieldDescriptor[] FragmentForwardOnly = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.NormalTS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+        public static FieldCollection ForwardOnlyFields = new FieldCollection()
+        {
+            HDStructFields.AttributesMesh.normalOS,
+            HDStructFields.AttributesMesh.tangentOS,
+            HDStructFields.AttributesMesh.uv0,
+            HDStructFields.AttributesMesh.uv1,
+            HDStructFields.AttributesMesh.color,
+            HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.uv3,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.texCoord3,
+            HDStructFields.FragInputs.color,
+        };
+
+#endregion
+
+#region Back then front pass
+
+        public static PassDescriptor GenerateBackThenFront(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        {
+            return new PassDescriptor
+            { 
+                // Definition
+                displayName = "TransparentBackface",
+                referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
+                lightMode = "TransparentBackface",
+                useInPreview = true,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentBackThenFront,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = CoreRenderStates.TransparentBackface,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.Forward,
+                keywords = CoreKeywords.Forward,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kLightLoop, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kPassForward, IncludeLocation.Postgraph);
+                else
+                    includes.Add(CoreIncludes.kPassForwardUnlit, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+
+        public static BlockFieldDescriptor[] FragmentBackThenFront = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+#endregion
+
+#region Transparent Depth Prepass
+
+        public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "TransparentDepthPrepass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "TransparentDepthPrepass",
+                useInPreview = true,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentTransparentDepthPrepass,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = TransparentDepthPrepassFields,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = GenerateRenderState(),
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = GenerateDefines(),
+                keywords = CoreKeywords.HDBase,
+                includes = GenerateIncludes(),
+            };
+
+            DefineCollection GenerateDefines()
+            {
+                var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
+
+                if (supportLighting)
+                    defines.Add(CoreKeywordDescriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false));
+
+                return defines;
+            }
+
+            RenderStateCollection GenerateRenderState()
+            {
+                var renderState = new RenderStateCollection
+                {
+                    { RenderState.Blend(Blend.One, Blend.Zero) },
+                    { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+                    { RenderState.ZWrite(ZWrite.On) },
+                    { RenderState.Stencil(new StencilDescriptor()
+                    {
+                        WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                        Ref = CoreRenderStates.Uniforms.stencilRefDepth,
+                        Comp = "Always",
+                        Pass = "Replace",
+                    }) },
+                };
+
+                if (!supportLighting)
+                {
+                    renderState.Add(RenderState.ColorMask("ColorMask [_ColorMaskNormal]"));
+                    renderState.Add(RenderState.ColorMask("ColorMask 0 1"));
+                }
+
+                return renderState;
+            }
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+        }
+
+        public static FieldCollection TransparentDepthPrepassFields = new FieldCollection()
+        {
+            HDStructFields.AttributesMesh.normalOS,
+            HDStructFields.AttributesMesh.tangentOS,
+            HDStructFields.AttributesMesh.uv0,
+            HDStructFields.AttributesMesh.uv1,
+            HDStructFields.AttributesMesh.color,
+            HDStructFields.AttributesMesh.uv2,
+            HDStructFields.AttributesMesh.uv3,
+            HDStructFields.FragInputs.tangentToWorld,
+            HDStructFields.FragInputs.positionRWS,
+            HDStructFields.FragInputs.texCoord1,
+            HDStructFields.FragInputs.texCoord2,
+            HDStructFields.FragInputs.texCoord3,
+            HDStructFields.FragInputs.color,
+        };
+
+        public static BlockFieldDescriptor[] FragmentTransparentDepthPrepass = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.Alpha,
+            HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            BlockFields.SurfaceDescription.Smoothness,
+        };
+
+#endregion
+
+#region Transparent Depth Postpass
+
+        public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "TransparentDepthPostpass",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "TransparentDepthPostpass",
+                useInPreview = true,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = FragmentTransparentDepthPostpass,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = GenerateRenderState(),
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = CoreKeywords.HDBase,
+                includes = GenerateIncludes(),
+            };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+
+                includes.Add(CoreIncludes.CorePregraph);
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph);
+                }
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph);
+
+                return includes;
+            }
+
+            RenderStateCollection GenerateRenderState()
+            {
+                var renderState = new RenderStateCollection
+                {
+                    { RenderState.Blend(Blend.One, Blend.Zero) },
+                    { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+                    { RenderState.ZWrite(ZWrite.On) },
+                    { RenderState.ColorMask("ColorMask 0") },
+                };
+
+                return renderState;
+            }
+        }
+
+        public static BlockFieldDescriptor[] FragmentTransparentDepthPostpass = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.Alpha,
+            HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
             HDBlockFields.SurfaceDescription.DepthOffset,
         };
 

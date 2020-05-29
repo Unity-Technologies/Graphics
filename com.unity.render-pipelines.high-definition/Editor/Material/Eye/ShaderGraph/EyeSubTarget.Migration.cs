@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = eyeMasterNode.m_SortPriority;
             systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = eyeMasterNode.m_ZWrite;
+            systemData.transparentZWrite = eyeMasterNode.m_ZWrite;
             systemData.transparentCullMode = eyeMasterNode.m_transparentCullMode;
             systemData.zTest = eyeMasterNode.m_ZTest;
             systemData.supportLodCrossFade = eyeMasterNode.m_SupportLodCrossFade;

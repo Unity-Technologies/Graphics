@@ -27,7 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTest = fabricMasterNode.m_AlphaTest;
             systemData.sortPriority = fabricMasterNode.m_SortPriority;
             systemData.doubleSidedMode = fabricMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = fabricMasterNode.m_ZWrite;
+            systemData.transparentZWrite = fabricMasterNode.m_ZWrite;
             systemData.transparentCullMode = fabricMasterNode.m_transparentCullMode;
             systemData.zTest = fabricMasterNode.m_ZTest;
             systemData.supportLodCrossFade = fabricMasterNode.m_SupportLodCrossFade;

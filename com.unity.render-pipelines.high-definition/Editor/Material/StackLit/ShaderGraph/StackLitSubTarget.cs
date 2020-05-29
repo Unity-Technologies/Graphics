@@ -165,8 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
 
             // StackLit specific properties
-            context.AddField(HDStructFields.FragInputs.IsFrontFace, systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(StackLitSubTarget.StackLitPasses.MotionVectors));
-
             // Material
             context.AddField(HDFields.Anisotropy,                   stackLitData.anisotropy);
             context.AddField(HDFields.Coat,                         stackLitData.coat);

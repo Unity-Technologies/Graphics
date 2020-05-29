@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTestDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = hdLitMasterNode.m_ZWrite;
+            systemData.transparentZWrite = hdLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = hdLitMasterNode.m_transparentCullMode;
             systemData.zTest = hdLitMasterNode.m_ZTest;
             systemData.supportLodCrossFade = hdLitMasterNode.m_SupportLodCrossFade;

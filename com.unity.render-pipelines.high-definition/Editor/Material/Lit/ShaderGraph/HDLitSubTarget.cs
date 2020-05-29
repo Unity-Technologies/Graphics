@@ -26,6 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         protected override bool supportDistortion => true;
+        protected override bool supportForward => false;
+        protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
 
         HDLitData m_LitData;
 
@@ -41,11 +43,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LitData = value;
         }
 
-        // Iterate over the sub passes available in the shader
-        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
+        protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
-            yield return SubShaders.Lit;
-            yield return SubShaders.LitRaytracing;
+            var descriptor = base.GetSubShaderDescriptor();
+
+            // TODO: move these passes in HDShaderPasses
+            descriptor.passes.Add(LitPasses.DepthOnly);
+            descriptor.passes.Add(LitPasses.GBuffer);
+            descriptor.passes.Add(LitPasses.Forward);
+            descriptor.passes.Add(LitPasses.RayTracingPrepass);
+
+            return descriptor;
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -55,8 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
             // Lit specific properties
-            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
-
             context.AddField(HDFields.DotsProperties,                       context.hasDotsProperties);
 
             // Material
@@ -68,9 +74,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.Transmission,                         (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && litData.sssTransmission) ||
                                                                                 (litData.materialType == HDLitData.MaterialType.Translucent));
             context.AddField(HDFields.Translucent,                          litData.materialType == HDLitData.MaterialType.Translucent);
-
-            context.AddField(HDFields.DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
-            context.AddField(HDFields.DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
 
             // Refraction
             context.AddField(HDFields.Refraction,                           hasRefraction);
@@ -150,54 +153,54 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hash;
         }
 
-#region SubShaders
-        static class SubShaders
-        {
-            public static SubShaderDescriptor Lit = new SubShaderDescriptor()
-            {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { LitPasses.ShadowCaster },
-                    { LitPasses.META },
-                    { LitPasses.SceneSelection },
-                    { LitPasses.DepthOnly },
-                    { LitPasses.GBuffer },
-                    { LitPasses.MotionVectors },
-                    { LitPasses.DistortionVectors, new FieldCondition(HDFields.TransparentDistortion, true) },
-                    { LitPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
-                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
-                    { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
-                    { LitPasses.Forward },
-                    { LitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
-                    { LitPasses.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
-                },
-            };
+// #region SubShaders
+//         static class SubShaders
+//         {
+//             public static SubShaderDescriptor Lit = new SubShaderDescriptor()
+//             {
+//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
+//                 generatesPreview = true,
+//                 passes = new PassCollection
+//                 {
+//                     { LitPasses.ShadowCaster },
+//                     { LitPasses.META },
+//                     { LitPasses.SceneSelection },
+//                     { LitPasses.DepthOnly },
+//                     { LitPasses.GBuffer },
+//                     { LitPasses.MotionVectors },
+//                     { LitPasses.DistortionVectors, new FieldCondition(HDFields.TransparentDistortion, true) },
+//                     { LitPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
+//                     { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+//                                                             new FieldCondition(HDFields.TransparentDepthPrePass, true),
+//                                                             new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+//                     { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+//                                                             new FieldCondition(HDFields.TransparentDepthPrePass, true),
+//                                                             new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+//                     { LitPasses.TransparentDepthPrepass, new FieldCondition[]{
+//                                                             new FieldCondition(HDFields.TransparentDepthPrePass, false),
+//                                                             new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+//                     { LitPasses.Forward },
+//                     { LitPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+//                     { LitPasses.RayTracingPrepass, new FieldCondition(HDFields.RayTracing, true) },
+//                 },
+//             };
 
-            public static SubShaderDescriptor LitRaytracing = new SubShaderDescriptor()
-            {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                generatesPreview = false,
-                passes = new PassCollection
-                {
-                    { LitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
-                    { LitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
-                    { LitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
-                    { LitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
-                    { LitPasses.RaytracingSubSurface, new FieldCondition(Fields.IsPreview, false) },
-                    { LitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
-                },
-            };
-        }
-#endregion
+//             public static SubShaderDescriptor LitRaytracing = new SubShaderDescriptor()
+//             {
+//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
+//                 generatesPreview = false,
+//                 passes = new PassCollection
+//                 {
+//                     { LitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
+//                     { LitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
+//                     { LitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
+//                     { LitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
+//                     { LitPasses.RaytracingSubSurface, new FieldCondition(Fields.IsPreview, false) },
+//                     { LitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
+//                 },
+//             };
+//         }
+// #endregion
 
 #region Passes
         public static class LitPasses
@@ -231,83 +234,83 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 virtualTextureFeedback = true,
             };
 
-            public static PassDescriptor META = new PassDescriptor()
-            {
-                // Definition
-                displayName = "META",
-                referenceName = "SHADERPASS_LIGHT_TRANSPORT",
-                lightMode = "META",
-                useInPreview = false,
+            // public static PassDescriptor META = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "META",
+            //     referenceName = "SHADERPASS_LIGHT_TRANSPORT",
+            //     lightMode = "META",
+            //     useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validPixelBlocks = LitBlockMasks.FragmentMeta,
+            //     // Port Mask
+            //     validPixelBlocks = LitBlockMasks.FragmentMeta,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.Meta,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.Meta,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.Meta,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     requiredFields = CoreRequiredFields.Meta,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.Meta,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.Meta,
+            // };
 
-            public static PassDescriptor ShadowCaster = new PassDescriptor()
-            {
-                // Definition
-                displayName = "ShadowCaster",
-                referenceName = "SHADERPASS_SHADOWS",
-                lightMode = "ShadowCaster",
-                useInPreview = false,
+            // public static PassDescriptor ShadowCaster = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "ShadowCaster",
+            //     referenceName = "SHADERPASS_SHADOWS",
+            //     lightMode = "ShadowCaster",
+            //     useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentShadowCaster,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentShadowCaster,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.BlendShadowCaster,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.DepthOnly,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.BlendShadowCaster,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.DepthOnly,
+            // };
 
-            public static PassDescriptor SceneSelection = new PassDescriptor()
-            {
-                // Definition
-                displayName = "SceneSelectionPass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "SceneSelectionPass",
-                useInPreview = false,
+            // public static PassDescriptor SceneSelection = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "SceneSelectionPass",
+            //     referenceName = "SHADERPASS_DEPTH_ONLY",
+            //     lightMode = "SceneSelectionPass",
+            //     useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentSceneSelection,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentSceneSelection,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.SceneSelection,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
-                defines = CoreDefines.SceneSelection,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.DepthOnly,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.SceneSelection,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
+            //     defines = CoreDefines.SceneSelection,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.DepthOnly,
+            // };
 
             public static PassDescriptor DepthOnly = new PassDescriptor()
             {
@@ -336,111 +339,111 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = LitIncludes.DepthOnly,
             };
 
-            public static PassDescriptor MotionVectors = new PassDescriptor()
-            {
-                // Definition
-                displayName = "MotionVectors",
-                referenceName = "SHADERPASS_MOTION_VECTORS",
-                lightMode = "MotionVectors",
-                useInPreview = false,
+            // public static PassDescriptor MotionVectors = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "MotionVectors",
+            //     referenceName = "SHADERPASS_MOTION_VECTORS",
+            //     lightMode = "MotionVectors",
+            //     useInPreview = false,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.LitFull,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.MotionVectors,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = LitKeywords.DepthMotionVectors,
-                includes = LitIncludes.MotionVectors,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     requiredFields = CoreRequiredFields.LitFull,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.MotionVectors,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+            //     keywords = LitKeywords.DepthMotionVectors,
+            //     includes = LitIncludes.MotionVectors,
+            // };
 
-            public static PassDescriptor DistortionVectors = new PassDescriptor()
-            {
-                // Definition
-                displayName = "DistortionVectors",
-                referenceName = "SHADERPASS_DISTORTION",
-                lightMode = "DistortionVectors",
-                useInPreview = true,
+            // public static PassDescriptor DistortionVectors = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "DistortionVectors",
+            //     referenceName = "SHADERPASS_DISTORTION",
+            //     lightMode = "DistortionVectors",
+            //     useInPreview = true,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentDistortion,
+            //     // Port mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentDistortion,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = LitRenderStates.Distortion,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.Distortion,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = LitRenderStates.Distortion,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.Distortion,
+            // };
 
-            public static PassDescriptor TransparentDepthPrepass = new PassDescriptor()
-            {
-                // Definition
-                displayName = "TransparentDepthPrepass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "TransparentDepthPrepass",
-                useInPreview = true,
+            // public static PassDescriptor TransparentDepthPrepass = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "TransparentDepthPrepass",
+            //     referenceName = "SHADERPASS_DEPTH_ONLY",
+            //     lightMode = "TransparentDepthPrepass",
+            //     useInPreview = true,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPrepass,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPrepass,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                requiredFields = CoreRequiredFields.LitFull,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = LitRenderStates.TransparentDepthPrePostPass,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.TransparentDepthPrepass,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.DepthOnly,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     requiredFields = CoreRequiredFields.LitFull,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = LitRenderStates.TransparentDepthPrePostPass,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.TransparentDepthPrepass,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.DepthOnly,
+            // };
 
-            public static PassDescriptor TransparentBackface = new PassDescriptor()
-            {
-                // Definition
-                displayName = "TransparentBackface",
-                referenceName = "SHADERPASS_FORWARD",
-                lightMode = "TransparentBackface",
-                useInPreview = true,
+            // public static PassDescriptor TransparentBackface = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "TransparentBackface",
+            //     referenceName = "SHADERPASS_FORWARD",
+            //     lightMode = "TransparentBackface",
+            //     useInPreview = true,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentTransparentBackface,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentTransparentBackface,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentBackface,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.Forward,
-                keywords = CoreKeywords.Forward,
-                includes = LitIncludes.Forward,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.TransparentBackface,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.Forward,
+            //     keywords = CoreKeywords.Forward,
+            //     includes = LitIncludes.Forward,
+            // };
 
             public static PassDescriptor Forward = new PassDescriptor()
             {
@@ -471,31 +474,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 virtualTextureFeedback = true,
             };
 
-            public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()
-            {
-                // Definition
-                displayName = "TransparentDepthPostpass",
-                referenceName = "SHADERPASS_DEPTH_ONLY",
-                lightMode = "TransparentDepthPostpass",
-                useInPreview = true,
+            // public static PassDescriptor TransparentDepthPostpass = new PassDescriptor()
+            // {
+            //     // Definition
+            //     displayName = "TransparentDepthPostpass",
+            //     referenceName = "SHADERPASS_DEPTH_ONLY",
+            //     lightMode = "TransparentDepthPostpass",
+            //     useInPreview = true,
 
-                // Template
-                passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+            //     // Template
+            //     passTemplatePath = passTemplatePath,
+            //     sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPostpass,
+            //     // Port Mask
+            //     validVertexBlocks = CoreBlockMasks.Vertex,
+            //     validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPostpass,
 
-                // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
-                pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
-                keywords = CoreKeywords.HDBase,
-                includes = LitIncludes.DepthOnly,
-            };
+            //     // Collections
+            //     structs = CoreStructCollections.Default,
+            //     fieldDependencies = CoreFieldDependencies.Default,
+            //     renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+            //     pragmas = CorePragmas.DotsInstancedInV1AndV2,
+            //     defines = CoreDefines.ShaderGraphRaytracingHigh,
+            //     keywords = CoreKeywords.HDBase,
+            //     includes = LitIncludes.DepthOnly,
+            // };
 
             public static PassDescriptor RayTracingPrepass = new PassDescriptor()
             {

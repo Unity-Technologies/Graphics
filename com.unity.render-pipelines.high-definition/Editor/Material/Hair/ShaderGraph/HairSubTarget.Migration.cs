@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTestDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hairMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hairMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = hairMasterNode.m_ZWrite;
+            systemData.transparentZWrite = hairMasterNode.m_ZWrite;
             systemData.transparentCullMode = hairMasterNode.m_transparentCullMode;
             systemData.zTest = hairMasterNode.m_ZTest;
             systemData.supportLodCrossFade = hairMasterNode.m_SupportLodCrossFade;
