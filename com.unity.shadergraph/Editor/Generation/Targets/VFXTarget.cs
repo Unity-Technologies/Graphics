@@ -45,6 +45,11 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return true;
+        }
+
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
             context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
@@ -121,6 +126,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             return true;
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
         }
     }
 }

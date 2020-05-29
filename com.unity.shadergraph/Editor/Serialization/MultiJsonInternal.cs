@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -159,6 +160,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             public override void Setup(ref TargetSetupContext context)
             {
             }
+
+            public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => false;
         }
 
         private class UnknownSubTargetType : SubTarget

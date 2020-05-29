@@ -40,10 +40,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
             systemData.dotsInstancing = pbrMasterNode.m_DOTSInstancing;
             builtinData.addPrecomputedVelocity = false;
+            lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
             litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
+            litData.energyConservingSpecular = false;
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
-
+            systemData.TryChangeRenderingPass(systemData.renderingPass);
             // Handle mapping of Normal block specifically
             BlockFieldDescriptor normalBlock;
             switch(lightingData.normalDropOffSpace)

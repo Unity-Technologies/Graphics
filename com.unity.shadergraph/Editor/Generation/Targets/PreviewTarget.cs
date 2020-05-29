@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -33,6 +33,8 @@ namespace UnityEditor.ShaderGraph
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
         }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => true;
 
         static class SubShaders
         {

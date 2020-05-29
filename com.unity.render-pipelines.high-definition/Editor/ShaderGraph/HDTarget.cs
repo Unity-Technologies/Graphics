@@ -324,6 +324,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return false;
         }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline.GetType() == typeof(HDRenderPipelineAsset);
+        }
     }
 
 #region BlockMasks
