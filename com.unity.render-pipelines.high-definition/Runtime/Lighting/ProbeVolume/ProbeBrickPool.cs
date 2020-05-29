@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -38,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ProbeBrickPool(int AllocationSize, int MemoryBudget)
         {
+            Profiler.BeginSample("Create ProbeBrickPool");
             m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
 
             m_AllocationSize = AllocationSize;
@@ -49,6 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DerivePoolSizeFromBudget(AllocationSize, MemoryBudget, out width, out height, out depth);
 
             m_Pool = CreateDataLocation(width * height * depth, true);
+            Profiler.EndSample();
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }

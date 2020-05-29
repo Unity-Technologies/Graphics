@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Profiling;
 using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAlloc;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -28,15 +29,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal ProbeBrickIndex( Vector3Int indexDimensions )
         {
+            Profiler.BeginSample("Create ProbeBrickIndex");
             int index_size = indexDimensions.x * indexDimensions.y * indexDimensions.z;
             m_IndexDim    = indexDimensions;
             m_Anchor      = new Vector3Int(0, 0, 0);
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured, ComputeBufferMode.SubUpdates);
             // Should be done by a compute shader
+            Profiler.BeginSample("Clear Index");
             NativeArray<int> arr = m_IndexBuffer.BeginWrite<int>(0, index_size);
             for (int i = 0; i < index_size; i++)
                 arr[i] = -1;
             m_IndexBuffer.EndWrite<int>(index_size);
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         internal void AddBricks( List<Brick> bricks, List<Chunk> allocations, int allocationSize, int poolWidth, int poolHeight )

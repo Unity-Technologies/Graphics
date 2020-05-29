@@ -1,9 +1,12 @@
 using System.Collections.Generic;
+using UnityEngine.Profiling;
 using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    using VolumeList = List<ProbeReferenceVolume.Volume>;
+
     internal class ProbeVolumeManager
     {
         static private ProbeVolumeManager _instance = null;
@@ -174,16 +177,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // get a list of bricks for this volume
             bricks = new List<ProbeBrickIndex.Brick>();
+            VolumeList vols = new VolumeList();
+
             foreach (ProbeVolume volume in volumes)
             {
-                var vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size));
-
-                refVol.CreateBricks(ref vol, subdivDel, bricks, out int numProbes);
+                vols.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(volume.transform.position, volume.transform.rotation, volume.parameters.size)));
             }
+            refVol.CreateBricks(vols, subdivDel, bricks, out int numProbes);
 
             // convert the brick data into actual probe positions
             probePositions = new Vector3[bricks.Count * 64];
-            refVol.ConvertBricks(bricks, probePositions);
+            Profiler.EndSample();
         }
 #endif
 
@@ -192,14 +196,15 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeReferenceVolume refvol = new ProbeReferenceVolume(64, 1024 * 1024 * 1024, new Vector3Int(1024, 1024, 64));
             refvol.SetGridDensity(0.25f, 4);
 
-            ProbeReferenceVolume.Volume vol = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * 5));
+            VolumeList vols = new VolumeList();
+            vols.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * 5)));
 
             ProbeReferenceVolume.SubdivisionDel subdivDel = ProbeVolumePositioning.SubdivisionAlgorithm;
 
             // get a list of bricks for this volume
             List<ProbeBrickIndex.Brick> sortedBricks = new List<ProbeBrickIndex.Brick>();
             int numProbes;
-            refvol.CreateBricks(ref vol, subdivDel, sortedBricks, out numProbes);
+            refvol.CreateBricks(vols, subdivDel, sortedBricks, out numProbes);
 
             // convert the brick data into actual probe positions
             Vector3[] probePositions = new Vector3[numProbes];

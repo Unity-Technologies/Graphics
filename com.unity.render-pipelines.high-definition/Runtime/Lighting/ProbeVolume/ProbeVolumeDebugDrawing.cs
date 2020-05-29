@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine.Profiling;
 using System.Linq;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -183,8 +184,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (GUILayout.Button("Build grid"))
             {
+                Profiler.BeginSample("BuildBrick");
                 ProbeVolumeManager.manager.BuildBrickStructure(selectedMinCellSize);
                 ProbeVolumeDebugDrawing.drawing.Dirty();
+                Profiler.EndSample();
             }
 
             if (EditorGUI.EndChangeCheck())
