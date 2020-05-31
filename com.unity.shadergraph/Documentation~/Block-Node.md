@@ -29,4 +29,6 @@ If Automatically Add or Remove Blocks is disabled, no block nodes will ever be a
 Active block nodes are blocks that are being generated and contributing to the final shader. 
 Inactive block nodes are blocks that are present in the shader graph, but are not being generated or contributing to the final shader. 
 
+![image](images/Active-Inactive-Blocks.png)
+
 Certain configurations of the graph settings may cause blocks to become active or inactive. This state will be displayed by greying-out the block nodes that are inactive, as well as any node stream that is _only_ connected to the inactive block node. 
