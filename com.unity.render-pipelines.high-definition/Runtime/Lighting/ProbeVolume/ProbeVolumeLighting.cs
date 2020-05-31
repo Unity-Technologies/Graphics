@@ -93,11 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasOctahedralDepthBuffer = null;
-        static int s_ProbeVolumeAtlasWidth;
-        static int s_ProbeVolumeAtlasHeight;
-        static int s_ProbeVolumeAtlasDepth;
-        static int s_ProbeVolumeAtlasOctahedralDepthWidth;
-        static int s_ProbeVolumeAtlasOctahedralDepthHeight;
+        static int s_ProbeVolumeAtlasResolution;
+        static int s_ProbeVolumeAtlasOctahedralDepthResolution;
         static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount;
         internal const int k_ProbeOctahedralDepthWidth = 8;
         internal const int k_ProbeOctahedralDepthHeight = 8;
@@ -123,18 +120,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
-            s_ProbeVolumeAtlasWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasWidth;
-            s_ProbeVolumeAtlasHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasHeight;
-            s_ProbeVolumeAtlasDepth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasDepth;
+            s_ProbeVolumeAtlasResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasResolution;
 
             // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
             // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
-            s_MaxProbeVolumeProbeCount = s_ProbeVolumeAtlasWidth * s_ProbeVolumeAtlasHeight * s_ProbeVolumeAtlasDepth;
+            s_MaxProbeVolumeProbeCount = s_ProbeVolumeAtlasResolution * s_ProbeVolumeAtlasResolution * s_ProbeVolumeAtlasResolution;
             s_MaxProbeVolumeProbeOctahedralDepthCount = s_MaxProbeVolumeProbeCount * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight;
 
-            s_ProbeVolumeAtlasOctahedralDepthWidth = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth;
-            s_ProbeVolumeAtlasOctahedralDepthHeight = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight;
-            k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthWidth / k_ProbeOctahedralDepthWidth) * (s_ProbeVolumeAtlasOctahedralDepthHeight / k_ProbeOctahedralDepthWidth);
+            s_ProbeVolumeAtlasOctahedralDepthResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution;
+            k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthResolution / k_ProbeOctahedralDepthWidth) * (s_ProbeVolumeAtlasOctahedralDepthResolution / k_ProbeOctahedralDepthWidth);
 
             if (m_SupportProbeVolume)
             {
@@ -207,9 +201,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ProbeVolumeAtlasSHRTDepthSliceCount = GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
             
             m_ProbeVolumeAtlasSHRTHandle = RTHandles.Alloc(
-                width: s_ProbeVolumeAtlasWidth,
-                height: s_ProbeVolumeAtlasHeight,
-                slices: s_ProbeVolumeAtlasDepth * m_ProbeVolumeAtlasSHRTDepthSliceCount,
+                width: s_ProbeVolumeAtlasResolution,
+                height: s_ProbeVolumeAtlasResolution,
+                slices: s_ProbeVolumeAtlasResolution * m_ProbeVolumeAtlasSHRTDepthSliceCount,
                 dimension:         TextureDimension.Tex3D,
                 colorFormat:       UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
                 enableRandomWrite: true,
@@ -217,12 +211,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 name:              "ProbeVolumeAtlasSH"
             );
 
-            probeVolumeAtlas = new Texture3DAtlasDynamic(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, s_ProbeVolumeAtlasDepth, k_MaxVisibleProbeVolumeCount, m_ProbeVolumeAtlasSHRTHandle);
+            probeVolumeAtlas = new Texture3DAtlasDynamic(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, k_MaxVisibleProbeVolumeCount, m_ProbeVolumeAtlasSHRTHandle);
 
             // TODO: (Nick): Might be able drop precision down to half-floats, since we only need to encode depth data up to one probe spacing distance away. Could rescale depth data to this range before encoding.
             m_ProbeVolumeAtlasOctahedralDepthRTHandle = RTHandles.Alloc(
-                width: s_ProbeVolumeAtlasOctahedralDepthWidth,
-                height: s_ProbeVolumeAtlasOctahedralDepthHeight,
+                width: s_ProbeVolumeAtlasOctahedralDepthResolution,
+                height: s_ProbeVolumeAtlasOctahedralDepthResolution,
                 slices: 1,
                 dimension: TextureDimension.Tex2D,
                 colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat, // float2(mean, variance)
@@ -232,8 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
             );
 
             probeVolumeAtlasOctahedralDepth = new Texture2DAtlasDynamic(
-                s_ProbeVolumeAtlasOctahedralDepthWidth,
-                s_ProbeVolumeAtlasOctahedralDepthHeight,
+                s_ProbeVolumeAtlasOctahedralDepthResolution,
+                s_ProbeVolumeAtlasOctahedralDepthResolution,
                 k_MaxVisibleProbeVolumeCount,
                 m_ProbeVolumeAtlasOctahedralDepthRTHandle
             );
@@ -316,15 +310,15 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableProbeVolumes = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) ? 1u : 0u;
             cb._ProbeVolumeCount = (uint)m_VisibleProbeVolumeBounds.Count;
             cb._ProbeVolumeAtlasResolutionAndSliceCount = new Vector4(
-                    s_ProbeVolumeAtlasWidth,
-                    s_ProbeVolumeAtlasHeight,
-                    s_ProbeVolumeAtlasDepth,
+                    s_ProbeVolumeAtlasResolution,
+                    s_ProbeVolumeAtlasResolution,
+                    s_ProbeVolumeAtlasResolution,
                     m_ProbeVolumeAtlasSHRTDepthSliceCount
             );
             cb._ProbeVolumeAtlasResolutionAndSliceCountInverse = new Vector4(
-                    1.0f / (float)s_ProbeVolumeAtlasWidth,
-                    1.0f / (float)s_ProbeVolumeAtlasHeight,
-                    1.0f / (float)s_ProbeVolumeAtlasDepth,
+                    1.0f / (float)s_ProbeVolumeAtlasResolution,
+                    1.0f / (float)s_ProbeVolumeAtlasResolution,
+                    1.0f / (float)s_ProbeVolumeAtlasResolution,
                     1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
             );
             cb._ProbeVolumeAtlasOctahedralDepthResolutionAndInverse = new Vector4(
@@ -455,15 +449,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         volume.parameters.bias
                     );
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, new Vector4(
-                        s_ProbeVolumeAtlasWidth,
-                        s_ProbeVolumeAtlasHeight,
-                        s_ProbeVolumeAtlasDepth,
+                        s_ProbeVolumeAtlasResolution,
+                        s_ProbeVolumeAtlasResolution,
+                        s_ProbeVolumeAtlasResolution,
                         m_ProbeVolumeAtlasSHRTDepthSliceCount
                     ));
                     cmd.SetComputeVectorParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, new Vector4(
-                        1.0f / (float)s_ProbeVolumeAtlasWidth,
-                        1.0f / (float)s_ProbeVolumeAtlasHeight,
-                        1.0f / (float)s_ProbeVolumeAtlasDepth,
+                        1.0f / (float)s_ProbeVolumeAtlasResolution,
+                        1.0f / (float)s_ProbeVolumeAtlasResolution,
+                        1.0f / (float)s_ProbeVolumeAtlasResolution,
                         1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
                     ));
                     
@@ -549,15 +543,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             1.0f / (float)m_ProbeVolumeAtlasOctahedralDepthRTHandle.rt.height
                         ));
                         cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, new Vector4(
-                            s_ProbeVolumeAtlasWidth,
-                            s_ProbeVolumeAtlasHeight,
-                            s_ProbeVolumeAtlasDepth,
+                            s_ProbeVolumeAtlasResolution,
+                            s_ProbeVolumeAtlasResolution,
+                            s_ProbeVolumeAtlasResolution,
                             m_ProbeVolumeAtlasSHRTDepthSliceCount
                         ));
                         cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthBlitCS, HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, new Vector4(
-                            1.0f / (float)s_ProbeVolumeAtlasWidth,
-                            1.0f / (float)s_ProbeVolumeAtlasHeight,
-                            1.0f / (float)s_ProbeVolumeAtlasDepth,
+                            1.0f / (float)s_ProbeVolumeAtlasResolution,
+                            1.0f / (float)s_ProbeVolumeAtlasResolution,
+                            1.0f / (float)s_ProbeVolumeAtlasResolution,
                             1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
                         ));
                         
@@ -576,10 +570,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Convolve:
                     {
                         Vector4 probeVolumeAtlasOctahedralDepthScaleBiasTexels = new Vector4(
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.x * s_ProbeVolumeAtlasOctahedralDepthWidth + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.y * s_ProbeVolumeAtlasOctahedralDepthHeight + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.z * s_ProbeVolumeAtlasOctahedralDepthWidth + 0.5f),
-                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.w * s_ProbeVolumeAtlasOctahedralDepthHeight + 0.5f)
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.x * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.y * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.z * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f),
+                            Mathf.Floor(volume.parameters.octahedralDepthScaleBias.w * s_ProbeVolumeAtlasOctahedralDepthResolution + 0.5f)
                         );
 
                         cmd.SetComputeVectorParam(s_ProbeVolumeAtlasOctahedralDepthConvolveCS, HDShaderIDs._ProbeVolumeAtlasOctahedralDepthScaleBiasTexels,
@@ -593,8 +587,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // Warning: This kernel numthreads must be an integer multiple of OCTAHEDRAL_DEPTH_RESOLUTION
                         // We read + write from the same texture, so any partial work would pollute / cause feedback into neighboring chunks.
-                        int widthPixels = (int)(volume.parameters.octahedralDepthScaleBias.x * (float)s_ProbeVolumeAtlasOctahedralDepthWidth);
-                        int heightPixels = (int)(volume.parameters.octahedralDepthScaleBias.y * (float)s_ProbeVolumeAtlasOctahedralDepthHeight);
+                        int widthPixels = (int)(volume.parameters.octahedralDepthScaleBias.x * (float)s_ProbeVolumeAtlasOctahedralDepthResolution);
+                        int heightPixels = (int)(volume.parameters.octahedralDepthScaleBias.y * (float)s_ProbeVolumeAtlasOctahedralDepthResolution);
                         int probeCountX = widthPixels / k_ProbeOctahedralDepthWidth;
                         int probeCountY = heightPixels / k_ProbeOctahedralDepthHeight;
                         Debug.Assert((k_ProbeOctahedralDepthWidth == k_ProbeOctahedralDepthHeight) && (k_ProbeOctahedralDepthWidth == 8));
@@ -837,7 +831,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 validRange = new Vector4(minValue, 1.0f / (maxValue - minValue));
             Vector3 textureViewScale = new Vector3(1.0f, 1.0f, 1.0f);
             Vector3 textureViewBias = new Vector3(0.0f, 0.0f, 0.0f);
-            Vector3 textureViewResolution = new Vector3(s_ProbeVolumeAtlasWidth, s_ProbeVolumeAtlasHeight, s_ProbeVolumeAtlasDepth);
+            Vector3 textureViewResolution = new Vector3(s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution, s_ProbeVolumeAtlasResolution);
             Vector4 atlasTextureOctahedralDepthScaleBias = new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
 
         #if UNITY_EDITOR
@@ -879,16 +873,16 @@ namespace UnityEngine.Rendering.HighDefinition
             propertyBlock.SetVector(HDShaderIDs._TextureViewBias, textureViewBias);
             propertyBlock.SetVector(HDShaderIDs._TextureViewResolution, textureViewResolution);
             cmd.SetGlobalVector(HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCount, new Vector4(
-                s_ProbeVolumeAtlasWidth,
-                        s_ProbeVolumeAtlasHeight,
-                        s_ProbeVolumeAtlasDepth,
-                        m_ProbeVolumeAtlasSHRTDepthSliceCount
+                s_ProbeVolumeAtlasResolution,
+                s_ProbeVolumeAtlasResolution,
+                s_ProbeVolumeAtlasResolution,
+                m_ProbeVolumeAtlasSHRTDepthSliceCount
             ));
             cmd.SetGlobalVector(HDShaderIDs._ProbeVolumeAtlasResolutionAndSliceCountInverse, new Vector4(
-                    1.0f / (float)s_ProbeVolumeAtlasWidth,
-                    1.0f / (float)s_ProbeVolumeAtlasHeight,
-                    1.0f / (float)s_ProbeVolumeAtlasDepth,
-                    1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)s_ProbeVolumeAtlasResolution,
+                1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
             ));
 
             propertyBlock.SetTexture(HDShaderIDs._AtlasTextureOctahedralDepth, m_ProbeVolumeAtlasOctahedralDepthRTHandle);

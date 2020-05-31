@@ -878,38 +878,29 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(Styles.probeVolumeInfo, MessageType.Warning);
 
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth, Styles.probeVolumeAtlasWidth);
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution, Styles.probeVolumeAtlasResolution);
                 if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue, 0);
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue, 0);
 
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight, Styles.probeVolumeAtlasHeight);
+                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution, Styles.probeVolumeAtlasOctahedralDepthResolution);
                 if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue, 0);
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue, 0);
 
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth, Styles.probeVolumeAtlasDepth);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue, 0);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth, Styles.probeVolumeAtlasOctahedralDepthWidth);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthWidth.intValue, 0);
-
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight, Styles.probeVolumeAtlasOctahedralDepthHeight);
-                if (EditorGUI.EndChangeCheck())
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthHeight.intValue, 0);
-
-                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue <= 0)
+                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue <= 0)
                 {
-                    // Detected legacy 2D probe volume atlas (degenerate Z axis resolution).
-                    // Initialize with default 3D atlas values.
+                    // Detected legacy probe volume atlas (atlasResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
+                    // Initialize with default values.
                     // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasWidth.intValue = GlobalProbeVolumeSettings.@default.atlasWidth;
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasHeight.intValue = GlobalProbeVolumeSettings.@default.atlasHeight;
-                    serialized.renderPipelineSettings.probeVolumeSettings.atlasDepth.intValue = GlobalProbeVolumeSettings.@default.atlasDepth;
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = GlobalProbeVolumeSettings.@default.atlasResolution;
+                }
+
+                if (serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue <= 0)
+                {
+                    // Detected legacy probe volume atlas (atlasOctahedralDepthResolution did not exist. Was explicitly defined by atlasWidth, atlasHeight, atlasDepth).
+                    // Initialize with default values.
+                    // TODO: (Nick) This can be removed in release. It's currently here to reduce user pain on internal projects actively using this WIP tech.
+                    serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = GlobalProbeVolumeSettings.@default.atlasOctahedralDepthResolution;
                 }
 
                 --EditorGUI.indentLevel;
