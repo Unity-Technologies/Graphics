@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -97,18 +97,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_12db3d907b7f47e6a9ee9424548be7a2_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_2fbcb283f125437aa737c64cf66b37d3_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_41b2114059c34f7585ab1038e5c9a5fd_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_63D8077D_Texture_1:
         m_Texture: {fileID: 2800000, guid: 0b12b8920ebf9474b99a2e124dea26ee, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -122,10 +110,6 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_DAF57972_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_f21256a9bbca4138b36f518ea78ec615_Texture_1:
         m_Texture: {fileID: 2800000, guid: 65a8d3a22d015e44baa453611634cb63, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -166,7 +150,6 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 10
     - _AlphaSrcBlend: 1
-    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -233,7 +216,6 @@ Material:
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
     - _ReceivesSSR: 0
-    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0

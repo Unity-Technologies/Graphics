@@ -10,7 +10,7 @@ Material:
   m_Name: Tester_SLSG
   m_Shader: {fileID: -6465566751694194690, guid: 9682fd49df965de40b4a5ba3e21e6429,
     type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -266,7 +266,6 @@ Material:
     - _AlphaCutoffPrepass: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
-    - _AlphaToMask: 0
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 1
     - _AmbientOcclusionMapSamplerSharing: 0
@@ -511,7 +510,6 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _PreRefractionPass: 0
     - _ReceivesSSR: 1
-    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RequireSplitLighting: 0
     - _SSRefractionProjectionModel: 0
@@ -708,4 +706,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3

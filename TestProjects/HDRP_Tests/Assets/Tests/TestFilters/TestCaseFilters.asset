@@ -181,12 +181,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: cause following test to fail
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 21
-    XrSdk: 
-    StereoModes: 0
-    Reason: cause following test to fail
   - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
