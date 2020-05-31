@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -23,7 +23,7 @@ Material:
   m_Name: Jacket
   m_Shader: {fileID: -6465566751694194690, guid: e22c46a906fb26a40ba9b7b72d353770,
     type: 3}
-  m_ShaderKeywords: _DISABLE_SSR_TRANSPARENT
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -227,7 +227,7 @@ Material:
     - _PPDPrimitiveWidth: 1
     - _RayTracing: 0
     - _ReceivesSSR: 1
-    - _ReceivesSSRTransparent: 0
+    - _ReceivesSSRTransparent: 1
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 1

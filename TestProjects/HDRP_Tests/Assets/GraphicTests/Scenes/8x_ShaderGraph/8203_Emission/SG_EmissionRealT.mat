@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: SG_EmissionRealT
   m_Shader: {fileID: 4800000, guid: f6875cc15c658804086e31f155407bde, type: 3}
-  m_ShaderKeywords: _DISABLE_SSR _DISABLE_SSR_TRANSPARENT
+  m_ShaderKeywords: 
   m_LightmapFlags: 1
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -19,7 +19,6 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
-  - RayTracingPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs: []
@@ -27,7 +26,6 @@ Material:
     - _AlphaCutoffEnable: 0
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
-    - _AlphaToMask: 0
     - _BlendMode: 0
     - _CullMode: 2
     - _CullModeForward: 2
@@ -35,17 +33,15 @@ Material:
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
-    - _RayTracing: 0
-    - _ReceivesSSR: 0
-    - _ReceivesSSRTransparent: 0
+    - _ReceivesSSR: 1
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
     - _SrcBlend: 1
     - _StencilRef: 0
-    - _StencilRefDepth: 0
+    - _StencilRefDepth: 8
     - _StencilRefDistortionVec: 4
-    - _StencilRefGBuffer: 2
-    - _StencilRefMV: 32
+    - _StencilRefGBuffer: 10
+    - _StencilRefMV: 40
     - _StencilWriteMask: 6
     - _StencilWriteMaskDepth: 8
     - _StencilWriteMaskDistortionVec: 4
@@ -77,4 +73,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3

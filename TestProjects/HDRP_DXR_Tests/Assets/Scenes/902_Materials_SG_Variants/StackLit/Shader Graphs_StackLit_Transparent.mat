@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -38,14 +38,6 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Texture2DAsset_0e70ec4bb0cf4773ba9043983609ae68_Out_0:
-        m_Texture: {fileID: 2800000, guid: fcecce6d2c9be8d418a27f0658a2210d, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _Texture2DAsset_1f4eab3b9d7c4cf7815e1a49d5752b53_Out_0:
-        m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _Texture2DAsset_436BDAD4_Out_0:
         m_Texture: {fileID: 2800000, guid: a720075b2a0ff8440bc021a465769340, type: 3}
         m_Scale: {x: 1, y: 1}

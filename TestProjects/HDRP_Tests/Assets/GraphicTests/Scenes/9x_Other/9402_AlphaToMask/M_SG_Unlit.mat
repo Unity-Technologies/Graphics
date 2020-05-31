@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 4
+  version: 3
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -104,15 +104,7 @@ Material:
         m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_70aebb47a5624227a52ace821d030286_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_7474C186_Texture_1:
-        m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SampleTexture2D_f70c55d4f49340f5a221c33d50aa94c1_Texture_1:
         m_Texture: {fileID: 2800000, guid: 3f9313f68c2869648b020663f29c8420, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
