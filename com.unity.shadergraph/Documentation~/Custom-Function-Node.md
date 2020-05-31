@@ -11,7 +11,7 @@ The Custom Function node lets you inject your own custom HLSL code in Shader Gra
 ## How to Use
 Use the [Create Node Menu](Create-Node-Menu.md) to create Custom Function nodes. By default, new Custom Function nodes don't have any input or output ports. 
 
-Use the gear icon in the top right corner of the node to open the [Custom Port Menu](Custom-Port-Menu.md) and Custom Function Menu.
+Use the **Node Setttings** of the [Graph Inspector]() to open the [Custom Port Menu](Custom-Port-Menu.md) and the Custom Function menu.
 
 ![02](images/Custom-Function-Node-File.png) ![03](images/Custom-Function-Node-String.png)
 
@@ -61,4 +61,4 @@ The Custom Function node, on its own, is a single node instance. If you wish to 
 
 ![11](images/Custom-Function-Node-Subgraph.png)
 
-Create your custom function either directly in a Sub Graph, or right-click the existing Custom Function node and select `Convert to Sub Graph`. Add the appropriate input and output ports using the [Internal Inspector](Internal-Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md). After this, you can reuse your custom function as many times as needed, even within other Sub Graphs. 
+Create your custom function either directly in a Sub Graph, or right-click the existing Custom Function node and select `Convert to Sub Graph`. Add the appropriate input and output ports using the [Graph Inspector](Internal-Inspector.md) and [Custom Port Menu](Custom-Port-Menu.md). After this, you can reuse your custom function as many times as needed, even within other Sub Graphs. 

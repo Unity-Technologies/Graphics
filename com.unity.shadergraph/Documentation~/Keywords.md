@@ -60,6 +60,6 @@ In addition to the common parameters listed above, Enum Keywords have the follow
 ## Built-in Keywords
 Built-in Keywords are always either Boolean or Enum Keywords, but they behave slightly differently. The Unity Editor or active Render Pipeline sets their values, and you cannot edit them. 
 
-All Built-in Keyword fields in the [Internal Inspector](Internal-Inspector.md) are grayed out except for the **Default** field, which you can enable or disable to show the differences in Shader Graph previews. You also cannot expose Built-in Keywords in the Material Inspector.
+All Built-in Keyword fields in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) are grayed out except for the **Default** field, which you can enable or disable to show the differences in Shader Graph previews. You also cannot expose Built-in Keywords in the Material Inspector.
 
 ![](images/keywords_built-in.png)

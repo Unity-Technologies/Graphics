@@ -2,6 +2,13 @@
 
 Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started) for more information.
 
+## Create a New Graph 
+Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shaders** will display the various creation options. 
+
+A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
+
+Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened. 
+
 ## Create a new node
 
 Use the **Create Node** menu to create new nodes. There are two ways to open the menu:
@@ -60,7 +67,7 @@ To create a new property, use the **Add (+)** button on the top right corner of 
 
 ![](images/MyFirstShaderGraph_07.png)
 
-This adds a new property in the Blackboard with the following options in the Inspector when the property is selected.
+This adds a new property in the Blackboard with the following options in the **Node Settings** tab of the [Graph Inspector]() when the property is selected.
 
 ![](images/MyFirstShaderGraph_08.png)
 
