@@ -5,7 +5,7 @@ Before you begin, make sure that your project is set up properly, and the graphs
 ## Create a New Graph 
 Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shaders** will display the various creation options. 
 
-A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
+A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
 
 Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened. 
 
