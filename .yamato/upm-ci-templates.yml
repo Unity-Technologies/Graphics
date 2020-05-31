@@ -1,7 +1,5 @@
 editors:
-  - version: trunk
   - version: 2020.1
-  - version: fast-trunk
   - version: fast-2020.1
 templates:
   - name: HDRP Template
@@ -41,7 +39,7 @@ platforms:
       - il2cpp
       agent:
         type: Unity::VM::osx
-        image: buildfarm/mac:stable
+        image: package-ci/mac:stable
         flavor: m1.mac
       copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
       editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
