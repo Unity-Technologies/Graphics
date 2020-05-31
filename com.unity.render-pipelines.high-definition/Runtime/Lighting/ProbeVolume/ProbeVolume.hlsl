@@ -1,6 +1,7 @@
 #ifndef __PROBEVOLUME_HLSL__
 #define __PROBEVOLUME_HLSL__
 
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLightLoopDef.hlsl"
@@ -20,6 +21,32 @@ float ProbeVolumeComputeFadeFactor(
     float  fade = posF.x * posF.y * posF.z * negF.x * negF.y * negF.z;
 
     return dstF * fade;
+}
+
+float ProbeVolumeSampleValidity(float3 probeVolumeAtlasUVW)
+{
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0).w;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    return SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 6), 0).w;
+#else
+    return 0.0;
+#endif
+}
+
+float ProbeVolumeLoadValidity(int3 probeVolumeAtlasTexelCoord)
+{
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 0), 0).w;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    return LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeAtlasTexelCoord.x, probeVolumeAtlasTexelCoord.y, probeVolumeAtlasTexelCoord.z + _ProbeVolumeAtlasResolutionAndSliceCount.z * 6), 0).w;
+#else
+    return 0.0;
+#endif
 }
 
 void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
@@ -125,10 +152,10 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     }
 }
 
-float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInputs posInput, float3 normalWS, uint renderingLayers)
+float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint renderingLayers, inout float weightHierarchy)
 {
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
-    if (probeVolumeHierarchyWeight >= 1.0) { return float3(0.0, 0.0, 0.0); }
+    if (weightHierarchy >= 1.0) { return float3(0.0, 0.0, 0.0); }
 #endif
 
     float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -208,10 +235,10 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
 
             // Probe volumes are sorted primarily by blend mode, and secondarily by size.
             // This means we will evaluate all Additive and Subtractive blending volumes first, and finally our Normal (over) blending volumes.
-            // This allows us to early out if our probeVolumeHierarchyWeight reaches 1.0, since we know we will only ever process more VOLUMEBLENDMODE_NORMAL volumes,
+            // This allows us to early out if our weightHierarchy reaches 1.0, since we know we will only ever process more VOLUMEBLENDMODE_NORMAL volumes,
             // whos weight will always evaluate to zero.
 #if defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
-            if (WaveActiveMin(probeVolumeHierarchyWeight) >= 1.0
+            if (WaveActiveMin(weightHierarchy) >= 1.0
 #if SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
                 && WaveActiveAllTrue(s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_NORMAL)
 #endif
@@ -234,20 +261,26 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
                 const bool isWeightAccumulated = true;
 #endif
 
-                if (probeVolumeHierarchyWeight >= 1.0 && isWeightAccumulated) { continue; }
+                if (weightHierarchy >= 1.0 && isWeightAccumulated) { continue; }
 
                 if (!IsMatchingLightLayer(s_probeVolumeData.lightLayers, renderingLayers)) { continue; }
 
-                float weight = 0.0;
-                float4 sampleShAr = 0.0;
-                float4 sampleShAg = 0.0;
-                float4 sampleShAb = 0.0;
+                float weightCurrent = 0.0;
+
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+                const uint SH_STRIDE = 3u;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+                const uint SH_STRIDE = 12u;
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+                const uint SH_STRIDE = 27u;
+#endif
+                float4 sampleDataSH[(SH_STRIDE + 3u) / 4u];
                 {
                     float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                     float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
 
                     // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
-                    float3 samplePositionWS = normalWS * _ProbeVolumeNormalBiasWS + positionRWS;
+                    float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + positionRWS;
                     float3 samplePositionBS = mul(obbFrame, samplePositionWS - s_probeVolumeBounds.center);
                     float3 samplePositionBCS = samplePositionBS * rcp(obbExtents);
 
@@ -266,14 +299,14 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
 
 #if SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
                     if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_ADDITIVE)
-                        weight = fadeFactor;
+                        weightCurrent = fadeFactor;
                     else if (s_probeVolumeData.volumeBlendMode == VOLUMEBLENDMODE_SUBTRACTIVE)
-                        weight = -fadeFactor;
+                        weightCurrent = -fadeFactor;
                     else
 #endif
                     {
-                        // Alpha composite: weight = (1.0f - probeVolumeHierarchyWeight) * fadeFactor;
-                        weight = probeVolumeHierarchyWeight * -fadeFactor + fadeFactor;
+                        // Alpha composite: weight = (1.0f - weightHierarchy) * fadeFactor;
+                        weightCurrent = weightHierarchy * -fadeFactor + fadeFactor;
                     }
 
                     // TODO: Cleanup / optimize this math.
@@ -312,15 +345,15 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
                             // This would allow us to use a single channel format, rather than wasting memory with float4(validity, unused, unused, unused).
                             // It would also allow us to use a different texture format (i.e: 1x8bpp rather than 4x16bpp).
                             // Currently just using a texture slice for convenience, and with the idea that MAYBE we will end up using the remaining 3 channels.
-                            probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                            probeWeightBSW = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0)));
+                            probeWeightBSE = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 0)));
+                            probeWeightBNW = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1)));
+                            probeWeightBNE = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 0, probeVolumeTexel3DMin.z + 1)));
 
-                            probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 0 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
-                            probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, LOAD_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1 + _ProbeVolumeAtlasResolutionAndSliceCount.z * 3), 0).x);
+                            probeWeightTSW = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 0)));
+                            probeWeightTSE = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1)));
+                            probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1)));
+                            probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1)));
                         }
                         else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
                         {
@@ -433,43 +466,64 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
 #ifdef DEBUG_DISPLAY
                     if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                     {
-                        float validity = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x;
+                        float validity = ProbeVolumeSampleValidity(probeVolumeAtlasUVW);
 
                         // Pack validity into SH data so that we can access it later for our debug mode.
-                        sampleShAr = float4(validity, 0.0, 0.0, 0.0);
-                        sampleShAg = 0.0;
-                        sampleShAb = 0.0;
+                        sampleDataSH[0] = float4(validity, 0.0, 0.0, 0.0);
                     }
                     else
 #endif
                     {
-                        sampleShAr = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
-                        sampleShAg = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
-                        sampleShAb = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
+                        sampleDataSH[1] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
+                        sampleDataSH[2] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
+                        sampleDataSH[1] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
+                        sampleDataSH[2] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
+                        sampleDataSH[3] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0);
+                        sampleDataSH[4] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 4), 0);
+                        sampleDataSH[5] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 5), 0);
+                        sampleDataSH[6] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 6), 0);
+
+#endif
                     }
                 }
 
                 // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
-                float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleShAr, sampleShAg, sampleShAb);
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+                float3 sampleOutgoingRadiance = sampleDataSH[0].rgb;
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+                float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleDataSH[0], sampleDataSH[1], sampleDataSH[2]);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+                float3 sampleOutgoingRadiance = SampleSH9(sampleDataSH, normalWS);
+#endif
 
 #ifdef DEBUG_DISPLAY
                 if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
                 {
-                    probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weight;
+                    probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weightCurrent;
                 }
                 else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                 {
-                    float validity = sampleShAr.x;
-                    probeVolumeDiffuseLighting += lerp(float3(1, 0, 0), float3(0, 1, 0), validity) * weight;
+                    float validity = sampleDataSH[0].x;
+                    probeVolumeDiffuseLighting += lerp(float3(1, 0, 0), float3(0, 1, 0), validity) * weightCurrent;
                 }
                 else
 #endif
                 {
-                    probeVolumeDiffuseLighting += sampleOutgoingRadiance * weight;
+                    probeVolumeDiffuseLighting += sampleOutgoingRadiance * weightCurrent;
                 }
 
                 if (isWeightAccumulated)
-                    probeVolumeHierarchyWeight += weight;
+                    weightHierarchy += weightCurrent;
             }
         }
 
@@ -479,20 +533,21 @@ float3 EvaluateProbeVolumes(inout float probeVolumeHierarchyWeight, PositionInpu
 }
 
 // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
-void EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float probeVolumeHierarchyWeight)
+float3 EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, inout float weightHierarchy)
 {
-    if (probeVolumeHierarchyWeight < 1.0
+    float3 sampleAmbientProbeOutgoingRadiance = float3(0.0, 0.0, 0.0);
+    if (weightHierarchy < 1.0
 #ifdef DEBUG_DISPLAY
         && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
         && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
 #endif
     )
     {
-        float fallbackWeight = 1.0 - probeVolumeHierarchyWeight;
-        bakeDiffuseLighting += SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * fallbackWeight;
-        backBakeDiffuseLighting += SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, backNormalWS) * fallbackWeight;
-        probeVolumeHierarchyWeight = 1.0;
+        sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * (1.0 - weightHierarchy);
+        weightHierarchy = 1.0;
     }
+
+    return sampleAmbientProbeOutgoingRadiance;
 }
 
 #endif // __PROBEVOLUME_HLSL__

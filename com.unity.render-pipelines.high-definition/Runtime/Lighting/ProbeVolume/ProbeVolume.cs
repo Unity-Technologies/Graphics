@@ -327,6 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public VolumeBlendMode volumeBlendMode;
         public float weight;
+        public float normalBiasWS;
 
         public float backfaceTolerance;
         public int dilationIterations;
@@ -395,6 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.densityZ = (float)this.resolutionZ / this.size.z;
             this.volumeBlendMode = VolumeBlendMode.Normal;
             this.weight = 1;
+            this.normalBiasWS = 0.0f;
             this.dilationIterations = 2;
             this.backfaceTolerance = 0.25f;
             this.lightLayers = LightLayerEnum.LightLayerDefault;
@@ -446,6 +448,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ProbeVolumeEngineData data = new ProbeVolumeEngineData();
 
             data.weight = this.weight;
+            data.normalBiasWS = this.normalBiasWS;
 
             data.debugColor.x = this.debugColor.r;
             data.debugColor.y = this.debugColor.g;
@@ -477,8 +480,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.resolutionInverse = new Vector3(1.0f / (float)this.resolutionX, 1.0f / (float)this.resolutionY, 1.0f / (float)this.resolutionZ);
 
             data.lightLayers = (uint)this.lightLayers;
-
-            data.unused = 0.0f;
 
             return data;
         }
@@ -645,14 +646,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsAssetCompatible()
         {
+            return IsAssetCompatibleResolution() && IsAssetCompatibleEncodingMode();
+        }
+
+        internal bool IsAssetCompatibleResolution()
+        {
             if (probeVolumeAsset)
             {
                 return parameters.resolutionX == probeVolumeAsset.resolutionX &&
                        parameters.resolutionY == probeVolumeAsset.resolutionY &&
-                       parameters.resolutionZ == probeVolumeAsset.resolutionZ &&
-                       probeVolumeAsset.payload.encodingMode == ShaderConfig.s_ProbeVolumesEncodingMode; // TODO: Create runtime transforms between different encoding types to avoid having to rebake.
+                       parameters.resolutionZ == probeVolumeAsset.resolutionZ;
             }
+            return false;
+        }
 
+        internal bool IsAssetCompatibleEncodingMode()
+        {
+            if (probeVolumeAsset)
+            {
+                // TODO: Create runtime transforms between different encoding types to avoid having to rebake.
+                return probeVolumeAsset.payload.encodingMode == ShaderConfig.s_ProbeVolumesEncodingMode;
+            }
             return false;
         }
 
@@ -688,12 +702,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (probeVolumeAsset)
             {
-                if (!IsAssetCompatible())
+                if (!IsAssetCompatibleResolution())
                 {
                     Debug.LogWarningFormat("The asset \"{0}\" assigned to Probe Volume \"{1}\" does not have matching data dimensions ({2}x{3}x{4} vs. {5}x{6}x{7}), please rebake.",
                         probeVolumeAsset.name, this.name,
                         probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
+                }
+                else if (!IsAssetCompatibleEncodingMode())
+                {
+                    Debug.LogWarningFormat("The asset \"{0}\" assigned to Probe Volume \"{1}\" does not have matching encoding mode ({2} vs. {3}), please rebake.",
+                        probeVolumeAsset.name, this.name,
+                        probeVolumeAsset.payload.encodingMode, ShaderConfig.s_ProbeVolumesEncodingMode);
                 }
 
                 dataUpdated = true;
@@ -770,11 +790,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                         {
+                            // https://www.ppsloan.org/publications/StupidSH36.pdf
+                            // The shader and, by extension, SetSHConstants expect the values to be normalized.
+                            // The data in the SH probe sample passed here is expected to already be normalized
+                            // with kNormalizationConstants.
+                            //
+                            // Constant + Linear
                             SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1
                             {
-                                shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0] - sh[i][0, 6]),
-                                shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0] - sh[i][1, 6]),
-                                shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0] - sh[i][2, 6])
+                                shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0]),
+                                shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0]),
+                                shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0])
                             };
 
                             ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, ref sh1, i);
@@ -786,8 +812,35 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                         {
-                            SphericalHarmonicsL2 sh2 = sh[i];
-                            ProbeVolumePayload.SetSphericalHarmonicsL2FromIndex(ref probeVolumeAsset.payload, ref sh2, i);
+                            // https://www.ppsloan.org/publications/StupidSH36.pdf
+                            // The shader and, by extension, SetSHConstants expect the values to be normalized.
+                            // The data in the SH probe sample passed here is expected to already be normalized
+                            // with kNormalizationConstants.
+                            //
+                            // Constant + Linear
+                            for (int iC = 0; iC < 3; iC++)
+                            {
+                                // In the shader we multiply the normal is not swizzled, so it's normal.xyz.
+                                // Swizzle the coefficients to be in { x, y, z, DC } order.
+                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 0] = sh[i][iC, 3];
+                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 1] = sh[i][iC, 1];
+                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 2] = sh[i][iC, 2];
+                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 3] = sh[i][iC, 0] - sh[i][iC, 6];
+                            }
+
+                            // Quadratic polynomials
+                            for (int iC = 0; iC < 3; iC++)
+                            {
+                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 0] = sh[i][iC, 4];
+                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 1] = sh[i][iC, 5];
+                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 2] = sh[i][iC, 6] * 3.0f;
+                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 3] = sh[i][iC, 7];
+                            }
+
+                            // Final quadratic polynomial
+                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 0] = sh[i][0, 8];
+                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 1] = sh[i][1, 8];
+                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 2] = sh[i][2, 8];
                         }
                         break;
                     }
@@ -842,7 +895,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolutionX = probeVolume.parameters.resolutionX,
                 resolutionY = probeVolume.parameters.resolutionY,
                 resolutionZ = probeVolume.parameters.resolutionZ,
-                encodingMode = probeVolume.probeVolumeAsset.payload.encodingMode,
+                encodingMode = probeVolume.probeVolumeAsset ? probeVolume.probeVolumeAsset.payload.encodingMode : (ProbeVolumesEncodingModes)0,
                 backfaceTolerance = probeVolume.parameters.backfaceTolerance,
                 dilationIterations = probeVolume.parameters.dilationIterations
             };

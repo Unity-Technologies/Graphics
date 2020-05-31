@@ -497,11 +497,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float probeVolumeHierarchyWeightBackFace = uninitialized ? 0.0f : 1.0f;
 
             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
-            builtinDataProbeVolumes.bakeDiffuseLighting = EvaluateProbeVolumes(probeVolumeHierarchyWeightFrontFace, posInput, bsdfData.normalWS, builtinData.renderingLayers);
-            builtinDataProbeVolumes.backBakeDiffuseLighting = EvaluateProbeVolumes(probeVolumeHierarchyWeightBackFace, posInput, -bsdfData.normalWS, builtinData.renderingLayers);
+            builtinDataProbeVolumes.bakeDiffuseLighting = EvaluateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, probeVolumeHierarchyWeightFrontFace);
+            builtinDataProbeVolumes.backBakeDiffuseLighting = EvaluateProbeVolumes(posInput, -bsdfData.normalWS, builtinData.renderingLayers, probeVolumeHierarchyWeightBackFace);
 
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(probeVolumeHierarchyWeightFrontFace, bsdfData.normalWS);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(probeVolumeHierarchyWeightBackFace, -bsdfData.normalWS);
+            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(bsdfData.normalWS, probeVolumeHierarchyWeightFrontFace);
+            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(-bsdfData.normalWS, probeVolumeHierarchyWeightBackFace);
 
             // TODO: clean this case later to share more code, for now just reproduce the same behavior that is happening in PostInitBuiltinData()
 

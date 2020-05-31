@@ -7,10 +7,13 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static class Styles
         {
             internal const string k_featureWarning = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.";
-            internal const string k_featureEnableInfo = "\nProbe Volumes feature is disabled. To enable, set:\nProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass\ninside of ShaderConfig.cs and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.";
+            internal const string k_featureEnableInfo = "\nProbe Volumes feature is disabled. To enable, set:\nProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.MaterialPass\ninside of ShaderConfig.cs. Then inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.";
+            internal const string k_featureAdditiveBlendingDisabledError = "Error: ProbeVolumesAdditiveBlending feature is disabled inside of ShaderConfig.cs.\nThis probe volume will not be rendered.\nTo enable, set:\nProbeVolumesAdditiveBlending = 1\ninside of ShaderConfig.cs. Then inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes.";
+            internal const string k_featureEncodingModeMismatchError = "Error: ProbeVolumesEncodingMode inside of ShaderConfig.cs is configured to a different mode than this probe volume was previously baked with.\nThis probe volume will not be rendered.\nTo correct this:\nA) Rebake this probe volume.\nor\nB) Change ProbeVolumesEncodingMode inside of ShaderConfig.cs. Then inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes.";
             internal const string k_VolumeHeader = "Volume";
             internal const string k_ProbesHeader = "Probes";
             internal const string k_BakingHeader = "Baking";
+            internal const string k_BakeSelectedText = "Bake Selected";
 
             internal static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -38,6 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal static readonly GUIContent s_VolumeBlendModeLabel = new GUIContent("Volume Blend Mode", "A blending mode for the entire volume when overlapping others.");
             internal static readonly GUIContent s_WeightLabel = new GUIContent("Weight", "Weigh the probe contribution for the entire volume.");
+            internal static readonly GUIContent s_NormalBiasWSLabel = new GUIContent("Normal Bias", "Controls the distance in world space units to bias along the surface normal to mitigate light leaking and self-shadowing artifacts.\nA value of 0.0 is physically accurate, but can result in self shadowing artifacts on surfaces that contribute to GI.\nIncrease value to mitigate self shadowing artifacts.\nSignificantly large values can have performance implications, as normal bias will dilate a probe volumes bounding box, causing it to be sampled in additional neighboring tiles / clusters.");
 
             internal static readonly GUIContent s_BackfaceToleranceLabel = new GUIContent("Backface Tolerance", "The percentage of backfaces sampled per probe is acceptable before probe will receive dilated data.");
             internal static readonly GUIContent s_DilationIterationLabel = new GUIContent("Dilation Iterations", "The number of iterations Dilation copies over data from each probe to its neighbors.");

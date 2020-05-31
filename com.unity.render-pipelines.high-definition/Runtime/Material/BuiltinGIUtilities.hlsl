@@ -147,8 +147,8 @@ void SampleBakedGI(
     posInputs.tileCoord = tileCoord;
     #endif
 
-    combinedGI += EvaluateProbeVolumes(probeVolumeHierarchyWeight, posInputs, normalWS, renderingLayers);
-    combinedGI += EvaluateProbeVolumeAmbientProbeFallback(probeVolumeHierarchyWeight, normalWS);
+    combinedGI += EvaluateProbeVolumes(posInputs, normalWS, renderingLayers, probeVolumeHierarchyWeight);
+    combinedGI += EvaluateProbeVolumeAmbientProbeFallback(normalWS, probeVolumeHierarchyWeight);
 #endif
 
 #endif

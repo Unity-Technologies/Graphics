@@ -81,13 +81,19 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
+            var asset = serialized.probeVolumeAsset.objectReferenceValue as ProbeVolumeAsset;
+            if (asset != null && asset.payload.encodingMode != ShaderConfig.s_ProbeVolumesEncodingMode)
+            {
+                EditorGUILayout.HelpBox(Styles.k_featureEncodingModeMismatchError, MessageType.Error);
+            }
+
             EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
 
             EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
             EditorGUILayout.PropertyField(serialized.dilationIterations, Styles.s_DilationIterationLabel);
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Bake Selected"))
+            if (GUILayout.Button(Styles.k_BakeSelectedText))
             {
                 ProbeVolumeManager.BakeSelected();
             }
@@ -266,7 +272,20 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.lightLayers);
             EditorGUILayout.PropertyField(serialized.volumeBlendMode, Styles.s_VolumeBlendModeLabel);
             EditorGUILayout.Slider(serialized.weight, 0.0f, 1.0f, Styles.s_WeightLabel);
+            {
+                EditorGUI.BeginChangeCheck();
+                float normalBiasWS = EditorGUILayout.FloatField(Styles.s_NormalBiasWSLabel, serialized.normalBiasWS.floatValue);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.normalBiasWS.floatValue = Mathf.Max(0, normalBiasWS);
+                }
+            }
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
+
+            if (serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)
+            {
+                EditorGUILayout.HelpBox(Styles.k_featureAdditiveBlendingDisabledError, MessageType.Error);
+            }
         }
     }
 }
