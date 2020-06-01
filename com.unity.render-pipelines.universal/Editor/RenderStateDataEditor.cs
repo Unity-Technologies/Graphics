@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -28,6 +27,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Z Fail", "What happens the the stencil value when failing Z testing.");
         }
 
+        private bool firstTime = true;
+
         //Stencil rendering
         private const int stencilBits = 4;
         private const int minStencilValue = 0;
@@ -40,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_StencilPass;
         private SerializedProperty m_StencilFail;
         private SerializedProperty m_StencilZFail;
-        private List<SerializedObject> m_properties = new List<SerializedObject>();
+
         void Init(SerializedProperty property)
         {
             //Stencil
@@ -51,12 +52,12 @@ namespace UnityEditor.Rendering.Universal
             m_StencilFail = property.FindPropertyRelative("failOperation");
             m_StencilZFail = property.FindPropertyRelative("zFailOperation");
 
-            m_properties.Add(property.serializedObject);
+            firstTime = false;
         }
 
         public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
         {
-            if(!m_properties.Contains(property.serializedObject))
+            if(firstTime)
                 Init(property);
 
             rect.height = EditorGUIUtility.singleLineHeight;

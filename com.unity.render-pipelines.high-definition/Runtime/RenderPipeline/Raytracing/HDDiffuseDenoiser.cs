@@ -1,6 +1,7 @@
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class HDDiffuseDenoiser
     {

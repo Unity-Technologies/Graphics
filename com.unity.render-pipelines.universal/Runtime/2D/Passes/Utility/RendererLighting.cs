@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 CreateShadowRenderTexture(cmdBuffer, light.blendStyleIndex);
 
-                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier(), RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
+                cmdBuffer.SetRenderTarget(s_ShadowsRenderTarget.Identifier()); // This isn't efficient if this light doesn't cast shadow.
                 cmdBuffer.ClearRenderTarget(true, true, Color.black);
 
                 BoundingSphere lightBounds = light.GetBoundingSphere(); // Gets the local bounding sphere...

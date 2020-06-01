@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slotRef = NodeUtils.DepthFirstCollectRedirectNodeFromNode(this);
             var fromLeftNode = slotRef.node;

@@ -1,3 +1,5 @@
+using UnityEngine.Experimental.Rendering;
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDDiffuseShadowDenoiser

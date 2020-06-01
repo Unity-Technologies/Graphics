@@ -449,9 +449,9 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
-        uint2 textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
+        int2 textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-        textLocation =  uint2(_MousePixelCoord.xy);
+        textLocation = _MousePixelCoord.xy;
         DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;

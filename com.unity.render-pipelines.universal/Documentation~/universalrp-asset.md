@@ -16,7 +16,6 @@ In the URP, you can configure settings for:
 - [__Shadows__](#shadows)
 - [__Post-processing__](#post-processing)
 - [__Advanced__](#advanced)
-- [__Adaptive Performance__](#adaptive-performance)
 
 
 
@@ -101,13 +100,3 @@ This section allows you to fine-tune less commonly changed settings, which impac
 | __Mixed Lighting__         | Enable [Mixed Lighting](https://docs.unity3d.com/Manual/LightMode-Mixed.html), to tell the pipeline to include mixed lighting shader variants in the build. |
 | __Debug Level__            | Set the level of debug information that the render pipeline generates. The values are:<br />**Disabled**:  Debugging is disabled. This is the default.<br  />**Profiling**: Makes the render pipeline provide detailed information tags, which you can see in the FrameDebugger. |
 | __Shader Variant Log Level__ | Set the level of information about Shader Stripping and Shader Variants you want to display when Unity finishes a build. Values are:<br /> **Disabled**: Unity doesn’t log anything.<br />**Only Universal**: Unity logs information for all of the [URP Shaders](shaders-in-universalrp.md).<br />**All**: Unity logs information for all Shaders in your build.<br /> You can see the information in Console panel when your build has finished. |
-
-
-
-### Adaptive Performance
-
-This section appears if Adaptive Performance package is installed. It allows to change settings how Adaptive performance and render pipeline interact.
-
-| __Property__            | __Description__                                              |
-| ----------------------- | ------------------------------------------------------------ |
-| __Use adaptive performance__  | Allows Adaptive Performance to adjust rendering quality during runtime. |

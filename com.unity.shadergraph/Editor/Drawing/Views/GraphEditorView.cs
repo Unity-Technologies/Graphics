@@ -825,11 +825,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SearchWindowProvider.targetSlotReference.node == node)
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
-                if (nodeView is IShaderNodeView shaderView &&
-                    shaderView.FindPort(m_SearchWindowProvider.targetSlotReference, out var port))
+                foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
                 {
-                    port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
-                    return;
+                    var port = (ShaderPort) element;
+                    if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
+                    {
+                        port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
+                        return;
+                    }
                 }
             }
 
@@ -1013,7 +1016,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (sourceNodeView != null)
             {
-                sourceNodeView.FindPort(sourceSlot.slotReference, out var sourceAnchor);
+                var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
 
                 IShaderNodeView targetNodeView;
                 if (useVisualNodeMap)
@@ -1021,7 +1024,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
 
-                targetNodeView.FindPort(targetSlot.slotReference, out var targetAnchor);
+                var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
 
                 var edgeView = new Edge
                 {
@@ -1094,7 +1097,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                foreach (var anchorView in nodeView.inputContainer.Query<Port>().ToList())
+                foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
                 {
                     var targetSlot = anchorView.GetSlot();
                     if (targetSlot.valueType != SlotValueType.DynamicVector)

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
+using UnityEngine.UIElements.StyleSheets;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -47,7 +48,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_Container = new VisualElement { name = "container" };
             {
-                CreateControl();
+                m_Control = this.slot.InstantiateControl();
+                if (m_Control != null)
+                    m_Container.Add(m_Control);
 
                 var slotElement = new VisualElement { name = "slot" };
                 {
@@ -57,10 +60,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             Add(m_Container);
 
+            m_Container.visible = m_EdgeControl.visible = m_Control != null;
+
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
         }
 
-        void OnCustomStyleResolved(CustomStyleResolvedEvent e)
+        private void OnCustomStyleResolved(CustomStyleResolvedEvent e)
         {
             Color colorValue;
 
@@ -91,30 +96,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddToClassList("type" + m_SlotType);
             if (m_Control != null)
             {
-                if (m_Control is IDisposable disposable)
+                var disposable = m_Control as IDisposable;
+                if (disposable != null)
                     disposable.Dispose();
                 m_Container.Remove(m_Control);
             }
-            CreateControl();
-        }
-
-        void CreateControl()
-        {
             m_Control = slot.InstantiateControl();
             if (m_Control != null)
-            {
                 m_Container.Insert(0, m_Control);
-            }
-            else
-            {
-                // Some slot types don't support an input control, so hide this
-                m_Container.visible = m_EdgeControl.visible = false;
-            }
+
+            m_Container.visible = m_EdgeControl.visible = m_Control != null;
         }
 
         public void Dispose()
         {
-            if (m_Control is IDisposable disposable)
+            var disposable = m_Control as IDisposable;
+            if (disposable != null)
                 disposable.Dispose();
         }
     }

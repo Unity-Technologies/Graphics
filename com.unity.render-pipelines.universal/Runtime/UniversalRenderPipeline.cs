@@ -83,7 +83,7 @@ namespace UnityEngine.Rendering.Universal
             if (QualitySettings.antiAliasing != asset.msaaSampleCount)
             {
                 QualitySettings.antiAliasing = asset.msaaSampleCount;
-#if ENABLE_VR && ENABLE_XR_MODULE
+#if ENABLE_VR && ENABLE_VR_MODULE
                 XRSystem.UpdateMSAALevel(asset.msaaSampleCount);
 #endif
             }
@@ -170,10 +170,6 @@ namespace UnityEngine.Rendering.Universal
             }
 
             InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-            if (asset.useAdaptivePerformance)
-                ApplyAdaptivePerformance(ref cameraData);
-#endif
             RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
         }
 
@@ -232,11 +228,6 @@ namespace UnityEngine.Rendering.Universal
 
                 var cullResults = context.Cull(ref cullingParameters);
                 InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
-
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref renderingData);
-#endif
 
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
@@ -347,10 +338,7 @@ namespace UnityEngine.Rendering.Universal
                 VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
                 UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-                if (asset.useAdaptivePerformance)
-                    ApplyAdaptivePerformance(ref baseCameraData);
-#endif
+
                 RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
                 EndCameraRendering(context, baseCamera);
 
@@ -369,10 +357,10 @@ namespace UnityEngine.Rendering.Universal
                             // Copy base settings from base camera data and initialize initialize remaining specific settings for this camera type.
                             CameraData overlayCameraData = baseCameraData;
                             bool lastCamera = i == lastActiveOverlayCameraIndex;
-#if ENABLE_VR && ENABLE_XR_MODULE
+
                             if (baseCameraData.xr.enabled)
                                 m_XRSystem.UpdateFromCamera(ref overlayCameraData.xr, currCamera);
-#endif
+
                             BeginCameraRendering(context, currCamera);
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -861,71 +849,5 @@ namespace UnityEngine.Rendering.Universal
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
         }
-
-#if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
-        static void ApplyAdaptivePerformance(ref CameraData cameraData)
-        {
-            var noFrontToBackOpaqueFlags = SortingCriteria.SortingLayer | SortingCriteria.RenderQueue | SortingCriteria.OptimizeStateChanges | SortingCriteria.CanvasOrder;
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipFrontToBackSorting)
-                cameraData.defaultOpaqueSortFlags = noFrontToBackOpaqueFlags;
-
-            var MaxShadowDistanceMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MaxShadowDistanceMultiplier;
-            cameraData.maxShadowDistance *= MaxShadowDistanceMultiplier;
-
-            var RenderScaleMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.RenderScaleMultiplier;
-            cameraData.renderScale *= RenderScaleMultiplier;
-
-            // TODO
-            if (!cameraData.xr.enabled)
-            {
-                cameraData.cameraTargetDescriptor.width = (int)(cameraData.camera.pixelWidth * cameraData.renderScale);
-                cameraData.cameraTargetDescriptor.height = (int)(cameraData.camera.pixelHeight * cameraData.renderScale);
-            }
-
-            var antialiasingQualityIndex = (int)cameraData.antialiasingQuality - AdaptivePerformance.AdaptivePerformanceRenderSettings.AntiAliasingQualityBias;
-            if (antialiasingQualityIndex < 0)
-                cameraData.antialiasing = AntialiasingMode.None;
-            cameraData.antialiasingQuality = (AntialiasingQuality)Mathf.Clamp(antialiasingQualityIndex, (int)AntialiasingQuality.Low, (int)AntialiasingQuality.High);
-        }
-        static void ApplyAdaptivePerformance(ref RenderingData renderingData)
-        {
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipDynamicBatching)
-                renderingData.supportsDynamicBatching = false;
-
-            var MainLightShadowmapResultionMultiplier = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowmapResultionMultiplier;
-            renderingData.shadowData.mainLightShadowmapWidth = (int)(renderingData.shadowData.mainLightShadowmapWidth * MainLightShadowmapResultionMultiplier);
-            renderingData.shadowData.mainLightShadowmapHeight = (int)(renderingData.shadowData.mainLightShadowmapHeight * MainLightShadowmapResultionMultiplier);
-
-            var MainLightShadowCascadesCountBias = AdaptivePerformance.AdaptivePerformanceRenderSettings.MainLightShadowCascadesCountBias;
-            renderingData.shadowData.mainLightShadowCascadesCount = Mathf.Clamp(renderingData.shadowData.mainLightShadowCascadesCount - MainLightShadowCascadesCountBias, 0, 4);
-
-            var shadowQualityIndex = AdaptivePerformance.AdaptivePerformanceRenderSettings.ShadowQualityBias;
-            for (int i = 0; i < shadowQualityIndex; i++)
-            {
-                if (renderingData.shadowData.supportsSoftShadows)
-                {
-                    renderingData.shadowData.supportsSoftShadows = false;
-                    continue;
-                }
-
-                if (renderingData.shadowData.supportsAdditionalLightShadows)
-                {
-                    renderingData.shadowData.supportsAdditionalLightShadows = false;
-                    continue;
-                }
-
-                if (renderingData.shadowData.supportsMainLightShadows)
-                {
-                    renderingData.shadowData.supportsMainLightShadows = false;
-                    continue;
-                }
-
-                break;
-            }
-
-            if (AdaptivePerformance.AdaptivePerformanceRenderSettings.LutBias >= 1 && renderingData.postProcessingData.lutSize == 32)
-                renderingData.postProcessingData.lutSize = 16;
-        }
-#endif
     }
 }

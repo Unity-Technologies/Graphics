@@ -8,8 +8,7 @@
         "GUID:3eae0364be2026648bf74846acb8a731",
         "GUID:be0903cd8e1546f498710afdc59db5eb",
         "GUID:b75d3cd3037d383a8d1e2f9a26d73d8a",
-        "GUID:329b4ccd385744985bf3f83cfd77dfe7",
-        "GUID:9604b18aafdbc9346bceb5e19ac9c746"
+        "GUID:329b4ccd385744985bf3f83cfd77dfe7"
     ],
     "includePlatforms": [
         "Editor"
@@ -20,12 +19,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.adaptiveperformance",
-            "expression": "2.0.0-preview.7",
-            "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

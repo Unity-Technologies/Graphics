@@ -212,23 +212,14 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             int prevVariantCount = compilerDataList.Count;
-            
-            var inputShaderVariantCount = compilerDataList.Count;
-            for (int i = 0; i < inputShaderVariantCount;)
+
+            for (int i = 0; i < compilerDataList.Count; ++i)
             {
-                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
-                if (removeInput)
-                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
-                else
-                    ++i;
-            }
-            
-            if(compilerDataList is List<ShaderCompilerData> inputDataList)
-                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
-            else
-            {
-                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
+                if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))
+                {
                     compilerDataList.RemoveAt(i);
+                    --i;
+                }
             }
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)

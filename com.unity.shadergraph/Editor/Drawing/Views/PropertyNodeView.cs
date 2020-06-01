@@ -233,12 +233,6 @@ namespace UnityEditor.ShaderGraph
         {
         }
 
-        public bool FindPort(SlotReference slot, out ShaderPort port)
-        {
-            port = output as ShaderPort;
-            return port != null && port.slot.slotReference.Equals(slot);
-        }
-
         public void OnModified(ModificationScope scope)
         {
             if (scope == ModificationScope.Graph)

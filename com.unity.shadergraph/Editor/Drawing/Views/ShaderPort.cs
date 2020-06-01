@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialSlot m_Slot;
 
-        public static ShaderPort Create(MaterialSlot slot, IEdgeConnectorListener connectorListener)
+        public static Port Create(MaterialSlot slot, IEdgeConnectorListener connectorListener)
         {
             var port = new ShaderPort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output,
                     slot.isInputSlot ? Capacity.Single : Capacity.Multi, null)
@@ -44,14 +44,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 portName = slot.displayName;
                 visualClass = slot.concreteValueType.ToClassName();
             }
-        }
-
-        public Action<Port> OnDisconnect;
-
-        public override void Disconnect(Edge edge)
-        {
-            base.Disconnect(edge);
-            OnDisconnect?.Invoke(this);
         }
     }
 

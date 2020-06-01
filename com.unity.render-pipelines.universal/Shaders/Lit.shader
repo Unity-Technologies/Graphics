@@ -5,8 +5,8 @@ Shader "Universal Render Pipeline/Lit"
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
 
-        [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
+        [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -235,7 +235,7 @@ Shader "Universal Render Pipeline/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
             ENDHLSL
         }
-
+        
         Pass
         {
             Name "DepthOnly"

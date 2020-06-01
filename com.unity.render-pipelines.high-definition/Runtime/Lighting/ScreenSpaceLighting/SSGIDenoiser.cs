@@ -1,6 +1,9 @@
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HighDefinition;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Experimental.Rendering.HighDefinition
 {
     class SSGIDenoiser
     {

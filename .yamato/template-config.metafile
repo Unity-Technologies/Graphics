@@ -1,0 +1,78 @@
+# This file contains all the supported global configurations for the yamato-ci templates repo
+# This is required by all templates
+# When using the template for setting up a yamato job, please include the following disclaimer:
+#_________________________________________________
+# If you make structural changes to this file, please consider making a PR to the templating repo!
+# Please find the source file here: https://github.cds.internal.unity3d.com/unity/yamato-ci-templates/blob/master/.yamato/template-config.metafile
+# VERSION 1
+#_________________________________________________
+
+editors:
+  # Add any versions or branches required for testing here
+  # This needs to be an exhaustive list of all potential versions used by all template jobs
+  # Make sure to include the very minimum explicit version that a package or project requires (eg. 2019.1.0f1)
+  - version: trunk
+
+publishing:
+  auto_publish: true
+  auto_version: true
+
+# Uncomment and add any yamato jobs here that are required for other jobs to be successful. Usually this means binary builds jobs or custom test jobs
+# that need to run before package packaging and/or publishing can run
+# extra_jobs:
+#   # Can be binary build jobs or extra validation jobs etc. This will run before the pack jobs so it will block all other jobs
+#   # so avoid adding long running jobs here and rather use testing_jobs for heavier stuff
+#   pre:
+#   - .yamato/myjobs.yml#extra:build:job
+#   # For extra jobs to run side-by-side with the regular package test jobs
+#   # Jobs listed here will be added as dependencies to things like publishing jobs etc.
+#   testing:
+#   - .yamato/myjobs.yml#extra:testing:job
+
+repo:
+  branches:
+    # What the integration branch for the repo is (the branch where things need to land)
+    integration: master
+
+platforms:
+  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
+  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
+  - os: mac
+  - os: win
+
+testables:
+  - name: core
+    path: com.unity.render-pipelines.core
+    type: package
+    publish_source: true
+    standalone: true
+  - name: universal
+    path: com.unity.render-pipelines.universal
+    type: package
+    publish_source: true
+    standalone: true
+  - name: hdrp
+    path: com.unity.render-pipelines.high-definition
+    type: package
+    publish_source: true
+    standalone: true
+  - name: shadergraph
+    path: com.unity.shadergraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: vfx
+    path: com.unity.visualeffectgraph
+    type: package
+    publish_source: true
+    standalone: true
+  - name: config
+    path: com.unity.render-pipelines.high-definition-config
+    type: package
+    publish_source: true
+    standalone: true
+  - name: lwrp
+    path: com.unity.render-pipelines.lightweight
+    type: package
+    publish_source: true
+    standalone: false

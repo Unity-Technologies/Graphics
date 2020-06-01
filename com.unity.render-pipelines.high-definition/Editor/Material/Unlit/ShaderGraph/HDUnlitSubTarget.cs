@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static class UnlitIncludes
         {
             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
-
+            
             public static IncludeCollection Meta = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },

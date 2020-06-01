@@ -1,7 +1,3 @@
-MaterialNodeView {
-    overflow: visible;
-}
-
 MaterialNodeView.graphElement.node.MaterialNode {
     margin-top: 0;
     margin-bottom: 0;
@@ -117,9 +113,11 @@ MaterialNodeView > #resize {
     cursor: resize-up-left;
 }
 
-MaterialNodeView PortInputView {
+MaterialNodeView > #portInputContainer {
     position: absolute;
-    left: -224px;
+    width: 232px;
+    left: -220px;
+    top: 42px;
 }
 
 MaterialNodeView > #settings-container {

@@ -1,4 +1,3 @@
-#pragma warning disable 0618
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -62,7 +61,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
 
         internal static bool IsActiveTool<T>() where T : EditorTool
         {
-            return ToolManager.activeToolType.Equals(typeof(T));
+            return EditorTools.EditorTools.activeToolType.Equals(typeof(T));
         }
 
         internal static bool IsAvailable<T>() where T : EditorTool
@@ -90,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         {
             foreach (var tool in m_Tools)
             {
-                if (tool.IsAvailable() && ToolManager.IsActiveTool(tool as EditorTool))
+                if (tool.IsAvailable() && EditorTools.EditorTools.IsActiveTool(tool as EditorTool))
                     tool.DuringSceneGui(sceneView);
             }
         }
@@ -168,20 +167,20 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
             SetupRectSelector();
             HandleActivation();
 
-            ToolManager.activeToolChanged += HandleActivation;
+            EditorTools.EditorTools.activeToolChanged += HandleActivation;
         }
 
         private void OnDestroy()
         {
             EditorToolManager.Remove(this);
 
-            ToolManager.activeToolChanged -= HandleActivation;
+            EditorTools.EditorTools.activeToolChanged -= HandleActivation;
             UnregisterCallbacks();
         }
 
         private void HandleActivation()
         {
-            if (m_IsActive == false && ToolManager.IsActiveTool(this))
+            if (m_IsActive == false && EditorTools.EditorTools.IsActiveTool(this))
                 Activate();
             else if (m_IsActive)
                 Deactivate();
@@ -492,4 +491,3 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         protected virtual void OnCustomGUI(T path) { }
     }
 }
-#pragma warning restore 0618

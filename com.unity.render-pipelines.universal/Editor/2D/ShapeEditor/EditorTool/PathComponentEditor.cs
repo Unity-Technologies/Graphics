@@ -1,4 +1,3 @@
-#pragma warning disable 0618
 using System;
 using System.Linq;
 using System.Collections;
@@ -49,9 +48,9 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
                     if (check.changed)
                     {
                         if (isActive)
-                            ToolManager.SetActiveTool<U>();
+                            EditorTools.EditorTools.SetActiveTool<U>();
                         else
-                            ToolManager.RestorePreviousTool();
+                            EditorTools.EditorTools.RestorePreviousTool();
                     }
                 }
             }
@@ -114,4 +113,3 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         }
     }
 }
-#pragma warning restore 0618
