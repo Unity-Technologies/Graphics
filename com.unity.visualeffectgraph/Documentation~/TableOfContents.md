@@ -59,6 +59,9 @@
         * [Square Root](Operator-SquareRoot.md)
         * [Step](Operator-Step.md)
         * [Subtract](Operator-Subtract.md)
+      * Constants
+        * [Epsilon](Operator-Epsilon.md)
+        * [Pi](Operator-Pi.md)
       * Geometry
         * [Area (Circle)](Operator-Area(Circle).md)
         * [Change Space](Operator-ChangeSpace.md)
