@@ -3007,7 +3007,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (parameters.probeVolumeEnabled)
                     {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
+                        // This is necessary because all tiles must sample ambient probe fallback.
+                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
+                        // one specifiying which tiles contain probe volumes,
+                        // and another triggered for all tiles to handle fallback.
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 

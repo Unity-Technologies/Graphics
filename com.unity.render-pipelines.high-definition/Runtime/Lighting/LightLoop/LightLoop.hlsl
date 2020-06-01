@@ -476,6 +476,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     bool uninitialized = IsUninitializedGI(builtinData.bakeDiffuseLighting);
     builtinData.bakeDiffuseLighting = uninitialized ? float3(0.0, 0.0, 0.0) : builtinData.bakeDiffuseLighting;
 
+    // If probe volume feature is enabled, this bit is enabled for all tiles to handle ambient probe fallback.
+    // No need to branch internally on _EnableProbeVolumes uniform.
     if (featureFlags & LIGHTFEATUREFLAGS_PROBE_VOLUME)
     {
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
@@ -494,7 +496,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             AccumulateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
             builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeCoefficients(bsdfData.normalWS, coefficients);
             builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeCoefficients(-bsdfData.normalWS, coefficients);
-
+            
             float probeVolumeHierarchyWeightFrontFace = probeVolumeHierarchyWeight;
             float probeVolumeHierarchyWeightBackFace = probeVolumeHierarchyWeight;
             builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(bsdfData.normalWS, probeVolumeHierarchyWeightFrontFace);

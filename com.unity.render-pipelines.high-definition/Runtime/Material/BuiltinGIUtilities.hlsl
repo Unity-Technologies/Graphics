@@ -129,36 +129,37 @@ void SampleBakedGI(
 
 #else // PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS || PROBEVOLUMESEVALUATIONMODES_DISABLED
 #if SAMPLE_PROBEVOLUME
+    if (_EnableProbeVolumes)
+    {
 #if SAMPLE_LIGHTMAP
-    float probeVolumeHierarchyWeight = 1.0f;
+        float probeVolumeHierarchyWeight = 1.0f;
 #else
-    float probeVolumeHierarchyWeight = 0.0f;
+        float probeVolumeHierarchyWeight = 0.0f;
 #endif
 
 #ifdef SHADERPASS
 #if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
-
 #if SHADERPASS == SHADERPASS_GBUFFER || (SHADERPASS == SHADERPASS_FORWARD && defined(USE_FPTL_LIGHTLIST))
-    // posInputs.tileCoord will be zeroed out in GBuffer pass.
-    // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration). 
-    // Need to manually compute tile coord here.
-    float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
-    uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
-    posInputs.tileCoord = tileCoord;
-    #endif
+        // posInputs.tileCoord will be zeroed out in GBuffer pass.
+        // posInputs.tileCoord will be incorrect for probe volumes (which use clustered) in forward if forward lightloop is using FTPL lightlist (i.e: in ForwardOnly lighting configuration). 
+        // Need to manually compute tile coord here.
+        float2 positionSS = posInputs.positionNDC.xy * _ScreenSize.xy;
+        uint2 tileCoord = uint2(positionSS) / ProbeVolumeGetTileSize();
+        posInputs.tileCoord = tileCoord;
+        #endif
 
-    // TODO: SampleBakedGI() will be called twice, once for the front facing direction, and once for the back facing direction (for transmission).
-    // For Probe Volumes specifically, this is not necessary - it would be better to return the coefficients, and just evaluate those coefficients twice (once for for each normal).
-    // We already do this in LightLoop evaluation mode.
-    // This would require the caller to track whether or not it needs to be called a second time.
-    ProbeVolumeCoefficients coefficients;
-    AccumulateProbeVolumes(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
-    combinedGI += EvaluateProbeVolumeCoefficients(normalWS, coefficients);
-    combinedGI += EvaluateProbeVolumeAmbientProbeFallback(normalWS, probeVolumeHierarchyWeight);
+        ProbeVolumeCoefficients coefficients;
+        AccumulateProbeVolumes(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
+        bakeDiffuseLighting += EvaluateProbeVolumeCoefficients(normalWS, coefficients);
+        backBakeDiffuseLighting += EvaluateProbeVolumeCoefficients(backNormalWS, coefficients);
+
+        float backProbeVolumeHierarchyWeight = probeVolumeHierarchyWeight;
+        bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(normalWS, probeVolumeHierarchyWeight);
+        backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(backNormalWS, backProbeVolumeHierarchyWeight);
 #endif
 
 #endif
->>>>>>> 4bc7b73f4e... Simplify EvaluateProbeVolumes interface and builtin SampleBakedGI code
+    }
 #endif
 
 #if SAMPLE_PROBEVOLUME_BUILTIN
