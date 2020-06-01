@@ -42,6 +42,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal float backfaceTolerance;
         [SerializeField] internal int dilationIterations;
 
+        internal bool IsDataAssigned()
+        {
+            return payload.dataSH != null;
+        }
+
 #if UNITY_EDITOR
         // Debug only: Uncomment out if you want to manually create a probe volume asset and type in data into the inspector.
         // This is not a user facing workflow we are supporting.
@@ -92,11 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UnityEditor.AssetDatabase.Refresh();
 
             return asset;
-        }
-
-        internal bool IsDataAssigned()
-        {
-            return payload.dataSH != null;
         }
 
         protected internal static Vector3Int[] s_Offsets = new Vector3Int[] {
