@@ -152,10 +152,40 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     }
 }
 
-float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint renderingLayers, inout float weightHierarchy)
+struct ProbeVolumeCoefficients
 {
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    float4 data[(3u + 3u) / 4u];
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    float4 data[(12u + 3u) / 4u];
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    float4 data[(27u + 3u) / 4u];
+#endif
+};
+
+void EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint renderingLayers, out ProbeVolumeCoefficients coefficients, inout float weightHierarchy)
+{
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+    coefficients.data[0] = float4(0.0, 0.0, 0.0, 0.0);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+    coefficients.data[0] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[1] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[2] = float4(0.0, 0.0, 0.0, 0.0);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+    coefficients.data[0] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[1] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[2] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[3] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[4] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[5] = float4(0.0, 0.0, 0.0, 0.0);
+    coefficients.data[6] = float4(0.0, 0.0, 0.0, 0.0);
+
+#endif
+
 #if !SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING
-    if (weightHierarchy >= 1.0) { return float3(0.0, 0.0, 0.0); }
+    if (weightHierarchy >= 1.0) { return; }
 #endif
 
     float3 probeVolumeDiffuseLighting = float3(0.0, 0.0, 0.0);
@@ -244,7 +274,7 @@ float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
 #endif
             )
             {
-                return probeVolumeDiffuseLighting;
+                return;
             }
 #endif
 
@@ -266,15 +296,6 @@ float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
                 if (!IsMatchingLightLayer(s_probeVolumeData.lightLayers, renderingLayers)) { continue; }
 
                 float weightCurrent = 0.0;
-
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-                const uint SH_STRIDE = 3u;
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-                const uint SH_STRIDE = 12u;
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-                const uint SH_STRIDE = 27u;
-#endif
-                float4 sampleDataSH[(SH_STRIDE + 3u) / 4u];
                 {
                     float3x3 obbFrame = float3x3(s_probeVolumeBounds.right, s_probeVolumeBounds.up, cross(s_probeVolumeBounds.right, s_probeVolumeBounds.up));
                     float3 obbExtents = float3(s_probeVolumeBounds.extentX, s_probeVolumeBounds.extentY, s_probeVolumeBounds.extentZ);
@@ -464,62 +485,40 @@ float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
                     float3 probeVolumeAtlasUVW = probeVolumeTexel3D * s_probeVolumeData.resolutionInverse * s_probeVolumeData.scale + s_probeVolumeData.bias;
 
 #ifdef DEBUG_DISPLAY
-                    if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+                    if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
+                    {
+                        // Pack debug color into SH data so that we can access it later for our debug mode.
+                        coefficients.data[0].xyz += s_probeVolumeData.debugColor * weightCurrent;
+                    }
+                    else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
                     {
                         float validity = ProbeVolumeSampleValidity(probeVolumeAtlasUVW);
 
                         // Pack validity into SH data so that we can access it later for our debug mode.
-                        sampleDataSH[0] = float4(validity, 0.0, 0.0, 0.0);
+                        coefficients.data[0].x += validity * weightCurrent;
                     }
                     else
 #endif
                     {
 #if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
+                        coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weightCurrent;
 
 #elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
-                        sampleDataSH[1] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
-                        sampleDataSH[2] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
+                        coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weightCurrent;
+                        coefficients.data[1] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) * weightCurrent;
+                        coefficients.data[2] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) * weightCurrent;
 
 #elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-                        sampleDataSH[0] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0);
-                        sampleDataSH[1] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0);
-                        sampleDataSH[2] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0);
-                        sampleDataSH[3] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0);
-                        sampleDataSH[4] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 4), 0);
-                        sampleDataSH[5] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 5), 0);
-                        sampleDataSH[6] = SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 6), 0);
+                        coefficients.data[0] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 0), 0) * weightCurrent;
+                        coefficients.data[1] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) * weightCurrent;
+                        coefficients.data[2] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) * weightCurrent;
+                        coefficients.data[3] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0) * weightCurrent;
+                        coefficients.data[4] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 4), 0) * weightCurrent;
+                        coefficients.data[5] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 5), 0) * weightCurrent;
+                        coefficients.data[6] += SAMPLE_TEXTURE3D_LOD(_ProbeVolumeAtlasSH, s_linear_clamp_sampler, float3(probeVolumeAtlasUVW.x, probeVolumeAtlasUVW.y, probeVolumeAtlasUVW.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 6), 0) * weightCurrent;
 
 #endif
                     }
-                }
-
-                // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-                float3 sampleOutgoingRadiance = sampleDataSH[0].rgb;
-
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-                float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, sampleDataSH[0], sampleDataSH[1], sampleDataSH[2]);
-
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-                float3 sampleOutgoingRadiance = SampleSH9(sampleDataSH, normalWS);
-#endif
-
-#ifdef DEBUG_DISPLAY
-                if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
-                {
-                    probeVolumeDiffuseLighting += s_probeVolumeData.debugColor * weightCurrent;
-                }
-                else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
-                {
-                    float validity = sampleDataSH[0].x;
-                    probeVolumeDiffuseLighting += lerp(float3(1, 0, 0), float3(0, 1, 0), validity) * weightCurrent;
-                }
-                else
-#endif
-                {
-                    probeVolumeDiffuseLighting += sampleOutgoingRadiance * weightCurrent;
                 }
 
                 if (isWeightAccumulated)
@@ -528,8 +527,40 @@ float3 EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
         }
 
     }
+}
 
-    return probeVolumeDiffuseLighting;
+float3 EvaluateProbeVolumeCoefficients(float3 normalWS, ProbeVolumeCoefficients coefficients)
+{
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
+    {
+        float3 debugColors = coefficients.data[0].rgb; 
+        return debugColors;
+    }
+    else if (_DebugProbeVolumeMode == PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY)
+    {
+        float validity = coefficients.data[0].x;
+        return lerp(float3(1, 0, 0), float3(0, 1, 0), validity);
+    }
+    else
+#endif
+    {
+    // When probe volumes are evaluated in the material pass, BSDF modulation is applied as a post operation, outside of this function.
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+        float3 sampleOutgoingRadiance = coefficients.data[0].rgb;
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+        float3 sampleOutgoingRadiance = SHEvalLinearL0L1(normalWS, coefficients.data[0], coefficients.data[1], coefficients.data[2]);
+
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+        float3 sampleOutgoingRadiance = SampleSH9(coefficients, normalWS);
+#else
+        float3 sampleOutgoingRadiance = 0.0;
+#endif
+
+        return sampleOutgoingRadiance;
+    }
 }
 
 // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.

@@ -487,19 +487,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             BuiltinData builtinDataProbeVolumes;
             ZERO_INITIALIZE(BuiltinData, builtinDataProbeVolumes);
 
-            // For now, to match what we are doing in material pass evaluation, we simply call evaluate twice.
-            // Once for the front face, and once for the back face.
-            // This makes supporting transmission simple, and this support was especially important for supporting the fallback path with ambient probe.
-            // An alternative to calling evaluate twice (and looping over the probe data twice), would be to loop over the data once, but accumulate front face and backface values.
-            // Another alternative would be to accumulate + blend raw SH data, and then evaluate for both the front facing and backfacing BSDF outside of the probe volume loop.
-            // We should compare these techniques in our next round of profiling work.
-            float probeVolumeHierarchyWeightFrontFace = uninitialized ? 0.0f : 1.0f;
-            float probeVolumeHierarchyWeightBackFace = uninitialized ? 0.0f : 1.0f;
+            float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
 
             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
-            builtinDataProbeVolumes.bakeDiffuseLighting = EvaluateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, probeVolumeHierarchyWeightFrontFace);
-            builtinDataProbeVolumes.backBakeDiffuseLighting = EvaluateProbeVolumes(posInput, -bsdfData.normalWS, builtinData.renderingLayers, probeVolumeHierarchyWeightBackFace);
+            ProbeVolumeCoefficients coefficients;
+            EvaluateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
+            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeCoefficients(bsdfData.normalWS, coefficients);
+            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeCoefficients(-bsdfData.normalWS, coefficients);
 
+            float probeVolumeHierarchyWeightFrontFace = probeVolumeHierarchyWeight;
+            float probeVolumeHierarchyWeightBackFace = probeVolumeHierarchyWeight;
             builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(bsdfData.normalWS, probeVolumeHierarchyWeightFrontFace);
             builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(-bsdfData.normalWS, probeVolumeHierarchyWeightBackFace);
 
