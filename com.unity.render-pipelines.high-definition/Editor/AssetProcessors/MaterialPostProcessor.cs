@@ -352,7 +352,8 @@ namespace UnityEditor.Rendering.HighDefinition
             "_AlphaCutoffEnable",
             "_DoubleSidedEnable",
             "_DoubleSidedNormalMode",
-            "_ZWrite" // Needed to fix older bug
+            "_ZWrite", // Needed to fix older bug
+            "_RenderQueueType"  // Needed as seems to not reset correctly
         };
 
         static void ShaderGraphStack(Material material, HDShaderUtils.ShaderID id)
@@ -372,6 +373,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
 
                     defaultProperties = null;
+
+                    material.renderQueue = defaultProperties.renderQueue;
                 }
             }
 
