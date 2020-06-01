@@ -372,9 +372,16 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (material.HasProperty(floatToSync))
                             material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
 
-                    material.renderQueue = defaultProperties.renderQueue;
-
                     defaultProperties = null;
+
+                    // Postprocess now that material is correctly sync
+                    bool isTransparent = material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") > 0.0f;
+                    bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
+
+                    material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
+                                                alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
+
+                    material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
                 }
             }
 
