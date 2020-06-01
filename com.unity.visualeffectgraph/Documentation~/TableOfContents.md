@@ -35,6 +35,7 @@
       * [Delta Time](Operator-DeltaTime.md)
     * Logic
       * [And](Operator-LogicAnd.md)
+      * [Compare](Operator-Compare.md)
       * [Nand](Operator-LogicNand.md)
       * [Nor](Operator-LogicNor.md)
       * [Not](Operator-LogicNot.md)
@@ -60,6 +61,10 @@
         * [Subtract](Operator-Subtract.md)
       * Geometry
         * [Area (Circle)](Operator-Area(Circle).md)
+        * [Change Space](Operator-ChangeSpace.md)
+        * [Distance (Line)](Operator-Distance(Line).md)
+        * [Distance (Plane)](Operator-Distance(Plane).md)
+        * [Distance (Sphere)](Operator-Distance(Sphere).md)
         * [InvertTRS (Matrix)](Operator-InvertTRS(Matrix).md)
         * [Transform (Direction)](Operator-Transform(Direction).md)
         * [Transform (Matrix)](Operator-Transform(Matrix).md)
