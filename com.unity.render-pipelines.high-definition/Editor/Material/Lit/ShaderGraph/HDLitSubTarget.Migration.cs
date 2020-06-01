@@ -129,13 +129,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.specularAA = hdLitMasterNode.m_SpecularAA;
             lightingData.specularOcclusionMode = hdLitMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hdLitMasterNode.m_overrideBakedGI;
-            
+            HDLitData.MaterialType materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
+            lightingData.subsurfaceScattering = materialType == HDLitData.MaterialType.SubsurfaceScattering;
+
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             litData.rayTracing = hdLitMasterNode.m_RayTracing;
             litData.refractionModel = hdLitMasterNode.m_RefractionModel; 
-            litData.materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
+            litData.materialType = materialType;
             litData.sssTransmission = hdLitMasterNode.m_SSSTransmission;
-            
+
             target.customEditorGUI = hdLitMasterNode.m_OverrideEnabled ? hdLitMasterNode.m_ShaderGUIOverride : "";
 
             // Handle mapping of Normal block specifically
