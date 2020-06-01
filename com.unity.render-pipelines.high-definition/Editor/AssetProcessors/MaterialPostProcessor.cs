@@ -372,9 +372,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (material.HasProperty(floatToSync))
                             material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
 
-                    defaultProperties = null;
-
                     material.renderQueue = defaultProperties.renderQueue;
+
+                    defaultProperties = null;
                 }
             }
 
