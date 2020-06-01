@@ -27,8 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get
             {
-                var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-                int queue = HDRenderQueue.ChangeType(renderingPass, systemData.sortPriority, systemData.alphaTest);
+                int queue = HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest);
                 return HDRenderQueue.GetShaderTagValue(queue);
             }
         }
