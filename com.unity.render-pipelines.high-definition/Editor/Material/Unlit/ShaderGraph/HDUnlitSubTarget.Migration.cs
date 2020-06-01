@@ -38,9 +38,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
-            systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
+            systemData.dotsInstancing = false;
             systemData.zWrite = false;
-            builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
+            builtinData.addPrecomputedVelocity = false;
             target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
 
             // Set blockmap

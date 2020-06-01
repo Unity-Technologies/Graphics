@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
 
 // Material property names
@@ -338,8 +339,44 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
+        // properties in this tab should be properties from Unlit or PBR cross pipeline shader
+        // that are suppose to be synchronize with the Material during upgrade
+        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize = {
+            "_SurfaceType",
+            "_BlendMode",
+            "_DstBlend",
+            "_SrcBlend",
+            "_AlphaDstBlend",
+            "_AlphaSrcBlend",
+            "_AlphaCutoff",
+            "_AlphaCutoffEnable",
+            "_DoubleSidedEnable",
+            "_DoubleSidedNormalMode",
+            "_ZWrite" // Needed to fix older bug
+        };
+
         static void ShaderGraphStack(Material material, HDShaderUtils.ShaderID id)
-            => HDShaderUtils.ResetMaterialKeywords(material);
+        {
+            Shader shader = material.shader;
+
+            if (shader.IsShaderGraph())
+            {
+                // Material coming from old cross pipeline shader (Unlit and PBR) are not synchronize correctly with their
+                // shader graph. This code below ensure it is
+                if (id == HDShaderUtils.ShaderID.SG_Unlit)
+                {
+                    var defaultProperties = new Material(material.shader);
+
+                    foreach (var floatToSync in s_ShadergraphStackFloatPropertiesToSynchronize)
+                        if (material.HasProperty(floatToSync))
+                            material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+
+                    defaultProperties = null;
+                }
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
 
         #region Serialization_API
         //Methods in this region interact on the serialized material

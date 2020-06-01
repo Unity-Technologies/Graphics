@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 
@@ -24,8 +24,6 @@ namespace UnityEditor.ShaderGraph.Legacy
         public SurfaceType m_SurfaceType;
         public AlphaMode m_AlphaMode;
         public bool m_TwoSided;
-        public bool m_AddPrecomputedVelocity;
-        public bool m_DOTSInstancing;
         public string m_ShaderGUIOverride;
         public bool m_OverrideEnabled;
     }

@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
-            systemData.dotsInstancing = pbrMasterNode.m_DOTSInstancing;
+            systemData.dotsInstancing = false;
             builtinData.addPrecomputedVelocity = false;
             lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
