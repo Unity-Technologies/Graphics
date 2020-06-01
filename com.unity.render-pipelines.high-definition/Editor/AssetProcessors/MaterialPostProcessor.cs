@@ -131,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetVersion assetVersion = null;
                 foreach (var subAsset in assetVersions)
                 {
-                    if (subAsset.GetType() == typeof(AssetVersion))
+                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
                     {
                         assetVersion = subAsset as AssetVersion;
                         break;
