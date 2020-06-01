@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldCrossPipelineSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);

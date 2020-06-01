@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -362,26 +363,30 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (shader.IsShaderGraph())
             {
-                // Material coming from old cross pipeline shader (Unlit and PBR) are not synchronize correctly with their
-                // shader graph. This code below ensure it is
-                if (id == HDShaderUtils.ShaderID.SG_Unlit)
+                if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
-                    var defaultProperties = new Material(material.shader);
+                    // Material coming from old cross pipeline shader (Unlit and PBR) are not synchronize correctly with their
+                    // shader graph. This code below ensure it is
+                    if (obj.migrateFromOldCrossPipelineSG) // come from PBR or Unlit cross pipeline SG?
+                    {
+                        var defaultProperties = new Material(material.shader);
 
-                    foreach (var floatToSync in s_ShadergraphStackFloatPropertiesToSynchronize)
-                        if (material.HasProperty(floatToSync))
-                            material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+                        foreach (var floatToSync in s_ShadergraphStackFloatPropertiesToSynchronize)
+                            if (material.HasProperty(floatToSync))
+                                material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
 
-                    defaultProperties = null;
+                        defaultProperties = null;
 
-                    // Postprocess now that material is correctly sync
-                    bool isTransparent = material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") > 0.0f;
-                    bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
+                        // Postprocess now that material is correctly sync
+                        bool isTransparent = material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") > 0.0f;
+                        bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
 
-                    material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
-                                                alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
+                        material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
+                                                    alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
 
-                    material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
+                        material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
+                    }
+                        
                 }
             }
 

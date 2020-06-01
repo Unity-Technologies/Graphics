@@ -33,6 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradePBRMasterNode(PBRMasterNode1 pbrMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldCrossPipelineSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
@@ -42,6 +44,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             builtinData.addPrecomputedVelocity = false;
             lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
+            lightingData.receiveDecals = false;
+            lightingData.receiveSSR = true;
+            lightingData.receiveSSRTransparent = false;
             litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
             litData.energyConservingSpecular = false;
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
