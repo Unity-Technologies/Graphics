@@ -1911,7 +1911,10 @@ namespace UnityEditor.ShaderGraph
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
                     // This is required for edge lookup during Target upgrade
-                    m_OutputNode.value.owner = this;
+                    if (m_OutputNode.value != null)
+                    {
+                        m_OutputNode.value.owner = this;
+                    }
                     foreach (var edge in m_Edges)
                     {
                         AddEdgeToNodeEdges(edge);
@@ -1921,7 +1924,11 @@ namespace UnityEditor.ShaderGraph
                     AddContexts();
 
                     // Position Contexts to the match master node
-                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    var oldPosition = Vector2.zero;
+                    if (m_OutputNode.value != null)
+                    {
+                        oldPosition = m_OutputNode.value.drawState.position.position;
+                    }
                     m_VertexContext.position = oldPosition;
                     m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
 
