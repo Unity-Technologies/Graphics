@@ -100,6 +100,8 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>The light will no affect any object.</summary>
         Nothing = 0,   // Custom name for "Nothing" option
+
+        // Initial light layers
         /// <summary>Light Layer 0.</summary>
         LightLayerDefault = 1 << 0,
         /// <summary>Light Layer 1.</summary>
@@ -116,6 +118,25 @@ namespace UnityEngine.Rendering.HighDefinition
         LightLayer6 = 1 << 6,
         /// <summary>Light Layer 7.</summary>
         LightLayer7 = 1 << 7,
+
+        // Custom light layers
+        /// <summary>Light Layer 8.</summary>
+        LightLayer8 = 1 << 8,
+        /// <summary>Light Layer 9.</summary>
+        LightLayer9 = 1 << 9,
+        /// <summary>Light Layer 10.</summary>
+        LightLayer10 = 1 << 10,
+        /// <summary>Light Layer 11.</summary>
+        LightLayer11 = 1 << 11,
+        /// <summary>Light Layer 12.</summary>
+        LightLayer12 = 1 << 12,
+        /// <summary>Light Layer 13.</summary>
+        LightLayer13 = 1 << 13,
+        /// <summary>Light Layer 14.</summary>
+        LightLayer14 = 1 << 14,
+        /// <summary>Light Layer 15.</summary>
+        LightLayer15 = 1 << 15,
+
         /// <summary>Everything.</summary>
         Everything = 0xFF, // Custom name for "Everything" option
     }

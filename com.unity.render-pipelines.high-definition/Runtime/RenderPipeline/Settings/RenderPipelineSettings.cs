@@ -93,6 +93,8 @@ namespace UnityEngine.Rendering.HighDefinition
             supportRayTracing = false,
             lodBias = new FloatScalableSetting(new[] { 1.0f, 1, 1 }, ScalableSettingSchemaId.With3Levels),
             maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
+
+            // Initial light layers
             lightLayerName0 = "Light Layer default",
             lightLayerName1 = "Light Layer 1",
             lightLayerName2 = "Light Layer 2",
@@ -101,6 +103,16 @@ namespace UnityEngine.Rendering.HighDefinition
             lightLayerName5 = "Light Layer 5",
             lightLayerName6 = "Light Layer 6",
             lightLayerName7 = "Light Layer 7",
+
+            // Custom light layers
+            lightLayerName8 = "Light Layer 8",
+            lightLayerName9 = "Light Layer 9",
+            lightLayerName10 = "Light Layer 10",
+            lightLayerName11 = "Light Layer 11",
+            lightLayerName12 = "Light Layer 12",
+            lightLayerName13 = "Light Layer 13",
+            lightLayerName14 = "Light Layer 14",
+            lightLayerName15 = "Light Layer 15",
         };
 
         /// <summary>
@@ -130,6 +142,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool increaseResolutionOfVolumetrics;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
+
+        // Initial light layers
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0;
         /// <summary>Name for light layer 1.</summary>
@@ -146,6 +160,25 @@ namespace UnityEngine.Rendering.HighDefinition
         public string lightLayerName6;
         /// <summary>Name for light layer 7.</summary>
         public string lightLayerName7;
+
+        // Custom light layers
+        /// <summary>Name for light layer 8.</summary>
+        public string lightLayerName8;
+        /// <summary>Name for light layer 9.</summary>
+        public string lightLayerName9;
+        /// <summary>Name for light layer 10.</summary>
+        public string lightLayerName10;
+        /// <summary>Name for light layer 11.</summary>
+        public string lightLayerName11;
+        /// <summary>Name for light layer 12.</summary>
+        public string lightLayerName12;
+        /// <summary>Name for light layer 13.</summary>
+        public string lightLayerName13;
+        /// <summary>Name for light layer 14.</summary>
+        public string lightLayerName14;
+        /// <summary>Name for light layer 15.</summary>
+        public string lightLayerName15;
+
         /// <summary>Support distortion.</summary>
         public bool supportDistortion;
         /// <summary>Support transparent backface pass.</summary>

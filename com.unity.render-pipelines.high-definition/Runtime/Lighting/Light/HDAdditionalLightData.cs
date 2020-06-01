@@ -2972,8 +2972,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static int LightLayerToRenderingLayerMask(int lightLayer, int renderingLayerMask)
         {
             var renderingLayerMask_u32 = (uint)renderingLayerMask;
-            var lightLayer_u8 = (byte)lightLayer;
-            return (int)((renderingLayerMask_u32 & 0xFFFFFF00) | lightLayer_u8);
+            var lightLayer_u8 = (uint)lightLayer;
+            return (int)((renderingLayerMask_u32 & 0xFFFF0000) | lightLayer_u8);
         }
 
         /// <summary>
@@ -2984,7 +2984,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="renderingLayerMask"></param>
         /// <returns></returns>
         internal static int RenderingLayerMaskToLightLayer(int renderingLayerMask)
-            => (byte)renderingLayerMask;
+            => (int)renderingLayerMask;
 
         ShadowMapType shadowMapType
             => (type == HDLightType.Area && areaLightShape == AreaLightShape.Rectangle)

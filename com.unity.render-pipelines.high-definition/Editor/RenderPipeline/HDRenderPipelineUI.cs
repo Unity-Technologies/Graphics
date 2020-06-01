@@ -201,6 +201,8 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportLightLayers.boolValue))
             {
                 ++EditorGUI.indentLevel;
+
+                // Initial light layers
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName0, serialized.renderPipelineSettings.lightLayerName0);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName1, serialized.renderPipelineSettings.lightLayerName1);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName2, serialized.renderPipelineSettings.lightLayerName2);
@@ -209,6 +211,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName5, serialized.renderPipelineSettings.lightLayerName5);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName6, serialized.renderPipelineSettings.lightLayerName6);
                 HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName7, serialized.renderPipelineSettings.lightLayerName7);
+
+                // Custom light layers
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName8, serialized.renderPipelineSettings.lightLayerName8);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName9, serialized.renderPipelineSettings.lightLayerName9);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName10, serialized.renderPipelineSettings.lightLayerName10);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName11, serialized.renderPipelineSettings.lightLayerName11);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName12, serialized.renderPipelineSettings.lightLayerName12);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName13, serialized.renderPipelineSettings.lightLayerName13);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName14, serialized.renderPipelineSettings.lightLayerName14);
+                HDEditorUtils.DrawDelayedTextField(Styles.lightLayerName15, serialized.renderPipelineSettings.lightLayerName15);
+
                 --EditorGUI.indentLevel;
             }
         }

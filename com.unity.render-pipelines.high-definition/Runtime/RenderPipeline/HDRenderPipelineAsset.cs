@@ -187,6 +187,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RenderingLayerNames = new string[32];
 
+            // Initial light layers
             m_RenderingLayerNames[0] = m_RenderPipelineSettings.lightLayerName0;
             m_RenderingLayerNames[1] = m_RenderPipelineSettings.lightLayerName1;
             m_RenderingLayerNames[2] = m_RenderPipelineSettings.lightLayerName2;
@@ -196,8 +197,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RenderingLayerNames[6] = m_RenderPipelineSettings.lightLayerName6;
             m_RenderingLayerNames[7] = m_RenderPipelineSettings.lightLayerName7;
 
+            // Custom light layers
+            m_RenderingLayerNames[8] = m_RenderPipelineSettings.lightLayerName8;
+            m_RenderingLayerNames[9] = m_RenderPipelineSettings.lightLayerName9;
+            m_RenderingLayerNames[10] = m_RenderPipelineSettings.lightLayerName10;
+            m_RenderingLayerNames[11] = m_RenderPipelineSettings.lightLayerName11;
+            m_RenderingLayerNames[12] = m_RenderPipelineSettings.lightLayerName12;
+            m_RenderingLayerNames[13] = m_RenderPipelineSettings.lightLayerName13;
+            m_RenderingLayerNames[14] = m_RenderPipelineSettings.lightLayerName14;
+            m_RenderingLayerNames[15] = m_RenderPipelineSettings.lightLayerName15;
+
             // Unused
-            for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
+            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
             {
                 m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
             }
@@ -235,10 +246,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_LightLayerNames == null)
                 {
-                    m_LightLayerNames = new string[8];
+                    m_LightLayerNames = new string[16];
                 }
 
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0; i < 16; ++i)
                 {
                     m_LightLayerNames[i] = renderingLayerNames[i];
                 }
