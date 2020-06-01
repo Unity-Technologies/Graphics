@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int k_MaxProbeVolumeAtlasOctahedralDepthProbeCount;
         internal const int k_ProbeOctahedralDepthWidth = 8;
         internal const int k_ProbeOctahedralDepthHeight = 8;
+        internal const UnityEngine.Experimental.Rendering.GraphicsFormat k_ProbeVolumeAtlasFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat;
+        internal const UnityEngine.Experimental.Rendering.GraphicsFormat k_ProbeVolumeOctahedralDepthAtlasFormat = UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat; // float2(mean, variance)
 
         static int s_MaxProbeVolumeProbeCount;
         static int s_MaxProbeVolumeProbeOctahedralDepthCount;
@@ -121,6 +123,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SupportProbeVolume = asset.currentPlatformRenderPipelineSettings.supportProbeVolume;
 
             s_ProbeVolumeAtlasResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasResolution;
+            if (GetApproxProbeVolumeAtlasSizeInByte(s_ProbeVolumeAtlasResolution) > HDRenderPipeline.k_MaxCacheSize)
+            {
+                s_ProbeVolumeAtlasResolution = GetMaxProbeVolumeAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+            }
 
             // TODO: Preallocating compute buffer for this worst case of a single probe volume that consumes the whole atlas is a memory hog.
             // May want to look at dynamic resizing of compute buffer based on use, or more simply, slicing it up across multiple dispatches for massive volumes.
@@ -128,6 +134,11 @@ namespace UnityEngine.Rendering.HighDefinition
             s_MaxProbeVolumeProbeOctahedralDepthCount = s_MaxProbeVolumeProbeCount * k_ProbeOctahedralDepthWidth * k_ProbeOctahedralDepthHeight;
 
             s_ProbeVolumeAtlasOctahedralDepthResolution = asset.currentPlatformRenderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution;
+            if (GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(s_ProbeVolumeAtlasOctahedralDepthResolution) > HDRenderPipeline.k_MaxCacheSize)
+            {
+                s_ProbeVolumeAtlasOctahedralDepthResolution = GetMaxProbeVolumeOctahedralDepthAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+            }
+
             k_MaxProbeVolumeAtlasOctahedralDepthProbeCount = (s_ProbeVolumeAtlasOctahedralDepthResolution / k_ProbeOctahedralDepthWidth) * (s_ProbeVolumeAtlasOctahedralDepthResolution / k_ProbeOctahedralDepthWidth);
 
             if (m_SupportProbeVolume)
@@ -188,6 +199,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // Used for displaying memory cost in HDRenderPipelineAsset UI.
+        internal static long GetApproxProbeVolumeAtlasSizeInByte(int resolution)
+        {
+            int depthSliceCount = GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            return (long)(resolution * resolution * resolution * depthSliceCount) * (long)HDUtils.GetFormatSizeInBytes(k_ProbeVolumeAtlasFormat);
+        }
+
+        internal static int GetMaxProbeVolumeAtlasSizeForWeightInByte(long weight)
+        {
+            int depthSliceCount = GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
+            int theoricalResult = Mathf.FloorToInt(Mathf.Pow(weight / ((long)depthSliceCount * (long)HDUtils.GetFormatSizeInBytes(k_ProbeVolumeAtlasFormat)), 1.0f / 3.0f));
+            return Mathf.Clamp(theoricalResult, 1, SystemInfo.maxTextureSize);
+        }
+
+        internal static long GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(int resolution)
+        {
+            return (long)(resolution * resolution) * (long)HDUtils.GetFormatSizeInBytes(k_ProbeVolumeOctahedralDepthAtlasFormat);
+        }
+
+        internal static int GetMaxProbeVolumeOctahedralDepthAtlasSizeForWeightInByte(long weight)
+        {
+            int theoricalResult = Mathf.FloorToInt(Mathf.Pow(weight / (long)HDUtils.GetFormatSizeInBytes(k_ProbeVolumeAtlasFormat), 1.0f / 2.0f));
+            return Mathf.Clamp(theoricalResult, 1, SystemInfo.maxTextureSize);
+        }
+
         internal void CreateProbeVolumeBuffers()
         {
             m_VisibleProbeVolumeBounds = new List<OrientedBBox>();
@@ -205,7 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 height: s_ProbeVolumeAtlasResolution,
                 slices: s_ProbeVolumeAtlasResolution * m_ProbeVolumeAtlasSHRTDepthSliceCount,
                 dimension:         TextureDimension.Tex3D,
-                colorFormat:       UnityEngine.Experimental.Rendering.GraphicsFormat.R16G16B16A16_SFloat,//GraphicsFormat.B10G11R11_UFloatPack32,
+                colorFormat:       k_ProbeVolumeAtlasFormat,
                 enableRandomWrite: true,
                 useMipMap:         false,
                 name:              "ProbeVolumeAtlasSH"
@@ -219,7 +255,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 height: s_ProbeVolumeAtlasOctahedralDepthResolution,
                 slices: 1,
                 dimension: TextureDimension.Tex2D,
-                colorFormat: UnityEngine.Experimental.Rendering.GraphicsFormat.R32G32_SFloat, // float2(mean, variance)
+                colorFormat: k_ProbeVolumeOctahedralDepthAtlasFormat,
                 enableRandomWrite: true,
                 useMipMap: false,
                 name: "ProbeVolumeAtlasOctahedralDepthMeanAndVariance"

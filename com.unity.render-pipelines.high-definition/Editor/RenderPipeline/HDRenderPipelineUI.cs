@@ -880,12 +880,46 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution, Styles.probeVolumeAtlasResolution);
                 if (EditorGUI.EndChangeCheck())
+                {
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue, 0);
+                }
+                else
+                {
+                    long currentCache = HDRenderPipeline.GetApproxProbeVolumeAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue);
+                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    {
+                        int reserved = HDRenderPipeline.GetMaxProbeVolumeAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
+                    else
+                    {
+                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                    }
+                }
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution, Styles.probeVolumeAtlasOctahedralDepthResolution);
                 if (EditorGUI.EndChangeCheck())
+                {
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue, 0);
+                }
+                else
+                {
+                    long currentCache = HDRenderPipeline.GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue);
+                    if (currentCache > HDRenderPipeline.k_MaxCacheSize)
+                    {
+                        int reserved = HDRenderPipeline.GetMaxProbeVolumeOctahedralDepthAtlasSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize);
+                        string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
+                        EditorGUILayout.HelpBox(message, MessageType.Error);
+                    }
+                    else
+                    {
+                        string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                        EditorGUILayout.HelpBox(message, MessageType.Info);
+                    }
+                }
 
                 if (serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue <= 0)
                 {
