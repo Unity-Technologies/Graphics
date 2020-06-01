@@ -227,11 +227,7 @@ namespace UnityEditor.ShaderGraph
                 if (fromNode == null)
                     return string.Empty;
 
-                var slot = fromNode.FindOutputSlot<MaterialSlot>(fromSocketRef.slotId);
-                if (slot == null)
-                    return string.Empty;
-
-                return GenerationUtils.AdaptNodeOutput(fromNode, slot.id, port.concreteValueType);
+                return fromNode.GetOutputForSlot(fromSocketRef, port.concreteValueType, generationMode);
             }
 
             return port.GetDefaultValue(generationMode);

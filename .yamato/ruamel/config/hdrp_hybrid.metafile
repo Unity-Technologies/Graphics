@@ -1,0 +1,29 @@
+project:
+  name: HDRP_Hybrid
+  folder: HDRP_HybridTests
+test_platforms:
+  - playmode
+  - playmode_XR
+  - editmode
+  - Standalone
+platforms:
+  - name: Win
+    apis:
+      - DX11
+      - DX12
+      - Vulkan
+  - name: OSX 
+    apis:
+      - Metal
+  - name: Linux
+    apis: 
+      - OpenGLCore
+      - Vulkan
+all:
+  dependencies:
+    - platform: Win
+      api: DX11
+      test_platforms:
+        - playmode
+        - playmode_XR
+        - Standalone
