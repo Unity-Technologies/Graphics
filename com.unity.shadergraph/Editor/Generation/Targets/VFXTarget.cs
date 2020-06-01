@@ -130,7 +130,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
-            return scriptableRenderPipeline.GetType() == GraphicsSettings.currentRenderPipeline.GetType();
+            return scriptableRenderPipeline?.GetType() == GraphicsSettings.currentRenderPipeline?.GetType();
         }
     }
 }

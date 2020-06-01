@@ -314,7 +314,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
-            return scriptableRenderPipeline.GetType() == typeof(UniversalRenderPipelineAsset);
+            return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
     }
 
