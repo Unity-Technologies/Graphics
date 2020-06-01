@@ -163,7 +163,7 @@ struct ProbeVolumeCoefficients
 #endif
 };
 
-void EvaluateProbeVolumes(PositionInputs posInput, float3 normalWS, uint renderingLayers, out ProbeVolumeCoefficients coefficients, inout float weightHierarchy)
+void AccumulateProbeVolumes(PositionInputs posInput, float3 normalWS, uint renderingLayers, out ProbeVolumeCoefficients coefficients, inout float weightHierarchy)
 {
 #if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
     coefficients.data[0] = float4(0.0, 0.0, 0.0, 0.0);

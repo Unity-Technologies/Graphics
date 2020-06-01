@@ -152,7 +152,7 @@ void SampleBakedGI(
     // We already do this in LightLoop evaluation mode.
     // This would require the caller to track whether or not it needs to be called a second time.
     ProbeVolumeCoefficients coefficients;
-    EvaluateProbeVolumes(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
+    AccumulateProbeVolumes(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
     combinedGI += EvaluateProbeVolumeCoefficients(normalWS, coefficients);
     combinedGI += EvaluateProbeVolumeAmbientProbeFallback(normalWS, probeVolumeHierarchyWeight);
 #endif

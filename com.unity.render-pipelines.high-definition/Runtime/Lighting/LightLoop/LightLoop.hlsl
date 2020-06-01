@@ -491,7 +491,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
             ProbeVolumeCoefficients coefficients;
-            EvaluateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
+            AccumulateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
             builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeCoefficients(bsdfData.normalWS, coefficients);
             builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeCoefficients(-bsdfData.normalWS, coefficients);
 
