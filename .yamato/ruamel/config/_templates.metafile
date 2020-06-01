@@ -1,0 +1,39 @@
+templates:
+  - name: HDRP Template
+    id: hdrp_template
+    packagename: com.unity.template-hd
+    dependencies:
+      - core
+      - shadergraph
+      - vfx
+      - config
+      - hdrp
+    hascodependencies: 1
+  - name: Universal Template
+    id: universal_template
+    packagename: com.unity.template-universal
+    dependencies:
+      - core
+      - shadergraph
+      - universal
+    hascodependencies: 1
+platforms:
+    - name: Win
+      os: windows
+      components:
+      - editor
+      - il2cpp
+      agent_default: package_ci_win_large
+      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
+      editorpath: .\.Editor
+    - name: OSX
+      os: macos
+      components:
+      - editor
+      - il2cpp
+      agent_default: package_ci_mac
+      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
+      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+agent_pack: package_ci_win_large
+agent_test:  package_ci_win_large
+agent_all_ci: package_ci_win_large

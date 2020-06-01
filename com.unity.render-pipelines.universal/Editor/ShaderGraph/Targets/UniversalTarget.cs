@@ -497,15 +497,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
-        public static KeywordDescriptor ETCExternalAlpha = new KeywordDescriptor()
-        {
-            displayName = "ETC External Alpha",
-            referenceName = "ETC1_EXTERNAL_ALPHA",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.MultiCompile,
-            scope = KeywordScope.Global,
-        };
-
         public static KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
             displayName = "Shape Light Type 0",
