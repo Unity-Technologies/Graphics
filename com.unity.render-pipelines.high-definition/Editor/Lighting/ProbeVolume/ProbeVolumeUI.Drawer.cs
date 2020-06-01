@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUILayout.PropertyField(serialized.debugColor, Styles.s_DebugColorLabel);
 
-            if (serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)
+            if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)
             {
                 EditorGUILayout.HelpBox(Styles.k_featureAdditiveBlendingDisabledError, MessageType.Error);
             }
