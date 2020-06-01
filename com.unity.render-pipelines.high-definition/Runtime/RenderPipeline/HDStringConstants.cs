@@ -186,6 +186,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _InputDepth = Shader.PropertyToID("_InputDepthTexture");
 
+        public static readonly int _ClearColor = Shader.PropertyToID("_ClearColor");
         public static readonly int _SrcBlend = Shader.PropertyToID("_SrcBlend");
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
