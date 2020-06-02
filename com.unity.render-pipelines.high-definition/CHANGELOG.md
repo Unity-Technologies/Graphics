@@ -136,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed scalarization code for contact shadows
 - Fix MaterialBalls having same guid issue
 - Fix spelling and grammatical errors in material samples
+- Fixed issues with scene view and transparent motion vectors.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
