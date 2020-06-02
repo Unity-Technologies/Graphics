@@ -492,11 +492,23 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
 
             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
-            ProbeVolumeCoefficients coefficients;
-            AccumulateProbeVolumes(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeCoefficients(bsdfData.normalWS, coefficients);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeCoefficients(-bsdfData.normalWS, coefficients);
-            
+#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+            ProbeVolumeSphericalHarmonicsL0 coefficients;
+            ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
+            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL0(bsdfData.normalWS, coefficients);
+            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL0(-bsdfData.normalWS, coefficients);
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+            ProbeVolumeSphericalHarmonicsL1 coefficients;
+            ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
+            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL1(bsdfData.normalWS, coefficients);
+            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL1(-bsdfData.normalWS, coefficients);
+#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+            ProbeVolumeSphericalHarmonicsL2 coefficients;
+            ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
+            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(bsdfData.normalWS, coefficients);
+            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(-bsdfData.normalWS, coefficients);
+#endif
+
             float probeVolumeHierarchyWeightFrontFace = probeVolumeHierarchyWeight;
             float probeVolumeHierarchyWeightBackFace = probeVolumeHierarchyWeight;
             builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(bsdfData.normalWS, probeVolumeHierarchyWeightFrontFace);

@@ -776,20 +776,52 @@ namespace UnityEngine.Rendering.HighDefinition
                 
                 int shStride = ProbeVolumePayload.GetSHStride(probeVolumeAsset.payload.encodingMode);
 
-                // TODO: Remove this data copy. Would require the lightmapper to have GetAdditionalBakedProbes with L0, L1, and L2 variants.
+                // SH Coefficients are serialized in this order, regardless of their format.
+                // SH0 will only serialize the first 3,
+                // SH1 will only serialize the first 12
+                // SH2 will serialize all 27
+                // This is not the order SphericalHarmonicsL2 natively stores these coefficients,
+                // and it is also not the order that GPU EntityLighting.hlsl functions expect them in.
+                // This order is optimized for minimizing the number of coefficients fetched on the GPU
+                // when sampling various SH formats.
+                // i.e: If the atlas is configured for SH2, but only SH0 is requested by a specific shader,
+                // only the first three coefficients need to be fetched.
+                // The atlasing code may make changes to the way this data is laid out in textures,
+                // but having them laid out in polynomial order on disk makes writing the atlas transcodings easier.
+                // Note: the coefficients in the L2 case are not fully normalized,
+                // The data in the SH probe sample passed here is expected to already be normalized with kNormalizationConstants.
+                // The complete normalization must be deferred until sample time on the GPU, since it should only be applied for SH2.
+                // GPU code will be responsible for performing final normalization + swizzle into formats
+                // that SampleSH9(), and SHEvalLinearL0L1() expect. 
+                // Note: the names for these coefficients is consistent with Unity's internal spherical harmonics use,
+                // and are originally from: https://www.ppsloan.org/publications/StupidSH36.pdf
+                /*
+                {
+                    // Constant: (used by L0, L1, and L2)
+                    shAr.w, shAg.w, shAb.w,
+
+                    // Linear: (used by L1 and L2)
+                    shAr.x, shAr.y, shAr.z,
+                    shAg.x, shAg.y, shAg.z,
+                    shAb.x, shAb.y, shAb.z,
+
+                    // Quadratic: (used by L2)
+                    shBr.x, shBr.y, shBr.z, shBr.w,
+                    shBg.x, shBg.y, shBg.z, shBg.w,
+                    shBb.x, shBb.y, shBb.z, shBb.w,
+                    shCr.x, shCr.y, shCr.z
+                }
+                */
                 switch (probeVolumeAsset.payload.encodingMode)
                 {
                     case ProbeVolumesEncodingModes.SphericalHarmonicsL0:
                     {
                         for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                         {
-                            SphericalHarmonicsL0 sh0 = new SphericalHarmonicsL0
-                            {
-                                // TODO: May need some additional data transform here to handle downgrading from SH2 to SH0.
-                                shrgb = new Vector3(sh[i][0, 0], sh[i][1, 0], sh[i][2, 0])
-                            };
-
-                            ProbeVolumePayload.SetSphericalHarmonicsL0FromIndex(ref probeVolumeAsset.payload, ref sh0, i);
+                            // Constant (DC terms):
+                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
                         }
                         break;
                     }
@@ -798,20 +830,24 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                         {
-                            // https://www.ppsloan.org/publications/StupidSH36.pdf
-                            // The shader and, by extension, SetSHConstants expect the values to be normalized.
-                            // The data in the SH probe sample passed here is expected to already be normalized
-                            // with kNormalizationConstants.
-                            //
-                            // Constant + Linear
-                            SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1
-                            {
-                                shAr = new Vector4(sh[i][0, 3], sh[i][0, 1], sh[i][0, 2], sh[i][0, 0]),
-                                shAg = new Vector4(sh[i][1, 3], sh[i][1, 1], sh[i][1, 2], sh[i][1, 0]),
-                                shAb = new Vector4(sh[i][2, 3], sh[i][2, 1], sh[i][2, 2], sh[i][2, 0])
-                            };
+                            // Constant (DC terms):
+                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
 
-                            ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, ref sh1, i);
+                            // Linear: (used by L1 and L2)
+                            // Swizzle the coefficients to be in { x, y, z } order.
+                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][0, 3]; // shAr.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][0, 1]; // shAr.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][0, 2]; // shAr.z
+                            
+                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][1, 3]; // shAg.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][1, 1]; // shAg.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][1, 2]; // shAg.z
+                            
+                            probeVolumeAsset.payload.dataSH[i * shStride + 6] = sh[i][2, 3]; // shAb.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 7] = sh[i][2, 1]; // shAb.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 8] = sh[i][2, 2]; // shAb.z
                         }
                         break;
                     }
@@ -820,35 +856,44 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                         {
-                            // https://www.ppsloan.org/publications/StupidSH36.pdf
-                            // The shader and, by extension, SetSHConstants expect the values to be normalized.
-                            // The data in the SH probe sample passed here is expected to already be normalized
-                            // with kNormalizationConstants.
-                            //
-                            // Constant + Linear
-                            for (int iC = 0; iC < 3; iC++)
-                            {
-                                // In the shader we multiply the normal is not swizzled, so it's normal.xyz.
-                                // Swizzle the coefficients to be in { x, y, z, DC } order.
-                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 0] = sh[i][iC, 3];
-                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 1] = sh[i][iC, 1];
-                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 2] = sh[i][iC, 2];
-                                probeVolumeAsset.payload.dataSH[i * shStride + iC * 4 + 3] = sh[i][iC, 0] - sh[i][iC, 6];
-                            }
+                            // Constant (DC terms):
+                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
+                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
 
-                            // Quadratic polynomials
-                            for (int iC = 0; iC < 3; iC++)
-                            {
-                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 0] = sh[i][iC, 4];
-                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 1] = sh[i][iC, 5];
-                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 2] = sh[i][iC, 6] * 3.0f;
-                                probeVolumeAsset.payload.dataSH[i * shStride + (iC + 3) * 4 + 3] = sh[i][iC, 7];
-                            }
+                            // Linear: (used by L1 and L2)
+                            // Swizzle the coefficients to be in { x, y, z } order.
+                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][0, 3]; // shAr.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][0, 1]; // shAr.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][0, 2]; // shAr.z
+                            
+                            probeVolumeAsset.payload.dataSH[i * shStride + 6] = sh[i][1, 3]; // shAg.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 7] = sh[i][1, 1]; // shAg.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 8] = sh[i][1, 2]; // shAg.z
+                            
+                            probeVolumeAsset.payload.dataSH[i * shStride + 9] = sh[i][2, 3]; // shAb.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 10] = sh[i][2, 1]; // shAb.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 11] = sh[i][2, 2]; // shAb.z
 
-                            // Final quadratic polynomial
-                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 0] = sh[i][0, 8];
-                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 1] = sh[i][1, 8];
-                            probeVolumeAsset.payload.dataSH[i * shStride + 6 * 4 + 2] = sh[i][2, 8];
+                            // Quadratic: (used by L2)
+                            probeVolumeAsset.payload.dataSH[i * shStride + 12] = sh[i][0, 4]; // shBr.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 13] = sh[i][0, 5]; // shBr.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 14] = sh[i][0, 6]; // shBr.z
+                            probeVolumeAsset.payload.dataSH[i * shStride + 15] = sh[i][0, 7]; // shBr.w
+
+                            probeVolumeAsset.payload.dataSH[i * shStride + 16] = sh[i][1, 4]; // shBg.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 17] = sh[i][1, 5]; // shBg.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 18] = sh[i][1, 6]; // shBg.z
+                            probeVolumeAsset.payload.dataSH[i * shStride + 19] = sh[i][1, 7]; // shBg.w
+
+                            probeVolumeAsset.payload.dataSH[i * shStride + 20] = sh[i][2, 4]; // shBb.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 21] = sh[i][2, 5]; // shBb.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 22] = sh[i][2, 6]; // shBb.z
+                            probeVolumeAsset.payload.dataSH[i * shStride + 23] = sh[i][2, 7]; // shBb.w
+
+                            probeVolumeAsset.payload.dataSH[i * shStride + 24] = sh[i][0, 8]; // shCr.x
+                            probeVolumeAsset.payload.dataSH[i * shStride + 25] = sh[i][1, 8]; // shCr.y
+                            probeVolumeAsset.payload.dataSH[i * shStride + 26] = sh[i][2, 8]; // shCr.z
                         }
                         break;
                     }
