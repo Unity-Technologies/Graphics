@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - New built-in operator providing new times access
 - More efficient update modes inspector
+- Ability to read attribute in spawn context through graph
 
 ### Fixed
 - Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
