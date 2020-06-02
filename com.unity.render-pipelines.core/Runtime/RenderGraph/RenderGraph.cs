@@ -230,6 +230,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external texture to the Render Graph.
+        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
@@ -298,6 +299,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external Compute Buffer to the Render Graph
+        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
         /// <returns>A new ComputeBufferHandle.</returns>
@@ -370,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         }
 
-        void ClearCompiledGraph()
+        internal void ClearCompiledGraph()
         {
             ClearRenderPasses();
             m_Resources.Clear();
@@ -393,6 +395,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                 m_CompiledPassInfos[i].Reset(m_RenderPasses[i]);
         }
+
+        internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
 
         void CountReferences()
         {
@@ -431,14 +435,46 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 foreach (ComputeBufferHandle buffer in bufferWrite)
                 {
                     ref CompiledResourceInfo info = ref m_CompiledBufferInfos[buffer];
+                    info.producers.Add(passIndex);
                     passInfo.refCount++;
+
+                    // Writing to an imported compute buffer is considered as a side effect because we don't know what users will do with it outside of render graph.
+                    if (m_Resources.IsComputeBufferImported(buffer))
+                        passInfo.hasSideEffect = true;
+                }
+            }
+        }
+
+        void PruneOutputlessPasses()
+        {
+            // Gather passes that don't produce anything and prune them.
+            m_PruningStack.Clear();
+            for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
+                if (passInfo.refCount == 0 && !passInfo.hasSideEffect)
+                {
+                    // Producer is not necessary as it produces zero resources
+                    // Prune it and decrement refCount of all the resources it reads.
+                    // We don't need to go recursively here because we decrement ref count of read resources
+                    // so the subsequent passes of pruning will detect those and remove the related passes.
+                    passInfo.pruned = true;
+                    foreach (var index in passInfo.pass.textureReadList)
+                    {
+                        m_CompiledTextureInfos[index].refCount--;
+                    }
+
+                    foreach (var index in passInfo.pass.bufferReadList)
+                    {
+                        m_CompiledBufferInfos[index].refCount--;
+                    }
                 }
             }
         }
 
         void PruneUnusedPasses(DynamicArray<CompiledResourceInfo> resourceUsageList)
         {
-            // First gather resources that are never read.
+            // Gather resources that are never read.
             m_PruningStack.Clear();
             for (int i = 0; i < resourceUsageList.size; ++i)
             {
@@ -475,6 +511,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PruneUnusedPasses()
         {
+            PruneOutputlessPasses();
             PruneUnusedPasses(m_CompiledTextureInfos);
             PruneUnusedPasses(m_CompiledBufferInfos);
             LogPrunedPasses();
@@ -645,7 +682,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Determines when resources are created/released
         // - Determines async compute pass synchronization
         // - Prune unused render passes.
-        void CompileRenderGraph()
+        internal void CompileRenderGraph()
         {
             InitializeCompilationData();
             CountReferences();
