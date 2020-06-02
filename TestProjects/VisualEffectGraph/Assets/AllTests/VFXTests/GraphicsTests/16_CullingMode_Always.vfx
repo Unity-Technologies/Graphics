@@ -759,6 +759,7 @@ MonoBehaviour:
     descendantCount: 0
   m_ImportDependencies: []
   m_GraphVersion: 4
+  m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2357,7 +2358,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.007471799850463867,"g":1.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.21020644903182984,"g":0.8857278823852539,"b":0.17869539558887483,"a":1.0},"time":0.9351643919944763},{"color":{"r":1.0,"g":0.14117646217346192,"b":0.807860255241394,"a":1.0},"time":0.9625390768051148},{"color":{"r":1.0,"g":0.0,"b":0.8883376121520996,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0005783126689493656,"g":1.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.03637440502643585,"g":0.7594650387763977,"b":0.02685062773525715,"a":1.0},"time":0.9351643919944763},{"color":{"r":1.0,"g":0.017641952261328698,"b":0.6172360181808472,"a":1.0},"time":0.9625390768051148},{"color":{"r":1.0,"g":0.0,"b":0.7645313143730164,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient
