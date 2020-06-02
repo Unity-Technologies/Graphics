@@ -218,6 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int renderingFulscreenDebugModeEnumIndex;
             internal int terrainTextureEnumIndex;
             internal int colorPickerDebugModeEnumIndex;
+            internal int exposureDebugModeEnumIndex;
             internal int msaaSampleDebugModeEnumIndex;
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
@@ -407,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>True if any material debug display is enabled.</returns>
         public bool IsDebugMaterialDisplayEnabled()
         {
-            return data.materialDebugSettings.IsDebugDisplayEnabled();
+            return data.materialDebugSettings.IsDebugDisplayEnabled(); 
         }
 
         /// <summary>
@@ -417,6 +418,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool IsDebugFullScreenEnabled()
         {
             return data.fullScreenDebugMode != FullScreenDebugMode.None;
+        }
+
+        /// <summary>
+        /// Returns true if any full screen exposure debug display is enabled.
+        /// </summary>
+        /// <returns>True if any full screen exposure debug display is enabled.</returns>
+        public bool IsDebugExposureModeEnabled()
+        {
+            return data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.None;
         }
 
         /// <summary>
@@ -624,6 +634,15 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void SetProbeVolumeAtlasSliceMode(ProbeVolumeAtlasSliceMode value)
         {
             data.lightingDebugSettings.probeVolumeAtlasSliceMode = value;
+        }
+
+        /// <summary>
+        /// Set the current Exposure Debug Mode.
+        /// </summary>
+        /// <param name="value">Desired Probe Volume Debug Mode.</param>
+        internal void SetExposureDebugMode(ExposureDebugMode value)
+        {
+            data.lightingDebugSettings.exposureDebugMode = value;
         }
 
         /// <summary>
@@ -843,7 +862,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 shadows.children.Add(new DebugUI.FloatField { displayName = "Range Minimum Value", getter = () => data.lightingDebugSettings.shadowMinValue, setter = value => data.lightingDebugSettings.shadowMinValue = value });
                 shadows.children.Add(new DebugUI.FloatField { displayName = "Range Maximum Value", getter = () => data.lightingDebugSettings.shadowMaxValue, setter = value => data.lightingDebugSettings.shadowMaxValue = value });
-
+#if UNITY_EDITOR
+                shadows.children.Add(new DebugUI.Button { displayName = "Log Cached Shadow Atlas Status", action = () => HDCachedShadowManager.instance.PrintLightStatusInCachedAtlas() });
+#endif
                 list.Add(shadows);
             }
 
@@ -871,6 +892,51 @@ namespace UnityEngine.Rendering.HighDefinition
                     new DebugUI.FloatField { displayName = "Probe Volume Range Max Value", getter = () => data.lightingDebugSettings.probeVolumeMaxValue, setter = value => data.lightingDebugSettings.probeVolumeMaxValue = value },
                 }
                 });
+
+                var exposureFoldout = new DebugUI.Foldout
+                {
+                    displayName = "Exposure ",
+                    children =
+                    {
+                        new DebugUI.EnumField
+                        {
+                            displayName = "Debug Mode",
+                            getter = () => (int) data.lightingDebugSettings.exposureDebugMode,
+                            setter = value => SetExposureDebugMode((ExposureDebugMode) value),
+                            autoEnum = typeof(ExposureDebugMode), onValueChanged = RefreshLightingDebug,
+                            getIndex = () => data.exposureDebugModeEnumIndex,
+                            setIndex = value => data.exposureDebugModeEnumIndex = value
+                        }
+                    }
+                };
+
+                if (data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                {
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Show Tonemap curve",
+                            getter = () => data.lightingDebugSettings.showTonemapCurveAlongHistogramView,
+                            setter = value => data.lightingDebugSettings.showTonemapCurveAlongHistogramView = value
+                        });
+                    exposureFoldout.children.Add(
+                        new DebugUI.BoolField()
+                        {
+                            displayName = "Center Around Exposure",
+                            getter = () => data.lightingDebugSettings.centerHistogramAroundMiddleGrey,
+                            setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
+                        });
+                }
+
+                exposureFoldout.children.Add(
+                    new DebugUI.FloatField
+                    {
+                        displayName = "Debug Exposure Compensation",
+                        getter = () => data.lightingDebugSettings.debugExposure,
+                        setter = value => data.lightingDebugSettings.debugExposure = value
+                    });
+
+                lighting.children.Add(exposureFoldout);
 
                 lighting.children.Add(new DebugUI.EnumField { displayName = "Debug Mode", getter = () => (int)data.lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.lightingDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.lightingDebugModeEnumIndex = value; } });
                 lighting.children.Add(new DebugUI.BitField { displayName = "Hierarchy Debug Mode", getter = () => data.lightingDebugSettings.debugLightFilterMode, setter = value => SetDebugLightFilterMode((DebugLightFilterMode)value), enumType = typeof(DebugLightFilterMode), onValueChanged = RefreshLightingDebug, });
@@ -1125,8 +1191,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
 
-            list.Add(new DebugUI.FloatField { displayName = "Debug Exposure Compensation", getter = () => data.lightingDebugSettings.debugExposure, setter = value => data.lightingDebugSettings.debugExposure = value });
-
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
             panel.children.Add(m_DebugLightingItems);
@@ -1235,7 +1299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 displayName = name,
                                 getter = () => {
                                     var value = property.GetValue(param);
-                                    if (value == null)
+                                    if (value == null || value.Equals(null))
                                         return "None";
                                     var valueString = nameProp.GetValue(value);
                                     return valueString == null ? "None" : valueString;
@@ -1431,10 +1495,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 new DebugUI.EnumField { displayName = "Freeze Camera for culling", getter = () => data.debugCameraToFreeze, setter = value => data.debugCameraToFreeze = value, enumNames = s_CameraNamesStrings, enumValues = s_CameraNamesValues, getIndex = () => data.debugCameraToFreezeEnumIndex, setIndex = value => data.debugCameraToFreezeEnumIndex = value },
             });
 
-            if (XRSystem.testModeEnabled)
+            if (XRGraphicsAutomatedTests.enabled)
             {
                 widgetList.Add(new DebugUI.BoolField { displayName = "XR single-pass test mode", getter = () => data.xrSinglePassTestMode, setter = value => data.xrSinglePassTestMode = value });
             }
+
+            //widgetList.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => HDRenderPipeline.currentPipeline.IsRenderGraphEnabled(), setter = value => HDRenderPipeline.currentPipeline.EnableRenderGraph(value) });
 
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);

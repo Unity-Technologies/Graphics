@@ -22,6 +22,7 @@ struct InputData
     half    fogCoord;
     half3   vertexLighting;
     half3   bakedGI;
+    float2  normalizedScreenSpaceUV;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

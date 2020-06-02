@@ -16,8 +16,15 @@ half _Smoothness;
 half _Metallic;
 half _BumpScale;
 half _OcclusionStrength;
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+half _ClearCoatMask;
+//half _ClearCoatSmoothness; // TODO: enable
+#endif
 CBUFFER_END
 
+// NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
+// Otherwise you might break CPU-side as property constant-buffer offsets change per variant.
+// NOTE: Dots instancing is orthogonal to the constant buffer above.
 #ifdef UNITY_DOTS_INSTANCING_ENABLED
 UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4, _BaseColor)
@@ -28,21 +35,26 @@ UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float , _Metallic)
     UNITY_DOTS_INSTANCED_PROP(float , _BumpScale)
     UNITY_DOTS_INSTANCED_PROP(float , _OcclusionStrength)
+    UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatMask)
+    //UNITY_DOTS_INSTANCED_PROP(float , _ClearCoatSmoothness) // TODO: enable
 UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 
-#define _BaseColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
-#define _SpecColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__SpecColor)
-#define _EmissionColor      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
-#define _Cutoff             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
-#define _Smoothness         UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Smoothness)
-#define _Metallic           UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Metallic)
-#define _BumpScale          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BumpScale)
-#define _OcclusionStrength  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
+#define _BaseColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__BaseColor)
+#define _SpecColor              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__SpecColor)
+#define _EmissionColor          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4 , Metadata__EmissionColor)
+#define _Cutoff                 UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Cutoff)
+#define _Smoothness             UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Smoothness)
+#define _Metallic               UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Metallic)
+#define _BumpScale              UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__BumpScale)
+#define _OcclusionStrength      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__OcclusionStrength)
+#define _ClearCoatMask          UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatMask)
+//#define _ClearCoatSmoothness    UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__ClearCoatSmoothness)
 #endif
 
 TEXTURE2D(_OcclusionMap);       SAMPLER(sampler_OcclusionMap);
 TEXTURE2D(_MetallicGlossMap);   SAMPLER(sampler_MetallicGlossMap);
 TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
+TEXTURE2D(_ClearCoatMap);       SAMPLER(sampler_ClearCoatMap);
 
 #ifdef _SPECULAR_SETUP
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
@@ -96,6 +108,25 @@ half SampleOcclusion(float2 uv)
     return occlusion;
 }
 
+
+// Returns clear coat parameters
+// .x/.r == mask
+// .y/.g == smoothness
+half2 SampleClearCoat(float2 uv)
+{
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    half2 clearCoatMaskSmoothness = half2(_ClearCoatMask, 1.0 /*_ClearCoatSmoothness*/);
+
+#if defined(_CLEARCOATMAP)
+    clearCoatMaskSmoothness *= SAMPLE_TEXTURE2D(_ClearCoatMap, sampler_ClearCoatMap, uv).rg;
+#endif
+
+    return clearCoatMaskSmoothness;
+#else
+    return half2(0.0, 1.0);
+#endif  // _CLEARCOAT
+}
+
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)
 {
     half4 albedoAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
@@ -116,6 +147,16 @@ inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfa
     outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
     outSurfaceData.occlusion = SampleOcclusion(uv);
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
+
+#if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
+    half2 clearCoat = SampleClearCoat(uv);
+    outSurfaceData.clearCoatMask       = clearCoat.r;
+    //outSurfaceData.clearCoatSmoothness = clearCoat.g; // TODO: enable
+    outSurfaceData.clearCoatSmoothness = 1;
+#else
+    outSurfaceData.clearCoatMask       = 0.0h;
+    outSurfaceData.clearCoatSmoothness = 0.0h;
+#endif
 }
 
 #endif // UNIVERSAL_INPUT_SURFACE_PBR_INCLUDED
