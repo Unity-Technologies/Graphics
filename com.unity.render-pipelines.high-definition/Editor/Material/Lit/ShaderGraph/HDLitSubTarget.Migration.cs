@@ -33,17 +33,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradePBRMasterNode(PBRMasterNode1 pbrMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldCrossPipelineSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)pbrMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = pbrMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(pbrMasterNode);
-            systemData.dotsInstancing = pbrMasterNode.m_DOTSInstancing;
+            systemData.dotsInstancing = false;
             builtinData.addPrecomputedVelocity = false;
             lightingData.blendPreserveSpecular = false;
             lightingData.normalDropOffSpace = pbrMasterNode.m_NormalDropOffSpace;
+            lightingData.receiveDecals = false;
+            lightingData.receiveSSR = true;
+            lightingData.receiveSSRTransparent = false;
             litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
             litData.energyConservingSpecular = false;
+            litData.clearCoat = false;
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             systemData.TryChangeRenderingPass(systemData.renderingPass);
             // Handle mapping of Normal block specifically
@@ -132,6 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDLitData.MaterialType materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
             lightingData.subsurfaceScattering = materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
+            litData.clearCoat = UpgradeCoatMask(hdLitMasterNode);
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             litData.rayTracing = hdLitMasterNode.m_RayTracing;
             litData.refractionModel = hdLitMasterNode.m_RefractionModel; 
@@ -202,6 +209,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     default:
                         return true;
                 }
+            }
+
+            bool UpgradeCoatMask(HDLitMasterNode1 masterNode)
+            {
+                var coatMaskSlotId = HDLitMasterNode1.CoatMaskSlotId;
+
+                var node = masterNode as AbstractMaterialNode;
+                var coatMaskSlot = node.FindSlot<Vector1MaterialSlot>(coatMaskSlotId);
+                if(coatMaskSlot == null)
+                    return false;
+
+                coatMaskSlot.owner = node;
+                return (coatMaskSlot.isConnected || coatMaskSlot.value > 0.0f);
             }
 
             // Set blockmap
