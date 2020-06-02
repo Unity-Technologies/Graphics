@@ -66,5 +66,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_EnergyConservingSpecular;
             set => m_EnergyConservingSpecular = value;
         }
+
+        [SerializeField]
+        bool m_CoatMask = false;
+        public bool coatMask
+        {
+            get => m_CoatMask;
+            set => m_CoatMask = value;
+        }
     }
 }

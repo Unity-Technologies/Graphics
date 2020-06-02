@@ -34,6 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             base.CreatePropertyGUI();
 
+            AddProperty(coatMaskText, () => litData.coatMask, (newValue) => litData.coatMask = newValue);
             AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
             AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
             AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
