@@ -280,3 +280,10 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'Android 124: tracked regression'
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Vulkan 119: tracked regression (1252270)'

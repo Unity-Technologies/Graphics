@@ -1,8 +1,3 @@
-#if ETC1_EXTERNAL_ALPHA
-    TEXTURE2D(_AlphaTex); SAMPLER(sampler_AlphaTex);
-    half _EnableAlphaTexture;
-#endif
-
 #if USE_SHAPE_LIGHT_TYPE_0
 SHAPE_LIGHT(0)
 #endif
@@ -37,11 +32,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-
-#if ETC1_EXTERNAL_ALPHA
-    half4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, unpacked.texCoord0.xy);
-    surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
-#endif
 
     surfaceDescription.Color *= unpacked.color;
 
