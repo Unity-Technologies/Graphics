@@ -1,24 +1,153 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDLitSubTarget : SubTarget<HDTarget>
+    sealed partial class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
     {
-        const string kAssetGuid = "caab952c840878340810cca27417971c";
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
 
-        public HDLitSubTarget()
+        public HDLitSubTarget() => displayName = "Lit";
+
+        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
+        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+
+        HDLitData m_LitData;
+
+        HDLitData IRequiresData<HDLitData>.data
         {
-            displayName = "Lit";
+            get => m_LitData;
+            set => m_LitData = value;
         }
 
-        public override void Setup(ref TargetSetupContext context)
+        public HDLitData litData
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDLitGUI");
-            context.AddSubShader(SubShaders.Lit);
-            context.AddSubShader(SubShaders.LitRaytracing);
+            get => m_LitData;
+            set => m_LitData = value;
+        }
+
+        // Iterate over the sub passes available in the shader
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
+        {
+            yield return SubShaders.Lit;
+            yield return SubShaders.LitRaytracing;
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            base.GetFields(ref context);
+            AddDistortionFields(ref context);
+
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+
+            // Lit specific properties
+            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
+
+            context.AddField(HDFields.DotsProperties,                       context.hasDotsProperties);
+
+            // Material
+            context.AddField(HDFields.Anisotropy,                           litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddField(HDFields.Iridescence,                          litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddField(HDFields.SpecularColor,                        litData.materialType == HDLitData.MaterialType.SpecularColor);
+            context.AddField(HDFields.Standard,                             litData.materialType == HDLitData.MaterialType.Standard);
+            context.AddField(HDFields.SubsurfaceScattering,                 litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(HDFields.Transmission,                         (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering && litData.sssTransmission) ||
+                                                                                (litData.materialType == HDLitData.MaterialType.Translucent));
+            context.AddField(HDFields.Translucent,                          litData.materialType == HDLitData.MaterialType.Translucent);
+
+            context.AddField(HDFields.DoubleSidedFlip,                      systemData.doubleSidedMode == DoubleSidedMode.FlippedNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
+            context.AddField(HDFields.DoubleSidedMirror,                    systemData.doubleSidedMode == DoubleSidedMode.MirroredNormals && !context.pass.Equals(HDLitSubTarget.LitPasses.MotionVectors));
+
+            // Refraction
+            context.AddField(HDFields.Refraction,                           hasRefraction);
+            context.AddField(HDFields.RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
+            context.AddField(HDFields.RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
+            context.AddField(HDFields.RefractionThin,                       hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
+
+            // AlphaTest
+            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+            // Do alpha test only if we aren't using the TestShadow one
+            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
+                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
+
+            // Misc
+
+            context.AddField(HDFields.EnergyConservingSpecular,             litData.energyConservingSpecular);
+            context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(HDFields.ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
+            context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
+            context.AddField(HDFields.RayTracing,                           litData.rayTracing);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
+            bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
+
+            // Vertex
+            base.GetActiveBlocks(ref context);
+            AddDistortionBlocks(ref context);
+
+            // Common
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
+
+            // Refraction
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionColor,      hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.RefractionDistance,   hasRefraction);
+
+            // Material
+            context.AddBlock(HDBlockFields.SurfaceDescription.Tangent,              litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           litData.materialType == HDLitData.MaterialType.Anisotropy);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       litData.materialType == HDLitData.MaterialType.SubsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            ((litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent) &&
+                                                                                        (litData.sssTransmission || litData.materialType == HDLitData.MaterialType.Translucent)) || hasRefraction);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, litData.materialType == HDLitData.MaterialType.SubsurfaceScattering || litData.materialType == HDLitData.MaterialType.Translucent);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceMask,      litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceThickness, litData.materialType == HDLitData.MaterialType.Iridescence);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,               litData.materialType == HDLitData.MaterialType.SpecularColor);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,               litData.materialType == HDLitData.MaterialType.Standard || 
+                                                                                        litData.materialType == HDLitData.MaterialType.Anisotropy ||
+                                                                                        litData.materialType == HDLitData.MaterialType.Iridescence);
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+
+            HDSubShaderUtilities.AddRayTracingProperty(collector, litData.rayTracing);
+        }
+
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
+        {
+            blockList.AddPropertyBlock(new LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, litData));
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new DistortionPropertyBlock());
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+        }
+
+        protected override int ComputeMaterialNeedsUpdateHash()
+        {
+            int hash = base.ComputeMaterialNeedsUpdateHash();
+
+            unchecked
+            {
+                bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
+                hash = hash * 23 + subsurfaceScattering.GetHashCode();
+            }
+
+            return hash;
         }
 
 #region SubShaders
@@ -86,8 +215,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -115,7 +244,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                pixelPorts = LitPortMasks.FragmentMeta,
+                validPixelBlocks = LitBlockMasks.FragmentMeta,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -141,8 +270,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentShadowCaster,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentShadowCaster,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -167,8 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentSceneSelection,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentSceneSelection,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -193,8 +322,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDepthMotionVectors,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -220,8 +349,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDepthMotionVectors,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -247,8 +376,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDistortion,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -273,14 +402,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentTransparentDepthPrepass,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPrepass,
 
                 // Collections
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = LitRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPrePass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -300,8 +429,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentTransparentBackface,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentTransparentBackface,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -326,8 +455,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -355,13 +484,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentTransparentDepthPostpass,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentTransparentDepthPostpass,
 
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPostPass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = CoreKeywords.HDBase,
@@ -381,8 +510,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentRayTracingPrepass,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentRayTracingPrepass,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -407,8 +536,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -433,8 +562,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -459,8 +588,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -485,8 +614,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -511,8 +640,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 //Port mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 //Collections
                 structs = CoreStructCollections.Default,
@@ -537,8 +666,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 //Port mask
-                vertexPorts = LitPortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDefault,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 //Collections
                 structs = CoreStructCollections.Default,
@@ -552,157 +681,160 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 #endregion
 
-#region PortMasks
-        static class LitPortMasks
+#region BlockMasks
+        static class LitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.PositionSlotId,
-                HDLitMasterNode.VertexNormalSlotID,
-                HDLitMasterNode.VertexTangentSlotID,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                HDBlockFields.SurfaceDescription.BentNormal,
+                HDBlockFields.SurfaceDescription.Tangent,
+                HDBlockFields.SurfaceDescription.SubsurfaceMask,
+                HDBlockFields.SurfaceDescription.Thickness,
+                HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+                HDBlockFields.SurfaceDescription.IridescenceMask,
+                HDBlockFields.SurfaceDescription.IridescenceThickness,
+                BlockFields.SurfaceDescription.Specular,
+                HDBlockFields.SurfaceDescription.CoatMask,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                HDBlockFields.SurfaceDescription.SpecularOcclusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.Anisotropy,
+                HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+                HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+                HDBlockFields.SurfaceDescription.RefractionIndex,
+                HDBlockFields.SurfaceDescription.RefractionColor,
+                HDBlockFields.SurfaceDescription.RefractionDistance,
+                HDBlockFields.SurfaceDescription.BakedGI,
+                HDBlockFields.SurfaceDescription.BakedBackGI,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentDefault = new int[]
+            public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
-                HDLitMasterNode.LightingSlotId,
-                HDLitMasterNode.BackLightingSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                HDBlockFields.SurfaceDescription.BentNormal,
+                HDBlockFields.SurfaceDescription.Tangent,
+                HDBlockFields.SurfaceDescription.SubsurfaceMask,
+                HDBlockFields.SurfaceDescription.Thickness,
+                HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+                HDBlockFields.SurfaceDescription.IridescenceMask,
+                HDBlockFields.SurfaceDescription.IridescenceThickness,
+                BlockFields.SurfaceDescription.Specular,
+                HDBlockFields.SurfaceDescription.CoatMask,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                HDBlockFields.SurfaceDescription.SpecularOcclusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.Anisotropy,
+                HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+                HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+                HDBlockFields.SurfaceDescription.RefractionIndex,
+                HDBlockFields.SurfaceDescription.RefractionColor,
+                HDBlockFields.SurfaceDescription.RefractionDistance,
             };
 
-            public static int[] FragmentMeta = new int[]
+            public static BlockFieldDescriptor[] FragmentShadowCaster = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentShadowCaster = new int[]
+            public static BlockFieldDescriptor[] FragmentSceneSelection = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AlphaThresholdShadowSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentSceneSelection = new int[]
+            public static BlockFieldDescriptor[] FragmentDepthMotionVectors = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentDepthMotionVectors = new int[]
+            public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.Distortion,
+                HDBlockFields.SurfaceDescription.DistortionBlur,
             };
 
-            public static int[] FragmentDistortion = new int[]
+            public static BlockFieldDescriptor[] FragmentTransparentDepthPrepass = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DistortionSlotId,
-                HDLitMasterNode.DistortionBlurSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                HDBlockFields.SurfaceDescription.DepthOffset,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.Smoothness,
             };
 
-            public static int[] FragmentTransparentDepthPrepass = new int[]
+            public static BlockFieldDescriptor[] FragmentTransparentBackface = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPrepassSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                HDBlockFields.SurfaceDescription.BentNormal,
+                HDBlockFields.SurfaceDescription.Tangent,
+                HDBlockFields.SurfaceDescription.SubsurfaceMask,
+                HDBlockFields.SurfaceDescription.Thickness,
+                HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+                HDBlockFields.SurfaceDescription.IridescenceMask,
+                HDBlockFields.SurfaceDescription.IridescenceThickness,
+                BlockFields.SurfaceDescription.Specular,
+                HDBlockFields.SurfaceDescription.CoatMask,
+                BlockFields.SurfaceDescription.Metallic,
+                BlockFields.SurfaceDescription.Emission,
+                BlockFields.SurfaceDescription.Smoothness,
+                BlockFields.SurfaceDescription.Occlusion,
+                HDBlockFields.SurfaceDescription.SpecularOcclusion,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.Anisotropy,
+                HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+                HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+                HDBlockFields.SurfaceDescription.RefractionIndex,
+                HDBlockFields.SurfaceDescription.RefractionColor,
+                HDBlockFields.SurfaceDescription.RefractionDistance,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentTransparentBackface = new int[]
+            public static BlockFieldDescriptor[] FragmentTransparentDepthPostpass = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlbedoSlotId,
-                HDLitMasterNode.NormalSlotId,
-                HDLitMasterNode.BentNormalSlotId,
-                HDLitMasterNode.TangentSlotId,
-                HDLitMasterNode.SubsurfaceMaskSlotId,
-                HDLitMasterNode.ThicknessSlotId,
-                HDLitMasterNode.DiffusionProfileHashSlotId,
-                HDLitMasterNode.IridescenceMaskSlotId,
-                HDLitMasterNode.IridescenceThicknessSlotId,
-                HDLitMasterNode.SpecularColorSlotId,
-                HDLitMasterNode.CoatMaskSlotId,
-                HDLitMasterNode.MetallicSlotId,
-                HDLitMasterNode.EmissionSlotId,
-                HDLitMasterNode.SmoothnessSlotId,
-                HDLitMasterNode.AmbientOcclusionSlotId,
-                HDLitMasterNode.SpecularOcclusionSlotId,
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.AnisotropySlotId,
-                HDLitMasterNode.SpecularAAScreenSpaceVarianceSlotId,
-                HDLitMasterNode.SpecularAAThresholdSlotId,
-                HDLitMasterNode.RefractionIndexSlotId,
-                HDLitMasterNode.RefractionColorSlotId,
-                HDLitMasterNode.RefractionDistanceSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
 
-            public static int[] FragmentTransparentDepthPostpass = new int[]
+            public static BlockFieldDescriptor[] FragmentRayTracingPrepass = new BlockFieldDescriptor[]
             {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdDepthPostpassSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
-            };
-
-            public static int[] FragmentRayTracingPrepass = new int[]
-            {
-                HDLitMasterNode.AlphaSlotId,
-                HDLitMasterNode.AlphaThresholdSlotId,
-                HDLitMasterNode.DepthOffsetSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.DepthOffset,
             };
         }
 #endregion
@@ -736,20 +868,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
                     Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.Zero) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
                     Comp = "Always",
                     Pass = "Replace",
                 }) },

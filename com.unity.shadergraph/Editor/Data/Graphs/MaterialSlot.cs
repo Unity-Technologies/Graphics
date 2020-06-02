@@ -220,6 +220,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public abstract bool isDefaultValue { get; }
+
         public abstract SlotValueType valueType { get; }
 
         public abstract ConcreteSlotValueType concreteValueType { get; }
@@ -270,7 +272,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if (generationMode.IsPreview())
+            if (generationMode.IsPreview() && matOwner.isActive)
                 return matOwner.GetVariableNameForSlot(id);
 
             return ConcreteSlotValueAsVariable();

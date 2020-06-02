@@ -1,72 +1,347 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.UIElements;
+using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDTarget : Target
+    enum DistortionMode
     {
+        Add,
+        Multiply,
+        Replace
+    }
+
+    enum DoubleSidedMode
+    {
+        Disabled,
+        Enabled,
+        FlippedNormals,
+        MirroredNormals,
+    }
+
+    enum SpecularOcclusionMode
+    {
+        Off,
+        FromAO,
+        FromAOAndBentNormal,
+        Custom
+    }
+
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
+    {
+        // Constants
         const string kAssetGuid = "61d9843d4027e3e4a924953135f76f3c";
+
+        // SubTarget
         List<SubTarget> m_SubTargets;
-        SubTarget m_ActiveSubTarget;
+        List<string> m_SubTargetNames;
+        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
+
+        // View
+        PopupField<string> m_SubTargetField;
+        TextField m_CustomGUIField;
+
+        [SerializeField]
+        JsonData<SubTarget> m_ActiveSubTarget;
+
+        [SerializeField]
+        List<JsonData<HDTargetData>> m_Datas = new List<JsonData<HDTargetData>>();
+
+        [SerializeField]
+        string m_CustomEditorGUI;
+
+        static NodeTypeCollection s_HDNodeTypes = NodeTypes.AllBuiltin + typeof(HDSceneColorNode)
+                                                                       + typeof(DiffusionProfileNode)
+                                                                       + typeof(ExposureNode)
+                                                                       + typeof(EmissionNode)
+                                                                       + typeof(ParallaxOcclusionMappingNode);
+
+        public override bool IsNodeAllowedByTarget(Type nodeType)
+        {
+            return s_HDNodeTypes.Contains(nodeType);
+        }
 
         public HDTarget()
         {
             displayName = "HDRP";
-            m_SubTargets = TargetUtils.GetSubTargetsOfType<HDTarget>();
+            m_SubTargets = TargetUtils.GetSubTargets(this);
+            m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
 
+        public string customEditorGUI
+        {
+            get => m_CustomEditorGUI;
+            set => m_CustomEditorGUI = value;
+        }
+
+        public override bool IsActive()
+        {
+            if(m_ActiveSubTarget.value == null)
+                return false;
+
+            bool isHDRenderPipeline = GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset;
+            return isHDRenderPipeline && m_ActiveSubTarget.value.IsActive();
+        }
+
         public override void Setup(ref TargetSetupContext context)
         {
-            // Currently we infer the active SubTarget based on the MasterNode type
-            void SetActiveSubTargetIndex(IMasterNode masterNode)
-            {
-                Type activeSubTargetType;
-                if(!s_SubTargetMap.TryGetValue(masterNode.GetType(), out activeSubTargetType))
-                    return;
-
-                m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
-            }
-            
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
+            // Process SubTargets
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            if(m_ActiveSubTarget.value == null)
+                return;
+
             // Setup the active SubTarget
-            SetActiveSubTargetIndex(context.masterNode);
-            m_ActiveSubTarget.Setup(ref context);
+            ProcessSubTargetDatas(m_ActiveSubTarget.value);
+            m_ActiveSubTarget.value.target = this;
+            m_ActiveSubTarget.value.Setup(ref context);
+
+            // Override EditorGUI
+            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
+            {
+                context.SetDefaultShaderGUI(m_CustomEditorGUI);
+            }
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            // Currently we infer the validity based on SubTarget mapping
-            return s_SubTargetMap.TryGetValue(masterNode.GetType(), out _);
+            // Stages
+            context.AddField(Fields.GraphVertex,                    context.blocks.Contains(BlockFields.VertexDescription.Position) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
+                                                                    context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphPixel);
+
+            // SubTarget
+            m_ActiveSubTarget.value.GetFields(ref context);
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline is HDRenderPipelineAsset;
+            // SubTarget
+            m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
-        // Currently we need to map SubTarget type to IMasterNode type
-        // We do this here to avoid bleeding this into the SubTarget API
-        static Dictionary<Type, Type> s_SubTargetMap = new Dictionary<Type, Type>()
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            { typeof(PBRMasterNode), typeof(PBRSubTarget) },
-            { typeof(UnlitMasterNode), typeof(UnlitSubTarget) },
-            { typeof(HDLitMasterNode), typeof(HDLitSubTarget) },
-            { typeof(HDUnlitMasterNode), typeof(HDUnlitSubTarget) },
-            { typeof(DecalMasterNode), typeof(HDDecalSubTarget) },
-            { typeof(EyeMasterNode), typeof(HDEyeSubTarget) },
-            { typeof(FabricMasterNode), typeof(HDFabricSubTarget) },
-            { typeof(HairMasterNode), typeof(HDHairSubTarget) },
-            { typeof(StackLitMasterNode), typeof(HDStackLitSubTarget) },
+            if(m_ActiveSubTarget.value == null)
+                return;
+
+            context.globalIndentLevel++;
+
+            // Core properties
+            m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
+            context.AddProperty("Material", m_SubTargetField, (evt) =>
+            {
+                if (Equals(activeSubTargetIndex, m_SubTargetField.index))
+                    return;
+
+                var systemData = m_Datas.SelectValue().FirstOrDefault(x => x is SystemData) as SystemData;
+                if(systemData != null)
+                {
+                    // Force material update hash
+                    systemData.materialNeedsUpdateHash = -1;
+                }
+
+                m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                ProcessSubTargetDatas(m_ActiveSubTarget.value);
+                onChange();
+            });
+
+            // SubTarget properties
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
+
+            // Custom Editor GUI
+            m_CustomGUIField = new TextField("") { value = m_CustomEditorGUI };
+            m_CustomGUIField.RegisterCallback<FocusOutEvent>(s =>
+            {
+                if (Equals(m_CustomEditorGUI, m_CustomGUIField.value))
+                    return;
+
+                m_CustomEditorGUI = m_CustomGUIField.value;
+                onChange();
+            });
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+
+            context.globalIndentLevel--;
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            // SubTarget
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // SubTarget
+            m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
+        }
+
+        public override object saveContext => m_ActiveSubTarget.value?.saveContext;
+        
+        // IHasMetaData
+        public string identifier
+        {
+            get
+            {
+                if(m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                    return subTargetHasMetaData.identifier;
+
+                return null;
+            }
+        }
+
+        public ScriptableObject GetMetadataObject()
+        {
+            if(m_ActiveSubTarget.value is IHasMetadata subTargetHasMetaData)
+                return subTargetHasMetaData.GetMetadataObject();
+
+            return null;
+        }
+
+        public bool TrySetActiveSubTarget(Type subTargetType)
+        {
+            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+                return false;
+            
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(subTarget.GetType().Equals(subTargetType))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    ProcessSubTargetDatas(m_ActiveSubTarget);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void ProcessSubTargetDatas(SubTarget subTarget)
+        {
+            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            foreach(var type in typeCollection)
+            {
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("SetDataOnSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { subTarget });
+            }
+        }
+
+        void ClearUnusedData()
+        {
+            for(int i = 0; i < m_Datas.Count; i++)
+            {
+                var data = m_Datas[i];
+                var type = data.value.GetType();
+
+                // Data requirement interfaces need generic type arguments
+                // Therefore we need to use reflections to call the method
+                var methodInfo = typeof(HDTarget).GetMethod("ValidateDataForSubTarget");
+                var genericMethodInfo = methodInfo.MakeGenericMethod(type);
+                genericMethodInfo.Invoke(this, new object[] { m_ActiveSubTarget.value, data.value });
+            }
+        }
+
+        public void SetDataOnSubTarget<T>(SubTarget subTarget) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
+                return;
+            
+            // Ensure data object exists in list
+            var data = m_Datas.SelectValue().FirstOrDefault(x => x.GetType().Equals(typeof(T))) as T;
+            if(data == null)
+            {
+                data = Activator.CreateInstance(typeof(T)) as T;
+                m_Datas.Add(data);
+            }
+
+            // Apply data object to SubTarget
+            requiresData.data = data;
+        }
+
+        public void ValidateDataForSubTarget<T>(SubTarget subTarget, T data) where T : HDTargetData
+        {
+            if(!(subTarget is IRequiresData<T> requiresData))
+            {
+                m_Datas.Remove(data);
+            }
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            ClearUnusedData();
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+
+            // We need to guarantee any required data object exists
+            // as we fill out the datas in the same method as determining which SubTarget is valid
+            // When the graph is serialized any unused data is removed anyway
+            var typeCollection = TypeCache.GetTypesDerivedFrom<HDTargetData>();
+            foreach(var type in typeCollection)
+            {
+                var data = Activator.CreateInstance(type) as HDTargetData;
+                m_Datas.Add(data);
+            }
+
+            // Process SubTargets
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(!(subTarget is ILegacyTarget legacySubTarget))
+                    continue;
+                
+                // Ensure all SubTargets have any required data to fill out during upgrade
+                ProcessSubTargetDatas(subTarget);
+                subTarget.target = this;
+                
+                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
+        }
+    }
+
+#region BlockMasks
+    static class CoreBlockMasks
+    {
+        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
+        {
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
         };
     }
+#endregion
 
 #region StructCollections
     static class CoreStructCollections
@@ -170,10 +445,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.AttributesMesh.uv2),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
-
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   HDStructFields.AttributesMesh.weights),
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   HDStructFields.AttributesMesh.indices),
-            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                      HDStructFields.AttributesMesh.vertexID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
@@ -213,10 +484,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
 
             new FieldDependency(HDFields.DepthOffset,                                                HDStructFields.FragInputs.positionRWS),
-
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.BoneWeights,                   StructFields.SurfaceDescriptionInputs.BoneIndices),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.BoneIndices,                   StructFields.SurfaceDescriptionInputs.BoneWeights),
-            new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexID,                      StructFields.SurfaceDescriptionInputs.VertexID),
         };
 
         public static DependencyCollection Default = new DependencyCollection
@@ -368,13 +635,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
         };
 
-        public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
+
+        public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
-            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                Ref = CoreRenderStates.Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection TransparentDepthPostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection Forward = new RenderStateCollection

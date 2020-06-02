@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
-    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition, IHasSettings
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
@@ -272,12 +272,13 @@ namespace UnityEditor.ShaderGraph
                 });
 
                 // display warning if the current master node doesn't support virtual texturing
-                if (!m_Node.owner.isSubGraph)
-                {
-                    bool supportedByMasterNode = m_Node.owner.GetNodes<IMasterNode>().FirstOrDefault()?.supportsVirtualTexturing ?? false;
-                    if (!supportedByMasterNode)
-                        ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support Virtual Texturing, this node will do regular 2D sampling.")));
-                }
+                //TODO: Fix the fact bool passing that happened with master nodes to now happen with targets/subtargets
+ //               if (!m_Node.owner.isSubGraph)
+ //               {
+ //                   bool supportedByMasterNode = m_Node.owner.GetNodes<IMasterNode>().FirstOrDefault()?.supportsVirtualTexturing ?? false;
+ //                   if (!supportedByMasterNode)
+ //                       ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support Virtual Texturing, this node will do regular 2D sampling.")));
+ //               }
 
                 // display warning if the current render pipeline doesn't support virtual texturing
                 IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
