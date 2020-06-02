@@ -36,6 +36,9 @@ EditorBuildSettings:
     path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_MultiCamera.unity
     guid: 6d090a604691ff048bb6cd282208c7bd
   - enabled: 1
+    path: Packages/com.unity.testing.visualeffectgraph/Scenes/009_ReadAttributeInSpawner.unity
+    guid: a6e75e236a616124d9604762b5402ac7
+  - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/009_MultiCamera_MotionVector.unity
     guid: c3aad03df123b0b4fa26a6480fcbe297
   - enabled: 1

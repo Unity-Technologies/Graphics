@@ -92,7 +92,7 @@ namespace UnityEditor.VFX.Test
             var spawnData = spawn.GetData();
             var particleData = init.GetData();
 
-            Assert.IsNull(spawnData);
+            Assert.IsNotNull(spawnData);
             Assert.IsNotNull(particleData);
             Assert.AreEqual(particleData, update.GetData());
             Assert.AreEqual(particleData, output0.GetData());
