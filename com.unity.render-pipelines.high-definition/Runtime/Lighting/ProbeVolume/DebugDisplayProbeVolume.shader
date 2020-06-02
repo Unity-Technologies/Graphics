@@ -4,6 +4,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
+        #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
@@ -20,8 +21,10 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         SamplerState ltc_linear_clamp_sampler;
         TEXTURE3D(_AtlasTextureSH);
 
+   #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
         TEXTURE2D(_AtlasTextureOctahedralDepth);
         float4 _AtlasTextureOctahedralDepthScaleBias;
+    #endif
 
         struct Attributes
         {
@@ -78,7 +81,10 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                 float4 valueShAg = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 1), 0) - _ValidRange.x) * _ValidRange.y);
                 float4 valueShAb = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 2), 0) - _ValidRange.x) * _ValidRange.y);
                 float valueValidity = saturate((SAMPLE_TEXTURE3D_LOD(_AtlasTextureSH, ltc_linear_clamp_sampler, float3(uvw.x, uvw.y, uvw.z + _ProbeVolumeAtlasResolutionAndSliceCountInverse.w * 3), 0).x - _ValidRange.x) * _ValidRange.y);
+                
+            #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
                 float2 valueOctahedralDepthMeanAndVariance = saturate((SAMPLE_TEXTURE2D_LOD(_AtlasTextureOctahedralDepth, ltc_linear_clamp_sampler, input.texcoord * _AtlasTextureOctahedralDepthScaleBias.xy + _AtlasTextureOctahedralDepthScaleBias.zw, 0).xy - _ValidRange.x) * _ValidRange.y);
+            #endif
 
                 switch (_ProbeVolumeAtlasSliceMode)
                 {
@@ -110,6 +116,7 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
 
                     case PROBEVOLUMEATLASSLICEMODE_OCTAHEDRAL_DEPTH:
                     {
+                    #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
                         // Tonemap variance with sqrt() to bring it into a more similar scale to mean to make it more readable.
                         return float4(
                             valueOctahedralDepthMeanAndVariance.x,
@@ -117,6 +124,9 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
                             0.0f,
                             1.0f
                         );
+                    #else
+                        return float4(0.0f, 0.0f, 0.0f, 1.0f);
+                    #endif
                     }
 
                     default: return float4(0.0, 0.0, 0.0, 1.0);

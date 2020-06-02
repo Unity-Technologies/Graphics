@@ -15,7 +15,10 @@
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 
     TEXTURE3D(_ProbeVolumeAtlasSH);
+#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
     TEXTURE2D(_ProbeVolumeAtlasOctahedralDepth);
+#endif
+
 #endif
 
 #endif // endof PROBE_VOLUME_SHADER_VARIABLES

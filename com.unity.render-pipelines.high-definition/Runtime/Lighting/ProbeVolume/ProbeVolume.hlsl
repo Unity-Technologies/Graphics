@@ -49,6 +49,7 @@ float ProbeVolumeLoadValidity(int3 probeVolumeAtlasTexelCoord)
 #endif
 }
 
+#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
 void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
     out float weights[8],
     float3 probeVolumeTexel3DMin,
@@ -151,6 +152,7 @@ void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
         weights[i] = clamp(weights[i], (RECURSIVE ? 0.1 : 0.0), 1.01);
     }
 }
+#endif
 
 void ProbeVolumeComputeOBBBoundsToFrame(OrientedBBox probeVolumeBounds, out float3x3 obbFrame, out float3 obbExtents, out float3 obbCenter)
 {
@@ -211,6 +213,9 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
     float3 obbExtents,
     float3 obbCenter)
 {
+#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_DISABLED
+    return probeVolumeTexel3D;
+#else
     if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_NORMAL_BIAS) { return probeVolumeTexel3D; }
 
     float3 probeVolumeTexel3DMin = floor(probeVolumeTexel3D - 0.5) + 0.5;
@@ -253,6 +258,7 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
         probeWeightTNW = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 0, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1)));
         probeWeightTNE = max(_ProbeVolumeBilateralFilterWeightMin, ProbeVolumeLoadValidity(int3(probeVolumeTexel3DMin.x + 1, probeVolumeTexel3DMin.y + 1, probeVolumeTexel3DMin.z + 1)));
     }
+#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
     else if (_ProbeVolumeLeakMitigationMode == LEAKMITIGATIONMODE_OCTAHEDRAL_DEPTH_OCCLUSION_FILTER)
     {
         // TODO: Evaluate if we should we build this 3x3 matrix and a float3 bias term cpu side to decrease alu at the cost of more bandwidth.
@@ -286,6 +292,12 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
         probeWeightTSE = probeWeights[5]; // (i == 5) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(5, 5 >> 1, 5 >> 2) & int3(1, 1, 1)) => int3(1, 0, 1)
         probeWeightTNW = probeWeights[6]; // (i == 6) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(6, 6 >> 1, 6 >> 2) & int3(1, 1, 1)) => int3(0, 1, 1)
         probeWeightTNE = probeWeights[7]; // (i == 7) => (int3(i, i >> 1, i >> 2) & int3(1, 1, 1)) => (int3(7, 7 >> 1, 7 >> 2) & int3(1, 1, 1)) => int3(1, 1, 1)
+    }
+#endif
+    else
+    {
+        // Fallback to no bilateral filter if _ProbeVolumeLeakMitigationMode is configured to a mode unsupported in ShaderConfig.
+        return probeVolumeTexel3D;
     }
 
     // Blend between Geometric Weights and simple trilinear filter weights based on user defined _ProbeVolumeBilateralFilterWeight.
@@ -357,6 +369,7 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
     }
 
     return probeVolumeTexel3D;
+#endif
 }
 
 struct ProbeVolumeCoefficients
@@ -378,8 +391,6 @@ void AccumulateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
     if (weightHierarchy >= 1.0) { return; }
 #endif
 
-    float3 positionRWS = posInput.positionWS;
-    float positionLinearDepth = posInput.linearDepth;
     uint probeVolumeStart, probeVolumeCount;
     bool fastPath;
     ProbeVolumeGetCountAndStartAndFastPath(posInput, probeVolumeStart, probeVolumeCount, fastPath);
@@ -424,7 +435,7 @@ void AccumulateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
                 ProbeVolumeComputeOBBBoundsToFrame(s_probeVolumeBounds, obbFrame, obbExtents, obbCenter);
                 
                 // Note: When normal bias is > 0, bounds using in tile / cluster assignment are conservatively dilated CPU side to handle worst case normal bias.
-                float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + positionRWS;
+                float3 samplePositionWS = normalWS * s_probeVolumeData.normalBiasWS + posInput.positionWS;
 
                 float3 probeVolumeTexel3D;
                 ProbeVolumeComputeTexel3DAndWeight(
@@ -434,7 +445,7 @@ void AccumulateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
                     obbExtents,
                     obbCenter,
                     samplePositionWS,
-                    positionLinearDepth,
+                    posInput.linearDepth,
                     probeVolumeTexel3D,
                     weightCurrent
                 );
@@ -442,7 +453,7 @@ void AccumulateProbeVolumes(PositionInputs posInput, float3 normalWS, uint rende
                 probeVolumeTexel3D = ProbeVolumeComputeTexel3DFromBilateralFilter(
                     probeVolumeTexel3D,
                     s_probeVolumeData,
-                    positionRWS, // unbiased
+                    posInput.positionWS, // unbiased
                     samplePositionWS, // biased
                     normalWS,
                     obbFrame,

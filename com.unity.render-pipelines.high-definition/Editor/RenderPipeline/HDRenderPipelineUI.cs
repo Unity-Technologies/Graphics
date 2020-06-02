@@ -899,14 +899,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
 
+                EditorGUI.BeginDisabledGroup(ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth);
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution, Styles.probeVolumeAtlasOctahedralDepthResolution);
                 if (EditorGUI.EndChangeCheck())
                 {
                     serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue = Mathf.Max(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue, 0);
                 }
-                else
+                else if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
                 {
+                    // Only display memory allocation info if octahedral depth feature is actually enabled. Only then will memory be allocated.
                     long currentCache = HDRenderPipeline.GetApproxProbeVolumeOctahedralDepthAtlasSizeInByte(serialized.renderPipelineSettings.probeVolumeSettings.atlasOctahedralDepthResolution.intValue);
                     if (currentCache > HDRenderPipeline.k_MaxCacheSize)
                     {
@@ -920,6 +922,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox(message, MessageType.Info);
                     }
                 }
+                EditorGUI.EndDisabledGroup();
 
                 if (serialized.renderPipelineSettings.probeVolumeSettings.atlasResolution.intValue <= 0)
                 {
