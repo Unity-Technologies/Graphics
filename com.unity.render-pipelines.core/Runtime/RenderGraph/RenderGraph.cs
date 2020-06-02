@@ -129,6 +129,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             public bool                 enableAsyncCompute { get { return pass.enableAsyncCompute; } }
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // This members are only here to ease debugging.
+            public List<string>         debugTextureReads;
+            public List<string>         debugTextureWrites;
+#endif
+
             public void Reset(RenderGraphPass pass)
             {
                 this.pass = pass;
@@ -137,6 +143,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     textureCreateList = new List<TextureHandle>();
                     textureReleaseList = new List<TextureHandle>();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    debugTextureReads = new List<string>();
+                    debugTextureWrites = new List<string>();
+#endif
                 }
 
                 textureCreateList.Clear();
@@ -147,6 +158,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 syncToPassIndex = -1;
                 syncFromPassIndex = -1;
                 needGraphicsFence = false;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                debugTextureReads.Clear();
+                debugTextureWrites.Clear();
+#endif
             }
         }
 
@@ -409,6 +425,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
                     info.refCount++;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureReads.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
                 }
 
                 var textureWrite = passInfo.pass.textureWriteList;
@@ -421,6 +441,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
                     if (m_Resources.IsTextureImported(texture))
                         passInfo.hasSideEffect = true;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureWrites.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
                 }
 
                 // Can't share the code with a generic func as TextureHandle and ComputeBufferHandle are both struct and can't inherit from a common struct with a shared API (thanks C#)
@@ -576,7 +600,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         resourceInfo.firstWritePassIndex = Math.Min(resourceInfo.firstWritePassIndex, passIndex);
                         passInfo.textureCreateList.Add(texture);
                     }
-                    passInfo.refCount++;
                     UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourceInfo);
                 }
 
