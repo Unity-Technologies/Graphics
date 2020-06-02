@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
 - New built-in operator providing new times access
 - More efficient update modes inspector
+- Ability to read attribute in spawn context through graph
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
