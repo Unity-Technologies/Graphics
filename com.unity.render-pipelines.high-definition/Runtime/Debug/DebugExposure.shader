@@ -43,17 +43,21 @@ Shader "Hidden/HDRP/DebugExposure"
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
         float2 texcoord : TEXCOORD0;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
         Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
         output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
@@ -293,7 +297,7 @@ Shader "Hidden/HDRP/DebugExposure"
             uint halfBarSize = barSize / 2;
             uint lowerMidPoint = midXPoint - halfBarSize;
             uint higherMidPoint = midXPoint + halfBarSize;
-            if (coordOnX < lowerMidPoint)
+            if (coordOnX < float(lowerMidPoint))
             {
                 uint distanceFromCenter = lowerMidPoint - coordOnX;
                 float deltaBinFloat = distanceFromCenter / barSize;
@@ -301,7 +305,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 locWithinBin = frac(deltaBinFloat) * barSize;
                 binIndex = centerBin - deltaInBins;
             }
-            else if (coordOnX > higherMidPoint)
+            else if (coordOnX > float(higherMidPoint))
             {
                 uint distanceFromCenter = coordOnX - higherMidPoint;
                 float deltaBinFloat = distanceFromCenter / barSize;

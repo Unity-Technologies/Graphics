@@ -5,7 +5,9 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial class HDRenderPipeline : IDataProvider
     {
+#if UNITY_EDITOR
         int m_LookDevVolumeProfileHash = -1;
+#endif
 
         struct LookDevDataForHDRP
         {
