@@ -518,16 +518,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time.
-- Fixed cubemap thumbnail generation at project load time.
+- Fixed cubemap thumbnail generation at project load time. 
 - Fixed XR culling with multiple cameras
 - Fixed XR single-pass with Mock HMD plugin
 - Fixed sRGB mismatch with XR SDK
 - Fixed an issue where default volume would not update when switching profile.
-- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
 - Fixed an issue where AO override would not override specular occlusion.
 - Fixed an issue where Volume inspector might not refresh correctly in some cases.
 - Fixed render texture with XR
-- Fixed issue with resources being accessed before initialization process has been performed completely.
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
 - Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
 - Fixed custom pass GC alloc issue in CustomPassVolume.GetActiveVolumes().
@@ -567,7 +567,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed NaN which can appear with real time reflection and inf value
 - Fixed an issue that was collapsing the volume components in the HDRP default settings
 - Fixed warning about missing bound decal buffer
-- Fixed shader warning on Xbox for ResolveStencilBuffer.compute.
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
 - Fixed PBR shader ZTest rendering in deferred.
 - Replaced commands incompatible with async compute in light list build process.
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
@@ -587,7 +587,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - VFX: Removed irrelevant queues in render queue selection from HDRP outputs
 - VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
-- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph). 
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
@@ -596,7 +596,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed transparent motion vectors not working when in MSAA.
 - Fix error when removing DecalProjector from component contextual menu (case 1243960)
 - Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
-- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated.
+- Fixed corrupted values on LayeredLit when using Vertex Color multiply mode to multiply and MSAA is activated. 
 - Fix conflicts with Handles manipulation when performing a Reset in DecalComponent (case 1238833)
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fixed issue with sceneview camera settings not being saved after Editor restart.
@@ -605,7 +605,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed some GCAlloc in the debug window.
 - Fixed shader graphs not casting semi-transparent and color shadows (case 1242617)
 - Fixed thin refraction mode not working properly.
-- Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169)
+- Fixed assert on tests caused by probe culling results being requested when culling did not happen. (case 1246169) 
 - Fixed over consumption of GPU memory by the Physically Based Sky.
 - Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
 - Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
