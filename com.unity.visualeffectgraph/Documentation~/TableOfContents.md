@@ -63,6 +63,9 @@
         * [Square Root](Operator-SquareRoot.md)
         * [Step](Operator-Step.md)
         * [Subtract](Operator-Subtract.md)
+      * Clamp
+        * [Ceiling](Operator-Ceiling.md)
+        * [Clamp](Operator-Clamp.md)
       * Constants
         * [Epsilon](Operator-Epsilon.md)
         * [Pi](Operator-Pi.md)
