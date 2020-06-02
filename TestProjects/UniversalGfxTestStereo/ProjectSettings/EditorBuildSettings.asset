@@ -50,9 +50,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/140_SSAO_DepthOnly_Projection.unity
     guid: 60a46018f9424431dbeb5a61cecff4df
+  - enabled: 0
+    path: Assets/Scenes/141_SSAO_DepthOnly_Orthographic.unity
+    guid: 41d66e5ccf4094b08bfb9d389a4e8394
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 82dc1c7729e14374592a84ca219d6b0a,
       type: 2}
