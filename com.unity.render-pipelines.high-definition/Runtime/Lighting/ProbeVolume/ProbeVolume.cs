@@ -60,7 +60,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Only allocate dataValidity and dataOctahedralDepth if those payload slices are in use.
             payload.dataValidity = new float[length];
-            payload.dataOctahedralDepth = new float[length * 8 * 8];
+
+            payload.dataOctahedralDepth = null;
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
+            {
+                payload.dataOctahedralDepth = new float[length * 8 * 8];
+            }
         }
 
         public static void Ensure(ref ProbeVolumePayload payload, ProbeVolumesEncodingModes encodingMode, int length)
@@ -752,9 +757,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-            var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
-            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
+            bool bakeIsSuccessful = false;
+            NativeArray<float> octahedralDepth;
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
+            {
+                octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                bakeIsSuccessful = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth);
+            }
+            else
+            {
+                // Suppress octahedralDepth uninitialized warnings.
+                octahedralDepth = new NativeArray<float>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+                bakeIsSuccessful = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity);
+            }
+            
+            if(bakeIsSuccessful)
             {
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
@@ -852,14 +870,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                for (int i = 0, iLen = sh.Length; i < iLen; ++i)
-                {
-                    probeVolumeAsset.payload.dataValidity[i] = validity[i];
+                validity.CopyTo(probeVolumeAsset.payload.dataValidity);
 
-                    for (int j = 0; j < 64; ++j)
-                    {
-                        probeVolumeAsset.payload.dataOctahedralDepth[i * 64 + j] = octahedralDepth[i * 64 + j];
-                    }
+                if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
+                {
+                    octahedralDepth.CopyTo(probeVolumeAsset.payload.dataOctahedralDepth);
                 }
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
@@ -872,7 +887,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sh.Dispose();
             validity.Dispose();
-            octahedralDepth.Dispose();
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth) { octahedralDepth.Dispose(); }
         }
 
         internal void OnBakeCompleted()

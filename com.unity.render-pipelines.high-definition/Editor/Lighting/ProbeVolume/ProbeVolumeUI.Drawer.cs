@@ -87,6 +87,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(Styles.k_featureEncodingModeMismatchError, MessageType.Error);
             }
 
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
+                && asset != null && asset.payload.dataOctahedralDepth == null)
+            {
+                EditorGUILayout.HelpBox(Styles.k_featureOctahedralDepthEnabledNoData, MessageType.Error);
+            }
+            
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth
+                && asset != null && asset.payload.dataOctahedralDepth != null)
+            {
+                EditorGUILayout.HelpBox(Styles.k_featureOctahedralDepthDisableYesData, MessageType.Error);
+            }
+
             EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
 
             EditorGUILayout.Slider(serialized.backfaceTolerance, 0.0f, 1.0f, Styles.s_BackfaceToleranceLabel);
