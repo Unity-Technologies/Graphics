@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             TextureHandle   afterPostProcessTexture,
                             TextureHandle   depthBuffer,
                             TextureHandle   finalRT,
-                            bool                        flipY)
+                            bool            flipY)
         {
             var dynResHandler = DynamicResolutionHandler.instance;
 

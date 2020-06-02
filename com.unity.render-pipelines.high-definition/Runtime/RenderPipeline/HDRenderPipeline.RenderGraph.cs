@@ -936,12 +936,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDistortionPassData
         {
-            public Material                     applyDistortionMaterial;
+            public Material         applyDistortionMaterial;
             public TextureHandle    colorPyramidBuffer;
             public TextureHandle    distortionBuffer;
             public TextureHandle    colorBuffer;
             public TextureHandle    depthStencilBuffer;
-            public Vector4                      size;
+            public Vector4          size;
         }
 
         void RenderDistortion(  RenderGraph     renderGraph,

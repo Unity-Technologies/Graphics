@@ -158,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphLogger                   m_Logger = new RenderGraphLogger();
         RenderGraphDefaultResources         m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler>   m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
+        bool                                m_ExecutionExceptionWasRaised;
 
         // Compiled Render Graph info.
         DynamicArray<CompiledResourceInfo>  m_CompiledTextureInfos = new DynamicArray<CompiledResourceInfo>();
@@ -334,6 +335,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="parameters">Render Graph execution parameters.</param>
         public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
         {
+            m_ExecutionExceptionWasRaised = false;
+
             try
             {
                 m_Logger.Initialize();
@@ -348,6 +351,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             catch (Exception e)
             {
+                m_ExecutionExceptionWasRaised = true;
                 Debug.LogError("Render Graph Execution error");
                 Debug.LogException(e);
             }
@@ -373,7 +377,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void ClearCompiledGraph()
         {
             ClearRenderPasses();
-            m_Resources.Clear();
+            m_Resources.Clear(m_ExecutionExceptionWasRaised);
             m_DefaultResources.Clear();
             m_RendererLists.Clear();
             m_CompiledBufferInfos.Clear();
@@ -675,15 +679,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", passInfo.pass.name));
                 }
 
-                using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
+                try
                 {
-                    LogRenderPassBegin(passInfo);
-                    using (new RenderGraphLogIndent(m_Logger))
+                    using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
                     {
-                        PreRenderPassExecute(passInfo, ref rgContext);
-                        passInfo.pass.Execute(rgContext);
-                        PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                        LogRenderPassBegin(passInfo);
+                        using (new RenderGraphLogIndent(m_Logger))
+                        {
+                            PreRenderPassExecute(passInfo, ref rgContext);
+                            passInfo.pass.Execute(rgContext);
+                            PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    m_ExecutionExceptionWasRaised = true;
+                    Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
+                    Debug.LogException(e);
                 }
             }
         }
