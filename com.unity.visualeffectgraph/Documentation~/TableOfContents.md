@@ -33,6 +33,10 @@
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
+    * Color
+      * [Color Luma](Operator-ColorLuma.md)
+      * [HSV to RGB](Operator-HSVToRGB.md)
+      * [RBG to HSV](Operator-RGBToHSV.md)
     * Logic
       * [And](Operator-LogicAnd.md)
       * [Compare](Operator-Compare.md)
