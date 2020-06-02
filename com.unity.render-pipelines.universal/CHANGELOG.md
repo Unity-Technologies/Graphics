@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Optimized the 2D Renderer to skip rendering into certain internal buffers when not necessary.
 
 ### Fixed
+- Fixed an issue with the editor where pausing during play mode causes the Scene View to be greyed out [case 1241239](https://issuetracker.unity3d.com/issues/urp-scene-window-is-rendered-gray-and-game-window-is-rendered-black-when-using-xr-plugin-management-and-universal-rp-7-dot-3-1)
 - Fixed an issue with shadows not appearing on terrains when no cascades were selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings)
 - Fixed issue that caused the QualitySettings anti-aliasing changing without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction)
 - Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
