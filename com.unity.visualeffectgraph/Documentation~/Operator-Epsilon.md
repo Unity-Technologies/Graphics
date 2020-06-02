@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Math > Constants > Epsilon (Ɛ)**  
 
-The **Epsilon (Ɛ)** Operator returns a tiny value. This value is the smallest possible positive number the float type can support. This is useful for comparisons.
+The Epsilon (Ɛ) operator returns a tiny value. This is useful for comparisons as it can help to avoid potential precision issues with floats.
 
 ## Operator properties
 
