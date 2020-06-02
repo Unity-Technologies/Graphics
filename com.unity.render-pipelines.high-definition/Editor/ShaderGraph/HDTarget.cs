@@ -327,7 +327,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
-            return scriptableRenderPipeline.GetType() == typeof(HDRenderPipelineAsset);
+            return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
         }
     }
 

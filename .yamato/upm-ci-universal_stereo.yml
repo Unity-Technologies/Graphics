@@ -17,8 +17,8 @@ platforms:
 testplatforms:
   - name: Standalone
     args: --suite=playmode --platform=Standalone
-  - name: playmode
-    args: --suite=playmode
+  # - name: playmode
+  #   args: --suite=playmode
   - name: editmode
     args: --suite=editor --platform=editmode
 projects:

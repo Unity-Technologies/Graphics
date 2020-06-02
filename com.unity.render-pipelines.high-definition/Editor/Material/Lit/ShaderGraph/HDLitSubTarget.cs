@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -84,7 +84,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
 
             context.AddField(HDFields.EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
+            context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(HDFields.ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
             context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);
         }
@@ -99,7 +100,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);

@@ -35,6 +35,7 @@ Material:
   - MOTIONVECTORS
   - TransparentBackface
   - RayTracingPrepass
+  - TransparentDepthPostpass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -73,6 +74,8 @@ Material:
     - _SurfaceType: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
