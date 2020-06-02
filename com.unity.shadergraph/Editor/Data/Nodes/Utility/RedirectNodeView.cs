@@ -129,6 +129,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = contentContainer.Q("top")?.Query<ShaderPort>().Where(p => p.slot.slotReference.Equals(slot)).First();
+            return port != null;
+        }
+
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
         {
             ClearMessage();

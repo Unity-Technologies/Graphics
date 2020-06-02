@@ -136,7 +136,7 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 // color is current screen color
 // color of the font to use
 // direction is 1 or -1 and indicate fixedUnormCoord block shift
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction, int fontTextScaleWidth)
 {
     // Are we inside a font display block on the screen ?
     uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
@@ -151,15 +151,20 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
         // normalized coordinate
         float2 normTexCoord = float2(unormTexCoord) / float2(DEBUG_FONT_TEXT_WIDTH * DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_HEIGHT * DEBUG_FONT_TEXT_COUNT_Y);
 
-        #if UNITY_UV_STARTS_AT_TOP
+#if UNITY_UV_STARTS_AT_TOP
         normTexCoord.y = 1.0 - normTexCoord.y;
-        #endif
+#endif
 
         float charColor = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_point_clamp_sampler, normTexCoord, 0).r;
         color = color * (1.0 - charColor) + charColor * fontColor;
     }
 
-    fixedUnormCoord.x += DEBUG_FONT_TEXT_SCALE_WIDTH * direction;
+    fixedUnormCoord.x += fontTextScaleWidth * direction;
+}
+
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+{
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, direction, DEBUG_FONT_TEXT_SCALE_WIDTH);
 }
 
 // Shortcut to not have to file direction

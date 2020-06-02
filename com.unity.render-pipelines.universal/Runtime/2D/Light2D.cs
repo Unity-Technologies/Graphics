@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bool inCurrentPrefabStage = true;
 #if UNITY_EDITOR
                     // If we found the first global light in our prefab stage
-                    inCurrentPrefabStage = PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage();
+                    inCurrentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
 #endif
 
                     if (inCurrentPrefabStage)
@@ -409,12 +409,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal bool IsLightVisible(Camera camera)
         {
-            bool isVisible = (Light2DManager.cullingGroup == null || Light2DManager.cullingGroup.IsVisible(m_LightCullingIndex)) && isActiveAndEnabled;
+            if (!isActiveAndEnabled)
+                return false;
+
+            if ((camera.cullingMask & (1 << gameObject.layer)) == 0)
+                return false;
+
+            if (Light2DManager.cullingGroup != null && !Light2DManager.cullingGroup.IsVisible(m_LightCullingIndex))
+                return false;
 
 #if UNITY_EDITOR
-            isVisible &= UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera);
+            if (!UnityEditor.SceneManagement.StageUtility.IsGameObjectRenderedByCamera(gameObject, camera))
+                return false;
 #endif
-            return isVisible;
+            return true;
         }
 
         internal void ErrorIfDuplicateGlobalLight()
