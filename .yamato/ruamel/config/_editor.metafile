@@ -1,0 +1,25 @@
+platforms:
+  # Exhaustive list of operating systems and editor components used by all jobs so the preparation jobs
+  # can make sure all editors are cached on cheap vms before starting the heavy duty machines for running tests
+  - os: macos
+    components:
+      - editor
+      - il2cpp
+  - os: android
+    components:
+      - editor
+      - il2cpp
+      - android
+  - os: windows
+    components:
+      - editor
+      - il2cpp
+  - os: linux
+    components:
+      - editor
+      - il2cpp
+  - os: ios
+    components:
+      - editor
+      - iOS
+agent: cds_ops_ubuntu_small

@@ -32,6 +32,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
 
+        /// <summary>
+        /// Equals Override.
+        /// </summary>
+        /// <param name="obj">Other handle to test against.</param>
+        /// <returns>True if both handle are equals.</returns>
+        public override bool Equals(System.Object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                TextureHandle texture = (TextureHandle)obj;
+                return texture.handle == handle && texture.m_IsValid == m_IsValid;
+            }
+        }
+
+        /// <summary>
+        /// GetHashCode override.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return (handle << 2) ^ (m_IsValid ? 333 : 444);
+        }
     }
 
     /// <summary>
@@ -339,11 +366,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal struct ComputeBufferResource
         {
-            public ComputeBuffer computeBuffer;
+            public ComputeBuffer    computeBuffer;
+            public bool             imported;
 
-            internal ComputeBufferResource(ComputeBuffer computeBuffer)
+            internal ComputeBufferResource(ComputeBuffer computeBuffer, bool imported)
             {
                 this.computeBuffer = computeBuffer;
+                this.imported = imported;
             }
         }
         #endregion
@@ -488,8 +517,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
-            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer));
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer, imported: true));
             return new ComputeBufferHandle(newHandle);
+        }
+
+        internal bool IsComputeBufferImported(ComputeBufferHandle handle)
+        {
+            return handle.IsValid() ? GetComputeBufferResource(handle).imported : false;
         }
 
         internal int GetComputeBufferResourceCount()
