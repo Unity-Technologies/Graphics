@@ -549,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Controls the distance the shadows are cast.
+        /// Controls the maximum distance at which shadows are visible.
         /// </summary>
         public float shadowDistance
         {
