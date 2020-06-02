@@ -23,8 +23,12 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
-        [Tooltip("")]
+        [Tooltip("Skip the smallest bloom pyramid steps.")]
+#if UNITY_ANDROID || UNITY_IOS
         public ClampedIntParameter skipIterations = new ClampedIntParameter(2, 0, 16);
+#else
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(0, 0, 16);
+#endif
 
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
