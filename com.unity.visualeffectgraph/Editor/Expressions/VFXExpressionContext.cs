@@ -108,39 +108,41 @@ namespace UnityEditor.VFX
 
             private static VFXExpression PatchVFXExpression(VFXExpression input, VFXExpression sourceExpression, bool insertGPUTransformation, bool patchReadAttributeForSpawn, IEnumerable<VFXLayoutElementDesc> globalEventAttribute)
             {
-                //TODOPAUL : Unify with switch case
-                if (exp.valueType == VFXValueType.Mesh)
-                {
-                    if (sourceExpression == null)
-                    {
-                        //Actually possible if not used within the graph but exposed, TODOPAUL : improve this test
-                        //throw new InvalidOperationException("VFXValueType.Mesh cannot be an end expression, we can't determine usage.");
-                        return exp;
-                    }
-
-                    if (    sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat
-                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat2
-                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat3
-                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat4
-                        ||  sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexColor)
-                        return new VFXExpressionVertexBufferFromMesh(exp, sourceExpression.parents[2] /* channelFormatAndDimensionAndStream */);
-
-                    if (sourceExpression.operation == VFXExpressionOperation.SampleMeshIndex)
-                        return new VFXExpressionIndexBufferFromMesh(exp);
-
-                    throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression.operation);
-                }
-
-                if (exp.valueType == VFXValueType.SkinnedMeshRenderer)
-                {
-                    if (sourceExpression == null)
-                    {
-                    //TODOPAUL : Test actual source expression type
-                    return new VFXExpressionVertexBufferFromSkinnedMeshRenderer(exp, sourceExpression.parents[2] /* channelFormatAndDimensionAndStreamIndex */);
-                }
-
                 if (insertGPUTransformation)
                 {
+                    //TODOPAUL : Unify with switch case (has been merge successfully with read attribute \o/)
+                    if (input.valueType == VFXValueType.Mesh)
+                    {
+                        if (sourceExpression == null)
+                        {
+                            //Actually possible if not used within the graph but exposed, TODOPAUL : improve this test
+                            //throw new InvalidOperationException("VFXValueType.Mesh cannot be an end expression, we can't determine usage.");
+                            return input;
+                        }
+
+                        if (sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat
+                            || sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat2
+                            || sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat3
+                            || sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexFloat4
+                            || sourceExpression.operation == VFXExpressionOperation.SampleMeshVertexColor)
+                            return new VFXExpressionVertexBufferFromMesh(input, sourceExpression.parents[2] /* channelFormatAndDimensionAndStream */);
+
+                        if (sourceExpression.operation == VFXExpressionOperation.SampleMeshIndex)
+                            return new VFXExpressionIndexBufferFromMesh(input);
+
+                        throw new InvalidOperationException("Unexpected source operation for InsertGPUTransformation : " + sourceExpression.operation);
+                    }
+
+                    if (input.valueType == VFXValueType.SkinnedMeshRenderer)
+                    {
+                        if (sourceExpression == null)
+                        {
+                            return input;
+                        }
+                        //TODOPAUL : Test actual source expression type
+                        return new VFXExpressionVertexBufferFromSkinnedMeshRenderer(input, sourceExpression.parents[2] /* channelFormatAndDimensionAndStreamIndex */);
+                    }
+
                     switch (input.valueType)
                     {
                         case VFXValueType.ColorGradient:
@@ -183,7 +185,9 @@ namespace UnityEditor.VFX
                     var parents = expression.parents.Select(e =>
                     {
                         var parent = Compile(e);
-                        bool currentGPUTransformation = gpuTransformation && expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU) && !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
+                        bool currentGPUTransformation =     gpuTransformation
+                                                        &&  expression.IsAny(VFXExpression.Flags.NotCompilableOnCPU)
+                                                        &&  !parent.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
                         parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                         return parent;
                     }).ToArray();
