@@ -32,12 +32,6 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
             s_Window.Show();
         }
 
-        void Update()
-        {
-            // This ensures that layer thumbnails are updated every frame (for video layers)
-            Repaint();
-        }
-
         void OnGUI()
         {
             CompositionManager compositor = CompositionManager.GetInstance();
