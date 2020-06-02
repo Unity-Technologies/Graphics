@@ -13,13 +13,6 @@ MonoBehaviour:
   m_Name: TestCaseFilters
   m_EditorClassIdentifier: 
   filters:
-  - FilteredScene: {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 4
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android: Baking issue: scene 017'
   - FilteredScene: {fileID: 102900000, guid: 7a8ef7ce062f0465b9e493dd5730cecb, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
