@@ -17,6 +17,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     class LitSurfaceOptionPropertyBlock : SurfaceOptionPropertyBlock
     {
         HDLitData litData;
+    
+        class Styles
+        {
+            public static GUIContent enableClearCoat = new GUIContent("Clear Coat", "Enable Clear Coat");
+        }
 
         public LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features features, HDLitData litData) : base(features)
             => this.litData = litData;
@@ -34,6 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             base.CreatePropertyGUI();
 
+            AddProperty(Styles.enableClearCoat, () => litData.clearCoat, (newValue) => litData.clearCoat = newValue);
             AddProperty(transmissionEnableText, () => litData.sssTransmission, (newValue) => litData.sssTransmission = newValue);
             AddProperty(refractionModelText, () => litData.refractionModel, (newValue) => litData.refractionModel = newValue);
             AddProperty(energyConservingSpecularColorText, () => litData.energyConservingSpecular, (newValue) => litData.energyConservingSpecular = newValue);
