@@ -17,7 +17,8 @@ void ClosestHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload,
     rayIntersection.t = RayTCurrent();
 
     // Compute the velocity of the itnersection
-    float3 previousPositionWS = TransformPreviousObjectToWorld(currentVertex.positionOS);
+    float3 positionOS = mul(WorldToObject3x4(), float4(fragInput.positionRWS, 1.0)).xyz - _WorldSpaceCameraPos;
+    float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
     rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
 }
 
@@ -50,7 +51,8 @@ void AnyHitVisibility(inout RayIntersection rayIntersection : SV_RayPayload, Att
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
 #if defined(TRANSPARENT_COLOR_SHADOW) && defined(_SURFACE_TYPE_TRANSPARENT)
     // Compute the velocity of the itnersection
-    float3 previousPositionWS = TransformPreviousObjectToWorld(currentVertex.positionOS);
+    float3 positionOS = mul(WorldToObject3x4(), float4(fragInput.positionRWS, 1.0)).xyz - _WorldSpaceCameraPos;
+    float3 previousPositionWS = TransformPreviousObjectToWorld(positionOS);
     rayIntersection.velocity = saturate(length(previousPositionWS - fragInput.positionRWS));
     
     #if HAS_REFRACTION

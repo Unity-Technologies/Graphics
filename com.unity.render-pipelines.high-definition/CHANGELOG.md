@@ -131,6 +131,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added a minimal lit used for RTGI in peformance mode.
+- Dispatch binned rays in 1D instead of 2D.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -628,6 +630,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 - Fixed a bug where the light list is not cleared but still used when resizing the RT.
 - Fixed exposure debug shader with XR single-pass rendering.
+- Fix an issue with the half resolution Mode (performance)
+- Fix an issue with the color intensity of emissive for performance rtgi
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -761,6 +765,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed default exposure compensation to 0.
 - Refactored shadow caching system.
 - Removed experimental namespace for ray tracing code.
+- Only read the geometric attributes that are required using the share pass info and shader graph defines.
 
 ## [7.1.1] - 2019-09-05
 

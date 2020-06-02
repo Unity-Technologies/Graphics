@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.layerMask.value = (int)RayTracingRendererFlag.GlobalIllumination;
             deferredParameters.diffuseLightingOnly = true;
 
-            deferredParameters.halfResolution = false;
+            deferredParameters.halfResolution = !settings.fullResolution.value;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
 
             // Camera data
@@ -184,8 +184,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(indirectDiffuseCS, currentKernel, HDShaderIDs._RaytracingDirectionBuffer, directionBuffer);
 
                 // Texture dimensions
-                int texWidth = hdCamera.actualWidth;
-                int texHeight = hdCamera.actualHeight;
+                int texWidth = settings.fullResolution.value ? hdCamera.actualWidth : hdCamera.actualWidth / 2;
+                int texHeight = settings.fullResolution.value ? hdCamera.actualHeight : hdCamera.actualHeight / 2;
 
                 // Evaluate the dispatch parameters
                 int areaTileSize = 8;

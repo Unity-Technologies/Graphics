@@ -227,7 +227,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     else
     {
         // Otherwise we compute the accumulation factor
-        accumulationFactor = sampleCount > 8.0 ? 1.0 : (sampleCount / (sampleCount + 1.0));
+        accumulationFactor = sampleCount >= 8.0 ? 0.97: (sampleCount / (sampleCount + 1.0));
         // Update the sample count
         sampleCount = min(sampleCount + 1.0, 8.0);
     }
