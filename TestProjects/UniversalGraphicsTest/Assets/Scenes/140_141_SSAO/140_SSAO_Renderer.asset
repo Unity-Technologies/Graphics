@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: 140_SSAO_Renderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
-  - {fileID: 3581320469752220409}
-  m_RendererFeatureMap: f98a6a1afe67b331
+  - {fileID: 3450427422973968531}
+  m_RendererFeatureMap: 9340a1c57561e22f
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   shaders:
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
@@ -37,7 +37,7 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
---- !u!114 &3581320469752220409
+--- !u!114 &3450427422973968531
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -50,13 +50,12 @@ MonoBehaviour:
   m_Name: SSAO
   m_EditorClassIdentifier: 
   m_Active: 1
+  shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
   settings:
-    Shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
-    Quality: 0
-    Params:
-      Downsample: 1
-      NormalSamples: 1
-      Intensity: 1
-      Radius: 0.1
-      SampleCount: 7
-      BlurPasses: 3
+    Downsample: 0
+    NormalSamples: 2
+    Intensity: 3
+    DirectLightingStrength: 0.5
+    Radius: 0.05
+    SampleCount: 12
+    BlurPasses: 2

@@ -374,10 +374,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        occlusion = min(occlusion, SampleScreenSpaceOcclusionTexture(IN.clipPos));
-    #endif
-
     half alpha = weight;
 #endif
 
@@ -404,7 +400,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
 
 #else
 
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, /* specular */ half3(0.0h, 0.0h, 0.0h), smoothness, occlusion, /* emission */ half3(0, 0, 0), alpha, IN.clipPos);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 

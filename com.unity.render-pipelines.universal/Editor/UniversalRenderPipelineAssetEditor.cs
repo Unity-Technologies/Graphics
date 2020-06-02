@@ -86,26 +86,6 @@ namespace UnityEditor.Rendering.Universal
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
-        private struct SSAOSerializedProperties
-        {
-            public SerializedProperty Downsample;
-            public SerializedProperty NormalSamples;
-            public SerializedProperty Intensity;
-            public SerializedProperty Radius;
-            public SerializedProperty SampleCount;
-            public SerializedProperty BlurPasses;
-
-            public SSAOSerializedProperties(SerializedProperty root)
-            {
-                Downsample = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.Downsample);
-                NormalSamples = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.NormalSamples);
-                Intensity = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.Intensity);
-                Radius = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.Radius);
-                SampleCount = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.SampleCount);
-                BlurPasses = root.Find((ScreenSpaceAmbientOcclusion.Parameters p) => p.BlurPasses);
-            }
-        }
-
         SavedBool m_GeneralSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
@@ -140,10 +120,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightShadowsSupportedProp;
         SerializedProperty m_AdditionalLightShadowmapResolutionProp;
 
-        SSAOSerializedProperties m_SSAOPropertiesLow;
-        SSAOSerializedProperties m_SSAOPropertiesMedium;
-        SSAOSerializedProperties m_SSAOPropertiesHigh;
-
         SerializedProperty m_ShadowDistanceProp;
         SerializedProperty m_ShadowCascadesProp;
         SerializedProperty m_ShadowCascade2SplitProp;
@@ -171,7 +147,6 @@ namespace UnityEditor.Rendering.Universal
             DrawGeneralSettings();
             DrawQualitySettings();
             DrawLightingSettings();
-            DrawLightingQualitySettings();
             DrawShadowSettings();
             DrawPostProcessingSettings();
             DrawAdvancedSettings();
@@ -216,10 +191,6 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightsPerObjectLimitProp = serializedObject.FindProperty("m_AdditionalLightsPerObjectLimit");
             m_AdditionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
             m_AdditionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
-
-            m_SSAOPropertiesLow = new SSAOSerializedProperties(serializedObject.FindProperty("m_SSAOParametersLow"));
-            m_SSAOPropertiesMedium = new SSAOSerializedProperties(serializedObject.FindProperty("m_SSAOParametersMedium"));
-            m_SSAOPropertiesHigh = new SSAOSerializedProperties(serializedObject.FindProperty("m_SSAOParametersHigh"));
 
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
@@ -350,55 +321,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawLightingQualitySettings()
-        {
-            m_LightingQualitySettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_LightingQualitySettingsFoldout.value, Styles.lightingQualitySettingsText);
-            if (m_LightingQualitySettingsFoldout.value)
-            {
-                EditorGUI.indentLevel++;
-
-                // Screen Space Ambient Occlusion
-                m_LightingQualitySettingsShowSSAOFoldout.value = EditorGUILayout.Foldout(m_LightingQualitySettingsShowSSAOFoldout.value, ScreenSpaceAmbientOcclusionEditor.Styles.ScreenSpaceAmbientOcclusion);
-                if (m_LightingQualitySettingsShowSSAOFoldout.value)
-                {
-                    EditorGUI.indentLevel++;
-                    DrawSSAOQualitySetting(m_LightingQualitySettingsShowSSAOLowFoldout, ScreenSpaceAmbientOcclusionEditor.Styles.LowQuality, m_SSAOPropertiesLow);
-                    DrawSSAOQualitySetting(m_LightingQualitySettingsShowSSAOMediumFoldout, ScreenSpaceAmbientOcclusionEditor.Styles.MediumQuality, m_SSAOPropertiesMedium);
-                    DrawSSAOQualitySetting(m_LightingQualitySettingsShowSSAOHighFoldout, ScreenSpaceAmbientOcclusionEditor.Styles.HighQuality, m_SSAOPropertiesHigh);
-                    EditorGUI.indentLevel--;
-
-                    EditorGUILayout.Space();
-                    EditorGUILayout.Space();
-                }
-
-                EditorGUI.indentLevel--;
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        void DrawSSAOQualitySetting(SavedBool foldout, GUIContent foldoutStyle, SSAOSerializedProperties properties)
-        {
-            foldout.value = EditorGUILayout.Foldout(foldout.value, foldoutStyle);
-            if (!foldout.value)
-            {
-                return;
-            }
-
-            float currentLabelWidth = EditorGUIUtility.labelWidth;
-            EditorGUI.indentLevel++;
-            EditorGUIUtility.labelWidth = 140f;
-
-            EditorGUILayout.PropertyField(properties.Downsample, ScreenSpaceAmbientOcclusionEditor.Styles.Downsample);
-            EditorGUILayout.PropertyField(properties.NormalSamples, ScreenSpaceAmbientOcclusionEditor.Styles.NormalSamples);
-            EditorGUILayout.Slider(properties.Intensity, ScreenSpaceAmbientOcclusion.k_IntensityMin, ScreenSpaceAmbientOcclusion.k_IntensityMax, ScreenSpaceAmbientOcclusionEditor.Styles.Intensity);
-            EditorGUILayout.Slider(properties.Radius, ScreenSpaceAmbientOcclusion.k_RadiusMin, ScreenSpaceAmbientOcclusion.k_RadiusMax, ScreenSpaceAmbientOcclusionEditor.Styles.Radius);
-            EditorGUILayout.IntSlider(properties.SampleCount, ScreenSpaceAmbientOcclusion.k_SampleCountMin, ScreenSpaceAmbientOcclusion.k_SampleCountMax, ScreenSpaceAmbientOcclusionEditor.Styles.SampleCount);
-            EditorGUILayout.IntSlider(properties.BlurPasses, ScreenSpaceAmbientOcclusion.k_BlurPassesMin, ScreenSpaceAmbientOcclusion.k_BlurPassesMax, ScreenSpaceAmbientOcclusionEditor.Styles.BlurPasses);
-
-            EditorGUIUtility.labelWidth = currentLabelWidth;
-            EditorGUI.indentLevel--;
         }
 
         void DrawShadowSettings()

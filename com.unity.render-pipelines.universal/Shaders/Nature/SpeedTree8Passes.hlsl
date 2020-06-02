@@ -387,7 +387,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
     InitializeBRDFData(albedo, metallic, specular, smoothness, alpha, brdfData);
-    
+
     Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
@@ -398,7 +398,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
     return BRDFDataToGbuffer(brdfData, inputData, smoothness, emission + color);
 
 #else
-    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    half4 color = UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha, input.interpolated.clipPos);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 

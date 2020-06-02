@@ -141,12 +141,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     InputData inputData;
     InitializeInputData(input, normalTS, inputData);
 
-    half occlusion = 1.0;
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        occlusion = SampleScreenSpaceOcclusionTexture(input.positionCS);
-    #endif
-
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha, occlusion);
+    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha, input.positionCS);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     color.a = OutputAlpha(color.a);
 

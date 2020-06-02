@@ -51,10 +51,6 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        surfaceDescription.Occlusion = min(SampleScreenSpaceOcclusionTexture(unpacked.positionCS), surfaceDescription.Occlusion);
-    #endif
-
     #if _AlphaClip
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
@@ -78,7 +74,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 			surfaceDescription.Smoothness,
 			surfaceDescription.Occlusion,
 			surfaceDescription.Emission,
-			surfaceDescription.Alpha);
+			surfaceDescription.Alpha,
+			unpacked.positionCS);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;

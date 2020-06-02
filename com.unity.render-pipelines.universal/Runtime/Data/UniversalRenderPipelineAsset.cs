@@ -143,11 +143,6 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_AdditionalLightShadowsSupported = false;
         [SerializeField] ShadowResolution m_AdditionalLightsShadowmapResolution = ShadowResolution._512;
 
-        // Lighting Quality Settings
-        [SerializeField] ScreenSpaceAmbientOcclusion.Parameters m_SSAOParametersLow = new ScreenSpaceAmbientOcclusion.Parameters(ScreenSpaceAmbientOcclusion.Quality.Low);
-        [SerializeField] ScreenSpaceAmbientOcclusion.Parameters m_SSAOParametersMedium = new ScreenSpaceAmbientOcclusion.Parameters(ScreenSpaceAmbientOcclusion.Quality.Medium);
-        [SerializeField] ScreenSpaceAmbientOcclusion.Parameters m_SSAOParametersHigh = new ScreenSpaceAmbientOcclusion.Parameters(ScreenSpaceAmbientOcclusion.Quality.High);
-
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
@@ -839,25 +834,5 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
-
-        internal ScreenSpaceAmbientOcclusion.Parameters GetSSAOParameters(ScreenSpaceAmbientOcclusion.Quality qualitySetting)
-        {
-            switch (qualitySetting)
-            {
-                case ScreenSpaceAmbientOcclusion.Quality.Low:
-                    return m_SSAOParametersLow;
-                case ScreenSpaceAmbientOcclusion.Quality.Medium:
-                    return m_SSAOParametersMedium;
-                case ScreenSpaceAmbientOcclusion.Quality.High:
-                    return m_SSAOParametersHigh;
-                case ScreenSpaceAmbientOcclusion.Quality.Custom:
-                    Debug.LogWarning("Trying to get settings from Universal Render Pipeline Asset for Custom Screen Space Ambient Occlusion. This is not allowed. Will return medium settings.");
-                    return m_SSAOParametersMedium;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(qualitySetting), qualitySetting, null);
-            }
-        }
-
-
     }
 }

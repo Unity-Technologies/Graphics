@@ -49,6 +49,9 @@ namespace UnityEngine.Rendering.Universal
             m_Active = active;
         }
 
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
