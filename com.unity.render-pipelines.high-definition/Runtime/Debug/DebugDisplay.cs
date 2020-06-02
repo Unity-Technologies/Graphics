@@ -1299,7 +1299,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 displayName = name,
                                 getter = () => {
                                     var value = property.GetValue(param);
-                                    if (value == null)
+                                    if (value == null || value.Equals(null))
                                         return "None";
                                     var valueString = nameProp.GetValue(value);
                                     return valueString == null ? "None" : valueString;
