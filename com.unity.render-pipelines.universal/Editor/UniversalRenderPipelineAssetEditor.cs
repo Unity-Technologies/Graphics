@@ -1,9 +1,8 @@
 using UnityEngine;
-using UnityEditorInternal;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
-using UnityEditor.Experimental.Rendering.Universal;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -16,7 +15,6 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent generalSettingsText = EditorGUIUtility.TrTextContent("General");
             public static GUIContent qualitySettingsText = EditorGUIUtility.TrTextContent("Quality");
             public static GUIContent lightingSettingsText = EditorGUIUtility.TrTextContent("Lighting");
-            public static GUIContent lightingQualitySettingsText = EditorGUIUtility.TrTextContent("Lighting Quality");
             public static GUIContent shadowSettingsText = EditorGUIUtility.TrTextContent("Shadows");
             public static GUIContent postProcessingSettingsText = EditorGUIUtility.TrTextContent("Post-processing");
             public static GUIContent advancedSettingsText = EditorGUIUtility.TrTextContent("Advanced");
@@ -93,11 +91,6 @@ namespace UnityEditor.Rendering.Universal
         SavedBool m_GeneralSettingsFoldout;
         SavedBool m_QualitySettingsFoldout;
         SavedBool m_LightingSettingsFoldout;
-        SavedBool m_LightingQualitySettingsFoldout;
-        SavedBool m_LightingQualitySettingsShowSSAOFoldout;
-        SavedBool m_LightingQualitySettingsShowSSAOLowFoldout;
-        SavedBool m_LightingQualitySettingsShowSSAOMediumFoldout;
-        SavedBool m_LightingQualitySettingsShowSSAOHighFoldout;
         SavedBool m_ShadowSettingsFoldout;
         SavedBool m_PostProcessingSettingsFoldout;
         SavedBool m_AdvancedSettingsFoldout;
@@ -169,11 +162,6 @@ namespace UnityEditor.Rendering.Universal
             m_GeneralSettingsFoldout = new SavedBool($"{target.GetType()}.GeneralSettingsFoldout", false);
             m_QualitySettingsFoldout = new SavedBool($"{target.GetType()}.QualitySettingsFoldout", false);
             m_LightingSettingsFoldout = new SavedBool($"{target.GetType()}.LightingSettingsFoldout", false);
-            m_LightingQualitySettingsFoldout = new SavedBool($"{target.GetType()}.LightingQualitySettingsFoldout", false);
-            m_LightingQualitySettingsShowSSAOFoldout = new SavedBool($"{target.GetType()}.LightingQualitySettingsShowSSAOFoldout", false);
-            m_LightingQualitySettingsShowSSAOLowFoldout = new SavedBool($"{target.GetType()}.LightingQualitySettingsShowSSAOLowFoldout", false);
-            m_LightingQualitySettingsShowSSAOMediumFoldout = new SavedBool($"{target.GetType()}.LightingQualitySettingsShowSSAOMediumFoldout", false);
-            m_LightingQualitySettingsShowSSAOHighFoldout = new SavedBool($"{target.GetType()}.LightingQualitySettingsShowSSAOHighFoldout", false);
             m_ShadowSettingsFoldout = new SavedBool($"{target.GetType()}.ShadowSettingsFoldout", false);
             m_PostProcessingSettingsFoldout = new SavedBool($"{target.GetType()}.PostProcessingSettingsFoldout", false);
             m_AdvancedSettingsFoldout = new SavedBool($"{target.GetType()}.AdvancedSettingsFoldout", false);

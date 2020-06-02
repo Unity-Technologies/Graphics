@@ -46,8 +46,13 @@ namespace UnityEditor.Rendering.Universal
             m_Properties.Add(property.serializedObject);
         }
 
-        private void DrawPropertyFields()
+        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
         {
+            if (!m_Properties.Contains(property.serializedObject))
+            {
+                Init(property);
+            }
+
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
             //EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
@@ -61,16 +66,6 @@ namespace UnityEditor.Rendering.Universal
             m_Radius.floatValue = EditorGUILayout.Slider(Styles.Radius,m_Radius.floatValue, 0f, 10f);
             m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 4, 12);
             m_BlurPasses.intValue = EditorGUILayout.IntSlider(Styles.BlurPasses,m_BlurPasses.intValue, 1, 12);
-        }
-
-        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
-        {
-            if (!m_Properties.Contains(property.serializedObject))
-            {
-                Init(property);
-            }
-
-            DrawPropertyFields();
         }
     }
 }

@@ -4,7 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
 CBUFFER_START(UnityPerMaterial)
 float4 _BaseMap_ST;
@@ -92,20 +91,17 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 
 half SampleOcclusion(float2 uv)
 {
-    half occlusion;
-    #ifdef _OCCLUSIONMAP
-        // TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
-        #if defined(SHADER_API_GLES)
-            occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-        #else
-            occlusion = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
-            occlusion = LerpWhiteTo(occlusion, _OcclusionStrength);
-        #endif
-    #else
-        occlusion = 1.0;
-    #endif
-
-    return occlusion;
+#ifdef _OCCLUSIONMAP
+// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
+#if defined(SHADER_API_GLES)
+    return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+#else
+    half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
+    return LerpWhiteTo(occ, _OcclusionStrength);
+#endif
+#else
+    return 1.0;
+#endif
 }
 
 

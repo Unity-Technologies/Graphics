@@ -813,6 +813,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
         surfaceData.occlusion = min(surfaceData.occlusion, aoFactor.indirectAmbientOcclusion);
     #endif
 
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
                                      inputData.bakedGI, surfaceData.occlusion,
                                      inputData.normalWS, inputData.viewDirectionWS);
@@ -870,6 +871,8 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
         mainLight.color *= aoFactor.directAmbientOcclusion;
         inputData.bakedGI *= aoFactor.indirectAmbientOcclusion;
     #endif
+
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
     half3 attenuatedLightColor = mainLight.color * (mainLight.distanceAttenuation * mainLight.shadowAttenuation);
     half3 diffuseColor = inputData.bakedGI + LightingLambert(attenuatedLightColor, mainLight.direction, inputData.normalWS);
