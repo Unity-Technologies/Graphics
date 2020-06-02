@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     
         class Styles
         {
-            public static GUIContent enableClearCoat = new GUIContent("Enable Clear Coat", "Enable Clear Coat");
+            public static GUIContent enableClearCoat = new GUIContent("Clear Coat", "Enable Clear Coat");
         }
 
         public LitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features features, HDLitData litData) : base(features)
