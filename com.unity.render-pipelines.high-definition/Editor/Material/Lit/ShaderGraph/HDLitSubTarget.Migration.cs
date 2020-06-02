@@ -104,6 +104,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.surfaceType = (SurfaceType)hdLitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdLitMasterNode.m_AlphaMode);
             systemData.renderingPass = hdLitMasterNode.m_RenderingPass;
+            // Patch rendering pass in case the master node had an old configuration
+            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdLitMasterNode.m_AlphaTest;
             systemData.alphaTestDepthPrepass = hdLitMasterNode.m_AlphaTestDepthPrepass;
             systemData.alphaTestDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
