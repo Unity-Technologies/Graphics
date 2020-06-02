@@ -111,9 +111,6 @@ EditorBuildSettings:
     path: Assets/Scenes/046_Camera_OpaqueTexture.unity
     guid: 2614aae0a36c9456b9e20ac481fbda4c
   - enabled: 1
-    path: Assets/Scenes/047_Lighting_DirectionalCascades.unity
-    guid: 4e49334e530744e0eaeaa5e3a7e874ca
-  - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
@@ -257,4 +254,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/130_UnityMatrixIVP.unity
     guid: 716466bc92f8e4eeeb3c138524b04021
+  - enabled: 1
+    path: Assets/Scenes/135_Lighting_Directional0Cascades.unity
+    guid: 9036a4aa14820244895221af46cf183d
+  - enabled: 1
+    path: Assets/Scenes/136_Lighting_Directional2Cascades.unity
+    guid: 9aafcde4c2f432747a62217b17c5f852
+  - enabled: 1
+    path: Assets/Scenes/137_Lighting_Directional3Cascades.unity
+    guid: 86e84abc801299942abee42e2edf5c09
+  - enabled: 1
+    path: Assets/Scenes/138_Lighting_Directional4Cascades.unity
+    guid: 1d3159b5f9baccb4b9244f0d0710b44a
   m_configObjects: {}
