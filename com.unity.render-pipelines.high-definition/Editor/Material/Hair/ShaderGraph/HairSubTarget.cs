@@ -50,13 +50,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             base.GetFields(ref context);
 
+            var descs = context.blocks.Select(x => x.descriptor);
             // Hair specific properties:
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HairSubTarget.HairPasses.MotionVectors));
             context.AddField(HDFields.KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(HDFields.HairStrandDirection,                  context.blocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
-            context.AddField(HDFields.RimTransmissionIntensity,             context.blocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
+            context.AddField(HDFields.HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
+            context.AddField(HDFields.RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
-            context.AddField(HDFields.Transmittance,                        context.blocks.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
+            context.AddField(HDFields.Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
