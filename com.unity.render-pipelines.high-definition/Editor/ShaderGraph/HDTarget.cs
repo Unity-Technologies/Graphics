@@ -121,10 +121,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            var descs = context.blocks.Select(x => x.descriptor);
             // Stages
-            context.AddField(Fields.GraphVertex,                    context.blocks.Contains(BlockFields.VertexDescription.Position) ||
-                                                                    context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
-                                                                    context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphVertex,                    descs.Contains(BlockFields.VertexDescription.Position) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.Normal) ||
+                                                                    descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
 
             // SubTarget
