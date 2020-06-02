@@ -14,7 +14,7 @@
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
-    "com.unity.rendering.hybrid": "0.5.0-preview.6",
+    "com.unity.rendering.hybrid": "0.6.0-preview.6",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.test-framework": "1.1.13",
     "com.unity.test-framework.build": "0.0.1-preview.12",
