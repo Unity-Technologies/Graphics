@@ -355,7 +355,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.31681028008461,"g":0.28125,"b":0.75,"a":1.0},"time":0.3542229235172272},{"color":{"r":0.5099035501480103,"g":0.21604672074317933,"b":0.8161764740943909,"a":1.0},"time":0.5051193833351135},{"color":{"r":0.8382352590560913,"g":0.1725778579711914,"b":0.37916111946105959,"a":1.0},"time":0.6636759042739868},{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":0.2235294133424759,"time":0.0},{"alpha":0.40392157435417178,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.08183997124433518,"g":0.0642959475517273,"b":0.5225216150283814,"a":1.0},"time":0.3542229235172272},{"color":{"r":0.22332248091697694,"g":0.03832658380270004,"b":0.6316099166870117,"a":1.0},"time":0.5051193833351135},{"color":{"r":0.6706751585006714,"g":0.025194520130753518,"b":0.1187288761138916,"a":1.0},"time":0.6636759042739868},{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":0.2235294133424759,"time":0.0},{"alpha":0.40392157435417178,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient
@@ -588,6 +588,7 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_ImportDependencies: []
   m_GraphVersion: 4
+  m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -1918,7 +1919,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.3873225450515747,"g":0.20955881476402284,"b":0.8382352590560913,"a":1.0},"time":0.18286411464214326},{"color":{"r":0.5622391700744629,"g":0.11191609501838684,"b":0.845588207244873,"a":1.0},"time":0.618921160697937},{"color":{"r":0.9632353186607361,"g":0.03541303798556328,"b":0.3233577609062195,"a":1.0},"time":0.8235294222831726},{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":0.12415605038404465,"g":0.03616158664226532,"b":0.6706751585006714,"a":1.0},"time":0.18286411464214326},{"color":{"r":0.2762373685836792,"g":0.011972635984420777,"b":0.6840016841888428,"a":1.0},"time":0.618921160697937},{"color":{"r":0.918395459651947,"g":0.0027409472968429329,"b":0.08534154295921326,"a":1.0},"time":0.8235294222831726},{"color":{"r":0.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient
