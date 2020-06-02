@@ -69,6 +69,11 @@
       * Constants
         * [Epsilon](Operator-Epsilon.md)
         * [Pi](Operator-Pi.md)
+      * Coordinates
+        * [Polar to Rectangular](Operator-PolarToRectangular.md)
+        * [Rectangular to Polar](Operator-RectangularToPolar.md)
+        * [Rectangular to Spherical](Operator-RectangularToSpherical.md)
+        * [Spherical to Rectangular](Operator-SphericalToRectangular.md)
       * Geometry
         * [Area (Circle)](Operator-Area(Circle).md)
         * [Change Space](Operator-ChangeSpace.md)
