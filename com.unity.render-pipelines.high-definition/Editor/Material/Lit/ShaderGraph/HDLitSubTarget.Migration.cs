@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.receiveSSRTransparent = false;
             litData.materialType = pbrMasterNode.m_Model == PBRMasterNode1.Model.Specular ? HDLitData.MaterialType.SpecularColor : HDLitData.MaterialType.Standard;
             litData.energyConservingSpecular = false;
-            litData.coatMask = false;
+            litData.clearCoat = false;
             target.customEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
             systemData.TryChangeRenderingPass(systemData.renderingPass);
             // Handle mapping of Normal block specifically
@@ -138,7 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDLitData.MaterialType materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
             lightingData.subsurfaceScattering = materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
-            litData.coatMask = UpgradeCoatMask(hdLitMasterNode);
+            litData.clearCoat = UpgradeCoatMask(hdLitMasterNode);
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
             litData.rayTracing = hdLitMasterNode.m_RayTracing;
             litData.refractionModel = hdLitMasterNode.m_RefractionModel; 

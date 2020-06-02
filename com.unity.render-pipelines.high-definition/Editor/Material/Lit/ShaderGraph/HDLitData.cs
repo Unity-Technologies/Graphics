@@ -68,11 +68,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_CoatMask = false;
-        public bool coatMask
+        bool m_ClearCoat = false;
+        public bool clearCoat
         {
-            get => m_CoatMask;
-            set => m_CoatMask = value;
+            get => m_ClearCoat;
+            set => m_ClearCoat = value;
         }
     }
 }
