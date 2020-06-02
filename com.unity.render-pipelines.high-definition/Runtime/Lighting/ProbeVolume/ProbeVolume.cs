@@ -757,22 +757,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var sh = new NativeArray<SphericalHarmonicsL2>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             var validity = new NativeArray<float>(numProbes, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-
-            bool bakeIsSuccessful = false;
-            NativeArray<float> octahedralDepth;
-            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
-            {
-                octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                bakeIsSuccessful = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth);
-            }
-            else
-            {
-                // Suppress octahedralDepth uninitialized warnings.
-                octahedralDepth = new NativeArray<float>(0, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
-                bakeIsSuccessful = UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity);
-            }
             
-            if(bakeIsSuccessful)
+            // TODO: Currently, we need to always allocate and pass this octahedralDepth array into GetAdditionalBakedProbes().
+            // In the future, we should add an API call for GetAdditionalBakedProbes() without octahedralDepth required.
+            var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            
+            if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
             {
                 if (!probeVolumeAsset || GetID() != probeVolumeAsset.instanceID)
                     probeVolumeAsset = ProbeVolumeAsset.CreateAsset(GetID());
@@ -887,7 +877,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             sh.Dispose();
             validity.Dispose();
-            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth) { octahedralDepth.Dispose(); }
+            octahedralDepth.Dispose();
         }
 
         internal void OnBakeCompleted()
