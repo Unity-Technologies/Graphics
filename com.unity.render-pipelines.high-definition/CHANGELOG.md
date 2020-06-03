@@ -629,6 +629,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the light list is not cleared but still used when resizing the RT.
 - Fixed exposure debug shader with XR single-pass rendering.
 - Fixed issues with scene view and transparent motion vectors.
+- Fixed a vulkan and metal warning in the SSGI compute shader.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
