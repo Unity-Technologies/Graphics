@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            var descs = context.blocks.Select(x => x.descriptor);
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
             context.AddField(Fields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
@@ -73,9 +74,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
             context.AddField(Fields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
             context.AddField(Fields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
-            context.AddField(Fields.Normal,              context.blocks.Contains(BlockFields.SurfaceDescription.NormalOS) ||
-                                                         context.blocks.Contains(BlockFields.SurfaceDescription.NormalTS) ||
-                                                         context.blocks.Contains(BlockFields.SurfaceDescription.NormalWS));
+            context.AddField(Fields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+                                                         descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
+                                                         descs.Contains(BlockFields.SurfaceDescription.NormalWS));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

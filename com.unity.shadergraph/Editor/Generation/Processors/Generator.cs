@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<BlockFieldDescriptor> blocks, List<BlockFieldDescriptor> connectedBlocks, Target target)
+        public ActiveFields GatherActiveFieldsFromNode(AbstractMaterialNode outputNode, PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks, List<BlockFieldDescriptor> connectedBlocks, Target target)
         {
             var activeFields = new ActiveFields();
             if(outputNode == null)
@@ -188,7 +188,7 @@ namespace UnityEditor.ShaderGraph
                 GenerationUtils.GenerateSubShaderTags(m_Targets[targetIndex], descriptor, m_Builder);
 
                 // Get block descriptor list here as we will add temporary blocks to m_Blocks during pass evaluations
-                var currentBlockDescriptors = m_Blocks.Select(x => x.descriptor).ToList();
+                List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> currentBlockDescriptors = m_Blocks.Select(x => (x.descriptor, x.GetInputSlots<MaterialSlot>().FirstOrDefault().isDefaultValue)).ToList();
                 var connectedBlockDescriptors = m_Blocks.Where(x => x.IsSlotConnected(0)).Select(x => x.descriptor).ToList();
 
                 foreach(PassCollection.Item pass in descriptor.passes)
@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph
 
                     // Check masternode fields for valid passes
                     if(pass.TestActive(activeFields))
-                        GenerateShaderPass(targetIndex, pass.descriptor, activeFields, currentBlockDescriptors);
+                        GenerateShaderPass(targetIndex, pass.descriptor, activeFields, currentBlockDescriptors.Select(x => x.descriptor).ToList());
                 }
             }
         }
