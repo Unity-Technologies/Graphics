@@ -351,7 +351,7 @@ float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool i
     return adjustedPathRoughness;
 }
 
-float ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, float value)
+float3 ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, float3 value)
 {
 #if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
     // Apply absorption on rays below the interface, using Beer-Lambert's law
