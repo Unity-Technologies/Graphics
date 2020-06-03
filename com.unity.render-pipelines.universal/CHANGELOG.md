@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
 - Added option to enable/disable Adaptive Performance when it's package is available.
+- Added deferred renderer asset.
 
 ### Changed
 
