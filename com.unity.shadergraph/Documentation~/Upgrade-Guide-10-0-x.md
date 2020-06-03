@@ -1,8 +1,8 @@
-# Upgrading to version 10.0.x of Shader Graph
+# Upgrading to version 9.0.x of Shader Graph
 
 ## Master Stack Graph Output
 
-Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack) solution for graph output definition in 10.0. All graphs created in previous versions of Shader Graph can be opened and upgraded automatically in 10.0. See below for expected behavior and manual upgrade suggestions.
+Shader Graph has removed the Master Nodes and introduced a more flexible [Master Stack](Master-Stack) solution for graph output definition in 9.0. All graphs created in previous versions of Shader Graph can be opened and upgraded automatically in 9.0. See below for expected behavior and manual upgrade suggestions.
 
 ### Automatic Upgrade from One Master Node to the Master Stack 
 If your graph only has one Master Node present, all of the data from that Master Node is automatically upgraded to the [Master Stack](Master-Stack) output. The following behavior is expected: 
@@ -27,12 +27,12 @@ In High Definition, the settings from the PBR and Unlit Master Nodes are not the
 
 ### “View Generated Shader” has moved 
 Previously, users could preview the generated shader by right clicking the Master Node and selecting “View Generated Shader” from the context menu. 
-In 10.0, users can now find the “View Generated Shader” button on the Shader Graph Asset via the Unity Inspector. 
+In 9.0, users can now find the “View Generated Shader” button on the Shader Graph Asset via the Unity Inspector. 
 
 ![image](images/GeneratedShaderButton.png)
 
 ## Settings in Graph Inspector 
-Shader Graph has introduced an internal [Graph Inspector](Internal-Inspector) in 10.0. It is a floating window to display settings related to selected objects in the graph. 
+Shader Graph has introduced an internal [Graph Inspector](Internal-Inspector) in 9.0. It is a floating window to display settings related to selected objects in the graph. 
 
 ### Graph Settings
 Graph-wide settings are now available in the Graph Settings tab of the [Graph Inspector](Internal-Inspector). 
