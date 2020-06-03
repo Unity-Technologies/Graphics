@@ -18,7 +18,7 @@ This Operator also has an empty input that you can link to add a new input.
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The first input raised to the power of subsequent inputs. The **Type** changes to match the largest vector type of the Operator's inputs. |
+| **Out**    | Dependent | The first input raised to the power of subsequent inputs.<br/>The **Type** changes to match the largest vector type of the Operator's inputs. |
 
 ## Operator configuration
 

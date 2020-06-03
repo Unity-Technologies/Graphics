@@ -13,7 +13,7 @@ Note that every random number this Operator generates also depends on the global
 | **Property** | **Type** | **Description**                                              |
 | ------------ | -------- | ------------------------------------------------------------ |
 | **Seed**     | Enum     | Defines the scope of the random number. The options are: <br/>&#8226;**Per Particle**: The Operator generates a different number every time.<br/>&#8226;**Per Component**: The Operator generates a random number every frame and uses it for every particle in the same component.<br/>&#8226;**Per Particle Strip**: The Operator generates the same number every time based on the value in the **Seed** input port. If you use this option, the Operator implicitly enables **Constant** and does not allow you to disable it. |
-| **Constant** | boolean  | Specifies whether the generated random number is constant or not.When enabled, the Operator generates the same number every time based on the **Seed** Operator property.<br/>This setting only appears if you set **Seed** to **Per Particle** or **Per Component**. If you set **Seed** to **Per Particle Strip**, the Operator implicitly enables this setting and does not allow you to disable it. |
+| **Constant** | boolean  | Specifies whether the generated random number is constant or not.<br/>When enabled, the Operator generates the same number every time based on the **Seed** Operator property.<br/>This setting only appears if you set **Seed** to **Per Particle** or **Per Component**. If you set **Seed** to **Per Particle Strip**, the Operator implicitly enables this setting and does not allow you to disable it. |
 
 ## Operator properties
 

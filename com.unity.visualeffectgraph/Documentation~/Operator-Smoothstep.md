@@ -27,7 +27,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 | **Output** | **Type**    | **Description**                                              |
 | ---------- | ----------- | ------------------------------------------------------------ |
-| **Out**    | Output Port | The linear interpolation of **S** between **X** and **Y** with smoothing at the limits. The **Type** changes to match the type of **X** and **Y**. |
+| **Out**    | Output Port | The linear interpolation of **S** between **X** and **Y** with smoothing at the limits.<br/>The **Type** changes to match the type of **X** and **Y**. |
 
 ## Operator configuration
 

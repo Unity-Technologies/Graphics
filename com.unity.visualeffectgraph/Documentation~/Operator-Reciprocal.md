@@ -14,7 +14,7 @@ This Operator accepts a number of input values of various types. For the list of
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The value of the input subtracted from one. The **Type** changes to match the type of **X**. |
+| **Out**    | Dependent | The value of the input subtracted from one.<br/>The **Type** changes to match the type of **X**. |
 
 ## Operator configuration
 

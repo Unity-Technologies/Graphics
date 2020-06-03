@@ -20,7 +20,7 @@ The **Step** Operator accepts input values of various types. For the list of typ
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The value of the input subtracted from one. The **Type** changes to match the type of **Value**. |
+| **Out**    | Dependent | The value of the input subtracted from one.<br/>The **Type** changes to match the type of **Value**. |
 
 ## Operator configuration
 

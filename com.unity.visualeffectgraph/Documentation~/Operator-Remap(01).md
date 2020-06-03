@@ -20,7 +20,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| Output     | Dependent | The remapped value. The **Type** changes to match the **Input** type. |
+| Output     | Dependent | The remapped value.<br/>The **Type** changes to match the **Input** type. |
 
 ## Operator configuration
 
