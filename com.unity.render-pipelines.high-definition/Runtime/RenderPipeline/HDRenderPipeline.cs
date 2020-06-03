@@ -401,7 +401,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            RTHandles.Initialize(1, 1, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
+            RTHandles.Initialize(Screen.width, Screen.height, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
 
             m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
             m_GPUCopy = new GPUCopy(defaultResources.shaders.copyChannelCS);
