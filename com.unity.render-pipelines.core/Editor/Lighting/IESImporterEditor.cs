@@ -115,18 +115,8 @@ namespace UnityEditor.Rendering
             if (m_ShowLightProperties = EditorGUILayout.Foldout(m_ShowLightProperties, "Light and Cookie Properties"))
             {
                 EditorGUILayout.PropertyField(m_PrefabLightTypeProp, new GUIContent("Light Type"));
-
                 EditorGUILayout.PropertyField(m_SpotAngleProp);
-
-                int size = (int)Mathf.Pow(2, Mathf.Round(Mathf.Log(m_IESSizeProp.intValue, 2)));
-                size = EditorGUILayout.IntSlider(new GUIContent("IES Size"), size, 32, 2048);
-                if (size != m_IESSizeProp.intValue)
-                {
-                    size = (int)Mathf.Pow(2, Mathf.Round(Mathf.Log(size, 2)));
-                    m_IESSizeProp.intValue = size;
-                    m_IESSizeProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-                }
-
+                EditorGUILayout.PropertyField(m_IESSizeProp, new GUIContent("IES Size"));
                 EditorGUILayout.PropertyField(m_ApplyLightAttenuationProp);
                 EditorGUILayout.PropertyField(m_CookieCompressionProp, new GUIContent("IES Compression"));
 

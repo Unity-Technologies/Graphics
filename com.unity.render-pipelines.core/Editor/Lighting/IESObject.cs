@@ -21,6 +21,31 @@ namespace UnityEditor.Rendering
     }
 
     /// <summary>
+    /// Possible values for the IES Size.
+    /// </summary>
+    public enum IESResolution
+    {
+        /// <summary>Size 16</summary>
+        IESResolution16 = 16,
+        /// <summary>Size 32</summary>
+        IESResolution32 = 32,
+        /// <summary>Size 64</summary>
+        IESResolution64 = 64,
+        /// <summary>Size 128</summary>
+        IESResolution128 = 128,
+        /// <summary>Size 256</summary>
+        IESResolution256 = 256,
+        /// <summary>Size 512</summary>
+        IESResolution512 = 512,
+        /// <summary>Size 1024</summary>
+        IESResolution1024 = 1024,
+        /// <summary>Size 2048</summary>
+        IESResolution2048 = 2048,
+        /// <summary>Size 4096</summary>
+        IESResolution4096 = 4096
+    }
+
+    /// <summary>
     /// Common class to store metadata of an IES file
     /// </summary>
     [System.Serializable]
@@ -79,8 +104,7 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// IES Size of the texture used (same parameter for Point & Spot)
         /// </summary>
-        [Range(16f, 2048f)]
-        public int  iesSize = 128;
+        public IESResolution iesSize = IESResolution.IESResolution128;
 
         /// <summary>
         /// Enable attenuation used for Spot recommanded to be true, particulary with large angle of "SpotAngle" (cf. Gnomonic Projection)

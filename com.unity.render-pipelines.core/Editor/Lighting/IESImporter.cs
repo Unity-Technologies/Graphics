@@ -53,14 +53,14 @@ namespace UnityEditor.Rendering
 
                 string warningMessage;
 
-                (warningMessage, cookieTextureCube) = engine.GenerateCubeCookie(iesMetaData.CookieCompression, iesMetaData.iesSize);
+                (warningMessage, cookieTextureCube) = engine.GenerateCubeCookie(iesMetaData.CookieCompression, (int)iesMetaData.iesSize);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES Cube texture: {warningMessage}");
                 }
                 cookieTextureCube.IncrementUpdateCount();
 
-                (warningMessage, cookieTexture2D) = engine.Generate2DCookie(iesMetaData.CookieCompression, iesMetaData.SpotAngle, iesMetaData.iesSize, iesMetaData.ApplyLightAttenuation);
+                (warningMessage, cookieTexture2D) = engine.Generate2DCookie(iesMetaData.CookieCompression, iesMetaData.SpotAngle, (int)iesMetaData.iesSize, iesMetaData.ApplyLightAttenuation);
                 if (!string.IsNullOrEmpty(warningMessage))
                 {
                     ctx.LogImportWarning($"Cannot properly generate IES 2D texture: {warningMessage}");
