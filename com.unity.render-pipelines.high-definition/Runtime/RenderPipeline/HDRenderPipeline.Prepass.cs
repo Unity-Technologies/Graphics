@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool needCameraMVBeforeResolve = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (needCameraMVBeforeResolve)
                 {
-                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.resolvedMotionVectorsBuffer);
+                    RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.motionVectorsBuffer);
                 }
 
                 // TODO RENDERGRAPH
