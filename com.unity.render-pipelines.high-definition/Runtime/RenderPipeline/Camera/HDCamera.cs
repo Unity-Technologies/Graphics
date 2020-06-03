@@ -1280,7 +1280,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_OverridePixelRect != null)
                 return m_OverridePixelRect.Value;
             else
-                return camera.pixelRect;
+                return new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
         }
         #endregion
     }
