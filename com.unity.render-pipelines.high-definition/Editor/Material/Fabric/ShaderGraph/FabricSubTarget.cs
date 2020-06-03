@@ -26,6 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
         protected override FieldDescriptor subShaderField => HDFields.SubShader.Fabric;
+        protected override bool requireSplitLighting => fabricData.subsurfaceScattering;
 
         FabricData m_FabricData;
 
@@ -41,6 +42,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_FabricData = value;
         }
 
+        protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
+        {
+            var descriptor = base.GetRaytracingSubShaderDescriptor();
+
+            if (fabricData.subsurfaceScattering)
+                descriptor.passes.Add(FabricPasses.RaytracingSubSurface);
+            
+            return descriptor;
+        }
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
@@ -48,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Fabric specific properties
             context.AddField(HDFields.CottonWool,                           fabricData.materialType == FabricData.MaterialType.CottonWool);
             context.AddField(HDFields.Silk,                                 fabricData.materialType == FabricData.MaterialType.Silk);
-            context.AddField(HDFields.SubsurfaceScattering,                 lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(HDFields.SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                         fabricData.transmission);
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(HDFields.EnergyConservingSpecular,             fabricData.energyConservingSpecular);
@@ -61,8 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Fabric specific blocks
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(BlockFields.SurfaceDescription.Specular);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || fabricData.transmission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       lightingData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, fabricData.subsurfaceScattering || fabricData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       fabricData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            fabricData.transmission);
 
             // Fabric Silk
@@ -78,6 +89,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new FabricSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, fabricData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
+
+        protected override int ComputeMaterialNeedsUpdateHash()
+            => base.ComputeMaterialNeedsUpdateHash() * 23 + fabricData.subsurfaceScattering.GetHashCode();
+
 
 #region SubShaders
         static class SubShaders

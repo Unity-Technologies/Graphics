@@ -23,6 +23,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
+        public LightingData lightingData
+        {
+            get => m_LightingData;
+            set => m_LightingData = value;
+        }
+
         protected override string renderQueue
         {
             get
@@ -34,12 +40,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
-
-        public LightingData lightingData
-        {
-            get => m_LightingData;
-            set => m_LightingData = value;
-        }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
@@ -57,7 +57,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 hash = hash * 23 + builtinData.alphaTestShadow.GetHashCode();
                 hash = hash * 23 + lightingData.receiveSSR.GetHashCode();
                 hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
-                hash = hash * 23 + lightingData.subsurfaceScattering.GetHashCode();
             }
 
             return hash;
@@ -66,6 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportLighting => true;
         // All lit sub targets are forward only except Lit so we set it as default here
         protected override bool supportForward => true;
+
+        protected abstract bool requireSplitLighting { get; }
 
         public override void GetFields(ref TargetFieldContext context)
         {
@@ -131,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CollectShaderProperties(collector, generationMode);
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, lightingData, requireSplitLighting);
         }
     }
 }

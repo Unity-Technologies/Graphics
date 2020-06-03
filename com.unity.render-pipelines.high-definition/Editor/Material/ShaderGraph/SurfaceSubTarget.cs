@@ -38,8 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
         protected virtual bool supportDistortion => false;
-        protected virtual bool supportRaytracing => false;
         protected virtual bool supportPathtracing => false;
+        protected virtual bool supportRaytracing => true;
 
         protected abstract string subShaderInclude { get; }
         protected virtual string postDecalsInclude => null;
@@ -109,19 +109,29 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             return new SubShaderDescriptor
             {
-                generatesPreview = true,
+                generatesPreview = false,
+                passes = GetPasses(),
             };
 
-            // PassCollection GetPasses()
-            // {
-            //     var passes = new PassCollection
-            //     {
-            //         // TODO
-            //         // Common "surface" raytracing passes
-            //     };
+            PassCollection GetPasses()
+            {
+                var passes = new PassCollection();
+
+                if (supportRaytracing)
+                {
+                    // Common "surface" raytracing passes
+                    passes.Add(HDShaderPasses.GenerateRaytracingIndirect(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
+                };
+
+                if (supportPathtracing)
+                    passes.Add(HDShaderPasses.GeneratePathTracing(supportLighting));
                 
-            //     return passes;
-            // }
+                return passes;
+            }
         }
 
         SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)

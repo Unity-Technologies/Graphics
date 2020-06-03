@@ -26,6 +26,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
         protected override FieldDescriptor subShaderField => HDFields.SubShader.Hair;
+        protected override bool requireSplitLighting => false;
+
 
         HairData m_HairData;
 
@@ -43,10 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
-            // TODO: move this elsewhere:
-            // Make sure that we don't end up in an unsupported configuration
-            lightingData.subsurfaceScattering = false;
-
             base.GetFields(ref context);
 
             // Hair specific properties:

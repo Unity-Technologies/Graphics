@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 AddProperty("Cap Haziness For Non Metallic", () => stackLitData.capHazinessWrtMetallic, (newValue) => stackLitData.capHazinessWrtMetallic = newValue, 2);
             AddProperty("Iridescence", () => stackLitData.iridescence, (newValue) => stackLitData.iridescence = newValue, 1);
             if (systemData.surfaceType != SurfaceType.Transparent)
-                AddProperty("Subsurface Scattering", () => lightingData.subsurfaceScattering, (newValue) => lightingData.subsurfaceScattering = newValue, 1);
+                AddProperty("Subsurface Scattering", () => stackLitData.subsurfaceScattering, (newValue) => stackLitData.subsurfaceScattering = newValue, 1);
             AddProperty("Transmission", () => stackLitData.transmission, (newValue) => stackLitData.transmission = newValue, 1);
 
             // SpecularOcclusion from SSAO

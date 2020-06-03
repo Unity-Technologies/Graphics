@@ -556,7 +556,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Back then front pass
 
-        public static PassDescriptor GenerateBackThenFront(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        public static PassDescriptor GenerateBackThenFront(bool supportLighting)
         {
             return new PassDescriptor
             { 
@@ -659,7 +659,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Transparent Depth Prepass
 
-        public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        public static PassDescriptor GenerateTransparentDepthPrepass(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -772,7 +772,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Transparent Depth Postpass
 
-        public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting, string forwardPassInclude = CoreIncludes.kPassForward)
+        public static PassDescriptor GenerateTransparentDepthPostpass(bool supportLighting)
         {
             return new PassDescriptor
             {
@@ -834,6 +834,388 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             BlockFields.SurfaceDescription.Alpha,
             HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+#endregion
+
+#region Raytracing Indirect
+
+        public static PassDescriptor GenerateRaytracingIndirect(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "IndirectDXR",
+                referenceName = "SHADERPASS_RAYTRACING_INDIRECT",
+                lightMode = "IndirectDXR",
+                useInPreview = false,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = RaytracingIndirectFragment,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? GenerateDefines() : null,
+                keywords = CoreKeywords.RaytracingIndirect,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
+            };
+
+            DefineCollection GenerateDefines()
+            {
+                return new DefineCollection
+                {
+                    { CoreKeywordDescriptors.Shadow, 0 },
+                    { RayTracingNode.GetRayTracingKeyword(), 1 },
+                    { CoreKeywordDescriptors.HasLightloop, 1 },
+                };
+            }
+        }
+
+        public static BlockFieldDescriptor[] RaytracingIndirectFragment = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+            //Hair blocks:
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+        };
+
+#endregion
+
+#region Raytracing Visibility
+
+        public static PassDescriptor GenerateRaytracingVisibility(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "VisibilityDXR",
+                referenceName = "SHADERPASS_RAYTRACING_VISIBILITY",
+                lightMode = "VisibilityDXR",
+                useInPreview = false,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = RaytracingVisibilityFragment,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? RaytracingVisibilityDefines : null,
+                keywords = CoreKeywords.RaytracingVisiblity,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingVisibility },
+                includes = CoreIncludes.Raytracing,
+            };
+        }
+
+        public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
+        {
+            { RayTracingNode.GetRayTracingKeyword(), 1 },
+        };
+
+        // TODO: we might want to share this with all ray tracing passes
+        public static BlockFieldDescriptor[] RaytracingVisibilityFragment = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+            //Hair blocks:
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+        };
+
+#endregion
+
+#region Raytracing Forward
+
+        public static PassDescriptor GenerateRaytracingForward(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "ForwardDXR",
+                referenceName = "SHADERPASS_RAYTRACING_FORWARD",
+                lightMode = "ForwardDXR",
+                useInPreview = false,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = RaytracingForwardFragment,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? RaytracingForwardDefines : null,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingForward },
+            };
+        }
+
+        public static DefineCollection RaytracingForwardDefines = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Shadow, 0 },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
+
+        public static BlockFieldDescriptor[] RaytracingForwardFragment = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+            //Hair blocks:
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+        };
+
+#endregion
+
+#region Raytracing GBuffer
+
+        public static PassDescriptor GenerateRaytracingGBuffer(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "GBufferDXR",
+                referenceName = "SHADERPASS_RAYTRACING_GBUFFER",
+                lightMode = "GBufferDXR",
+                useInPreview = false,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = RaytracingGBufferFragment,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? RaytracingGBufferDefines : null,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RayTracingGBuffer },
+            };
+        }
+
+        public static DefineCollection RaytracingGBufferDefines = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Shadow, 0 },
+            { RayTracingNode.GetRayTracingKeyword(), 1 },
+        };
+
+        public static BlockFieldDescriptor[] RaytracingGBufferFragment = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
+            HDBlockFields.SurfaceDescription.DepthOffset,
+            //Hair blocks:
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+        };
+
+#endregion
+
+#region Path Tracing
+
+        public static PassDescriptor GeneratePathTracing(bool supportLighting)
+        {
+            return new PassDescriptor
+            {
+                //Definition
+                displayName = "PathTracingDXR",
+                referenceName = "SHADERPASS_PATH_TRACING",
+                lightMode = "PathTracingDXR",
+                useInPreview = false,
+
+                //Port mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = PathTracingFragment,
+
+                //Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = supportLighting ? RaytracingPathTracingDefines : null,
+                keywords = CoreKeywords.HDBaseNoCrossFade,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingPathTracing },
+            };
+        }
+
+        public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Shadow, 0 },
+            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
+
+        public static BlockFieldDescriptor[] PathTracingFragment = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
+            HDBlockFields.SurfaceDescription.BentNormal,
+            HDBlockFields.SurfaceDescription.Tangent,
+            HDBlockFields.SurfaceDescription.SubsurfaceMask,
+            HDBlockFields.SurfaceDescription.Thickness,
+            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
+            HDBlockFields.SurfaceDescription.IridescenceMask,
+            HDBlockFields.SurfaceDescription.IridescenceThickness,
+            BlockFields.SurfaceDescription.Specular,
+            HDBlockFields.SurfaceDescription.CoatMask,
+            BlockFields.SurfaceDescription.Metallic,
+            BlockFields.SurfaceDescription.Emission,
+            BlockFields.SurfaceDescription.Smoothness,
+            BlockFields.SurfaceDescription.Occlusion,
+            HDBlockFields.SurfaceDescription.SpecularOcclusion,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+            HDBlockFields.SurfaceDescription.Anisotropy,
+            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
+            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
+            HDBlockFields.SurfaceDescription.RefractionIndex,
+            HDBlockFields.SurfaceDescription.RefractionColor,
+            HDBlockFields.SurfaceDescription.RefractionDistance,
+            HDBlockFields.SurfaceDescription.BakedGI,
+            HDBlockFields.SurfaceDescription.BakedBackGI,
             HDBlockFields.SurfaceDescription.DepthOffset,
         };
 

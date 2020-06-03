@@ -45,8 +45,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.receiveSSRTransparent = fabricMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = fabricMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = fabricMasterNode.m_overrideBakedGI;
-            lightingData.subsurfaceScattering = fabricMasterNode.m_SubsurfaceScattering;
-            
+
+            fabricData.subsurfaceScattering = fabricMasterNode.m_SubsurfaceScattering;
             fabricData.transmission = fabricMasterNode.m_Transmission;
             fabricData.energyConservingSpecular = fabricMasterNode.m_EnergyConservingSpecular;
             fabricData.materialType = (FabricData.MaterialType)fabricMasterNode.m_MaterialType;
@@ -83,9 +83,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case FabricMasterNode1.SlotMask.SpecularOcclusion:
                         return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
                     case FabricMasterNode1.SlotMask.DiffusionProfile:
-                        return lightingData.subsurfaceScattering || fabricData.transmission;
+                        return fabricData.subsurfaceScattering || fabricData.transmission;
                     case FabricMasterNode1.SlotMask.SubsurfaceMask:
-                        return lightingData.subsurfaceScattering;
+                        return fabricData.subsurfaceScattering;
                     case FabricMasterNode1.SlotMask.Thickness:
                         return fabricData.transmission;
                     case FabricMasterNode1.SlotMask.AlphaClipThreshold:

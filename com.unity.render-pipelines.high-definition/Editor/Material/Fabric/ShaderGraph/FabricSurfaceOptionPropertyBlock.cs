@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Fabric specific properties:
             AddProperty(energyConservingSpecularColorText, () => fabricData.energyConservingSpecular, (newValue) => fabricData.energyConservingSpecular = newValue);
-            AddProperty(subsurfaceEnableText, () => lightingData.subsurfaceScattering, (newValue) => lightingData.subsurfaceScattering = newValue);
+            AddProperty(subsurfaceEnableText, () => fabricData.subsurfaceScattering, (newValue) => fabricData.subsurfaceScattering = newValue);
             AddProperty(transmissionEnableText, () => fabricData.transmission, (newValue) => fabricData.transmission = newValue);
         }
     }

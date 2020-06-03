@@ -25,12 +25,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Unlit;
+        protected override string subShaderInclude => CoreIncludes.kUnlit;
 
         protected override bool supportDistortion => true;
         protected override bool supportForward => true;
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Unlit;
-
-        protected override string subShaderInclude => CoreIncludes.kUnlit;
+        protected override bool supportPathtracing => true;
 
         HDUnlitData m_UnlitData;
 
@@ -125,43 +125,43 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
 
             // Stencil state for unlit:
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null, false);
         }
 
-#region SubShaders
-        static class SubShaders
-        {
-            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
-            {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { UnlitPasses.ShadowCaster },
-                    { UnlitPasses.META },
-                    { UnlitPasses.SceneSelection },
-                    { UnlitPasses.DepthForwardOnly },
-                    { UnlitPasses.MotionVectors },
-                    { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
-                    { UnlitPasses.ForwardOnly },
-                },
-            };
+// #region SubShaders
+//         static class SubShaders
+//         {
+//             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+//             {
+//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
+//                 generatesPreview = true,
+//                 passes = new PassCollection
+//                 {
+//                     { UnlitPasses.ShadowCaster },
+//                     { UnlitPasses.META },
+//                     { UnlitPasses.SceneSelection },
+//                     { UnlitPasses.DepthForwardOnly },
+//                     { UnlitPasses.MotionVectors },
+//                     { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
+//                     { UnlitPasses.ForwardOnly },
+//                 },
+//             };
 
-            public static SubShaderDescriptor UnlitRaytracing = new SubShaderDescriptor()
-            {
-                pipelineTag = HDRenderPipeline.k_ShaderTagName,
-                generatesPreview = false,
-                passes = new PassCollection
-                {
-                    { UnlitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
-                    { UnlitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
-                    { UnlitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
-                    { UnlitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
-                    { UnlitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
-                },
-            };
-        }
-#endregion
+//             public static SubShaderDescriptor UnlitRaytracing = new SubShaderDescriptor()
+//             {
+//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
+//                 generatesPreview = false,
+//                 passes = new PassCollection
+//                 {
+//                     { UnlitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
+//                     { UnlitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
+//                     { UnlitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
+//                     { UnlitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
+//                     { UnlitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
+//                 },
+//             };
+//         }
+// #endregion
 
 // #region Passes
 //         static class UnlitPasses

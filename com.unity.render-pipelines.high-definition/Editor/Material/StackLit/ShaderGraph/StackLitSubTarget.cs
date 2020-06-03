@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override FieldDescriptor subShaderField => HDFields.SubShader.StackLit;
 
         protected override bool supportDistortion => true;
+        protected override bool requireSplitLighting => stackLitData.subsurfaceScattering;
 
         StackLitData m_StackLitData;
 
@@ -45,6 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_StackLitData = value;
         }
 
+        // TODO stacklit share pass
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
             yield return SubShaders.StackLit;
@@ -177,7 +179,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
             context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
-            context.AddField(HDFields.SubsurfaceScattering,         lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(HDFields.SubsurfaceScattering,         stackLitData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                 stackLitData.transmission);
             context.AddField(HDFields.DualSpecularLobe,             stackLitData.dualSpecularLobe);
 
@@ -295,9 +297,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(HDBlockFields.SurfaceDescription.Anisotropy,           stackLitData.anisotropy);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       lightingData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,       stackLitData.subsurfaceScattering);
             context.AddBlock(HDBlockFields.SurfaceDescription.Thickness,            stackLitData.transmission);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, lightingData.subsurfaceScattering || stackLitData.transmission);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash, stackLitData.subsurfaceScattering || stackLitData.transmission);
 
             // Base Metallic
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,               stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic);
@@ -424,6 +426,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return (soConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostBSDFRoughness
                 || soConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt);
         }
+
+        protected override int ComputeMaterialNeedsUpdateHash()
+            => base.ComputeMaterialNeedsUpdateHash() * 23 + stackLitData.subsurfaceScattering.GetHashCode();
 
 #region SubShaders
         static class SubShaders

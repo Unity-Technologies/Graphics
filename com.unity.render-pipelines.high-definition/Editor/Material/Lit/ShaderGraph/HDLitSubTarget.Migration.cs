@@ -139,7 +139,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.specularOcclusionMode = hdLitMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hdLitMasterNode.m_overrideBakedGI;
             HDLitData.MaterialType materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
-            lightingData.subsurfaceScattering = materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
             litData.clearCoat = UpgradeCoatMask(hdLitMasterNode);
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;

@@ -27,6 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
         protected override FieldDescriptor subShaderField => HDFields.SubShader.Eye;
 
+        protected override bool supportRaytracing => false;
+        protected override bool requireSplitLighting => eyeData.subsurfaceScattering;
+
         EyeData m_EyeData;
 
         EyeData IRequiresData<EyeData>.data
@@ -48,7 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Eye specific properties
             context.AddField(HDFields.Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(HDFields.EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
-            context.AddField(HDFields.SubsurfaceScattering,                 lightingData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(HDFields.SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
         }
 
@@ -62,8 +65,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.IOR);
             context.AddBlock(HDBlockFields.SurfaceDescription.Mask);
-            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash,     lightingData.subsurfaceScattering);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,           lightingData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash,     eyeData.subsurfaceScattering);
+            context.AddBlock(HDBlockFields.SurfaceDescription.SubsurfaceMask,           eyeData.subsurfaceScattering);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
@@ -71,6 +74,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockList.AddPropertyBlock(new EyeSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Lit, eyeData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
+
+        protected override int ComputeMaterialNeedsUpdateHash()
+            => base.ComputeMaterialNeedsUpdateHash() * 23 + eyeData.subsurfaceScattering.GetHashCode();
 
 // #region SubShaders
 //         static class SubShaders

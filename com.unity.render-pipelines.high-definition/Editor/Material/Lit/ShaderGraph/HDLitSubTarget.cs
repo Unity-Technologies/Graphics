@@ -15,21 +15,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     sealed partial class HDLitSubTarget : LightingSubTarget, ILegacyTarget, IRequiresData<HDLitData>
     {
-        public HDLitSubTarget() => displayName = "Lit";
-
-        // TODO: remove this line
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
-
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
-        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
-        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
-
-        protected override bool supportDistortion => true;
-        protected override bool supportForward => false;
-        protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Lit;
-
         HDLitData m_LitData;
 
         HDLitData IRequiresData<HDLitData>.data
@@ -44,6 +29,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LitData = value;
         }
 
+        public HDLitSubTarget() => displayName = "Lit";
+
+        // TODO: remove this line when all the passes are moved to HDPasses
+        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
+
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
+        protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
+        protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
+        protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Lit;
+
+        // SubShader features
+        protected override bool supportDistortion => true;
+        protected override bool supportForward => false;
+        protected override bool supportPathtracing => true;
+        protected override bool requireSplitLighting => litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
+
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             var descriptor = base.GetSubShaderDescriptor();
@@ -53,6 +56,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             descriptor.passes.Add(LitPasses.GBuffer);
             descriptor.passes.Add(LitPasses.Forward);
             descriptor.passes.Add(LitPasses.RayTracingPrepass);
+
+            return descriptor;
+        }
+
+        protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
+        {
+            var descriptor = base.GetRaytracingSubShaderDescriptor();
+
+            if (litData.materialType == HDLitData.MaterialType.SubsurfaceScattering)
+                descriptor.passes.Add(LitPasses.RaytracingSubSurface);
 
             return descriptor;
         }
