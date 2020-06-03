@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal static class Structs
@@ -18,6 +18,9 @@
                 StructFields.Attributes.uv3,
                 StructFields.Attributes.color,
                 StructFields.Attributes.instanceID,
+                StructFields.Attributes.weights,
+                StructFields.Attributes.indices,
+                StructFields.Attributes.vertexID,
             }
         };
 
@@ -62,6 +65,7 @@
                 StructFields.VertexDescriptionInputs.TimeParameters,
                 StructFields.VertexDescriptionInputs.BoneWeights,
                 StructFields.VertexDescriptionInputs.BoneIndices,
+                StructFields.VertexDescriptionInputs.VertexID,
             }
         };
 
@@ -105,6 +109,9 @@
                 StructFields.SurfaceDescriptionInputs.VertexColor,
                 StructFields.SurfaceDescriptionInputs.TimeParameters,
                 StructFields.SurfaceDescriptionInputs.FaceSign,
+                StructFields.SurfaceDescriptionInputs.BoneWeights,
+                StructFields.SurfaceDescriptionInputs.BoneIndices,
+                StructFields.SurfaceDescriptionInputs.VertexID,
             }
         };
     }

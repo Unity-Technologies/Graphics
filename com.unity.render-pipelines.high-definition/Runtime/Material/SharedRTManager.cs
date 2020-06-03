@@ -100,8 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 CoreUtils.SetKeyword(m_DepthResolveMaterial, "_HAS_MOTION_VECTORS", m_MotionVectorsSupport);
             }
 
-            AllocateCoarseStencilBuffer(RTHandles.maxWidth, RTHandles.maxHeight, TextureXR.slices);
-
             // If we are in the forward only mode
             if (!m_ReuseGBufferMemory)
             {
@@ -298,7 +296,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_CameraDepthStencilBuffer);
             RTHandles.Release(m_CameraDepthBufferMipChain);
             RTHandles.Release(m_CameraHalfResDepthBuffer);
-            DisposeCoarseStencilBuffer();
 
             if (m_MSAASupported)
             {

@@ -182,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
             bool requiresDepthPrepass = cameraData.isSceneViewCamera || m_PreferDepthPrepass || m_DeferredLights.TiledDeferredShading;
 
             // TODO: There's an issue in multiview and depth copy pass. Atm forcing a depth prepass on XR until we have a proper fix.
-            if (cameraData.isStereoEnabled && cameraData.requiresDepthTexture)
+            if (cameraData.xr.enabled && cameraData.requiresDepthTexture)
                 requiresDepthPrepass = true;
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.Universal
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             bool generateColorGradingLUT = anyPostProcessing && cameraData.renderType == CameraRenderType.Base;
-            bool isStereoEnabled = cameraData.isStereoEnabled;
+            bool isStereoEnabled = cameraData.xr.enabled;
 
             bool mainLightShadows = m_MainLightShadowCasterPass.Setup(ref renderingData);
             bool additionalLightShadows = m_AdditionalLightsShadowCasterPass.Setup(ref renderingData);

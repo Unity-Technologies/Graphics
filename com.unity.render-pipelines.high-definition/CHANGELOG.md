@@ -125,6 +125,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a flow map parameter to HDRI Sky
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
+- Added an initial version of SSGI.
+- Added back-compatibility with builtin stereo matrices.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added Histogram guided automatic exposure.
+- Added few exposure debug modes.
+- Added support for multiple path-traced views at once (e.g., scene and game views).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -578,6 +584,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a null ref exception in static sky when the default volume profile is invalid.
 - DXR: Fixed shader compilation error with shader graph and pathtracer
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph). 
 - Fixed issue with screen-space shadows not enabled properly when RT is disabled (case 1235821)
 - Fixed a performance issue with stochastic ray traced area shadows.
 - Fixed cookie texture not updated when changing an import settings (srgb for example).
@@ -605,6 +614,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fixed the light overlap scene view draw mode (wasn't working at all).
+- Fixed taaFrameIndex and XR tests 4052 and 4053
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fix erroneous central depth sampling in TAA.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
+- Fixed exposure debug shader with XR single-pass rendering.
+- Fixed issues with scene view and transparent motion vectors.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -732,6 +756,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved performance of reflection probe management when using a lot of probes.
 - Ignoring the disable SSR flags for recursive rendering.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
+- Fixed the sub surface mask not being taken into account when computing ray traced sub surface scattering.
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
+- Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
+- Changed default exposure compensation to 0.
+- Refactored shadow caching system.
+- Removed experimental namespace for ray tracing code.
+- Increase limit for max numbers of lights in UX
 - Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
 
 ## [7.1.1] - 2019-09-05
