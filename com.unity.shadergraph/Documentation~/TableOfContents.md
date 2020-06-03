@@ -5,8 +5,9 @@
     * [Shader Graph Window](Shader-Graph-Window)  
         * [Blackboard](Blackboard)  
         * [Master Preview](Master-Preview) 
-        * [Internal Inspector](Internal-Inspector.md)
+        * [Graph Inspector](Internal-Inspector.md)
     * [Create Node Menu](Create-Node-Menu)
+    * [Master Stack](Master-Stack)
     * [Sticky Notes](Sticky-Notes)
     * [Sub Graph](Sub-graph)     
     * [Color Modes](Color-Modes)
@@ -14,6 +15,8 @@
     * [Custom Function Node](Custom-Function-Node)
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
+* Upgrade Guides
+  * [Upgrading to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
     * [Sub Graph Asset](Sub-graph-Asset)
@@ -228,3 +231,5 @@
         * [Tiling And Offset](Tiling-And-Offset-Node)
         * [Triplanar](Triplanar-Node)  
         * [Twirl](Twirl-Node)
+    * [Block Nodes](Block-Node)
+      * [Built In](Built-In-Blocks)
