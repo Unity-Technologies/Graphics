@@ -91,6 +91,10 @@
         * [Volume (Oriented Box)](Operator-Volume(OrientedBox).md)
         * [Volume (Sphere)](Operator-Volume(Sphere).md)
         * [Volume (Torus)](Operator-Volume(Torus).md)
+      * Remap
+        * [Remap](Operator-Remap.md)
+        * [Remap [0..1] => [-1..1]](Operator-Remap(-11).md)
+        * [Remap [-1..1] => [0..1]](Operator-Remap(01).md)
       * Trigonometry
         * [Acos](Operator-Acos.md)
         * [Asin](Operator-Asin.md)
