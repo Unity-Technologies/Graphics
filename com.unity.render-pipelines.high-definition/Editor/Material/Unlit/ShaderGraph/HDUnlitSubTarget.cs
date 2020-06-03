@@ -17,9 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HDUnlitSubTarget() => displayName = "Unlit";
 
-        // TODO: remove this line
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
-
         // Templates
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
         // TODO: This should be resolved so we can delete the second pass template
@@ -131,40 +128,40 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null);
         }
 
-// #region SubShaders
-//         static class SubShaders
-//         {
-//             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
-//             {
-//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-//                 generatesPreview = true,
-//                 passes = new PassCollection
-//                 {
-//                     { UnlitPasses.ShadowCaster },
-//                     { UnlitPasses.META },
-//                     { UnlitPasses.SceneSelection },
-//                     { UnlitPasses.DepthForwardOnly },
-//                     { UnlitPasses.MotionVectors },
-//                     // { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
-//                     { UnlitPasses.ForwardOnly },
-//                 },
-//             };
+#region SubShaders
+        static class SubShaders
+        {
+            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                generatesPreview = true,
+                passes = new PassCollection
+                {
+                    { UnlitPasses.ShadowCaster },
+                    { UnlitPasses.META },
+                    { UnlitPasses.SceneSelection },
+                    { UnlitPasses.DepthForwardOnly },
+                    { UnlitPasses.MotionVectors },
+                    { UnlitPasses.Distortion, new FieldCondition(HDFields.TransparentDistortion, true) },
+                    { UnlitPasses.ForwardOnly },
+                },
+            };
 
-//             public static SubShaderDescriptor UnlitRaytracing = new SubShaderDescriptor()
-//             {
-//                 pipelineTag = HDRenderPipeline.k_ShaderTagName,
-//                 generatesPreview = false,
-//                 passes = new PassCollection
-//                 {
-//                     { UnlitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
-//                     { UnlitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
-//                     { UnlitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
-//                     { UnlitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
-//                     { UnlitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
-//                 },
-//             };
-//         }
-// #endregion
+            public static SubShaderDescriptor UnlitRaytracing = new SubShaderDescriptor()
+            {
+                pipelineTag = HDRenderPipeline.k_ShaderTagName,
+                generatesPreview = false,
+                passes = new PassCollection
+                {
+                    { UnlitPasses.RaytracingIndirect, new FieldCondition(Fields.IsPreview, false) },
+                    { UnlitPasses.RaytracingVisibility, new FieldCondition(Fields.IsPreview, false) },
+                    { UnlitPasses.RaytracingForward, new FieldCondition(Fields.IsPreview, false) },
+                    { UnlitPasses.RaytracingGBuffer, new FieldCondition(Fields.IsPreview, false) },
+                    { UnlitPasses.RaytracingPathTracing, new FieldCondition(Fields.IsPreview, false) },
+                },
+            };
+        }
+#endregion
 
 // #region Passes
 //         static class UnlitPasses
@@ -297,6 +294,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 //                 pragmas = CorePragmas.DotsInstancedInV2Only,
 //                 keywords = UnlitKeywords.DepthMotionVectors,
 //                 includes = UnlitIncludes.MotionVectors,
+//             };
+
+//             public static PassDescriptor Distortion = new PassDescriptor()
+//             {
+//                 // Definition
+//                 displayName = "DistortionVectors",
+//                 referenceName = "SHADERPASS_DISTORTION",
+//                 lightMode = "DistortionVectors",
+//                 useInPreview = true,
+
+//                 // Template
+//                 passTemplatePath = passTemplatePath,
+//                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+//                 // Block Mask
+//                 validVertexBlocks = CoreBlockMasks.Vertex,
+//                 validPixelBlocks = UnlitBlockMasks.FragmentDistortion,
+
+//                 // Collections
+//                 structs = CoreStructCollections.Default,
+//                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit },
+//                 fieldDependencies = CoreFieldDependencies.Default,
+//                 renderStates = UnlitRenderStates.Distortion,
+//                 pragmas = CorePragmas.DotsInstancedInV2Only,
+//                 keywords = CoreKeywords.HDBase,
+//                 includes = UnlitIncludes.Distortion,
 //             };
 
 //             public static PassDescriptor ForwardOnly = new PassDescriptor()
@@ -471,6 +494,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 //                 BlockFields.SurfaceDescription.AlphaClipThreshold,
 //             };
 
+//             public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
+//             {
+//                 BlockFields.SurfaceDescription.Alpha,
+//                 BlockFields.SurfaceDescription.AlphaClipThreshold,
+//                 HDBlockFields.SurfaceDescription.Distortion,
+//                 HDBlockFields.SurfaceDescription.DistortionBlur,
+//             };
+
 //             public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]
 //             {
 //                 BlockFields.SurfaceDescription.BaseColor,
@@ -531,6 +562,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 //                     Pass = "Replace",
 //                 }) },
 //             };
+
+//             public static RenderStateCollection Distortion = new RenderStateCollection
+//             {
+//                 { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(HDFields.DistortionAdd, true) },
+//                 { RenderState.Blend(Blend.DstColor, Blend.Zero, Blend.DstAlpha, Blend.Zero), new FieldCondition(HDFields.DistortionMultiply, true) },
+//                 { RenderState.Blend(Blend.One, Blend.Zero, Blend.One, Blend.Zero), new FieldCondition(HDFields.DistortionReplace, true) },
+//                 { RenderState.BlendOp(BlendOp.Add, BlendOp.Add) },
+//                 { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+//                 { RenderState.ZWrite(ZWrite.Off) },
+//                 { RenderState.ZTest(ZTest.Always), new FieldCondition(HDFields.DistortionDepthTest, false) },
+//                 { RenderState.ZTest(ZTest.LEqual), new FieldCondition(HDFields.DistortionDepthTest, true) },
+//                 { RenderState.Stencil(new StencilDescriptor()
+//                 {
+//                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
+//                     Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
+//                     Comp = "Always",
+//                     Pass = "Replace",
+//                 }) },
+//             };
 //         }
 //         #endregion
 
@@ -582,7 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 //         static class UnlitIncludes
 //         {
 //             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
-            
+
 //             public static IncludeCollection Meta = new IncludeCollection
 //             {
 //                 { CoreIncludes.CorePregraph },

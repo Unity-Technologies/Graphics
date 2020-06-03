@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,12 +16,16 @@ namespace UnityEditor.ShaderGraph
         // As the Contexts are hardcoded we know their directions
         Port m_Port;
 
+        //need this from graph view specifically for nodecreation
+        EditorWindow m_EditorWindow;
+
         // When dealing with more Contexts, `name` should be serialized in the ContextData
         // Right now we dont do this so we dont overcommit to serializing unknowns
-        public ContextView(string name, ContextData contextData)
+        public ContextView(string name, ContextData contextData, EditorWindow editorWindow)
         {
             // Set data
             m_ContextData = contextData;
+            m_EditorWindow = editorWindow;
 
             // Header
             var headerLabel = new Label() { name = "headerLabel" };
@@ -94,13 +98,15 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool AcceptsElement(GraphElement element, ref int proposedIndex, int maxIndex)
         {
-            return element.userData is BlockNode blockNode &&
+            return element.userData is BlockNode blockNode && blockNode.descriptor != null &&
                 blockNode.descriptor.shaderStage == contextData.shaderStage;
         }
 
         protected override void OnSeparatorContextualMenuEvent(ContextualMenuPopulateEvent evt, int separatorIndex)
         {
-            Vector2 mousePosition = evt.mousePosition;
+            //we need to arbitrarily add the editor position values because node creation context
+            //exptects a non local coordinate
+            Vector2 mousePosition = evt.mousePosition + m_EditorWindow.position.position;
             base.OnSeparatorContextualMenuEvent(evt, separatorIndex);
 
             var graphView = GetFirstAncestorOfType<MaterialGraphView>();

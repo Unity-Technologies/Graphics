@@ -324,6 +324,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return false;
         }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
+        }
     }
 
 #region BlockMasks
@@ -440,9 +445,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.AttributesMesh.uv2),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
-
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                   HDStructFields.AttributesMesh.weights),
-            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                   HDStructFields.AttributesMesh.indices),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection
@@ -633,13 +635,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
         };
 
-        public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
+
+        public static RenderStateCollection TransparentDepthPrePass = new RenderStateCollection
         {
             { RenderState.Blend(Blend.One, Blend.Zero) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.ColorMask("ColorMask [_ColorMaskNormal]") },
-            { RenderState.ColorMask("ColorMask 0 1") },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
+                Ref = CoreRenderStates.Uniforms.stencilRefDepth,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+        public static RenderStateCollection TransparentDepthPostPass = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection Forward = new RenderStateCollection

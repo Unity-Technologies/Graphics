@@ -66,6 +66,10 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedInputs; }
         }
 
+        [NonSerialized]
+        bool m_MovedContexts = false;
+        public bool movedContexts => m_MovedContexts;
+
         public string assetGuid { get; set; }
 
         #endregion
@@ -318,6 +322,8 @@ namespace UnityEditor.ShaderGraph
         public bool isVFXTarget => !isSubGraph && activeTargets.Count() > 0 && activeTargets.ElementAt(0).GetType() == typeof(VFXTarget);
         #endregion
 
+        private Comparison<Target> targetComparison = new Comparison<Target>((a, b) => string.Compare(a.displayName, b.displayName));
+
         public GraphData()
         {
             m_GroupItems[null] = new List<IGroupItem>();
@@ -404,6 +410,7 @@ namespace UnityEditor.ShaderGraph
             if(m_ActiveTargets != null)
             {
                 m_ActiveTargets.Clear();
+                var invalidTargetsToRemove = ListPool<Target>.Get();
                 var targetCount = m_ValidTargets.Count;
                 for(int i = 0; i < targetCount; i++)
                 {
@@ -411,13 +418,26 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_ActiveTargets.Add(m_ValidTargets[i]);
                     }
+                    //if we no longer have an unknown target as active, remove it
+                    else if(m_ValidTargets[i] is MultiJsonInternal.UnknownTargetType)
+                    {
+                        invalidTargetsToRemove.Add(m_ValidTargets[i]);
+                    }
                 }
+
+                foreach(var invalidTarget in invalidTargetsToRemove)
+                {
+                    m_ValidTargets.Remove(invalidTarget);
+                }
+                ListPool<Target>.Release(invalidTargetsToRemove);
             }
             if (reevaluateActivity)
             {
                 ValidateGraph();
                 NodeUtils.ReevaluateActivityOfNodeList(m_Nodes.SelectValue());
             }
+            //deal with the fact that target order might switch if unknown targets are collected
+            activeTargets.Sort(targetComparison);
         }
 
         public void ClearChanges()
@@ -438,6 +458,7 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
+            m_MovedContexts = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -625,15 +646,30 @@ namespace UnityEditor.ShaderGraph
         public void UpdateActiveBlocks(List<BlockFieldDescriptor> activeBlockDescriptors)
         {
             // Set Blocks as active based on supported Block list
+            //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
             foreach(var vertexBlock in vertexContext.blocks)
             {
-                vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
-                                                                                                                       : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                if (vertexBlock.value?.descriptor?.isUnknown == true)
+                {
+                    vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    vertexBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(vertexBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
             }
             foreach(var fragmentBlock in fragmentContext.blocks)
             {
-                fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
-                                                                                                                           : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                if (fragmentBlock.value?.descriptor?.isUnknown == true)
+                {
+                    fragmentBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
+                else
+                {
+                    fragmentBlock.value.SetOverrideActiveState(activeBlockDescriptors.Contains(fragmentBlock.value.descriptor) ? AbstractMaterialNode.ActiveState.ExplicitActive
+                                                                                                                               : AbstractMaterialNode.ActiveState.ExplicitInactive);
+                }
             }
         }
 
@@ -649,7 +685,8 @@ namespace UnityEditor.ShaderGraph
                     if(!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
                         var slot = block.value.FindSlot<MaterialSlot>(0);
-                        if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                        //Need to check if a slot is not default value OR is an untracked unknown block type
+                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.isUnknown) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
                         }
@@ -1343,6 +1380,14 @@ namespace UnityEditor.ShaderGraph
             concretePrecision = other.concretePrecision;
             m_OutputNode = other.m_OutputNode;
 
+            if ((this.vertexContext.position != other.vertexContext.position) ||
+                (this.fragmentContext.position != other.fragmentContext.position))
+            {
+                this.vertexContext.position = other.vertexContext.position;
+                this.fragmentContext.position = other.fragmentContext.position;
+                m_MovedContexts = true;
+            }
+
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
                 foreach (var property in m_Properties.SelectValue())
@@ -1866,7 +1911,10 @@ namespace UnityEditor.ShaderGraph
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
                     // This is required for edge lookup during Target upgrade
-                    m_OutputNode.value.owner = this;
+                    if (m_OutputNode.value != null)
+                    {
+                        m_OutputNode.value.owner = this;
+                    }
                     foreach (var edge in m_Edges)
                     {
                         AddEdgeToNodeEdges(edge);
@@ -1876,7 +1924,11 @@ namespace UnityEditor.ShaderGraph
                     AddContexts();
 
                     // Position Contexts to the match master node
-                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    var oldPosition = Vector2.zero;
+                    if (m_OutputNode.value != null)
+                    {
+                        oldPosition = m_OutputNode.value.drawState.position.position;
+                    }
                     m_VertexContext.position = oldPosition;
                     m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
 
@@ -1988,6 +2040,24 @@ namespace UnityEditor.ShaderGraph
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
                     block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    if(block.descriptor == null)
+                    {
+                        //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
+                        //create a new entry for it and continue on
+                        if(string.IsNullOrEmpty(block.serializedDescriptor))
+                        {
+                            throw new Exception($"Block {block} had no serialized descriptor");
+                        }
+
+                        var tmp = block.serializedDescriptor.Split('.');
+                        if(tmp.Length != 2)
+                        {
+                            throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
+                        }
+                        //right thing to do?
+                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true, true);
+                        m_BlockFieldDescriptors.Add(block.descriptor);
+                    }
                     block.contextData = contextData;
                 }
             }

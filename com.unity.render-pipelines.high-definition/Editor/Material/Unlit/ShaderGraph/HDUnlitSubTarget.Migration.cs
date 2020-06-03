@@ -33,15 +33,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         void UpgradeUnlitMasterNode(UnlitMasterNode1 unlitMasterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
         {
+            m_MigrateFromOldCrossPipelineSG = true;
+
             // Set data
             systemData.surfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)unlitMasterNode.m_AlphaMode);
             systemData.doubleSidedMode = unlitMasterNode.m_TwoSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;
             systemData.alphaTest = HDSubShaderUtilities.UpgradeLegacyAlphaClip(unlitMasterNode);
-            systemData.dotsInstancing = unlitMasterNode.m_DOTSInstancing;
+            systemData.dotsInstancing = false;
             systemData.transparentZWrite = false;
-            builtinData.addPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
+            builtinData.addPrecomputedVelocity = false;
             target.customEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
+            systemData.TryChangeRenderingPass(systemData.renderingPass);
 
             // Set blockmap
             blockMap = new Dictionary<BlockFieldDescriptor, int>()
@@ -61,6 +64,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.surfaceType = (SurfaceType)hdUnlitMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hdUnlitMasterNode.m_AlphaMode);
             systemData.renderingPass = hdUnlitMasterNode.m_RenderingPass;
+            // Patch rendering pass in case the master node had an old configuration
+            if (systemData.renderingPass == HDRenderQueue.RenderQueueType.Background)
+                systemData.renderingPass = HDRenderQueue.RenderQueueType.Opaque;
             systemData.alphaTest = hdUnlitMasterNode.m_AlphaTest;
             systemData.sortPriority = hdUnlitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdUnlitMasterNode.m_DoubleSided ? DoubleSidedMode.Enabled : DoubleSidedMode.Disabled;

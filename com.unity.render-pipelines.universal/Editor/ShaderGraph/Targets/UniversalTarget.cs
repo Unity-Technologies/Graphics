@@ -284,7 +284,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
                     m_TwoSided = unlitMasterNode.m_TwoSided;
                     UpgradeAlphaClip();
-                    m_AddPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
+                    m_AddPrecomputedVelocity = false;
                     m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
                     break;
                 case SpriteLitMasterNode1 spriteLitMasterNode:
@@ -310,6 +310,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             blockMap = null;
             return false;
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
     }
 

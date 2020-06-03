@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var node = new BlockNode();
             node.Init(s_DescriptorA);
             
-            var contextView = new ContextView("Test", graph.vertexContext);
+            var contextView = new ContextView("Test", graph.vertexContext, null);
             var methodInfo = typeof(StackNode).GetMethod("AcceptsElement", BindingFlags.Instance | BindingFlags.NonPublic, null, new [] {typeof(GraphElement), typeof(int).MakeByRefType(), typeof(int)}, null);
             Assert.IsNotNull(methodInfo);
 

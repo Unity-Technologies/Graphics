@@ -66,5 +66,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_EnergyConservingSpecular;
             set => m_EnergyConservingSpecular = value;
         }
+
+        [SerializeField]
+        bool m_ClearCoat = false;
+        public bool clearCoat
+        {
+            get => m_ClearCoat;
+            set => m_ClearCoat = value;
+        }
     }
 }

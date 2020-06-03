@@ -74,7 +74,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.IsNotNull(slots);
             Assert.AreEqual(1, slots.Count);
-            Assert.AreEqual(s_MaterialSlot, slots[0]);
+            Assert.AreNotEqual(s_MaterialSlot, slots[0]); //We actually WANT to create a new slot in this case
+            Assert.AreEqual(s_MaterialSlot.displayName, slots[0].displayName);
+            Assert.AreEqual(s_MaterialSlot.valueType, slots[0].valueType);
+            Assert.AreEqual(s_MaterialSlot.value, ((Vector3MaterialSlot)slots[0]).value);
         }
 
         [Test]

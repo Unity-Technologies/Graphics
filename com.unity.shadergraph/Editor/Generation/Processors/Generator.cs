@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph
                     }
                     
                     var customEditor = context.defaultShaderGUI;
-                    if (customEditor != null)
+                    if (customEditor != null && m_Targets[i].WorksWithSRP(GraphicsSettings.currentRenderPipeline))
                     {
                         m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
                     }

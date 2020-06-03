@@ -254,8 +254,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     return BlendMode.Premultiply;
                 case 2: //AlphaMode.Additive:
                     return BlendMode.Additive;
-                case 3: //AlphaMode.Multiply: // In case of multiply we fall back to alpha
-                    return BlendMode.Alpha;
+                case 3: //AlphaMode.Multiply: // In case of multiply we fall back to Premultiply
+                    return BlendMode.Premultiply;
                 default:
                     throw new System.Exception("Unknown AlphaMode at index: " + alphaMode + ": can't convert to BlendMode.");
             }

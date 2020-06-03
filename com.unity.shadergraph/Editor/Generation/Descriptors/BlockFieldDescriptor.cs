@@ -1,5 +1,4 @@
 using System;
-
 namespace UnityEditor.ShaderGraph
 {
     internal class BlockFieldDescriptor : FieldDescriptor
@@ -8,25 +7,28 @@ namespace UnityEditor.ShaderGraph
         public IControl control { get; }
         public ShaderStage shaderStage { get; }
         public bool isHidden { get; }
+        public bool isUnknown { get; }
 
         internal string path { get; set; }
 
-        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false)
+        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
             : base (tag, referenceName, define)
         {
             this.displayName = referenceName;
             this.control = control;
             this.shaderStage = shaderStage;
             this.isHidden = isHidden;
+            this.isUnknown = isUnknown;
         }
 
-        public BlockFieldDescriptor(string tag, string referenceName, string displayName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false)
+        public BlockFieldDescriptor(string tag, string referenceName, string displayName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
             : base (tag, referenceName, define)
         {
             this.displayName = displayName;
             this.control = control;
             this.shaderStage = shaderStage;
             this.isHidden = isHidden;
+            this.isUnknown = isUnknown;
         }
     }
 

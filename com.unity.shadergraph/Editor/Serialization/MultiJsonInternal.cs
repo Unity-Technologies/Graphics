@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Serialization
 {
@@ -105,9 +106,13 @@ namespace UnityEditor.ShaderGraph.Serialization
                 isHidden = true;
             }
 
+            private List<BlockFieldDescriptor> m_activeBlocks = null;
+
             public UnknownTargetType(string displayName, string jsonData)
             {
-                this.displayName = displayName;
+                var split = displayName.Split('.');
+                var last = split[split.Length - 1];
+                this.displayName = last.Replace("Target", "");
                 isHidden = false;
                 this.jsonData = jsonData;
             }
@@ -121,8 +126,25 @@ namespace UnityEditor.ShaderGraph.Serialization
             {
                 return jsonData.Trim();
             }
+            //When we first call GetActiveBlocks, we assume any unknown blockfielddescriptors are owned by this target
             public override void GetActiveBlocks(ref TargetActiveBlockContext context)
             {
+                if (m_activeBlocks == null)
+                {
+                    m_activeBlocks = new List<BlockFieldDescriptor>();
+                    foreach (var cur in context.currentBlocks)
+                    {
+                        if (cur.isUnknown && !string.IsNullOrEmpty(cur.displayName))
+                        {
+                            m_activeBlocks.Add(cur);
+                        }
+                    }
+                }
+
+                foreach(var block in m_activeBlocks)
+                {
+                    context.AddBlock(block);
+                }
             }
 
             public override void GetFields(ref TargetFieldContext context)
@@ -138,6 +160,8 @@ namespace UnityEditor.ShaderGraph.Serialization
             public override void Setup(ref TargetSetupContext context)
             {
             }
+
+            public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => false;
         }
 
         private class UnknownSubTargetType : SubTarget
