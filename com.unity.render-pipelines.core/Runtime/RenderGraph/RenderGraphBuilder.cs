@@ -187,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckTransientTexture(TextureHandle input)
         {
-            if (input.transientPassIndex != -1 && input.transientPassIndex != m_RenderPass.index)
+            if (input.IsValid() && input.transientPassIndex != -1 && input.transientPassIndex != m_RenderPass.index)
             {
                 throw new ArgumentException($"Trying to use a transient texture (pass index {input.transientPassIndex}) in a different pass (pass index {m_RenderPass.index}.");
             }

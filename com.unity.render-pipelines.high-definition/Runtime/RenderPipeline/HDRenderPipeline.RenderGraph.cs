@@ -1064,7 +1064,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
 
                     builder.SetRenderFunc(
-                        (ResolveColorData data, RenderGraphContext context) =>
+                        (ResolveMotionVectorData data, RenderGraphContext context) =>
                         {
                             var res = context.resources;
                             var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
