@@ -573,7 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.defaultAsset.renderPipelineEditorResources = objs != null && objs.Length > 0 ? objs.First() as HDRenderPipelineEditorResources : null;
             }
 
-            if (ResourceReloader.TryReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
+            if (ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineEditorResources,
                 HDUtils.GetHDRenderPipelinePath()))
             {
                 InternalEditorUtility.SaveToSerializedFileAndForget(
