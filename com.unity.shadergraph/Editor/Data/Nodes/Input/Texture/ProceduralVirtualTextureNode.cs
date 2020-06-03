@@ -36,6 +36,7 @@ namespace UnityEditor.ShaderGraph
         {
             AddSlot(new VirtualTextureMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
+            SetLayerCount(layers);
         }
 
         [SerializeField]
@@ -43,12 +44,12 @@ namespace UnityEditor.ShaderGraph
 
         void SetLayerCount(int layers)
         {
+            var uniqueName = objectId;
             vtProperty.value.layers.Clear();
             layers = System.Math.Max(System.Math.Min(layers, SampleVirtualTextureNode.kMaxLayers), SampleVirtualTextureNode.kMinLayers);
             for (int x = 0; x < layers; x++)
             {
-                // TODO: keep layer names around?  Do we want to allow custom layer names for PVT?
-                vtProperty.value.layers.Add(new SerializableVirtualTextureLayer("Layer" + x, "Layer" + x, null));
+                vtProperty.value.layers.Add(new SerializableVirtualTextureLayer("Layer" + x + "_" + uniqueName, "Layer" + x + "_" + uniqueName, null));
             }
         }
 
