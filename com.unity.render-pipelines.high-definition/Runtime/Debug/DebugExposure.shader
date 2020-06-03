@@ -34,24 +34,29 @@ Shader "Hidden/HDRP/DebugExposure"
     float4 _ShoSegmentA;
     float4 _ShoSegmentB;
 
-    #define _DrawTonemapCurve   _ExposureDebugParams.x
-    #define _TonemapType        _ExposureDebugParams.y
+    #define _DrawTonemapCurve               _ExposureDebugParams.x
+    #define _TonemapType                    _ExposureDebugParams.y
+    #define _CenterAroundTargetExposure     _ExposureDebugParams.z
 
 
     struct Attributes
     {
         uint vertexID : SV_VertexID;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
     };
 
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
         float2 texcoord : TEXCOORD0;
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     Varyings Vert(Attributes input)
     {
         Varyings output;
+        UNITY_SETUP_INSTANCE_ID(input);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
         output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
         output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
@@ -227,27 +232,26 @@ Shader "Hidden/HDRP/DebugExposure"
         }
     }
 
-    void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
+    bool DrawEmptyFrame(float2 uv, float3 frameColor, float frameAlpha, float frameHeight, float heightLabelBar, inout float3 outColor)
     {
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
-        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25) * _ScreenSize.w * _RTHandleScale.y;
 
-        if (uv.y > frameHeight) return;
+        if (uv.y > frameHeight) return false;
 
         // ---- Draw General frame ---- 
         if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
         {
             outColor = 0.0;
-            return;
+            return false;
         }
-        else if (uv.y > frameHeight - borderSize.y || uv.y < borderSize.y)
+        else if (uv.y > frameHeight - borderSize.y)
         {
             outColor = 0.0;
-            return;
+            return false;
         }
         else
         {
-            outColor = lerp(outColor, backgroundColor, alpha);
+            outColor = lerp(outColor, frameColor, frameAlpha);
         }
 
         // ----  Draw label bar -----
@@ -256,95 +260,198 @@ Shader "Hidden/HDRP/DebugExposure"
             outColor = outColor * 0.075f;
         }
 
-        // ---- Draw Buckets frame ----
+        return true;
+    }
 
-        bool isEdgeOfBin = false;
-        float val = GetHistogramValue(unormCoord.x, isEdgeOfBin);
-        val /= maxHist;
+    float2 GetMinMaxLabelRange(float currEV)
+    {        
+        if (_CenterAroundTargetExposure > 0)
+        {
+            int maxAtBothSide = min(0.5f * (ParamExposureLimitMax - ParamExposureLimitMin), 10);
+            return float2(currEV - maxAtBothSide, currEV + maxAtBothSide);
+        }
+        else
+        {
+            return float2(ParamExposureLimitMin, ParamExposureLimitMax);
+        }
+
+    }
+
+    float EvToUVLocation(float ev, float currEV)
+    {
+        float2 valuesRange = GetMinMaxLabelRange(currEV);
+        return (ev - valuesRange.x) / (valuesRange.y - valuesRange.x);
+    }
+
+    float GetHistogramInfo(float coordOnX, float maxHistValue, float heightLabelBar, float frameHeight, float currExposure, out uint binIndex, out bool isEdgeOfBin)
+    {
+        float barSize = _ScreenSize.x / HISTOGRAM_BINS;
+        float locWithinBin = 0.0f;
+
+        if (_CenterAroundTargetExposure > 0)
+        {
+            // This is going to be the center of the histogram view in this mode.
+            uint centerBin = EVToBinLocation(currExposure);
+            uint midXPoint = _ScreenSize.x / 2;
+            uint halfBarSize = barSize / 2;
+            uint lowerMidPoint = midXPoint - halfBarSize;
+            uint higherMidPoint = midXPoint + halfBarSize;
+            if (coordOnX < float(lowerMidPoint))
+            {
+                uint distanceFromCenter = lowerMidPoint - coordOnX;
+                float deltaBinFloat = distanceFromCenter / barSize;
+                uint deltaInBins = ceil(deltaBinFloat);
+                locWithinBin = frac(deltaBinFloat) * barSize;
+                binIndex = centerBin - deltaInBins;
+            }
+            else if (coordOnX > float(higherMidPoint))
+            {
+                uint distanceFromCenter = coordOnX - higherMidPoint;
+                float deltaBinFloat = distanceFromCenter / barSize;
+                uint deltaInBins = ceil(deltaBinFloat);
+                locWithinBin = frac(deltaBinFloat) * barSize;
+
+                binIndex = centerBin + deltaInBins;
+            }
+            else
+            {
+                binIndex = centerBin;
+                
+                locWithinBin = (higherMidPoint - coordOnX);
+            }
+        }
+        else
+        {
+            float bin = coordOnX / barSize;
+            locWithinBin = barSize * frac(bin);
+            binIndex = uint(bin);
+        }
+
+        isEdgeOfBin = locWithinBin < 1 || locWithinBin >(barSize - 1);
+
+        float val = UnpackWeight(_HistogramBuffer[binIndex]);
+        val /= maxHistValue;
 
         val *= 0.95*(frameHeight - heightLabelBar);
         val += heightLabelBar;
+        return val;
+    }
 
-        if (uv.y < val && uv.y > heightLabelBar)
-        {
-            isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
-#if PERCENTILE_AS_BARS == 0
-            uint bin = uint((unormCoord.x * (HISTOGRAM_BINS)) / (_ScreenSize.x));
-            if (bin <= uint(minPercentLoc) && minPercentLoc > 0)
-            {
-                outColor.rgb = float3(0, 0, 1);
-            }
-            else if(bin >= uint(maxPercentLoc) && maxPercentLoc > 0)
-            {
-                outColor.rgb = float3(1, 0, 0);
-            }
-            else
-#endif
-            outColor.rgb = float3(1.0f, 1.0f, 1.0f);
-            if (isEdgeOfBin) outColor.rgb = 0;
-        }
-
-        // ---- Draw labels ---- 
-
-        // Number of labels
-        int labelCount = 12;
-        float oneOverLabelCount = rcp(labelCount);
-        float labelDeltaScreenSpace = _ScreenSize.x * oneOverLabelCount;
-
+    float GetLabel(float labelCount, float labelIdx, float currExposure, out uint2 labelLoc)
+    {
         int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
         int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
 
         int labelLocationY = 0.0f;
 
-        [unroll]
-        for (int i = 0; i <= labelCount; ++i)
+        float2 labelValuesRange = GetMinMaxLabelRange(currExposure);
+        float t = rcp(labelCount) * (labelIdx - 0.25);
+        labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
+        return lerp(labelValuesRange.x, labelValuesRange.y, t);
+
+    }
+
+    float GetTonemappedValueAtLocation(float uvX, float currExposure)
+    {
+        float exposureAtLoc = 0;
+
+        float2 labelValuesRange = GetMinMaxLabelRange(currExposure);
+        exposureAtLoc = lerp(labelValuesRange.x, labelValuesRange.y, uvX);
+
+        const float K = 12.5; // Reflected-light meter calibration constant
+        float luminanceFromExposure = _ExposureTexture[int2(0, 0)].x * (exp2(exposureAtLoc) * (K / 100.0f));
+
+        return saturate(Luminance(Tonemap(luminanceFromExposure)));
+
+    }
+
+    void DrawHistogramFrame(float2 uv, uint2 unormCoord, float frameHeight, float3 backgroundColor, float alpha, float maxHist, float minPercentLoc, float maxPercentLoc, inout float3 outColor)
+    {
+        float heightLabelBar = (DEBUG_FONT_TEXT_WIDTH * 1.25) * _ScreenSize.w * _RTHandleScale.y;
+
+        if (DrawEmptyFrame(uv, backgroundColor, alpha, frameHeight, heightLabelBar, outColor))
         {
-            float t = oneOverLabelCount * i;
-            float labelValue = lerp(ParamExposureLimitMin, ParamExposureLimitMax, t);
-            uint2 labelLoc = uint2((uint)lerp(minLabelLocationX, maxLabelLocationX, t), labelLocationY);
-            DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outColor.rgb);
-        }
+            float currExposure = _ExposureTexture[int2(0, 0)].y;
+            float targetExposure = _ExposureDebugTexture[int2(0, 0)].x;
 
-        // ---- Draw indicators ----
-        float currExposure = _ExposureTexture[int2(0, 0)].y;
-        float targetExposure = _ExposureDebugTexture[int2(0, 0)].x;
+            // ---- Draw Buckets ----
 
-        float evInRange = (currExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
-        float targetEVInRange = (targetExposure - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
+            bool isEdgeOfBin = false;
+            float val = GetHistogramValue(unormCoord.x, isEdgeOfBin);
+            val /= maxHist;
 
-        float halfIndicatorSize = 0.007f;
-        float halfWidthInScreen = halfIndicatorSize * _ScreenSize.x;
-
-        float labelFrameHeightScreen = heightLabelBar * (_ScreenSize.y / _RTHandleScale.y);
-
-        if (uv.y < heightLabelBar)
-        {
-            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, targetEVInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
-            DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
-
-             // Find location for percentiles bars.
-#if PERCENTILE_AS_BARS
-            DrawHistogramIndicatorBar(float(unormCoord.x), minPercentLoc, 0.003f, float3(0, 0, 1), outColor);
-            DrawHistogramIndicatorBar(float(unormCoord.x), maxPercentLoc, 0.003f, float3(1, 0, 0), outColor);
-#endif
-        }
-
-        // ---- Draw Tonemap curve ----
-        if (_DrawTonemapCurve)
-        {
-            float exposureAtLoc = lerp(ParamExposureLimitMin, ParamExposureLimitMax, uv.x);
-            const float K = 12.5; // Reflected-light meter calibration constant
-            float luminanceFromExposure = _ExposureTexture[int2(0, 0)].x * (exp2(exposureAtLoc) * (K / 100.0f));
-
-            val = saturate(Luminance(Tonemap(luminanceFromExposure)));
-            val *= 0.95 * (frameHeight - heightLabelBar);
+            val *= 0.95*(frameHeight - heightLabelBar);
             val += heightLabelBar;
 
-            float curveWidth = 4 * _ScreenSize.w;
+            uint bin = 0;
+            val = GetHistogramInfo(unormCoord.x, maxHist, heightLabelBar, frameHeight, currExposure, bin, isEdgeOfBin);
 
-            if (uv.y < val && uv.y >(val - curveWidth))
+            if (uv.y < val && uv.y > heightLabelBar)
             {
-                outColor = outColor * 0.1 + 0.9 * 0;
+                isEdgeOfBin = isEdgeOfBin || (uv.y > val - _ScreenSize.w);
+                if (bin < uint(minPercentLoc) && minPercentLoc > 0)
+                {
+                    outColor.rgb = float3(0, 0, 1);
+                }
+                else if (bin >= uint(maxPercentLoc) && maxPercentLoc > 0)
+                {
+                    outColor.rgb = float3(1, 0, 0);
+                }
+                else
+                    outColor.rgb = float3(1.0f, 1.0f, 1.0f);
+                if (isEdgeOfBin) outColor.rgb = 0;
+            }
+
+            // ---- Draw labels ---- 
+
+            // Number of labels
+            int labelCount = 12;
+
+            [unroll]
+            for (int i = 0; i <= labelCount; ++i)
+            {
+                uint2 labelLoc;
+                float labelValue = GetLabel(labelCount, i, currExposure, labelLoc);
+                DrawFloatExplicitPrecision(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, 1, labelLoc, outColor.rgb);
+            }
+
+            // ---- Draw indicators ----
+
+            float evInRange = EvToUVLocation(currExposure, currExposure);
+            float targetEVInRange = EvToUVLocation(targetExposure, currExposure);
+
+            float halfIndicatorSize = 0.007f;
+            float halfWidthInScreen = halfIndicatorSize * _ScreenSize.x;
+
+            float labelFrameHeightScreen = heightLabelBar * (_ScreenSize.y / _RTHandleScale.y);
+
+            if (uv.y < heightLabelBar)
+            {
+                DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, targetEVInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
+                DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
+            }
+            // TODO: Add bar? 
+            //else
+            //{
+            //    if (_CenterAroundTargetExposure > 0)
+            //    {
+            //        DrawHistogramIndicatorBar(float(unormCoord.x), evInRange, 0.003f, float3(0.0f, 0.0f, 0.0f), outColor);
+            //    }
+            //}
+
+            // ---- Draw Tonemap curve ----
+            if (_DrawTonemapCurve)
+            {
+                val = GetTonemappedValueAtLocation(unormCoord.x / _ScreenSize.x, currExposure);
+                val *= 0.95 * (frameHeight - heightLabelBar);
+                val += heightLabelBar;
+
+                float curveWidth = 4 * _ScreenSize.w;
+
+                if (uv.y < val && uv.y > (val - curveWidth))
+                {
+                    outColor = outColor * 0.1 + 0.9 * 0;
+                }
             }
         }
     }
@@ -395,6 +502,10 @@ Shader "Hidden/HDRP/DebugExposure"
         float3 outputColor = 0;
         float ev = GetEVAtLocation(uv);
 
+        int2 unormCoord = input.positionCS.xy;
+        uint2 textLocation = uint2(_MousePixelCoord.xy);
+
+
         float evInRange = (ev - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
         if (ev < ParamExposureLimitMax && ev > ParamExposureLimitMin)
@@ -418,7 +529,6 @@ Shader "Hidden/HDRP/DebugExposure"
         float extremeMargin = 5 * _ScreenSize.z * _RTHandleScale.x;
         DrawHeatSideBar(uv, sidebarBottomLeft, endPointSidebar, indicatorEVRange, 0.66f, sidebarSize, extremeMargin, outputColor);
 
-        int2 unormCoord = input.positionCS.xy;
 
         // Label bar
         float2 borderSize = 2 * _ScreenSize.zw * _RTHandleScale.xy;
@@ -448,7 +558,7 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
-        int2 textLocation = int2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
+        textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
         textLocation = _MousePixelCoord.xy;
         DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
@@ -501,6 +611,75 @@ Shader "Hidden/HDRP/DebugExposure"
 
         DrawHistogramFrame(uv, input.positionCS.xy, histFrameHeight, float3(0.125,0.125,0.125), 0.4f, maxValue, minPercentileLoc, maxPercentileLoc,  outputColor);
 
+        float currExposure = _ExposureTexture[int2(0, 0)].y;
+        float targetExposure = _ExposureDebugTexture[int2(0, 0)].x;
+
+        uint2 unormCoord = input.positionCS.xy;
+        float3 textColor = float3(0.5f, 0.5f, 0.5f);
+        int2 textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
+        DrawCharacter('C', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('n', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('E', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(currExposure, textColor, unormCoord, 3, textLocation, outputColor.rgb);
+        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        DrawCharacter('T', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('a', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('g', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('E', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(targetExposure, textColor, unormCoord, 3, textLocation, outputColor.rgb);
+        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5f, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        DrawCharacter('E', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('x', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('p', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(' ', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('C', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
+        DrawCharacter('o', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('m', textColor, unormCoord, textLocation, outputColor.rgb, 1, 8);
+        DrawCharacter('p', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('e', textColor, unormCoord, textLocation, outputColor.rgb, 1, 8);
+        DrawCharacter('n', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('s', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('a', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('t', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('i', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('o', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter('n', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        DrawCharacter(':', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
+        textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
+        DrawFloatExplicitPrecision(ParamExposureCompensation, textColor, unormCoord, 3, textLocation, outputColor.rgb);
 
         return outputColor;
     }

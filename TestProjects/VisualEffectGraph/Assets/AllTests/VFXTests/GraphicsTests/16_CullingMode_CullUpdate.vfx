@@ -154,7 +154,9 @@ MonoBehaviour:
     min: -Infinity
     max: Infinity
     descendantCount: 0
+  m_ImportDependencies: []
   m_GraphVersion: 4
+  m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -856,7 +858,6 @@ MonoBehaviour:
   castShadows: 0
   useExposureWeight: 0
   shaderGraph: {fileID: 0}
-  shadergraphGUID: 
   primitiveType: 1
   useGeometryShader: 0
 --- !u!114 &114830005843942136
@@ -1183,7 +1184,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":1.0,"g":0.0686105489730835,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":1.0,"g":0.5448049306869507,"b":0.0,"a":1.0},"time":0.13426412642002107},{"color":{"r":1.0,"g":0.0,"b":0.08857536315917969,"a":1.0},"time":0.2826123535633087},{"color":{"r":0.800000011920929,"g":0.15294118225574494,"b":0.30175885558128359,"a":1.0},"time":0.43990233540534975},{"color":{"r":1.0,"g":0.5615010857582092,"b":0.0,"a":1.0},"time":0.6291599869728088},{"color":{"r":1.0,"g":0.0,"b":0.1632709503173828,"a":1.0},"time":0.8209658861160278},{"color":{"r":0.8196078538894653,"g":0.2235293984413147,"b":0.3834362328052521,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":1.0,"g":0.005822739098221064,"b":0.0,"a":1.0},"time":0.0},{"color":{"r":1.0,"g":0.2578803300857544,"b":0.0,"a":1.0},"time":0.13426412642002107},{"color":{"r":1.0,"g":0.0,"b":0.00834038108587265,"a":1.0},"time":0.2826123535633087},{"color":{"r":0.6038274168968201,"g":0.020288562402129175,"b":0.07411285489797592,"a":1.0},"time":0.43990233540534975},{"color":{"r":1.0,"g":0.2754453122615814,"b":0.0,"a":1.0},"time":0.6291599869728088},{"color":{"r":1.0,"g":0.0,"b":0.02279210090637207,"a":1.0},"time":0.8209658861160278},{"color":{"r":0.6375969648361206,"g":0.040915198624134067,"b":0.12155409902334213,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient
