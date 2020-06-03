@@ -162,6 +162,69 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(true, compiledPasses[1].pruned);
         }
 
+        [Test]
+        public void PassWriteResourcePartialNotReadAfterNotPruned()
+        {
+            // If a pass writes to a resource that is not unused globally by the graph but not read ever AFTER the pass then the pass should be pruned unless it writes to another used resource.
+            TextureHandle texture0;
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            TextureHandle texture1;
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.ReadTexture(texture0);
+                texture1 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            // This pass writes to texture0 which is used so will not be pruned out.
+            // Since texture0 is never read after this pass, we should decrement refCount for this pass and potentially prune it.
+            // However, it also writes to texture1 which is used in the last pass so we musn't prune it.
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass2", out var passData))
+            {
+                builder.WriteTexture(texture0);
+                builder.WriteTexture(texture1);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass3", out var passData))
+            {
+                builder.ReadTexture(texture1);
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            m_RenderGraph.CompileRenderGraph();
+
+            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+            Assert.AreEqual(4, compiledPasses.size);
+            Assert.AreEqual(false, compiledPasses[0].pruned);
+            Assert.AreEqual(false, compiledPasses[1].pruned);
+            Assert.AreEqual(false, compiledPasses[2].pruned);
+            Assert.AreEqual(false, compiledPasses[3].pruned);
+        }
+
+        [Test]
+        public void PassDisallowPruningNotPruned()
+        {
+            // This pass does nothing so should be pruned but we explicitly disallow it.
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                builder.AllowPassPruning(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            m_RenderGraph.CompileRenderGraph();
+
+            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+            Assert.AreEqual(1, compiledPasses.size);
+            Assert.AreEqual(false, compiledPasses[0].pruned);
+        }
+
         // First pass produces two textures and second pass only read one of the two. Pass one should not be pruned.
         [Test]
         public void PartialUnusedProductNotPruned()
@@ -334,6 +397,39 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(6, compiledPasses.size);
             Assert.Contains(texture0, compiledPasses[4].textureReleaseList);
             Assert.Contains(texture2, compiledPasses[4].textureReleaseList);
+        }
+
+        [Test]
+        public void TransientResourceNotPruned()
+        {
+            TextureHandle texture0;
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+            {
+                texture0 = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+            {
+                builder.CreateTransientTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+                builder.WriteTexture(texture0);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            // Graphics pass that reads texture1. This will request a sync with compute pipe. The previous pass should be the one releasing async textures.
+            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass5", out var passData))
+            {
+                builder.ReadTexture(texture0);
+                builder.WriteTexture(m_RenderGraph.ImportBackbuffer(0)); // Needed for the passes to not be pruned
+                builder.EnableAsyncCompute(false);
+                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+            }
+
+            m_RenderGraph.CompileRenderGraph();
+
+            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+            Assert.AreEqual(3, compiledPasses.size);
+            Assert.AreEqual(false, compiledPasses[1].pruned);
         }
 
         [Test]

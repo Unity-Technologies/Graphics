@@ -112,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
                 using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
                 {
+                    builder.AllowPassPruning(false);
                     builder.SetRenderFunc(
                     (TempPassData data, RenderGraphContext context) =>
                     {
@@ -920,7 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
-                passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Write);
+                passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.distortionRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_DistortionVectorsName)));
 
