@@ -23,16 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
-        protected override string renderQueue
-        {
-            get
-            {
-                var renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
-                int queue = HDRenderQueue.ChangeType(renderingPass, systemData.sortPriority, systemData.alphaTest);
-                return HDRenderQueue.GetShaderTagValue(queue);
-            }
-        }
-
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
 
         public LightingData lightingData
