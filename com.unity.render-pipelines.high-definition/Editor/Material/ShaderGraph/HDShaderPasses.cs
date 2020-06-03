@@ -360,6 +360,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static BlockFieldDescriptor[] FragmentDepthOnlyVectors = new BlockFieldDescriptor[]
         {
             BlockFields.SurfaceDescription.NormalTS,
+            BlockFields.SurfaceDescription.NormalWS,
+            BlockFields.SurfaceDescription.NormalOS,
             BlockFields.SurfaceDescription.Smoothness,
             BlockFields.SurfaceDescription.Alpha,
             BlockFields.SurfaceDescription.AlphaClipThreshold,
