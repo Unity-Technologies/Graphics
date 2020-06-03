@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override bool supportDistortion => true;
         protected override bool supportForward => true;
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Unlit;
 
         protected override string subShaderInclude => CoreIncludes.kUnlit;
 

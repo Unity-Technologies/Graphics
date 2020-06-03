@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string subTargetAssetGuid => "7e681cc79dd8e6c46ba1e8412d519e26"; // HairSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Hair;
 
         HairData m_HairData;
 

@@ -43,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract string subShaderInclude { get; }
         protected virtual string postDecalsInclude => null;
+        protected abstract FieldDescriptor subShaderField { get; }
         // Maybe we should rename it custom forward pass include ?
         // protected virtual string postGraphInclude => null;
 
@@ -151,6 +152,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
                 }
+
+                if (passDescriptor.requiredFields == null)
+                    passDescriptor.requiredFields = new FieldCollection();
+                
+                passDescriptor.requiredFields.Add(subShaderField);
 
                 passDescriptor.includes = finalIncludes;
 

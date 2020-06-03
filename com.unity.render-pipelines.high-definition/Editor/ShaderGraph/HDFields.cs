@@ -177,6 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static FieldDescriptor StackLit = new FieldDescriptor(kSubShader, "StackLit SubShader", "");
             public static FieldDescriptor Unlit = new FieldDescriptor(kSubShader, "Unlit SubShader", "");
             public static FieldDescriptor Hair = new FieldDescriptor(kSubShader, "Hair SubShader", "");
+            public static FieldDescriptor Eye = new FieldDescriptor(kSubShader, "Eye SubShader", "");
         }
 
 #endregion

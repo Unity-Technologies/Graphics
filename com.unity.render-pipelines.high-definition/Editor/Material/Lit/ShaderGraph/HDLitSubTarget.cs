@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override bool supportDistortion => true;
         protected override bool supportForward => false;
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Lit;
 
         HDLitData m_LitData;
 

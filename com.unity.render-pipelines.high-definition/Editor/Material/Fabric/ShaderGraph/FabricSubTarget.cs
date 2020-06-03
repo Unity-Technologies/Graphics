@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.FabricGUI";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
+        protected override FieldDescriptor subShaderField => HDFields.SubShader.Fabric;
 
         FabricData m_FabricData;
 

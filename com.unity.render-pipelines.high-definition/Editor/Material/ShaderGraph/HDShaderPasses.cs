@@ -171,6 +171,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
+                requiredFields = supportLighting ? null : UnlitFieldCollection,
             };
 
             IncludeCollection GenerateIncludes()
@@ -193,6 +194,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return includes;
             }
         }
+
+        public static FieldCollection UnlitFieldCollection = new FieldCollection
+        {
+            HDFields.SubShader.Unlit,
+        };
 
         public static BlockFieldDescriptor[] FragmentShadowCaster = new BlockFieldDescriptor[]
         {
@@ -253,7 +259,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
         {
-            // TODO: this will probably break with unlit / other target that does not support all of these fields
+            // TODO: We want to only put common fields here, not target specific.
             BlockFields.SurfaceDescription.BaseColor,
             BlockFields.SurfaceDescription.NormalTS,
             BlockFields.SurfaceDescription.NormalWS,
@@ -280,6 +286,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.RefractionIndex,
             HDBlockFields.SurfaceDescription.RefractionColor,
             HDBlockFields.SurfaceDescription.RefractionDistance,
+            // Eye fields
+            HDBlockFields.SurfaceDescription.IrisNormal,
         };
 
 #endregion
@@ -378,7 +386,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
-                requiredFields = MotionVectorRequiredFields,
+                requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
                 fieldDependencies = CoreFieldDependencies.Default,
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
@@ -436,23 +444,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        static FieldCollection MotionVectorRequiredFields = new FieldCollection()
-        {
-            HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
-            HDStructFields.AttributesMesh.uv0,
-            HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
-            HDStructFields.AttributesMesh.uv2,
-            HDStructFields.AttributesMesh.uv3,
-            HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
-            HDStructFields.FragInputs.texCoord1,
-            HDStructFields.FragInputs.texCoord2,
-            HDStructFields.FragInputs.texCoord3,
-            HDStructFields.FragInputs.color,
-        };
-
         public static BlockFieldDescriptor[] FragmentMotionVectors = new BlockFieldDescriptor[]
         {
             BlockFields.SurfaceDescription.NormalTS,
@@ -484,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
-                requiredFields = ForwardOnlyFields,
+                requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
@@ -550,23 +541,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.IrisNormal,
             HDBlockFields.SurfaceDescription.IOR,
             HDBlockFields.SurfaceDescription.Mask,
-        };
-
-        public static FieldCollection ForwardOnlyFields = new FieldCollection()
-        {
-            HDStructFields.AttributesMesh.normalOS,
-            HDStructFields.AttributesMesh.tangentOS,
-            HDStructFields.AttributesMesh.uv0,
-            HDStructFields.AttributesMesh.uv1,
-            HDStructFields.AttributesMesh.color,
-            HDStructFields.AttributesMesh.uv2,
-            HDStructFields.AttributesMesh.uv3,
-            HDStructFields.FragInputs.tangentToWorld,
-            HDStructFields.FragInputs.positionRWS,
-            HDStructFields.FragInputs.texCoord1,
-            HDStructFields.FragInputs.texCoord2,
-            HDStructFields.FragInputs.texCoord3,
-            HDStructFields.FragInputs.color,
+            // Hair only
+            HDBlockFields.SurfaceDescription.HairStrandDirection,
+            HDBlockFields.SurfaceDescription.Transmittance,
+            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+            HDBlockFields.SurfaceDescription.SpecularTint,
+            HDBlockFields.SurfaceDescription.SpecularShift,
+            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
+            HDBlockFields.SurfaceDescription.SecondarySmoothness,
+            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
         };
 
 #endregion
@@ -657,6 +640,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.RefractionColor,
             HDBlockFields.SurfaceDescription.RefractionDistance,
             HDBlockFields.SurfaceDescription.DepthOffset,
+            // Eye fields
+            HDBlockFields.SurfaceDescription.IrisNormal,
+            HDBlockFields.SurfaceDescription.IOR,
+            HDBlockFields.SurfaceDescription.Mask,
             // Hair only
             HDBlockFields.SurfaceDescription.HairStrandDirection,
             HDBlockFields.SurfaceDescription.Transmittance,
@@ -666,7 +653,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.SecondarySpecularTint,
             HDBlockFields.SurfaceDescription.SecondarySmoothness,
             HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-
         };
 
 #endregion
