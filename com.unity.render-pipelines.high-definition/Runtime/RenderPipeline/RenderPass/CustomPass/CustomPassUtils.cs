@@ -395,17 +395,17 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Disable the multi pass rendering (use in XR)
+        /// Disable the single-pass rendering (use in XR)
         /// </summary>
-        public struct DisableMultiPassRendering : IDisposable
+        public struct DisableSinglePassRendering : IDisposable
         {
             CustomPassContext m_Context;
 
             /// <summary>
-            /// Disable the multi pass rendering (use in XR)
+            /// Disable the single-pass rendering (use in XR)
             /// </summary>
             /// <param name="ctx">Custom Pass Context.</param>
-            public DisableMultiPassRendering(in CustomPassContext ctx)
+            public DisableSinglePassRendering(in CustomPassContext ctx)
             {
                 m_Context = ctx;
                 if (ctx.hdCamera.xr.enabled)
@@ -413,7 +413,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             /// <summary>
-            /// Re-enable the multi-pass rendering if it was enabled
+            /// Re-enable the single-pass rendering if it was enabled
             /// </summary>
             void IDisposable.Dispose()
             {
@@ -457,7 +457,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (targetDepth != null)
                 CoreUtils.SetRenderTarget(ctx.cmd, targetDepth, clearFlag);
 
-            using (new DisableMultiPassRendering(ctx))
+            using (new DisableSinglePassRendering(ctx))
             {
                 using (new HDRenderPipeline.OverrideCameraRendering(ctx.cmd, view))
                 {
