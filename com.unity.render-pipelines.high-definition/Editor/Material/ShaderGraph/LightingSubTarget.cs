@@ -23,15 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_LightingData = value;
         }
 
-        protected override string renderQueue
-        {
-            get
-            {
-                int queue = HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest);
-                return HDRenderQueue.GetShaderTagValue(queue);
-            }
-        }
-
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
 
         public LightingData lightingData
