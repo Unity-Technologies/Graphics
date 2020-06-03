@@ -623,6 +623,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
 - Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
+- Fixed exposure debug shader with XR single-pass rendering.
+- Fixed issues with scene view and transparent motion vectors.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -756,6 +759,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed default exposure compensation to 0.
 - Refactored shadow caching system.
 - Removed experimental namespace for ray tracing code.
+- Increase limit for max numbers of lights in UX
 
 ## [7.1.1] - 2019-09-05
 
