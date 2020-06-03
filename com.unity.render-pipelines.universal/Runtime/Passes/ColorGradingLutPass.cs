@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         public ColorGradingLutPass(RenderPassEvent evt, PostProcessData data)
         {
             renderPassEvent = evt;
-            overrideCameraTarget = true;
 
             Material Load(Shader shader)
             {

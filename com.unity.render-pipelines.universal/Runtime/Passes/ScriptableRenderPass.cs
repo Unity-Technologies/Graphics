@@ -60,9 +60,6 @@ namespace UnityEngine.Rendering.Universal
             get => m_ClearColor;
         }
 
-        internal bool overrideCameraTarget { get; set; }
-        internal bool isBlitRenderPass { get; set; }
-
         RenderTargetIdentifier[] m_ColorAttachments;
         RenderTargetIdentifier m_DepthAttachment;
         ClearFlag m_ClearFlag = ClearFlag.None;
@@ -76,8 +73,6 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = none;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
-            overrideCameraTarget = false;
-            isBlitRenderPass = false;
         }
 
         /// <summary>
@@ -102,8 +97,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
-            overrideCameraTarget = true;
-
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if( nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
                 Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
@@ -120,8 +113,6 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
-            overrideCameraTarget = true;
-
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
@@ -181,20 +172,14 @@ namespace UnityEngine.Rendering.Universal
 
         public virtual void Configure(CommandBuffer cmd, RenderingData renderingData)
         {
-            // if overrideCameraTarget is true that means derived class has configure camera target
-            // in that case we do nothing, otherwise we configure camera target with default (render to camera target)
-            if (!overrideCameraTarget)
-            {
-                var renderer = renderingData.cameraData.renderer;
-                var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
-                var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
-                ConfigureTarget(colorBuffer, depthBuffer);
-                ConfigureClear(clearFlag, clearColor);
-            }
-            else
-            {
-                Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
-            }
+            var renderer = renderingData.cameraData.renderer;
+            var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);
+            var depthBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.DepthBuffer);
+            ConfigureTarget(colorBuffer, depthBuffer);
+            ConfigureClear(clearFlag, clearColor);
+            
+            // Call old Configure method to keep backward compatible with custom user render passes.
+            Configure(cmd, renderingData.cameraData.cameraTargetDescriptor);
         }
 
         /// <summary>
