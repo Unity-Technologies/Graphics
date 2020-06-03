@@ -738,7 +738,7 @@ namespace UnityEditor.ShaderGraph
                         }
                         else
                             surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "Out");
-
+                        
                     }
                     else
                     {
