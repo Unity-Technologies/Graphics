@@ -5,8 +5,8 @@ namespace UnityEngine.Rendering.HighDefinition
     internal class SkyUpdateContext
     {
         SkySettings         m_SkySettings;
+        CloudLayer          m_CloudLayer;
         public SkyRenderer  skyRenderer { get; private set; }
-        public CloudLayer   cloudLayer = null;
         public int          cachedSkyRenderingContextId = -1;
 
         public int          skyParametersHash = -1;
@@ -39,6 +39,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     skyRenderer = (SkyRenderer)Activator.CreateInstance(rendererType);
                     skyRenderer.Build();
                 }
+            }
+        }
+
+        public CloudLayer cloudLayer
+        {
+            get { return m_CloudLayer; }
+            set
+            {
+                if (m_CloudLayer == value)
+                    return;
+
+                skyParametersHash = -1;
+                m_CloudLayer = value;
             }
         }
 

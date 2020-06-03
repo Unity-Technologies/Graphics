@@ -19,12 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable to cover only the upper part of the sky.</summary>
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter            upperHemisphereOnly = new BoolParameter(true);
-        /// <summary>Controls the brightness of the cloud layer.</summary>
-        [Tooltip("Controls the brightness of the cloud layer.")]
-        public ClampedFloatParameter    brightness          = new ClampedFloatParameter(0.3f, 0.0f, 1.0f);
-        /// <summary>Opacity of the cloud layer.</summary>
-        [Tooltip("Blending factor between the sky and the cloud layer.")]
-        public ClampedFloatParameter    opacity             = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
+        /// <summary>Color multiplier of the clouds.</summary>
+        [Tooltip("Specifies the color that HDRP uses to tint the clouds.")]
+        public ColorParameter           tint                = new ColorParameter(Color.white);
+        /// <summary>Intensity multipler of the clouds.</summary>
+        [Tooltip("Sets the intensity multiplier for the clouds.")]
+        public MinFloatParameter        intensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
 
         /// <summary>Enable to have cloud distortion.</summary>
         [Tooltip("Enable or disable cloud distortion.")]
@@ -66,12 +66,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (layer != null && layer.enabled.value == true)
             {
                 Vector4 cloudParam = layer.GetParameters();
+                Vector4 cloudParam2 = layer.tint.value;
+                cloudParam2.w = layer.intensityMultiplier.value;
 
                 skyMaterial.EnableKeyword("USE_CLOUD_MAP");
                 skyMaterial.SetTexture(HDShaderIDs._CloudMap, layer.cloudMap.value);
                 skyMaterial.SetVector(HDShaderIDs._CloudParam, cloudParam);
-                skyMaterial.SetFloat(HDShaderIDs._CloudBrightness, layer.brightness.value);
-                skyMaterial.SetFloat(HDShaderIDs._CloudOpacity, layer.opacity.value);
+                skyMaterial.SetVector(HDShaderIDs._CloudParam2, cloudParam2);
 
                 if (layer.enableDistortion.value == true)
                 {
@@ -106,8 +107,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = flowmap.value != null ? hash * 23 + flowmap.value.GetHashCode() : hash;
                 hash = hash * 23 + enabled.value.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
-                hash = hash * 23 + brightness.value.GetHashCode();
-                hash = hash * 23 + opacity.value.GetHashCode();
+                hash = hash * 23 + tint.value.GetHashCode();
+                hash = hash * 23 + intensityMultiplier.value.GetHashCode();
                 hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
                 hash = hash * 23 + scrollDirection.value.GetHashCode();
@@ -117,8 +118,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = flowmap.value != null ? hash * 23 + flowmap.overrideState.GetHashCode() : hash;
                 hash = hash * 23 + enabled.overrideState.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
-                hash = hash * 23 + brightness.overrideState.GetHashCode();
-                hash = hash * 23 + opacity.overrideState.GetHashCode();
+                hash = hash * 23 + tint.overrideState.GetHashCode();
+                hash = hash * 23 + intensityMultiplier.overrideState.GetHashCode();
                 hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
                 hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
@@ -128,8 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = flowmap.value != null ? hash * 23 + flowmap.GetHashCode() : hash;
                 hash = hash * 23 + enabled.GetHashCode();
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
-                hash = hash * 23 + brightness.GetHashCode();
-                hash = hash * 23 + opacity.GetHashCode();
+                hash = hash * 23 + tint.GetHashCode();
+                hash = hash * 23 + intensityMultiplier.GetHashCode();
                 hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();
