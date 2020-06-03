@@ -31,11 +31,11 @@
 #define PREFER_HALF             0
 #define GROUP_SIZE_1D           8
 #define SUPPORT_LOCAL_LIGHTS    1 // Local lights contribute to fog lighting
-#define SHADOW_USE_DEPTH_BIAS   0 // Too expensive
+#define SHADOW_USE_DEPTH_BIAS   0 // Too expensive, not particularly effective
 #define SHADOW_LOW                // Too expensive
 #define SHADOW_AUTO_FLIP_NORMAL 0 // No normal information, so no need to flip
-#define SHADOW_VIEW_BIAS        0 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
-#define USE_DEPTH_BUFFER        1 // Sample the depth buffer to prevent leaks through thin geometry
+#define SHADOW_VIEW_BIAS        1 // Prevents light leaking through thin geometry. Not as good as normal bias at grazing angles, but cheaper and independent from the geometry.
+#define USE_DEPTH_BUFFER        1 // Accounts for opaque geometry along the camera ray
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -159,7 +159,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
         {
             #if SHADOW_VIEW_BIAS
                 // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
-                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                // We fake view bias by invoking the normal bias code with the view direction.
                 float3 shadowN = -ray.jitterDirWS;
             #else
                 float3 shadowN = 0; // No bias
@@ -196,7 +196,7 @@ VoxelLighting EvaluateVoxelLightingDirectional(LightLoopContext context, uint fe
 
             #if SHADOW_VIEW_BIAS
                 // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
-                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                // We fake view bias by invoking the normal bias code with the view direction.
                 float3 shadowN = -ray.jitterDirWS;
             #else
                 float3 shadowN = 0; // No bias
@@ -316,7 +316,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
             #if SHADOW_VIEW_BIAS
                 // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
-                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                // We fake view bias by invoking the normal bias code with the view direction.
                 float3 shadowN = -ray.jitterDirWS;
             #else
                 float3 shadowN = 0; // No bias
@@ -401,7 +401,7 @@ VoxelLighting EvaluateVoxelLightingLocal(LightLoopContext context, uint featureF
 
             #if SHADOW_VIEW_BIAS
                 // Our shadows only support normal bias. Volumetrics has no access to the surface normal.
-                // We fake view shadow bias by invoking the normal bias code with the view direction.
+                // We fake view bias by invoking the normal bias code with the view direction.
                 float3 shadowN = -ray.jitterDirWS;
             #else
                 float3 shadowN = 0; // No bias
@@ -505,7 +505,11 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
         if (containsOpaqueGeometry)
         {
-            t1 = max(t0 * 1.0001, ray.geomDist); // Only render up to the opaque surface (make the voxel shorter)
+            // Only integrate up to the opaque surface (make the voxel shorter, but not completely flat).
+            // Note that we can NOT completely stop integrating when the ray reaches geometry, since
+            // otherwise we get flickering at geometric discontinuities if reprojection is enabled.
+            // In this case, a temporally stable light leak is better than flickering.
+            t1 = max(t0 * 1.0001, ray.geomDist);
         }
     #endif
 
@@ -588,7 +592,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _VBufferHistoryViewportLimit.xyz,
                                            _VBufferPrevDistanceEncodingParams,
                                            _VBufferPrevDistanceDecodingParams,
-                                           false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
+                                           false, false, true) * float4(GetInversePreviousExposureMultiplier().xxx, 1);
 
         bool reprojSuccess = (_VBufferHistoryIsValid != 0) && (reprojValue.a != 0);
 
@@ -650,6 +654,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Integral{a, b}{Transmittance(0, t) * L_s(t) dt} = Transmittance(0, a) * Integral{a, b}{Transmittance(0, t - a) * L_s(t) dt}.
         float3 probeRadiance = probeInScatteredRadiance * TransmittanceIntegralHomogeneousMedium(extinction, dt);
 
+        // Accumulate radiance along the ray.
         totalRadiance += transmittance * scattering * (phase * blendValue.rgb + probeRadiance);
 
         // Compute the optical depth up to the center of the interval.
