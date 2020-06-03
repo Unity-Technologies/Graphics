@@ -4,6 +4,7 @@ project:
 test_platforms:
   - Standalone
   - playmode
+  - playmode_XR
 platforms:
   - name: Win
     os: windows
