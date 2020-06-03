@@ -87,80 +87,81 @@ namespace UnityEngine.Rendering.Tests
             Assert.AreEqual(false, compiledPasses[0].pruned);
         }
 
-        // A pass not writing to anything is useless and should be pruned.
-        [Test]
-        public void PrunePassWithNoProduct()
-        {
-            // This pass reads an input but does not produce anything (no writes) so it should be pruned.
-            TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                builder.ReadTexture(texture);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
-            }
+        // TODO RENDERGRAPH : Temporarily removed. See RenderGraph.cs pass pruning
+        //// A pass not writing to anything is useless and should be pruned.
+        //[Test]
+        //public void PrunePassWithNoProduct()
+        //{
+        //    // This pass reads an input but does not produce anything (no writes) so it should be pruned.
+        //    TextureHandle texture = m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm });
+        //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+        //    {
+        //        builder.ReadTexture(texture);
+        //        builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+        //    }
 
-            m_RenderGraph.CompileRenderGraph();
+        //    m_RenderGraph.CompileRenderGraph();
 
-            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
-            Assert.AreEqual(1, compiledPasses.size);
-            Assert.AreEqual(true, compiledPasses[0].pruned);
-        }
+        //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+        //    Assert.AreEqual(1, compiledPasses.size);
+        //    Assert.AreEqual(true, compiledPasses[0].pruned);
+        //}
 
-        // A series of passes with no final product should be pruned.
-        [Test]
-        public void PrunePassWithTextureDependenciesAndNoProduct()
-        {
-            // First pass produces an output that is read by second pass.
-            // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
-            TextureHandle texture;
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                texture = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
-            }
+        //// A series of passes with no final product should be pruned.
+        //[Test]
+        //public void PrunePassWithTextureDependenciesAndNoProduct()
+        //{
+        //    // First pass produces an output that is read by second pass.
+        //    // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
+        //    TextureHandle texture;
+        //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+        //    {
+        //        texture = builder.WriteTexture(m_RenderGraph.CreateTexture(new TextureDesc(Vector2.one) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm }));
+        //        builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+        //    }
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.ReadTexture(texture);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
-            }
+        //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+        //    {
+        //        builder.ReadTexture(texture);
+        //        builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+        //    }
 
-            m_RenderGraph.CompileRenderGraph();
+        //    m_RenderGraph.CompileRenderGraph();
 
-            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
-            Assert.AreEqual(2, compiledPasses.size);
-            Assert.AreEqual(true, compiledPasses[0].pruned);
-            Assert.AreEqual(true, compiledPasses[1].pruned);
-        }
+        //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+        //    Assert.AreEqual(2, compiledPasses.size);
+        //    Assert.AreEqual(true, compiledPasses[0].pruned);
+        //    Assert.AreEqual(true, compiledPasses[1].pruned);
+        //}
 
-        // A series of passes with no final product should be pruned.
-        // Here first pass is not pruned because Compute Buffer is imported.
-        // TODO: Add test where compute buffer is created instead of imported once the API exists.
-        [Test]
-        public void PrunePassWithBufferDependenciesAndNoProduct()
-        {
-            // First pass produces an output that is read by second pass.
-            // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
-            ComputeBufferHandle computeBuffer;
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
-            {
-                computeBuffer = builder.WriteComputeBuffer(m_RenderGraph.ImportComputeBuffer(null));
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
-            }
+        //// A series of passes with no final product should be pruned.
+        //// Here first pass is not pruned because Compute Buffer is imported.
+        //// TODO: Add test where compute buffer is created instead of imported once the API exists.
+        //[Test]
+        //public void PrunePassWithBufferDependenciesAndNoProduct()
+        //{
+        //    // First pass produces an output that is read by second pass.
+        //    // Second pass does not produce anything so it should be pruned as well as all its unused dependencies.
+        //    ComputeBufferHandle computeBuffer;
+        //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass0", out var passData))
+        //    {
+        //        computeBuffer = builder.WriteComputeBuffer(m_RenderGraph.ImportComputeBuffer(null));
+        //        builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+        //    }
 
-            using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
-            {
-                builder.ReadComputeBuffer(computeBuffer);
-                builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
-            }
+        //    using (var builder = m_RenderGraph.AddRenderPass<RenderGraphTestPassData>("TestPass1", out var passData))
+        //    {
+        //        builder.ReadComputeBuffer(computeBuffer);
+        //        builder.SetRenderFunc((RenderGraphTestPassData data, RenderGraphContext context) => { });
+        //    }
 
-            m_RenderGraph.CompileRenderGraph();
+        //    m_RenderGraph.CompileRenderGraph();
 
-            var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
-            Assert.AreEqual(2, compiledPasses.size);
-            Assert.AreEqual(false, compiledPasses[0].pruned); // Not pruned because writing to an imported resource is a side effect.
-            Assert.AreEqual(true, compiledPasses[1].pruned);
-        }
+        //    var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
+        //    Assert.AreEqual(2, compiledPasses.size);
+        //    Assert.AreEqual(false, compiledPasses[0].pruned); // Not pruned because writing to an imported resource is a side effect.
+        //    Assert.AreEqual(true, compiledPasses[1].pruned);
+        //}
 
         [Test]
         public void PassWriteResourcePartialNotReadAfterNotPruned()

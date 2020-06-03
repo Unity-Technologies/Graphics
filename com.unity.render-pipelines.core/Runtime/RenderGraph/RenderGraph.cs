@@ -572,8 +572,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PruneUnusedPasses()
         {
+            // TODO RENDERGRAPH: temporarily remove pruning of passes without product.
+            // Many passes are used just to set global variables so we don't want to force users to disallow pruning on those explicitly every time.
             // This will prune passes with no outputs.
-            PruneOutputlessPasses();
+            //PruneOutputlessPasses();
 
             // This will prune all passes that produce resource that are never read.
             PruneUnusedPasses(textureResources: true);
