@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         }
 
-        public override void Configure(CommandBuffer cmd, RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;
             var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);

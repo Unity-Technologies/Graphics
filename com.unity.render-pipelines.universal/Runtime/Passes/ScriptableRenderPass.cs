@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.Universal
         public virtual void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {}
 
-        public virtual void Configure(CommandBuffer cmd, RenderingData renderingData)
+        public virtual void Configure(CommandBuffer cmd, ref RenderingData renderingData)
         {
             var renderer = renderingData.cameraData.renderer;
             var colorBuffer = renderer.GetRenderTexture(UniversalRenderTextureType.ColorBuffer);

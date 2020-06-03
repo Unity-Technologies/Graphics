@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point); 
         }
 
-        public override void Configure(CommandBuffer cmd, RenderingData renderingData)
+        public override void Configure(CommandBuffer cmd, ref RenderingData renderingData)
         {
             ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);

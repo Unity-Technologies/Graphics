@@ -620,7 +620,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
-            renderPass.Configure(cmd, renderingData);
+            renderPass.Configure(cmd, ref renderingData);
 
             ClearFlag cameraClearFlag = GetCameraClearFlag(ref cameraData);
 
