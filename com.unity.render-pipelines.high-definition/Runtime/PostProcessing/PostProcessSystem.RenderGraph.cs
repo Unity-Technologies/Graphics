@@ -20,6 +20,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle logLut;
         }
 
+        class AlphaCopyPassData
+        {
+            public DoCopyAlphaParameters parameters;
+            public TextureHandle source;
+            public TextureHandle outputAlpha;
+        }
+
         public void Render( RenderGraph     renderGraph,
                             HDCamera        hdCamera,
                             BlueNoise       blueNoise,
@@ -33,19 +40,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
             var source = colorBuffer;
-            TextureHandle alphaTexture = new TextureHandle();
+            TextureHandle alphaTexture = renderGraph.defaultResources.whiteTextureXR;
+
+            // Save the alpha and apply it back into the final pass if rendering in fp16 and post-processing in r11g11b10
+            if (m_KeepAlpha)
+            {
+                using (var builder = renderGraph.AddRenderPass<AlphaCopyPassData>("Alpha Copy", out var passData, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
+                {
+                    passData.parameters = PrepareCopyAlphaParameters(hdCamera);
+                    passData.source = builder.ReadTexture(source);
+                    passData.outputAlpha = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                        { name = "Alpha Channel Copy", colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true }));
+
+                    builder.SetRenderFunc(
+                    (AlphaCopyPassData data, RenderGraphContext ctx) =>
+                    {
+                        DoCopyAlpha(    data.parameters,
+                                        ctx.resources.GetTexture(data.source),
+                                        ctx.resources.GetTexture(data.outputAlpha),
+                                        ctx.cmd);
+                    });
+
+                    alphaTexture = passData.outputAlpha;
+                }
+            }
 
             // TODO RENDERGRAPH: Implement
-            //            // Save the alpha and apply it back into the final pass if rendering in fp16 and post-processing in r11g11b10
-            //            if (m_KeepAlpha)
-            //            {
-            //                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
-            //                {
-            //                    DoCopyAlpha(cmd, camera, colorBuffer);
-            //                }
-            //            }
-            //            var source = colorBuffer;
-
             //            if (m_PostProcessEnabled)
             //            {
             //                // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
@@ -351,7 +371,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
-                passData.alphaTexture = builder.ReadTexture(m_KeepAlpha ? alphaTexture : renderGraph.defaultResources.whiteTextureXR);
+                passData.alphaTexture = builder.ReadTexture(alphaTexture);
                 passData.destination = builder.WriteTexture(finalRT);
 
                 builder.SetRenderFunc(

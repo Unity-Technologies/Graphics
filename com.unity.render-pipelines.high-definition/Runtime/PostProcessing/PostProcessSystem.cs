@@ -443,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
                     {
-                        DoCopyAlpha(cmd, camera, colorBuffer);
+                        DoCopyAlpha(PrepareCopyAlphaParameters(camera), colorBuffer, m_AlphaTexture, cmd);
                     }
                 }
                 var source = colorBuffer;
@@ -856,13 +856,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Copy Alpha
 
-        void DoCopyAlpha(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        DoCopyAlphaParameters PrepareCopyAlphaParameters(HDCamera hdCamera)
         {
-            var cs = m_Resources.shaders.copyAlphaCS;
-            int kernel = cs.FindKernel("KMain");
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_AlphaTexture);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            var parameters = new DoCopyAlphaParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.copyAlphaCS = m_Resources.shaders.copyAlphaCS;
+            parameters.copyAlphaKernel = parameters.copyAlphaCS.FindKernel("KMain");
+
+            return parameters;
+        }
+
+        struct DoCopyAlphaParameters
+        {
+            public ComputeShader    copyAlphaCS;
+            public int              copyAlphaKernel;
+            public HDCamera         hdCamera;
+        }
+
+        static void DoCopyAlpha(in DoCopyAlphaParameters parameters, RTHandle source, RTHandle outputAlphaTexture, CommandBuffer cmd)
+        {
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._OutputTexture, outputAlphaTexture);
+            cmd.DispatchCompute(parameters.copyAlphaCS, parameters.copyAlphaKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
         }
 
         #endregion
