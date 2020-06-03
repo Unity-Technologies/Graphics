@@ -60,6 +60,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         const string k_UserViewSettings = "UnityEditor.ShaderGraph.ToggleSettings";
         UserViewSettings m_UserViewSettings;
 
+        internal UserViewSettings viewSettings { get => m_UserViewSettings; }
+
         const string k_FloatingWindowsLayoutKey = "UnityEditor.ShaderGraph.FloatingWindowsLayout2";
         FloatingWindowsLayout m_FloatingWindowsLayout;
 
@@ -172,9 +174,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
+                    var precision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Changed Graph Precision");
+                        graph.concretePrecision = precision;
+
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                         m_ColorManager.SetNodesDirty(nodeList);
                         graph.ValidateGraph();
@@ -207,7 +212,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Color Mode");
-                    var newColorIdx = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
+                    var newColorIndex = EditorGUILayout.Popup(m_ColorManager.activeIndex, colorProviders, GUILayout.Width(100f));
                     GUILayout.Space(4);
                     m_UserViewSettings.isBlackboardVisible = GUILayout.Toggle(m_UserViewSettings.isBlackboardVisible, "Blackboard", EditorStyles.toolbarButton);
 
@@ -220,16 +225,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_UserViewSettings.isPreviewVisible = GUILayout.Toggle(m_UserViewSettings.isPreviewVisible, "Main Preview", EditorStyles.toolbarButton);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        if(newColorIdx != m_ColorManager.activeIndex)
-                        {
-                            m_ColorManager.SetActiveProvider(newColorIdx, m_GraphView.Query<MaterialNodeView>().ToList());
-                            m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
-                        }
-
-                        UpdateSubWindowsVisibility();
-
-                        var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
-                        EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+                        UserViewSettingsChangeCheck(newColorIndex);
                     }
                     GUILayout.EndHorizontal();
                 });
@@ -290,12 +286,27 @@ namespace UnityEditor.ShaderGraph.Drawing
             Add(content);
         }
 
+        internal void UserViewSettingsChangeCheck(int newColorIndex)
+        {
+            if (newColorIndex != m_ColorManager.activeIndex)
+            {
+                m_ColorManager.SetActiveProvider(newColorIndex, m_GraphView.Query<MaterialNodeView>().ToList());
+                m_UserViewSettings.colorProvider = m_ColorManager.activeProviderName;
+            }
+
+            var serializedViewSettings = JsonUtility.ToJson(m_UserViewSettings);
+            EditorUserSettings.SetConfigValue(k_UserViewSettings, serializedViewSettings);
+
+            UpdateSubWindowsVisibility();
+        }
+
         void NodeCreationRequest(NodeCreationContext c)
         {
             m_SearchWindowProvider.connectedPort = null;
             SearcherWindow.Show(m_EditorWindow, (m_SearchWindowProvider as SearcherProvider).LoadSearchWindow(),
                 item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - m_EditorWindow.position.position),
                 c.screenMousePosition - m_EditorWindow.position.position, null);
+
         }
 
 
@@ -814,14 +825,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SearchWindowProvider.targetSlotReference.node == node)
             {
                 m_SearchWindowProvider.nodeNeedsRepositioning = false;
-                foreach (var element in nodeView.inputContainer.Children().Union(nodeView.outputContainer.Children()))
+                if (nodeView is IShaderNodeView shaderView &&
+                    shaderView.FindPort(m_SearchWindowProvider.targetSlotReference, out var port))
                 {
-                    var port = (ShaderPort) element;
-                    if (port.slot.slotReference.Equals(m_SearchWindowProvider.targetSlotReference))
-                    {
-                        port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
-                        return;
-                    }
+                    port.RegisterCallback<GeometryChangedEvent>(RepositionNode);
+                    return;
                 }
             }
 
@@ -1005,7 +1013,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (sourceNodeView != null)
             {
-                var sourceAnchor = sourceNodeView.gvNode.outputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(sourceSlot));
+                sourceNodeView.FindPort(sourceSlot.slotReference, out var sourceAnchor);
 
                 IShaderNodeView targetNodeView;
                 if (useVisualNodeMap)
@@ -1013,7 +1021,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                     targetNodeView = m_GraphView.nodes.ToList().OfType<IShaderNodeView>().First(x => x.node == targetNode);
 
-                var targetAnchor = targetNodeView.gvNode.inputContainer.Children().OfType<ShaderPort>().First(x => x.slot.Equals(targetSlot));
+                targetNodeView.FindPort(targetSlot.slotReference, out var targetAnchor);
 
                 var edgeView = new Edge
                 {
@@ -1086,7 +1094,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
 
-                foreach (var anchorView in nodeView.inputContainer.Children().OfType<Port>())
+                foreach (var anchorView in nodeView.inputContainer.Query<Port>().ToList())
                 {
                     var targetSlot = anchorView.GetSlot();
                     if (targetSlot.valueType != SlotValueType.DynamicVector)

@@ -111,12 +111,16 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
+                case SlotValueType.VirtualTexture:
+                    AddSlot(new VirtualTextureMaterialSlot(kInputSlotID, "", "", SlotType.Input));
+                    AddSlot(new VirtualTextureMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        protected override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slotRef = NodeUtils.DepthFirstCollectRedirectNodeFromNode(this);
             var fromLeftNode = slotRef.node;

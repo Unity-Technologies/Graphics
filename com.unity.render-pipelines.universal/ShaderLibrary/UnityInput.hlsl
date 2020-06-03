@@ -16,17 +16,17 @@
 #endif
 
 #if defined(USING_STEREO_MATRICES)
-#define glstate_matrix_projection unity_StereoMatrixP[unity_StereoEyeIndex]
-#define unity_MatrixV unity_StereoMatrixV[unity_StereoEyeIndex]
-#define unity_MatrixInvV unity_StereoMatrixInvV[unity_StereoEyeIndex]
-#define unity_MatrixVP unity_StereoMatrixVP[unity_StereoEyeIndex]
-#define unity_MatrixInvVP mul(unity_StereoMatrixInvV[unity_StereoEyeIndex], unity_StereoCameraInvProjection[unity_StereoEyeIndex])
+#define glstate_matrix_projection     unity_StereoMatrixP[unity_StereoEyeIndex]
+#define unity_MatrixV                 unity_StereoMatrixV[unity_StereoEyeIndex]
+#define unity_MatrixInvV              unity_StereoMatrixInvV[unity_StereoEyeIndex]
+#define unity_MatrixVP                unity_StereoMatrixVP[unity_StereoEyeIndex]
+#define unity_MatrixInvVP             unity_StereoMatrixIVP[unity_StereoEyeIndex]
 
-#define unity_CameraProjection unity_StereoCameraProjection[unity_StereoEyeIndex]
-#define unity_CameraInvProjection unity_StereoCameraInvProjection[unity_StereoEyeIndex]
-#define unity_WorldToCamera unity_StereoWorldToCamera[unity_StereoEyeIndex]
-#define unity_CameraToWorld unity_StereoCameraToWorld[unity_StereoEyeIndex]
-#define _WorldSpaceCameraPos unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
+#define unity_CameraProjection        unity_StereoMatrixP[unity_StereoEyeIndex]
+#define unity_CameraInvProjection     unity_StereoMatrixIP[unity_StereoEyeIndex]
+#define unity_WorldToCamera           unity_StereoMatrixV[unity_StereoEyeIndex]
+#define unity_CameraToWorld           unity_StereoMatrixInvV[unity_StereoEyeIndex]
+#define _WorldSpaceCameraPos          unity_StereoWorldSpaceCameraPos[unity_StereoEyeIndex]
 #endif
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
@@ -122,42 +122,30 @@ real4 unity_SHBb;
 real4 unity_SHC;
 CBUFFER_END
 
-#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)))
-    #define GLOBAL_CBUFFER_START(name)    cbuffer name {
-    #define GLOBAL_CBUFFER_END            }
-#else
-    #define GLOBAL_CBUFFER_START(name)    CBUFFER_START(name)
-    #define GLOBAL_CBUFFER_END            CBUFFER_END
-#endif
-
 #if defined(USING_STEREO_MATRICES)
-GLOBAL_CBUFFER_START(UnityStereoGlobals)
+CBUFFER_START(UnityStereoViewBuffer)
 float4x4 unity_StereoMatrixP[2];
+float4x4 unity_StereoMatrixIP[2];
 float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
 float4x4 unity_StereoMatrixVP[2];
-
-float4x4 unity_StereoCameraProjection[2];
-float4x4 unity_StereoCameraInvProjection[2];
-float4x4 unity_StereoWorldToCamera[2];
-float4x4 unity_StereoCameraToWorld[2];
-
-float3 unity_StereoWorldSpaceCameraPos[2];
-float4 unity_StereoScaleOffset[2];
-GLOBAL_CBUFFER_END
+float4x4 unity_StereoMatrixIVP[2];
+float3   unity_StereoWorldSpaceCameraPos[2];
+float4   unity_StereoScaleOffset[2];
+CBUFFER_END
 #endif
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-GLOBAL_CBUFFER_START(UnityStereoEyeIndices)
+CBUFFER_START(UnityStereoEyeIndices)
     float4 unity_StereoEyeIndices[2];
-GLOBAL_CBUFFER_END
+CBUFFER_END
 #endif
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
 // OVR_multiview
 // In order to convey this info over the DX compiler, we wrap it into a cbuffer.
 #if !defined(UNITY_DECLARE_MULTIVIEW)
-#define UNITY_DECLARE_MULTIVIEW(number_of_views) GLOBAL_CBUFFER_START(OVR_multiview) uint gl_ViewID; uint numViews_##number_of_views; GLOBAL_CBUFFER_END
+#define UNITY_DECLARE_MULTIVIEW(number_of_views) CBUFFER_START(OVR_multiview) uint gl_ViewID; uint numViews_##number_of_views; CBUFFER_END
 #define UNITY_VIEWID gl_ViewID
 #endif
 #endif
@@ -168,9 +156,9 @@ UNITY_DECLARE_MULTIVIEW(2);
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 static uint unity_StereoEyeIndex;
 #elif defined(UNITY_SINGLE_PASS_STEREO)
-GLOBAL_CBUFFER_START(UnityStereoEyeIndex)
+CBUFFER_START(UnityStereoEyeIndex)
 int unity_StereoEyeIndex;
-GLOBAL_CBUFFER_END
+CBUFFER_END
 #endif
 
 float4x4 glstate_matrix_transpose_modelview0;
