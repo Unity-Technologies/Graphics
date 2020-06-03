@@ -133,6 +133,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
 
 ### Fixed
+- Fixed black screens for linux/HDRP (1246407)
 - Fix when rescale probe all direction below zero (1219246)
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
 - Sorting, undo, labels, layout in the Lighting Explorer.
