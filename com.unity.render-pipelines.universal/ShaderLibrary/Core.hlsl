@@ -12,7 +12,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderQuality.hlsl"
 
 
-
+#ifndef BUMP_SCALE_NOT_SUPPORTED
+#define BUMP_SCALE_NOT_SUPPORTED 0
+#endif
 
 #if UNITY_REVERSED_Z
     #if SHADER_API_OPENGL || SHADER_API_GLES || SHADER_API_GLES3

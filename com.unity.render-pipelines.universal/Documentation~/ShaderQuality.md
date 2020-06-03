@@ -8,10 +8,8 @@ Available values: __Low__, __Medium__, __High__.
 
 The following table shows the shader features that different Shader Quality settings support.
 
-| __Feature__         | __Description__           | __HLSL field__ | __Low__    | __Medium__ | __High__   |
-| ------------------- | ------------------------- | --- | ---------- | ---------- | ---------- |
-| __Reflection probe__| Enables reflection probes.        | REFLECTION_PROBE | Yes | Yes | Yes |
-| __Bump scale__      | Enables scaling of the bump map.     | BUMP_SCALE |   |   | Yes |
+| __Feature__         | __Description__           | __Shader define__ | __Low__    | __Medium__ | __High__   |
+| ------------------- | ------------------------- | ----------------- | ---------- | ---------- | ---------- |
 | __Shadow fading__   | Enables blending between the visible shadows and the invisible shadows when the shadows are too far away to be rendered.              | FADE_SHADOWS |   | Yes | Yes |
 
 ## Normalization of normals:

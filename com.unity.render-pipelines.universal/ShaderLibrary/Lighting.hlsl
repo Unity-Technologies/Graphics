@@ -559,19 +559,10 @@ half3 HackSampleSH(half3 normalWS)
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
-#if REFLECTION_PROBE
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     // Blending Reflection Probes is disabled since there is a problem with the SRP Batcher not passing the data correctly in
     // When this is fixed uncomment the lines in this function which are not supposed to be comments.
-//#if !BLEND_REFLECTION_PROBE
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-#if !defined(UNITY_USE_NATIVE_HDR)
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#else
-    half3 irradiance = encodedIrradiance.rbg;
-#endif
-/*
-#else
+/*#if BLEND_REFLECTION_PROBE
     half4 encodedIrradiance0 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
     half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
@@ -582,9 +573,15 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half4 encodedIrradiance = encodedIrradiance0 * unity_SpecCube0_BoxMin.w + encodedIrradiance1 * (1 - unity_SpecCube0_BoxMin.w);
     half3 irradiance = encodedIrradiance.rbg;
 #endif
-#endif*/
+#else*/
+    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+#if !defined(UNITY_USE_NATIVE_HDR)
+    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+    half3 irradiance = encodedIrradiance.rbg;
+#endif
+//#endif // BLEND_REFLECTION_PROBE
     return irradiance * occlusion;
-#endif // REFLECTION_PROBE
 #endif // GLOSSY_REFLECTIONS
     return _GlossyEnvironmentColor.rgb * occlusion;
 }

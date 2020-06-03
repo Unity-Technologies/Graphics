@@ -124,7 +124,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
 
             #pragma vertex ParticlesLitVertex
             #pragma fragment ParticlesLitFragment
-            #define BUMP_SCALE 0
+            #define BUMP_SCALE_NOT_SUPPORTED 1
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesSimpleLitForwardPass.hlsl"

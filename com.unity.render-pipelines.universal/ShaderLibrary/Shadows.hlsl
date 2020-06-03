@@ -291,11 +291,7 @@ float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 #if FADE_SHADOWS
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
-#ifdef _MAIN_LIGHT_SHADOWS_CASCADE
-    float shadowDist = _MainLightShadowParams.z*0.8;
-#else
     float shadowDist = _MainLightShadowParams.z;
-#endif
     float startShadowFadeDist = shadowDist * 0.9;
 
     float fade = saturate((distanceCamToPixel2 - startShadowFadeDist) / (shadowDist - startShadowFadeDist));

@@ -37,7 +37,7 @@ half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half sc
 {
 #ifdef _NORMALMAP
     half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
-    #if !BUMP_SCALE
+    #if BUMP_SCALE_NOT_SUPPORTED
         return UnpackNormal(n);
     #else
         return UnpackNormalScale(n, scale);
