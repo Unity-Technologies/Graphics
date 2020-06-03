@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_PreviewFiller;
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
-        VisualElement m_PortInputContainer;
         VisualElement m_SettingsContainer;
         bool m_ShowSettings = false;
         VisualElement m_SettingsButton;
@@ -53,7 +52,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var contents = this.Q("contents");
 
             m_GraphView = graphView;
-
+            mainContainer.style.overflow = StyleKeyword.None;    // Override explicit style set in base class
             m_ConnectorListener = connectorListener;
             node = inNode;
             viewDataKey = node.objectId;
@@ -129,20 +128,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdatePreviewExpandedState(node.previewExpanded);
             }
 
-            // Add port input container, which acts as a pixel cache for all port inputs
-            m_PortInputContainer = new VisualElement
-            {
-                name = "portInputContainer",
-                style = { overflow = Overflow.Hidden },
-                pickingMode = PickingMode.Ignore
-            };
-            Add(m_PortInputContainer);
-
-            AddSlots(node.GetSlots<MaterialSlot>());
-            UpdatePortInputs();
             base.expanded = node.drawState.expanded;
-            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-            UpdatePortInputVisibilities();
+            AddSlots(node.GetSlots<MaterialSlot>());
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
 
@@ -151,12 +138,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
             }
 
-            m_PortInputContainer.SendToBack();
-
             m_TitleContainer = this.Q("title");
 
-            var masterNode = node as IMasterNode;
-            if (masterNode != null)
+            if (node is IMasterNode)
             {
                 AddToClassList("master");
                 bool validTarget = false;
@@ -215,6 +199,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Register OnMouseHover callbacks for node highlighting
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+        }
+
+        public bool FindPort(SlotReference slotRef, out ShaderPort port)
+        {
+            port = inputContainer.Query<ShaderPort>().ToList()
+                .Concat(outputContainer.Query<ShaderPort>().ToList())
+                .First(p => p.slot.slotReference.Equals(slotRef));
+
+            return port != null;
         }
 
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
@@ -290,11 +283,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public override bool expanded
         {
-            get { return base.expanded; }
+            get => base.expanded;
             set
             {
-                if (base.expanded != value)
-                    base.expanded = value;
+                if (base.expanded == value)
+                    return;
+
+                base.expanded = value;
 
                 if (node.drawState.expanded != value)
                 {
@@ -303,8 +298,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     node.drawState = ds;
                 }
 
-                RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
-                UpdatePortInputVisibilities();
+                foreach (var inputPort in inputContainer.Query<ShaderPort>().ToList())
+                {
+                    inputPort.parent.style.visibility = inputPort.style.visibility;
+                }
+
+                RefreshExpandedState(); // Necessary b/c we can't override enough Node.cs functions to update only what's needed
             }
         }
 
@@ -542,76 +541,66 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             base.expanded = node.drawState.expanded;
 
-            // Update slots to match node modification
-            if (scope == ModificationScope.Topological)
+            switch (scope)
             {
-                RecreateSettings();
-
-                var slots = node.GetSlots<MaterialSlot>().ToList();
-
-                var inputPorts = inputContainer.Children().OfType<ShaderPort>().ToList();
-                foreach (var port in inputPorts)
+                // Update slots to match node modification
+                case ModificationScope.Topological:
                 {
-                    var currentSlot = port.slot;
-                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                    if (newSlot == null)
-                    {
-                        // Slot doesn't exist anymore, remove it
-                        inputContainer.Remove(port);
+                    RecreateSettings();
 
-                        // We also need to remove the inline input
-                        var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(v => Equals(v.slot, port.slot));
-                        if (portInputView != null)
-                            portInputView.RemoveFromHierarchy();
-                    }
-                    else
+                    var slots = node.GetSlots<MaterialSlot>().ToList();
+
+                    var inputPorts = inputContainer.Query<ShaderPort>().ToList();
+                    foreach (var port in inputPorts)
                     {
-                        port.slot = newSlot;
-                        var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(x => x.slot.id == currentSlot.id);
-                        if (newSlot.isConnected)
+                        var currentSlot = port.slot;
+                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                        if (newSlot == null)
                         {
-                            portInputView?.RemoveFromHierarchy();
+                            // Slot doesn't exist anymore, remove it
+                            inputContainer.Remove(port.parent);
                         }
                         else
                         {
-                            portInputView?.UpdateSlot(newSlot);
+                            port.slot = newSlot;
+                            UpdatePortInput(port);
+
+                            slots.Remove(newSlot);
                         }
-
-                        slots.Remove(newSlot);
                     }
-                }
 
-                var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
-                foreach (var port in outputPorts)
-                {
-                    var currentSlot = port.slot;
-                    var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
-                    if (newSlot == null)
+                    var outputPorts = outputContainer.Children().OfType<ShaderPort>().ToList();
+                    foreach (var port in outputPorts)
                     {
-                        outputContainer.Remove(port);
+                        var currentSlot = port.slot;
+                        var newSlot = slots.FirstOrDefault(s => s.id == currentSlot.id);
+                        if (newSlot == null)
+                        {
+                            outputContainer.Remove(port);
+                        }
+                        else
+                        {
+                            port.slot = newSlot;
+                            slots.Remove(newSlot);
+                        }
                     }
-                    else
-                    {
-                        port.slot = newSlot;
-                        slots.Remove(newSlot);
-                    }
+
+                    AddSlots(slots);
+
+                    slots.Clear();
+                    slots.AddRange(node.GetSlots<MaterialSlot>());
+
+                    if (inputContainer.childCount > 0)
+                        inputContainer.Sort((x, y) => slots.IndexOf(x.Q<ShaderPort>().slot) - slots.IndexOf(y.Q<ShaderPort>().slot));
+                    if (outputContainer.childCount > 0)
+                        outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
+
+                    break;
+
                 }
-
-                AddSlots(slots);
-
-                slots.Clear();
-                slots.AddRange(node.GetSlots<MaterialSlot>());
-
-                if (inputContainer.childCount > 0)
-                    inputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
-                if (outputContainer.childCount > 0)
-                    outputContainer.Sort((x, y) => slots.IndexOf(((ShaderPort)x).slot) - slots.IndexOf(((ShaderPort)y).slot));
-
-                UpdatePortInputs();
-                UpdatePortInputVisibilities();
             }
 
-            RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
+            RefreshExpandedState(); // Necessary b/c we can't override enough Node.cs functions to update only what's needed
 
             foreach (var listener in m_ControlItems.Children().OfType<AbstractMaterialNodeModificationListener>())
             {
@@ -629,97 +618,85 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var port = ShaderPort.Create(slot, m_ConnectorListener);
                 if (slot.isOutputSlot)
+                {
                     outputContainer.Add(port);
+                }
                 else
-                    inputContainer.Add(port);
-            }
-        }
-
-        void UpdatePortInputs()
-        {
-            foreach (var port in inputContainer.Children().OfType<ShaderPort>())
-            {
-                if (port.slot.isConnected)
                 {
-                    continue;
+                    var portContainer = new VisualElement();
+                    portContainer.style.flexDirection = FlexDirection.Row;
+                    var portInputView = new PortInputView(slot) {style = {position = Position.Absolute}};
+                    portContainer.Add(portInputView);
+                    portContainer.Add(port);
+                    inputContainer.Add(portContainer);
                 }
-
-                var portInputView = m_PortInputContainer.Children().OfType<PortInputView>().FirstOrDefault(a => Equals(a.slot, port.slot));
-                if (portInputView == null)
-                {
-                    portInputView = new PortInputView(port.slot) { style = { position = Position.Absolute } };
-                    m_PortInputContainer.Add(portInputView);
-                    SetPortInputPosition(port, portInputView);
-                }
-
-                port.RegisterCallback<GeometryChangedEvent>(UpdatePortInput);
+                port.OnDisconnect = OnEdgeDisconnected;
             }
         }
 
-        void UpdatePortInput(GeometryChangedEvent evt)
+        void OnEdgeDisconnected(Port obj)
         {
-            var port = (ShaderPort)evt.target;
-            var inputViews = m_PortInputContainer.Children().OfType<PortInputView>().Where(x => Equals(x.slot, port.slot));
-
-            // Ensure PortInputViews are initialized correctly
-            // Dynamic port lists require one update to validate before init
-            if(inputViews.Count() != 0)
-            {
-                var inputView = inputViews.First();
-                SetPortInputPosition(port, inputView);
-            }
-
-            port.UnregisterCallback<GeometryChangedEvent>(UpdatePortInput);
+            RefreshExpandedState();
         }
 
-        void SetPortInputPosition(ShaderPort port, PortInputView inputView)
+        static bool GetPortInputView(ShaderPort port, out PortInputView view)
         {
-            inputView.style.top = port.layout.y;
-            inputView.parent.style.height = inputContainer.layout.height;
-        }
-
-        void UpdatePortInputVisibilities()
-        {
-            if (expanded)
-            {
-                m_PortInputContainer.style.display = StyleKeyword.Null;
-            }
-            else
-            {
-                m_PortInputContainer.style.display = DisplayStyle.None;
-            }
+            view = port.parent.Q<PortInputView>();
+            return view != null;
         }
 
         public void UpdatePortInputTypes()
         {
-            foreach (var anchor in inputContainer.Children().Concat(outputContainer.Children()).OfType<ShaderPort>())
+            foreach (var anchor in inputContainer.Query<ShaderPort>().ToList())
             {
                 var slot = anchor.slot;
                 anchor.portName = slot.displayName;
                 anchor.visualClass = slot.concreteValueType.ToClassName();
+                if (GetPortInputView(anchor, out var portInputView))
+                {
+                    portInputView.UpdateSlotType();
+                    UpdatePortInputVisibility(portInputView, anchor);
+                }
             }
-
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>())
-                portInputView.UpdateSlotType();
 
             foreach (var control in m_ControlItems.Children())
             {
-                var listener = control as AbstractMaterialNodeModificationListener;
-                if (listener != null)
+                if (control is AbstractMaterialNodeModificationListener listener)
                     listener.OnNodeModified(ModificationScope.Graph);
             }
         }
 
-        void OnResize(Vector2 deltaSize)
+        void UpdatePortInput(ShaderPort port)
         {
-            var updatedWidth = topContainer.layout.width + deltaSize.x;
-            var updatedHeight = m_PreviewImage.layout.height + deltaSize.y;
-
-            var previewNode = node as PreviewNode;
-            if (previewNode != null)
+            if (GetPortInputView(port, out var portInputView))
             {
-                previewNode.SetDimensions(updatedWidth, updatedHeight);
-                UpdateSize();
+                portInputView.UpdateSlot(port.slot);
+                UpdatePortInputVisibility(portInputView, port);
+            }
+        }
+
+        void UpdatePortInputVisibility(PortInputView portInputView, ShaderPort port)
+        {
+            SetElementVisible(portInputView, !port.slot.isConnected);
+            port.parent.style.visibility = port.style.visibility;
+            portInputView.MarkDirtyRepaint();
+        }
+
+        void SetElementVisible(VisualElement element, bool isVisible)
+        {
+            const string k_HiddenClassList = "hidden";
+
+            if (isVisible)
+            {
+                // Restore default value for visibility by setting it to StyleKeyword.Null.
+                // Setting it to Visibility.Visible would make it visible even if parent is hidden.
+                element.style.visibility = StyleKeyword.Null;
+                element.RemoveFromClassList(k_HiddenClassList);
+            }
+            else
+            {
+                element.style.visibility = Visibility.Hidden;
+                element.AddToClassList(k_HiddenClassList);
             }
         }
 
@@ -776,27 +753,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdateSize()
-        {
-            var previewNode = node as PreviewNode;
-
-            if (previewNode == null)
-                return;
-
-            var width = previewNode.width;
-            var height = previewNode.height;
-
-            m_PreviewImage.style.height = height;
-            m_PreviewImage.style.width = width;
-        }
-
         public void Dispose()
         {
-            foreach (var portInputView in m_PortInputContainer.Children().OfType<PortInputView>())
+            foreach (var portInputView in inputContainer.Query<PortInputView>().ToList())
                 portInputView.Dispose();
 
             node = null;
-            ((VisualElement)this).userData = null;
+            userData = null;
             if (m_PreviewRenderData != null)
             {
                 m_PreviewRenderData.onPreviewChanged -= UpdatePreviewTexture;
