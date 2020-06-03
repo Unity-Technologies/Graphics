@@ -464,15 +464,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 32
-    TargetHeight: 32
+    TargetWidth: 512
+    TargetHeight: 512
     PerPixelCorrectnessThreshold: 0
     AverageCorrectnessThreshold: 0
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
   captureFrameRate: 20
-  simulateTime: 1
+  simulateTime: 5.95
   xrCompatible: 0
 --- !u!4 &299252011
 Transform:
