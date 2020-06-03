@@ -4,8 +4,8 @@ Shader "Universal Render Pipeline/Simple Lit"
     // Keep properties of StandardSpecular shader for upgrade reasons.
     Properties
     {
-        [MainTexture] _BaseColor("Base Color", Color) = (1, 1, 1, 1)
-        [MainColor]   _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
+        [MainTexture] _BaseMap("Base Map (RGB) Smoothness / Alpha (A)", 2D) = "white" {}
+        [MainColor]   _BaseColor("Base Color", Color) = (1, 1, 1, 1)
 
         _Cutoff("Alpha Clipping", Range(0.0, 1.0)) = 0.5
 
@@ -82,7 +82,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords

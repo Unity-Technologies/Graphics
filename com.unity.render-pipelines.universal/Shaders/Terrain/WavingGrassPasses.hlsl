@@ -61,6 +61,7 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
+    inputData.normalizedScreenSpaceUV = input.clipPos.xy;
 }
 
 
@@ -151,6 +152,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     AlphaDiscard(alpha, _Cutoff);
     alpha *= input.color.a;
 
+    outSurfaceData = (SurfaceData)0;
     outSurfaceData.alpha = alpha;
     outSurfaceData.albedo = diffuse;
     outSurfaceData.metallic = 0.0; // unused
@@ -178,7 +180,6 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     InputData inputData;
     InitializeInputData(input, inputData);
 
-	half occlusion = SampleScreenSpaceOcclusionTexture(input.clipPos);
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
 
 #ifdef TERRAIN_GBUFFER

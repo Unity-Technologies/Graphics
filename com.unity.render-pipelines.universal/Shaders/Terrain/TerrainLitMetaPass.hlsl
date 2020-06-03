@@ -29,7 +29,7 @@ Varyings TerrainVertexMeta(Attributes input)
 half4 TerrainFragmentMeta(Varyings input) : SV_Target
 {
     SurfaceData surfaceData;
-    InitializeStandardLitSurfaceData(input.uv, input.positionCS, surfaceData);
+    InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);

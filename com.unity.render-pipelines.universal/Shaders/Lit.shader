@@ -5,8 +5,8 @@ Shader "Universal Render Pipeline/Lit"
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
 
-        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
+        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -31,6 +31,11 @@ Shader "Universal Render Pipeline/Lit"
 
         _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+
+        _ClearCoat("Clear Coat", Float) = 0.0
+        _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
+        _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
+        //_ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0 // TODO: enable
 
         // Blending state
         [HideInInspector] _Surface("__surface", Float) = 0.0
@@ -91,6 +96,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
             #pragma shader_feature _OCCLUSIONMAP
 
+            #pragma shader_feature _ _CLEARCOAT _CLEARCOATMAP
+
             #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
             #pragma shader_feature _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature _SPECULAR_SETUP
@@ -104,9 +111,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
-            #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
-
-
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -231,7 +236,7 @@ Shader "Universal Render Pipeline/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
             ENDHLSL
         }
-        
+
         Pass
         {
             Name "DepthOnly"

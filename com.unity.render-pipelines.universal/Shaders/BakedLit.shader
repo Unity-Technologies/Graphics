@@ -52,7 +52,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
-            #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // Lighting include is needed because of GI
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
@@ -137,7 +137,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
-                    color *= SampleScreenSpaceOcclusionTexture(input.vertex);
+                    color *= SampleAmbientOcclusion(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);
@@ -250,7 +250,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             #pragma shader_feature _ _NORMALMAP
             #pragma shader_feature _ALPHATEST_ON
             #pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma multi_compile _ _SCREEN_SPACE_OCCLUSION
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             // -------------------------------------
             // Unity defined keywords
@@ -342,7 +342,7 @@ Shader "Universal Render Pipeline/Baked Lit"
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
                 #if defined(_SCREEN_SPACE_OCCLUSION)
-                    color *= SampleScreenSpaceOcclusionTexture(input.vertex);
+                    color *= SampleAmbientOcclusion(input.vertex);
                 #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
                 alpha = OutputAlpha(alpha);

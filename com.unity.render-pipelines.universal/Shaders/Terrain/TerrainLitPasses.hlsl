@@ -108,6 +108,7 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
+    input.normalizedScreenSpaceUV = IN.clipPos.xy;
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -374,10 +375,6 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half4 maskOcclusion = half4(masks[0].g, masks[1].g, masks[2].g, masks[3].g);
     defaultOcclusion = lerp(defaultOcclusion, maskOcclusion, hasMask);
     half occlusion = dot(splatControl, defaultOcclusion);
-    #if defined(_SCREEN_SPACE_OCCLUSION)
-        occlusion = min(occlusion, SampleScreenSpaceOcclusionTexture(IN.clipPos));
-    #endif
-
     half alpha = weight;
 #endif
 

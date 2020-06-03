@@ -1,4 +1,5 @@
 using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -22,6 +23,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedDataParameter m_WeightTextureMask;
 
+        SerializedDataParameter m_HistogramPercentages;
+        SerializedDataParameter m_HistogramCurveRemapping;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -41,6 +45,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AdaptationSpeedLightToDark = Unpack(o.Find(x => x.adaptationSpeedLightToDark));
 
             m_WeightTextureMask = Unpack(o.Find(x => x.weightTextureMask));
+
+            m_HistogramPercentages = Unpack(o.Find(x => x.histogramPercentages));
+            m_HistogramCurveRemapping = Unpack(o.Find(x => x.histogramUseCurveRemapping));
+
         }
 
         public override void OnInspectorGUI()
@@ -65,10 +73,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
                     PropertyField(m_WeightTextureMask);
 
-                PropertyField(m_LuminanceSource);
+                // Temporary hiding the field since we don't support anything but color buffer for now.
+                //PropertyField(m_LuminanceSource);
 
-                if (m_LuminanceSource.value.intValue == (int)LuminanceSource.LightingBuffer)
-                    EditorGUILayout.HelpBox("Luminance source buffer isn't supported yet.", MessageType.Warning);
+                //if (m_LuminanceSource.value.intValue == (int)LuminanceSource.LightingBuffer)
+                //    EditorGUILayout.HelpBox("Luminance source buffer isn't supported yet.", MessageType.Warning);
 
                 if (mode == (int)ExposureMode.CurveMapping)
                     PropertyField(m_CurveMap);
@@ -76,7 +85,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_Compensation);
                 PropertyField(m_LimitMin);
                 PropertyField(m_LimitMax);
-                
+
+                if(mode == (int)ExposureMode.AutomaticHistogram)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
+                    PropertyField(m_HistogramPercentages);
+                    PropertyField(m_HistogramCurveRemapping, EditorGUIUtility.TrTextContent("Use Curve Remapping"));
+                    if (m_HistogramCurveRemapping.value.boolValue)
+                    {
+                        PropertyField(m_CurveMap);
+                    }
+                }
+
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Adaptation", EditorStyles.miniLabel);
 
