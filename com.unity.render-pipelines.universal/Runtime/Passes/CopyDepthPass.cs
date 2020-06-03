@@ -19,8 +19,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         Material m_CopyDepthMaterial;
         const string m_ProfilerTag = "Copy Depth";
 
-        int m_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
-
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             AllocateRT = true;
@@ -49,7 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(destination.Identifier());
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -110,8 +108,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // scaleBias.z = bias
             // scaleBias.w = unused
             float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-            Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-            cmd.SetGlobalVector(m_ScaleBiasId, scaleBias);
+            Vector4 scaleBiasRt = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
+            cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
 
             cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_CopyDepthMaterial);
 
