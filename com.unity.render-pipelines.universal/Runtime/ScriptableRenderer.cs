@@ -250,9 +250,16 @@ namespace UnityEngine.Rendering.Universal
 
         const int k_RenderPassBlockCount = 4;
 
+        // Contains the render pass list to be executed by this renderer. This list is cleared and built every frame.
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>(32);
+
+        // Contains the renderer feature list for this renderer.
         List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
+
+        // Holds the target identifier for an intermediate/staging color texture. (_CameraColorTexture)
         RenderTargetIdentifier m_CameraColorTarget;
+
+        // Holds the target identifier for an intermediate/staging depth texture (_CameraDepthAttachment)
         RenderTargetIdentifier m_CameraDepthTarget;
 
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
@@ -262,6 +269,8 @@ namespace UnityEngine.Rendering.Universal
         const string k_SetRenderTarget = "Set RenderTarget";
         const string k_ReleaseResourcesTag = "Release Resources";
 
+        // List of render target that identify a render target setup
+        // TODO: seems like we could replace this with RenderTargetSetup (https://docs.unity3d.com/ScriptReference/RenderTargetSetup.html)
         static RenderTargetIdentifier[] m_ActiveColorAttachments = new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 };
         static RenderTargetIdentifier m_ActiveDepthAttachment;
 
@@ -281,16 +290,6 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
             new RenderTargetIdentifier[]{0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
-
-        internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
-            RenderTargetIdentifier depthAttachment)
-        {
-            m_ActiveColorAttachments[0] = colorAttachment;
-            for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = 0;
-
-            m_ActiveDepthAttachment = depthAttachment;
-        }
 
         public ScriptableRenderer(ScriptableRendererData data)
         {
@@ -332,8 +331,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if camera depth is none, this means we have a created depth implicitly by
                     // requesting a color texture + depth bits
-                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None) ||
-                        cameraDepth == cameraColorTarget)
+                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
                         return BuiltinRenderTextureType.None;
                     
                     return cameraDepth;
@@ -583,11 +581,12 @@ namespace UnityEngine.Rendering.Universal
         internal void Clear(CameraRenderType cameraType)
         {
             var colorBuffer = GetRenderTexture(UniversalRenderTextureType.CameraTarget);
-            var depthBuffer = GetRenderTexture(UniversalRenderTextureType.None);
-            
-            m_ActiveColorAttachments[0] = colorBuffer;
+            var none = GetRenderTexture(UniversalRenderTextureType.None);
+            var depthBuffer = none;
+
+            m_ActiveColorAttachments[0] = none;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
-                m_ActiveColorAttachments[i] = 0;
+                m_ActiveColorAttachments[i] = none;
 
             m_ActiveDepthAttachment = depthBuffer;
 
