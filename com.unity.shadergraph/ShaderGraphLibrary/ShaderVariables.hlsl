@@ -96,7 +96,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerDraw : register(b0))
+CBUFFER_START(UnityPerDraw)
 #ifdef UNITY_USE_PREMULTIPLIED_MATRICES
     float4x4 glstate_matrix_mvp;
     float4x4 glstate_matrix_modelview0;
