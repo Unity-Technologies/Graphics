@@ -39,6 +39,7 @@ struct SpeedTreeVertexOutput
     #endif
 
     float3 positionWS               : TEXCOORD7;
+    DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 8);
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -295,7 +296,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
 
     inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
-    inputData.bakedGI = half3(0, 0, 0); // No GI currently.
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
 }
 
 #ifdef GBUFFER

@@ -32,6 +32,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7 Billboard"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
+            #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
