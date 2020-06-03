@@ -58,6 +58,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_InternalLut = internalLut;
         }
 
+        public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
+        {
+            ref var postProcessingData = ref renderingData.postProcessingData;
+            bool hdr = postProcessingData.gradingMode == ColorGradingMode.HighDynamicRange;
+    
+            // Prepare texture & material
+            int lutHeight = postProcessingData.lutSize;
+            int lutWidth = lutHeight * lutHeight;
+            var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
+            var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
+            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
+            cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
+        }
+        
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -80,12 +94,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Prepare texture & material
             int lutHeight = postProcessingData.lutSize;
             int lutWidth = lutHeight * lutHeight;
-            var format = hdr ? m_HdrLutFormat : m_LdrLutFormat;
             var material = hdr ? m_LutBuilderHdr : m_LutBuilderLdr;
-            var desc = new RenderTextureDescriptor(lutWidth, lutHeight, format, 0);
-            desc.vrUsage = VRTextureUsage.None; // We only need one for both eyes in VR
-            cmd.GetTemporaryRT(m_InternalLut.id, desc, FilterMode.Bilinear);
-
+            
             // Prepare data
             var lmsColorBalance = ColorUtils.ColorBalanceToLMSCoeffs(whiteBalance.temperature.value, whiteBalance.tint.value);
             var hueSatCon = new Vector4(colorAdjustments.hueShift.value / 360f, colorAdjustments.saturation.value / 100f + 1f, colorAdjustments.contrast.value / 100f + 1f, 0f);
@@ -172,6 +182,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderingData renderingData)
+        {
+            ConfigureTarget(m_InternalLut.Identifier());
+            ConfigureClear(ClearFlag.None, Color.black);
         }
 
         /// <inheritdoc/>

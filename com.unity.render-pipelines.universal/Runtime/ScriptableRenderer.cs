@@ -332,8 +332,9 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // if camera depth is none, this means we have a created depth implicitly by
                     // requesting a color texture + depth bits
-                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None))
-                        return cameraColorTarget;
+                    if (cameraDepth == GetRenderTexture(UniversalRenderTextureType.None) ||
+                        cameraDepth == cameraColorTarget)
+                        return BuiltinRenderTextureType.None;
                     
                     return cameraDepth;
                 }
