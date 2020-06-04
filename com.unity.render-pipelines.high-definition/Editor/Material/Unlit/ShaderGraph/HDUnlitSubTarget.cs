@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
@@ -7,10 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
 
-        // Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
-        // This should be resolved so we can delete the second pass template
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
-        static string raytracingPassTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
 
         public HDUnlitSubTarget()
         {
@@ -243,6 +240,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = UnlitKeywords.Forward,
                 includes = UnlitIncludes.ForwardOnly,
+
+                virtualTextureFeedback = true,
             };
 
             public static PassDescriptor RaytracingIndirect = new PassDescriptor()
@@ -254,7 +253,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -279,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -290,8 +289,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
                 includes = CoreIncludes.Raytracing,
+                keywords = CoreKeywords.RaytracingVisiblity,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingVisibility },
             };
 
@@ -304,7 +303,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -329,7 +328,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -354,7 +353,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port Mask
@@ -365,7 +364,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
+                keywords = CoreKeywords.HDBaseNoCrossFade,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Unlit, HDFields.ShaderPass.RaytracingPathTracing },
             };
@@ -484,6 +483,31 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }) },
             };
         }
+        #endregion
+
+#region Defines
+        static class UnlitDefines
+        {
+            public static DefineCollection RaytracingForward = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
+            };
+
+            public static DefineCollection RaytracingIndirect = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingVisibility = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingGBuffer = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+        }
 #endregion
 
 #region Keywords
@@ -500,6 +524,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 { CoreKeywords.HDBase },
                 { CoreKeywordDescriptors.DebugDisplay },
+                { CoreKeywordDescriptors.Shadow, new FieldCondition(HDFields.EnableShadowMatte, true) },
             };
         }
 #endregion
@@ -508,7 +533,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static class UnlitIncludes
         {
             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
-            
+
             public static IncludeCollection Meta = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },
@@ -551,8 +576,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { CoreIncludes.kUnlit, IncludeLocation.Pregraph },
                 { CoreIncludes.CoreUtility },
                 { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
-                { CoreIncludes.kCommonLighting, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
-                { CoreIncludes.kShadowContext, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },
                 { CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true) },

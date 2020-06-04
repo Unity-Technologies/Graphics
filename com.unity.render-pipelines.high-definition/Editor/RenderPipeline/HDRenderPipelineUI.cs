@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ContactShadowQuality = 1 << 24,
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
+            VirtualTexturing = 1 << 27,
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -220,17 +221,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GraphicsFormat cookieFormat = (GraphicsFormat)serialized.renderPipelineSettings.lightLoopSettings.cookieFormat.intValue;
                 long currentCache = PowerOfTwoTextureAtlas.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasSize.intValue, true, cookieFormat);
-                if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                {
-                    int reserved = PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, true, cookieFormat);
-                    string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                    EditorGUILayout.HelpBox(message, MessageType.Error);
-                }
-                else
-                {
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
+                string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                EditorGUILayout.HelpBox(message, MessageType.Info);
             }
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieAtlasLastValidMip, Styles.cookieAtlasLastValidMipContent);
@@ -304,17 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 long currentCache = PlanarReflectionProbeCache.GetApproxCacheSizeInByte(1, serialized.renderPipelineSettings.lightLoopSettings.planarReflectionAtlasSize.intValue, GraphicsFormat.R16G16B16A16_UNorm);
-                if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                {
-                    int reserved = PlanarReflectionProbeCache.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, GraphicsFormat.R16G16B16A16_UNorm);
-                    string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                    EditorGUILayout.HelpBox(message, MessageType.Error);
-                }
-                else
-                {
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
+                string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
+                EditorGUILayout.HelpBox(message, MessageType.Info);
             }
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
 
@@ -349,14 +332,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!serialized.renderPipelineSettings.supportedLitShaderMode.hasMultipleDifferentValues)
             {
-                bool isDeferredOnly = serialized.renderPipelineSettings.supportedLitShaderMode.intValue == (int)RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly;
-
-                // Deferred Only mode does not allow to change filtering quality, but rather it is hardcoded.
-                if (isDeferredOnly)
-                    serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality.intValue = (int)ShaderConfig.s_DeferredShadowFiltering;
-
-                using (new EditorGUI.DisabledScope(isDeferredOnly))
-                    EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.hdShadowInitParams.shadowFilteringQuality, Styles.filteringQuality);
             }
             else
             {
@@ -407,6 +383,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionPunctual.ValueGUI<int>(Styles.punctualLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxPunctualShadowMapResolution, Styles.maxShadowResolution);
                 --EditorGUI.indentLevel;
+
+                ++EditorGUI.indentLevel;
+                // Because we don't know if the asset is old and had the cached shadow map resolution field, if it was set as default float (0) we force a default. 
+                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue == 0)
+                {
+                    serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution.intValue = 2048;
+                }
+                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedPunctualShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
+                --EditorGUI.indentLevel;
             }
 
             m_ShowAreaLightSection = EditorGUILayout.Foldout(m_ShowAreaLightSection, Styles.areaShadowsSubTitle, true);
@@ -429,6 +414,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 serialized.renderPipelineSettings.hdShadowInitParams.shadowResolutionArea.ValueGUI<int>(Styles.areaLightsShadowTiers);
                 EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.hdShadowInitParams.maxAreaShadowMapResolution, Styles.maxShadowResolution);
                 --EditorGUI.indentLevel;
+
+                ++EditorGUI.indentLevel;
+                if (serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue == 0)
+                {
+                    serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution.intValue = 1024;
+                }
+                CoreEditorUtils.DrawEnumPopup(serialized.renderPipelineSettings.hdShadowInitParams.cachedAreaShadowAtlasResolution, typeof(ShadowResolutionValue), Styles.cachedShadowAtlasResolution);
+                --EditorGUI.indentLevel;
+
             }
         }
 
@@ -863,6 +857,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_SectionLightingUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
 
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
 

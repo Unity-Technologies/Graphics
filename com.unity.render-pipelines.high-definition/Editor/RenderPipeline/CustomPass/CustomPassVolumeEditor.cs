@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         List<Material> GatherCustomPassesMaterials()
-            => m_Volume.customPasses.SelectMany(p => p.RegisterMaterialForInspector()).Where(m => m != null).ToList();
+            => m_Volume.customPasses.Where(p => p != null).SelectMany(p => p.RegisterMaterialForInspector()).Where(m => m != null).ToList();
 
         void UpdateMaterialEditors()
         {
@@ -113,6 +113,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var customPass = m_Volume.customPasses[listIndex];
 
+            if (customPass == null)
+                return null;
+
             foreach (var drawerType in TypeCache.GetTypesWithAttribute(typeof(CustomPassDrawerAttribute)))
             {
                 var attr = drawerType.GetCustomAttributes(typeof(CustomPassDrawerAttribute), true)[0] as CustomPassDrawerAttribute;
@@ -140,7 +143,12 @@ namespace UnityEditor.Rendering.HighDefinition
             
             EditorGUI.BeginChangeCheck();
             {
-                m_SerializedPassVolume.isGlobal.boolValue = EditorGUILayout.Popup(Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, Styles.modes) == 0;
+                Rect isGlobalRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal);
+                {
+                    m_SerializedPassVolume.isGlobal.boolValue = EditorGUI.Popup(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, Styles.modes) == 0;
+                }
+                EditorGUI.EndProperty();
                 EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
                 EditorGUILayout.PropertyField(m_SerializedPassVolume.priority, Styles.priority);
                 if (!m_SerializedPassVolume.isGlobal.boolValue)
@@ -163,9 +171,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorGUILayout.BeginVertical();
-            m_CustomPassList.DoLayoutList();
-            EditorGUILayout.EndVertical();
+            float customPassListHeight =  m_CustomPassList.GetHeight();
+            var customPassRect = EditorGUILayout.GetControlRect(false, customPassListHeight);
+            EditorGUI.BeginProperty(customPassRect, GUIContent.none, m_SerializedPassVolume.customPasses);
+            {
+                EditorGUILayout.BeginVertical();
+                m_CustomPassList.DoList(customPassRect);
+                EditorGUILayout.EndVertical();
+            }
+            EditorGUI.EndProperty();
         }
 
         void CreateReorderableList(SerializedProperty passList)
@@ -200,28 +214,34 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             m_CustomPassList.onAddCallback += (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
+                Undo.RegisterCompleteObjectUndo(target, "Add custom pass");
 
                 var menu = new GenericMenu();
                 foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
                 {
                     if (customPassType.IsAbstract)
                         continue;
-                    
+
                     menu.AddItem(new GUIContent(customPassType.Name), false, () => {
-                        m_Volume.AddPassOfType(customPassType);
                         passList.serializedObject.Update();
+                        m_Volume.AddPassOfType(customPassType);
                         UpdateMaterialEditors();
-                    });
+                        passList.serializedObject.ApplyModifiedProperties();
+                        // Notify the prefab that something have changed:
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+                   });
                 }
                 menu.ShowAsContext();
 			};
 
             m_CustomPassList.onRemoveCallback = (list) => {
+                passList.serializedObject.Update();
                 Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
                 m_Volume.customPasses.RemoveAt(list.index);
-                passList.serializedObject.Update();
                 UpdateMaterialEditors();
+                passList.serializedObject.ApplyModifiedProperties();
+                // Notify the prefab that something have changed:
+                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             };
         }
 

@@ -140,7 +140,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat("for (uint i{0} = 0; i{0} < {1}_{0}; ++i{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
                 }
             }
             return r;
@@ -376,14 +376,16 @@ namespace UnityEditor.VFX
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
+            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteLine();
+            globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "SourceAttributes");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteTexture(contextData.uniformMapper);
 
             var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
+            globalDeclaration.WriteEventBuffers(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();

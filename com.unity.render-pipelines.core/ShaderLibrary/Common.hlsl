@@ -1013,6 +1013,12 @@ float3 ComputeWorldSpacePosition(float2 positionNDC, float deviceDepth, float4x4
     return hpositionWS.xyz / hpositionWS.w;
 }
 
+float3 ComputeWorldSpacePosition(float4 positionCS, float4x4 invViewProjMatrix)
+{
+    float4 hpositionWS = mul(invViewProjMatrix, positionCS);
+    return hpositionWS.xyz / hpositionWS.w;
+}
+
 // ----------------------------------------------------------------------------
 // PositionInputs
 // ----------------------------------------------------------------------------
@@ -1259,5 +1265,8 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 {
     return saturate((alpha - alphaClipTreshold) / max(fwidth(alpha), 0.0001) + 0.5);
 }
+
+// These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
+TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
 
 #endif // UNITY_COMMON_INCLUDED

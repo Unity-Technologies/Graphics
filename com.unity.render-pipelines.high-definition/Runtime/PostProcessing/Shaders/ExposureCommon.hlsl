@@ -1,3 +1,6 @@
+#ifndef EXPOSURE_COMMON_INCLUDED
+#define EXPOSURE_COMMON_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PhysicalCamera.hlsl"
@@ -20,21 +23,23 @@ float4 _AdaptationParams;
 uint4 _Variants;
 CBUFFER_END
 
-#define ParamEV100                  _ExposureParams.y
-#define ParamExposureCompensation   _ExposureParams.x
-#define ParamAperture               _ExposureParams.y
-#define ParamShutterSpeed           _ExposureParams.z
-#define ParamISO                    _ExposureParams.w
-#define ParamSpeedLightToDark       _AdaptationParams.x
-#define ParamSpeedDarkToLight       _AdaptationParams.y
-#define ParamExposureLimitMin       _ExposureParams.y
-#define ParamExposureLimitMax       _ExposureParams.z
-#define ParamCurveMin               _ExposureParams2.x
-#define ParamCurveMax               _ExposureParams2.y
-#define ParamSourceBuffer           _Variants.x
-#define ParamMeteringMode           _Variants.y
-#define ParamAdaptationMode         _Variants.z
-#define ParamEvaluateMode           _Variants.w
+#define ParamEV100                      _ExposureParams.y
+#define ParamExposureCompensation       _ExposureParams.x
+#define ParamAperture                   _ExposureParams.y
+#define ParamShutterSpeed               _ExposureParams.z
+#define ParamISO                        _ExposureParams.w
+#define ParamSpeedLightToDark           _AdaptationParams.x
+#define ParamSpeedDarkToLight           _AdaptationParams.y
+#define ParamExposureLimitMin           _ExposureParams.y
+#define ParamExposureLimitMax           _ExposureParams.z
+#define ParamCurveMin                   _ExposureParams2.x
+#define ParamCurveMax                   _ExposureParams2.y
+#define LensImperfectionExposureScale   _ExposureParams2.z
+#define MeterCalibrationConstant        _ExposureParams2.w
+#define ParamSourceBuffer               _Variants.x
+#define ParamMeteringMode               _Variants.y
+#define ParamAdaptationMode             _Variants.z
+#define ParamEvaluateMode               _Variants.w
 
 #define ProceduralCenter           _ProceduralMaskParams.xy     // Transformed in screen space on CPU
 #define ProceduralRadii            _ProceduralMaskParams.zw     
@@ -42,13 +47,12 @@ CBUFFER_END
 #define ProceduralMin              _ProceduralMaskParams2.y
 #define ProceduralMax              _ProceduralMaskParams2.z
 
-
 float GetPreviousExposureEV100()
 {
     return _PreviousExposureTexture[uint2(0u, 0u)].y;
 }
 
-float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
+float WeightSample(uint2 pixel, float2 sourceSize)
 {
     UNITY_BRANCH
         switch (ParamMeteringMode)
@@ -83,7 +87,6 @@ float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
             float dist = length(ProceduralCenter * ellipseScale - pixel * ellipseScale);
             return (luminance > ProceduralMin && luminance < ProceduralMax) ? saturate(1.0 - pow((dist / radius), ProceduralSoftness)) : 0.0f;
         }
-
         default:
         {
             // Global average
@@ -97,7 +100,7 @@ float SampleLuminance(float2 uv)
     if (ParamSourceBuffer == 1)
     {
         // Color buffer
-        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
+        float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100(), LensImperfectionExposureScale);
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
         return Luminance(color / prevExposure);
     }
@@ -124,3 +127,5 @@ float CurveRemap(float inEV)
     float remap = saturate((inEV - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
     return SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, s_linear_clamp_sampler, float2(remap, 0.0), 0.0).x;
 }
+
+#endif

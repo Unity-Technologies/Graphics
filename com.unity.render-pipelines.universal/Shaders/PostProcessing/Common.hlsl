@@ -2,33 +2,7 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
-// ----------------------------------------------------------------------------------
-// Common shader data used in most post-processing passes
-
-struct Attributes
-{
-    float4 positionOS   : POSITION;
-    float2 uv           : TEXCOORD0;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct Varyings
-{
-    float4 positionCS    : SV_POSITION;
-    float2 uv            : TEXCOORD0;
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
-Varyings Vert(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv;
-    return output;
-}
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Render fullscreen mesh by using a matrix set directly by the pipeline instead of
@@ -41,13 +15,19 @@ float4 TransformFullscreenMesh(half3 positionOS)
     return mul(_FullscreenProjMat, half4(positionOS, 1));
 }
 
-Varyings VertFullscreenMesh(Attributes input)
+FullscreenVaryings VertFullscreenMesh(FullscreenAttributes input)
 {
-    Varyings output;
+    FullscreenVaryings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+#if _USE_DRAW_PROCEDURAL
+    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+#else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
+#endif
+
     return output;
 }
 

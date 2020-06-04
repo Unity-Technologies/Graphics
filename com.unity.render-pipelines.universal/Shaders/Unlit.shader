@@ -35,10 +35,11 @@ Shader "Universal Render Pipeline/Unlit"
         Pass
         {
             Name "Unlit"
+
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 4.5
 
             #pragma vertex vert
@@ -103,7 +104,6 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }

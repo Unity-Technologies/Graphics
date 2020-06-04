@@ -106,6 +106,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public BoolParameter histogramUseCurveRemapping = new BoolParameter(false);
 
         /// <summary>
+        /// Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).
+        /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value. 
+        /// </summary>
+        [Tooltip("Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).")]
+        public TargetMidGrayParameter targetMidGray = new TargetMidGrayParameter(TargetMidGray.Grey125);
+
+        /// <summary>
         /// Sets whether the procedural metering mask is centered around the exposure target (to be set on the camera)
         /// </summary>
         [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
@@ -243,6 +250,27 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// The target grey value used by the exposure system. Note this is equivalent of changing the calibration constant K on the used virtual reflected light meter.
+    /// </summary>
+    public enum TargetMidGray
+    {
+        /// <summary>
+        /// Mid Grey 12.5% (reflected light meter K set as 12.5)
+        /// </summary>
+        Grey125,
+
+        /// <summary>
+        /// Mid Grey 14.0% (reflected light meter K set as 14.0)
+        /// </summary>
+        Grey14,
+
+        /// <summary>
+        /// Mid Grey 18.0% (reflected light meter K set as 18.0). Note that this value is outside of the suggested K range by the ISO standard.
+        /// </summary>
+        Grey18
+    }
+
+    /// <summary>
     /// Methods that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.
     /// </summary>
     /// <seealso cref="Exposure.adaptationMode"/>
@@ -315,5 +343,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public AdaptationModeParameter(AdaptationMode value, bool overrideState = false) : base(value, overrideState) {}
+    }
+
+    /// <summary>
+    /// A <see cref="VolumeParameter"/> that holds a <see cref="TargetMidGray"/> value.
+    /// </summary>
+    [Serializable]
+    public sealed class TargetMidGrayParameter : VolumeParameter<TargetMidGray>
+    {
+        /// <summary>
+        /// Creates a new <see cref="TargetMidGrayParameter"/> instance.
+        /// </summary>
+        /// <param name="value">The initial value to store in the parameter.</param>
+        /// <param name="overrideState">The initial override state for the parameter.</param>
+        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) { }
     }
 }

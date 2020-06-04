@@ -162,6 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeDirectionalLightAtlas,
         /// <summary>Display area lights shadow atlas as an overlay.</summary>
         VisualizeAreaLightAtlas,
+        /// <summary>Display punctual lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedPunctualLightAtlas,
+        /// <summary>Display area lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedAreaLightAtlas,
         /// <summary>Display a single light shadow map as an overlay.</summary>
         VisualizeShadowMap,
         /// <summary>Replace rendering with a black and white view of the shadow of a single light in the scene.</summary>
@@ -313,8 +317,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
-        public bool                 showTonemapCurve = true;
+        public bool                 showTonemapCurveAlongHistogramView = true;
+        /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
+        public bool                 centerHistogramAroundMiddleGrey = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;

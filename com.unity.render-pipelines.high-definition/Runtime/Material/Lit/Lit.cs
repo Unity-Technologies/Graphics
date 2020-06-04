@@ -197,6 +197,9 @@ namespace UnityEngine.Rendering.HighDefinition
             supportShadowMask = asset.currentPlatformRenderPipelineSettings.supportShadowMask;
             supportLightLayers = asset.currentPlatformRenderPipelineSettings.supportLightLayers;
             gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
+#if ENABLE_VIRTUALTEXTURES
+            gBufferCount++;
+#endif
         }
 
         // This must return the number of GBuffer to allocate
@@ -234,7 +237,15 @@ namespace UnityEngine.Rendering.HighDefinition
             gBufferUsage[3] = GBufferUsage.None;
             enableWrite[3] = true;
 
-            int index = 4;
+            #if ENABLE_VIRTUALTEXTURES
+                int index = 4;
+                RTFormat[index] = VTBufferManager.GetFeedbackBufferFormat();
+                gBufferUsage[index] = GBufferUsage.VTFeedback;
+                enableWrite[index] = false;
+                index++;
+            #else
+                int index = 4;
+            #endif
 
             if (supportLightLayers)
             {
