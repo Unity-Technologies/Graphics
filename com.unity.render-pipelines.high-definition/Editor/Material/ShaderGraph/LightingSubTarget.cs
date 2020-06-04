@@ -31,6 +31,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string renderType => HDRenderTypeTags.HDLitShader.ToString();
 
+        public override void Setup(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("aea3df556ea7e9b44855d1fff79fed53")); // LightingSubTarget.cs
+            base.Setup(ref context);
+        }
+
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
             var gui = new SubTargetPropertiesGUI(context, onChange, registerUndo, systemData, builtinData, lightingData);

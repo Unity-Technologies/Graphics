@@ -17,9 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
-        // TODO: remove this line
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
-
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";

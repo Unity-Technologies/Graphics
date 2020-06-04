@@ -17,10 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public DecalSubTarget() => displayName = "Decal";
 
-        // TODO: remove this line
         public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
+        protected override string templatePath => passTemplatePath;
         protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();

@@ -31,9 +31,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public HDLitSubTarget() => displayName = "Lit";
 
-        // TODO: remove this line when all the passes are moved to HDPasses
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
-
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
         protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
         protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs

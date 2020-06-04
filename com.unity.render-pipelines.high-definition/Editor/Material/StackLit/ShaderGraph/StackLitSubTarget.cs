@@ -20,9 +20,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public StackLitSubTarget() => displayName = "StackLit";
 
-        // TODO: remove this line
-        public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
-
         protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
         protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
         protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
@@ -57,123 +54,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return descriptor;
         }
-
-        // TODO stacklit share pass
-        // protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
-        // {
-        //     yield return SubShaders.StackLit;
-        //     yield return SubShaders.StackLitRaytracing;
-        // }
-
-        // Reference for GetFields
-        // -------------------------------------------
-        //
-        // Properties (enables etc):
-        //
-        //  ok+MFD -> material feature define: means we need a predicate, because we will transform it into a #define that match the material feature, shader_feature-defined, that the rest of the shader code uses.
-        //
-        //  ok+MFD masterNode.baseParametrization    --> even though we can just always transfer present fields (check with $SurfaceDescription.*) like specularcolor and metallic,
-        //                                               we need to translate this into the _MATERIAL_FEATURE_SPECULAR_COLOR define.
-        //
-        //  ok masterNode.energyConservingSpecular
-        //
-        //  ~~~~ ok+MFD: these are almost all material features:
-        //  masterNode.anisotropy
-        //  masterNode.coat
-        //  masterNode.coatNormal
-        //  masterNode.dualSpecularLobe
-        //  masterNode.dualSpecularLobeParametrization
-        //  masterNode.capHazinessWrtMetallic           -> not a material feature define, as such, we will create a combined predicate for the HazyGlossMaxDielectricF0 slot dependency
-        //                                                 instead of adding a #define in the template...
-        //  masterNode.iridescence
-        //  masterNode.subsurfaceScattering
-        //  masterNode.transmission
-        //
-        //  ~~~~ ...ok+MFD: these are all material features
-        //
-        //  ok masterNode.receiveDecals
-        //  ok masterNode.receiveSSR
-        //  ok masterNode.geometricSpecularAA    --> check, a way to combine predicates and/or exclude passes: TODOTODO What about WRITE_NORMAL_BUFFER passes ? (ie smoothness)
-        //  ok masterNode.specularOcclusion      --> no use for it though! see comments.
-        //
-        //  ~~~~ ok+D: these require translation to defines also...
-        //
-        //  masterNode.anisotropyForAreaLights
-        //  masterNode.recomputeStackPerLight
-        //  masterNode.shadeBaseUsingRefractedAngles
-        //  masterNode.debug
-
-        // Inputs: Most inputs don't need a specific predicate in addition to the "present field predicate", ie the $SurfaceDescription.*,
-        //         but in some special cases we check connectivity to avoid processing the default value for nothing...
-        //         (see specular occlusion with _MASKMAP and _BENTNORMALMAP in LitData, or _TANGENTMAP, _BENTNORMALMAP, etc. which act a bit like that
-        //         although they also avoid sampling in that case, but default tiny texture map sampling isn't a big hit since they are all cached once
-        //         a default "unityTexWhite" is sampled, it is cached for everyone defaulting to white...)
-        //
-        // ok+ means there's a specific additional predicate
-        //
-        // ok masterNode.BaseColorSlotId
-        // ok masterNode.NormalSlotId
-        //
-        // ok+ masterNode.BentNormalSlotId     --> Dependency of the predicate on IsSlotConnected avoids processing even if the slots
-        // ok+ masterNode.TangentSlotId            are always there so any pass that declares its use in PixelShaderSlots will have the field in SurfaceDescription,
-        //                                         but it's not necessarily useful (if slot isnt connected, waste processing on potentially static expressions if
-        //                                         shader compiler cant optimize...and even then, useless to have static override value for those.)
-        //
-        //                                         TODOTODO: Note you could have the same argument for NormalSlot (which we dont exclude with a predicate).
-        //                                         Also and anyways, the compiler is smart enough not to do the TS to WS matrix multiply on a (0,0,1) vector.
-        //
-        // ok+ masterNode.CoatNormalSlotId       -> we already have a "material feature" coat normal map so can use that instead, although using that former, we assume the coat normal slot
-        //                                         will be there, but it's ok, we can #ifdef the code on the material feature define, and use the $SurfaceDescription.CoatNormal predicate
-        //                                         for the actual assignment,
-        //                                         although for that one we could again
-        //                                         use the "connected" condition like for tangent and bentnormal
-        //
-        // The following are all ok, no need beyond present field predicate, ie $SurfaceDescription.*,
-        // except special cases where noted
-        //
-        // ok masterNode.SubsurfaceMaskSlotId
-        // ok masterNode.ThicknessSlotId
-        // ok masterNode.DiffusionProfileHashSlotId
-        // ok masterNode.IridescenceMaskSlotId
-        // ok masterNode.IridescenceThicknessSlotId
-        // ok masterNode.SpecularColorSlotId
-        // ok masterNode.DielectricIorSlotId
-        // ok masterNode.MetallicSlotId
-        // ok masterNode.EmissionSlotId
-        // ok masterNode.SmoothnessASlotId
-        // ok masterNode.SmoothnessBSlotId
-        // ok+ masterNode.AmbientOcclusionSlotId    -> defined a specific predicate, but not used, see StackLitData.
-        // ok masterNode.AlphaSlotId
-        // ok masterNode.AlphaClipThresholdSlotId
-        // ok masterNode.AnisotropyASlotId
-        // ok masterNode.AnisotropyBSlotId
-        // ok masterNode.SpecularAAScreenSpaceVarianceSlotId
-        // ok masterNode.SpecularAAThresholdSlotId
-        // ok masterNode.CoatSmoothnessSlotId
-        // ok masterNode.CoatIorSlotId
-        // ok masterNode.CoatThicknessSlotId
-        // ok masterNode.CoatExtinctionSlotId
-        // ok masterNode.LobeMixSlotId
-        // ok masterNode.HazinessSlotId
-        // ok masterNode.HazeExtentSlotId
-        // ok masterNode.HazyGlossMaxDielectricF0SlotId     -> No need for a predicate, the needed predicate is the combined (capHazinessWrtMetallic + HazyGlossMaxDielectricF0)
-        //                                                     "leaking case": if the 2 are true, but we're not in metallic mode, the capHazinessWrtMetallic property is wrong,
-        //                                                     that means the master node is really misconfigured, spew an error, should never happen...
-        //                                                     If it happens, it's because we forgot UpdateNodeAfterDeserialization() call when modifying the capHazinessWrtMetallic or baseParametrization
-        //                                                     properties, maybe through debug etc.
-        //
-        // ok masterNode.DistortionSlotId            -> Warning: peculiarly, instead of using $SurfaceDescription.Distortion and DistortionBlur,
-        // ok masterNode.DistortionBlurSlotId           we do an #if (SHADERPASS == SHADERPASS_DISTORTION) in the template, instead of
-        //                                              relying on other passed NOT to include the DistortionSlotId in their PixelShaderSlots!!
-
-        // Other to deal with, and
-        // Common between Lit and StackLit:
-        //
-        // doubleSidedMode, alphaTest, receiveDecals,
-        // surfaceType, alphaMode, blendPreserveSpecular, transparencyFog,
-        // distortion, distortionMode, distortionDepthTest,
-        // sortPriority (int)
-        // geometricSpecularAA, energyConservingSpecular, specularOcclusion
 
         public override void GetFields(ref TargetFieldContext context)
         {

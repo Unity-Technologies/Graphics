@@ -24,15 +24,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 // passTemplatePath = templatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
                 // validPixelBlocks = FragmentDistortion,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -82,13 +80,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Distortion,
-            HDBlockFields.SurfaceDescription.DistortionBlur,
-        };
+        // public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
+        // {
+        //     BlockFields.SurfaceDescription.Alpha,
+        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
+        //     HDBlockFields.SurfaceDescription.Distortion,
+        //     HDBlockFields.SurfaceDescription.DistortionBlur,
+        // };
 
 #endregion
 
@@ -109,8 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentSceneSelection,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.SceneSelection,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
@@ -139,12 +135,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentSceneSelection = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-        };
+        // public static BlockFieldDescriptor[] FragmentSceneSelection = new BlockFieldDescriptor[]
+        // {
+        //     BlockFields.SurfaceDescription.Alpha,
+        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
+        //     HDBlockFields.SurfaceDescription.DepthOffset,
+        // };
 
 #endregion
 
@@ -165,8 +161,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentShadowCaster,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = CoreKeywords.HDBase,
@@ -226,9 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 validPixelBlocks = FragmentMeta,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.Meta,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -309,9 +301,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentDepthOnlyVectors,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = GenerateRequiredFields(),
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
@@ -387,10 +377,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentMotionVectors,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
-                fieldDependencies = CoreFieldDependencies.Default,
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = GenerateKeywords(),
@@ -476,9 +464,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentForwardOnly,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
@@ -573,9 +559,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentBackThenFront,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitMinimal,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.TransparentBackface,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
@@ -676,9 +660,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentTransparentDepthPrepass,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = TransparentDepthPrepassFields,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = GenerateDefines(),
@@ -789,8 +771,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = FragmentTransparentDepthPostpass,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -861,9 +841,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.DepthOnly,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -915,9 +893,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitMinimal,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = GBufferRenderState,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -986,9 +962,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
-                structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitMinimal,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = CoreRenderStates.ForwardColorMask,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
@@ -1037,8 +1011,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentRayTracingPrepass,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = RayTracingPrepassRenderState,
                 pragmas = LitRaytracingPrepassPragmas,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
@@ -1094,8 +1066,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingIndirectFragment,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? GenerateDefines() : null,
                 keywords = CoreKeywords.RaytracingIndirect,
@@ -1175,8 +1145,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingVisibilityFragment,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingVisibilityDefines : null,
                 keywords = CoreKeywords.RaytracingVisiblity,
@@ -1252,8 +1220,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingForwardFragment,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
                 keywords = CoreKeywords.RaytracingGBufferForward,
@@ -1330,8 +1296,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = RaytracingGBufferFragment,
 
                 // Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
                 keywords = CoreKeywords.RaytracingGBufferForward,
@@ -1407,8 +1371,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = PathTracingFragment,
 
                 //Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
                 keywords = CoreKeywords.HDBaseNoCrossFade,
@@ -1480,8 +1442,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 //Collections
-                structs = CoreStructCollections.Default,
-                fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
                 keywords = CoreKeywords.RaytracingGBufferForward,

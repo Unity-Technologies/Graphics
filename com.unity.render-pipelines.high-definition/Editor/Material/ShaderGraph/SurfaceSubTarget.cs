@@ -47,7 +47,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // Maybe we should rename it custom forward pass include ?
         // protected virtual string postGraphInclude => null;
 
-        // TODO: put this method as sealed when the new pass system is done
+        public override void Setup(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("f4df7e8f9b8c23648ae50cbca0221e47")); // SurfaceSubTarget.cs
+            base.Setup(ref context);
+        }
+
         protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
         {
             yield return PostProcessSubShader(GetSubShaderDescriptor());
@@ -163,13 +168,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.includes = finalIncludes;
 
                 // Replace valid pixel blocks by automatic thing so we don't have to write them
-                // if (passDescriptor.displayName != "ForwardOnly")
-                {
-                    var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
-                    GetActiveBlocks(ref tmpCtx);
-                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
-                    passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
-                }
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
+                GetActiveBlocks(ref tmpCtx);
+                passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+                passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
 
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
