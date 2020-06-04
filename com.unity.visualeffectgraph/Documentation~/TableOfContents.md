@@ -39,11 +39,13 @@
       * [RBG to HSV](Operator-RGBToHSV.md)
     * Logic
       * [And](Operator-LogicAnd.md)
+      * [Branch](Operator-Branch.md)
       * [Compare](Operator-Compare.md)
       * [Nand](Operator-LogicNand.md)
       * [Nor](Operator-LogicNor.md)
       * [Not](Operator-LogicNot.md)
       * [Or](Operator-LogicOr.md)
+      * [Switch](Operator-Switch.md)
     * Math
       * Arithmetic
         * [Absolute](Operator-Absolute.md)
