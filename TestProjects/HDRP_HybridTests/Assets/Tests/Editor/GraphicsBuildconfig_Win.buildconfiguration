@@ -1,23 +1,26 @@
 {
-    "Dependencies": [
-    ],
+    "Dependencies": [],
     "Components": [
         {
-            "$type": "Unity.Build.Common.GeneralSettings, Unity.Build.Common",
+            "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "GraphicsTest",
             "CompanyName": "Unity"
         },
         {
-            "$type": "Unity.Build.Common.SceneList, Unity.Build.Common",
+            "$type": "Unity.Build.Common.SceneList, Unity.Build",
             "$version": 1,
             "BuildCurrentScene": false,
             "SceneInfos": [
                 {
                     "Scene": "GlobalObjectId_V1-1-fb61bee47c7ebd24490c934b3c20e07d-102900000-0",
-                    "AutoLoad": true
+                    "AutoLoad": false
                 },
                 {
                     "Scene": "GlobalObjectId_V1-1-a2cac163dced9ff449791e3f3d7d9786-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-be33bfd947e7f4743af7dbab5c4992dc-102900000-0",
                     "AutoLoad": false
                 },
                 {
@@ -26,10 +29,6 @@
                 },
                 {
                     "Scene": "GlobalObjectId_V1-1-ccc6574d127601342bc2c74c39694b04-102900000-0",
-                    "AutoLoad": false
-                },
-                {
-                    "Scene": "GlobalObjectId_V1-1-be33bfd947e7f4743af7dbab5c4992dc-102900000-0",
                     "AutoLoad": false
                 },
                 {
@@ -62,7 +61,8 @@
             "$type": "Unity.Build.Classic.ClassicBuildProfile, Unity.Build.Classic",
             "$version": 1,
             "Platform": "Windows",
-            "Configuration": 3
+            "Configuration": 3,
+            "Incremental": false
         },
         {
             "$type": "Unity.Build.Classic.ClassicScriptingSettings, Unity.Build.Classic",
@@ -71,7 +71,7 @@
             "UseIncrementalGC": false
         },
         {
-            "$type": "Unity.Build.Common.OutputBuildDirectory, Unity.Build.Common",
+            "$type": "Unity.Build.Common.OutputBuildDirectory, Unity.Build",
             "OutputDirectory": "Builds/GraphicsTest"
         }
     ]

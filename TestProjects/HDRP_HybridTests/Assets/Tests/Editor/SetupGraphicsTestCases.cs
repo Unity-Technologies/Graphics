@@ -3,6 +3,8 @@ using Unity.Build;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Unity.Build.Common;
+using System.Collections.Generic;
 
 public class SetupGraphicsTestCases : IPrebuildSetup
 {
@@ -15,7 +17,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
         // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
         // can be used directly instead.
-        new UnityEditor.TestTools.Graphics.SetupGraphicsTestCases().Setup("Assets/ReferenceImages");
+        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(GraphicsTests.path);
     }
 
     private static void Log(string t)
@@ -29,6 +31,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         switch (t)
         {
             case BuildTarget.StandaloneWindows64: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
+            case BuildTarget.StandaloneWindows: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
             case BuildTarget.StandaloneOSX: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Mac.buildconfiguration"; break;
         }
         return (BuildConfiguration)AssetDatabase.LoadAssetAtPath(configPath, typeof(BuildConfiguration));
@@ -45,8 +48,13 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             //Tell whether yamato is running player test or playmode test
             if( args[i].Contains("Standalone") )
             {
+                Log("*************** SetupGraphicsTestCases - This is standalone test");
                 PreparePlayerTest();
                 break;
+            }
+            else
+            {
+                Log("*************** SetupGraphicsTestCases - This is playmode test");
             }
         }
     }
@@ -54,11 +62,34 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     [MenuItem("GraphicsTest/PreparePlayerTest")]
     public static void PreparePlayerTest()
     {
-        //Trigger DOTS build config
-        Log("*************** SetupGraphicsTestCases - trigger BuildConfig.Build()");
+        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - trigger BuildConfig.Build()");
+
+        //Get the correct config file
         target = EditorUserBuildSettings.activeBuildTarget;
-        FindConfig(target).Build();
-        Log("*************** SetupGraphicsTestCases - Move subscene cache");
+        BuildConfiguration config = FindConfig(target);
+        
+        Debug.Log(target);
+        //Sync the scenelist from BuildSettings to the Config file
+        List<SceneList.SceneInfo> scenelist = new List<SceneList.SceneInfo>();
+        EditorBuildSettingsScene[] buildSettingScenes = EditorBuildSettings.scenes;
+        for(int i=0;i<buildSettingScenes.Length;i++)
+        {
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(buildSettingScenes[i].path);
+            scenelist.Add(new SceneList.SceneInfo() { AutoLoad = false, Scene = GlobalObjectId.GetGlobalObjectIdSlow(sceneAsset) });
+        }
+
+        var sceneListComponent = config.GetComponent<SceneList>();
+        sceneListComponent.SceneInfos = scenelist;
+        config.SetComponent<SceneList>(sceneListComponent);
+        config.SaveAsset();
+
+        AssetDatabase.Refresh();
+        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
+
+        //Make the build
+        config.Build();
+
+        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - Move subscene cache");
         CreateFolder();
         CopyFiles();
     }
@@ -90,6 +121,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         switch (target)
         {
             case BuildTarget.StandaloneWindows64: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest_Data/StreamingAssets/SubScenes"; break;
+            case BuildTarget.StandaloneWindows: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest_Data/StreamingAssets/SubScenes"; break;
             case BuildTarget.StandaloneOSX: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest.app/Contents/Resources/Data/StreamingAssets/SubScenes"; break;
         }
 
@@ -107,6 +139,6 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         }
 
         AssetDatabase.Refresh();
-        Log("*************** SetupGraphicsTestCases - CopyFile Done");
+        Log("*************** SetupGraphicsTestCases - CopyFile Done. You can now do Testrunner > Run All in player");
     }
 }
