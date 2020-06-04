@@ -222,6 +222,8 @@ Shader "HDRP/Lit"
         [HideInInspector] _DiffusionProfile("Obsolete, kept for migration purpose", Int) = 0
         [HideInInspector] _DiffusionProfileAsset("Diffusion Profile Asset", Vector) = (0, 0, 0, 0)
         [HideInInspector] _DiffusionProfileHash("Diffusion Profile Hash", Float) = 0
+
+        [HideInInspector] _SensorCustomReflectance("Diffusion Profile Hash", Float) = 0.0
     }
 
     HLSLINCLUDE
