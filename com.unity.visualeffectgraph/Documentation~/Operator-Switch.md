@@ -32,7 +32,7 @@ This works similarly to a [switch statement](https://docs.microsoft.com/en-us/do
 
 | **Output** | **Type**                                | **Description**                                              |
 | ---------- | --------------------------------------- | ------------------------------------------------------------ |
-| **Out**    | [Configurable](#operator-configuration) | The value that corresponds to the case that matches **Test Value**, or **Default** if no cases match. |
+| **Output** | [Configurable](#operator-configuration) | The value that corresponds to the case that matches **Test Value**, or **Default** if no cases match. |
 
 ## Operator configuration
 
