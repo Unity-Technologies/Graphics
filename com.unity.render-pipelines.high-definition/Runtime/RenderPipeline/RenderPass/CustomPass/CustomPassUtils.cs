@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
-                sortingCriteria = SortingCriteria.BackToFront,
+                sortingCriteria = SortingCriteria.CommonOpaque,
                 overrideMaterial = overrideMaterial,
                 overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
