@@ -8,6 +8,7 @@ using UnityEditorInternal;
 #endif
 using System.ComponentModel;
 using System.Linq;
+using Unity.Mathematics;
 
 namespace UnityEngine.Rendering.LWRP
 {
@@ -24,8 +25,8 @@ namespace UnityEngine.Rendering.Universal
     {
         NoCascades,
         TwoCascades,
-        ThreeCascades,
         FourCascades,
+        ThreeCascades,
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
@@ -147,6 +148,10 @@ namespace UnityEngine.Rendering.Universal
         // Shadows Settings
         [SerializeField] float m_ShadowDistance = 50.0f;
         [SerializeField] ShadowCascadesOption m_ShadowCascades = ShadowCascadesOption.NoCascades;
+        [SerializeField] int m_CascadeShadowSplitCount = 4;
+        int m_CascadeShadowMinCount = 1;
+        int m_CascadeShadowMaxCount = 4;
+        [SerializeField] float m_Cascade1Split = 1f;
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
@@ -564,6 +569,42 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ShadowCascades; }
             set { m_ShadowCascades = value; }
+        }
+
+        public int cascadeShadowSplitCount
+        {
+            get { return m_CascadeShadowSplitCount; }
+            set
+            {
+                if (value < m_CascadeShadowMinCount)
+                {
+                    throw new ArgumentException($"Value ({value}) needs to be higher than {nameof(cascadeShadowMinCount)} ({m_CascadeShadowMinCount})");
+                }
+                if (value > m_CascadeShadowMaxCount)
+                {
+                    throw new ArgumentException($"Value ({value}) needs to be lower than {nameof(cascadeShadowMaxCount)} ({m_CascadeShadowMaxCount})");
+                }
+                m_CascadeShadowSplitCount = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns the min shadow cascade count.
+        /// </summary>
+        public int cascadeShadowMinCount { get => m_CascadeShadowMinCount; }
+
+        /// <summary>
+        /// Returns the max shadow cascade count.
+        /// </summary>
+        public int cascadeShadowMaxCount { get => m_CascadeShadowMaxCount; }
+
+        /// <summary>
+        /// Returns the split value.
+        /// </summary>
+        /// <returns>Returns a Float with the split value.</returns>
+        public float cascade1Split
+        {
+            get { return m_Cascade1Split; }
         }
 
         /// <summary>

@@ -34,104 +34,114 @@ namespace UnityEditor.Rendering.Universal
             public static float defaultLineSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
         }
 
-        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit, float distance, Unit unit)
+        public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit, float distance, int cascadeCount, Unit unit)
         {
-            float[] cascadePartitionSizes = null;
+            if (cascadeCount <= 0)
+            {
+                throw new ArgumentException($"Cascade value ({cascadeCount}) needs to be positive.");
+            }
+
+            int splitCount = cascadeCount - 1;
+
+            float[] cascadePartitionSizes = new float[splitCount];
             Type type = typeof(T);
 
-            if (type == typeof(float))
+            if (splitCount > 0)
             {
-                cascadePartitionSizes = new float[] { shadowCascadeSplit.floatValue };
-            }
-            else if (type == typeof(Vector3))
-            {
-                Vector3 splits = shadowCascadeSplit.vector3Value;
-                cascadePartitionSizes = new float[]
+                if (type == typeof(float))
                 {
-                    Mathf.Clamp(splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[2] - splits[1], 0.0f, 1.0f)
-                };
-            }
-            else if (type == typeof(Vector2))
-            {
-                Vector2 splits = shadowCascadeSplit.vector2Value;
-                cascadePartitionSizes = new float[]
-                {
-                    Mathf.Clamp(splits[0], 0.0f, 1.0f),
-                    Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
-                };
-            }
-
-            if (type == typeof(float))
-            {
-                var value = shadowCascadeSplit.floatValue;
-
-                EditorGUI.BeginChangeCheck();
-                var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Split 1",""), (float)Math.Round(value * distance, 2), 0f, distance, null);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
-                    float percValue = posMeter / distance;
-                    shadowCascadeSplit.floatValue = percValue;
+                    cascadePartitionSizes = new float[] { shadowCascadeSplit.floatValue };
                 }
-            }
-            else if (type == typeof(Vector2))
-            {
-                for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                else if (type == typeof(Vector3))
                 {
-                    var vec2value = shadowCascadeSplit.vector2Value;
-                    var threshold = 0.1f/distance;
+                    Vector3 splits = shadowCascadeSplit.vector3Value;
+                    cascadePartitionSizes = new float[]
+                    {
+                        Mathf.Clamp(splits[0], 0.0f, 1.0f),
+                        Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
+                        Mathf.Clamp(splits[2] - splits[1], 0.0f, 1.0f)
+                    };
+                }
+                else if (type == typeof(Vector2))
+                {
+                    Vector2 splits = shadowCascadeSplit.vector2Value;
+                    cascadePartitionSizes = new float[]
+                    {
+                        Mathf.Clamp(splits[0], 0.0f, 1.0f),
+                        Mathf.Clamp(splits[1] - splits[0], 0.0f, 1.0f),
+                    };
+                }
+
+                if (type == typeof(float))
+                {
+                    var value = shadowCascadeSplit.floatValue;
 
                     EditorGUI.BeginChangeCheck();
-                    var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i+1}",""), (float)Math.Round(vec2value[i] * distance, 2), 0f, distance, null);
+                    var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Split 1", ""), (float)Math.Round(value * distance, 2), 0f, distance, null);
 
                     if (EditorGUI.EndChangeCheck())
                     {
                         var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
                         float percValue = posMeter / distance;
-                        if (i < cascadePartitionSizes.Length-1)
-                        {
-                            percValue = Math.Min((percValue), (vec2value[i+1]-threshold) );
-                        }
-
-                        if (i != 0)
-                        {
-                            percValue = Math.Max((percValue), (vec2value[i-1]+threshold) );
-                        }
-
-                        vec2value[i] = percValue;
-                        shadowCascadeSplit.vector2Value = vec2value;
+                        shadowCascadeSplit.floatValue = percValue;
                     }
                 }
-            }
-            else
-            {
-                for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                else if (type == typeof(Vector2))
                 {
-                    var vec3value = shadowCascadeSplit.vector3Value;
-                    var threshold = 0.1f/distance;
-
-                    EditorGUI.BeginChangeCheck();
-                    var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i+1}",""), (float)Math.Round(vec3value[i] * distance, 2), 0f, distance, null);
-
-                    if (EditorGUI.EndChangeCheck())
+                    for (int i = 0; i < cascadePartitionSizes.Length; ++i)
                     {
-                        var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
-                        float percValue = posMeter / distance;
-                        if (i < cascadePartitionSizes.Length-1)
-                        {
-                            percValue = Math.Min((percValue), (vec3value[i+1]-threshold) );
-                        }
+                        var vec2value = shadowCascadeSplit.vector2Value;
+                        var threshold = 0.1f / distance;
 
-                        if (i != 0)
-                        {
-                            percValue = Math.Max((percValue), (vec3value[i-1]+threshold) );
-                        }
+                        EditorGUI.BeginChangeCheck();
+                        var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec2value[i] * distance, 2), 0f, distance, null);
 
-                        vec3value[i] = percValue;
-                        shadowCascadeSplit.vector3Value = vec3value;
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
+                            float percValue = posMeter / distance;
+                            if (i < cascadePartitionSizes.Length - 1)
+                            {
+                                percValue = Math.Min((percValue), (vec2value[i + 1] - threshold));
+                            }
+
+                            if (i != 0)
+                            {
+                                percValue = Math.Max((percValue), (vec2value[i - 1] + threshold));
+                            }
+
+                            vec2value[i] = percValue;
+                            shadowCascadeSplit.vector2Value = vec2value;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < cascadePartitionSizes.Length; ++i)
+                    {
+                        var vec3value = shadowCascadeSplit.vector3Value;
+                        var threshold = 0.1f / distance;
+
+                        EditorGUI.BeginChangeCheck();
+                        var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec3value[i] * distance, 2), 0f, distance, null);
+
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
+                            float percValue = posMeter / distance;
+                            if (i < cascadePartitionSizes.Length - 1)
+                            {
+                                percValue = Math.Min((percValue), (vec3value[i + 1] - threshold));
+                            }
+
+                            if (i != 0)
+                            {
+                                percValue = Math.Max((percValue), (vec3value[i - 1] + threshold));
+                            }
+
+                            vec3value[i] = percValue;
+                            shadowCascadeSplit.vector3Value = vec3value;
+                        }
                     }
                 }
             }
@@ -142,22 +152,25 @@ namespace UnityEditor.Rendering.Universal
                 ShadowCascadeSplitGUI.HandleCascadeSliderGUI(ref cascadePartitionSizes, distance, unit);
                 if (EditorGUI.EndChangeCheck())
                 {
-                    if (type == typeof(float))
-                        shadowCascadeSplit.floatValue = cascadePartitionSizes[0];
-                    else if(type == typeof(Vector2))
+                    if (splitCount > 0)
                     {
-                        Vector2 updatedValue = new Vector2();
-                        updatedValue[0] = cascadePartitionSizes[0];
-                        updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
-                        shadowCascadeSplit.vector2Value = updatedValue;
-                    }
-                    else
-                    {
-                        Vector3 updatedValue = new Vector3();
-                        updatedValue[0] = cascadePartitionSizes[0];
-                        updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
-                        updatedValue[2] = updatedValue[1] + cascadePartitionSizes[2];
-                        shadowCascadeSplit.vector3Value = updatedValue;
+                        if (type == typeof(float))
+                            shadowCascadeSplit.floatValue = cascadePartitionSizes[0];
+                        else if (type == typeof(Vector2))
+                        {
+                            Vector2 updatedValue = new Vector2();
+                            updatedValue[0] = cascadePartitionSizes[0];
+                            updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
+                            shadowCascadeSplit.vector2Value = updatedValue;
+                        }
+                        else
+                        {
+                            Vector3 updatedValue = new Vector3();
+                            updatedValue[0] = cascadePartitionSizes[0];
+                            updatedValue[1] = updatedValue[0] + cascadePartitionSizes[1];
+                            updatedValue[2] = updatedValue[1] + cascadePartitionSizes[2];
+                            shadowCascadeSplit.vector3Value = updatedValue;
+                        }
                     }
                 }
             }

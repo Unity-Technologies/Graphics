@@ -1,3 +1,4 @@
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
@@ -120,6 +121,8 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_ShadowDistanceProp;
         SerializedProperty m_ShadowCascadesProp;
+        SerializedProperty m_CascadeShadowSplitCountProp;
+        SerializedProperty m_ShadowCascade1SplitProp;
         SerializedProperty m_ShadowCascade2SplitProp;
         SerializedProperty m_ShadowCascade3SplitProp;
         SerializedProperty m_ShadowCascade4SplitProp;
@@ -195,6 +198,8 @@ namespace UnityEditor.Rendering.Universal
 
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
+            m_CascadeShadowSplitCountProp = serializedObject.FindProperty("m_CascadeShadowSplitCount");
+            m_ShadowCascade1SplitProp = serializedObject.FindProperty("m_Cascade1Split");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
@@ -346,15 +351,28 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
+                UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                EditorGUILayout.IntSlider(m_CascadeShadowSplitCountProp, asset.cascadeShadowMinCount, asset.cascadeShadowMaxCount, Styles.shadowCascadesText);
 
-                ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
-                if (cascades == ShadowCascadesOption.FourCascades)
-                    EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, unit);
-                else if (cascades == ShadowCascadesOption.ThreeCascades)
-                    EditorUtils.DrawCascadeSplitGUI<Vector2>(ref m_ShadowCascade3SplitProp, m_ShadowDistanceProp.floatValue, unit);
-                else if (cascades == ShadowCascadesOption.TwoCascades)
-                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, unit);
+                int cascadeCount = m_CascadeShadowSplitCountProp.intValue;
+                if (cascadeCount == 4)
+                    EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
+                else if (cascadeCount == 3)
+                    EditorUtils.DrawCascadeSplitGUI<Vector2>(ref m_ShadowCascade3SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
+                else if (cascadeCount == 2)
+                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
+                else if (cascadeCount == 1)
+                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade1SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
+
+                // CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
+                //
+                // ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
+                // if (cascades == ShadowCascadesOption.FourCascades)
+                //     EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp, m_ShadowDistanceProp.floatValue, unit);
+                // else if (cascades == ShadowCascadesOption.ThreeCascades)
+                //     EditorUtils.DrawCascadeSplitGUI<Vector2>(ref m_ShadowCascade3SplitProp, m_ShadowDistanceProp.floatValue, unit);
+                // else if (cascades == ShadowCascadesOption.TwoCascades)
+                //     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, unit);
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
