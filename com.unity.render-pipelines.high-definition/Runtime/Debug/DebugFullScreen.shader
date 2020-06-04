@@ -320,12 +320,15 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
                 {
-                    uint2 quad = ((uint2)input.positionCS.xy) & ~1;
+                    uint2 quad = (uint2)input.positionCS.xy & ~1;
                     float4 color = (float4)0;
 
                     float quadCost = (float)_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)];
-                    _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0; // Overdraw
-                    _DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)] = 0xffffffff; // Lock
+                    if (all(((uint2)input.positionCS.xy & 1) == 0)) // Write only once per quad
+                    {
+                        _DebugDisplayUAV[COORD_TEXTURE2D_X(quad)] = 0; // Overdraw
+                        _DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)] = 0; // Lock
+                    }
 
                     if ((quadCost > 0.001))
                         color.rgb = HsvToRgb(float3(0.66 * saturate(1.0 - (1.0 / _QuadOverdrawMaxQuadCost) * quadCost), 1.0, 1.0));

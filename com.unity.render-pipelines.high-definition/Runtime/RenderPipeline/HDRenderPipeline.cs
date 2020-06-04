@@ -2395,7 +2395,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var showGizmos = camera.cameraType == CameraType.SceneView || (camera.targetTexture == null && camera.cameraType == CameraType.Game);
 #endif
 
-            RenderFullScreenDebug(cullingResults, hdCamera, renderContext, cmd);
+            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode != FullScreenDebugMode.None)
+            {
+                RenderFullScreenDebug(cullingResults, hdCamera, renderContext, cmd);
+            }
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
@@ -3639,7 +3642,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 CoreUtils.SetRenderTarget(cmd, msaa ? m_CameraColorMSAABuffer : m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(msaa));
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
                 HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
+                cmd.ClearRandomWriteTargets();
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                     DecalSystem.instance.RenderForwardEmissive(cmd);
@@ -3678,6 +3683,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // we must override the state here.
 
                     CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), ClearFlag.All, Color.clear);
+                    cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
+
                     // Render Opaque forward
                     var rendererListOpaque = RendererList.Create(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque));
                     DrawOpaqueRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListOpaque);
@@ -3685,25 +3692,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Render forward transparent
                     var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting));
                     DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+
+                    cmd.ClearRandomWriteTargets();
                 }
             }
         }
 
         void RenderFullScreenDebug(CullingResults cullingResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
-            {
-                RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
-                RenderQuadOverdraw(cullingResults, hdCamera, renderContext, cmd);
-                RenderVertexDensity(cullingResults, hdCamera, renderContext, cmd);
-            }
+            cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
+            RenderTransparencyOverdraw(cullingResults, hdCamera, renderContext, cmd);
+            RenderQuadOverdraw(cullingResults, hdCamera, renderContext, cmd);
+            RenderVertexDensity(cullingResults, hdCamera, renderContext, cmd);
+            cmd.ClearRandomWriteTargets();
         }
 
         void RenderTransparencyOverdraw(CullingResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
-            if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() && m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
+            if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
-
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer(), clearFlag: ClearFlag.Color, clearColor: Color.black);
                 var stateBlock = new RenderStateBlock
                 {
@@ -3753,8 +3760,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
 
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
-
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
                 {
@@ -3773,7 +3778,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: stateBlock));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
 
-                cmd.ClearRandomWriteTargets();
                 m_FullScreenDebugPushed = true;
             }
         }
@@ -3783,8 +3787,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.VertexDensity)
             {
                 CoreUtils.SetRenderTarget(cmd, m_CameraColorBuffer, m_SharedRTManager.GetDepthStencilBuffer());
-
-                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
 
                 // Depth test less equal + no color write
                 var stateBlock = new RenderStateBlock
@@ -3804,7 +3806,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames, m_CurrentRendererConfigurationBakedLighting, stateBlock: stateBlock));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
 
-                cmd.ClearRandomWriteTargets();
                 m_FullScreenDebugPushed = true;
             }
         }
@@ -3929,6 +3930,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 }
 
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
                 RenderForwardRendererList(hdCamera.frameSettings,
                                             RendererList.Create(PrepareForwardOpaqueRendererList(cullResults, hdCamera)),
                                             renderTarget,
@@ -3937,6 +3939,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                             true, renderContext, cmd);
 
 #if ENABLE_VIRTUALTEXTURES
+                cmd.ClearRandomWriteTargets();
+#else
                 cmd.ClearRandomWriteTargets();
 #endif
             }
@@ -4023,12 +4027,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                 }
 
+                cmd.SetRandomWriteTarget(2, m_SharedRTManager.GetDebugDisplayUAV());
                 RenderForwardRendererList(hdCamera.frameSettings,
                                             RendererList.Create(PrepareForwardTransparentRendererList(cullResults, hdCamera, preRefraction)),
                                             m_MRTTransparentMotionVec,
                                             m_SharedRTManager.GetDepthStencilBuffer(hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA)),
                                             m_TileAndClusterData.perVoxelLightLists,
                                             false, renderContext, cmd);
+                cmd.ClearRandomWriteTargets();
             }
         }
 
