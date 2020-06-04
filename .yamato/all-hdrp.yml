@@ -7,8 +7,6 @@ All_HDRP_trunk:
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_trunk
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_RenderGraph_trunk
-         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_trunk
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_trunk
@@ -28,8 +26,6 @@ All_HDRP_fast-trunk:
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_fast-trunk
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_RenderGraph_trunk
-         rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_fast-trunk
          rerun: always
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_fast-trunk
@@ -48,8 +44,6 @@ All_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_XR_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_RenderGraph_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_Standalone_CUSTOM-REVISION
          rerun: always
