@@ -533,6 +533,8 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

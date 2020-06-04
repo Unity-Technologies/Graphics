@@ -38,6 +38,7 @@ Shader "Universal Render Pipeline/Unlit"
 
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
 
             #pragma vertex vert
             #pragma fragment frag
@@ -48,6 +49,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "UnlitInput.hlsl"
 
