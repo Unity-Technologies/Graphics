@@ -58,3 +58,9 @@
     border-color: #1F1F1F;
     border-top-width: 1px;
 }
+
+.InspectorView #NodeSettingsContainer
+{
+    width: 0;
+    min-width: 100%;
+}

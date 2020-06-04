@@ -144,6 +144,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public TextureType[] textureTypes => m_TextureTypes;
+
         [SerializeField]
         protected TextureType[] m_TextureTypes = { TextureType.Default, TextureType.Default, TextureType.Default, TextureType.Default };
 
