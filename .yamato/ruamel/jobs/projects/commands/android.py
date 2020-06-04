@@ -20,7 +20,7 @@ def cmd_standalone(project_folder, platform, api, test_platform_args):
         f'NetSh Advfirewall set allprofiles state off',
         pss(f'''
         set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-        utr\\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%'''),
+        utr\\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path={PATH_TEST_RESULTS} --player-load-path={PATH_PLAYERS} --scripting-backend=il2cpp --timeout=1200'''),
         f'start %ANDROID_SDK_ROOT%\platform-tools\\adb.exe kill-server'
         ])
     return base
