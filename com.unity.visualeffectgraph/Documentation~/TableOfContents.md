@@ -66,6 +66,9 @@
       * Clamp
         * [Ceiling](Operator-Ceiling.md)
         * [Clamp](Operator-Clamp.md)
+        * [Minimum](Operator-Minimum.md)
+        * [Round](Operator-Round.md)
+        * [Saturate](Operator-Saturate.md)
       * Constants
         * [Epsilon](Operator-Epsilon.md)
         * [Pi](Operator-Pi.md)

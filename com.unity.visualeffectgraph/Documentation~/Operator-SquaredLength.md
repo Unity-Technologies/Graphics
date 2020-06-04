@@ -16,7 +16,7 @@ The **Squared Length** [uniform Operator](Operators.md#uniform-operators) calcul
 
 ## Operator configuration
 
-To access this [uniform Operator's](Operators.md#uniform-operators) configuration, click the **cog** icon in the Node's header. Here you can configure the data type this Operator uses.
+To view this [uniform Operator's](Operators.md#uniform-operators) configuration, click the **cog** icon in the Node's header. Here you can configure the data type this Operator uses.
 
 ### Available types
 
