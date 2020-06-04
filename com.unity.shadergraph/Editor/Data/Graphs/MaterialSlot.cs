@@ -244,6 +244,14 @@ namespace UnityEditor.ShaderGraph
             set { m_HasError = value; }
         }
 
+        public bool IsUsingDefaultValue()
+        {
+            if (!isConnected && isDefaultValue)
+                return true;
+            else
+                return false;
+        }
+
         public bool IsCompatibleWith(MaterialSlot otherSlot)
         {
             return otherSlot != null
