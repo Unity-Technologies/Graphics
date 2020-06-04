@@ -80,7 +80,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         sceneListComponent.SceneInfos = scenelist;
         config.SetComponent<SceneList>(sceneListComponent);
         config.SaveAsset();
-        AssetDatabase.Refresh();
+        //AssetDatabase.Refresh();
 
         while(EditorApplication.isCompiling)
         {
