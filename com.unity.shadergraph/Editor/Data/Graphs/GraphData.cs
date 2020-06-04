@@ -686,7 +686,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var slot = block.value.FindSlot<MaterialSlot>(0);
                         //Need to check if a slot is not default value OR is an untracked unknown block type
-                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.isUnknown) // TODO: How to check default value
+                        if(slot.IsUsingDefaultValue() || block.value.descriptor.isUnknown) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
                         }
@@ -935,7 +935,7 @@ namespace UnityEditor.ShaderGraph
                 if(!activeBlockDescriptors.Contains(b.descriptor))
                 {
                     var slot = b.FindSlot<MaterialSlot>(0);
-                    if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                    if(slot.IsUsingDefaultValue()) // TODO: How to check default value
                     {
                         RemoveNodeNoValidate(b);
                         input = null;
