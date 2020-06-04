@@ -381,7 +381,9 @@ namespace UnityEditor.VFX
 
         protected bool HasImplicitInit(VFXAttribute attrib)
         {
-            return (attrib.Equals(VFXAttribute.Seed) || attrib.Equals(VFXAttribute.ParticleId));
+            return attrib.Equals(VFXAttribute.Seed)
+                || attrib.Equals(VFXAttribute.ParticleId)
+                || attrib.Equals(VFXAttribute.SpawnIndex);
         }
 
         private void ProcessAttributes()
