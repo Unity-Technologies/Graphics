@@ -2115,6 +2115,8 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
 
+            m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+
             if (m_RayTracingSupported)
             {
                 // This call need to happen once per camera
