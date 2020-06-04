@@ -435,6 +435,10 @@ namespace UnityEditor.ShaderGraph
 
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneWeights,              requirements.requiresVertexSkinning),
                 new ConditionalField(StructFields.VertexDescriptionInputs.BoneIndices,              requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.VertexDescriptionInputs.VertexID,                 requirements.requiresVertexID),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneWeights,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.BoneIndices,             requirements.requiresVertexSkinning),
+                new ConditionalField(StructFields.SurfaceDescriptionInputs.VertexID,                requirements.requiresVertexID),
             };
         }
 
@@ -617,7 +621,7 @@ namespace UnityEditor.ShaderGraph
             {
                 foreach (var prop in propertyCollector.properties.Where(x => x.generatePropertyBlock))
                 {
-                    sb.AppendLine(prop.GetPropertyBlockString());
+                    prop.AppendPropertyBlockStrings(sb);
                 }
 
                 // Keywords use hardcoded state in preview
@@ -659,6 +663,17 @@ namespace UnityEditor.ShaderGraph
                 {
                     sb.AppendLine("float3 {0};", ShaderGeneratorNames.TimeParameters);
                 }
+
+                if (requirements.requiresVertexSkinning)
+                {
+                    sb.AppendLine("uint4 {0};", ShaderGeneratorNames.BoneIndices);
+                    sb.AppendLine("float4 {0};", ShaderGeneratorNames.BoneWeights);
+                }
+
+                if (requirements.requiresVertexID)
+                {
+                    sb.AppendLine("uint {0};", ShaderGeneratorNames.VertexID);
+                }
             }
         }
 
@@ -688,9 +703,20 @@ namespace UnityEditor.ShaderGraph
             {
                 sb.AppendLine($"{variableName}.{ShaderGeneratorNames.TimeParameters} = IN.{ShaderGeneratorNames.TimeParameters};");
             }
+
+            if (requirements.requiresVertexSkinning)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneIndices} = IN.{ShaderGeneratorNames.BoneIndices};");
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.BoneWeights} = IN.{ShaderGeneratorNames.BoneWeights};");
+            }
+
+            if (requirements.requiresVertexID)
+            {
+                sb.AppendLine($"{variableName}.{ShaderGeneratorNames.VertexID} = IN.{ShaderGeneratorNames.VertexID};");
+            }
         }
 
-        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraphOutput = false)
+        internal static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, string structName = "SurfaceDescription", IActiveFieldsSet activeFields = null, bool isSubgraphOutput = false, bool virtualTextureFeedback = false)
         {
             surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
@@ -726,6 +752,18 @@ namespace UnityEditor.ShaderGraph
                         }
                     }
                 }
+
+                // TODO: move this into the regular FieldDescriptor system with a conditional, doesn't belong as a special case here
+                if (virtualTextureFeedback)
+                {
+                    surfaceDescriptionStruct.AppendLine("{0} {1};", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float), "VTPackedFeedback");
+
+                    if (!isSubgraphOutput && activeFields != null)
+                    {
+                        var structField = new FieldDescriptor(structName, "VTPackedFeedback", "");
+                        activeFields.AddAll(structField);
+                    }
+                }
             }
         }
 
@@ -743,7 +781,8 @@ namespace UnityEditor.ShaderGraph
             string surfaceDescriptionName = "SurfaceDescription",
             Vector1ShaderProperty outputIdProperty = null,
             IEnumerable<MaterialSlot> slots = null,
-            string graphInputStructName = "SurfaceDescriptionInputs")
+            string graphInputStructName = "SurfaceDescriptionInputs",
+            bool virtualTextureFeedback = false)
         {
             if (graph == null)
                 return;
@@ -766,6 +805,15 @@ namespace UnityEditor.ShaderGraph
 
                 GenerateSurfaceDescriptionRemap(graph, rootNode, slots,
                     surfaceDescriptionFunction, mode);
+
+                if (virtualTextureFeedback)
+                {
+                    VirtualTexturingFeedbackUtils.GenerateVirtualTextureFeedback(
+                        nodes,
+                        keywordPermutationsPerNode,
+                        surfaceDescriptionFunction,
+                        shaderKeywords);
+                }
 
                 surfaceDescriptionFunction.AppendLine("return surface;");
             }

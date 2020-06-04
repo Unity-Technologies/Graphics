@@ -1,4 +1,4 @@
-﻿Varyings BuildVaryings(Attributes input)
+Varyings BuildVaryings(Attributes input)
 {
     Varyings output = (Varyings)0;
 
@@ -48,7 +48,7 @@
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    output.viewDirectionWS = GetWorldSpaceViewDir(positionWS);
+    output.viewDirectionWS = _WorldSpaceCameraPos.xyz - positionWS;
 #endif
 
 #ifdef VARYINGS_NEED_BITANGENT_WS
