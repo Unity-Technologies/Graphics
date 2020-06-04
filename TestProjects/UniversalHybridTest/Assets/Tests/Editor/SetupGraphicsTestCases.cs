@@ -81,6 +81,12 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         config.SetComponent<SceneList>(sceneListComponent);
         config.SaveAsset();
         AssetDatabase.Refresh();
+
+        while(EditorApplication.isCompiling)
+        {
+            //Wait for a bit because Editor will be compiling the config asset update
+        }
+
         Log("*************** SetupGraphicsTestCases - PreparePlayerTest - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
 
         //Make the build
