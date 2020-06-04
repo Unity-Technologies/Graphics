@@ -461,7 +461,6 @@ Shader "Hidden/HDRP/DebugExposure"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float pipFraction = 0.33f;
         uint borderSize = 3;
@@ -471,7 +470,8 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             float2 scaledUV = uv / pipFraction;
             float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
-            float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy);
+            float  luminance = SampleLuminance(scaledUV);
+            float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
             return pipColor * weight;
         }
@@ -574,7 +574,6 @@ Shader "Hidden/HDRP/DebugExposure"
         float2 uv = input.texcoord.xy;
 
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float3 outputColor = color;
 

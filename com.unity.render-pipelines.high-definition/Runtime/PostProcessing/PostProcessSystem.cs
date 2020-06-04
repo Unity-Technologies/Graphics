@@ -842,7 +842,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ComputeProceduralMeteringParams(HDCamera camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2)
         {
             Vector2 proceduralCenter = m_Exposure.proceduralCenter.value;
-            if (camera.exposureTarget != null)
+            if (camera.exposureTarget != null && m_Exposure.centerAroundExposureTarget.value)
             {
                 var transform = camera.exposureTarget.transform;
                 // Transform in screen space

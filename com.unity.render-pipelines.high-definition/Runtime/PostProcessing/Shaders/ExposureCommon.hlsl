@@ -52,7 +52,7 @@ float GetPreviousExposureEV100()
     return _PreviousExposureTexture[uint2(0u, 0u)].y;
 }
 
-float WeightSample(uint2 pixel, float2 sourceSize)
+float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
 {
     UNITY_BRANCH
         switch (ParamMeteringMode)
