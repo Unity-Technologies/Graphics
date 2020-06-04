@@ -1016,6 +1016,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Pregraph includes
             { kCommon, IncludeLocation.Pregraph },
+            { kTextureStack, IncludeLocation.Pregraph },
             { kFragInputs, IncludeLocation.Pregraph },
             { kShaderPass, IncludeLocation.Pregraph },
 
