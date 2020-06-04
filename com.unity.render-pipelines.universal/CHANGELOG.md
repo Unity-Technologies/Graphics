@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Default Material Type options to the 2D Renderer Data Asset property settings.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
 - Added option to disable XR autotests on test settings.
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 
 ### Changed
 
