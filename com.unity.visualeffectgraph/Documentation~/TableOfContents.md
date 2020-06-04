@@ -131,7 +131,15 @@
       * [Random Number](Operator-RandomNumber.md)
     * Sampling
       * [Load Texture2D](Operator-LoadTexture2D.md)
+      * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
+      * [Sample Curve](Operator-SampleCurve.md)
+      * [Sample Gradient](Operator-SampleGradient.md)
+      * [Sample Texture2D](Operator-SampleTexture2D.md)
+      * [Sample Texture2DArray](Operator-SampleTexture2DArray.md)
+      * [Sample Texture3D](Operator-SampleTexture3D.md)
+      * [Sample TextureCube](Operator-SampleTextureCube.md)
+      * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
   * System
   * Misc
 * Reference
