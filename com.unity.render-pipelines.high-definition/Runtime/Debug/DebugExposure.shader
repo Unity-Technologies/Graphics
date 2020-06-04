@@ -615,7 +615,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
         uint2 unormCoord = input.positionCS.xy;
         float3 textColor = float3(0.5f, 0.5f, 0.5f);
-        int2 textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
+        uint2 textLocation = uint2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
         DrawCharacter('C', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
         DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
@@ -635,7 +635,7 @@ Shader "Hidden/HDRP/DebugExposure"
         DrawCharacter(':', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
         DrawFloatExplicitPrecision(currExposure, textColor, unormCoord, 3, textLocation, outputColor.rgb);
-        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        textLocation = uint2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
         DrawCharacter('T', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
         DrawCharacter('a', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
