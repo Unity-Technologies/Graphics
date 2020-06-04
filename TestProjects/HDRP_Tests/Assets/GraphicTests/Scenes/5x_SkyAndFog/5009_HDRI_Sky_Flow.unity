@@ -285,5 +285,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
         type: 2}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
+      propertyPath: renderGraphCompatible
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
