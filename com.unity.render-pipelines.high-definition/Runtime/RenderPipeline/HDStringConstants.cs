@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
         public static readonly int _LightDatas = Shader.PropertyToID("_LightDatas");
         public static readonly int _EnvLightDatas = Shader.PropertyToID("_EnvLightDatas");
+        public static readonly int _ProxyPlaneDatas = Shader.PropertyToID("_ProxyPlaneDatas");
 
         public static readonly int _ProbeVolumeBounds = Shader.PropertyToID("_ProbeVolumeBounds");
         public static readonly int _ProbeVolumeDatas = Shader.PropertyToID("_ProbeVolumeDatas");

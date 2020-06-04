@@ -403,6 +403,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
                 : influenceToWorld;
 
+        internal EnvShapeType envShapeType
+        {
+            get
+            {
+                if (proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Convex)
+                    return EnvShapeType.Convex;
+
+                switch (influenceVolume.shape)
+                {
+                    default:
+                    case InfluenceShape.Box:
+                        return EnvShapeType.Box;
+                    case InfluenceShape.Sphere:
+                        return EnvShapeType.Sphere;
+                }
+            }
+        }
+
         internal bool wasRenderedAfterOnEnable { get; private set; } = false;
         internal int lastRenderedFrame { get; private set; } = int.MinValue;
 

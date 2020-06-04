@@ -159,21 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetInfluenceToWorld(Transform transform)
              => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
-        internal EnvShapeType envShape
-        {
-            get
-            {
-                switch (shape)
-                {
-                    default:
-                    case InfluenceShape.Box:
-                        return EnvShapeType.Box;
-                    case InfluenceShape.Sphere:
-                        return EnvShapeType.Sphere;
-                }
-            }
-        }
-
         internal void CopyTo(InfluenceVolume data)
         {
             //keep the m_Probe as it is used to reset the probe

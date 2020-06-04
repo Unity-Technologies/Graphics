@@ -9,7 +9,6 @@
 //
 #define DEFAULT_LIGHT_LAYERS (255)
 #define MAX_ENV2DLIGHT (32)
-#define MAX_CONVEX_PROXY_PLANES (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
@@ -78,7 +77,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _Env2DCaptureVP[32];
     float4 _Env2DCaptureForward[32];
     float4 _Env2DAtlasScaleOffset[32];
-    float4 _ConvexProxyPlanesAtlas[32];
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;

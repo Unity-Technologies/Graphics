@@ -300,6 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxProxyPlanesOnScreen, Styles.maxProxyPlanesOnScreen);
 
             EditorGUILayout.Space();
 

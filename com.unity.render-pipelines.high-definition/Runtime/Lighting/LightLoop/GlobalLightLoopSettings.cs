@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxEnvLightsOnScreen = 64,
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
+            maxProxyPlanesOnScreen = 128,
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -184,5 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxDecalsOnScreen;
         /// <summary>Maximum number of planar reflections at the same time on screen.</summary>
         public int maxPlanarReflectionOnScreen;
+        /// <summary>Maximum number of planes for convex shaped reflection proxies at the same time on screen.</summary>
+        public int maxProxyPlanesOnScreen;
     }
 }
