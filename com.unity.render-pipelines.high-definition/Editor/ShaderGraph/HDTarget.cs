@@ -446,6 +446,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.VertexDescriptionInputs.uv2,                            HDStructFields.AttributesMesh.uv2),
             new FieldDependency(StructFields.VertexDescriptionInputs.uv3,                            HDStructFields.AttributesMesh.uv3),
             new FieldDependency(StructFields.VertexDescriptionInputs.VertexColor,                    HDStructFields.AttributesMesh.color),
+
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneWeights,                    HDStructFields.AttributesMesh.weights),
+            new FieldDependency(StructFields.VertexDescriptionInputs.BoneIndices,                    HDStructFields.AttributesMesh.indices),
+            new FieldDependency(StructFields.VertexDescriptionInputs.VertexID,                       HDStructFields.AttributesMesh.vertexID),
         };
 
         public static DependencyCollection SurfaceDescription = new DependencyCollection

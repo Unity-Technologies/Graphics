@@ -34,7 +34,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
     $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
     $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
-    $VertexDescriptionInputs.VertexID:					output.VertexID =                    input.vertexID;
+    $VertexDescriptionInputs.VertexID:                  output.VertexID =                    input.vertexID;
 
     return output;
 }
