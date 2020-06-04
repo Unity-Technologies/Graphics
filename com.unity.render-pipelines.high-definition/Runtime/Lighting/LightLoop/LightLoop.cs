@@ -280,23 +280,6 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const int k_MaxLightsPerClusterCell = 24;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
-        #if UNITY_SWITCH
-        static bool k_PreferFragment = true;
-        #else
-        static bool k_PreferFragment = false;
-        #endif
-        #if !UNITY_EDITOR && UNITY_SWITCH
-        const bool k_HasNativeQuadSupport = true;
-        #else
-        const bool k_HasNativeQuadSupport = false;
-        #endif
-
-        #if !UNITY_EDITOR && UNITY_SWITCH
-        const int k_ThreadGroupOptimalSize = 32;
-        #else
-        const int k_ThreadGroupOptimalSize = 64;
-        #endif
-
         int m_MaxDirectionalLightsOnScreen;
         int m_MaxPunctualLightsOnScreen;
         int m_MaxAreaLightsOnScreen;
@@ -464,7 +447,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     var nrClustersY = (height + LightDefinitions.s_TileSizeClustered - 1) / LightDefinitions.s_TileSizeClustered;
                     var nrClusterTiles = nrClustersX * nrClustersY * viewCount;
 
-                    perVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint));
+                    perVoxelOffset = new ComputeBuffer((int)LightCategory.Count * (1 << DeviceInfo.log2NumClusters) * nrClusterTiles, sizeof(uint));
                     perVoxelLightLists = new ComputeBuffer(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint));
 
                     if (clusterNeedsDepth)
@@ -720,11 +703,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const bool k_UseDepthBuffer = true;      // only has an impact when EnableClustered is true (requires a depth-prepass)
 
-#if !UNITY_EDITOR && UNITY_SWITCH
-        const int k_Log2NumClusters = 5;     // accepted range is from 0 to 5 (NR_THREADS is set to 32 on Switch). NumClusters is 1<<g_iLog2NumClusters
-#else
-        const int k_Log2NumClusters = 6;     // accepted range is from 0 to 6 (NR_THREADS is set to 64 on other platforms). NumClusters is 1<<g_iLog2NumClusters
-#endif
         const float k_ClustLogBase = 1.02f;     // each slice 2% bigger than the previous
         float m_ClusterScale;
 
@@ -879,41 +857,41 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaxLightsOnScreen = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen + m_MaxEnvLightsOnScreen;
             m_MaxPlanarReflectionOnScreen = lightLoopSettings.maxPlanarReflectionOnScreen;
 
-            s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
+            s_GenAABBKernel = DeviceInfo.FindKernel(buildScreenAABBShader, "ScreenBoundsAABB");
 
             // Cluster
             {
-                s_ClearVoxelAtomicKernel = clearClusterAtomicIndexShader.FindKernel("ClearAtomic");
+                s_ClearVoxelAtomicKernel = DeviceInfo.FindKernel(clearClusterAtomicIndexShader, "ClearAtomic");
 
                 for (int i = 0; i < (int)ClusterPrepassSource.Count; ++i)
                 {
                     for (int j = 0; j < (int)ClusterDepthSource.Count; ++j)
                     {
-                        s_ClusterKernels[i, j] = buildPerVoxelLightListShader.FindKernel(s_ClusterKernelNames[i, j]);
-                        s_ClusterObliqueKernels[i, j] = buildPerVoxelLightListShader.FindKernel(s_ClusterObliqueKernelNames[i, j]);
+                        s_ClusterKernels[i, j] = DeviceInfo.FindKernel(buildPerVoxelLightListShader, s_ClusterKernelNames[i, j]);
+                        s_ClusterObliqueKernels[i, j] = DeviceInfo.FindKernel(buildPerVoxelLightListShader, s_ClusterObliqueKernelNames[i, j]);
                     }
                 }
             }
 
-            s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel("TileLightListGen");
+            s_GenListPerTileKernel = DeviceInfo.FindKernel(buildPerTileLightListShader, "TileLightListGen");
 
-            s_GenListPerBigTileKernel = buildPerBigTileLightListShader.FindKernel("BigTileLightListGen");
+            s_GenListPerBigTileKernel = DeviceInfo.FindKernel(buildPerBigTileLightListShader, "BigTileLightListGen");
 
-            s_BuildIndirectKernel = buildDispatchIndirectShader.FindKernel("BuildIndirect");
-            s_ClearDispatchIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDispatchIndirect");
+            s_BuildIndirectKernel = DeviceInfo.FindKernel(buildDispatchIndirectShader, "BuildIndirect");
+            s_ClearDispatchIndirectKernel = DeviceInfo.FindKernel(clearDispatchIndirectShader, "ClearDispatchIndirect");
 
-            s_ClearDrawProceduralIndirectKernel = clearDispatchIndirectShader.FindKernel("ClearDrawProceduralIndirect");
+            s_ClearDrawProceduralIndirectKernel = DeviceInfo.FindKernel(clearDispatchIndirectShader, "ClearDrawProceduralIndirect");
 
-            s_BuildMaterialFlagsWriteKernel = buildMaterialFlagsShader.FindKernel("MaterialFlagsGen");
+            s_BuildMaterialFlagsWriteKernel = DeviceInfo.FindKernel(buildMaterialFlagsShader, "MaterialFlagsGen");
 
-            s_shadeOpaqueDirectFptlKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl");
-            s_shadeOpaqueDirectFptlDebugDisplayKernel = deferredComputeShader.FindKernel("Deferred_Direct_Fptl_DebugDisplay");
+            s_shadeOpaqueDirectFptlKernel = DeviceInfo.FindKernel(deferredComputeShader, "Deferred_Direct_Fptl");
+            s_shadeOpaqueDirectFptlDebugDisplayKernel = DeviceInfo.FindKernel(deferredComputeShader, "Deferred_Direct_Fptl_DebugDisplay");
 
-            s_deferredContactShadowKernel = contactShadowComputeShader.FindKernel("DeferredContactShadow");
+            s_deferredContactShadowKernel = DeviceInfo.FindKernel(contactShadowComputeShader, "DeferredContactShadow");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
-                s_shadeOpaqueIndirectFptlKernels[variant] = deferredComputeShader.FindKernel("Deferred_Indirect_Fptl_Variant" + variant);
+                s_shadeOpaqueIndirectFptlKernels[variant] = DeviceInfo.FindKernel(deferredComputeShader, "Deferred_Indirect_Fptl_Variant" + variant);
             }
 
             m_TextureCaches.Initialize(asset, defaultResources, iBLFilterBSDFArray);
@@ -1096,7 +1074,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int NumLightIndicesPerClusteredTile()
         {
-            return 32 * (1 << k_Log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
+            return 32 * (1 << DeviceInfo.log2NumClusters);       // total footprint for all layers of the tile (measured in light index entries)
         }
 
         void LightLoopAllocResolutionDependentBuffers(HDCamera hdCamera, int width, int height)
@@ -3048,6 +3026,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeBufferParam(parameters.clearLightListCS, parameters.clearLightListKernel, HDShaderIDs._LightListToClear, bufferToClear);
             cmd.SetComputeIntParam(parameters.clearLightListCS, HDShaderIDs._LightListEntries, bufferToClear.count);
 
+            // TODO: Round on DeviceInfo.optimalThreadGroupSize so we have optimal thread for ClearList kernel
             int groupSize = 64;
             cmd.DispatchCompute(parameters.clearLightListCS, parameters.clearLightListKernel, (bufferToClear.count + groupSize - 1) / groupSize, 1, 1);
         }
@@ -3254,7 +3233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmd.SetComputeBufferParam(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, HDShaderIDs.g_DispatchIndirectBuffer, resources.dispatchIndirectBuffer);
                     cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
-                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, k_HasNativeQuadSupport ? 4 : 6);
+                    cmd.SetComputeIntParam(parameters.clearDispatchIndirectShader, HDShaderIDs.g_VertexPerTile, SystemInfo.supportsHardwareQuadTopology ? 4 : 6);
                     cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDrawProceduralIndirectKernel, 1, 1, 1);
 
                 }
@@ -3270,14 +3249,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeBufferParam(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, HDShaderIDs.g_TileFeatureFlags, resources.tileFeatureFlags);
                 cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTiles, parameters.numTilesFPTL);
                 cmd.SetComputeIntParam(parameters.buildDispatchIndirectShader, HDShaderIDs.g_NumTilesX, parameters.numTilesFPTLX);
-                // Round on k_ThreadGroupOptimalSize so we have optimal thread for buildDispatchIndirectShader kernel
-                cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
+                // Round on DeviceInfo.optimalThreadGroupSize so we have optimal thread for buildDispatchIndirectShader kernel
+                cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildIndirectKernel, (parameters.numTilesFPTL + DeviceInfo.optimalThreadGroupSize - 1) / DeviceInfo.optimalThreadGroupSize, 1, parameters.viewCount);
             }
         }
 
         static bool DeferredUseComputeAsPixel(FrameSettings frameSettings)
         {
-            return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || k_PreferFragment);
+            return frameSettings.IsEnabled(FrameSettingsField.DeferredTile) && (!frameSettings.IsEnabled(FrameSettingsField.ComputeLightEvaluation) || !DeviceInfo.preferComputeKernels);
         }
 
         unsafe BuildGPULightListParameters PrepareBuildGPULightListParameters(  HDCamera                        hdCamera,
@@ -3391,7 +3370,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Clear light lsts
             parameters.clearLightListCS = defaultResources.shaders.clearLightListsCS;
-            parameters.clearLightListKernel = parameters.clearLightListCS.FindKernel("ClearList");
+            parameters.clearLightListKernel = DeviceInfo.FindKernel(parameters.clearLightListCS, "ClearList");
 
             // Screen space AABB
             parameters.screenSpaceAABBShader = buildScreenAABBShader;
@@ -3612,7 +3591,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._EnableDecalLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers) ? 1u : 0u;
             cb._EnvLightSkyEnabled = m_SkyManager.IsLightingSkyValid(hdCamera) ? 1 : 0;
 
-            const float C = (float)(1 << k_Log2NumClusters);
+            float C = (float)(1 << DeviceInfo.log2NumClusters);
             var geomSeries = (1.0 - Mathf.Pow(k_ClustLogBase, C)) / (1 - k_ClustLogBase); // geometric series: sum_k=0^{C-1} base^k
 
             // Tile/Cluster
@@ -3622,7 +3601,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_fClustBase = k_ClustLogBase;
             cb.g_fNearPlane = hdCamera.camera.nearClipPlane;
             cb.g_fFarPlane = hdCamera.camera.farClipPlane;
-            cb.g_iLog2NumClusters = k_Log2NumClusters;
+            cb.g_iLog2NumClusters = DeviceInfo.log2NumClusters;
             cb.g_isLogBaseBufferEnabled = k_UseDepthBuffer ? 1 : 0;
             cb._NumTileClusteredX = (uint)GetNumTileClusteredX(hdCamera);
             cb._NumTileClusteredY = (uint)GetNumTileClusteredY(hdCamera);
@@ -3948,7 +3927,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.enableTile)
             {
-                bool useCompute = parameters.useComputeLightingEvaluation && !k_PreferFragment;
+                bool useCompute = parameters.useComputeLightingEvaluation && DeviceInfo.preferComputeKernels;
                 if (useCompute)
                     RenderComputeDeferredLighting(parameters, resources, cmd);
                 else
@@ -4044,7 +4023,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     cmd.EnableShaderKeyword(s_variantNames[variant]);
 
-                    MeshTopology topology = k_HasNativeQuadSupport ? MeshTopology.Quads : MeshTopology.Triangles;
+                    MeshTopology topology = SystemInfo.supportsHardwareQuadTopology ? MeshTopology.Quads : MeshTopology.Triangles;
                     cmd.DrawProceduralIndirect(Matrix4x4.identity, deferredMat, 0, topology, resources.dispatchIndirectBuffer, variant * 4 * sizeof(uint), null);
 
                     // Must disable variant keyword because it will not get overridden.
@@ -4351,5 +4330,5 @@ namespace UnityEngine.Rendering.HighDefinition
 // cmd.DispatchCompute(parameters.buildMaterialFlagsShader, buildMaterialFlagsKernel, parameters.numTilesFPTLX, parameters.numTilesFPTLY, parameters.viewCount);
 // cmd.DispatchCompute(parameters.clearDispatchIndirectShader, s_ClearDispatchIndirectKernel, 1, 1, 1);
 // BuildDispatchIndirectArguments
-// cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + k_ThreadGroupOptimalSize - 1) / k_ThreadGroupOptimalSize, 1, parameters.viewCount);
+// cmd.DispatchCompute(parameters.buildDispatchIndirectShader, s_BuildDispatchIndirectKernel, (parameters.numTilesFPTL + DeviceInfo.optimalThreadGroupSize - 1) / DeviceInfo.optimalThreadGroupSize, 1, parameters.viewCount);
 // Then dispatch indirect will trigger the number of tile for a variant x4 as we process by wavefront of 64 (16x16 => 4 x 8x8)

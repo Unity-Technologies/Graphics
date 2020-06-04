@@ -411,6 +411,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+            DeviceInfo.ProbeDeviceInfo();
+
             var defaultLensAttenuation = m_DefaultAsset.lensAttenuationMode;
             if (defaultLensAttenuation == LensAttenuationMode.ImperfectLens)
             {

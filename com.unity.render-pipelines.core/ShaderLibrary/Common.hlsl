@@ -221,6 +221,12 @@
 #define LANE_SWIZZLE_OFFSET(andMask, orMask, xorMask)  (andMask | (orMask << 5) | (xorMask << 10))
 #endif
 
+// For multi_compile
+#ifdef PLATFORM_LANE_COUNT_32
+#undef PLATFORM_LANE_COUNT
+#define PLATFORM_LANE_COUNT 32
+#endif
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonDeprecated.hlsl"
 
 #if !defined(SHADER_API_GLES)
