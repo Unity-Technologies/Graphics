@@ -222,7 +222,46 @@ VertexOutput DepthOnlyVertex(VertexInput v)
 half4 DepthOnlyFragment(VertexOutput IN) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, IN.color, _Cutoff);
-return 0;
+    return 0;
+}
+
+struct VertexDepthNormalInput
+{
+    float4 position     : POSITION;
+    half4 color         : COLOR;
+    float2 texcoord     : TEXCOORD0;
+    float3 normal       : NORMAL;
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+};
+
+struct VertexDepthNormalOutput
+{
+    float2 uv           : TEXCOORD0;
+    half4 color         : TEXCOORD1;
+    half3  normal       : TEXCOORD2;
+    float4 clipPos      : SV_POSITION;
+};
+
+VertexDepthNormalOutput DepthNormalOnlyVertex(VertexDepthNormalInput v)
+{
+    VertexDepthNormalOutput o = (VertexDepthNormalOutput)0;
+    UNITY_SETUP_INSTANCE_ID(v);
+
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
+    // MeshGrass v.color.a: 1 on top vertices, 0 on bottom vertices
+    // _WaveAndDistance.z == 0 for MeshLit
+    float waveAmount = v.color.a * _WaveAndDistance.z;
+    o.color = TerrainWaveGrass(v.position, waveAmount, v.color);
+    o.clipPos = TransformObjectToHClip(v.position.xyz);
+    o.normal = TransformObjectToWorldNormal(v.normal);
+
+    return o;
+}
+
+half4 DepthNormalOnlyFragment(VertexDepthNormalOutput IN) : SV_TARGET
+{
+    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, IN.color, _Cutoff);
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(NormalizeNormalPerPixel(IN.normal), true)), 0.0, 0.0);
 }
 
 #endif

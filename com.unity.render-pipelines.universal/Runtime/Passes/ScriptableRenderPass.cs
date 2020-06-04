@@ -4,6 +4,19 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Input requirements for <c>ScriptableRenderPass</c>.
+    /// </summary>
+    /// <seealso cref="ConfigureInput"/>
+    [Flags]
+    public enum ScriptableRenderPassInput
+    {
+        None = 0,
+        Depth = 1,
+        Normal = 2,
+        Color = 4,
+    }
+
     // Note: Spaced built-in events so we can add events in between them
     // We need to leave room as we sort render passes based on event.
     // Users can also inject render pass events in a specific point by doing RenderPassEvent + offset
@@ -50,6 +63,15 @@ namespace UnityEngine.Rendering.Universal
             get => m_DepthAttachment;
         }
 
+        /// <summary>
+        /// The input requirements for the <c>ScriptableRenderPass</c>, which has been set using <c>ConfigureInput</c>
+        /// </summary>
+        /// <seealso cref="ConfigureInput"/>
+        public ScriptableRenderPassInput input
+        {
+            get => m_Input;
+        }
+
         public ClearFlag clearFlag
         {
             get => m_ClearFlag;
@@ -65,6 +87,7 @@ namespace UnityEngine.Rendering.Universal
 
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[]{BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
+        ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
@@ -77,6 +100,17 @@ namespace UnityEngine.Rendering.Universal
             m_ClearColor = Color.black;
             overrideCameraTarget = false;
             isBlitRenderPass = false;
+        }
+
+        /// <summary>
+        /// Configures Input Requirements for this render pass.
+        /// This method should be called inside <c>ScriptableRendererFeature.AddRenderPasses</c>.
+        /// </summary>
+        /// <param name="passInput">ScriptableRenderPassInput containing information about what requirements the pass needs.</param>
+        /// <seealso cref="ScriptableRendererFeature.AddRenderPasses"/>
+        public void ConfigureInput(ScriptableRenderPassInput passInput)
+        {
+            m_Input = passInput;
         }
 
         /// <summary>

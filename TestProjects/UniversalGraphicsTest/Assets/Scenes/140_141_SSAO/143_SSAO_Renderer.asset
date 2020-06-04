@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de640fe3d0db1804a85f9fc8f5cadab6, type: 3}
-  m_Name: 141_SSAO_Renderer
+  m_Name: 143_SSAO_Renderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: 3450427422973968531}
@@ -54,7 +54,7 @@ MonoBehaviour:
   shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
   settings:
     Downsample: 1
-    Source: 1
+    Source: 0
     NormalSamples: 1
     Intensity: 3
     DirectLightingStrength: 0.5

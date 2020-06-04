@@ -59,6 +59,24 @@ struct SpeedTreeVertexDepthOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct SpeedTreeVertexDepthNormalOutput
+{
+    half3 uvHueVariation            : TEXCOORD0;
+    float4 clipPos                  : SV_POSITION;
+
+    #ifdef EFFECT_BUMP
+        half4 normalWS              : TEXCOORD1;    // xyz: normal, w: viewDir.x
+        half4 tangentWS             : TEXCOORD2;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS           : TEXCOORD3;    // xyz: bitangent, w: viewDir.z
+    #else
+        half3 normalWS              : TEXCOORD1;
+        half3 viewDirWS             : TEXCOORD2;
+    #endif
+
+    UNITY_VERTEX_INPUT_INSTANCE_ID
+    UNITY_VERTEX_OUTPUT_STEREO
+};
+
 void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
 {
     inputData.positionWS = input.positionWS.xyz;
@@ -190,4 +208,36 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
     #endif
 }
 
+half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+
+    #if !defined(SHADER_QUALITY_LOW)
+        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
+            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #endif
+    #endif
+
+    half2 uv = input.uvHueVariation.xy;
+    half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    diffuse.a *= _Color.a;
+
+    #ifdef SPEEDTREE_ALPHATEST
+        clip(diffuse.a - _Cutoff);
+    #endif
+
+    #ifdef EFFECT_BUMP
+        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+        #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            normalTs = lerp(normalTs, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+        #endif
+
+        float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+    #else
+        float3 normalWS = input.normalWS;
+    #endif
+
+    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
+}
 #endif

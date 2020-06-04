@@ -181,4 +181,36 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
+SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput input)
+{
+    SpeedTreeVertexDepthNormalOutput output = (SpeedTreeVertexDepthNormalOutput)0;
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_TRANSFER_INSTANCE_ID(input, output);
+    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+    // handle speedtree wind and lod
+    InitializeData(input, unity_LODFade.x);
+    output.uvHueVariation.xy = input.texcoord.xy;
+    VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
+    half3 normalWS = TransformObjectToWorldNormal(input.normal);
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
+    #ifdef EFFECT_BUMP
+        real sign = input.tangent.w * GetOddNegativeScale();
+        output.normalWS.xyz = normalWS;
+        output.tangentWS.xyz = TransformObjectToWorldDir(input.tangent.xyz);
+        output.bitangentWS.xyz = cross(output.normalWS.xyz, output.tangentWS.xyz) * sign;
+
+        // View dir packed in w.
+        output.normalWS.w = viewDirWS.x;
+        output.tangentWS.w = viewDirWS.y;
+        output.bitangentWS.w = viewDirWS.z;
+    #else
+        output.normalWS = normalWS;
+    #endif
+
+    output.clipPos = vertexInput.positionCS;
+    return output;
+}
+
 #endif

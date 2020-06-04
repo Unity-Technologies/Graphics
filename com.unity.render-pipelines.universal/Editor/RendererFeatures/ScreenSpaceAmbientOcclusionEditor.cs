@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
     {
         // Serialized Properties
         private SerializedProperty m_Downsample;
-        //private SerializedProperty m_Source;
+        private SerializedProperty m_Source;
         private SerializedProperty m_NormalSamples;
         private SerializedProperty m_Intensity;
         private SerializedProperty m_DirectLightingStrength;
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
         internal struct Styles
         {
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
-            //public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "This option determines whether the ambient occlusion reconstructs the normal from depth or is given it from a DepthNormal/Deferred Gbuffer texture.");
+            public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "This option determines whether the ambient occlusion reconstructs the normal from depth or taken from _CameraNormalsTexture.");
             public static GUIContent NormalSamples = EditorGUIUtility.TrTextContent("Normal Samples", "The options in this field define the number of depth texture samples that Unity takes when computing the normals from the Depth texture.");
             public static GUIContent Intensity = EditorGUIUtility.TrTextContent("Intensity", "The degree of darkness that Ambient Occlusion adds.");
             public static GUIContent DirectLightingStrength = EditorGUIUtility.TrTextContent("Direct Lighting Strength", "Controls how much the ambient occlusion affects direct lighting.");
@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
         private void Init(SerializedProperty property)
         {
             m_Properties.Clear();
-            //m_Source = property.FindPropertyRelative("Source");
+            m_Source = property.FindPropertyRelative("Source");
             m_Downsample = property.FindPropertyRelative("Downsample");
             m_NormalSamples = property.FindPropertyRelative("NormalSamples");
             m_Intensity = property.FindPropertyRelative("Intensity");
@@ -54,12 +54,12 @@ namespace UnityEditor.Rendering.Universal
             }
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
-            //EditorGUILayout.PropertyField(m_Source, Styles.Source);
+            EditorGUILayout.PropertyField(m_Source, Styles.Source);
 
             // We only enable this field when depth source is selected
-            //GUI.enabled = m_Source.enumValueIndex == (int) ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
+            GUI.enabled = m_Source.enumValueIndex == (int) ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth;
             EditorGUILayout.PropertyField(m_NormalSamples, Styles.NormalSamples);
-            //GUI.enabled = true;
+            GUI.enabled = true;
 
             m_Intensity.floatValue = EditorGUILayout.Slider(Styles.Intensity,m_Intensity.floatValue, 0f, 10f);
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength,m_DirectLightingStrength.floatValue, 0f, 1f);

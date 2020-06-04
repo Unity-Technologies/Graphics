@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Parameters
         [SerializeField] internal bool Downsample;
-        //[SerializeField] internal DepthSource Source;
+        [SerializeField] internal DepthSource Source;
         [SerializeField] internal SSAONormalSamples NormalSamples;
         [SerializeField] internal float Intensity;
         [SerializeField] internal float DirectLightingStrength;
@@ -143,6 +143,17 @@ namespace UnityEngine.Rendering.Universal
             internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
             {
                 m_CurrentSettings = featureSettings;
+                switch (m_CurrentSettings.Source)
+                {
+                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
+                        ConfigureInput(ScriptableRenderPassInput.Depth);
+                        break;
+                    case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
+                        ConfigureInput(ScriptableRenderPassInput.Normal);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 return material != null
                        &&  m_CurrentSettings.Intensity > 0.0f
                        &&  m_CurrentSettings.Radius > 0.0f
@@ -167,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
                 // Update keywords
                 CoreUtils.SetKeyword(material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
-                //if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
+                if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
                 {
                     switch (m_CurrentSettings.NormalSamples)
                     {
@@ -213,6 +224,8 @@ namespace UnityEngine.Rendering.Universal
                 // Configure targets and clear color
                 ConfigureTarget(s_SSAOTexture1ID);
                 ConfigureClear(ClearFlag.None, Color.white);
+
+
             }
 
             /// <inheritdoc/>
@@ -241,10 +254,10 @@ namespace UnityEngine.Rendering.Universal
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
                     cmd.SetGlobalVector(s_ScaleBiasId, scaleBias);
 
-                    // TODO: Replace in part 2 with:
-                    // ExecuteSSAO(cmd, (int) m_CurrentSettings.Source);
-                    ExecuteSSAO(cmd, 0);
+                    // Execute the SSAO
+                    ExecuteSSAO(cmd, (int) m_CurrentSettings.Source);
 
+                    // Set the global SSAO texture and AO Params
                     int SSAOTexID = ExecuteKawaseBlur(cmd);
                     cmd.SetGlobalTexture(k_SSAOTextureName, SSAOTexID);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));

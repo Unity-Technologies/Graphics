@@ -185,6 +185,33 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
 
             ENDHLSL
         }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree7VertDepthNormal
+            #pragma fragment SpeedTree7FragDepthNormal
+
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local GEOM_TYPE_BRANCH GEOM_TYPE_BRANCH_DETAIL GEOM_TYPE_FROND GEOM_TYPE_LEAF GEOM_TYPE_MESH
+            #pragma shader_feature_local EFFECT_BUMP
+
+            #define ENABLE_WIND
+
+            #include "SpeedTree7Input.hlsl"
+            #include "SpeedTree7Passes.hlsl"
+
+            ENDHLSL
+        }
     }
 
     Dependency "BillboardShader" = "Universal Render Pipeline/Nature/SpeedTree7 Billboard"

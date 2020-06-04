@@ -3,9 +3,9 @@
 
 // Includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 #include "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariablesFunctions.hlsl"
-//#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareNormalsTexture.hlsl"
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
@@ -36,6 +36,7 @@ float4 _CameraDepthTexture_TexelSize;
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SAMPLE_BASEMAP_R(uv) SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
+
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -154,15 +155,14 @@ float3 ReconstructNormal(float2 uv, float depth, float3 vpos, float2 p11_22, flo
 
 void SampleDepthNormalView(float2 uv, float2 p11_22, float2 p13_31, out float depth, out float3 normal, out float3 vpos)
 {
-    //#if defined(SOURCE_GBUFFER)
-    //    return SAMPLE_TEXTURE2D(_CameraGBufferTexture2, sampler_CameraGBufferTexture2, uv.xy).xyz;
-    //#elif defined(SOURCE_DEPTH_NORMALS)
-    //    return SampleSceneNormals(uv.xy);
-    //#else
-        depth  = SampleAndGetLinearDepth(uv);
-        vpos   = ReconstructViewPos(uv, depth, p11_22, p13_31);
+    depth  = SampleAndGetLinearDepth(uv);
+    vpos = ReconstructViewPos(uv, depth, p11_22, p13_31);
+
+    #if defined(SOURCE_DEPTH_NORMALS)
+        normal = SampleSceneNormals(uv);
+    #else
         normal = ReconstructNormal(uv, depth, vpos, p11_22, p13_31);
-    //#endif
+    #endif
 }
 
 // Distance-based AO estimator based on Morgan 2011

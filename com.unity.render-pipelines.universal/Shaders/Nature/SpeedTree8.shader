@@ -215,6 +215,34 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
 
             ENDHLSL
         }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #pragma vertex SpeedTree8VertDepthNormal
+            #pragma fragment SpeedTree8FragDepthNormal
+
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+            #pragma multi_compile __ LOD_FADE_CROSSFADE
+            #pragma multi_compile_instancing
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
+            #pragma shader_feature_local EFFECT_BUMP
+
+            #define ENABLE_WIND
+
+            #include "SpeedTree8Input.hlsl"
+            #include "SpeedTree8Passes.hlsl"
+            ENDHLSL
+        }
     }
 
     CustomEditor "SpeedTree8ShaderGUI"
