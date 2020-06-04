@@ -131,6 +131,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added custom target mid grey for auto exposure.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added more custom pass API functions, mainly to render objects from another camera.
 - Added support for transparent Unlit in path tracing.
 
 ### Fixed
