@@ -40,6 +40,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     public static void TriggerPreparePlayerTest()
     {
         var args = System.Environment.GetCommandLineArgs();
+        string testType = "playmode test";
         for(int i=0; i<args.Length; i++)
         {
             //Debug
@@ -48,15 +49,12 @@ public class SetupGraphicsTestCases : IPrebuildSetup
             //Tell whether yamato is running player test or playmode test
             if( args[i].Contains("Standalone") )
             {
-                Log("*************** SetupGraphicsTestCases - This is standalone test");
+                testType = "standalone test";
                 PreparePlayerTest();
                 break;
             }
-            else
-            {
-                Log("*************** SetupGraphicsTestCases - This is playmode test");
-            }
         }
+        Log("*************** SetupGraphicsTestCases - This is "+testType);
     }
 
     [MenuItem("GraphicsTest/PreparePlayerTest")]
