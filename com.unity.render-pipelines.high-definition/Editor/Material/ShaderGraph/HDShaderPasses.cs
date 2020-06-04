@@ -22,14 +22,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "DistortionVectors",
                 useInPreview = true,
 
-                // Template
-                // passTemplatePath = templatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // Port mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentDistortion,
-
                 // Collections
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
@@ -80,13 +72,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        // public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
-        // {
-        //     BlockFields.SurfaceDescription.Alpha,
-        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
-        //     HDBlockFields.SurfaceDescription.Distortion,
-        //     HDBlockFields.SurfaceDescription.DistortionBlur,
-        // };
 
 #endregion
 
@@ -101,10 +86,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "SceneSelectionPass",
                 useInPreview = false,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentSceneSelection,
 
                 // Collections
                 renderStates = CoreRenderStates.SceneSelection,
@@ -135,13 +116,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        // public static BlockFieldDescriptor[] FragmentSceneSelection = new BlockFieldDescriptor[]
-        // {
-        //     BlockFields.SurfaceDescription.Alpha,
-        //     BlockFields.SurfaceDescription.AlphaClipThreshold,
-        //     HDBlockFields.SurfaceDescription.DepthOffset,
-        // };
-
 #endregion
 
 #region Shadow Caster Pass
@@ -155,10 +129,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_SHADOWS",
                 lightMode = "ShadowCaster",
                 useInPreview = false,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentShadowCaster,
 
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
@@ -194,14 +164,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDFields.SubShader.Unlit,
         };
 
-        public static BlockFieldDescriptor[] FragmentShadowCaster = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-        };
-
 #endregion
 
 #region META pass
@@ -215,9 +177,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_LIGHT_TRANSPORT",
                 lightMode = "META",
                 useInPreview = false,
-
-                // Port Mask
-                validPixelBlocks = FragmentMeta,
 
                 // Collections
                 requiredFields = CoreRequiredFields.Meta,
@@ -249,39 +208,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
-        {
-            // TODO: We want to only put common fields here, not target specific.
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            // Eye fields
-            HDBlockFields.SurfaceDescription.IrisNormal,
-        };
-
 #endregion
 
 #region Depth Forward Only
@@ -295,10 +221,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "DepthForwardOnly",
                 useInPreview = true,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentDepthOnlyVectors,
 
                 // Collections
                 requiredFields = GenerateRequiredFields(),
@@ -347,17 +269,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentDepthOnlyVectors = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-        };
-
 #endregion
 
 #region Motion Vectors
@@ -371,10 +282,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_MOTION_VECTORS",
                 lightMode = "MotionVectors",
                 useInPreview = false,
-
-                // Block Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentMotionVectors,
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
@@ -434,16 +341,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentMotionVectors = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-        };
 
 #endregion
 
@@ -458,10 +355,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
                 lightMode = "ForwardOnly",
                 useInPreview = true,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentForwardOnly,
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
@@ -502,44 +395,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentForwardOnly = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.NormalWS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            HDBlockFields.SurfaceDescription.ShadowTint, // Unlit only field
-            // Eye fields
-            HDBlockFields.SurfaceDescription.IrisNormal,
-            HDBlockFields.SurfaceDescription.IOR,
-            HDBlockFields.SurfaceDescription.Mask,
-            // Hair only
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-        };
-
 #endregion
 
 #region Back then front pass
@@ -553,10 +408,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = supportLighting ? "SHADERPASS_FORWARD" : "SHADERPASS_FORWARD_UNLIT",
                 lightMode = "TransparentBackface",
                 useInPreview = true,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentBackThenFront,
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
@@ -597,50 +448,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentBackThenFront = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            // Eye fields
-            HDBlockFields.SurfaceDescription.IrisNormal,
-            HDBlockFields.SurfaceDescription.IOR,
-            HDBlockFields.SurfaceDescription.Mask,
-            // Hair only
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-        };
-
 #endregion
 
 #region Transparent Depth Prepass
@@ -654,10 +461,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "TransparentDepthPrepass",
                 useInPreview = true,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentTransparentDepthPrepass,
 
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
@@ -741,17 +544,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDStructFields.FragInputs.color,
         };
 
-        public static BlockFieldDescriptor[] FragmentTransparentDepthPrepass = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            BlockFields.SurfaceDescription.Smoothness,
-        };
-
 #endregion
 
 #region Transparent Depth Postpass
@@ -765,10 +557,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "TransparentDepthPostpass",
                 useInPreview = true,
-
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = FragmentTransparentDepthPostpass,
 
                 // Collections
                 renderStates = GenerateRenderState(),
@@ -812,13 +600,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         }
 
-        public static BlockFieldDescriptor[] FragmentTransparentDepthPostpass = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.Alpha,
-            HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-        };
-
 #endregion
 
 #region Lit DepthOnly
@@ -831,14 +612,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "DepthOnly",
                 useInPreview = true,
-
-                // // Template
-                // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
@@ -883,14 +656,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_GBUFFER",
                 lightMode = "GBuffer",
                 useInPreview = true,
-
-                // // Template
-                // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = LitBlockMasks.FragmentDefault,
 
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
@@ -953,14 +718,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "Forward",
                 useInPreview = true,
 
-                // // Template
-                // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = LitBlockMasks.FragmentDefault,
-
                 // Collections
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.ForwardColorMask,
@@ -1001,14 +758,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_CONSTANT",
                 lightMode = "RayTracingPrepass",
                 useInPreview = false,
-
-                // // Template
-                // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
-
-                // // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = LitBlockMasks.FragmentRayTracingPrepass,
 
                 // Collections
                 renderStates = RayTracingPrepassRenderState,
@@ -1061,10 +810,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "IndirectDXR",
                 useInPreview = false,
 
-                // Port Mask
-                // validVertexBlocks = CoreBlockMasks.Vertex,
-                // validPixelBlocks = RaytracingIndirectFragment,
-
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? GenerateDefines() : null,
@@ -1077,54 +822,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 return new DefineCollection
                 {
-                    { CoreKeywordDescriptors.Shadow, 0 },
-                    { RayTracingNode.GetRayTracingKeyword(), 1 },
+                    { Defines.shadowLow },
+                    { Defines.raytracingLow },
                     { CoreKeywordDescriptors.HasLightloop, 1 },
                 };
             }
         }
-
-        public static BlockFieldDescriptor[] RaytracingIndirectFragment = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            //Hair blocks:
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
-        };
 
 #endregion
 
@@ -1155,50 +858,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
         {
-            { RayTracingNode.GetRayTracingKeyword(), 1 },
-        };
-
-        // TODO: we might want to share this with all ray tracing passes
-        public static BlockFieldDescriptor[] RaytracingVisibilityFragment = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            //Hair blocks:
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+            { Defines.raytracingLow },
         };
 
 #endregion
@@ -1230,51 +890,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
-            { CoreKeywordDescriptors.Shadow, 0 },
+            { Defines.shadowLow },
             { RayTracingNode.GetRayTracingKeyword(), 0 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
-        };
-
-        public static BlockFieldDescriptor[] RaytracingForwardFragment = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            //Hair blocks:
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
         };
 
 #endregion
@@ -1306,50 +924,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingGBufferDefines = new DefineCollection
         {
-            { CoreKeywordDescriptors.Shadow, 0 },
-            { RayTracingNode.GetRayTracingKeyword(), 1 },
-        };
-
-        public static BlockFieldDescriptor[] RaytracingGBufferFragment = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
-            //Hair blocks:
-            HDBlockFields.SurfaceDescription.SpecularTint,
-            HDBlockFields.SurfaceDescription.SpecularShift,
-            HDBlockFields.SurfaceDescription.SecondarySpecularTint,
-            HDBlockFields.SurfaceDescription.SecondarySmoothness,
-            HDBlockFields.SurfaceDescription.SecondarySpecularShift,
-            HDBlockFields.SurfaceDescription.HairStrandDirection,
-            HDBlockFields.SurfaceDescription.Transmittance,
-            HDBlockFields.SurfaceDescription.RimTransmissionIntensity,
+            { Defines.shadowLow },
+            { Defines.raytracingLow },
         };
 
 #endregion
@@ -1381,42 +957,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
-            { CoreKeywordDescriptors.Shadow, 0 },
+            { Defines.shadowLow },
             { RayTracingNode.GetRayTracingKeyword(), 0 },
             { CoreKeywordDescriptors.HasLightloop, 1 },
-        };
-
-        public static BlockFieldDescriptor[] PathTracingFragment = new BlockFieldDescriptor[]
-        {
-            BlockFields.SurfaceDescription.BaseColor,
-            BlockFields.SurfaceDescription.NormalTS,
-            BlockFields.SurfaceDescription.NormalWS,
-            BlockFields.SurfaceDescription.NormalOS,
-            HDBlockFields.SurfaceDescription.BentNormal,
-            HDBlockFields.SurfaceDescription.Tangent,
-            HDBlockFields.SurfaceDescription.SubsurfaceMask,
-            HDBlockFields.SurfaceDescription.Thickness,
-            HDBlockFields.SurfaceDescription.DiffusionProfileHash,
-            HDBlockFields.SurfaceDescription.IridescenceMask,
-            HDBlockFields.SurfaceDescription.IridescenceThickness,
-            BlockFields.SurfaceDescription.Specular,
-            HDBlockFields.SurfaceDescription.CoatMask,
-            BlockFields.SurfaceDescription.Metallic,
-            BlockFields.SurfaceDescription.Emission,
-            BlockFields.SurfaceDescription.Smoothness,
-            BlockFields.SurfaceDescription.Occlusion,
-            HDBlockFields.SurfaceDescription.SpecularOcclusion,
-            BlockFields.SurfaceDescription.Alpha,
-            BlockFields.SurfaceDescription.AlphaClipThreshold,
-            HDBlockFields.SurfaceDescription.Anisotropy,
-            HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance,
-            HDBlockFields.SurfaceDescription.SpecularAAThreshold,
-            HDBlockFields.SurfaceDescription.RefractionIndex,
-            HDBlockFields.SurfaceDescription.RefractionColor,
-            HDBlockFields.SurfaceDescription.RefractionDistance,
-            HDBlockFields.SurfaceDescription.BakedGI,
-            HDBlockFields.SurfaceDescription.BakedBackGI,
-            HDBlockFields.SurfaceDescription.DepthOffset,
         };
 
 #endregion
@@ -1452,9 +995,25 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection
         {
-            { CoreKeywordDescriptors.Shadow, 0 },
-            { RayTracingNode.GetRayTracingKeyword(), 1 },
+            { Defines.shadowLow },
+            { Defines.raytracingLow },
         };
+
+#endregion
+
+#region Define Utility
+
+        public static class Defines
+        {
+            // Shadows
+            public static DefineCollection shadowLow = new DefineCollection { {CoreKeywordDescriptors.Shadow, 0} };
+            public static DefineCollection shadowMedium = new DefineCollection { {CoreKeywordDescriptors.Shadow, 1} };
+            public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
+
+            // Raytracing Quality
+            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
+            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+        }
 
 #endregion
 
