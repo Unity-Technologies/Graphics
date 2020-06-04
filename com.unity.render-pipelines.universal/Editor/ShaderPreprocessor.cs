@@ -21,9 +21,9 @@ namespace UnityEditor.Rendering.Universal
         MixedLighting = (1 << 6),
         TerrainHoles = (1 << 7)
     }
+
     internal class ShaderPreprocessor : IPreprocessShaders
     {
-
         ShaderKeyword m_MainLightShadows = new ShaderKeyword(ShaderKeywordStrings.MainLightShadows);
         ShaderKeyword m_AdditionalLightsVertex = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsVertex);
         ShaderKeyword m_AdditionalLightsPixel = new ShaderKeyword(ShaderKeywordStrings.AdditionalLightsPixel);
@@ -212,14 +212,23 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             int prevVariantCount = compilerDataList.Count;
-
-            for (int i = 0; i < compilerDataList.Count; ++i)
+            
+            var inputShaderVariantCount = compilerDataList.Count;
+            for (int i = 0; i < inputShaderVariantCount;)
             {
-                if (StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]))
-                {
+                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                if (removeInput)
+                    compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
+                else
+                    ++i;
+            }
+            
+            if(compilerDataList is List<ShaderCompilerData> inputDataList)
+                inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
+            else
+            {
+                for(int i = compilerDataList.Count -1; i >= inputShaderVariantCount; --i)
                     compilerDataList.RemoveAt(i);
-                    --i;
-                }
             }
 
             if (urpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
@@ -229,14 +238,13 @@ namespace UnityEditor.Rendering.Universal
                 LogShaderVariants(shader, snippetData, urpAsset.shaderVariantLogLevel, prevVariantCount, compilerDataList.Count);
             }
         }
-
-        
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {
         public static ShaderFeatures supportedFeatures
         {
-            get {
+            get
+            {
                 if (_supportedFeatures <= 0)
                 {
                     FetchAllSupportedFeatures();
@@ -257,7 +265,7 @@ namespace UnityEditor.Rendering.Universal
         {
             List<UniversalRenderPipelineAsset> urps = new List<UniversalRenderPipelineAsset>();
             urps.Add(GraphicsSettings.defaultRenderPipeline as UniversalRenderPipelineAsset);
-            for(int i = 0; i < QualitySettings.names.Length; i++)
+            for (int i = 0; i < QualitySettings.names.Length; i++)
             {
                 urps.Add(QualitySettings.GetRenderPipelineAssetAt(i) as UniversalRenderPipelineAsset);
             }

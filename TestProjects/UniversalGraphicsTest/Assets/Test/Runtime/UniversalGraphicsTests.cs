@@ -31,7 +31,7 @@ public class UniversalGraphicsTests
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x=>x.GetComponent<Camera>());
         var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");        
 
         Scene scene = SceneManager.GetActiveScene();
 
@@ -63,8 +63,14 @@ public class UniversalGraphicsTests
             yield return null;
         }
 
-        for (int i = 0; i < settings.WaitFrames; i++)
-            yield return null;
+        int waitFrames = settings.WaitFrames;
+
+        if (settings.ImageComparisonSettings.UseBackBuffer && settings.WaitFrames < 1)
+        {
+            waitFrames = 1;
+        }
+        for (int i = 0; i < waitFrames; i++)
+            yield return new WaitForEndOfFrame();
 
 #if UNITY_ANDROID
         // On Android first scene often needs a bit more frames to load all the assets
@@ -89,9 +95,7 @@ public class UniversalGraphicsTests
         var additionalCameraData = mainCamera.GetUniversalAdditionalCameraData();
         bool is2DRenderer = additionalCameraData.scriptableRenderer is Renderer2D;
         
-        // Post-processing is allocating memory. Case https://fogbugz.unity3d.com/f/cases/1227490/
-        bool isPostProcessingEnabled = additionalCameraData.renderPostProcessing;
-        if (!is2DRenderer && !isPostProcessingEnabled)
+        if (!is2DRenderer)
         {
             try
             {

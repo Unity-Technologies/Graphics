@@ -312,6 +312,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/3x_DebugView/3001_DebugView.unity
     guid: 21522d96110c8dd41ab353d89fd740c3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/3x_DebugView/3003_LightingMode.unity
+    guid: efd4cc3ba99a3ab4bbce52727bc5a7ec
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4001_Exposure.unity
     guid: f32cdac65dd17f847b4cdaaa85bb990a
   - enabled: 1

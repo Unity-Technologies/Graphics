@@ -6,18 +6,112 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+### Fixed
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
+
+## [8.1.0] - 2020-04-21
+
+### Added
+- Add XR setting to control camera jitter for temporal effects #6259
+- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
+- Added support for specular AA from geometric curvature in AxF
+- Added support for baked AO (no input for now) in AxF
+- Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added support for rasterized area light shadows in StackLit
+- Added Light decomposition lighting debugging modes and support in AOV
+- Added exposure compensation to Fixed exposure mode
+- Added range attenuation for box-shaped spotlights.
+- Added Min distance to contact shadows.
+- Added scenes for hair and fabric and decals with material samples
+- Added fabric materials and textures
+- Added information for fabric materials in fabric scene
+
+### Fixed
+- Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
+- Fixed an issue where default volume would not update when switching profile.
+- Fixed an issue where AO override would not override specular occlusion.
+- Fixed an issue where Volume inspector might not refresh correctly in some cases.
+- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
+- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601)
+- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
+- Fix when rescale probe all direction below zero (1219246)
+- Fixed issue with resources being accessed before initialization process has been performed completely. 
+- Fixed render texture with XR
+- Fixed sRGB mismatch with XR SDK
+- Fixed XR single-pass with Mock HMD plugin
+- Fixed XR culling with multiple cameras
+- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
+- Focus on Decal uses the extends of the projectors
+- Fixed how the area light influence volume is computed to match rasterization.
+- Fixed usage of light size data that are not available at runtime.
+- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
+- Fixed drag area width at left of Light's intensity field in Inspector.
+- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
+- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed a weird behavior in the scalable settings drawing when the space becomes tiny (1212045).
+- Fixed an usage of a a compute buffer not bound (1229964)
+- Fixed an issue where unncessarily serialized members in StaticLightingSky component would change each time the scene is changed.
+- Fix issues in the post process system with RenderTexture being invalid in some cases, causing rendering problems.
+- Fixed an issue where changing the default volume profile from another inspector would not update the default volume editor.
+- Fixed path validation when creating new volume profile (case 1229933)
+- Fix for range compression factor for probes going negative (now clamped to positive values).
+- Fixed various object leaks in HDRP.
+- Fix for assertion triggering sometimes when saving a newly created lit shader graph (case 1230996)
+- Fixed MSAA depth resolve when there is no motion vectors
+- Fix issue causing wrong planar reflection rendering when more than one camera is present.
+- Fixed culling of planar reflection probes that change position (case 1218651)
+- Fixed null reference when processing lightprobe (case 1235285)
+- Fix black screen in XR when HDRP package is present but not used.
+- Fixed white flash happening with auto-exposure in some cases (case 1223774)
+- Fixed NaN which can appear with real time reflection and inf value
+- Fixed raytracing shader compilation on Metal
+- Fixed an issue that was collapsing the volume components in the HDRP default settings
+- Fixed warning about missing bound decal buffer
+- Fixed the debug exposure mode for display sky reflection and debug view baked lighting
+- Fixed shader warning on Xbox for ResolveStencilBuffer.compute. 
+- Fixed unneeded cookie texture allocation for cone stop lights.
+- Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
+- Fixed scalarization code for contact shadows
+- Fix MaterialBalls having same guid issue
+- Fix spelling and grammatical errors in material samples
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+
+### Changed
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Utilities namespace is obsolete, moved its content to UnityEngine.Rendering (case 1204677)
+- All custom pass volumes are now executed for one injection point instead of the first one.
+- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
+- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
+- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
+- Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Cookie are now supported in lightmaper. All lights casting cookie and baked will now include cookie influence.
+- Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.3.0] - 2020-03-11
+
 ### Added
 - Added the exposure sliders to the planar reflection probe preview
 - Added a warning and workaround instructions that appear when you enable XR single-pass after the first frame with the XR SDK.
 - Added an "enable" toggle to the SSR volume component.
-- Added support of cookie baking and add support on Disc light.
-- Added XR setting to control camera jitter for temporal effects
-- Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
-- Added option to disable XR rendering on the camera settings.
 
 ### Fixed
-- Fix Changelog
 - Fixed issue with AssetPostprocessors dependencies causing models to be imported twice when upgrading the package version.
+- Fix player build DX12
 - Fix issue with AO being misaligned when multiple view are visible.
 - Fix issue that caused the clamp of camera rotation motion for motion blur to be ineffective.
 - Fixed culling of lights with XR SDK
@@ -41,96 +135,37 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed invalid game view rendering when disabling all cameras in the scene (case 1105163)
 - Fixed infinite reload loop while displaying Light's Shadow's Link Light Layer in Inspector of Prefab Asset.
 - Fixed the cookie atlas size and planar atlas size being too big after an upgrade of the HDRP asset.
-- Fix player build DX12
+- Fixed alpha clipping test (comparison was '>', now '>=')
+- Fixed preview camera (eg. shader graph preview) when path tracing is on
+- Fixed DXR player build
 - Fixed compilation issue with linux vulkan and raytrace shader
 - Fixed the HDRP asset migration code not being called after an upgrade of the package
 - Fixed draw renderers custom pass out of bound exception
 - Fixed an issue with emissive light meshes not being in the RAS.
 - Fixed a warning due to StaticLightingSky when reloading domain in some cases.
 - Fixed the MaxLightCount being displayed when the light volume debug menu is on ColorAndEdge.
+- Fix an exception in case two LOD levels are using the same mesh renderer.
 - Fixed error in the console when switching shader to decal in the material UI.
 - Fixed z-fighting in scene view when scene lighting is off (case 1203927)
-- Fixed issue that prevented cubemap thumbnails from rendering.
-- Fix an exception in ray tracing that happens if two LOD levels are using the same mesh renderer.
-- Fix some typos in the debug menu.
+- Fixed some typos in debug menu (case 1224594)
 - Fixed an issue with refraction model and ray traced recursive rendering (case 1198578).
-- Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
 - Fixed cubemap thumbnail generation at project load time. 
-- Fixed an issue where default volume would not update when switching profile.
-- Fixed an issue where AO override would not override specular occlusion.
-- Fixed an issue where Volume inspector might not refresh correctly in some cases.
 - Half fixed shuriken particle light that cast shadows (only the first one will be correct)
-- Fixed issue with uncached reflection probe cameras reseting the debug mode (case 1224601) 
-- Fixed issue with atmospheric fog turning black if a planar reflection probe is placed below ground level. (case 1226588)
-- Fix when rescale probe all direction below zero (1219246)
-- Fixed issue with resources being accessed before initialization process has been performed completely.
-- Fixed render texture with XR
-- Fixed sRGB mismatch with XR SDK
-- Fixed XR single-pass with Mock HMD plugin
-- Fixed XR culling with multiple cameras
-- Fixed an issue related to the envlightdatasrt not being bound in recursive rendering.
-- Fixed shadow cascade tooltip when using the metric mode (case 1229232)
-- Fix when rescale probe all direction below zero (1219246)
-- Fixed how the area light influence volume is computed to match rasterization.
-- Fixed usage of light size data that are not available at runtime.
-- Fixed light type resolution when performing a reset on HDAdditionalLightData (case 1220931)
-- Fixed drag area width at left of Light's intensity field in Inspector.
-- Fix for issue that prevented scene from being completely saved when baked reflection probes are present and lighting is set to auto generate.
-- Fixed the depth buffer copy made before custom pass after opaque and normal injection point.
+- Fixed an issue with the specularFGD term being used when the material has a clear coat (lit shader).
 
 ### Changed
 - Renamed the cubemap used for diffuse convolution to a more explicit name for the memory profiler.
 - Light dimmer can now get values higher than one and was renamed to multiplier in the UI. 
 - Removed info box requesting volume component for Visual Environment and updated the documentation with the relevant information.
-- Removed legacy VR code
 - Add range-based clipping to box lights (case 1178780)
 - Improve area light culling (case 1085873)
-- Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
-- Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Light Hierarchy debug mode can now adjust Debug Exposure for visualizing high exposure scenes.
-- Hidden unsupported choice in emission in Materials
-- All custom pass volumes are now executed for one injection point instead of the first one.
-- Optimized PrepareLightsForGPU (cost reduced by over 25%) and PrepareGPULightData (around twice as fast now).
 - Changed the diffusion profile warning on the material to an info and changed the message to be more precise.
-- Moved scene view camera settings for HDRP from the preferences window to the scene view camera settings window.
 
-## [8.0.0] - 2020-05-25
+## [7.2.0] - 2020-02-10
 
 ### Added
-- Ray tracing support for VR single-pass
-- Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
-- Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
-- Add check in wizard on SRP Batcher enabled.
-- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
-- Added custom pass fade radius
-- Added after post process injection point for custom passes
-- Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
-- Added falloff distance on Reflection Probe and Planar Reflection Probe
-- Added Backplate projection from the HDRISky
-- Added Shadow Matte in UnlitMasterNode, which only received shadow without lighting
-- Added hability to name LightLayers in HDRenderPipelineAsset
-- Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
-- Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
-- Added non temporal version of SSAO.
-- Added more detailed ray tracing stats in the debug window
-- Added Disc area light (bake only)
-- Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
-- Added XR single-pass setting into HDRP asset
-- Added a penumbra tint option for lights
-- Added support for depth copy with XR SDK
-- Added debug setting to Render Pipeline Debug Window to list the active XR views
-- Added an option to filter the result of the volumetric lighting (off by default).
-- Added a transmission multiplier for directional lights
-- Added XR single-pass test mode to Render Pipeline Debug Window
-- Added debug setting to Render Pipeline Window to list the active XR views
-- Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
-- Added the code to support Barn Doors for Area Lights based on a shaderconfig option.
-- Added HDRPCameraBinder property binder for Visual Effect Graph
-- Added "Celestial Body" controls to the Directional Light
-- Added new parameters to the Physically Based Sky
-- Added Reflections to the DXR Wizard
 - Added the possibility to have ray traced colored and semi-transparent shadows on directional lights.
-- Added a check in the custom post process template to throw an error if the default shader is not found.
 - Exposed the debug overlay ratio in the debug menu.
 - Added a separate frame settings for tonemapping alongside color grading.
 - Added the receive fog option in the material UI for ShaderGraphs.
@@ -139,7 +174,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Contrast Adaptive Sharpen (CAS) Upscaling effect.
 - Added APIs to update probe settings at runtime.
 - Added documentation for the rayTracingSupported method in HDRP
-- Added user-selectable format for the post processing passes.
+- Added user-selectable format for the post processing passes. 
 - Added support for alpha channel in some post-processing passes (DoF, TAA, Uber).
 - Added warnings in FrameSettings inspector when using DXR and atempting to use Asynchronous Execution.
 - Exposed Stencil bits that can be used by the user.
@@ -152,7 +187,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the alpha clip enabled toggle to the material UI for all HDRP shader graphs.
 - Added Material Samples to explain how to use the lit shader features
 - Added an initial implementation of ray traced sub surface scattering
-- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX.
+- Added AssetPostprocessors and Shadergraphs to handle Arnold Standard Surface and 3DsMax Physical material import from FBX. 
 - Added support for Smoothness Fade start work when enabling ray traced reflections.
 - Added Contact shadow, Micro shadows and Screen space refraction API documentation.
 - Added script documentation for SSR, SSAO (ray tracing), GI, Light Cluster, RayTracingSettings, Ray Counters, etc.
@@ -162,223 +197,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Update documentation of HDRISky-Backplate, precise how to have Ambient Occlusion on the Backplate
-- Sorting, undo, labels, layout in the Lighting Explorer.
-- Fixed sky settings and materials in Shader Graph Samples package
-- Fix/workaround a probable graphics driver bug in the GTAO shader.
-- Fixed Hair and PBR shader graphs double sided modes
-- Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
-- Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
-- Fix a potential NaN source with iridescence (case 1183216)
-- Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
-- Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
-- Fixed lit transparent refraction with XR single-pass rendering
-- Removed extra jitter for TemporalAA in VR
-- Fixed ShaderGraph time in main preview
-- Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
-- Fixed alpha blending in custom post process
-- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
-- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
-- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
-- Fixed crash when upgrading version of HDRP
-- Fixed rendering issues with material previews
-- Fixed NPE when using light module in Shuriken particle systems (1173348).
-- Refresh cached shadow on editor changes
-- Fixed light supported units caching (1182266)
-- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
-- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
-- Fixed Decal gizmo that become white after exiting play mode
-- Fixed Decal pivot position to behave like a spotlight
-- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
-- Fix DebugMenu FrameSettingsHistory persistency on close
-- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
-- Fix DXR scene serialization in wizard
-- Fixed an issue where Previews would reallocate History Buffers every frame
-- Fixed the SetLightLayer function in HDAdditionalLightData setting the wrong light layer
-- Fix error first time a preview is created for planar
-- Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
-- Fixed issues with light explorer (cases 1183468, 1183269)
-- Fix dot colors in LayeredLit material inspector
-- Fix undo not resetting all value when undoing the material affectation in LayerLit material
-- Fix for issue that caused gizmos to render in render textures (case 1174395)
-- Fixed the light emissive mesh not updated when the light was disabled/enabled
-- Fixed light and shadow layer sync when setting the HDAdditionalLightData.lightlayersMask property
-- Fixed a nullref when a custom post process component that was in the HDRP PP list is removed from the project
-- Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
-- Fixed exposure of volumetric reprojection
-- Fixed multi selection support for Scalable Settings in lights
-- Fixed font shaders in test projects for VR by using a Shader Graph version
-- Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
-- Fixed issue with rectangular area light when seen from the back
-- Fixed decals not affecting lightmap/lightprobe
-- Fixed zBufferParams with XR single-pass rendering
-- Fixed moving objects not rendered in custom passes
-- Fixed abstract classes listed in the + menu of the custom pass list
-- Fixed custom pass that was rendered in previews
-- Fixed precision error in zero value normals when applying decals (case 1181639)
-- Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
-- Assign default volume profile when creating a new HDRP Asset
-- Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
-- Fixed bugs with shadow caching
-- Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
-- Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
-- Fixed issue with decal and htile optimization
-- Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
-- Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
-- Fixed an editor crash when multiple decal projectors were selected and some had null material
-- Added all relevant fix actions to FixAll button in Wizard
-- Moved FixAll button on top of the Wizard
-- Fixed an issue where fog color was not pre-exposed correctly
-- Fix priority order when custom passes are overlapping
-- Fix cleanup not called when the custom pass GameObject is destroyed
-- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides.
-- Fixed an issue with Realtime GI not working on upgraded projects.
-- Fixed issue with screen space shadows fallback texture was not set as a texture array.
-- Fixed Pyramid Lights bounding box
-- Fixed terrain heightmap default/null values and epsilons
-- Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
-- Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
-- Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
-- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present.
-- Fixed issue causing planar probes to disappear if there is no light in the scene.
-- Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
-- Fixed an issue with fog volume component upgrade not working properly
-- Fixed Spot light Pyramid Shape has shadow artifacts on aspect ratio values lower than 1
-- Fixed issue with AO upsampling in XR
-- Fixed camera without HDAdditionalCameraData component not rendering
-- Removed the macro ENABLE_RAYTRACING for most of the ray tracing code
-- Fixed prefab containing camera reloading in loop while selected in the Project view
-- Fixed issue causing NaN wheh the Z scale of an object is set to 0.
-- Fixed DXR shader passes attempting to render before pipeline loaded
-- Fixed black ambient sky issue when importing a project after deleting Library.
-- Fixed issue when upgrading a Standard transparent material (case 1186874)
-- Fixed area light cookies not working properly with stack lit
-- Fixed material render queue not updated when the shader is changed in the material inspector.
-- Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
-- Fixed compile errors for platforms with no VR support
-- Fixed an issue with volumetrics and RTHandle scaling (case 1155236)
-- Fixed an issue where sky lighting might be updated uselessly
-- Fixed issue preventing to allow setting decal material to none (case 1196129)
-- Fixed XR multi-pass decals rendering
-- Fixed several fields on Light Inspector that not supported Prefab overrides
-- Fixed EOL for some files
-- Fixed scene view rendering with volumetrics and XR enabled
-- Fixed decals to work with multiple cameras
-- Fixed optional clear of GBuffer (Was always on)
-- Fixed render target clears with XR single-pass rendering
-- Fixed HDRP samples file hierarchy
-- Fixed Light units not matching light type
-- Fixed QualitySettings panel not displaying HDRP Asset
-- Fixed black reflection probes the first time loading a project
-- Fixed y-flip in scene view with XR SDK
-- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
-- Fixed y-flip in scene view with XR SDK
-- Fixed a number of issues with Material Quality setting
-- Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
-- Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
-- Fixed editing a scalable settings will edit all loaded asset in memory instead of targetted asset.
-- Fixed Planar reflection default viewer FOV
-- Fixed flickering issues when moving the mouse in the editor with ray tracing on.
-- Fixed the ShaderGraph main preview being black after switching to SSS in the master node settings
-- Fixed custom fullscreen passes in VR
-- Fixed camera culling masks not taken in account in custom pass volumes
-- Fixed object not drawn in custom pass when using a DrawRenderers with an HDRP shader in a build.
-- Fixed injection points for Custom Passes (AfterDepthAndNormal and BeforePreRefraction were missing)
-- Fixed a enum to choose shader tags used for drawing objects (DepthPrepass or Forward) when there is no override material.
-- Fixed lit objects in the BeforePreRefraction, BeforeTransparent and BeforePostProcess.
-- Fixed the None option when binding custom pass render targets to allow binding only depth or color.
-- Fixed custom pass buffers allocation so they are not allocated if they're not used.
-- Fixed the Custom Pass entry in the volume create asset menu items.
-- Fixed Prefab Overrides workflow on Camera.
-- Fixed alignment issue in Preset for Camera.
-- Fixed alignment issue in Physical part for Camera.
-- Fixed FrameSettings multi-edition.
-- Fixed a bug happening when denoising multiple ray traced light shadows
-- Fixed minor naming issues in ShaderGraph settings
-- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
-- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
-- Fixed an issue with Metal Shader Compiler and GTAO shader for metal
-- Fixed resources load issue while upgrading HDRP package.
-- Fix LOD fade mask by accounting for field of view
-- Fixed spot light missing from ray tracing indirect effects.
-- Fixed a UI bug in the diffusion profile list after fixing them from the wizard.
-- Fixed the hash collision when creating new diffusion profile assets.
-- Fixed a light leaking issue with box light casting shadows (case 1184475)
-- Fixed Cookie texture type in the cookie slot of lights (Now displays a warning because it is not supported).
-- Fixed a nullref that happens when using the Shuriken particle light module
-- Fixed alignment in Wizard
-- Fixed text overflow in Wizard's helpbox
-- Fixed Wizard button fix all that was not automatically grab all required fixes
-- Fixed VR tab for MacOS in Wizard
-- Fixed local config package workflow in Wizard
-- Fixed issue with contact shadows shifting when MSAA is enabled.
-- Fixed EV100 in the PBR sky
-- Fixed an issue In URP where sometime the camera is not passed to the volume system and causes a null ref exception (case 1199388)
-- Fixed nullref when releasing HDRP with custom pass disabled
-- Fixed performance issue derived from copying stencil buffer.
-- Fixed an editor freeze when importing a diffusion profile asset from a unity package.
-- Fixed an exception when trying to reload a builtin resource.
-- Fixed the light type intensity unit reset when switching the light type.
-- Fixed compilation error related to define guards and CreateLayoutFromXrSdk()
-- Fixed documentation link on CustomPassVolume.
-- Fixed player build when HDRP is in the project but not assigned in the graphic settings.
-- Fixed an issue where ambient probe would be black for the first face of a baked reflection probe
-- VFX: Fixed Missing Reference to Visual Effect Graph Runtime Assembly
-- Fixed an issue where rendering done by users in EndCameraRendering would be executed before the main render loop.
-- Fixed Prefab Override in main scope of Volume.
-- Fixed alignment issue in Presset of main scope of Volume.
-- Fixed persistence of ShowChromeGizmo and moved it to toolbar for coherency in ReflectionProbe and PlanarReflectionProbe.
-- Fixed Alignement issue in ReflectionProbe and PlanarReflectionProbe.
-- Fixed Prefab override workflow issue in ReflectionProbe and PlanarReflectionProbe.
-- Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in ReflectionProbe and PlanarReflectionProbe.
-- Fixed Prefab override workflow issue in DensityVolume.
-- Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in DensityVolume.
-- Fix light limit counts specified on the HDRP asset
-- Fixed Quality Settings for SSR, Contact Shadows and Ambient Occlusion volume components
-- Fixed decalui deriving from hdshaderui instead of just shaderui
-- Use DelayedIntField instead of IntField for scalable settings
-- Fixed init of debug for FrameSettingsHistory on SceneView camera
-- Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
-- Fix Wizard load when none selected for RenderPipelineAsset
 - Fixed TerrainLitGUI when per-pixel normal property is not present.
-- Fixed rendering errors when enabling debug modes with custom passes
-- Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
-- Fixing a bug whith histories when n>4 for ray traced shadows
-- Fixing wrong behavior in ray traced shadows for mesh renderers if their cast shadow is shadow only or double sided
-- Only tracing rays for shadow if the point is inside the code for spotlight shadows
-- Only tracing rays if the point is inside the range for point lights
-- Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
-- Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
-- Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
-- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
-- Fixed ray traced shadow denoising not working (history rejected all the time).
-- Fixed shader warning on xbox one
-- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
-- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
-- Fixed missing distortion inputs in Lit and Unlit material UI.
-- Fixed issue that propagated NaNs across multiple frames through the exposure texture.
-- Fixed issue with Exclude from TAA stencil ignored.
-- Fixed ray traced reflection exposure issue.
-- Fixed issue with TAA history not initialising corretly scale factor for first frame
-- Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
-- Fixed issue with History not reset when chaning antialiasing mode on camera
-- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off.
-- Fixed ray tracing reflection denoiser not applied in tier 1
-- Fixed the vibility of ray tracing related methods.
-- Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
-- Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
-- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights.
-- Fixed exposure management for the path tracer
-- Fixed AxF material UI containing two advanced options settings.
-- Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
-- Fixed issue that clamped PCSS softness too early and not after distance scale.
-- Fixed fog affect transparent on HD unlit master node
-- Fixed custom post processes re-ordering not saved.
-- Fixed NPE when using scalable settings
-- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
 - Fixed a bug due to depth history begin overriden too soon
-- Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
-- Fixed corruption of AO in baked probes.
-- Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
 - Fixed issue that caused Distortion UI to appear in Lit.
 - Fixed several issues with decal duplicating when editing them.
 - Fixed initialization of volumetric buffer params (1204159)
@@ -414,7 +234,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader warning in AO code.
 - Fixed a warning in simpledenoiser.compute
 - Fixed tube and rectangle light culling to use their shape instead of their range as a bounding box.
-- Fixed caused by using gather on a UINT texture in motion blur.
+- Fixed caused by using gather on a UINT texture in motion blur. 
 - Fix issue with ambient occlusion breaking when dynamic resolution is active.
 - Fixed some possible NaN causes in Depth of Field.
 - Fixed Custom Pass nullref due to the new Profiling Sample API changes
@@ -497,48 +317,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
-- Fixed alpha clipping test (comparison was '>', now '>=')
-- Fixed preview camera (eg. shader graph preview) when path tracing is on
-- Fixed issue with unclear naming of debug menu for decals.
 
 ### Changed
-- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
-- Rename Emission Radius to Radius in UI in Point, Spot
-- Angular Diameter parameter for directional light is no longuer an advanced property
-- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead.
-- Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
-- DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
-- Removed second cubemaps used for shadowing in lookdev
-- Disable Physically Based Sky below ground
-- Increase max limit of area light and reflection probe to 128
-- Change default texture for detailmap to grey
-- Optimize Shadow RT load on Tile based architecture platforms.
-- Improved quality of SSAO.
-- Moved RequestShadowMapRendering() back to public API.
-- Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
-- Added SceneSelection pass for TerrainLit shader.
-- Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
-- The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
-- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias.
-- Fix the default stencil values when a material is created from a SSS ShaderGraph.
-- Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
-- Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
-- Hidden fields in Light Inspector that is not relevant while in BakingOnly mode.
-- Changed parametrization of PCSS, now softness is derived from angular diameter (for directional lights) or shape radius (for point/spot lights) and min filter size is now in the [0..1] range.
-- Moved the copy of the geometry history buffers to right after the depth mip chain generation.
-- Rename "Luminance" to "Nits" in UX for physical light unit
-- Rename FrameSettings "SkyLighting" to "SkyReflection"
-- Reworked XR automated tests
-- The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
-- Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
-- Improve history buffer management
-- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
-- Remove redundant FrameSettings RealTimePlanarReflection
-- Improved a bit the GC calls generated during the rendering.
-- Material update is now only triggered when the relevant settings are touched in the shader graph master nodes
-- Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
-- Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
-- Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
 - Hide unused LOD settings in Quality Settings legacy window.
 - Reduced the constrained distance for temporal reprojection of ray tracing denoising
 - Removed shadow near plane from the Directional Light Shadow UI.
@@ -585,6 +365,342 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Hide the Probes section in the Renderer editos because it was unused.
 - Moved BeginCameraRendering callback right before culling.
 - Changed the visibility of the Indirect Lighting Controller component to public.
+
+## [7.1.8] - 2020-01-20
+
+### Fixed
+- Fixed white and dark flashes on scenes with very high or very low exposure when Automatic Exposure is being used.
+- Fixed memory leak in Sky when in matcap mode.
+	
+### Changed
+- On Xbox and PS4 you will also need to download the com.unity.render-pipeline.platform (ps4 or xboxone) package from the appropriate platform developer forum
+
+## [7.1.7] - 2019-12-11
+
+### Added
+- Added a check in the custom post process template to throw an error if the default shader is not found.
+
+### Fixed
+- Fixed rendering errors when enabling debug modes with custom passes
+- Fix an issue that made PCSS dependent on Atlas resolution (not shadow map res)
+- Fixing a bug whith histories when n>4 for ray traced shadows
+- Fixing wrong behavior in ray traced shadows for mesh renderers if their cast shadow is shadow only or double sided
+- Only tracing rays for shadow if the point is inside the code for spotlight shadows
+- Only tracing rays if the point is inside the range for point lights
+- Fixing ghosting issues when the screen space shadow  indexes change for a light with ray traced shadows
+- Fixed an issue with stencil management and Xbox One build that caused corrupted output in deferred mode.
+- Fixed a mismatch in behavior between the culling of shadow maps and ray traced point and spot light shadows
+- Fixed recursive ray tracing not working anymore after intermediate buffer refactor.
+- Fixed ray traced shadow denoising not working (history rejected all the time).
+- Fixed shader warning on xbox one
+- Fixed cookies not working for spot lights in ray traced reflections, ray traced GI and recursive rendering
+- Fixed an inverted handling of CoatSmoothness for SSR in StackLit.
+- Fixed missing distortion inputs in Lit and Unlit material UI.
+- Fixed issue that propagated NaNs across multiple frames through the exposure texture. 
+- Fixed issue with Exclude from TAA stencil ignored. 
+- Fixed ray traced reflection exposure issue.
+- Fixed issue with TAA history not initialising corretly scale factor for first frame
+- Fixed issue with stencil test of material classification not using the correct Mask (causing false positive and bad performance with forward material in deferred)
+- Fixed issue with History not reset when chaning antialiasing mode on camera
+- Fixed issue with volumetric data not being initialized if default settings have volumetric and reprojection off. 
+- Fixed ray tracing reflection denoiser not applied in tier 1
+- Fixed the vibility of ray tracing related methods.
+- Fixed the diffusion profile list not saved when clicking the fix button in the material UI.
+- Fixed crash when pushing bounce count higher than 1 for ray traced GI or reflections
+- Fixed PCSS softness scale so that it better match ray traced reference for punctual lights. 
+- Fixed exposure management for the path tracer
+- Fixed AxF material UI containing two advanced options settings.
+- Fixed an issue where cached sky contexts were being destroyed wrongly, breaking lighting in the LookDev
+- Fixed issue that clamped PCSS softness too early and not after distance scale.
+- Fixed fog affect transparent on HD unlit master node
+- Fixed custom post processes re-ordering not saved.
+- Fixed NPE when using scalable settings
+- Fixed an issue where PBR sky precomputation was reset incorrectly in some cases causing bad performance.
+- Fixed a bug in dxr due to depth history begin overriden too soon
+- Fixed CustomPassSampleCameraColor scale issue when called from Before Transparent injection point.
+- Fixed corruption of AO in baked probes.
+- Fixed issue with upgrade of projects that still had Very High as shadow filtering quality.
+- Removed shadow near plane from the Directional Light Shadow UI.
+- Fixed performance issue with performances of custom pass culling.
+
+## [7.1.6] - 2019-11-22
+
+### Added
+- Added Backplate projection from the HDRISky
+- Added Shadow Matte in UnlitMasterNode, which only received shadow without lighting
+- Added support for depth copy with XR SDK
+- Added debug setting to Render Pipeline Debug Window to list the active XR views
+- Added an option to filter the result of the volumetric lighting (off by default).
+- Added a transmission multiplier for directional lights
+- Added XR single-pass test mode to Render Pipeline Debug Window
+- Added debug setting to Render Pipeline Window to list the active XR views
+- Added a new refraction mode for the Lit shader (thin). Which is a box refraction with small thickness values
+- Added the code to support Barn Doors for Area Lights based on a shaderconfig option.
+- Added HDRPCameraBinder property binder for Visual Effect Graph
+- Added "Celestial Body" controls to the Directional Light
+- Added new parameters to the Physically Based Sky
+- Added Reflections to the DXR Wizard
+
+### Fixed
+- Fixed y-flip in scene view with XR SDK
+- Fixed Decal projectors do not immediately respond when parent object layer mask is changed in editor.
+- Fixed y-flip in scene view with XR SDK
+- Fixed a number of issues with Material Quality setting
+- Fixed the transparent Cull Mode option in HD unlit master node settings only visible if double sided is ticked.
+- Fixed an issue causing shadowed areas by contact shadows at the edge of far clip plane if contact shadow length is very close to far clip plane.
+- Fixed editing a scalable settings will edit all loaded asset in memory instead of targetted asset.
+- Fixed Planar reflection default viewer FOV
+- Fixed flickering issues when moving the mouse in the editor with ray tracing on.
+- Fixed the ShaderGraph main preview being black after switching to SSS in the master node settings
+- Fixed custom fullscreen passes in VR
+- Fixed camera culling masks not taken in account in custom pass volumes
+- Fixed object not drawn in custom pass when using a DrawRenderers with an HDRP shader in a build.
+- Fixed injection points for Custom Passes (AfterDepthAndNormal and BeforePreRefraction were missing)
+- Fixed a enum to choose shader tags used for drawing objects (DepthPrepass or Forward) when there is no override material.
+- Fixed lit objects in the BeforePreRefraction, BeforeTransparent and BeforePostProcess.
+- Fixed the None option when binding custom pass render targets to allow binding only depth or color.
+- Fixed custom pass buffers allocation so they are not allocated if they're not used.
+- Fixed the Custom Pass entry in the volume create asset menu items.
+- Fixed Prefab Overrides workflow on Camera.
+- Fixed alignment issue in Preset for Camera.
+- Fixed alignment issue in Physical part for Camera.
+- Fixed FrameSettings multi-edition.
+- Fixed a bug happening when denoising multiple ray traced light shadows
+- Fixed minor naming issues in ShaderGraph settings
+- Fixed an issue with Metal Shader Compiler and GTAO shader for metal
+- Fixed resources load issue while upgrading HDRP package.
+- Fixed LOD fade mask by accounting for field of view
+- Fixed spot light missing from ray tracing indirect effects.
+- Fixed a UI bug in the diffusion profile list after fixing them from the wizard.
+- Fixed the hash collision when creating new diffusion profile assets.
+- Fixed a light leaking issue with box light casting shadows (case 1184475)
+- Fixed Cookie texture type in the cookie slot of lights (Now displays a warning because it is not supported).
+- Fixed a nullref that happens when using the Shuriken particle light module
+- Fixed alignment in Wizard
+- Fixed text overflow in Wizard's helpbox
+- Fixed Wizard button fix all that was not automatically grab all required fixes
+- Fixed VR tab for MacOS in Wizard
+- Fixed local config package workflow in Wizard
+- Fixed issue with contact shadows shifting when MSAA is enabled.
+- Fixed EV100 in the PBR sky
+- Fixed an issue In URP where sometime the camera is not passed to the volume system and causes a null ref exception (case 1199388)
+- Fixed nullref when releasing HDRP with custom pass disabled
+- Fixed performance issue derived from copying stencil buffer.
+- Fixed an editor freeze when importing a diffusion profile asset from a unity package.
+- Fixed an exception when trying to reload a builtin resource.
+- Fixed the light type intensity unit reset when switching the light type.
+- Fixed compilation error related to define guards and CreateLayoutFromXrSdk()
+- Fixed documentation link on CustomPassVolume.
+- Fixed player build when HDRP is in the project but not assigned in the graphic settings.
+- Fixed an issue where ambient probe would be black for the first face of a baked reflection probe
+- VFX: Fixed Missing Reference to Visual Effect Graph Runtime Assembly
+- Fixed an issue where rendering done by users in EndCameraRendering would be executed before the main render loop.
+- Fixed Prefab Override in main scope of Volume.
+- Fixed alignment issue in Presset of main scope of Volume.
+- Fixed persistence of ShowChromeGizmo and moved it to toolbar for coherency in ReflectionProbe and PlanarReflectionProbe.
+- Fixed Alignement issue in ReflectionProbe and PlanarReflectionProbe.
+- Fixed Prefab override workflow issue in ReflectionProbe and PlanarReflectionProbe.
+- Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in ReflectionProbe and PlanarReflectionProbe.
+- Fixed Prefab override workflow issue in DensityVolume.
+- Fixed empty MoreOptions and moved AdvancedManipulation in a dedicated location for coherency in DensityVolume.
+- Fix light limit counts specified on the HDRP asset
+- Fixed Quality Settings for SSR, Contact Shadows and Ambient Occlusion volume components
+- Fixed decalui deriving from hdshaderui instead of just shaderui
+- Use DelayedIntField instead of IntField for scalable settings
+
+### Changed
+- Reworked XR automated tests
+- The ray traced screen space shadow history for directional, spot and point lights is discarded if the light transform has changed.
+- Changed the behavior for ray tracing in case a mesh renderer has both transparent and opaque submeshes.
+- Improve history buffer management
+- Replaced PlayerSettings.virtualRealitySupported with XRGraphics.tryEnable.
+- Remove redundant FrameSettings RealTimePlanarReflection
+- Improved a bit the GC calls generated during the rendering.
+- Material update is now only triggered when the relevant settings are touched in the shader graph master nodes
+- Changed the way Sky Intensity (on Sky volume components) is handled. It's now a combo box where users can choose between Exposure, Multiplier or Lux (for HDRI sky only) instead of both multiplier and exposure being applied all the time. Added a new menu item to convert old profiles.
+- Change how method for specular occlusions is decided on inspector shader (Lit, LitTesselation, LayeredLit, LayeredLitTessellation)
+- Unlocked SSS, SSR, Motion Vectors and Distortion frame settings for reflections probes.
+
+## [7.1.5] - 2019-11-15
+
+### Fixed
+- Fixed black reflection probes the first time loading a project
+
+## [7.1.4] - 2019-11-13
+
+### Added
+- Added XR single-pass setting into HDRP asset
+- Added a penumbra tint option for lights
+
+### Fixed
+- Fixed EOL for some files
+- Fixed scene view rendering with volumetrics and XR enabled
+- Fixed decals to work with multiple cameras
+- Fixed optional clear of GBuffer (Was always on)
+- Fixed render target clears with XR single-pass rendering
+- Fixed HDRP samples file hierarchy
+- Fixed Light units not matching light type
+- Fixed QualitySettings panel not displaying HDRP Asset
+
+### Changed
+- Changed parametrization of PCSS, now softness is derived from angular diameter (for directional lights) or shape radius (for point/spot lights) and min filter size is now in the [0..1] range.
+- Moved the copy of the geometry history buffers to right after the depth mip chain generation.
+- Rename "Luminance" to "Nits" in UX for physical light unit
+- Rename FrameSettings "SkyLighting" to "SkyReflection"
+
+## [7.1.3] - 2019-11-04
+
+### Added
+- Ray tracing support for VR single-pass
+- Added sharpen filter shader parameter and UI for TemporalAA to control image quality instead of hardcoded value
+- Added frame settings option for custom post process and custom passes as well as custom color buffer format option.
+- Add check in wizard on SRP Batcher enabled.
+- Added default implementations of OnPreprocessMaterialDescription for FBX, Obj, Sketchup and 3DS file formats.
+- Added custom pass fade radius
+- Added after post process injection point for custom passes
+- Added basic alpha compositing support - Alpha is available afterpostprocess when using FP16 buffer format.
+- Added falloff distance on Reflection Probe and Planar Reflection Probe
+- Added hability to name LightLayers in HDRenderPipelineAsset
+- Added a range compression factor for Reflection Probe and Planar Reflection Probe to avoid saturation of colors.
+- Added path tracing support for directional, point and spot lights, as well as emission from Lit and Unlit.
+- Added non temporal version of SSAO.
+- Added more detailed ray tracing stats in the debug window
+- Added Disc area light (bake only)
+- Added a warning in the material UI to prevent transparent + subsurface-scattering combination.
+
+### Fixed
+- Sorting, undo, labels, layout in the Lighting Explorer.
+- Fixed sky settings and materials in Shader Graph Samples package
+- Fixed light supported units caching (1182266)
+- Fixed an issue where SSAO (that needs temporal reprojection) was still being rendered when Motion Vectors were not available (case 1184998)
+- Fixed a nullref when modifying the height parameters inside the layered lit shader UI.
+- Fixed Decal gizmo that become white after exiting play mode
+- Fixed Decal pivot position to behave like a spotlight
+- Fixed an issue where using the LightingOverrideMask would break sky reflection for regular cameras
+- Fix DebugMenu FrameSettingsHistory persistency on close
+- Fix DensityVolume, ReflectionProbe aned PlanarReflectionProbe advancedControl display
+- Fix DXR scene serialization in wizard
+- Fixed an issue where Previews would reallocate History Buffers every frame
+- Fixed the SetLightLayer function in HDAdditionalLightData setting the wrong light layer
+- Fix error first time a preview is created for planar
+- Fixed an issue where SSR would use an incorrect roughness value on ForwardOnly (StackLit, AxF, Fabric, etc.) materials when the pipeline is configured to also allow deferred Lit.
+- Fixed issues with light explorer (cases 1183468, 1183269)
+- Fix dot colors in LayeredLit material inspector
+- Fix undo not resetting all value when undoing the material affectation in LayerLit material
+- Fix for issue that caused gizmos to render in render textures (case 1174395)
+- Fixed the light emissive mesh not updated when the light was disabled/enabled
+- Fixed light and shadow layer sync when setting the HDAdditionalLightData.lightlayersMask property
+- Fixed a nullref when a custom post process component that was in the HDRP PP list is removed from the project
+- Fixed issue that prevented decals from modifying specular occlusion (case 1178272).
+- Fixed exposure of volumetric reprojection
+- Fixed multi selection support for Scalable Settings in lights
+- Fixed font shaders in test projects for VR by using a Shader Graph version
+- Fixed refresh of baked cubemap by incrementing updateCount at the end of the bake (case 1158677).
+- Fixed issue with rectangular area light when seen from the back
+- Fixed decals not affecting lightmap/lightprobe
+- Fixed zBufferParams with XR single-pass rendering
+- Fixed moving objects not rendered in custom passes
+- Fixed abstract classes listed in the + menu of the custom pass list
+- Fixed custom pass that was rendered in previews
+- Fixed precision error in zero value normals when applying decals (case 1181639)
+- Fixed issue that triggered No Scene Lighting view in game view as well (case 1156102)
+- Assign default volume profile when creating a new HDRP Asset
+- Fixed fov to 0 in planar probe breaking the projection matrix (case 1182014)
+- Fixed bugs with shadow caching
+- Reassign the same camera for a realtime probe face render request to have appropriate history buffer during realtime probe rendering.
+- Fixed issue causing wrong shading when normal map mode is Object space, no normal map is set, but a detail map is present (case 1143352)
+- Fixed issue with decal and htile optimization
+- Fixed TerrainLit shader compilation error regarding `_Control0_TexelSize` redefinition (case 1178480).
+- Fixed warning about duplicate HDRuntimeReflectionSystem when configuring play mode without domain reload.
+- Fixed an editor crash when multiple decal projectors were selected and some had null material
+- Added all relevant fix actions to FixAll button in Wizard
+- Moved FixAll button on top of the Wizard
+- Fixed an issue where fog color was not pre-exposed correctly
+- Fix priority order when custom passes are overlapping
+- Fix cleanup not called when the custom pass GameObject is destroyed
+- Replaced most instances of GraphicsSettings.renderPipelineAsset by GraphicsSettings.currentRenderPipeline. This should fix some parameters not working on Quality Settings overrides.
+- Fixed an issue with Realtime GI not working on upgraded projects.
+- Fixed issue with screen space shadows fallback texture was not set as a texture array.
+- Fixed Pyramid Lights bounding box
+- Fixed terrain heightmap default/null values and epsilons
+- Fixed custom post-processing effects breaking when an abstract class inherited from `CustomPostProcessVolumeComponent`
+- Fixed XR single-pass rendering in Editor by using ShaderConfig.s_XrMaxViews to allocate matrix array
+- Multiple different skies rendered at the same time by different cameras are now handled correctly without flickering
+- Fixed flickering issue happening when different volumes have shadow settings and multiple cameras are present. 
+- Fixed issue causing planar probes to disappear if there is no light in the scene.
+- Fixed a number of issues with the prefab isolation mode (Volumes leaking from the main scene and reflection not working properly)
+- Fixed an issue with fog volume component upgrade not working properly
+- Fixed Spot light Pyramid Shape has shadow artifacts on aspect ratio values lower than 1
+- Fixed issue with AO upsampling in XR
+- Fixed camera without HDAdditionalCameraData component not rendering
+- Removed the macro ENABLE_RAYTRACING for most of the ray tracing code
+- Fixed prefab containing camera reloading in loop while selected in the Project view
+- Fixed issue causing NaN wheh the Z scale of an object is set to 0.
+- Fixed DXR shader passes attempting to render before pipeline loaded
+- Fixed black ambient sky issue when importing a project after deleting Library.
+- Fixed issue when upgrading a Standard transparent material (case 1186874)
+- Fixed area light cookies not working properly with stack lit
+- Fixed material render queue not updated when the shader is changed in the material inspector.
+- Fixed a number of issues with full screen debug modes not reseting correctly when setting another mutually exclusive mode
+- Fixed compile errors for platforms with no VR support
+- Fixed an issue with volumetrics and RTHandle scaling (case 1155236)
+- Fixed an issue where sky lighting might be updated uselessly
+- Fixed issue preventing to allow setting decal material to none (case 1196129)
+- Fixed XR multi-pass decals rendering
+- Fixed several fields on Light Inspector that not supported Prefab overrides
+- VFX: Removed z-fight glitches that could appear when using deferred depth prepass and lit quad primitives
+- VFX: Preserve specular option for lit outputs (matches HDRP lit shader)
+- Fixed init of debug for FrameSettingsHistory on SceneView camera
+- Added a fix script to handle the warning 'referenced script in (GameObject 'SceneIDMap') is missing'
+- Fix Wizard load when none selected for RenderPipelineAsset
+- Fixed issue with unclear naming of debug menu for decals.
+
+### Changed
+- Color buffer pyramid is not allocated anymore if neither refraction nor distortion are enabled
+- Rename Emission Radius to Radius in UI in Point, Spot
+- Angular Diameter parameter for directional light is no longuer an advanced property
+- DXR: Remove Light Radius and Angular Diamater of Raytrace shadow. Angular Diameter and Radius are used instead.
+- Remove MaxSmoothness parameters from UI for point, spot and directional light. The MaxSmoothness is now deduce from Radius Parameters
+- DXR: Remove the Ray Tracing Environement Component. Add a Layer Mask to the ray Tracing volume components to define which objects are taken into account for each effect.
+- Removed second cubemaps used for shadowing in lookdev
+- Disable Physically Based Sky below ground
+- Increase max limit of area light and reflection probe to 128
+- Change default texture for detailmap to grey
+- Optimize Shadow RT load on Tile based architecture platforms. 
+- Improved quality of SSAO.
+- Moved RequestShadowMapRendering() back to public API.
+- Update HDRP DXR Wizard with an option to automatically clone the hdrp config package and setup raytracing to 1 in shaders file.
+- Added SceneSelection pass for TerrainLit shader.
+- Simplified Light's type API regrouping the logic in one place (Check type in HDAdditionalLightData)
+- The support of LOD CrossFade (Dithering transition) in master nodes now required to enable it in the master node settings (Save variant)
+- Improved shadow bias, by removing constant depth bias and substituting it with slope-scale bias. 
+- Fix the default stencil values when a material is created from a SSS ShaderGraph.
+- Tweak test asset to be compatible with XR: unlit SG material for canvas and double-side font material
+- Slightly tweaked the behaviour of bloom when resolution is low to reduce artifacts.
+- Hidden fields in Light Inspector that is not relevant while in BakingOnly mode.
+
+## [7.1.2] - 2019-09-19
+
+### Fixed
+- Fix/workaround a probable graphics driver bug in the GTAO shader.
+- Fixed Hair and PBR shader graphs double sided modes
+- Fixed an issue where updating an HDRP asset in the Quality setting panel would not recreate the pipeline.
+- Fixed issue with point lights being considered even when occupying less than a pixel on screen (case 1183196)
+- Fix a potential NaN source with iridescence (case 1183216)
+- Fixed issue of spotlight breaking when minimizing the cone angle via the gizmo (case 1178279)
+- Fixed issue that caused decals not to modify the roughness in the normal buffer, causing SSR to not behave correctly (case 1178336)
+- Fixed lit transparent refraction with XR single-pass rendering
+- Removed extra jitter for TemporalAA in VR
+- Fixed ShaderGraph time in main preview
+- Fixed issue on some UI elements in HDRP asset not expanding when clicking the arrow (case 1178369)
+- Fixed alpha blending in custom post process
+- Fixed the modification of the _AlphaCutoff property in the material UI when exposed with a ShaderGraph parameter.
+- Fixed HDRP test `1218_Lit_DiffusionProfiles` on Vulkan.
+- Fixed an issue where building a player in non-dev mode would generate render target error logs every frame
+- Fixed crash when upgrading version of HDRP
+- Fixed rendering issues with material previews
+- Fixed NPE when using light module in Shuriken particle systems (1173348).
+- Refresh cached shadow on editor changes
 
 ## [7.1.1] - 2019-09-05
 

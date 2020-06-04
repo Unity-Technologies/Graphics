@@ -56,10 +56,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static string unlitShaderMessage = "HDRP Unlit shaders will force the shader passes to \"ForwardOnly\"";
             public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a custom pass";
             public static string opaqueObjectWithDeferred = "Your HDRP settings does not support ForwardOnly, some object might not render.";
+            public static string objectRendererTwiceWithMSAA = "MSAA is enabled, re-rendering same object twice will cause depth test artifacts in Before/After Post Process injection points";
         }
 
         //Headers and layout
-        private int m_FilterLines = 3;
+        private int m_FilterLines = 2;
         private int m_MaterialLines = 2;
 
         // Foldouts
@@ -85,6 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty      m_DepthWrite;
 
         ReorderableList         m_ShaderPassesList;
+
+        CustomPassVolume        m_Volume;
 
         bool customDepthIsNone => (CustomPass.TargetBuffer)m_TargetDepthBuffer.intValue == CustomPass.TargetBuffer.None;
 
@@ -112,6 +115,8 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DepthCompareFunction = customPass.FindPropertyRelative("depthCompareFunction");
             m_DepthWrite = customPass.FindPropertyRelative("depthWrite");
 
+            m_Volume = customPass.serializedObject.targetObject as CustomPassVolume;
+
             m_ShaderPassesList = new ReorderableList(null, m_ShaderPasses, true, true, true, true);
 
             m_ShaderPassesList.drawElementCallback =
@@ -132,6 +137,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void DoPassGUI(SerializedProperty customPass, Rect rect)
         {
+            if (ShowMsaaObjectInfo())
+            {
+                Rect helpBoxRect = rect;
+                helpBoxRect.height = Styles.helpBoxHeight;
+                EditorGUI.HelpBox(helpBoxRect, Styles.objectRendererTwiceWithMSAA, MessageType.Info);
+                rect.y += Styles.helpBoxHeight;
+            }
+
             DoFilters(ref rect);
 
             m_RendererFoldout.boolValue = EditorGUI.Foldout(rect, m_RendererFoldout.boolValue, Styles.renderHeader, true);
@@ -156,7 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        // Tel if we need to show a warning for rendering opaque object and we're in deferred.
+        // Tell if we need to show a warning for rendering opaque object and we're in deferred.
         bool ShowOpaqueObjectWarning()
         {
             // Only opaque objects are concerned
@@ -168,6 +181,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Only Deferred rendering
             if (HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
+                return false;
+
+            return true;
+        }
+
+        // Tell if we need to show the MSAA message info
+        bool ShowMsaaObjectInfo()
+        {
+            if (!HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.supportMSAA)
+                return false;
+            
+            if (m_Volume.injectionPoint != CustomPassInjectionPoint.AfterPostProcess && m_Volume.injectionPoint != CustomPassInjectionPoint.BeforePostProcess)
                 return false;
 
             return true;
@@ -296,9 +321,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             float height = Styles.defaultLineSpace;
 
+            height += ShowMsaaObjectInfo() ? Styles.helpBoxHeight : 0;
+
             if (m_FilterFoldout.boolValue)
             {
-                height *= m_FilterLines;
+                height += Styles.defaultLineSpace * m_FilterLines;
                 height += ShowOpaqueObjectWarning() ? Styles.helpBoxHeight : 0;
             }
 

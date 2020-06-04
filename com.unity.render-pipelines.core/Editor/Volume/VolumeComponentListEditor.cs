@@ -16,24 +16,24 @@ namespace UnityEditor.Rendering
     /// in the inspector:
     /// <code>
     /// using UnityEngine.Rendering;
-    /// 
+    ///
     /// [CustomEditor(typeof(VolumeProfile))]
     /// public class CustomVolumeProfileEditor : Editor
     /// {
     ///     VolumeComponentListEditor m_ComponentList;
-    /// 
+    ///
     ///     void OnEnable()
     ///     {
     ///         m_ComponentList = new VolumeComponentListEditor(this);
     ///         m_ComponentList.Init(target as VolumeProfile, serializedObject);
     ///     }
-    /// 
+    ///
     ///     void OnDisable()
     ///     {
     ///         if (m_ComponentList != null)
     ///             m_ComponentList.Clear();
     ///     }
-    /// 
+    ///
     ///     public override void OnInspectorGUI()
     ///     {
     ///         serializedObject.Update();
@@ -57,6 +57,8 @@ namespace UnityEditor.Rendering
 
         Dictionary<Type, Type> m_EditorTypes; // Component type => Editor type
         List<VolumeComponentEditor> m_Editors;
+
+        int m_CurrentHashCode;
 
         /// <summary>
         /// Creates a new instance of <see cref="VolumeComponentListEditor"/> to use in an
@@ -195,9 +197,12 @@ namespace UnityEditor.Rendering
             if (asset == null)
                 return;
 
-            if (asset.isDirty)
+            // Even if the asset is not dirty, the list of component may have been changed by another inspector.
+            // In this case, only the hash will tell us that we need to refresh.
+            if (asset.isDirty || asset.GetHashCode() != m_CurrentHashCode)
             {
                 RefreshEditors();
+                m_CurrentHashCode = asset.GetHashCode();
                 asset.isDirty = false;
             }
 

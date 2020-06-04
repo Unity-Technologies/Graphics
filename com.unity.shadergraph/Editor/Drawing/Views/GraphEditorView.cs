@@ -164,10 +164,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     EditorGUI.BeginChangeCheck();
                     GUILayout.Label("Precision");
-                    graph.concretePrecision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
-                    GUILayout.Space(4);
+                    var precision = (ConcretePrecision)EditorGUILayout.EnumPopup(graph.concretePrecision, GUILayout.Width(100f));
                     if (EditorGUI.EndChangeCheck())
                     {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Changed Graph Precision");
+                        graph.concretePrecision = precision;
+
                         var nodeList = m_GraphView.Query<MaterialNodeView>().ToList();
                         m_ColorManager.SetNodesDirty(nodeList);
                         graph.ValidateGraph();
@@ -261,6 +263,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         item => (m_SearchWindowProvider as SearcherProvider).OnSearcherSelectEntry(item, c.screenMousePosition - editorWindow.position.position),
                         c.screenMousePosition - editorWindow.position.position, null);
                 };
+            m_GraphView.RegisterCallback<FocusInEvent>( evt =>
+            {
+                //regenerate entries when graph view is refocused, to propogate subgraph changes
+                m_SearchWindowProvider.regenerateEntries = true;
+            });
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider, editorWindow);
 
@@ -562,6 +569,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
+            if(m_Graph.addedInputs.Count() > 0 || m_Graph.removedInputs.Count() > 0)
+                m_SearchWindowProvider.regenerateEntries = true;
             m_BlackboardProvider.HandleGraphChanges();
             m_GroupHashSet.Clear();
 

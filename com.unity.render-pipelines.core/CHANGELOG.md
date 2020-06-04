@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.1.0] - 2020-04-21
+
 ### Added
 - Add tooltips in LookDev's toolbar.
 
@@ -15,7 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix LookDev's camera button layout.
 - Fix LookDev's layout vanishing on domain reload.
 
-## [8.0.0] - 2020-05-25
+## [8.0.1] - 2020-02-25
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [8.0.0] - 2020-02-25
 
 ### Added
 - Add rough version of ContextualMenuDispatcher to solve conflict amongst SRP.
@@ -45,7 +55,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the texture curve being destroyed from another thread than main (case 1211754)
 - Fixed unreachable code in TextureXR.useTexArray
 - Fixed GC pressure caused by `VolumeParameter<T>.GetHashCode()`
-- Fixed issue with the shader TransformWorldToHClipDir function computing the wrong result.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

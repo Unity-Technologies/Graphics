@@ -33,8 +33,8 @@ namespace UnityEditor.Rendering.HighDefinition
         internal struct AttributesMesh
         {
             [Semantic("POSITION")]                  Vector3 positionOS;
-            [Semantic("NORMAL")][Optional]          Vector3 normalOS;
-            [Semantic("TANGENT")][Optional]         Vector4 tangentOS;       // Stores bi-tangent sign in w
+            [Semantic("NORMAL")]                    Vector3 normalOS;
+            [Semantic("TANGENT")]                   Vector4 tangentOS;       // Stores bi-tangent sign in w
             [Semantic("TEXCOORD0")][Optional]       Vector4 uv0;
             [Semantic("TEXCOORD1")][Optional]       Vector4 uv1;
             [Semantic("TEXCOORD2")][Optional]       Vector4 uv2;
@@ -841,6 +841,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             ShaderGenerator defines = new ShaderGenerator();
             {
+                defines.AddShaderChunk("// Shared Graph Keywords");
+                defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
+                defines.AddShaderChunk(shaderKeywordPermutations.ToString());
+
                 defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
                 if (pass.ExtraDefines != null)
                 {
@@ -893,10 +897,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 foreach (var include in pass.Includes)
                     shaderPassIncludes.AddShaderChunk(include);
             }
-
-            defines.AddShaderChunk("// Shared Graph Keywords");
-            defines.AddShaderChunk(shaderKeywordDeclarations.ToString());
-            defines.AddShaderChunk(shaderKeywordPermutations.ToString());
 
             // build graph code
             var graph = new ShaderGenerator();
