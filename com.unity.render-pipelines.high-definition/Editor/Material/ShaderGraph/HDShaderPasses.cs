@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Port mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentDistortion,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -105,8 +105,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentSceneSelection,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentSceneSelection,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -161,8 +161,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentShadowCaster,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentShadowCaster,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -305,8 +305,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentDepthOnlyVectors,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentDepthOnlyVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -383,8 +383,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Block Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentMotionVectors,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentMotionVectors,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -472,8 +472,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentForwardOnly,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentForwardOnly,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -569,8 +569,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentBackThenFront,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentBackThenFront,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -672,8 +672,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentTransparentDepthPrepass,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentTransparentDepthPrepass,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -785,8 +785,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = FragmentTransparentDepthPostpass,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = FragmentTransparentDepthPostpass,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -841,6 +841,242 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #endregion
 
+#region Lit DepthOnly
+
+        public static PassDescriptor GenerateLitDepthOnly()
+        {
+            return new PassDescriptor
+            {
+                displayName = "DepthOnly",
+                referenceName = "SHADERPASS_DEPTH_ONLY",
+                lightMode = "DepthOnly",
+                useInPreview = true,
+
+                // // Template
+                // passTemplatePath = passTemplatePath,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // // Port Mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = LitBlockMasks.FragmentDepthMotionVectors,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.LitFull,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = CoreRenderStates.DepthOnly,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = LitDepthOnlyKeywords,
+                includes = DepthOnlyIncludes,
+            };
+        }
+
+        public static IncludeCollection DepthOnlyIncludes = new IncludeCollection
+        {
+            { CoreIncludes.CorePregraph },
+            { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.CoreUtility },
+            { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
+            { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassDepthOnly, IncludeLocation.Postgraph },
+        };
+
+        public static KeywordCollection LitDepthOnlyKeywords = new KeywordCollection
+        {
+            { CoreKeywords.HDBase },
+            { CoreKeywordDescriptors.WriteMsaaDepth },
+            { CoreKeywordDescriptors.WriteNormalBuffer },
+            { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
+        };
+
+#endregion
+
+#region GBuffer
+
+        public static PassDescriptor GenerateGBuffer()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "GBuffer",
+                referenceName = "SHADERPASS_GBUFFER",
+                lightMode = "GBuffer",
+                useInPreview = true,
+
+                // // Template
+                // passTemplatePath = passTemplatePath,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // // Port Mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = LitBlockMasks.FragmentDefault,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.LitMinimal,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = GBufferRenderState,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = GBufferKeywords,
+                includes = GBufferIncludes,
+
+                virtualTextureFeedback = true,
+            };
+        }
+
+        public static KeywordCollection GBufferKeywords = new KeywordCollection
+        {
+            { CoreKeywords.HDBase },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { CoreKeywords.Lightmaps },
+            { CoreKeywordDescriptors.ShadowsShadowmask },
+            { CoreKeywordDescriptors.LightLayers },
+            { CoreKeywordDescriptors.Decals },
+        };
+
+        public static IncludeCollection GBufferIncludes = new IncludeCollection
+        {
+            { CoreIncludes.CorePregraph },
+            { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.CoreUtility },
+            { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
+            { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassGBuffer, IncludeLocation.Postgraph },
+        };
+
+        public static RenderStateCollection GBufferRenderState = new RenderStateCollection
+        {
+            { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+            { RenderState.ZTest(CoreRenderStates.Uniforms.zTestGBuffer) },
+            { RenderState.Stencil(new StencilDescriptor()
+            {
+                WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskGBuffer,
+                Ref = CoreRenderStates.Uniforms.stencilRefGBuffer,
+                Comp = "Always",
+                Pass = "Replace",
+            }) },
+        };
+
+#endregion
+
+#region Lit Forward
+
+        public static PassDescriptor GenerateLitForward()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "Forward",
+                referenceName = "SHADERPASS_FORWARD",
+                lightMode = "Forward",
+                useInPreview = true,
+
+                // // Template
+                // passTemplatePath = passTemplatePath,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // // Port Mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = LitBlockMasks.FragmentDefault,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.LitMinimal,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = CoreRenderStates.ForwardColorMask,
+                pragmas = CorePragmas.DotsInstancedInV1AndV2,
+                defines = CoreDefines.Forward,
+                keywords = CoreKeywords.Forward,
+                includes = ForwardIncludes,
+
+                virtualTextureFeedback = true,
+            };
+        }
+
+        public static IncludeCollection ForwardIncludes = new IncludeCollection
+        {
+            { CoreIncludes.CorePregraph },
+            { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+            { CoreIncludes.kLighting, IncludeLocation.Pregraph },
+            { CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kLightLoop, IncludeLocation.Pregraph },
+            { CoreIncludes.CoreUtility },
+            { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
+            { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassForward, IncludeLocation.Postgraph },
+        };
+
+#endregion
+
+#region Lit Raytracing Prepass
+
+        public static PassDescriptor GenerateLitRaytracingPrepass()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "RayTracingPrepass",
+                referenceName = "SHADERPASS_CONSTANT",
+                lightMode = "RayTracingPrepass",
+                useInPreview = false,
+
+                // // Template
+                // passTemplatePath = passTemplatePath,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // // Port Mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = LitBlockMasks.FragmentRayTracingPrepass,
+
+                // Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                renderStates = RayTracingPrepassRenderState,
+                pragmas = LitRaytracingPrepassPragmas,
+                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                keywords = CoreKeywords.HDBase,
+                includes = RayTracingPrepassIncludes,
+            };
+        }
+
+        public static PragmaCollection LitRaytracingPrepassPragmas = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.Vertex("Vert") },
+            { Pragma.Fragment("Frag") },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
+        };
+
+        public static IncludeCollection RayTracingPrepassIncludes = new IncludeCollection
+        {
+            { CoreIncludes.CorePregraph },
+            { CoreIncludes.kNormalSurfaceGradient, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.CoreUtility },
+            { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
+            { CoreIncludes.kPassConstant, IncludeLocation.Postgraph },
+        };
+
+        public static RenderStateCollection RayTracingPrepassRenderState = new RenderStateCollection
+        {
+            { RenderState.Blend(Blend.One, Blend.Zero) },
+            { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
+            { RenderState.ZWrite(ZWrite.On) },
+            // Note: we use default ZTest LEqual so if the object have already been render in depth prepass, it will re-render to tag stencil
+        };
+
+#endregion
+
 #region Raytracing Indirect
 
         public static PassDescriptor GenerateRaytracingIndirect(bool supportLighting)
@@ -854,8 +1090,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = RaytracingIndirectFragment,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = RaytracingIndirectFragment,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -935,8 +1171,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = RaytracingVisibilityFragment,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = RaytracingVisibilityFragment,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1012,8 +1248,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = RaytracingForwardFragment,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = RaytracingForwardFragment,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1090,8 +1326,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = RaytracingGBufferFragment,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = RaytracingGBufferFragment,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -1167,8 +1403,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 //Port mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = PathTracingFragment,
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = PathTracingFragment,
 
                 //Collections
                 structs = CoreStructCollections.Default,
@@ -1219,6 +1455,45 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             HDBlockFields.SurfaceDescription.BakedGI,
             HDBlockFields.SurfaceDescription.BakedBackGI,
             HDBlockFields.SurfaceDescription.DepthOffset,
+        };
+
+#endregion
+
+#region Raytracing Subsurface
+
+        public static PassDescriptor GenerateRaytracingSubsurface()
+        {
+            return new PassDescriptor
+            {
+                //Definition
+                displayName = "SubSurfaceDXR",
+                referenceName = "SHADERPASS_RAYTRACING_SUB_SURFACE",
+                lightMode = "SubSurfaceDXR",
+                useInPreview = false,
+
+                // Template
+                // passTemplatePath = passTemplatePath,
+                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+
+                // //Port mask
+                // validVertexBlocks = CoreBlockMasks.Vertex,
+                // validPixelBlocks = LitBlockMasks.FragmentDefault,
+
+                //Collections
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+                pragmas = CorePragmas.RaytracingBasic,
+                defines = RaytracingSubsurfaceDefines,
+                keywords = CoreKeywords.RaytracingGBufferForward,
+                includes = CoreIncludes.Raytracing,
+                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingSubSurface },
+            };
+        }
+
+        public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection
+        {
+            { CoreKeywordDescriptors.Shadow, 0 },
+            { RayTracingNode.GetRayTracingKeyword(), 1 },
         };
 
 #endregion

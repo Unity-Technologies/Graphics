@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false));
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         // Material Data
         DecalData m_DecalData;
@@ -85,8 +86,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             blockList.AddPropertyBlock(new DecalPropertyBlock(decalData));
         }
-
-        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Lit;
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {

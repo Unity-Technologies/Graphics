@@ -124,7 +124,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
                     passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
-                    passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
                 };
 
                 if (supportPathtracing)
@@ -150,7 +149,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 IncludeCollection finalIncludes = new IncludeCollection();
                 var includeList = passDescriptor.includes.Select(i => i.descriptor).ToList();
         
-
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
                 {
@@ -162,13 +160,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
                 }
+                passDescriptor.includes = finalIncludes;
 
+                // Replace valid pixel blocks by automatic thing so we don't have to write them
+                // if (passDescriptor.displayName != "ForwardOnly")
+                {
+                    var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
+                    GetActiveBlocks(ref tmpCtx);
+                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+                    passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+                }
+
+                // Set default values for HDRP "surface" passes:
+                if (passDescriptor.structs == null)
+                    passDescriptor.structs = CoreStructCollections.Default;
+                if (passDescriptor.fieldDependencies == null)
+                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+
+                // Add the subShader to enable fields that depends on it
                 if (passDescriptor.requiredFields == null)
                     passDescriptor.requiredFields = new FieldCollection();
-                
                 passDescriptor.requiredFields.Add(subShaderField);
-
-                passDescriptor.includes = finalIncludes;
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
@@ -248,9 +260,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
 
             // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass
+                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPrepass"));
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass
+                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPostpass"));
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                systemData.alphaTest && builtinData.alphaTestShadow
+                && (context.pass != null && context.pass.Value.lightMode == "ShadowCaster"));
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
