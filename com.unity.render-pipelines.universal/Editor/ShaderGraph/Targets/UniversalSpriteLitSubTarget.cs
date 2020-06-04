@@ -28,7 +28,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             // Only support SpriteColor legacy block if BaseColor/Alpha are not active
-            bool useLegacyBlocks = !context.blocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.blocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            var descs = context.blocks.Select(x => x.descriptor);
+            bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
             context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
 
             // Surface Type & Blend Mode

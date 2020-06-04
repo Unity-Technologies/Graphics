@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)eyeMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)eyeMasterNode.m_AlphaMode);
+            // Previous master node wasn't having any renderingPass. Assign it correctly now.
+            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = eyeMasterNode.m_AlphaTest;
             systemData.alphaTestDepthPrepass = eyeMasterNode.m_AlphaTestDepthPrepass;
             systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;

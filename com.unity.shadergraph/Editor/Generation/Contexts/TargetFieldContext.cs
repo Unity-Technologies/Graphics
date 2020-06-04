@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -7,11 +7,11 @@ namespace UnityEditor.ShaderGraph
     {
         public List<ConditionalField> conditionalFields { get; private set; }
         public PassDescriptor pass { get; private set; }
-        public List<BlockFieldDescriptor> blocks { get; private set; }
+        public List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks { get; private set; }
         public List<BlockFieldDescriptor> connectedBlocks { get; private set; }
         public bool hasDotsProperties { get; private set; }
 
-        public TargetFieldContext(PassDescriptor pass, List<BlockFieldDescriptor> blocks, List<BlockFieldDescriptor> connectedBlocks, bool hasDotsProperties)
+        public TargetFieldContext(PassDescriptor pass, List<(BlockFieldDescriptor descriptor, bool isDefaultValue)> blocks, List<BlockFieldDescriptor> connectedBlocks, bool hasDotsProperties)
         {
             conditionalFields = new List<ConditionalField>();
             this.pass = pass;
