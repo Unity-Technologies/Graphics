@@ -53,9 +53,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sssBuffer = builder.ReadTexture(lightingBuffers.sssBuffer);
                 if (passData.parameters.needTemporaryBuffer)
                 {
-                    passData.cameraFilteringBuffer = builder.WriteTexture(renderGraph.CreateTexture(
+                    passData.cameraFilteringBuffer = builder.CreateTransientTexture(
                                             new TextureDesc(Vector2.one, true, true)
-                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" }));
+                                            { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, clearBuffer = true, clearColor = Color.clear, name = "SSSCameraFiltering" });
                 }
 
                 builder.SetRenderFunc(

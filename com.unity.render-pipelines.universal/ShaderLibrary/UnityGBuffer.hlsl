@@ -160,7 +160,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 #endif
 
     BRDFData brdfData;
-    half alpha = 1.0;
+    half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
     InitializeBRDFDataDirect(gbuffer0.rgb, gbuffer1.rgb, reflectivity, oneMinusReflectivity, smoothness, alpha, brdfData);
 
     return brdfData;

@@ -39,6 +39,7 @@ Pass
     $Refraction:                        #define _HAS_REFRACTION 1
     $RefractionBox:                     #define _REFRACTION_PLANE 1
     $RefractionSphere:                  #define _REFRACTION_SPHERE 1
+    $RefractionThin:                    #define _REFRACTION_THIN 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DisableSSRTransparent:             #define _DISABLE_SSR_TRANSPARENT 1
@@ -346,6 +347,8 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

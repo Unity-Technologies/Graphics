@@ -99,9 +99,9 @@ namespace UnityEditor.VFX
                     tooltip = field.GetCustomAttributes(typeof(TooltipAttribute), false).Cast<TooltipAttribute>().FirstOrDefault();
 
 
-                VFXPropertyAttribute[] attr = null;
+                VFXPropertyAttributes attr = new VFXPropertyAttributes();
                 if (tooltip != null)
-                    attr = VFXPropertyAttribute.Create(tooltip);
+                    attr = new VFXPropertyAttributes(tooltip);
 
                 if (attribute.variadic == VFXVariadic.True)
                 {
