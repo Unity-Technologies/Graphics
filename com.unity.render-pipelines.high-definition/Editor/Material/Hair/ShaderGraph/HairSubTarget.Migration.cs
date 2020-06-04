@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)hairMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)hairMasterNode.m_AlphaMode);
+            // Previous master node wasn't having any renderingPass. Assign it correctly now.
+            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = hairMasterNode.m_AlphaTest;
             systemData.alphaTestDepthPrepass = hairMasterNode.m_AlphaTestDepthPrepass;
             systemData.alphaTestDepthPostpass = hairMasterNode.m_AlphaTestDepthPostpass;

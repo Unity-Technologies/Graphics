@@ -178,13 +178,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
+            AddDistortionFields(ref context);
+            var descs = context.blocks.Select(x => x.descriptor);
 
             // StackLit specific properties
             // Material
             context.AddField(HDFields.Anisotropy,                   stackLitData.anisotropy);
             context.AddField(HDFields.Coat,                         stackLitData.coat);
             context.AddField(HDFields.CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
-                                                                        context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
+                                                                        descs.Contains(HDBlockFields.SurfaceDescription.CoatMask));
             // context.AddField(HDFields.CoatMaskZero,                 coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
             // context.AddField(HDFields.CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
@@ -208,7 +210,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
             context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(HDFields.EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
-            context.AddField(HDFields.Tangent,                      context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
+            context.AddField(HDFields.Tangent,                      descs.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
