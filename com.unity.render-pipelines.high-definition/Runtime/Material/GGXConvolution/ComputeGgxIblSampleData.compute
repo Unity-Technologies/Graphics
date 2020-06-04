@@ -5,20 +5,15 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
-#define MAX_IBL_SAMPLE_CNT 34
-#else
-#define MAX_IBL_SAMPLE_CNT 89
-#endif
-
 RWTexture2D<float4> outputResult; // [MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS]
 
-#pragma kernel ComputeGgxIblSampleData
+#pragma kernel ComputeGgxIblSampleData COMPUTEGGGXIBLSAMPLEDATA=ComputeGgxIblSampleData MAX_IBL_SAMPLE_CNT=89
+#pragma kernel ComputeGgxIblSampleData_LE COMPUTEGGGXIBLSAMPLEDATA=ComputeGgxIblSampleData_LE MAX_IBL_SAMPLE_CNT=34
 
 // Cannot use (MAX_SAMPLE_CNT x UNITY_SPECCUBE_LOD_STEPS) since
 // the thread group becomes too large for some platforms.
 [numthreads(8, UNITY_SPECCUBE_LOD_STEPS, 1)]
-void ComputeGgxIblSampleData(uint3 groupThreadId : SV_GroupThreadID)
+void COMPUTEGGGXIBLSAMPLEDATA(uint3 groupThreadId : SV_GroupThreadID)
 {
     uint numSamplesPerThread = (MAX_IBL_SAMPLE_CNT + 7) / 8;
 

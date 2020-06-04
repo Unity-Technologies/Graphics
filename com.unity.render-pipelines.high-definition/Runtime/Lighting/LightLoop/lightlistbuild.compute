@@ -6,6 +6,7 @@
 #pragma multi_compile _ USE_TWO_PASS_TILED_LIGHTING
 #pragma multi_compile _ USE_FEATURE_FLAGS
 #pragma multi_compile _ USE_OBLIQUE_MODE
+#pragma multi_compile _ PLATFORM_LANE_COUNT_32
 
 //#pragma #pragma enable_d3d11_debug_symbols
 
@@ -37,14 +38,10 @@ StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
 #endif
 
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
-#define PLATFORM_LANE_COUNT 32
-#endif
-
-#ifdef PLATFORM_LANE_COUNT                                          // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
-#define NR_THREADS              PLATFORM_LANE_COUNT  
+#ifdef PLATFORM_LANE_COUNT
+#define NR_THREADS              PLATFORM_LANE_COUNT
 #else
-#define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
+#define NR_THREADS              64                                  // default to 64 threads per group
 #endif
 
 #define PIXEL_PER_THREAD      ((TILE_SIZE_FPTL*TILE_SIZE_FPTL) / NR_THREADS) // 8 or 4
@@ -196,7 +193,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
         InterlockedMax(ldsZMax, asuint(dpt_ma));
         InterlockedMin(ldsZMin, asuint(dpt_mi));
 
-#if NR_THREADS > PLATFORM_LANE_COUNT || defined(SHADER_API_SWITCH) // not sure why Switch needs the barrier (it will not be correct without)
+#if NR_THREADS > PLATFORM_LANE_COUNT || (defined(PLATFORM_LANE_COUNT) && PLATFORM_LANE_COUNT==32) // not sure why the barrier is needed
         GroupMemoryBarrierWithGroupSync();
 #endif
     }

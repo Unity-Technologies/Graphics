@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class IBLFilterGGX : IBLFilterBSDF
     {
         RenderTexture m_GgxIblSampleData;
-        int           m_GgxIblMaxSampleCount          = TextureCache.isMobileBuildTarget ? 34 : 89;   // Width
+        int           m_GgxIblMaxSampleCount;                 // Width
         const int     k_GgxIblMipCountMinusOne        = 6;    // Height (UNITY_SPECCUBE_LOD_STEPS)
 
         ComputeShader m_ComputeGgxIblSampleDataCS;
@@ -44,7 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!m_ComputeGgxIblSampleDataCS)
             {
                 m_ComputeGgxIblSampleDataCS     = m_RenderPipelineResources.shaders.computeGgxIblSampleDataCS;
-                m_ComputeGgxIblSampleDataKernel = m_ComputeGgxIblSampleDataCS.FindKernel("ComputeGgxIblSampleData");
+                m_ComputeGgxIblSampleDataKernel = DeviceInfo.FindKernel(m_ComputeGgxIblSampleDataCS, "ComputeGgxIblSampleData");
+                m_GgxIblMaxSampleCount = m_ComputeGgxIblSampleDataKernel == 0 ? 89 : 34;
             }
 
             if (!m_BuildProbabilityTablesCS)

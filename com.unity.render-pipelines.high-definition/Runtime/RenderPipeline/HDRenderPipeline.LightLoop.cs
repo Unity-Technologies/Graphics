@@ -183,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var nrClusterTiles = nrClustersX * nrClustersY * m_MaxViewCount;
 
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << DeviceInfo.log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
                 if (tileAndClusterData.clusterNeedsDepth)
@@ -372,7 +372,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (data.parameters.enableTile)
                     {
-                        bool useCompute = data.parameters.useComputeLightingEvaluation && !k_PreferFragment;
+                        bool useCompute = data.parameters.useComputeLightingEvaluation && DeviceInfo.preferComputeKernels;
                         if (useCompute)
                             RenderComputeDeferredLighting(data.parameters, resources, context.cmd);
                         else
