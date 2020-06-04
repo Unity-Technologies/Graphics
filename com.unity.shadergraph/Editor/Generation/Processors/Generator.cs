@@ -240,7 +240,7 @@ namespace UnityEditor.ShaderGraph
             if(m_OutputNode == null)
             {
                 // Update supported block list for current target implementation
-                var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors);
+                var activeBlockContext = new TargetActiveBlockContext(currentBlockDescriptors, pass);
                 m_Targets[targetIndex].GetActiveBlocks(ref activeBlockContext);
 
                 void ProcessStackForPass(ContextData contextData, BlockFieldDescriptor[] passBlockMask,
