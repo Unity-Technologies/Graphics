@@ -117,6 +117,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         //decide path
         switch (target)
         {
+            case BuildTarget.StandaloneWindows: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest_Data/StreamingAssets/SubScenes"; break;
             case BuildTarget.StandaloneWindows64: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest_Data/StreamingAssets/SubScenes"; break;
             case BuildTarget.StandaloneOSX: srcPath = projPath + "/Builds/GraphicsTest/GraphicsTest.app/Contents/Resources/Data/StreamingAssets/SubScenes"; break;
         }
