@@ -60,7 +60,7 @@ public class SetupGraphicsTestCases : IPrebuildSetup
     [MenuItem("GraphicsTest/PreparePlayerTest")]
     public static void PreparePlayerTest()
     {
-        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - trigger BuildConfig.Build()");
+        Log("*************** SetupGraphicsTestCases - Getting BuildConfig");
 
         //Get the correct config file
         target = EditorUserBuildSettings.activeBuildTarget;
@@ -79,18 +79,21 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         config.SetComponent<SceneList>(sceneListComponent);
         config.SaveAsset();
         //AssetDatabase.Refresh();
+        
+        Log("*************** SetupGraphicsTestCases - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
 
+        //Wait for a bit because Editor will be compiling the config asset update
         while(EditorApplication.isCompiling)
         {
-            //Wait for a bit because Editor will be compiling the config asset update
+            Log("*************** SetupGraphicsTestCases - Editor is compiling");
         }
 
-        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
+        Log("*************** SetupGraphicsTestCases - Triggering BuildConfig.Build()");
 
         //Make the build
         config.Build();
 
-        Log("*************** SetupGraphicsTestCases - PreparePlayerTest - Move subscene cache");
+        Log("*************** SetupGraphicsTestCases - Moving subscene cache");
         CreateFolder();
         CopyFiles();
     }
