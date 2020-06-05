@@ -200,6 +200,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
 - Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
+- Fixed an issue where instances of RenderTargetIdentifiers can be inequal because their depthSlice default values are different.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
