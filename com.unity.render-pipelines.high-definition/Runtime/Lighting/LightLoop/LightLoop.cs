@@ -264,12 +264,12 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
-        internal const int k_MaxDirectionalLightsOnScreen = 16;
-        internal const int k_MaxPunctualLightsOnScreen    = 512;
-        internal const int k_MaxAreaLightsOnScreen        = 128;
-        internal const int k_MaxDecalsOnScreen = 512;
+        internal const int k_MaxDirectionalLightsOnScreen = 512;
+        internal const int k_MaxPunctualLightsOnScreen    = 2048;
+        internal const int k_MaxAreaLightsOnScreen        = 1024;
+        internal const int k_MaxDecalsOnScreen = 2048;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 128;
+        internal const int k_MaxEnvLightsOnScreen = 1024;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -466,6 +466,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 AABBBoundsBuffer = new ComputeBuffer(viewCount * 2 * maxLightOnScreen, 4 * sizeof(float));
                 convexBoundsBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(SFiniteLightBound)));
                 lightVolumeDataBuffer = new ComputeBuffer(viewCount * maxLightOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(LightVolumeData)));
+
+                // Make sure to invalidate the content of the buffers
+                listsAreClear = false;
             }
 
             public void ReleaseResolutionDependentBuffers()
