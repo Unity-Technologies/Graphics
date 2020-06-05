@@ -1,19 +1,6 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
-// Helper function for indirect control volume
-float GetIndirectDiffuseMultiplier(uint renderingLayers)
-{
-    uint indirectDiffuseLayers = uint(_IndirectLightingMultiplier.y * 255.5);
-    return indirectDiffuseLayers & renderingLayers ? _IndirectLightingMultiplier.x : 1.0f;
-}
-
-float GetIndirectSpecularMultiplier(uint renderingLayers)
-{
-    uint indirectSpecularLayers = uint(_IndirectLightingMultiplier.w * 255.5);
-    return indirectSpecularLayers & renderingLayers ? _IndirectLightingMultiplier.z : 1.0f;
-}
-
 #ifdef SHADERPASS
 #if ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)) || \
      ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
