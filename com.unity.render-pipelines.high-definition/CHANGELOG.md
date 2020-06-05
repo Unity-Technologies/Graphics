@@ -130,6 +130,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
+- Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added custom target mid grey for auto exposure.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added more custom pass API functions, mainly to render objects from another camera.
+- Added support for transparent Unlit in path tracing.
 - Added support for multiple mapping modes in AxF.
 
 ### Fixed
@@ -623,6 +629,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard check on default volume profile to also check it is not the default one in package.
 - Fix erroneous central depth sampling in TAA.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
+- Fixed exposure debug shader with XR single-pass rendering.
+- Fixed issues with scene view and transparent motion vectors.
+- Fixed a vulkan and metal warning in the SSGI compute shader.
+- Fixed an exception due to the color pyramid not allocated when SSGI is enabled.
+- Fixed an issue with the first Depth history was incorrectly copied.
+- Fixed path traced DoF focusing issue
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -755,6 +771,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
 - Changed default exposure compensation to 0.
 - Refactored shadow caching system.
+- Removed experimental namespace for ray tracing code.
+- Increase limit for max numbers of lights in UX
 
 ## [7.1.1] - 2019-09-05
 

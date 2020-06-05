@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = atlasResolution;
-            m_TextureAtlas = new PowerOfTwoTextureAtlas(atlasResolution, 0, probeFormat, useMipMap: isMipmaped, name: "PlanarReflectionProbe Atlas");
+            m_TextureAtlas = new PowerOfTwoTextureAtlas(atlasResolution, 1, probeFormat, useMipMap: isMipmaped, name: "PlanarReflectionProbe Atlas");
             m_IBLFilterGGX = iblFilter;
 
             m_PerformBC6HCompression = probeFormat == GraphicsFormat.RGB_BC6H_SFloat;
@@ -69,6 +69,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.enableRandomWrite = true;
                 m_ConvolutionTargetTexture.Create();
+
+                // Clear to avoid garbage in the convolution texture.
+                int mipCount = Mathf.FloorToInt(Mathf.Log(m_ProbeSize, 2)) + 1;
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_ConvolutionTargetTexture, mipIdx, CubemapFace.Unknown);
+                    GL.Clear(false, true, Color.clear);
+                }
+
             }
 
             m_FrameProbeIndex = 0;

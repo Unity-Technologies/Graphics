@@ -207,8 +207,9 @@ namespace UnityEditor.VFX
                         valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                 }
                 else if (parameter.realType == typeof(Gradient).Name)
+
                 {
-                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true);
+                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true,ColorSpace.Linear);
 
                     if (GUI.changed)
                         valueProperty.gradientValue = newGradient;
