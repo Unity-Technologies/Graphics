@@ -8,9 +8,16 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Indirect Lighting Controller")]
     public class IndirectLightingController : VolumeComponent
     {
-        /// <summary>Indirect specular intensity multiplier, between 0 and 1</summary>
-        public MinFloatParameter    indirectSpecularIntensity = new MinFloatParameter(1.0f, 0.0f);
-        /// <summary>Indirect diffuse intensity multiplier, between 0 and 1</summary>
-        public MinFloatParameter    indirectDiffuseIntensity = new MinFloatParameter(1.0f, 0.0f);
+        [FormerlySerializedAs("indirectSpecularIntensity")]
+        /// <summary>Reflection probe intensity multiplier, between 0 and 1</summary>
+        public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
+        public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// Controls which layer will be affected by the reflection lighting multiplier 
+        public LightLayerEnum reflectionLightinglayersMask = LightLayerEnum.LightLayerDefault;
+        /// <summary>Indirect diffuse lighting multiplier, between 0 and 1</summary>
+        public MinFloatParameter indirectDiffuseLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// Controls which layer will be affected by the indirect diffuse lighting multiplier 
+        public LightLayerEnum indirectDiffuseLightinglayersMask = LightLayerEnum.LightLayerDefault;
     }
 }

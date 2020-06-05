@@ -177,7 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ReplaceDiffuseForIndirect;
 
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-        public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
+        public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier, .y indirect diffuse layers mask (use with indirect lighting volume controler)
+                                                    // .z indirect specular multiplier, .w indirect specular layers mask
 
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;

@@ -124,8 +124,9 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
     // color in case of lit deferred for example and avoid material to have to deal with it
 
     // Note: We only apply indirect multiplier for Material pass mode, for lightloop mode, the multiplier will be apply in lightloop
-    builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
-    builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+    float multiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+    builtinData.bakeDiffuseLighting *= multiplier;
+    builtinData.backBakeDiffuseLighting *= multiplier;
 #endif
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
