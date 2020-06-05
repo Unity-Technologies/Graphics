@@ -233,10 +233,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceThickness, stackLitData.iridescence);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIR, stackLitData.iridescence && stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.IridescenceCoatFixupTIRClamp, stackLitData.iridescence && stackLitData.coat);
-
-            // Specular AA
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance, lightingData.specularAA);
-            context.AddBlock(HDBlockFields.SurfaceDescription.SpecularAAThreshold,  lightingData.specularAA);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

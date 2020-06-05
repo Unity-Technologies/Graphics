@@ -783,7 +783,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.CoreUtility },
             { CoreIncludes.kDecalUtilities, IncludeLocation.Pregraph },
-            { CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph },
+            { CoreIncludes.kPostDecalsPlaceholder, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph },
             { CoreIncludes.kPassConstant, IncludeLocation.Postgraph },
         };
