@@ -126,11 +126,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added Virtual Texturing cache settings to control the size of the Streaming Virtual Texturing caches.
 - Added back-compatibility with builtin stereo matrices.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added custom target mid grey for auto exposure.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
