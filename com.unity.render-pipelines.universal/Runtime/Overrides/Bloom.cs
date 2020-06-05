@@ -24,11 +24,7 @@ namespace UnityEngine.Rendering.Universal
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
         [Tooltip("Skip the smallest bloom pyramid steps.")]
-#if UNITY_ANDROID || UNITY_IOS
         public ClampedIntParameter skipIterations = new ClampedIntParameter(2, 0, 16);
-#else
-        public ClampedIntParameter skipIterations = new ClampedIntParameter(0, 0, 16);
-#endif
 
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
