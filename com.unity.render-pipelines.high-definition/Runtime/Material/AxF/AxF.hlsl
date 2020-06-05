@@ -858,13 +858,15 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
 {
     // We can't use SAMPLE_TEXTURE2D_ARRAY, the compiler can't unroll in that case, and the lightloop is built with unroll
     // That's why we calculate gradients or LOD earlier.
-    //
+    // TODO: The LOD code path (useFlakesMipLevel == true) is kept for a possible performance/appearance trade-off 
+    // (less VGPR for LOD) and also for (future) raytracing, it is easier to substitute an approximate single LOD value
+    // than a full 2x2 Jacobian.
     float3 val = 0;
-    bool useCachedDdxDdy = all(bsdfData.flakesDdxZY == (float2)0); // should be known statically!
+    bool useFlakesMipLevel = all(bsdfData.flakesDdxZY == (float2)0); // should be known statically!
 
 #ifdef _MAPPING_TRIPLANAR
     val += bsdfData.flakesTriplanarWeights.x * 
-           (useCachedDdxDdy ?
+           (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVZY + offsets[FLAKES_SHIFT_IDX_PLANAR_ZY],
                                         sliceIndex, bsdfData.flakesMipLevelZY).xyz
@@ -873,7 +875,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
                                          sliceIndex, bsdfData.flakesDdxZY, bsdfData.flakesDdyZY).xyz );
 
     val += bsdfData.flakesTriplanarWeights.y * 
-           (useCachedDdxDdy ?
+           (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
                                         sliceIndex, bsdfData.flakesMipLevelXZ).xyz
@@ -881,7 +883,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
                                          bsdfData.flakesUVXZ + offsets[FLAKES_SHIFT_IDX_PLANAR_XZ],
                                          sliceIndex, bsdfData.flakesDdxXZ, bsdfData.flakesDdyXZ).xyz );
     val += bsdfData.flakesTriplanarWeights.z * 
-           (useCachedDdxDdy ?
+           (useFlakesMipLevel ?
              SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                         bsdfData.flakesUVXY + offsets[FLAKES_SHIFT_IDX_PLANAR_XY],
                                         sliceIndex, bsdfData.flakesMipLevelXY).xyz
@@ -891,7 +893,7 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
     val *= _CarPaint2_BTFFlakeMapScale;
 #else
     val = _CarPaint2_BTFFlakeMapScale * 
-          (useCachedDdxDdy ?
+          (useFlakesMipLevel ?
             SAMPLE_TEXTURE2D_ARRAY_LOD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
                                        bsdfData.flakesUVZY + offsets[0], sliceIndex, bsdfData.flakesMipLevelZY).xyz
           : SAMPLE_TEXTURE2D_ARRAY_GRAD(_CarPaint2_BTFFlakeMap, sampler_CarPaint2_BTFFlakeMap,
@@ -905,10 +907,6 @@ float3  SamplesFlakes(float2 offsets[NB_FLAKES_RND_SHIFTS], uint sliceIndex, BSD
 //
 float3  CarPaint_BTF(float thetaH, float thetaD, BSDFData bsdfData)
 {
-    //Now handled in SampleFlakes:
-    //float2  UV = bsdfData.flakesUV;
-    //float   mipLevel = bsdfData.flakesMipLevel;
-
     // thetaH sampling defines the angular sampling, i.e. angular flake lifetime
     float   binIndexH = _CarPaint2_FlakeNumThetaF * (2.0 * thetaH / PI) + 0.5; // TODO: doc says to use NumThetaF for both, check if this isn't a typo
     float   binIndexD = _CarPaint2_FlakeNumThetaF * (2.0 * thetaD / PI) + 0.5;
@@ -2115,7 +2113,7 @@ DirectLighting  EvaluateBSDF_Line(  LightLoopContext lightLoopContext,
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformFlakes);
     ltcValue *= lightData.specularDimmer;
 
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent; //preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
+    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
 
 #endif
 
@@ -2331,7 +2329,7 @@ DirectLighting  EvaluateBSDF_Rect(LightLoopContext lightLoopContext,
     ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformFlakes));
     ltcValue *= lightData.specularDimmer;
 
-    lighting.specular += ltcValue * preLightData.singleFlakesComponent; //preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
+    lighting.specular += ltcValue * preLightData.singleFlakesComponent;
 
 #endif
 
@@ -2608,7 +2606,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Sample flakes
     //TODO_FLAKES
     float   flakesMipLevel = 0;   // Flakes are supposed to be perfect mirrors
-    //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData) * SampleEnv(lightLoopContext, lightData.envIndex, lightWS_UnderCoat, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
     envLighting += preLightData.singleFlakesComponent * SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, flakesMipLevel, lightData.rangeCompressionFactorCompensation).xyz;
 
     #else // USE_COOK_TORRANCE_MULTI_LOBES
@@ -2624,7 +2621,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
     //TODO_FLAKES
-    //envLighting += preLightData.flakesFGD * CarPaint_BTF(thetaH, thetaD, bsdfData);
     envLighting += preLightData.singleFlakesComponent;
     envLighting *= preLD.xyz;
     weight *= preLD.w; // Used by planar reflection to discard pixel
