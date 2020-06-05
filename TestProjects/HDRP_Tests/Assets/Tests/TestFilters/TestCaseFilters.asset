@@ -440,3 +440,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause inconclusive on Yamato
