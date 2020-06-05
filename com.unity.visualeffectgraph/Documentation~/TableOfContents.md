@@ -142,6 +142,7 @@
       * [Load Texture2D](Operator-LoadTexture2D.md)
       * [Load Texture2DArray](Operator-LoadTexture2DArray.md)
       * [Load Texture3D](Operator-LoadTexture3D.md)
+      * [Position (Depth)](Operator-Position(Depth).md)
       * [Sample Curve](Operator-SampleCurve.md)
       * [Sample Gradient](Operator-SampleGradient.md)
       * [Sample Texture2D](Operator-SampleTexture2D.md)
