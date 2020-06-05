@@ -44,8 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract string subShaderInclude { get; }
         protected virtual string postDecalsInclude => null;
         protected abstract FieldDescriptor subShaderField { get; }
-        // Maybe we should rename it custom forward pass include ?
-        // protected virtual string postGraphInclude => null;
 
         public override void Setup(ref TargetSetupContext context)
         {
