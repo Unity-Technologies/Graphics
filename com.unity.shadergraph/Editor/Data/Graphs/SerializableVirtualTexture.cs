@@ -5,22 +5,24 @@ using UnityEngine;
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
-    public class SerializableVirtualTextureLayer
+    internal class SerializableVirtualTextureLayer
     {
         public string layerName;
         public string layerRefName;
         public SerializableTexture layerTexture;
+        public TextureType layerTextureType;
 
         public SerializableVirtualTextureLayer(string name, string refName, SerializableTexture texture)
         {
             this.layerName = name;
             this.layerRefName = refName;
             this.layerTexture = texture;
+            this.layerTextureType = TextureType.Default;
         }
     }
 
     [Serializable]
-    public sealed class SerializableVirtualTexture : ISerializationCallbackReceiver
+    internal sealed class SerializableVirtualTexture : ISerializationCallbackReceiver
     {
         [SerializeField]
         public List<SerializableVirtualTextureLayer> layers = new List<SerializableVirtualTextureLayer>();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -37,6 +37,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ReorderableList m_VTReorderableList;
         int m_VTSelectedIndex;
         private static GUIStyle greyLabel;
+        TextField m_VTLayer_Name;
+        IdentifierField m_VTLayer_RefName;
+        ObjectField m_VTLayer_Texture;
+        EnumField m_VTLayer_TextureType;
 
 
         // Reference Name
@@ -498,7 +502,68 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void HandleVirtualTextureProperty(PropertySheet propertySheet, VirtualTextureShaderProperty virtualTextureProperty)
         {
             var container = new IMGUIContainer(() => OnVTGUIHandler(virtualTextureProperty)) {name = "ListContainer"};
-            AddPropertyRowToSheet(propertySheet, container, "Entries");
+            AddPropertyRowToSheet(propertySheet, container, "Layers");
+
+            m_VTLayer_Name = new TextField();
+            m_VTLayer_Name.isDelayed = true;
+            m_VTLayer_Name.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Layer Name");
+
+                    int index = m_VTReorderableList.index;
+                    if (index >= 0 && index < m_VTReorderableList.list.Count)
+                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerName = evt.newValue;
+
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                });
+            AddPropertyRowToSheet(propertySheet, m_VTLayer_Name, "  Layer Name");
+
+            m_VTLayer_RefName = new IdentifierField();
+            m_VTLayer_RefName.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Layer Ref Name");
+
+                    int index = m_VTReorderableList.index;
+                    if (index >= 0 && index < m_VTReorderableList.list.Count)
+                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerRefName = evt.newValue;
+
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                });
+            AddPropertyRowToSheet(propertySheet, m_VTLayer_RefName, "  Layer Reference");
+
+            m_VTLayer_Texture = new ObjectField();
+            m_VTLayer_Texture.objectType = typeof(Texture);
+            m_VTLayer_Texture.allowSceneObjects = false;
+            m_VTLayer_Texture.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Layer Texture");
+
+                    int index = m_VTReorderableList.index;
+                    if (index >= 0 && index < m_VTReorderableList.list.Count)
+                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerTexture.texture = (evt.newValue as Texture);
+
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                });
+            AddPropertyRowToSheet(propertySheet, m_VTLayer_Texture, "  Layer Texture");
+
+
+            m_VTLayer_TextureType = new EnumField();
+            m_VTLayer_TextureType.Init(TextureType.Default);
+            m_VTLayer_TextureType.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Layer Texture Type");
+
+                    int index = m_VTReorderableList.index;
+                    if (index >= 0 && index < m_VTReorderableList.list.Count)
+                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerTextureType = (TextureType) evt.newValue;
+
+                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                });
+            AddPropertyRowToSheet(propertySheet, m_VTLayer_TextureType, "  Layer Texture Type");
         }
 
         private void OnVTGUIHandler(VirtualTextureShaderProperty property)
@@ -507,6 +572,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 VTRecreateList(property);
                 VTAddCallbacks(property);
+
+                // update selected entry to reflect default selection
+                VTSelectEntry(m_VTReorderableList);
             }
 
             m_VTReorderableList.index = m_VTSelectedIndex;
@@ -525,12 +593,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_VTReorderableList.drawHeaderCallback = (Rect rect) =>
             {
                 int indent = 14;
-                var displayRect = new Rect(rect.x + indent, rect.y, (rect.width - indent) / 3, rect.height);
-                EditorGUI.LabelField(displayRect, "Display Name");
-                var referenceRect = new Rect((rect.x) + (rect.width - indent) / 3, rect.y, (rect.width - indent) / 3, rect.height);
-                EditorGUI.LabelField(referenceRect, "Reference Name");
-                var textureRect = new Rect((rect.x) + (rect.width - indent) / 3 * 2, rect.y, (rect.width - indent) / 3, rect.height);
-                EditorGUI.LabelField(textureRect, "Texture Asset");
+                var displayRect = new Rect(rect.x + indent, rect.y, rect.width, rect.height);
+                EditorGUI.LabelField(displayRect, "Layer Name");
             };
 
             // Draw Element
@@ -539,45 +603,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 SerializableVirtualTextureLayer entry = ((SerializableVirtualTextureLayer)m_VTReorderableList.list[index]);
                 EditorGUI.BeginChangeCheck();
 
-                var layerName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerName, EditorStyles.label);
-                var layerRefName = EditorGUI.DelayedTextField( new Rect((rect.x + rect.width) / 3, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerRefName, EditorStyles.label);
-                var selectedObject = EditorGUI.ObjectField( new Rect((rect.x + rect.width) / 3 * 2, rect.y, rect.width / 3, EditorGUIUtility.singleLineHeight), entry.layerTexture.texture, typeof(Texture), false);
-
-                SerializableTexture layerTexture = new SerializableTexture();
-                layerTexture.texture = (Texture)selectedObject;
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    //need to sanitize each layer with all existing properties
-                    string oldLayerName = property.value.layers[index].layerName;
-                    if (layerName != oldLayerName)
-                    {
-                        var otherPropertyNames = graphData.BuildPropertyDisplayNameList(property, oldLayerName);
-                        layerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", layerName);
-                    }
-
-                    string oldLayerRefName = property.value.layers[index].layerRefName;
-                    if (layerRefName != oldLayerRefName)
-                    {
-                        if (!string.IsNullOrEmpty(layerRefName))
-                        {
-                            string name = layerRefName.Trim();
-                            if (!string.IsNullOrEmpty(layerRefName))
-                            {
-                                if (Regex.IsMatch(name, @"^\d+"))
-                                    name = "_" + name;
-                                name = Regex.Replace(name, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
-                                var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(property, oldLayerRefName);
-                                layerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", name);
-                            }
-                        }
-                    }
-
-                    property.value.layers[index] = new SerializableVirtualTextureLayer(layerName, layerRefName, layerTexture);
-
-                    //DirtyNodes();
-                    this._postChangeValueCallback(true);
-                }
+                EditorGUI.LabelField(rect, entry.layerName);
             };
 
             // Element height
@@ -610,6 +636,28 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         private void VTSelectEntry(ReorderableList list)
         {
             m_VTSelectedIndex = list.index;
+            if (m_VTSelectedIndex >= 0 && m_VTSelectedIndex < list.count)
+            {
+                m_VTLayer_Name.SetEnabled(true);
+                m_VTLayer_RefName.SetEnabled(true);
+                m_VTLayer_Texture.SetEnabled(true);
+                m_VTLayer_TextureType.SetEnabled(true);
+                m_VTLayer_Name.SetValueWithoutNotify((list.list[m_VTSelectedIndex] as SerializableVirtualTextureLayer).layerName);
+                m_VTLayer_RefName.SetValueWithoutNotify((list.list[m_VTSelectedIndex] as SerializableVirtualTextureLayer).layerRefName);
+                m_VTLayer_Texture.SetValueWithoutNotify((list.list[m_VTSelectedIndex] as SerializableVirtualTextureLayer).layerTexture.texture);
+                m_VTLayer_TextureType.SetValueWithoutNotify((list.list[m_VTSelectedIndex] as SerializableVirtualTextureLayer).layerTextureType);
+            }
+            else
+            {
+                m_VTLayer_Name.SetEnabled(false);
+                m_VTLayer_RefName.SetEnabled(false);
+                m_VTLayer_Texture.SetEnabled(false);
+                m_VTLayer_TextureType.SetEnabled(false);
+                m_VTLayer_Name.SetValueWithoutNotify("");
+                m_VTLayer_RefName.SetValueWithoutNotify("");
+                m_VTLayer_Texture.SetValueWithoutNotify(null);
+                m_VTLayer_TextureType.SetValueWithoutNotify(TextureType.Default);
+            }
         }
 
         private void VTAddEntry(ReorderableList list, VirtualTextureShaderProperty property)
@@ -900,7 +948,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             AddPropertyRowToSheet(propertySheet, field, "Default");
 
-            // Entries
             var container = new IMGUIContainer(() => OnKeywordGUIHandler()) {name = "ListContainer"};
             AddPropertyRowToSheet(propertySheet, container, "Entries");
             container.SetEnabled(!keyword.isBuiltIn);
