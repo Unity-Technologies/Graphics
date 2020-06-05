@@ -2120,7 +2120,18 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
 
-            m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+            //var rts = m_GbufferManager.GetBuffers();
+            //foreach (var gbuff in rts)
+            //{
+            //    if (gbuff != null)
+            //        gbuff.SwitchToFastMemory(cmd);
+            //}
+            //m_SharedRTManager.GetMotionVectorsBuffer().SwitchToFastMemory(cmd);
+            //m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd);
+            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
 
             if (m_RayTracingSupported)
             {

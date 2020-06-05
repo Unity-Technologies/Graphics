@@ -145,5 +145,24 @@ namespace UnityEngine.Rendering
                     );
             }
         }
+
+        public void SwitchToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop,
+            bool copyContents = false
+            )
+        {
+            // TODO: SOME STATE ON RTHANDLE TO CHECK IF WE NEED TO DO IT OR WE ALREADY ARE IN ESRAM.
+            residencyFraction = Mathf.Clamp01(residencyFraction); // To avoid issues on user side. 
+            cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
+        }
+
+        public void CopyToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop
+            )
+        {
+            SwitchToFastMemory(cmd, residencyFraction, flags, copyContents: true);
+        }
     }
 }
