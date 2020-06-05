@@ -10,7 +10,6 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         SerializedDataParameter m_RayBias;
         SerializedDataParameter m_ExtendCulling;
-        SerializedDataParameter m_ShadowCullingRange;
 
         public override void OnEnable()
         {
@@ -20,7 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_RayBias = Unpack(o.Find(x => x.rayBias));
             m_ExtendCulling = Unpack(o.Find(x => x.extendCulling));
-            m_ShadowCullingRange = Unpack(o.Find(x => x.shadowCullingRange));
         }
 
         public override void OnInspectorGUI()
@@ -35,12 +33,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             PropertyField(m_RayBias);
             PropertyField(m_ExtendCulling);
-            if (m_ExtendCulling.overrideState.boolValue && m_ExtendCulling.value.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                PropertyField(m_ShadowCullingRange);
-                EditorGUI.indentLevel--;
-            }
         }
     }
 }

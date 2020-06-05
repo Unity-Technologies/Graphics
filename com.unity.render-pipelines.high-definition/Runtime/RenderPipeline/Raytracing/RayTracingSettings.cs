@@ -19,11 +19,5 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enables the override of the shadow culling.")]
         public BoolParameter extendCulling = new BoolParameter(false);
-
-        /// <summary>
-        /// Controls the distance at which shadow culling is increased.
-        /// </summary>
-        [Tooltip("Controls the distance at which shadow culling is increased.")]
-        public ClampedFloatParameter shadowCullingRange = new ClampedFloatParameter(0.0f, 0.0f, 50.0f);
     }
 }

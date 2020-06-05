@@ -3041,7 +3041,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cameraProperties.SetShadowCullingPlane(2, plane);
                 plane.SetNormalAndPosition(-camera.transform.up, camera.transform.position + camera.transform.up * camera.farClipPlane);
                 cameraProperties.SetShadowCullingPlane(3, plane);
-                plane.SetNormalAndPosition(camera.transform.forward, camera.transform.position - camera.transform.forward * rayTracingSetting.shadowCullingRange.value);
+                plane.SetNormalAndPosition(camera.transform.forward, camera.transform.position - camera.transform.forward * camera.farClipPlane);
                 cameraProperties.SetShadowCullingPlane(4, plane);
                 // The 5th planes doesn't need to be overriden, but just in case.
                 plane.SetNormalAndPosition(-camera.transform.forward, camera.transform.position + camera.transform.forward * camera.farClipPlane);
