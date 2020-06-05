@@ -551,7 +551,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
 
             m_VTLayer_TextureType = new EnumField();
-            m_VTLayer_TextureType.Init(TextureType.Default);
+            m_VTLayer_TextureType.Init(LayerTextureType.Default);
             m_VTLayer_TextureType.RegisterValueChangedCallback(
                 evt =>
                 {
@@ -559,7 +559,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
                     int index = m_VTReorderableList.index;
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
-                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerTextureType = (TextureType) evt.newValue;
+                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerTextureType = (LayerTextureType) evt.newValue;
 
                     this._postChangeValueCallback(false, ModificationScope.Graph);
                 });
@@ -656,7 +656,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 m_VTLayer_Name.SetValueWithoutNotify("");
                 m_VTLayer_RefName.SetValueWithoutNotify("");
                 m_VTLayer_Texture.SetValueWithoutNotify(null);
-                m_VTLayer_TextureType.SetValueWithoutNotify(TextureType.Default);
+                m_VTLayer_TextureType.SetValueWithoutNotify(LayerTextureType.Default);
             }
         }
 
