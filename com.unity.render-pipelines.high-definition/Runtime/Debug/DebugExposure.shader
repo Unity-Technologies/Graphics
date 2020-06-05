@@ -3,7 +3,6 @@ Shader "Hidden/HDRP/DebugExposure"
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Components/Tonemapping.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
     #define DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -98,7 +97,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float GetEVAtLocation(float2 uv)
     {
-        return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4));
+        return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4), MeterCalibrationConstant);
     }
 
     // Returns true if it drew the location of the indicator.
@@ -561,7 +560,7 @@ Shader "Hidden/HDRP/DebugExposure"
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
         textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-        textLocation =  uint2(_MousePixelCoord.xy);
+        textLocation = _MousePixelCoord.xy;
         DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;
