@@ -16,7 +16,7 @@
     * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
 * Upgrade Guides
-  * [Upgrading to Shader Graph 9.0.x](Upgrade-Guide-9-0-x)
+  * [Upgrading to Shader Graph 10.0.x](Upgrade-Guide-10-0-x)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
     * [Sub Graph Asset](Sub-graph-Asset)
