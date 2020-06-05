@@ -37,6 +37,11 @@ all:
       api: Vulkan
       test_platforms:
         - playmode
+    - platform: Linux
+      api: Vulkan
+      test_platforms:
+        - editmode  
+        - playmode
     - project: HDRP_DXR
       platform: Win
       api: DX12
