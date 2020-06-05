@@ -297,7 +297,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize the parameters for the descent
             int mipIndex = 1;
             int tileSize = 8;
-            float roughnessStep = RoughnessStep(texWidth);
+            // The number of mips that are used at the the end is fixed
+            const float roughnessStep = 1.0f / k_GgxIblMipCountMinusOne;
+            // Based on the initial texture resolution, the number of available mips for us to read from is variable and is based on the maximal texture width
+            int numMipsChain = (int)(Mathf.Log((float)texWidth, 2.0f) - 1.0f);
             float currentRoughness = roughnessStep;
             float rtScaleFactor = texWidth / (float)m_PlanarReflectionFilterTex0.rt.width;
             texWidth = texWidth >> 1;
@@ -320,13 +323,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCurrentScreenSize, currentScreenSize);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._IntegrationRoughness, currentRoughness);
                 cmd.SetComputeIntParam(m_PlanarReflectionFilteringCS, HDShaderIDs._SourceMipIndex, mipIndex);
+                cmd.SetComputeIntParam(m_PlanarReflectionFilteringCS, HDShaderIDs._MaxMipLevels, numMipsChain);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._RTScaleFactor, rtScaleFactor);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._ReflectionPlaneNormal, planarTextureFilteringParameters.probeNormal);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._ReflectionPlanePosition, planarTextureFilteringParameters.probePosition);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraPositon, planarTextureFilteringParameters.captureCameraPosition);
                 cmd.SetComputeMatrixParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraIVP_NO, planarTextureFilteringParameters.captureCameraIVP_NonOblique);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCameraFOV, planarTextureFilteringParameters.captureFOV * Mathf.PI / 180.0f);
-
+                
                 // Set output textures
                 cmd.SetComputeTextureParam(m_PlanarReflectionFilteringCS, m_PlanarReflectionFilteringKernel, HDShaderIDs._FilteredPlanarReflectionBuffer, m_PlanarReflectionFilterTex1);
 

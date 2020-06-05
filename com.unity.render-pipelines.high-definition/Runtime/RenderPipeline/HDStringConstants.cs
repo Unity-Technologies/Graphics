@@ -266,6 +266,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CaptureCameraIVP = Shader.PropertyToID("_CaptureCameraIVP");
         public static readonly int _CaptureCameraPositon = Shader.PropertyToID("_CaptureCameraPositon");
         public static readonly int _SourceMipIndex = Shader.PropertyToID("_SourceMipIndex");
+        public static readonly int _MaxMipLevels = Shader.PropertyToID("_MaxMipLevels");
         public static readonly int _ThetaValuesTexture = Shader.PropertyToID("_ThetaValuesTexture");
         public static readonly int _CaptureCameraFOV = Shader.PropertyToID("_CaptureCameraFOV");
         public static readonly int _RTScaleFactor = Shader.PropertyToID("_RTScaleFactor");
