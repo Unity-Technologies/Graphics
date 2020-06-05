@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
 
                 IncludeCollection finalIncludes = new IncludeCollection();
-                var includeList = passDescriptor.includes.Select(i => i.descriptor).ToList();
+                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
         
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
