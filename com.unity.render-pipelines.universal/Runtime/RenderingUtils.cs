@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.Universal
                 Vector4 scaleBiasRt = new Vector4(1, 1, 0, 0);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBias, scaleBias);
                 cmd.SetGlobalVector(ShaderPropertyId.scaleBiasRt, scaleBiasRt);
-                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0, CubemapFace.Unknown, -1),
+                cmd.SetRenderTarget(new RenderTargetIdentifier(destination, 0),
                     colorLoadAction, colorStoreAction, depthLoadAction, depthStoreAction);
                 cmd.DrawProcedural(Matrix4x4.identity, material, passIndex, MeshTopology.Quads, 4, 1, null);
             }

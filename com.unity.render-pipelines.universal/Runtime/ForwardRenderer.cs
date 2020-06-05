@@ -236,8 +236,8 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
                 {
-                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0, CubemapFace.Unknown, -1);
-                    activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0, CubemapFace.Unknown, -1);
+                    activeColorRenderTargetId = new RenderTargetIdentifier(activeColorRenderTargetId, 0);
+                    activeDepthRenderTargetId = new RenderTargetIdentifier(activeDepthRenderTargetId, 0);
                 }
 #endif
 

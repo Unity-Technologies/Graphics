@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
-            var targetDepthId = new RenderTargetIdentifier(m_TargetDepthTarget.Identifier(), 0, CubemapFace.Unknown, -1);
+            var targetDepthId = new RenderTargetIdentifier(m_TargetDepthTarget.Identifier(), 0);
             ConfigureTarget(targetDepthId, targetDepthId);
             ConfigureClear(ClearFlag.None, Color.black);
         }

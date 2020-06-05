@@ -136,7 +136,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (createInfo.renderTarget != null)
             {
-                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0, CubemapFace.Unknown, -1);
+                passInfo.renderTarget = new RenderTargetIdentifier(createInfo.renderTarget, 0);
                 passInfo.renderTargetDesc = createInfo.renderTarget.descriptor;
                 passInfo.renderTargetIsRenderTexture = createInfo.renderTargetIsRenderTexture;
             }
@@ -169,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
             passInfo.views.Clear();
 
             // URP ScriptableRenderer does not track current active depth slice state. We make sure to set all texture slices(-1) across the pipeline to ensure consistency.
-            passInfo.renderTarget = new RenderTargetIdentifier(xrRenderPass.renderTarget, 0, CubemapFace.Unknown, -1);
+            passInfo.renderTarget = new RenderTargetIdentifier(xrRenderPass.renderTarget, 0);
 
             RenderTextureDescriptor xrDesc = xrRenderPass.renderTargetDesc;
             RenderTextureDescriptor rtDesc = new RenderTextureDescriptor(xrDesc.width, xrDesc.height, xrDesc.colorFormat, xrDesc.depthBufferBits, xrDesc.mipCount);
