@@ -45,6 +45,7 @@
       * [Nor](Operator-LogicNor.md)
       * [Not](Operator-LogicNot.md)
       * [Or](Operator-LogicOr.md)
+      * [Probability Sampling](Operator-ProbabilitySampling.md)
       * [Switch](Operator-Switch.md)
     * Math
       * Arithmetic
@@ -68,6 +69,9 @@
       * Clamp
         * [Ceiling](Operator-Ceiling.md)
         * [Clamp](Operator-Clamp.md)
+        * [Discretize](Operator-Discretize.md)
+        * [Floor](Operator-Floor.md)
+        * [Maximum](Operator-Maximum.md)
         * [Minimum](Operator-Minimum.md)
         * [Round](Operator-Round.md)
         * [Saturate](Operator-Saturate.md)

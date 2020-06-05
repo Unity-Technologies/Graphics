@@ -30,12 +30,12 @@ To view the Operator's configuration, click the **cog** icon in the Operator's h
 
 | **Property**  | **Description**                                              |
 | ------------- | ------------------------------------------------------------ |
-| **Input**     | The value type for the **Input** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **Frequency** | The value type for the **Frequency** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **Min**       | The value type for the **Min** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **Max**       | The value type for the **Max** Port. For the list of types this property supports, see [Available types](#AvailableTypes). |
+| **Input**     | The value type for the **Input** port. For the list of types this property supports, see [Available types](#available-types). |
+| **Frequency** | The value type for the **Frequency** port. For the list of types this property supports, see [Available types](#available-types). |
+| **Min**       | The value type for the **Min** port. For the list of types this property supports, see [Available types](#available-types). |
+| **Max**       | The value type for the **Max** Port. For the list of types this property supports, see [Available types](#available-types). |
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

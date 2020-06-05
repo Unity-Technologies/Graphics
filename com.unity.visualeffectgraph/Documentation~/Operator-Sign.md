@@ -10,7 +10,7 @@ The **Sign** Operator calculates the sign of the input and returns whether the i
 
 For example, an input of (0.3, 0.4, -5) outputs (1, 1, -1).
 
-This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). This Operator always returns a value in the same type as its input. 
+This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input. 
 
 ## Operator properties
 
@@ -24,9 +24,9 @@ This Operator accepts a number of input values of various types. For the list of
 
 ## Operator configuration
 
-To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types these properties support, see [Available Types](#AvailableTypes).
+To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types these properties support, see [Available Types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

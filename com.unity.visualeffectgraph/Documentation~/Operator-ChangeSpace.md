@@ -24,9 +24,9 @@ You can use this to convert the Position of particles in a system from local spa
 
 ## Operator configuration
 
-To view this Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the input type. For the list of types these properties support, see [Available types](#AvailableTypes).
+To view this Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the input type. For the list of types these properties support, see [Available types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

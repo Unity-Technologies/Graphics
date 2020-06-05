@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Arithmetic > Fractional**
 
 The **Fractional** Operator returns the fractional part of the input. For example, an input of (4.5, 0, 2.2) outputs (0.5, 0, 0.2).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). 
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). 
 
 ## Node properties
 
@@ -18,9 +18,9 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Node's configuration, click the **cog** icon in the Node's header. You can choose a type beyond all [Available Types](#AvailableTypes)
+To view the Node's configuration, click the **cog** icon in the Node's header. You can choose a type beyond all [Available Types](#available-types)
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

@@ -9,7 +9,7 @@ The **Step** Operator compares an input value to a threshold and returns whether
 
 For example, for a threshold of 0.5, an input of (0.3, 0.5, 1)  outputs (0, 0, 1).
 
-The **Step** Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). This Operator always returns a value in the same type as its input. 
+The **Step** Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator always returns a value in the same type as its input. 
 
 ## Operator properties
 
@@ -24,9 +24,9 @@ The **Step** Operator accepts input values of various types. For the list of typ
 
 ## Operator configuration
 
-To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **Value** and **Threshold** port. For the list of types these properties support, see [Available types](#AvailableTypes).
+To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **Value** and **Threshold** port. For the list of types these properties support, see [Available types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Clamp > Saturate**
 
 The **Saturate** Operator clamps the return value between 0 and 1.
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes).
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator properties
 
@@ -18,9 +18,9 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type beyond all [Available Types](#AvailableTypes). 
+To view the Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type beyond all [Available Types](#available-types). 
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

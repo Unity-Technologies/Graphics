@@ -40,7 +40,7 @@ To view the Operator's configuration, click the **cog** icon in the Operator's h
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Type**     | The value type for the **Input Value** port and Output value. For the list of types this property supports, see [Available types](#available-types). |
+| **Type**     | The value type this Operator uses. For the list of types this property supports, see [Available types](#available-types). |
 
 ### Available types
 
@@ -77,4 +77,4 @@ You can use the following types for your **Input values** and **Output** ports:
 - **Flipbook**
 - **Camera**
 
-All types corresponding to a buffer or texture aren’t in this list because they can’t be assigned as local variables in generated HLSL code.
+This list does not include any type that corresponds to a buffer or texture because it is not possible to assign these types as local variables in generated HLSL code.

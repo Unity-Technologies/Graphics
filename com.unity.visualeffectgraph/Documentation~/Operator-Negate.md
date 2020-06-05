@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Arithmetic > Negate (-x)**
 
 The **Negate** Operator multiplies the input value by -1. For example, an input of - (3, 4, -5) outputs (-3, -4, 5).
 
-This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). The **Negate** Operator always outputs a value in the same type as its input. 
+This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **Negate** Operator always outputs a value in the same type as its input. 
 
 ## Operator properties
 
@@ -18,9 +18,9 @@ This Operator accepts a number of input values of various types. For the list of
 
 ## Operator configuration
 
-To view the **Negate** Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type for the input from the [Available Types](#AvailableTypes).
+To view the **Negate** Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type for the input from the [Available Types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

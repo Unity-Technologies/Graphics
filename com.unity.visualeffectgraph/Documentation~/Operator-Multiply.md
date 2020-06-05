@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Arithmetic > Multiply**
 
 The **Multiply** Operator multiplies its inputs and calculates the result. For example an input value of (1, 2) * (3, 4, 5) outputs (3, 8, 5), and an input value of (1, 2) * 3 outputs (3, 6).
 
-This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). This Operator interprets any missing input as a value of **1** and always returns a value in the largest vector type of its input. It sees scalar values such as float, int, and uint as the largest vector and uses the value in all the vector's fields.
+This Operator accepts a number of input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). This Operator interprets any missing input as a value of **1** and always returns a value in the largest vector type of its input. It sees scalar values such as float, int, and uint as the largest vector and uses the value in all the vector's fields.
 
 ## Operator properties
 
@@ -22,7 +22,7 @@ To view the Operatorâ€™s configuration, click the **cog** icon in the Operatorâ€
 
 The Operator also has an empty input that you can link to add a new input.
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

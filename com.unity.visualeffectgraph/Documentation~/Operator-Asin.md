@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Trigonometry > Asin**
 
 The **Asin** Operator calculates the [arcsine](https://docs.unity3d.com/ScriptReference/Mathf.Asin.html) of the input. This Operator is the inverse of the [Sine Operator](Operator-Sine.md). The result is in radians.
 
-This Operator can accept an input value of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes).
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator properties
 
@@ -15,9 +15,9 @@ This Operator can accept an input value of various types. For the list of types 
 
 ## Operator configuration
 
-To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types these properties support, see [Available types](#AvailableTypes).
+To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types these properties support, see [Available types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

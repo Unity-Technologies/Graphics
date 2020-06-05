@@ -15,7 +15,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 | **Output** | **Type**  | **Description**                                              |
 | ---------- | --------- | ------------------------------------------------------------ |
-| **Out**    | Dependent | The minimum value of all inputs.<br/>The **Type** changes to match the type of **A** and **B**. |
+| **Out**    | Dependent | The minimum value of all inputs.<br/>The **Type** changes to match the input type. |
 
 ## Operator configuration
 

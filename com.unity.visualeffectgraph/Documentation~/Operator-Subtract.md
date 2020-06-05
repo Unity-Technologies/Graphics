@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Arithmetic > Subtract**
 
 The **Subtract** Operator takes the first input and subtracts all subsequent inputs from it. For example, an input of (1, 2) - (3, 4, 5) outputs (-2, -2, -5), and an input of (1, 2) - 3 outputs (-2, -1).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). The **Subtract** Operator interprets any missing input as **0** and always returns a value in the largest vector type of its input. It sees scalar values such as float, int, and uint as the largest vector and uses the value in all the vector's fields.
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). The **Subtract** Operator interprets any missing input as **0** and always returns a value in the largest vector type of its input. It sees scalar values such as float, int, and uint as the largest vector and uses the value in all the vector's fields.
 
 ## Operator properties
 
@@ -22,7 +22,7 @@ To view the Operatorâ€™s configuration, click the **cog** icon in the Operatorâ€
 
 The **Subtract** Operator also has an empty input that you can link to add a new input.
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

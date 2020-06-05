@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Clamp > Ceiling**
 
 The **Ceiling** Operator rounds the input up to the nearest integer. For example, an input of (4.1, 4, 4.8) outputs (5, 4, 5).
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes).
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator properties
 
@@ -18,9 +18,9 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view this Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type beyond all [Available Types](#AvailableTypes).
+To view this Operator’s configuration, click the **cog** icon in the Operator’s header. You can choose a type beyond all [Available Types](#available-types).
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

@@ -4,7 +4,7 @@ Menu Path : **Operator > Math > Remap > Remap**
 
 The **Remap** Operator linearly remaps input values from an old range to a new range, with an optional clamp.
 
-This Operator accepts input values of various types. You can compare the input to a minimum and maximum value of the same type, or compare it to a float value. For the list of types this Operator can use, see [Available Types](#AvailableTypes).
+This Operator accepts input values of various types. You can compare the input to a minimum and maximum value of the same type, or compare it to a float value. For the list of types this Operator can use, see [Available Types](#available-types).
 
 ## Operator settings
 
@@ -32,13 +32,13 @@ To view the Operatorâ€™s configuration, click the **cog** icon in the Operatorâ€
 
 | **Input**       | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| **Input**       | The value type for the **Input** port and Output value. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **OldRangeMin** | The value type for the **OldRangeMin** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **OldRangeMax** | The value type for the **OldRangeMax** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **NewRangeMin** | The value type for the **NewRangeMin** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
-| **NewRangeMax** | The value type for the **NewRangeMax** port. For the list of types this property supports, see [Available types](#AvailableTypes). |
+| **Input**       | The value type for the **Input** port and Output value. For the list of types this property supports, see [Available types](#available-types). |
+| **OldRangeMin** | The value type for the **OldRangeMin** port. For the list of types this property supports, see [Available types](#available-types). |
+| **OldRangeMax** | The value type for the **OldRangeMax** port. For the list of types this property supports, see [Available types](#available-types). |
+| **NewRangeMin** | The value type for the **NewRangeMin** port. For the list of types this property supports, see [Available types](#available-types). |
+| **NewRangeMax** | The value type for the **NewRangeMax** port. For the list of types this property supports, see [Available types](#available-types). |
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 

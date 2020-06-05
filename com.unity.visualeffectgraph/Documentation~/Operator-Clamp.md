@@ -6,7 +6,7 @@ The **Clamp** Operator limits an input value between a lower and upper bound.
 
 If the input value is greater than **Max**, this Operator returns **Max**. If the input value is less than **Min**, this Operator returns **Min**. If the Input value is between **Max** and **Min**, the result is the same as the input.
 
-This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#AvailableTypes). **Min** and **Max** input can be either the same type as **Input** or a float.
+This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types). **Min** and **Max** input can be either the same type as **Input** or a float.
 
 ## Operator properties
 
@@ -22,9 +22,9 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Operator’s configuration, click the **cog** icon in the Operator’s header. For input, you can choose a type beyond all [Available Types](#AvailableTypes). 
+To view the Operator’s configuration, click the **cog** icon in the Operator’s header. For input, you can choose a type beyond all [Available Types](#available-types). 
 
-<a name="AvailableTypes"></a>
+
 
 ### Available types
 
