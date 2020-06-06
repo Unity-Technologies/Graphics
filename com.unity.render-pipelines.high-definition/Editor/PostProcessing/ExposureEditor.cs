@@ -26,6 +26,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_HistogramPercentages;
         SerializedDataParameter m_HistogramCurveRemapping;
 
+        SerializedDataParameter m_CenterAroundTarget;
+        SerializedDataParameter m_ProceduralCenter;
+        SerializedDataParameter m_ProceduralRadii;
+        SerializedDataParameter m_ProceduralSoftness;
+        SerializedDataParameter m_ProceduralMinIntensity;
+        SerializedDataParameter m_ProceduralMaxIntensity;
+
         SerializedDataParameter m_TargetMidGray;
 
         static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
@@ -54,6 +61,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_HistogramPercentages = Unpack(o.Find(x => x.histogramPercentages));
             m_HistogramCurveRemapping = Unpack(o.Find(x => x.histogramUseCurveRemapping));
+
+            m_CenterAroundTarget = Unpack(o.Find(x => x.centerAroundExposureTarget));
+            m_ProceduralCenter = Unpack(o.Find(x => x.proceduralCenter));
+            m_ProceduralRadii = Unpack(o.Find(x => x.proceduralRadii));
+            m_ProceduralSoftness = Unpack(o.Find(x => x.proceduralSoftness));
+            m_ProceduralMinIntensity = Unpack(o.Find(x => x.maskMinIntensity));
+            m_ProceduralMaxIntensity = Unpack(o.Find(x => x.maskMaxIntensity));
+
             m_TargetMidGray = Unpack(o.Find(x => x.targetMidGray));
         }
 
@@ -78,6 +93,42 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MeteringMode);
                 if(m_MeteringMode.value.intValue == (int)MeteringMode.MaskWeighted)
                     PropertyField(m_WeightTextureMask);
+
+                if (m_MeteringMode.value.intValue == (int) MeteringMode.ProceduralMask)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUILayout.LabelField("Procedural Mask", EditorStyles.miniLabel);
+
+
+                    PropertyField(m_CenterAroundTarget);
+
+                    var centerLabel = EditorGUIUtility.TrTextContent("Center", "Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)");
+                    var centerValue = m_ProceduralCenter.value.vector2Value;
+
+                    if (m_CenterAroundTarget.value.boolValue)
+                    {
+                        centerLabel = EditorGUIUtility.TrTextContent("Offset", "Sets an offset to the mask center");
+                        m_ProceduralCenter.value.vector2Value = new Vector2(Mathf.Clamp(centerValue.x, -0.5f, 0.5f), Mathf.Clamp(centerValue.y, -0.5f, 0.5f));
+                    }
+                    else
+                    {
+                        m_ProceduralCenter.value.vector2Value = new Vector2(Mathf.Clamp01(centerValue.x), Mathf.Clamp01(centerValue.y));
+                    }
+
+                    PropertyField(m_ProceduralCenter, centerLabel);
+                    var radiiValue = m_ProceduralRadii.value.vector2Value;
+                    m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
+                    PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
+                    PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
+
+                    if (isInAdvancedMode)
+                    {
+                        PropertyField(m_ProceduralMinIntensity);
+                        PropertyField(m_ProceduralMaxIntensity);
+                    }
+
+                    EditorGUILayout.Space();
+                }
 
                 // Temporary hiding the field since we don't support anything but color buffer for now.
                 //PropertyField(m_LuminanceSource);

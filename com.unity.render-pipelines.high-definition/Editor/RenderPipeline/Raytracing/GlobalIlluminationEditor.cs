@@ -83,6 +83,19 @@ namespace UnityEditor.Rendering.HighDefinition
             m_SecondDenoiserRadius = Unpack(o.Find(x => x.secondDenoiserRadius));
         }
 
+        public void DenoiserGUI()
+        {
+            PropertyField(m_Denoise);
+            {
+                EditorGUI.indentLevel++;
+                PropertyField(m_HalfResolutionDenoiser);
+                PropertyField(m_DenoiserRadius);
+                PropertyField(m_SecondDenoiserPass);
+                PropertyField(m_SecondDenoiserRadius);
+                EditorGUI.indentLevel--;
+            }
+        }
+
         public override void OnInspectorGUI()
         {
 
@@ -112,8 +125,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     rayTracingSettingsDisplayed = true;
                     PropertyField(m_LayerMask);
-                    PropertyField(m_RayLength);
-                    PropertyField(m_ClampValue);
                     if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Both)
                     {
                         PropertyField(m_Mode);
@@ -121,40 +132,54 @@ namespace UnityEditor.Rendering.HighDefinition
                         switch (m_Mode.value.GetEnumValue<RayTracingMode>())
                         {
                             case RayTracingMode.Performance:
-                                {
-                                    PropertyField(m_FullResolution);
-                                    PropertyField(m_UpscaleRadius);
-                                }
-                                break;
+                            {
+                                base.OnInspectorGUI(); // Quality Setting
+                                EditorGUI.indentLevel++;
+                                GUI.enabled = useCustomValue;
+                                PropertyField(m_RayLength);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_FullResolution);
+                                PropertyField(m_UpscaleRadius);
+                                DenoiserGUI();
+                                GUI.enabled = true;
+                                EditorGUI.indentLevel--;
+
+                            }
+                            break;
                             case RayTracingMode.Quality:
-                                {
-                                    PropertyField(m_SampleCount);
-                                    PropertyField(m_BounceCount);
-                                }
-                                break;
+                            {
+                                PropertyField(m_RayLength);
+                                PropertyField(m_ClampValue);
+                                PropertyField(m_SampleCount);
+                                PropertyField(m_BounceCount);
+                                DenoiserGUI();
+                            }
+                            break;
                         }
                         EditorGUI.indentLevel--;
                     }
                     else if (currentAsset.currentPlatformRenderPipelineSettings.supportedRayTracingMode == RenderPipelineSettings.SupportedRayTracingMode.Quality)
                     {
+                        PropertyField(m_RayLength);
+                        PropertyField(m_ClampValue);
                         PropertyField(m_SampleCount);
                         PropertyField(m_BounceCount);
+                        DenoiserGUI();
                     }
                     else
                     {
+                        base.OnInspectorGUI(); // Quality Setting
+                        EditorGUI.indentLevel++;
+                        GUI.enabled = useCustomValue;
+                        PropertyField(m_RayLength);
+                        PropertyField(m_ClampValue);
                         PropertyField(m_FullResolution);
                         PropertyField(m_UpscaleRadius);
-                    }
-
-                    PropertyField(m_Denoise);
-                    {
-                        EditorGUI.indentLevel++;
-                        PropertyField(m_HalfResolutionDenoiser);
-                        PropertyField(m_DenoiserRadius);
-                        PropertyField(m_SecondDenoiserPass);
-                        PropertyField(m_SecondDenoiserRadius);
+                        DenoiserGUI();
+                        GUI.enabled = true;
                         EditorGUI.indentLevel--;
                     }
+
                 }
             }
 
