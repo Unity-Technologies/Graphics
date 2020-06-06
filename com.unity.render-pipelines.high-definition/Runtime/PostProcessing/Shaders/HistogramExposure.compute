@@ -44,7 +44,7 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
     {
         float2 uv = ClampAndScaleUVForBilinear((fullResCoords + 0.5) * _ScreenSize.zw);
         float luminance = SampleLuminance(uv);
-        float weight = WeightSample(fullResCoords, _ScreenSize.xy);
+        float weight = WeightSample(fullResCoords, _ScreenSize.xy, luminance);
 
         uint  bin = GetHistogramBinLocation(luminance);
         InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
