@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Texture2D m_ExposureCurveTexture;
         RTHandle m_EmptyExposureTexture; // RGHalf
-        RTHandle m_DebugExposureData; 
+        RTHandle m_DebugExposureData;
         ComputeBuffer m_HistogramBuffer;
         readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
 
@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Color grading data
         readonly int m_LutSize;
+        readonly GraphicsFormat m_LutFormat;
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
@@ -161,8 +162,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
+            // Project-wide LUT size for all grading operations - meaning that internal LUTs and
+            // user-provided LUTs will have to be this size
             var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
             m_LutSize = postProcessSettings.lutSize;
+            m_LutFormat = (GraphicsFormat)postProcessSettings.lutFormat;
 
             // Grading specific
             m_HableCurve = new HableCurve();
@@ -252,12 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_NonRenderGraphResourcesAvailable = true;
 
-            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
-
-            // Project-wide LUT size for all grading operations - meaning that internal LUTs and
-            // user-provided LUTs will have to be this size
-            var lutFormat = (GraphicsFormat)settings.lutFormat;
-
             m_InternalLogLut = RTHandles.Alloc(
                 name: "Color Grading Log Lut",
                 dimension: TextureDimension.Tex3D,
@@ -265,7 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 height: m_LutSize,
                 slices: m_LutSize,
                 depthBufferBits: DepthBits.None,
-                colorFormat: lutFormat,
+                colorFormat: m_LutFormat,
                 filterMode: FilterMode.Bilinear,
                 wrapMode: TextureWrapMode.Clamp,
                 anisoLevel: 0,
@@ -445,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
                     {
-                        DoCopyAlpha(cmd, camera, colorBuffer);
+                        DoCopyAlpha(PrepareCopyAlphaParameters(camera), colorBuffer, m_AlphaTexture, cmd);
                     }
                 }
                 var source = colorBuffer;
@@ -613,16 +611,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Combined post-processing stack - always runs if postfx is enabled
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UberPost)))
                     {
-                        // Feature flags are passed to all effects and it's their responsibility to check
-                        // if they are used or not so they can set default values if needed
-                        var cs = m_Resources.shaders.uberPostCS;
-                        cs.shaderKeywords = null;
-                        var featureFlags = GetUberFeatureFlags(isSceneView);
-                        int kernel = cs.FindKernel("Uber");
-                        if(m_EnableAlpha)
-                        {
-                            cs.EnableKeyword("ENABLE_ALPHA");
-                        }
+                        UberPostParameters uberPostParams = PrepareUberPostParameters(camera, isSceneView);
 
                         // Generate the bloom texture
                         bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
@@ -631,35 +620,28 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
-                                DoBloom(cmd, camera, source, cs, kernel);
+                                DoBloom(cmd, camera, source, uberPostParams.uberPostCS, uberPostParams.uberPostKernel);
                             }
                         }
                         else
                         {
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                            cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomParams, Vector4.zero);
+                            cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
+                            cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
+                            cmd.SetComputeVectorParam(uberPostParams.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
                         }
 
                         // Build the color grading lut
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
                         {
-                            DoColorGrading(cmd, cs, kernel);
+                            var parameters = PrepareColorGradingParameters();
+                            DoColorGrading(parameters, m_InternalLogLut, cmd);
                         }
-
-                        // Setup the rest of the effects
-                        DoLensDistortion(cmd, cs, kernel, featureFlags);
-                        DoChromaticAberration(cmd, cs, kernel, featureFlags);
-                        DoVignette(cmd, cs, kernel, featureFlags);
 
                         // Run
                         var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
 
-                        bool outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
-                        cmd.SetComputeVectorParam(cs, "_DebugFlags", new Vector4(outputColorLog ? 1 : 0, 0, 0, 0));
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+                        DoUberPostProcess(uberPostParams, source, destination, m_InternalLogLut, cmd);
+
                         m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.ColorLog);
 
                         // Cleanup
@@ -740,6 +722,94 @@ namespace UnityEngine.Rendering.HighDefinition
             camera.resetPostProcessingHistory = false;
         }
 
+        struct UberPostParameters
+        {
+            public ComputeShader    uberPostCS;
+            public int              uberPostKernel;
+            public bool             outputColorLog;
+            public int              width;
+            public int              height;
+            public int              viewCount;
+
+            public Vector4          logLutSettings;
+
+            public Vector4          lensDistortionParams1;
+            public Vector4          lensDistortionParams2;
+
+            public Texture          spectralLut;
+            public Vector4          chromaticAberrationParameters;
+
+            public Vector4          vignetteParams1;
+            public Vector4          vignetteParams2;
+            public Vector4          vignetteColor;
+            public Texture          vignetteMask;
+        }
+
+        UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
+        {
+            var parameters = new UberPostParameters();
+
+            // Feature flags are passed to all effects and it's their responsibility to check
+            // if they are used or not so they can set default values if needed
+            parameters.uberPostCS = m_Resources.shaders.uberPostCS;
+            parameters.uberPostCS.shaderKeywords = null;
+            var featureFlags = GetUberFeatureFlags(isSceneView);
+            parameters.uberPostKernel = parameters.uberPostCS.FindKernel("Uber");
+            if (m_EnableAlpha)
+            {
+                parameters.uberPostCS.EnableKeyword("ENABLE_ALPHA");
+            }
+
+            parameters.outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
+            parameters.width = hdCamera.actualWidth;
+            parameters.height = hdCamera.actualHeight;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Color grading
+            // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
+            // we can't use 0 as the default neutral value which would be confusing to users
+            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
+            parameters.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
+
+            // Setup the rest of the effects
+            PrepareLensDistortionParameters(ref parameters, featureFlags);
+            PrepareChromaticAberrationParameters(ref parameters, featureFlags);
+            PrepareVignetteParameters(ref parameters, featureFlags);
+
+            return parameters;
+        }
+
+        static void DoUberPostProcess(  in UberPostParameters   parameters,
+                                        RTHandle                source,
+                                        RTHandle                destination,
+                                        RTHandle                logLut,
+                                        CommandBuffer           cmd)
+        {
+            // Color grading
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._LogLut3D, logLut);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._LogLut3D_Params, parameters.logLutSettings);
+
+            // Lens distortion
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._DistortionParams1, parameters.lensDistortionParams1);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._DistortionParams2, parameters.lensDistortionParams2);
+
+            // Chromatic aberration
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._ChromaSpectralLut, parameters.spectralLut);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._ChromaParams, parameters.chromaticAberrationParameters);
+
+            // Vignette
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteParams1, parameters.vignetteParams1);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteParams2, parameters.vignetteParams2);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteColor, parameters.vignetteColor);
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._VignetteMask, parameters.vignetteMask);
+
+            // Dispatch uber post
+            cmd.SetComputeVectorParam(parameters.uberPostCS, "_DebugFlags", new Vector4(parameters.outputColorLog ? 1 : 0, 0, 0, 0));
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(parameters.uberPostCS, parameters.uberPostKernel, (parameters.width + 7) / 8, (parameters.height + 7) / 8, parameters.viewCount);
+        }
+
         // Grabs all active feature flags
         UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
         {
@@ -786,13 +856,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Copy Alpha
 
-        void DoCopyAlpha(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        DoCopyAlphaParameters PrepareCopyAlphaParameters(HDCamera hdCamera)
         {
-            var cs = m_Resources.shaders.copyAlphaCS;
-            int kernel = cs.FindKernel("KMain");
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_AlphaTexture);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            var parameters = new DoCopyAlphaParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.copyAlphaCS = m_Resources.shaders.copyAlphaCS;
+            parameters.copyAlphaKernel = parameters.copyAlphaCS.FindKernel("KMain");
+
+            return parameters;
+        }
+
+        struct DoCopyAlphaParameters
+        {
+            public ComputeShader    copyAlphaCS;
+            public int              copyAlphaKernel;
+            public HDCamera         hdCamera;
+        }
+
+        static void DoCopyAlpha(in DoCopyAlphaParameters parameters, RTHandle source, RTHandle outputAlphaTexture, CommandBuffer cmd)
+        {
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._OutputTexture, outputAlphaTexture);
+            cmd.DispatchCompute(parameters.copyAlphaCS, parameters.copyAlphaKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
         }
 
         #endregion
@@ -1015,7 +1100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
 
             ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
-            m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram 
+            m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram
             cmd.SetComputeVectorParam(cs, HDShaderIDs._HistogramExposureParams, histogramParams);
 
             // Generate histogram.
@@ -1042,7 +1127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int totalPixels = camera.actualWidth * camera.actualHeight;
             cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
 
-            // Now read the histogram 
+            // Now read the histogram
             kernel = cs.FindKernel("KHistogramReduce");
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
@@ -2329,44 +2414,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Lens Distortion
 
-        void DoLensDistortion(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareLensDistortionParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.LensDistortion) != UberPostFeatureFlags.LensDistortion)
                 return;
 
-            cs.EnableKeyword("LENS_DISTORTION");
+            parameters.uberPostCS.EnableKeyword("LENS_DISTORTION");
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(m_LensDistortion.intensity.value * 100f), 1f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
             float sigma = 2f * Mathf.Tan(theta * 0.5f);
             var center = m_LensDistortion.center.value * 2f - Vector2.one;
-            var p1 = new Vector4(
+            parameters.lensDistortionParams1 = new Vector4(
                 center.x,
                 center.y,
                 Mathf.Max(m_LensDistortion.xMultiplier.value, 1e-4f),
                 Mathf.Max(m_LensDistortion.yMultiplier.value, 1e-4f)
             );
-            var p2 = new Vector4(
+            parameters.lensDistortionParams2 = new Vector4(
                 m_LensDistortion.intensity.value >= 0f ? theta : 1f / theta,
                 sigma,
                 1f / m_LensDistortion.scale.value,
                 m_LensDistortion.intensity.value * 100f
             );
-
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DistortionParams1, p1);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DistortionParams2, p2);
         }
 
         #endregion
 
         #region Chromatic Aberration
 
-        void DoChromaticAberration(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareChromaticAberrationParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.ChromaticAberration) != UberPostFeatureFlags.ChromaticAberration)
                 return;
 
-            cs.EnableKeyword("CHROMATIC_ABERRATION");
+            parameters.uberPostCS.EnableKeyword("CHROMATIC_ABERRATION");
 
             var spectralLut = m_ChromaticAberration.spectralLut.value;
 
@@ -2397,38 +2479,37 @@ namespace UnityEngine.Rendering.HighDefinition
                 spectralLut = m_InternalSpectralLut;
             }
 
-            var settings = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ChromaSpectralLut, spectralLut);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ChromaParams, settings);
+            parameters.spectralLut = spectralLut;
+            parameters.chromaticAberrationParameters = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
         }
 
         #endregion
 
         #region Vignette
 
-        void DoVignette(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareVignetteParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.Vignette) != UberPostFeatureFlags.Vignette)
                 return;
 
-            cs.EnableKeyword("VIGNETTE");
+            parameters.uberPostCS.EnableKeyword("VIGNETTE");
 
             if (m_Vignette.mode.value == VignetteMode.Procedural)
             {
                 float roundness = (1f - m_Vignette.roundness.value) * 6f + m_Vignette.roundness.value;
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams1, new Vector4(m_Vignette.center.value.x, m_Vignette.center.value.y, 0f, 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams2, new Vector4(m_Vignette.intensity.value * 3f, m_Vignette.smoothness.value * 5f, roundness, m_Vignette.rounded.value ? 1f : 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteColor, m_Vignette.color.value);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VignetteMask, Texture2D.blackTexture);
+                parameters.vignetteParams1 = new Vector4(m_Vignette.center.value.x, m_Vignette.center.value.y, 0f, 0f);
+                parameters.vignetteParams2 = new Vector4(m_Vignette.intensity.value * 3f, m_Vignette.smoothness.value * 5f, roundness, m_Vignette.rounded.value ? 1f : 0f);
+                parameters.vignetteColor = m_Vignette.color.value;
+                parameters.vignetteMask = Texture2D.blackTexture;
             }
             else // Masked
             {
                 var color = m_Vignette.color.value;
                 color.a = Mathf.Clamp01(m_Vignette.opacity.value);
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams1, new Vector4(0f, 0f, 1f, 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteColor, color);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VignetteMask, m_Vignette.mask.value);
+                parameters.vignetteParams1 = new Vector4(0f, 0f, 1f, 0f);
+                parameters.vignetteColor = color;
+                parameters.vignetteMask = m_Vignette.mask.value;
             }
         }
 
@@ -2436,119 +2517,175 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Color Grading
 
-        // TODO: User lut support
-        void DoColorGrading(CommandBuffer cmd, ComputeShader cs, int kernel)
+        struct ColorGradingParameters
         {
-            // Prepare data
-            var lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value   / 100f, m_ChannelMixer.redOutGreenIn.value   / 100f, m_ChannelMixer.redOutBlueIn.value   / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value  / 100f, m_ChannelMixer.blueOutGreenIn.value  / 100f, m_ChannelMixer.blueOutBlueIn.value  / 100f, 0f);
+            public ComputeShader builderCS;
+            public int builderKernel;
 
-            ComputeShadowsMidtonesHighlights(out var shadows, out var midtones, out var highlights, out var shadowsHighlightsLimits);
-            ComputeLiftGammaGain(out var lift, out var gamma, out var gain);
-            ComputeSplitToning(out var splitShadows, out var splitHighlights);
+            public int lutSize;
+
+            public Vector4 colorFilter;
+            public Vector3 lmsColorBalance;
+            public Vector4 hueSatCon;
+            public Vector4 channelMixerR;
+            public Vector4 channelMixerG;
+            public Vector4 channelMixerB;
+            public Vector4 shadows;
+            public Vector4 midtones;
+            public Vector4 highlights;
+            public Vector4 shadowsHighlightsLimits;
+            public Vector4 lift;
+            public Vector4 gamma;
+            public Vector4 gain;
+            public Vector4 splitShadows;
+            public Vector4 splitHighlights;
+
+            public ColorCurves curves;
+            public HableCurve hableCurve;
+
+            public Vector4 miscParams;
+
+            public Texture externalLuT;
+            public float lutContribution;
+
+            public TonemappingMode tonemappingMode;
+        }
+
+        ColorGradingParameters PrepareColorGradingParameters()
+        {
+            var parameters = new ColorGradingParameters();
+
+            parameters.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
+
+            parameters.builderCS = m_Resources.shaders.lutBuilder3DCS;
+            parameters.builderKernel = parameters.builderCS.FindKernel("KBuild");
 
             // Setup lut builder compute & grab the kernel we need
-            var tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
-            var builderCS = m_Resources.shaders.lutBuilder3DCS;
-            builderCS.shaderKeywords = null;
+            parameters.builderCS.shaderKeywords = null;
 
             if (m_Tonemapping.IsActive())
             {
-                switch (tonemappingMode)
+                switch (parameters.tonemappingMode)
                 {
-                    case TonemappingMode.Neutral: builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
-                    case TonemappingMode.ACES: builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
-                    case TonemappingMode.Custom: builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
-                    case TonemappingMode.External: builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
+                    case TonemappingMode.Neutral: parameters.builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
+                    case TonemappingMode.ACES: parameters.builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
+                    case TonemappingMode.Custom: parameters.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
+                    case TonemappingMode.External: parameters.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }
             }
             else
             {
-                builderCS.EnableKeyword("TONEMAPPING_NONE");
+                parameters.builderCS.EnableKeyword("TONEMAPPING_NONE");
             }
 
-            int builderKernel = builderCS.FindKernel("KBuild");
+            parameters.lutSize = m_LutSize;
+
+            //parameters.colorFilter;
+            parameters.lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
+            parameters.hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
+            parameters.channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
+            parameters.channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
+            parameters.channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
+
+            ComputeShadowsMidtonesHighlights(out parameters.shadows, out parameters.midtones, out parameters.highlights, out parameters.shadowsHighlightsLimits);
+            ComputeLiftGammaGain(out parameters.lift, out parameters.gamma, out parameters.gain);
+            ComputeSplitToning(out parameters.splitShadows, out parameters.splitHighlights);
+
+            // Be careful, if m_Curves is modified between preparing the render pass and executing it, result will be wrong.
+            // However this should be fine for now as all updates should happen outisde rendering.
+            parameters.curves = m_Curves;
+
+            if (parameters.tonemappingMode == TonemappingMode.Custom)
+            {
+                parameters.hableCurve = m_HableCurve;
+                parameters.hableCurve.Init(
+                        m_Tonemapping.toeStrength.value,
+                        m_Tonemapping.toeLength.value,
+                        m_Tonemapping.shoulderStrength.value,
+                        m_Tonemapping.shoulderLength.value,
+                        m_Tonemapping.shoulderAngle.value,
+                        m_Tonemapping.gamma.value
+                    );
+            }
+            else if (parameters.tonemappingMode == TonemappingMode.External)
+            {
+                parameters.externalLuT = m_Tonemapping.lutTexture.value;
+                parameters.lutContribution = m_Tonemapping.lutContribution.value;
+            }
+
+            parameters.colorFilter = m_ColorAdjustments.colorFilter.value.linear;
+            parameters.miscParams = new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f);
+
+            return parameters;
+        }
+
+        // TODO: User lut support
+        static void DoColorGrading( in ColorGradingParameters   parameters,
+                                    RTHandle                    internalLogLuT,
+                                    CommandBuffer               cmd)
+        {
+            var builderCS = parameters.builderCS;
+            var builderKernel = parameters.builderKernel;
 
             // Fill-in constant buffers & textures
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, m_InternalLogLut);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(m_LutSize, 1f / (m_LutSize - 1f), 0f, 0f));
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, lmsColorBalance);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, channelMixerR);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerGreen, channelMixerG);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerBlue, channelMixerB);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._HueSatCon, hueSatCon);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Lift, lift);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gamma, gamma);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gain, gain);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Shadows, shadows);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Midtones, midtones);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Highlights, highlights);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShaHiLimits, shadowsHighlightsLimits);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, splitShadows);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, splitHighlights);
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, internalLogLuT);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(parameters.lutSize, 1f / (parameters.lutSize - 1f), 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, parameters.lmsColorBalance);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, parameters.colorFilter);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, parameters.channelMixerR);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerGreen, parameters.channelMixerG);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerBlue, parameters.channelMixerB);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._HueSatCon, parameters.hueSatCon);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Lift, parameters.lift);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gamma, parameters.gamma);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gain, parameters.gain);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Shadows, parameters.shadows);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Midtones, parameters.midtones);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Highlights, parameters.highlights);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShaHiLimits, parameters.shadowsHighlightsLimits);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, parameters.splitShadows);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, parameters.splitHighlights);
 
             // YRGB
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, m_Curves.master.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, m_Curves.red.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, m_Curves.green.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, m_Curves.blue.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, parameters.curves.master.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, parameters.curves.red.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, parameters.curves.green.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, parameters.curves.blue.value.GetTexture());
 
             // Secondary curves
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, m_Curves.hueVsHue.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, m_Curves.hueVsSat.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, m_Curves.lumVsSat.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, parameters.curves.hueVsHue.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, parameters.curves.hueVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, parameters.curves.lumVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, parameters.curves.satVsSat.value.GetTexture());
 
             // Artist-driven tonemap curve
-            if (tonemappingMode == TonemappingMode.Custom)
+            if (parameters.tonemappingMode == TonemappingMode.Custom)
             {
-                m_HableCurve.Init(
-                    m_Tonemapping.toeStrength.value,
-                    m_Tonemapping.toeLength.value,
-                    m_Tonemapping.shoulderStrength.value,
-                    m_Tonemapping.shoulderLength.value,
-                    m_Tonemapping.shoulderAngle.value,
-                    m_Tonemapping.gamma.value
-                );
-
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._CustomToneCurve, m_HableCurve.uniforms.curve);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentA, m_HableCurve.uniforms.toeSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentB, m_HableCurve.uniforms.toeSegmentB);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentA, m_HableCurve.uniforms.midSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentB, m_HableCurve.uniforms.midSegmentB);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentA, m_HableCurve.uniforms.shoSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentB, m_HableCurve.uniforms.shoSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._CustomToneCurve, parameters.hableCurve.uniforms.curve);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentA, parameters.hableCurve.uniforms.toeSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentB, parameters.hableCurve.uniforms.toeSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentA, parameters.hableCurve.uniforms.midSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentB, parameters.hableCurve.uniforms.midSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentA, parameters.hableCurve.uniforms.shoSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentB, parameters.hableCurve.uniforms.shoSegmentB);
             }
-            else if (tonemappingMode == TonemappingMode.External)
+            else if (parameters.tonemappingMode == TonemappingMode.External)
             {
-                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, m_Tonemapping.lutTexture.value);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / m_LutSize, m_LutSize - 1f, m_Tonemapping.lutContribution.value, 0f));
+                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, parameters.externalLuT);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / parameters.lutSize, parameters.lutSize - 1f, parameters.lutContribution, 0f));
             }
 
             // Misc parameters
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, parameters.miscParams);
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
             builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
             cmd.DispatchCompute(builderCS, builderKernel,
-                (int)((m_LutSize + threadX - 1u) / threadX),
-                (int)((m_LutSize + threadY - 1u) / threadY),
-                (int)((m_LutSize + threadZ - 1u) / threadZ)
+                (int)((parameters.lutSize + threadX - 1u) / threadX),
+                (int)((parameters.lutSize + threadY - 1u) / threadY),
+                (int)((parameters.lutSize + threadZ - 1u) / threadZ)
             );
-
-            // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
-            // we can't use 0 as the default neutral value which would be confusing to users
-            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-
-            // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
 
         // Returns color balance coefficients in the LMS space

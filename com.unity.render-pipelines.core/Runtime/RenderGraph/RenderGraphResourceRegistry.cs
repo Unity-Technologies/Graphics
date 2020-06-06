@@ -421,7 +421,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The Renderer List associated with the provided resource handle or an invalid renderer list if the handle is invalid.</returns>
         public RendererList GetRendererList(in RendererListHandle handle)
         {
-            if (!handle.IsValid())
+            if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
 
             return m_RendererListResources[handle].rendererList;
@@ -477,9 +477,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
             if (m_CurrentBackbuffer != null)
-                m_RTHandleSystem.Release(m_CurrentBackbuffer);
-
-            m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+                m_CurrentBackbuffer.SetTexture(rt);
+            else
+                m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
 
             int newHandle = m_TextureResources.Add(new TextureResource(m_CurrentBackbuffer, 0));
             return new TextureHandle(newHandle);
@@ -604,7 +604,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.cachedHash = hashCode;
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -621,12 +621,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }
@@ -749,7 +749,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void Clear()
+        internal void Clear(bool onException)
         {
             LogResources();
 
@@ -758,7 +758,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_ComputeBufferResources.Clear();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_AllocatedTextures.Count != 0)
+            if (m_AllocatedTextures.Count != 0 && !onException)
             {
                 string logMessage = "RenderGraph: Not all textures were released.";
 
@@ -771,6 +771,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 Debug.LogWarning(logMessage);
             }
+
+            // If an error occurred during execution, it's expected that textures are not all release so we clear the trakcing list.
+            if (onException)
+                m_AllocatedTextures.Clear();
 #endif
         }
 
