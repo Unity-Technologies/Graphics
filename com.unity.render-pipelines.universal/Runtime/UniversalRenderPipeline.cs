@@ -75,6 +75,8 @@ namespace UnityEngine.Rendering.Universal
             get => 8;
         }
 
+        private DebugDisplaySettingsUI m_DebugDisplaySettingsUI = new DebugDisplaySettingsUI();
+        
         public UniversalRenderPipeline(UniversalRenderPipelineAsset asset)
         {
             SetSupportedRenderingFeatures();
@@ -99,11 +101,14 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+            m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
         }
 
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
+
+            m_DebugDisplaySettingsUI.UnregisterDebug();
 
             Shader.globalRenderPipeline = "";
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
@@ -115,6 +120,8 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
+            
+            
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
