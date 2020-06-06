@@ -97,6 +97,25 @@ namespace UnityEngine.Rendering.Universal
                 return s_ErrorMaterial;
             }
         }
+        
+        static List<ShaderTagId> m_DebugShaderPassNames = new List<ShaderTagId>()
+        {
+            new ShaderTagId("DebugMaterial"),
+            new ShaderTagId("LightweightForward"),
+        };
+
+        static Material m_ReplacementMaterial;
+
+        internal static Material replacementMaterial
+        {
+            get
+            {
+                if (m_ReplacementMaterial == null)
+                    m_ReplacementMaterial = new Material(Shader.Find("Hidden/Lightweight Render Pipeline/Debug/Replacement"));
+
+                return m_ReplacementMaterial;
+            }
+        }
 
         /// <summary>
         /// Set view and projection matrices.
@@ -231,6 +250,72 @@ namespace UnityEngine.Rendering.Universal
                 errorSettings.SetShaderPassName(i, m_LegacyShaderPassNames[i]);
 
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
+        }
+        
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        internal static void RenderObjectWithDebug(ScriptableRenderContext context, ref RenderingData renderingData,
+            FilteringSettings filterSettings, SortingCriteria sortingCriteria, bool overrideMaterial)
+        {
+            SortingSettings sortingSettings = new SortingSettings(renderingData.cameraData.camera) { criteria = sortingCriteria };
+
+            DrawingSettings debugSettings = new DrawingSettings(m_DebugShaderPassNames[
+                (overrideMaterial) ? 1 : 0], sortingSettings)
+            {
+                perObjectData = renderingData.perObjectData,
+                enableInstancing = true,
+                mainLightIndex = renderingData.lightData.mainLightIndex,
+                enableDynamicBatching = renderingData.supportsDynamicBatching,
+            };
+
+            if (overrideMaterial)
+            {
+                debugSettings.overrideMaterial = replacementMaterial;
+                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                switch (sceneOverrideMode)
+                {
+                    case SceneOverrides.Overdraw:
+                        debugSettings.overrideMaterialPassIndex = 0;
+                        break;
+                    case SceneOverrides.Wireframe:
+                    case SceneOverrides.SolidWireframe:
+                        debugSettings.overrideMaterialPassIndex = 1;
+                        break;
+                }
+
+                if (DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData != VertexAttributeDebugMode.None)
+                {
+                    debugSettings.overrideMaterialPassIndex = 2;
+                }
+
+                    RenderStateBlock rsBlock = new RenderStateBlock();
+                bool wireframe = sceneOverrideMode == SceneOverrides.Wireframe || sceneOverrideMode == SceneOverrides.SolidWireframe;
+                if (wireframe)
+                {
+                    if (sceneOverrideMode == SceneOverrides.SolidWireframe)
+                    {
+                        replacementMaterial.SetColor("_DebugColor", Color.white);
+                        context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+
+                        rsBlock.rasterState = new RasterState(CullMode.Back, -1, -1, true);
+                        rsBlock.mask = RenderStateMask.Raster;
+                    }
+
+                    context.Submit();
+                    GL.wireframe = true;
+                    replacementMaterial.SetColor("_DebugColor", Color.black);
+                }
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref rsBlock);
+
+                if (wireframe)
+                {
+                    context.Submit();
+                    GL.wireframe = false;
+                }
+            }
+            else
+            {
+                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+            }
         }
 
         // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.

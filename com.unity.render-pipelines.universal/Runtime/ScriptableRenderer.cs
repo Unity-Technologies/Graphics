@@ -193,6 +193,13 @@ namespace UnityEngine.Rendering.Universal
         {
             get => m_ActiveRenderPassQueue;
         }
+        
+        public DebugMaterialIndex debugMaterialIndex { get; set; }
+        public LightingDebugMode lightingDebugMode { get; set; }
+        public VertexAttributeDebugMode attributeDebugIndex { get; set; }
+
+        public int pbrLightingDebugModeMask { get; set; }
+        public DebugMipInfo debugMipInfo { get; set; }
 
         /// <summary>
         /// Supported rendering features by this renderer.
@@ -339,6 +346,9 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="renderingData">Current render state information.</param>
         public void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // Disable Gizmos when using scene overrides. Gizmos break some effects like Overdraw debug.
+            bool drawGizmos = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.None;
+            
             ref CameraData cameraData = ref renderingData.cameraData;
             Camera camera = cameraData.camera;
 
@@ -421,7 +431,8 @@ namespace UnityEngine.Rendering.Universal
             ExecuteBlock(RenderPassBlock.MainRenderingTransparent, blockRanges, context, ref renderingData);
 
             // Draw Gizmos...
-            DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
+            if (drawGizmos)
+                DrawGizmos(context, camera, GizmoSubset.PreImageEffects);
 
             // In this block after rendering drawing happens, e.g, post processing, video player capture.
             ExecuteBlock(RenderPassBlock.AfterRendering, blockRanges, context, ref renderingData);
@@ -429,7 +440,8 @@ namespace UnityEngine.Rendering.Universal
             EndXRRendering(cmd, context, ref renderingData.cameraData);
 
             DrawWireOverlay(context, camera);
-            DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
+            if (drawGizmos)
+                DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
             InternalFinishRendering(context, cameraData.resolveFinalTarget);
             blockRanges.Dispose();
@@ -533,6 +545,11 @@ namespace UnityEngine.Rendering.Universal
             for (int currIndex = blockRanges[blockIndex]; currIndex < endIndex; ++currIndex)
             {
                 var renderPass = m_ActiveRenderPassQueue[currIndex];
+                renderPass.debugMaterialIndex = debugMaterialIndex;
+                renderPass.lightingDebugMode = lightingDebugMode;
+                renderPass.attributeDebugIndex = attributeDebugIndex;
+                renderPass.pbrLightingDebugModeMask = pbrLightingDebugModeMask;
+                renderPass.mipInfoMode = debugMipInfo;
                 ExecuteRenderPass(context, renderPass, ref renderingData);
             }
 
@@ -743,6 +760,13 @@ namespace UnityEngine.Rendering.Universal
 
         internal static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, ClearFlag clearFlag, Color clearColor)
         {
+            bool overdrawDebugMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides == SceneOverrides.Overdraw;
+            if (overdrawDebugMode)
+            {
+                clearColor = Color.black;
+                clearFlag = ClearFlag.All;
+            }
+            
             m_ActiveColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ActiveColorAttachments.Length; ++i)
                 m_ActiveColorAttachments[i] = 0;

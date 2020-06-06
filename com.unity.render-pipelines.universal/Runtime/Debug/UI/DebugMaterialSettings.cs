@@ -1,7 +1,7 @@
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugMaterialSettings : IDebugDisplaySettingsData
     {

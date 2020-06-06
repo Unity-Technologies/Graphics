@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsUI : IDebugData
     {

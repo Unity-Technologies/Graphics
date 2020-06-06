@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettings
     {

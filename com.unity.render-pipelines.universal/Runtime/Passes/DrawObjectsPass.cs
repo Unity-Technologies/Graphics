@@ -76,7 +76,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 Camera camera = renderingData.cameraData.camera;
                 var sortFlags = (m_IsOpaque) ? renderingData.cameraData.defaultOpaqueSortFlags : SortingCriteria.CommonTransparent;
-                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
                 var filterSettings = m_FilteringSettings;
 
                 #if UNITY_EDITOR
@@ -87,10 +86,48 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 #endif
 
-                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                //context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                //RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
+                                var sceneOverrideMode = DebugDisplaySettings.Instance.renderingSettings.sceneOverrides;
+                RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, m_FilteringSettings, SortingCriteria.None);	                var validationMode = DebugDisplaySettings.Instance.Validation.validationMode;
+                var attributeDebugIndex = DebugDisplaySettings.Instance.materialSettings.VertexAttributeDebugIndexData;
+                bool isMaterialDebugActive = lightingDebugMode != LightingDebugMode.None ||
+                                             debugMaterialIndex != DebugMaterialIndex.None ||
+                                             pbrLightingDebugModeMask != (int)PBRLightingDebugMode.None ||
+                                             validationMode == DebugValidationMode.ValidateAlbedo ||
+                                             attributeDebugIndex != VertexAttributeDebugMode.None ||
+                                             mipInfoMode != DebugMipInfo.None;
+                bool isSceneOverrideActive = sceneOverrideMode != SceneOverrides.None;
+                if (isMaterialDebugActive || isSceneOverrideActive)
+                {
+                    if(lightingDebugMode == LightingDebugMode.ShadowCascades)
+                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    else
+                        cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+                    bool overrideMaterial = isSceneOverrideActive || attributeDebugIndex != VertexAttributeDebugMode.None;
+
+                    RenderingUtils.RenderObjectWithDebug(context, ref renderingData,
+                        m_FilteringSettings, sortFlags, overrideMaterial);
+                }
+                else
+                {
+                    var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+
+                    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings,
+                        ref m_RenderStateBlock);
+
+                    // Render objects that did not match any shader pass with error shader
+                    RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera,
+                        m_FilteringSettings, SortingCriteria.None);
+                }
+
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

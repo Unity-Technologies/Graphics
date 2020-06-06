@@ -120,8 +120,6 @@ namespace UnityEngine.Rendering.Universal
 #endif
             Lightmapping.ResetDelegate();
             CameraCaptureBridge.enabled = false;
-            
-            
         }
 
         protected override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
@@ -245,6 +243,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
+                CheckAndApplyDebugSettings(ref renderingData);
                 renderer.Setup(context, ref renderingData);
                 renderer.Execute(context, ref renderingData);
             } // When ProfilingSample goes out of scope, an "EndSample" command is enqueued into CommandBuffer cmd
@@ -867,6 +866,29 @@ namespace UnityEngine.Rendering.Universal
             
             // Used when subtractive mode is selected
             Shader.SetGlobalVector(ShaderPropertyId.subtractiveShadowColor, CoreUtils.ConvertSRGBToActiveColorSpace(RenderSettings.subtractiveShadowColor));
+        }
+        
+        static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
+        {
+            DebugDisplaySettingsRendering renderingSettings = DebugDisplaySettings.Instance.renderingSettings;
+            if (renderingSettings.IsEnabled())
+            {
+                ref CameraData cameraData = ref renderingData.cameraData;
+
+                int msaaSamples = renderingData.cameraData.cameraTargetDescriptor.msaaSamples;
+                if (!renderingSettings.enableMsaa)
+                    msaaSamples = 1;
+
+                if (!renderingSettings.enableHDR)
+                    cameraData.isHdrEnabled = false;
+
+                if (!renderingSettings.enablePostProcessing)
+                    cameraData.postProcessEnabled = false;
+
+                renderingData.cameraData.cameraTargetDescriptor = 
+                    CreateRenderTextureDescriptor(cameraData.camera, cameraData.renderScale,
+                        cameraData.isHdrEnabled, msaaSamples, false);
+            }
         }
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER

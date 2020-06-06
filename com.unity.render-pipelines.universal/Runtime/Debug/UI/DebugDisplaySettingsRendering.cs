@@ -1,7 +1,7 @@
 ﻿using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal enum FullScreenDebugMode
     {
