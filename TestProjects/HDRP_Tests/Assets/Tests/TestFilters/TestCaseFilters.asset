@@ -440,3 +440,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 3d584f34970fc5c44871961e3178f4ce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Wrong result on vulkan
