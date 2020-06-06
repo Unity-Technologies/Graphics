@@ -96,15 +96,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void ReserveTempTextureIfNeeded()
+        void ReserveTempTextureIfNeeded(CommandBuffer cmd, int mipMapCount)
         {
-            // TODO: we don't need to allocate two temp RT, we can use the atlas as temp render texture
-            // it will avoid additional copy of the whole mip chain into the atlas.
-            int sourceWidth = m_CookieAtlas.AtlasTexture.rt.width;
-            int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
-
             if (m_TempRenderTexture0 == null)
             {
+                // TODO: we don't need to allocate two temp RT, we can use the atlas as temp render texture
+                // it will avoid additional copy of the whole mip chain into the atlas.
+                int sourceWidth = m_CookieAtlas.AtlasTexture.rt.width;
+                int sourceHeight = m_CookieAtlas.AtlasTexture.rt.height;
+
                 string cacheName = m_CookieAtlas.AtlasTexture.name;
                 m_TempRenderTexture0 = new RenderTexture(sourceWidth, sourceHeight, 1, cookieFormat)
                 {
@@ -154,7 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int viewportHeight = finalHeight;// source.height;
             int mipMapCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(source.width, source.height), 2));
 
-            ReserveTempTextureIfNeeded();
+            ReserveTempTextureIfNeeded(cmd, mipMapCount);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AreaLightCookieConvolution)))
             {
