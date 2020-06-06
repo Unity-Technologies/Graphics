@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
 - Added more custom pass API functions, mainly to render objects from another camera.
 - Added support for transparent Unlit in path tracing.
+- Added a minimal lit used for RTGI in peformance mode.
 - Added procedural metering mask that can follow an object
 
 ### Fixed
@@ -641,6 +642,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exception due to the color pyramid not allocated when SSGI is enabled.
 - Fixed an issue with the first Depth history was incorrectly copied.
 - Fixed path traced DoF focusing issue
+- Fix an issue with the half resolution Mode (performance)
+- Fix an issue with the color intensity of emissive for performance rtgi
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -776,6 +779,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed experimental namespace for ray tracing code.
 - Increase limit for max numbers of lights in UX
 - Removed direct use of BSDFData in the path tracing pass, delegated to the material instead.
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- DXR: Only read the geometric attributes that are required using the share pass info and shader graph defines.
+- DXR: Dispatch binned rays in 1D instead of 2D.
 
 ## [7.1.1] - 2019-09-05
 

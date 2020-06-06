@@ -149,6 +149,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
+        /// Allow or not pass pruning
+        /// By default all passes can be pruned out if the render graph detects it's not actually used.
+        /// In some cases, a pass may not write or read any texture but rather do something with side effects (like setting a global texture parameter for example).
+        /// This function can be used to tell the system that it should not prune this pass.
+        /// </summary>
+        /// <param name="value"></param>
+        public void AllowPassPruning(bool value)
+        {
+            m_RenderPass.AllowPassPruning(value);
+        }
+
+        /// <summary>
         /// Dispose the RenderGraphBuilder instance.
         /// </summary>
         public void Dispose()
@@ -175,7 +187,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckTransientTexture(TextureHandle input)
         {
-            if (input.transientPassIndex != -1 && input.transientPassIndex != m_RenderPass.index)
+            if (input.IsValid() && input.transientPassIndex != -1 && input.transientPassIndex != m_RenderPass.index)
             {
                 throw new ArgumentException($"Trying to use a transient texture (pass index {input.transientPassIndex}) in a different pass (pass index {m_RenderPass.index}.");
             }
