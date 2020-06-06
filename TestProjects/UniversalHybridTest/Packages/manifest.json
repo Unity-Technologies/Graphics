@@ -1,8 +1,8 @@
 {
+  "disableProjectUpdate": true,
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
-    "com.unity.ads": "3.4.4",
     "com.unity.analytics": "3.3.5",
     "com.unity.collab-proxy": "1.3.7",
     "com.unity.ext.nunit": "1.0.0",

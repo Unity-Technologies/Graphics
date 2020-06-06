@@ -170,6 +170,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
             public Shader customPassUtils;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
+            public Shader customPassRenderersUtils;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
