@@ -28,9 +28,6 @@ struct InputData
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
-#define ERROR_ON_CONDITIONAL_UNDECLARED_VARIABLE(variable, define) #error #variable is only declared when #define is defined. \
-    is your shader missing a multi_compile pragma?
-
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
 
