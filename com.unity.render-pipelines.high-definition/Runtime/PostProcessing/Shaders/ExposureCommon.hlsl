@@ -85,7 +85,7 @@ float WeightSample(uint2 pixel, float2 sourceSize, float luminance)
             float2 ellipseScale = float2(radius / ProceduralRadii.x, radius / ProceduralRadii.y);
 
             float dist = length(ProceduralCenter * ellipseScale - pixel * ellipseScale);
-            return (luminance > ProceduralMin && luminance < ProceduralMax) ? saturate(1.0 - pow((dist / radius), ProceduralSoftness)) : 0.0f;
+            return (luminance > ProceduralMin && luminance < ProceduralMax) ? saturate(1.0 - PositivePow((dist / radius), ProceduralSoftness)) : 0.0f;
         }
         default:
         {
