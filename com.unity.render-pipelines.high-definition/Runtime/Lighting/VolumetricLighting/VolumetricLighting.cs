@@ -261,9 +261,10 @@ namespace UnityEngine.Rendering.HighDefinition
             float screenFraction = controller.screenResolutionPercentage.value * 0.01f;
             int   sliceCount     = controller.volumeSliceCount.value;
 
-            int w = Mathf.RoundToInt(viewportWidth  * screenFraction);
-            int h = Mathf.RoundToInt(viewportHeight * screenFraction);
-            int d = sliceCount;
+            const int kMax3DTextureSize = 2048; // TODO: There's no SystemInfo.maxTextureSize equivalent for 3D textures
+            int w = Math.Min(Mathf.RoundToInt(viewportWidth  * screenFraction), kMax3DTextureSize);
+            int h = Math.Min(Mathf.RoundToInt(viewportHeight * screenFraction), kMax3DTextureSize);
+            int d = Math.Min(sliceCount, kMax3DTextureSize);
 
             if (controller.screenResolutionPercentage.value == (1.0f/8.0f) * 100)
                 voxelSize = 8;
