@@ -40,7 +40,12 @@ all:
     - platform: Linux
       api: Vulkan
       test_platforms:
-        - editmode  
+        - editmode
+        - playmode        
+    - platform: OSX
+      api: Metal
+      test_platforms:
+        - editmode
         - playmode
     - project: HDRP_DXR
       platform: Win

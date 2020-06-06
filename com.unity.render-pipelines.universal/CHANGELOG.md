@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
 - Added option to enable/disable Adaptive Performance when it's package is available.
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 
 ### Changed
 
@@ -199,6 +200,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
 - Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
+- Fixed issue that caused shaders to fail to compile in OpenGL 4.1 or below.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
