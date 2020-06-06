@@ -52,6 +52,27 @@ MonoBehaviour:
   hdriSky:
     m_OverrideState: 1
     m_Value: {fileID: 8900000, guid: 5fb993a599e7e9b4b825e1a28e6d2c07, type: 3}
+  enableDistortion:
+    m_OverrideState: 0
+    m_Value: 0
+  procedural:
+    m_OverrideState: 0
+    m_Value: 1
+  flowmap:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  upperHemisphereOnly:
+    m_OverrideState: 0
+    m_Value: 1
+  scrollDirection:
+    m_OverrideState: 0
+    m_Value: 0
+    min: 0
+    max: 360
+  scrollSpeed:
+    m_OverrideState: 0
+    m_Value: 2
+    min: 0
   enableBackplate:
     m_OverrideState: 0
     m_Value: 0
@@ -116,8 +137,8 @@ MonoBehaviour:
   active: 1
   m_AdvancedMode: 0
   quality:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 3
   rayTracing:
     m_OverrideState: 1
     m_Value: 1
@@ -154,24 +175,6 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
-  rayLength:
-    m_OverrideState: 1
-    m_Value: 0.2
-    min: 0
-    max: 50
-  sampleCount:
-    m_OverrideState: 1
-    m_Value: 2
-    min: 1
-    max: 64
-  denoise:
-    m_OverrideState: 0
-    m_Value: 0
-  denoiserRadius:
-    m_OverrideState: 0
-    m_Value: 16
-    min: 1
-    max: 32
   m_StepCount:
     m_OverrideState: 0
     m_Value: 6
@@ -193,6 +196,24 @@ MonoBehaviour:
     m_Value: 2
     min: 1
     max: 6
+  m_RayLength:
+    m_OverrideState: 1
+    m_Value: 0.2
+    min: 0
+    max: 50
+  m_SampleCount:
+    m_OverrideState: 1
+    m_Value: 2
+    min: 1
+    max: 64
+  m_Denoise:
+    m_OverrideState: 1
+    m_Value: 0
+  m_DenoiserRadius:
+    m_OverrideState: 0
+    m_Value: 16
+    min: 1
+    max: 32
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,5 +248,8 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
   skyAmbientMode:
+    m_OverrideState: 0
+    m_Value: 0
+  fogType:
     m_OverrideState: 0
     m_Value: 0

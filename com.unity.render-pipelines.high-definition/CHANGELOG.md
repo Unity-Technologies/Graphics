@@ -140,6 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for transparent Unlit in path tracing.
 - Added a minimal lit used for RTGI in peformance mode.
 - Added procedural metering mask that can follow an object
+- Added presets quality settings for RTAO and RTGI.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
