@@ -774,6 +774,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactored shadow caching system.
 - Removed experimental namespace for ray tracing code.
 - Increase limit for max numbers of lights in UX
+- Removed direct use of BSDFData in the path tracing pass, delegated to the material instead.
 
 ## [7.1.1] - 2019-09-05
 
