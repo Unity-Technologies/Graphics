@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
 {
     class VFXMotionVector : VFXContext
     {
-        public VFXMotionVector() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) { }
+        public VFXMotionVector() : base(VFXContextType.Update, VFXDataType.Particle, VFXDataType.Particle) {}
         public override string name => "MotionVector";
 
         private VFXContext m_encapsulatedOutput;

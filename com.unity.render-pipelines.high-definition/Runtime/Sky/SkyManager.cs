@@ -230,7 +230,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.UpdateCurrentSky(this);
         }
 
-        public void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
+        void SetGlobalSkyData(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (IsCachedContextValid(hdCamera.lightingSky))
             {
@@ -411,6 +411,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return GetAmbientProbe(hdCamera.lightingSky);
+        }
+
+        internal bool HasSetValidAmbientProbe(HDCamera hdCamera)
+        {
+            SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
+            if (ambientMode == SkyAmbientMode.Static)
+                return true;
+
+            if (hdCamera.skyAmbientMode == SkyAmbientMode.Dynamic && hdCamera.lightingSky != null &&
+                hdCamera.lightingSky.IsValid() && IsCachedContextValid(hdCamera.lightingSky))
+            {
+                ref CachedSkyContext cachedContext = ref m_CachedSkyContexts[hdCamera.lightingSky.cachedSkyRenderingContextId];
+                var renderingContext = cachedContext.renderingContext;
+                return renderingContext.ambientProbeIsReady;
+            }
+
+            return false;
+
         }
 
         internal void SetupAmbientProbe(HDCamera hdCamera)
@@ -643,12 +661,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return id != -1 && (skyContext.skySettings.GetSkyRendererType() == m_CachedSkyContexts[id].type) && (m_CachedSkyContexts[id].hash != 0);
         }
 
-        int ComputeSkyHash(SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
+        int ComputeSkyHash(HDCamera camera, SkyUpdateContext skyContext, Light sunLight, SkyAmbientMode ambientMode, bool staticSky = false)
         {
             int sunHash = 0;
             if (sunLight != null)
                 sunHash = GetSunLightHashCode(sunLight);
-            int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode();
+
+            // For planar reflections we want to use the parent position for hash.
+            Camera cameraForHash = camera.camera;
+            if (camera.camera.cameraType == CameraType.Reflection && camera.parentCamera != null)
+            {
+                cameraForHash = camera.parentCamera;
+            }
+
+            int skyHash = sunHash * 23 + skyContext.skySettings.GetHashCode(cameraForHash);
             skyHash = skyHash * 23 + (staticSky ? 1 : 0);
             skyHash = skyHash * 23 + (ambientMode == SkyAmbientMode.Static ? 1 : 0);
             return skyHash;
@@ -684,14 +710,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_BuiltinParameters.commandBuffer = cmd;
                 m_BuiltinParameters.sunLight = sunLight;
                 m_BuiltinParameters.pixelCoordToViewDirMatrix = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                m_BuiltinParameters.worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                Vector3 worldSpaceCameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                // For planar reflections we use the parent camera position for all the runtime computations.
+                // This is to avoid cases in which the probe camera is below ground and the parent is not, leading to
+                // in case of PBR sky to a black sky. All other parameters are left as is.
+                // This can introduce inaccuracies, but they should be acceptable if the distance parent camera - probe camera is
+                // small.
+                if (hdCamera.camera.cameraType == CameraType.Reflection && hdCamera.parentCamera != null)
+                {
+                    worldSpaceCameraPos = hdCamera.parentCamera.transform.position;
+                }
+                m_BuiltinParameters.worldSpaceCameraPos = worldSpaceCameraPos;
                 m_BuiltinParameters.viewMatrix = hdCamera.mainViewConstants.viewMatrix;
                 m_BuiltinParameters.screenSize = m_CubemapScreenSize;
                 m_BuiltinParameters.debugSettings = null; // We don't want any debug when updating the environment.
                 m_BuiltinParameters.frameIndex = frameIndex;
                 m_BuiltinParameters.skySettings = skyContext.skySettings;
 
-                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode, staticSky);
+                int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode, staticSky);
                 bool forceUpdate = updateRequired;
 
                 // Acquire the rendering context, if the context was invalid or the hash has changed, this will request for an update.
@@ -751,7 +787,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                         // In the editor when we change the sky we want to make the GI dirty so when baking again the new sky is taken into account.
                         // Changing the hash of the rendertarget allow to say that GI is dirty
-                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(), 0, 0, 0);
+                        renderingContext.skyboxCubemapRT.rt.imageContentsHash = new Hash128((uint)skyContext.skySettings.GetHashCode(hdCamera.camera), 0, 0, 0);
 #endif
                     }
                 }
@@ -776,13 +812,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // because we only maintain one static sky. Since we don't care that the static lighting may be a bit different in the preview we never recompute
             // and we use the one from the main camera.
             bool forceStaticUpdate = false;
+            StaticLightingSky staticLightingSky = GetStaticLightingSky();
 #if UNITY_EDITOR
-            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case.
-            forceStaticUpdate = true;
+            // In the editor, we might need the static sky ready for baking lightmaps/lightprobes regardless of the current ambient mode so we force it to update in this case if it's not been computed yet..
+            // We don't test if the hash of the static sky has changed here because it depends on the sun direction and in the case of LookDev, sun will be different from the main rendering so it will induce improper recomputation.
+            forceStaticUpdate = staticLightingSky != null && m_StaticLightingSky.skyParametersHash == -1; ;
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                StaticLightingSky staticLightingSky = GetStaticLightingSky();
                 if (staticLightingSky != null)
                 {
                     m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
@@ -793,17 +830,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_UpdateRequired = false;
 
+            SetGlobalSkyData(cmd, hdCamera);
+
             var reflectionTexture = GetReflectionTexture(hdCamera.lightingSky);
             cmd.SetGlobalTexture(HDShaderIDs._SkyTexture, reflectionTexture);
-
-            if (IsLightingSkyValid(hdCamera))
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 1);
-            }
-            else
-            {
-                cmd.SetGlobalInt(HDShaderIDs._EnvLightSkyEnabled, 0);
-            }
         }
 
         internal void UpdateBuiltinParameters(SkyUpdateContext skyContext, HDCamera hdCamera, Light sunLight, RTHandle colorBuffer, RTHandle depthBuffer, DebugDisplaySettings debugSettings, int frameIndex, CommandBuffer cmd)
@@ -837,7 +867,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         cmd);
 
                 SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-                int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
                 AcquireSkyRenderingContext(skyContext, skyHash);
                 skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);
                 if (depthBuffer != BuiltinSkyParameters.nullRT && normalBuffer != BuiltinSkyParameters.nullRT)
@@ -869,7 +899,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                          cmd);
 
                     SkyAmbientMode ambientMode = hdCamera.volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
-                    int skyHash = ComputeSkyHash(skyContext, sunLight, ambientMode);
+                    int skyHash = ComputeSkyHash(hdCamera, skyContext, sunLight, ambientMode);
                     AcquireSkyRenderingContext(skyContext, skyHash);
 
                     skyContext.skyRenderer.DoUpdate(m_BuiltinParameters);

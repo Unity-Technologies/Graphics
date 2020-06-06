@@ -35,6 +35,7 @@ Shader "Universal Render Pipeline/Unlit"
         Pass
         {
             Name "Unlit"
+
             HLSLPROGRAM
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
@@ -101,7 +102,6 @@ Shader "Universal Render Pipeline/Unlit"
 #endif
 
                 color = MixFog(color, input.fogCoord);
-                alpha = OutputAlpha(alpha);
 
                 return half4(color, alpha);
             }
@@ -170,7 +170,7 @@ Shader "Universal Render Pipeline/Unlit"
         {
             Name "Unlit"
             HLSLPROGRAM
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
             
             #pragma vertex vert
@@ -248,7 +248,7 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -276,7 +276,7 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit

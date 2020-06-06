@@ -196,17 +196,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public FrameSettings        frameSettings;
             public bool                 msaaEnabled;
             public bool                 hasDepthOnlyPrepass;
-            public bool                 renderRayTracingPrepass;
-
             public TextureHandle        depthBuffer;
             public TextureHandle        depthAsColorBuffer;
             public TextureHandle        normalBuffer;
 
             public RendererListHandle   rendererListMRT;
             public RendererListHandle   rendererListDepthOnly;
-
-            public RendererListHandle   renderListRayTracingOpaque;
-            public RendererListHandle   renderListRayTracingTransparent;
         }
 
         // RenderDepthPrepass render both opaque and opaque alpha tested based on engine configuration.
@@ -225,7 +220,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.msaaEnabled = msaa;
                 passData.hasDepthOnlyPrepass = depthPrepassParameters.hasDepthOnlyPass;
-                passData.renderRayTracingPrepass = depthPrepassParameters.renderRayTracingPrepass;
 
                 passData.depthBuffer = builder.UseDepthBuffer(output.depthBuffer, DepthAccess.ReadWrite);
                 passData.normalBuffer = builder.WriteTexture(CreateNormalBuffer(renderGraph, msaa));
@@ -243,12 +237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 passData.rendererListMRT = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.mrtRendererListDesc));
-
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
-                {
-                    passData.renderListRayTracingOpaque = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingOpaqueRLDesc));
-                    passData.renderListRayTracingTransparent = builder.UseRendererList(renderGraph.CreateRendererList(depthPrepassParameters.rayTracingTransparentRLDesc));
-                }
 
                 output.depthBuffer = passData.depthBuffer;
                 output.depthAsColor = passData.depthAsColorBuffer;
@@ -270,9 +258,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     , context.resources.GetRendererList(data.rendererListDepthOnly)
                                     , context.resources.GetRendererList(data.rendererListMRT)
                                     , data.hasDepthOnlyPrepass
-                                    , context.resources.GetRendererList(data.renderListRayTracingOpaque)
-                                    , context.resources.GetRendererList(data.renderListRayTracingTransparent)
-                                    , data.renderRayTracingPrepass
                                     );
                 });
             }
@@ -507,7 +492,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BuildCoarseStencilAndResolveParameters parameters;
             public TextureHandle inputDepth;
             public TextureHandle resolvedStencil;
-            public ComputeBuffer coarseStencilBuffer;
+            public ComputeBufferHandle coarseStencilBuffer;
         }
 
         void BuildCoarseStencilAndResolveIfNeeded(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -516,8 +501,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
                 passData.inputDepth = output.depthBuffer;
-                passData.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
-                passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
+                passData.coarseStencilBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_SharedRTManager.GetCoarseStencilBuffer()));
+                if (passData.parameters.resolveIsNecessary)
+                    passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
                 builder.SetRenderFunc(
                 (ResolveStencilPassData data, RenderGraphContext context) =>
                 {
@@ -525,7 +511,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     BuildCoarseStencilAndResolveIfNeeded(data.parameters,
                         res.GetTexture(data.inputDepth),
                         res.GetTexture(data.resolvedStencil),
-                        data.coarseStencilBuffer,
+                        res.GetComputeBuffer(data.coarseStencilBuffer),
                         context.cmd);
                 }
                 );
@@ -599,7 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
             {
                 // Return all black textures for default values.
-                var blackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture());
+                var blackTexture = renderGraph.defaultResources.blackTextureXR;
                 output.dbuffer.dBufferCount = use4RTs ? 4 : 3;
                 for (int i = 0; i < output.dbuffer.dBufferCount; ++i)
                     output.dbuffer.mrt[i] = blackTexture;

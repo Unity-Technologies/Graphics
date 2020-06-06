@@ -1,4 +1,4 @@
-﻿#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
+#if !UNITY_EDITOR_OSX || MAC_FORCE_TESTS
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -196,10 +196,10 @@ namespace UnityEditor.VFX.Test
 
 
             model.SetSettingValue("slotSetting", 1);
-            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 0);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.attributes.Count == 0);
 
             model.SetSettingValue("slotSetting", 5);
-            Assert.IsTrue(model.GetInputSlot(0).property.attributes.Length == 1);
+            Assert.IsTrue(model.GetInputSlot(0).property.attributes.attributes.Count == 1);
         }
 
         [Test]

@@ -58,7 +58,9 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = CameraHelper.AddCameraExpressions(base.parameters, camera);
 
-                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, ((VFXDataParticle)GetData()).space);
+                VFXCoordinateSpace systemSpace = ((VFXDataParticle)GetData()).space;
+                // in custom camera mode, camera space is already in system space (conversion happened in slot)
+                CameraMatricesExpressions camMat = CameraHelper.GetMatricesExpressions(expressions, camera == CameraMode.Main ? VFXCoordinateSpace.World : systemSpace, systemSpace);
 
                 // Filter unused expressions
                 expressions = expressions.Where(t =>
@@ -83,7 +85,7 @@ namespace UnityEditor.VFX.Block
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 viewPos = mul(VFXToView,float4(nextPos,1.0f));
+float3 viewPos = mul(VFXToView,float4(nextPos,1.0f)).xyz;
 
 float4 projPos = mul(ViewToClip,float4(viewPos,1.0f));
 projPos.xyz /= projPos.w;

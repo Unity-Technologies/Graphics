@@ -51,8 +51,21 @@ SAMPLER(sampler_SVBRDF_ClearcoatIORMap);
 
 CBUFFER_START(UnityPerMaterial)
 
-    float   _MaterialTilingU;              // Size of the U range, in millimeters (currently used as UV scale factor)
-    float   _MaterialTilingV;              // Size of the V range, in millimeters (currently used as UV scale factor)
+    // Scale/Offsets:
+    float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0
+
+    float4  _SVBRDF_DiffuseColorMap_SO;
+    float4  _SVBRDF_SpecularColorMap_SO;
+    float4  _SVBRDF_NormalMap_SO;
+    float4  _SVBRDF_SpecularLobeMap_SO;
+    float4  _SVBRDF_AlphaMap_SO;
+    float4  _SVBRDF_FresnelMap_SO;
+    float4  _SVBRDF_AnisoRotationMap_SO;
+    float4  _SVBRDF_HeightMap_SO;
+    float4  _SVBRDF_ClearcoatColorMap_SO;
+    float4  _ClearcoatNormalMap_SO;
+    float4  _SVBRDF_ClearcoatIORMap_SO;
+    float4  _CarPaint2_BTFFlakeMap_SO;
 
     uint    _Flags;                         // Bit 0 = Anisotropic. If true, specular lobe map contains 2 channels and the _AnisotropicRotationAngleMap needs to be read
                                             // Bit 1 = HasClearcoat. If true, the clearcoat must be applied. The _ClearcoatNormalMap must be valid and contain clearcoat normal data.
@@ -94,7 +107,6 @@ CBUFFER_START(UnityPerMaterial)
     float4  _CarPaint2_CTSpreads;           // Description of multi-lobes spread values
 
         // Flakes
-    float   _CarPaint2_FlakeTiling;         // Tiling factor for flakes
     uint    _CarPaint2_FlakeMaxThetaI;            // Maximum thetaI index
     uint    _CarPaint2_FlakeNumThetaF;            // Amount of thetaF entries (in litterature, that's called thetaH, the angle between the normal and the half vector)
     uint    _CarPaint2_FlakeNumThetaI;            // Amount of thetaI entries (in litterature, that's called thetaD, the angle between the light/view and the half vector)
@@ -106,6 +118,11 @@ float _AlphaCutoff;
 float _UseShadowThreshold;
 float _AlphaCutoffShadow;
 float4 _DoubleSidedConstants;
+
+// Specular AA
+float _EnableGeometricSpecularAA;
+float _SpecularAAScreenSpaceVariance;
+float _SpecularAAThreshold;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.

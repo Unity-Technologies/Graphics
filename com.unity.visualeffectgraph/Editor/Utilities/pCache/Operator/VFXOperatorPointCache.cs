@@ -20,15 +20,15 @@ namespace UnityEditor.VFX
         public override void GetImportDependentAssets(HashSet<int> dependencies)
         {
             base.GetImportDependentAssets(dependencies);
-
-            dependencies.Add(Asset.GetInstanceID());
+            if (!object.ReferenceEquals(Asset, null))
+                dependencies.Add(Asset.GetInstanceID());
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                if (!object.ReferenceEquals(Asset,null))
+                if (!object.ReferenceEquals(Asset, null))
                 {
                     if (Asset == null)
                         Asset = EditorUtility.InstanceIDToObject(Asset.GetInstanceID()) as PointCacheAsset;

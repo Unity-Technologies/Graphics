@@ -39,6 +39,7 @@ Pass
     $Refraction:                        #define _HAS_REFRACTION 1
     $RefractionBox:                     #define _REFRACTION_PLANE 1
     $RefractionSphere:                  #define _REFRACTION_SPHERE 1
+    $RefractionThin:                    #define _REFRACTION_THIN 1
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DisableSSRTransparent:             #define _DISABLE_SSR_TRANSPARENT 1
@@ -67,9 +68,10 @@ Pass
     $features.graphVertex:              #define HAVE_MESH_MODIFICATION
     $splice(GraphDefines)
 
-    #ifdef DEBUG_DISPLAY
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
-    #else
+    // This shader support recursive rendering for raytracing
+    #define HAVE_RECURSIVE_RENDERING
+
+    #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
         #if !defined(_SURFACE_TYPE_TRANSPARENT) && defined(_ALPHATEST)
@@ -251,6 +253,18 @@ Pass
 
         surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
+        #ifdef DEBUG_DISPLAY
+            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+            {
+                // TODO: need to update mip info
+                surfaceData.metallic = 0;
+            }
+
+            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
+            // as it can modify attribute use for static lighting
+            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
+        #endif
+
         // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
         // If user provide bent normal then we process a better term
         #if defined(_SPECULAR_OCCLUSION_CUSTOM)
@@ -262,20 +276,8 @@ Pass
             surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
         #endif
 
-        #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+        #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA) && !defined(SHADER_STAGE_RAY_TRACING)
             surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance, surfaceDescription.SpecularAAThreshold);
-        #endif
-
-        #ifdef DEBUG_DISPLAY
-            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-            {
-                // TODO: need to update mip info
-                surfaceData.metallic = 0;
-            }
-
-            // We need to call ApplyDebugToSurfaceData after filling the surfarcedata and before filling builtinData
-            // as it can modify attribute use for static lighting
-            ApplyDebugToSurfaceData(fragInputs.tangentToWorld, surfaceData);
         #endif
     }
 
@@ -300,10 +302,10 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $AlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-            $AlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-            $AlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
-            $AlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
         #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
@@ -315,11 +317,24 @@ Pass
         // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest:         builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+            $DoAlphaTestPrepass:  builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            $DoAlphaTestPostpass: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
+        #endif
+
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+        //Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
+        //We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
+        //This is a limitation of the current MRT approach.
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
@@ -332,6 +347,8 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

@@ -79,6 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Refraction =              new FieldDescriptor(string.Empty, "Refraction", "_HAS_REFRACTION 1");
         public static FieldDescriptor RefractionBox =           new FieldDescriptor(string.Empty, "RefractionBox", "_REFRACTION_PLANE 1");
         public static FieldDescriptor RefractionSphere =        new FieldDescriptor(string.Empty, "RefractionSphere", "_REFRACTION_SPHERE 1");
+        public static FieldDescriptor RefractionThin =          new FieldDescriptor(string.Empty, "RefractionThin", "_REFRACTION_THIN 1");
 
         // Base Parametrization
         public static FieldDescriptor BaseParamSpecularColor =  new FieldDescriptor(kBaseParametrization, "SpecularColor", "_MATERIAL_FEATURE_SPECULAR_COLOR");
@@ -87,9 +88,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor HazyGloss =               new FieldDescriptor(kDualSpecularLobeParametrization, "HazyGloss", "_MATERIAL_FEATURE_HAZY_GLOSS");
 
         // Misc
-        public static FieldDescriptor AlphaTestShadow =         new FieldDescriptor(string.Empty, "AlphaTestShadow", "_ALPHA_TEST_SHADOW 1");
-        public static FieldDescriptor AlphaTestPrepass =        new FieldDescriptor(string.Empty, "AlphaTestPrepass", "_ALPHA_TEST_PREPASS 1");
-        public static FieldDescriptor AlphaTestPostpass =       new FieldDescriptor(string.Empty, "AlphaTestPostpass", "_ALPHA_TEST_POSTPASS 1");
+        public static FieldDescriptor DoAlphaTest =             new FieldDescriptor(string.Empty, "DoAlphaTest", "_DO_ALPHA_TEST 1");
+        public static FieldDescriptor DoAlphaTestShadow =       new FieldDescriptor(string.Empty, "DoAlphaTestShadow", "_DO_ALPHA_TEST_SHADOW 1");
+        public static FieldDescriptor DoAlphaTestPrepass =      new FieldDescriptor(string.Empty, "DoAlphaTestPrepass", "_DO_ALPHA_TEST_PREPASS 1");
+        public static FieldDescriptor DoAlphaTestPostpass =     new FieldDescriptor(string.Empty, "DoAlphaTestPostpass", "_DO_ALPHA_TEST_POSTPASS 1");
         public static FieldDescriptor AlphaFog =                new FieldDescriptor(string.Empty, "AlphaFog", "_ENABLE_FOG_ON_TRANSPARENT 1");
         public static FieldDescriptor BlendPreserveSpecular =   new FieldDescriptor(Fields.kBlendMode, "PreserveSpecular", "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1");
         public static FieldDescriptor DisableDecals =           new FieldDescriptor(string.Empty, "DisableDecals", "_DISABLE_DECALS 1");
@@ -114,6 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor TransparentDepthPrePass = new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
         public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);
         public static FieldDescriptor EnableShadowMatte =        new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
+        public static FieldDescriptor RayTracing =              new FieldDescriptor(string.Empty, "RayTracing", string.Empty);
 
         // Advanced
         public static FieldDescriptor AnisotropyForAreaLights = new FieldDescriptor(string.Empty, "AnisotropyForAreaLights", "_ANISOTROPY_FOR_AREA_LIGHTS");
@@ -171,7 +174,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static FieldDescriptor Lit = new FieldDescriptor(kSubShader, "Lit Subshader", "");
             public static FieldDescriptor Fabric = new FieldDescriptor(kSubShader, "Fabric SubShader", "");
+            public static FieldDescriptor StackLit = new FieldDescriptor(kSubShader, "StackLit SubShader", "");
             public static FieldDescriptor Unlit = new FieldDescriptor(kSubShader, "Unlit SubShader", "");
+            public static FieldDescriptor Hair = new FieldDescriptor(kSubShader, "Hair SubShader", "");
         }
 
 #endregion

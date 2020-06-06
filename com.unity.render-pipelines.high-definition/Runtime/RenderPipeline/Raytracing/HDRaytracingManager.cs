@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -39,7 +38,8 @@ namespace UnityEngine.Rendering.HighDefinition
         RGBA0,
         RGBA1,
         RGBA2,
-        RGBA3
+        RGBA3,
+        RGBA4
     }
 
     class HDRayTracingLights
@@ -64,20 +64,23 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Data used for runtime evaluation
         RayTracingAccelerationStructure m_CurrentRAS = new RayTracingAccelerationStructure();
-        HDRaytracingLightCluster m_RayTracingLightCluster = new HDRaytracingLightCluster();
+        HDRaytracingLightCluster m_RayTracingLightCluster;
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
         bool m_ValidRayTracingCluster = false;
+        bool m_ValidRayTracingClusterCulling = false;
 
         // Denoisers
-        HDTemporalFilter m_TemporalFilter = new HDTemporalFilter();
-        HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
-        HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
-        HDReflectionDenoiser m_ReflectionDenoiser = new HDReflectionDenoiser();
-        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
+        HDTemporalFilter m_TemporalFilter;
+        HDSimpleDenoiser m_SimpleDenoiser;
+        HDDiffuseDenoiser m_DiffuseDenoiser;
+        HDReflectionDenoiser m_ReflectionDenoiser;
+        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
+        SSGIDenoiser m_SSGIDenoiser;
+        
 
         // Ray-count manager data
-        RayCountManager m_RayCountManager = new RayCountManager();
+        RayCountManager m_RayCountManager;
 
         const int maxNumSubMeshes = 32;
         Dictionary<int, int> m_RayTracingRendererReference = new Dictionary<int, int>();
@@ -104,87 +107,64 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_RayTracingIntermediateBufferRGBA1;
         RTHandle m_RayTracingIntermediateBufferRGBA2;
         RTHandle m_RayTracingIntermediateBufferRGBA3;
+        RTHandle m_RayTracingIntermediateBufferRGBA4;
 
-        internal RTHandle GetRayTracingBuffer(InternalRayTracingBuffers bufferID)
-        {
-            switch (bufferID)
-            {
-                case InternalRayTracingBuffers.Distance:
-                    return m_RayTracingDistanceBuffer;
-                case InternalRayTracingBuffers.Direction:
-                    return m_RayTracingDirectionBuffer;
-                case InternalRayTracingBuffers.R0:
-                    return m_RayTracingIntermediateBufferR0;
-                case InternalRayTracingBuffers.R1:
-                    return m_RayTracingIntermediateBufferR1;
-                case InternalRayTracingBuffers.RG0:
-                    return m_RayTracingIntermediateBufferRG0;
-                case InternalRayTracingBuffers.RG1:
-                    return m_RayTracingIntermediateBufferRG1;
-                case InternalRayTracingBuffers.RGBA0:
-                    return m_RayTracingIntermediateBufferRGBA0;
-                case InternalRayTracingBuffers.RGBA1:
-                    return m_RayTracingIntermediateBufferRGBA1;
-                case InternalRayTracingBuffers.RGBA2:
-                    return m_RayTracingIntermediateBufferRGBA2;
-                case InternalRayTracingBuffers.RGBA3:
-                    return m_RayTracingIntermediateBufferRGBA3;
-                default:
-                    return null;
-            }
-        }
+        ShaderVariablesRaytracingLightLoop m_ShaderVariablesRaytracingLightLoopCB = new ShaderVariablesRaytracingLightLoop();
 
         internal void InitRayTracingManager()
         {
-            // Init the denoisers
-            m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-
             // Init the ray count manager
+            m_RayCountManager = new RayCountManager();
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
 
             // Build the light cluster
+            m_RayTracingLightCluster = new HDRaytracingLightCluster();
             m_RayTracingLightCluster.Initialize(this);
-
-            // Allocate the direction and instance buffers
-            m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
-            m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
-
-            // Allocate the intermediate buffers
-            m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
-            m_RayTracingIntermediateBufferR1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR1");
-            m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
-            m_RayTracingIntermediateBufferRG1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG1");
-            m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
-            m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
-            m_RayTracingIntermediateBufferRGBA2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA2");
-            m_RayTracingIntermediateBufferRGBA3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA3");
         }
 
         internal void ReleaseRayTracingManager()
         {
-            RTHandles.Release(m_RayTracingDistanceBuffer);
-            RTHandles.Release(m_RayTracingDirectionBuffer);
+            if (m_RayTracingDistanceBuffer != null)
+                RTHandles.Release(m_RayTracingDistanceBuffer);
+            if (m_RayTracingDirectionBuffer != null)
+                RTHandles.Release(m_RayTracingDirectionBuffer);
 
-            RTHandles.Release(m_RayTracingIntermediateBufferR1);
-            RTHandles.Release(m_RayTracingIntermediateBufferR0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRG1);
-            RTHandles.Release(m_RayTracingIntermediateBufferRG0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
+            if (m_RayTracingIntermediateBufferR0 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferR0);
+            if (m_RayTracingIntermediateBufferR1 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferR1);
+            if (m_RayTracingIntermediateBufferRG0 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRG0);
+            if (m_RayTracingIntermediateBufferRG1 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRG1);
+            if (m_RayTracingIntermediateBufferRGBA0 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
+            if (m_RayTracingIntermediateBufferRGBA1 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
+            if (m_RayTracingIntermediateBufferRGBA2 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
+            if (m_RayTracingIntermediateBufferRGBA3 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
+            if (m_RayTracingIntermediateBufferRGBA4 != null)
+                RTHandles.Release(m_RayTracingIntermediateBufferRGBA4);
 
-            m_RayTracingLightCluster.ReleaseResources();
-            m_ReflectionDenoiser.Release();
-            m_TemporalFilter.Release();
-            m_SimpleDenoiser.Release();
-            m_DiffuseDenoiser.Release();
-            m_RayCountManager.Release();
-            m_DiffuseShadowDenoiser.Release();
+            if (m_RayTracingLightCluster != null)
+                m_RayTracingLightCluster.ReleaseResources();
+            if (m_RayCountManager != null)
+                m_RayCountManager.Release();
+
+            if (m_ReflectionDenoiser != null)
+                m_ReflectionDenoiser.Release();
+            if (m_TemporalFilter != null)
+                m_TemporalFilter.Release();
+            if (m_SimpleDenoiser != null)
+                m_SimpleDenoiser.Release();
+            if (m_SSGIDenoiser != null)
+                m_SSGIDenoiser.Release();
+            if (m_DiffuseShadowDenoiser != null)
+                m_DiffuseShadowDenoiser.Release();
+            if (m_DiffuseDenoiser != null)
+                m_DiffuseDenoiser.Release();
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -244,9 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Is the sub material transparent?
                         subMeshTransparentArray[meshIdx] = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                         || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue)
-                        || (HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_AllTransparentRaytracing.upperBound >= currentMaterial.renderQueue);
+                        && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                         // aggregate the transparency info
                         materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
@@ -375,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CurrentRAS = new RayTracingAccelerationStructure();
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
-
+            m_ValidRayTracingClusterCulling = false;
             bool rayTracedShadow = false;
 
             // fetch all the lights in the scene
@@ -562,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
         }
 
-        internal void BuildRayTracingLightCluster(CommandBuffer cmd, HDCamera hdCamera)
+        internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
@@ -570,11 +548,53 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            if (m_ValidRayTracingState && (reflSettings.rayTracing.value || giSettings.rayTracing.value || recursiveSettings.enable.value || pathTracingSettings.enable.value || subSurface.rayTracing.value))
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value
+                                                || giSettings.rayTracing.value
+                                                || recursiveSettings.enable.value
+                                                || pathTracingSettings.enable.value
+                                                || subSurface.rayTracing.value));
+        }
+
+        internal void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.EvaluateLightClusters(cmd, hdCamera, m_RayTracingLights);
-                m_ValidRayTracingCluster = true;
+                m_RayTracingLightCluster.CullForRayTracing(cmd, hdCamera, m_RayTracingLights);
+                m_ValidRayTracingClusterCulling = true;
             }
+        }
+
+        internal void ReserveRayTracingCookieAtlasSlots()
+        {
+            if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
+            {
+                m_RayTracingLightCluster.ReserveCookieAtlasSlots(m_RayTracingLights);
+            }
+        }
+
+        internal void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, DebugDisplaySettings debugDisplaySettings)
+        {
+            if (m_ValidRayTracingState && m_ValidRayTracingClusterCulling)
+            {
+                m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
+                m_ValidRayTracingCluster = true;
+
+                UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
+				
+				m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
+            }
+        }
+
+        void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._LightPerCellCount = (uint)m_RayTracingLightCluster.GetLightPerCellCount();
+            m_ShaderVariablesRaytracingLightLoopCB._MaxClusterPos = m_RayTracingLightCluster.GetMaxClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._PunctualLightCountRT = (uint)m_RayTracingLightCluster.GetPunctualLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
+
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()
@@ -619,26 +639,61 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal HDTemporalFilter GetTemporalFilter()
         {
+            if (m_TemporalFilter == null)
+            {
+                m_TemporalFilter = new HDTemporalFilter();
+                m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
             return m_TemporalFilter;
         }
 
         internal HDSimpleDenoiser GetSimpleDenoiser()
         {
+            if (m_SimpleDenoiser == null)
+            {
+                m_SimpleDenoiser = new HDSimpleDenoiser();
+                m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
             return m_SimpleDenoiser;
+        }
+
+        internal SSGIDenoiser GetSSGIDenoiser()
+        {
+            if (m_SSGIDenoiser == null)
+            {
+                m_SSGIDenoiser = new SSGIDenoiser();
+                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources, sharedRTManager, this);
+            }
+            return m_SSGIDenoiser;
         }
 
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
         {
+            if (m_DiffuseDenoiser == null)
+            {
+                m_DiffuseDenoiser = new HDDiffuseDenoiser();
+                m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
             return m_DiffuseDenoiser;
         }
 
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
+            if (m_ReflectionDenoiser == null)
+            {
+                m_ReflectionDenoiser = new HDReflectionDenoiser();
+                m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
             return m_ReflectionDenoiser;
         }
 
         internal HDDiffuseShadowDenoiser GetDiffuseShadowDenoiser()
         {
+            if (m_DiffuseShadowDenoiser == null)
+            {
+                m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
+                m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, sharedRTManager, this);
+            }
             return m_DiffuseShadowDenoiser;
         }
 
@@ -650,6 +705,101 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool GetRayTracingClusterState()
         {
             return m_ValidRayTracingCluster;
+        }
+
+        internal RTHandle AllocateBuffer(InternalRayTracingBuffers bufferID)
+        {
+            switch (bufferID)
+            {
+                case InternalRayTracingBuffers.Direction:
+                {
+                    m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
+                    return m_RayTracingDirectionBuffer;
+                }
+                case InternalRayTracingBuffers.Distance:
+                {
+                    m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
+                    return m_RayTracingDistanceBuffer;
+                }
+                case InternalRayTracingBuffers.R0:
+                {
+                    m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
+                    return m_RayTracingIntermediateBufferR0;
+                }
+                case InternalRayTracingBuffers.R1:
+                {
+                    m_RayTracingIntermediateBufferR1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR1");
+                    return m_RayTracingIntermediateBufferR1;
+                }
+                case InternalRayTracingBuffers.RG0:
+                {
+                    m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
+                    return m_RayTracingIntermediateBufferRG0;
+                }
+                case InternalRayTracingBuffers.RG1:
+                {
+                    m_RayTracingIntermediateBufferRG1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG1");
+                    return m_RayTracingIntermediateBufferRG1;
+                }
+                case InternalRayTracingBuffers.RGBA0:
+                {
+                    m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
+                    return m_RayTracingIntermediateBufferRGBA0;
+                }
+                case InternalRayTracingBuffers.RGBA1:
+                {
+                    m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
+                    return m_RayTracingIntermediateBufferRGBA1;
+                }
+                case InternalRayTracingBuffers.RGBA2:
+                {
+                    m_RayTracingIntermediateBufferRGBA2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA2");
+                    return m_RayTracingIntermediateBufferRGBA2;
+                }
+                case InternalRayTracingBuffers.RGBA3:
+                {
+                    m_RayTracingIntermediateBufferRGBA3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA3");
+                    return m_RayTracingIntermediateBufferRGBA3;
+                }
+                case InternalRayTracingBuffers.RGBA4:
+                {
+                    m_RayTracingIntermediateBufferRGBA4 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA4");
+                    return m_RayTracingIntermediateBufferRGBA4;
+                }
+                default:
+                    return null;
+            }
+        }
+
+        internal RTHandle GetRayTracingBuffer(InternalRayTracingBuffers bufferID)
+        {
+            switch (bufferID)
+            {
+                case InternalRayTracingBuffers.Distance:
+                    return m_RayTracingDistanceBuffer != null ? m_RayTracingDistanceBuffer : AllocateBuffer(InternalRayTracingBuffers.Distance);
+                case InternalRayTracingBuffers.Direction:
+                    return m_RayTracingDirectionBuffer != null ? m_RayTracingDirectionBuffer : AllocateBuffer(InternalRayTracingBuffers.Direction);
+                case InternalRayTracingBuffers.R0:
+                    return m_RayTracingIntermediateBufferR0 != null ? m_RayTracingIntermediateBufferR0 : AllocateBuffer(InternalRayTracingBuffers.R0);
+                case InternalRayTracingBuffers.R1:
+                    return m_RayTracingIntermediateBufferR1 != null ? m_RayTracingIntermediateBufferR1 : AllocateBuffer(InternalRayTracingBuffers.R1);
+                case InternalRayTracingBuffers.RG0:
+                    return m_RayTracingIntermediateBufferRG0 != null ? m_RayTracingIntermediateBufferRG0 : AllocateBuffer(InternalRayTracingBuffers.RG0);
+                case InternalRayTracingBuffers.RG1:
+                    return m_RayTracingIntermediateBufferRG1 != null ? m_RayTracingIntermediateBufferRG1 : AllocateBuffer(InternalRayTracingBuffers.RG1);
+                case InternalRayTracingBuffers.RGBA0:
+                    return m_RayTracingIntermediateBufferRGBA0 != null ? m_RayTracingIntermediateBufferRGBA0 : AllocateBuffer(InternalRayTracingBuffers.RGBA0);
+                case InternalRayTracingBuffers.RGBA1:
+                    return m_RayTracingIntermediateBufferRGBA1 != null ? m_RayTracingIntermediateBufferRGBA1 : AllocateBuffer(InternalRayTracingBuffers.RGBA1);
+                case InternalRayTracingBuffers.RGBA2:
+                    return m_RayTracingIntermediateBufferRGBA2 != null ? m_RayTracingIntermediateBufferRGBA2 : AllocateBuffer(InternalRayTracingBuffers.RGBA2);
+                case InternalRayTracingBuffers.RGBA3:
+                    return m_RayTracingIntermediateBufferRGBA3 != null ? m_RayTracingIntermediateBufferRGBA3 : AllocateBuffer(InternalRayTracingBuffers.RGBA3);
+                case InternalRayTracingBuffers.RGBA4:
+                    return m_RayTracingIntermediateBufferRGBA4 != null ? m_RayTracingIntermediateBufferRGBA4 : AllocateBuffer(InternalRayTracingBuffers.RGBA4);
+                default:
+                    return null;
+            }
         }
 
         static internal float GetPixelSpreadTangent(float fov, int width, int height)

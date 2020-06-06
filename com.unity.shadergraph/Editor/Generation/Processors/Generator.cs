@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -17,7 +17,7 @@ namespace UnityEditor.ShaderGraph
 
         GraphData m_GraphData;
         AbstractMaterialNode m_OutputNode;
-        ITargetImplementation[] m_TargetImplementations;
+        Target[] m_Targets;
         GenerationMode m_Mode;
         string m_Name;
 
@@ -47,11 +47,11 @@ namespace UnityEditor.ShaderGraph
         {
             if(m_OutputNode is IMasterNode masterNode)
             {
-                m_TargetImplementations = m_GraphData.validImplementations.ToArray();
+                m_Targets = m_GraphData.validTargets.ToArray();
             }
             else
             {
-                m_TargetImplementations = new ITargetImplementation[] { new DefaultPreviewTarget() };
+                m_Targets = new Target[] { new PreviewTarget() };
             }
         }
 
@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
 
             if(m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                m_GraphData.AddValidationError(m_OutputNode.guid, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
 
                 m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
@@ -108,25 +108,37 @@ namespace UnityEditor.ShaderGraph
             {
                 GenerationUtils.GeneratePropertiesBlock(m_Builder, shaderProperties, shaderKeywords, m_Mode);
 
-                for(int i = 0; i < m_TargetImplementations.Length; i++)
+                for(int i = 0; i < m_Targets.Length; i++)
                 {
                     TargetSetupContext context = new TargetSetupContext();
                     context.SetMasterNode(m_OutputNode as IMasterNode);
 
                     // Instead of setup target, we can also just do get context
-                    m_TargetImplementations[i].SetupTarget(ref context);
+                    m_Targets[i].Setup(ref context);
                     GetAssetDependencyPaths(context);
-                    GenerateSubShader(i, context.descriptor);
-                }
 
-                // Either grab the pipeline default for the active node or the user override
-                if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
-                {
-                    string customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
-
-                    if (customEditor != null)
+                    foreach(var subShader in context.subShaders)
                     {
-                        m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        GenerateSubShader(i, subShader);
+                    }
+
+                    // Either grab the Target default shader GUI or the user override
+                    if (m_OutputNode is ICanChangeShaderGUI canChangeShaderGui)
+                    {
+                        string customEditor = string.Empty;
+                        if(canChangeShaderGui.OverrideEnabled)
+                        {
+                            customEditor = GenerationUtils.FinalCustomEditorString(canChangeShaderGui);
+                        }
+                        else
+                        {
+                            customEditor = context.defaultShaderGUI;
+                        }
+                        
+                        if (customEditor != null)
+                        {
+                            m_Builder.AppendLine("CustomEditor \"" + customEditor + "\"");
+                        }
                     }
                 }
 
@@ -217,18 +229,16 @@ namespace UnityEditor.ShaderGraph
             }
             else if(m_OutputNode is SubGraphOutputNode)
             {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault(),
-                };
+                var slot = m_OutputNode.GetInputSlots<MaterialSlot>().FirstOrDefault();
+                if(slot != null)
+                    pixelSlots = new List<MaterialSlot>() { slot };
+                else
+                    pixelSlots = new List<MaterialSlot>();
                 vertexSlots = new List<MaterialSlot>();
             }
             else
             {
-                pixelSlots = new List<MaterialSlot>()
-                {
-                    new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode },
-                };
+                pixelSlots = new List<MaterialSlot>() { new Vector4MaterialSlot(0, "Out", "Out", SlotType.Output, Vector4.zero) { owner = m_OutputNode } };
                 vertexSlots = new List<MaterialSlot>();
             }
 
@@ -321,11 +331,11 @@ namespace UnityEditor.ShaderGraph
             // Includes
             using (var preGraphIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.includes != null)
+                if (pass.includes != null)
                 {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Pregraph))
                     {
-                        if(include.TestActive(activeFields))
+                        if (include.TestActive(activeFields))
                             preGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
@@ -335,11 +345,11 @@ namespace UnityEditor.ShaderGraph
             }
             using (var postGraphIncludeBuilder = new ShaderStringBuilder())
             {
-                if(pass.includes != null)
+                if (pass.includes != null)
                 {
-                    foreach(IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
+                    foreach (IncludeCollection.Item include in pass.includes.Where(x => x.descriptor.location == IncludeLocation.Postgraph))
                     {
-                        if(include.TestActive(activeFields))
+                        if (include.TestActive(activeFields))
                             postGraphIncludeBuilder.AppendLine(include.value);
                     }
                 }
@@ -502,10 +512,7 @@ namespace UnityEditor.ShaderGraph
 
             // Build pixel graph outputs
             // Add struct fields to active fields
-            if (m_OutputNode is SubGraphOutputNode)
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, true);
-            else
-                GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance);
+            GenerationUtils.GenerateSurfaceDescriptionStruct(pixelGraphOutputBuilder, pixelSlots, pixelGraphOutputName, activeFields.baseInstance, m_OutputNode is SubGraphOutputNode, pass.virtualTextureFeedback);
 
             // Build pixel graph functions from ShaderPass pixel port mask
             GenerationUtils.GenerateSurfaceDescriptionFunction(
@@ -522,7 +529,8 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphOutputName,
                 null,
                 pixelSlots,
-                pixelGraphInputName);
+                pixelGraphInputName,
+                pass.virtualTextureFeedback);
 
             using (var pixelBuilder = new ShaderStringBuilder())
             {
@@ -540,7 +548,7 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Graph Functions
 
-            if(functionBuilder.length == 0)
+            if (functionBuilder.length == 0)
                 functionBuilder.AppendLine("// GraphFunctions: <None>");
             spliceCommands.Add("GraphFunctions", functionBuilder.ToCodeBlock());
 
@@ -569,10 +577,10 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Dots Instanced Graph Properties
 
-            int instancedPropCount = propertyCollector.GetDotsInstancingPropertiesCount(m_Mode);
+            bool hasDotsInstancedProps = propertyCollector.DotsInstancingProperties(m_Mode).Any();
             using (var dotsInstancedPropertyBuilder = new ShaderStringBuilder())
             {
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                     dotsInstancedPropertyBuilder.AppendLines(propertyCollector.GetDotsInstancingPropertiesDeclaration(m_Mode));
                 else
                     dotsInstancedPropertyBuilder.AppendLine("// HybridV1InjectedBuiltinProperties: <None>");
@@ -588,7 +596,7 @@ namespace UnityEditor.ShaderGraph
                 // if the shader graph has a nonzero amount of DOTS instanced properties.
                 // This can be removed once Hybrid V1 is removed.
                 #if !ENABLE_HYBRID_RENDERER_V2
-                if (instancedPropCount > 0)
+                if (hasDotsInstancedProps)
                 {
                     dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
@@ -690,18 +698,10 @@ namespace UnityEditor.ShaderGraph
             // Finalize
 
             // Pass Template
-            string passTemplatePath;
-            if(!string.IsNullOrEmpty(pass.passTemplatePath))
-                passTemplatePath = pass.passTemplatePath;
-            else
-                passTemplatePath = m_TargetImplementations[targetIndex].passTemplatePath;
+            string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory;
-            if(!string.IsNullOrEmpty(pass.sharedTemplateDirectory))
-                sharedTemplateDirectory = pass.sharedTemplateDirectory;
-            else
-                sharedTemplateDirectory = m_TargetImplementations[targetIndex].sharedTemplateDirectory;
+            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
 
             if (!File.Exists(passTemplatePath))
                 return;

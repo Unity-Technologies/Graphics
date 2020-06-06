@@ -214,6 +214,7 @@ namespace UnityEditor.VFX.Test
 
             yield return null;
         }
+
 #endif
     }
 }

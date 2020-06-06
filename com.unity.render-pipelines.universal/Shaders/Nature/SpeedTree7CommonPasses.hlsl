@@ -2,6 +2,7 @@
 #define UNIVERSAL_SPEEDTREE7COMMON_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -40,7 +41,7 @@ struct SpeedTreeVertexOutput
         half3 viewDirWS             : TEXCOORD4;
     #endif
 
-    #ifdef _MAIN_LIGHT_SHADOWS
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         float4 shadowCoord          : TEXCOORD6;
     #endif
 
@@ -88,7 +89,11 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.bakedGI = half3(0, 0, 0); // No GI currently.
 }
 
+#ifdef GBUFFER
+FragmentOutput SpeedTree7Frag(SpeedTreeVertexOutput input)
+#else
 half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
+#endif
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
@@ -144,10 +149,18 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
     #endif
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuseColor.rgb, half4(0, 0, 0, 0), 0, 0, diffuse.a);
-    color.rgb = MixFog(color.rgb, inputData.fogCoord);
-    color.a = OutputAlpha(color.a);
 
-    return color;
+    #ifdef GBUFFER
+        SurfaceData surfaceData;
+        surfaceData.smoothness = 0;
+        surfaceData.albedo = diffuseColor.rgb;
+        surfaceData.specular = half3(0, 0, 0);
+        return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+    #else
+        color.rgb = MixFog(color.rgb, inputData.fogCoord);
+        color.a = OutputAlpha(color.a);
+        return color;
+    #endif
 }
 
 half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target

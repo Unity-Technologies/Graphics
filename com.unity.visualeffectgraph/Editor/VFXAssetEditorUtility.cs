@@ -41,12 +41,19 @@ namespace UnityEditor
             }
         }
 
-        static VisualEffectAssetEditorUtility()
+        static void CheckVFXManagerOnce()
         {
             VFXManagerEditor.CheckVFXManager();
-            UnityEngine.VFX.VFXManager.activateVFX = true;
+            EditorApplication.update -= CheckVFXManagerOnce;
         }
 
+        static VisualEffectAssetEditorUtility()
+        {
+            EditorApplication.update += CheckVFXManagerOnce;
+
+
+            UnityEngine.VFX.VFXManager.activateVFX = true;
+        }
 
         public const string templateAssetName = "Simple Particle System.vfx";
         public const string templateBlockSubgraphAssetName = "Default Subgraph Block.vfxblock";
@@ -70,10 +77,9 @@ namespace UnityEditor
             Selection.activeObject = go;
         }
 
-
         public static VisualEffectAsset CreateNewAsset(string path)
         {
-            return CreateNew<VisualEffectAsset>(path);  
+            return CreateNew<VisualEffectAsset>(path);
         }
 
         public static T CreateNew<T>(string path) where T : UnityObject
@@ -100,10 +106,26 @@ namespace UnityEditor
                 Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
                 return;
             }
-            
+
             Texture2D texture = EditorGUIUtility.FindTexture(typeof(VisualEffectAsset));
             var action = ScriptableObject.CreateInstance<DoCreateNewVFX>();
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
+        }
+
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]
+        public static void CreateVisualEffectDefaults()
+        {
+            var obj = VFXResources.CreateInstance<VFXResources>();
+            obj.SetDefaults();
+            AssetDatabase.CreateAsset(obj, "Assets/Visual Effects Defaults.asset");
+            Selection.activeObject = obj;
+        }
+
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", true)]
+        public static bool IsCreateVisualEffectDefaultsActive()
+        {
+            var resources = Resources.FindObjectsOfTypeAll<VFXResources>();
+            return resources == null || resources.Length == 0;
         }
 
         internal class DoCreateNewVFX : EndNameEditAction
@@ -115,7 +137,7 @@ namespace UnityEditor
                     var templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
                     System.IO.File.WriteAllText(pathName, templateString);
                 }
-                catch(FileNotFoundException)
+                catch (FileNotFoundException)
                 {
                     CreateNewAsset(pathName);
                 }
@@ -160,8 +182,8 @@ namespace UnityEditor
 
             CreateVisualEffectSubgraph<VisualEffectSubgraphBlock, DoCreateNewSubgraphBlock>(fileName, templateBlockSubgraphAssetName);
         }
-        
-        public static void CreateVisualEffectSubgraph<T,U>(string fileName,string templateName) where U : EndNameEditAction
+
+        public static void CreateVisualEffectSubgraph<T, U>(string fileName, string templateName) where U : EndNameEditAction
         {
             string templateString = "";
 
@@ -170,7 +192,7 @@ namespace UnityEditor
             {
                 templateString = System.IO.File.ReadAllText(templatePath + templateName);
 
-                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString,texture);
+                ProjectWindowUtil.CreateAssetWithContent(fileName, templateString, texture);
             }
             catch (System.Exception e)
             {
@@ -181,6 +203,6 @@ namespace UnityEditor
 
                 return;
             }
-        }                
+        }
     }
 }

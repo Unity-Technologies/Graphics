@@ -33,16 +33,28 @@ class VFXSlotContainerEditor : Editor
         return serializedObject.FindProperty(setting.field.Name);
     }
 
+    struct NameNType
+    {
+        public string name;
+        public Type type;
+
+        public override int GetHashCode()
+        {
+            return name.GetHashCode() * 23 + type.GetHashCode();
+        }
+    }
+
     public virtual void DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
-        IEnumerable<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+        List<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToList();
 
         for (int i = 1; i < targets.Length; ++i)
         {
-            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToArray() ;
 
-            settingFields = settingFields.Intersect(otherSettingFields);
+            var excluded = new HashSet<NameNType>(settingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType }).Except(otherSettingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType })));
+            settingFields.RemoveAll(t => excluded.Any( u=> u.name == t.name));
         }
 
         foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t.field, FindProperty(t))).Where(t => t.Value != null))
@@ -58,6 +70,32 @@ class VFXSlotContainerEditor : Editor
                 {
                     prop.Value.stringValue = strings[result];
                 }
+            }
+            else if (prop.Key.FieldType.IsEnum && prop.Key.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
+            {
+                GUIContent[] enumNames = null;
+                int[] enumValues = null;
+
+                Array enums = Enum.GetValues(prop.Key.FieldType);
+                List<int> values = new List<int>(enums.Length);
+                for (int i = 0; i < enums.Length; ++i)
+                {
+                    values.Add((int)enums.GetValue(i));
+                }
+
+                foreach (var target in targets)
+                {
+                    VFXModel targetIte = target as VFXModel;
+
+                    var filteredValues = targetIte.GetFilteredOutEnumerators(prop.Key.Name);
+                    if (filteredValues != null)
+                        foreach (int val in filteredValues)
+                            values.Remove(val);
+                }
+                enumNames = values.Select(t => new GUIContent(Enum.GetName(prop.Key.FieldType, t))).ToArray();
+                enumValues = values.ToArray();
+
+                EditorGUILayout.IntPopup(prop.Value,enumNames,enumValues );
             }
             else
             {
@@ -91,7 +129,7 @@ class VFXSlotContainerEditor : Editor
                         var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
                         m_CurrentController = controller;
-                        if( controller != null)
+                        if (controller != null)
                             controller.DrawGizmos(view.attachedComponent);
                     }
                     else
@@ -163,7 +201,7 @@ class VFXSlotContainerEditor : Editor
                         if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                         {
                             Bounds b = m_CurrentController.GetGizmoBounds(view.attachedComponent);
-                            if( b.size.sqrMagnitude > Mathf.Epsilon)
+                            if (b.size.sqrMagnitude > Mathf.Epsilon)
                                 sceneView.Frame(b, false);
                         }
                     }
@@ -285,7 +323,7 @@ class VFXSlotContainerEditor : Editor
         {
             Color backup = GUI.color;
 
-            var c = new Color32(160,160,160,255);
+            var c = new Color32(160, 160, 160, 255);
             if ((mode & VFXAttributeMode.Read) != 0)
                 c.b = 255;
             if ((mode & VFXAttributeMode.Write) != 0)

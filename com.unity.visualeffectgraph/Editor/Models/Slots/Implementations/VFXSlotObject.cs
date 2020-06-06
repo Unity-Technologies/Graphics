@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
 
             UnityObject obj = (UnityObject)value;
 
-            if( !object.ReferenceEquals(obj,null))
+            if (!object.ReferenceEquals(obj, null))
             {
                 int instanceID = obj.GetInstanceID();
                 dependencies.Add(AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(instanceID)));

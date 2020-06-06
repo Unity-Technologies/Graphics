@@ -1,3 +1,5 @@
+#ifdef DEBUG_DISPLAY // Guard define here to be compliant with how shader graph generate code for include
+
 #ifndef UNITY_DEBUG_DISPLAY_INCLUDED
 #define UNITY_DEBUG_DISPLAY_INCLUDED
 
@@ -9,36 +11,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MipMapDebug.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/ColorPickerDebug.cs.hlsl"
 
-CBUFFER_START(UnityDebugDisplay)
-// Set of parameters available when switching to debug shader mode
-int _DebugLightingMode; // Match enum DebugLightingMode
-int _DebugLightLayersMask;
-float4 _DebugRenderingLayersColors[32];
-int _DebugShadowMapMode;
-float _DebugViewMaterialArray[11]; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
-int _DebugMipMapMode; // Match enum DebugMipMapMode
-int _DebugMipMapModeTerrainTexture; // Match enum DebugMipMapModeTerrainTexture
-int _ColorPickerMode; // Match enum ColorPickerDebugMode
-int _DebugStep;
-int _DebugDepthPyramidMip;
-int _DebugFullScreenMode;
-float _DebugTransparencyOverdrawWeight;
-float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
-float4 _DebugLightingSmoothness; // x == bool override, y == override value
-float4 _DebugLightingNormal; // x == bool override
-float4 _DebugLightingAmbientOcclusion; // x == bool override, y == override value
-float4 _DebugLightingSpecularColor; // x == bool override, yzw = specular color
-float4 _DebugLightingEmissiveColor; // x == bool override, yzw = emissive color
-float4 _DebugLightingMaterialValidateHighColor; // user can specific the colors for the validator error conditions
-float4 _DebugLightingMaterialValidateLowColor;
-float4 _DebugLightingMaterialValidatePureMetalColor;
-float4 _MousePixelCoord;  // xy unorm, zw norm
-float4 _MouseClickPixelCoord;  // xy unorm, zw norm
-float _DebugExposure;
-int _MatcapMixAlbedo;
-int _MatcapViewScale;
-uint _DebugContactShadowLightIndex;
-CBUFFER_END
 
 // Local shader variables
 static DirectionalShadowType g_DebugShadowAttenuation = 0;
@@ -158,7 +130,7 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 // color is current screen color
 // color of the font to use
 // direction is 1 or -1 and indicate fixedUnormCoord block shift
-void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction, int fontTextScaleWidth)
 {
     // Are we inside a font display block on the screen ?
     uint2 localCharCoord = currentUnormCoord - fixedUnormCoord;
@@ -173,15 +145,20 @@ void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, i
         // normalized coordinate
         float2 normTexCoord = float2(unormTexCoord) / float2(DEBUG_FONT_TEXT_WIDTH * DEBUG_FONT_TEXT_COUNT_X, DEBUG_FONT_TEXT_HEIGHT * DEBUG_FONT_TEXT_COUNT_Y);
 
-        #if UNITY_UV_STARTS_AT_TOP
+#if UNITY_UV_STARTS_AT_TOP
         normTexCoord.y = 1.0 - normTexCoord.y;
-        #endif
+#endif
 
         float charColor = SAMPLE_TEXTURE2D_LOD(_DebugFont, s_point_clamp_sampler, normTexCoord, 0).r;
         color = color * (1.0 - charColor) + charColor * fontColor;
     }
 
-    fixedUnormCoord.x += DEBUG_FONT_TEXT_SCALE_WIDTH * direction;
+    fixedUnormCoord.x += fontTextScaleWidth * direction;
+}
+
+void DrawCharacter(uint asciiValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color, int direction)
+{
+    DrawCharacter(asciiValue, fontColor, currentUnormCoord, fixedUnormCoord, color, direction, DEBUG_FONT_TEXT_SCALE_WIDTH);
 }
 
 // Shortcut to not have to file direction
@@ -208,6 +185,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     fixedUnormCoord.x += numEntries * DEBUG_FONT_TEXT_SCALE_WIDTH;
 
     // 3. Display the number
+    [unroll] // Needed to supress warning as some odd code gen is happening here. Is bad for perf, but it is a debug display.
     for (uint j = 0; j < maxStringSize; ++j)
     {
         // Numeric value incurrent font start on the second row at 0
@@ -241,7 +219,7 @@ void DrawInteger(int intValue, float3 fontColor, uint2 currentUnormCoord, inout 
     DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, false);
 }
 
-void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+void DrawFloatExplicitPrecision(float floatValue, float3 fontColor, uint2 currentUnormCoord, uint digitCount, inout uint2 fixedUnormCoord, inout float3 color)
 {
     if (IsNaN(floatValue))
     {
@@ -255,10 +233,15 @@ void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inou
         bool forceNegativeSign = floatValue >= 0.0f ? false : true;
         DrawInteger(intValue, fontColor, currentUnormCoord, fixedUnormCoord, color, 0, forceNegativeSign);
         DrawCharacter('.', fontColor, currentUnormCoord, fixedUnormCoord, color);
-        int fracValue = int(frac(abs(floatValue)) * 1e6); // 6 digit
-        int leading0 = 6 - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
+        int fracValue = int(frac(abs(floatValue)) * pow(10, digitCount));
+        int leading0 = digitCount - (int(log10(fracValue)) + 1); // Counting leading0 to add in front of the float
         DrawInteger(fracValue, fontColor, currentUnormCoord, fixedUnormCoord, color, leading0, false);
     }
+}
+
+void DrawFloat(float floatValue, float3 fontColor, uint2 currentUnormCoord, inout uint2 fixedUnormCoord, inout float3 color)
+{
+    DrawFloatExplicitPrecision(floatValue, fontColor, currentUnormCoord, 6, fixedUnormCoord, color);
 }
 
 // Debug rendering is performed at the end of the frame (after post-processing).
@@ -273,3 +256,5 @@ bool ShouldFlipDebugTexture()
 }
 
 #endif
+
+#endif // DEBUG_DISPLAY

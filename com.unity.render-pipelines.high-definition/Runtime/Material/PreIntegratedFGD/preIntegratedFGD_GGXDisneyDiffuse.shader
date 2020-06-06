@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/preIntegratedFGD_GGXDisneyDiffuse"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             #define PREFER_HALF 0
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"

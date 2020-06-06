@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
 
         static private VFXExpression BaseToConstant(Base _base, VFXValueType type)
         {
-            switch(_base)
+            switch (_base)
             {
                 case Base.Base2:    return TwoExpression[type];
                 case Base.Base10:   return TenExpression[type];
@@ -529,6 +529,17 @@ namespace UnityEditor.VFX
             return combine;
         }
 
+        static public VFXExpression BuildRandom(VFXSeedMode seedMode, bool constant, VFXExpression seed = null)
+        {
+            if (seedMode == VFXSeedMode.PerParticleStrip || constant)
+            {
+                if (seed == null)
+                    throw new ArgumentNullException("seed");
+                return FixedRandom(seed, seedMode);
+            }
+            return new VFXExpressionRandom(seedMode == VFXSeedMode.PerParticle);
+        }
+
         static public VFXExpression FixedRandom(uint hash, VFXSeedMode mode)
         {
             return FixedRandom(VFXValue.Constant<uint>(hash), mode);
@@ -549,7 +560,7 @@ namespace UnityEditor.VFX
             Mirror
         };
 
-        static private VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
+        static public VFXExpression ApplyAddressingMode(VFXExpression index, VFXExpression count, SequentialAddressingMode mode)
         {
             VFXExpression r = null;
             if (mode == SequentialAddressingMode.Wrap)
@@ -575,7 +586,7 @@ namespace UnityEditor.VFX
             dt = new VFXExpressionCastUintToFloat(dt);
             var size = new VFXExpressionCastUintToFloat(count) - VFXOperatorUtility.OneExpression[VFXValueType.Float];
             size = new VFXExpressionMax(size, VFXOperatorUtility.OneExpression[VFXValueType.Float]);
-            dt = dt / size ;
+            dt = dt / size;
             dt = new VFXExpressionCombine(dt, dt, dt);
             return VFXOperatorUtility.Lerp(start, end, dt);
         }

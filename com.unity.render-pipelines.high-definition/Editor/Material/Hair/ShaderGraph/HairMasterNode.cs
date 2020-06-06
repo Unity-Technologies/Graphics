@@ -259,6 +259,21 @@ namespace UnityEditor.Rendering.HighDefinition
                 Dirty(ModificationScope.Topological);
             }
         }
+        
+        [SerializeField]
+        bool m_AlphaToMask = false;
+
+        public ToggleData alphaToMask
+        {
+            get { return new ToggleData(m_AlphaToMask); }
+            set
+            {
+                if (m_AlphaToMask == value.isOn)
+                    return;
+                m_AlphaToMask = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
 
         [SerializeField]
         bool m_AlphaTestDepthPrepass;
@@ -412,6 +427,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_ReceivesSSR == value.isOn)
                     return;
                 m_ReceivesSSR = value.isOn;
+                Dirty(ModificationScope.Graph);
+            }
+        }
+
+        [SerializeField]
+        bool m_ReceivesSSRTransparent = false;
+        public ToggleData receiveSSRTransparent
+        {
+            get { return new ToggleData(m_ReceivesSSRTransparent); }
+            set
+            {
+                if (m_ReceivesSSRTransparent == value.isOn)
+                    return;
+                m_ReceivesSSRTransparent = value.isOn;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -839,7 +868,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Structs
                 new ConditionalField(HDStructFields.FragInputs.IsFrontFace,doubleSidedMode != DoubleSidedMode.Disabled &&
-                                                                                        !pass.Equals(HDPasses.Hair.MotionVectors)),
+                                                                                        !pass.Equals(HDHairSubTarget.HairPasses.MotionVectors)),
                 // Material
                 new ConditionalField(HDFields.KajiyaKay,                            materialType == MaterialType.KajiyaKay),
 
@@ -849,16 +878,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 new ConditionalField(HDFields.SpecularOcclusionCustom,              specularOcclusionMode == SpecularOcclusionMode.Custom),
 
                 // Misc
-                new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId)),
-                new ConditionalField(HDFields.AlphaTestShadow,                      alphaTest.isOn && alphaTestShadow.isOn &&
-                                                                                        pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
-                new ConditionalField(HDFields.AlphaTestPrepass,                     alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
-                new ConditionalField(HDFields.AlphaTestPostpass,                    alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId)),
+                // We always generate the keyword ALPHATEST_ON
+                new ConditionalField(Fields.AlphaTest,                              alphaTest.isOn && (pass.pixelPorts.Contains(AlphaClipThresholdSlotId) || pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId) ||
+                                                                                        pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId) || pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId))),
+                // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+                // Do alpha test only if we aren't using the TestShadow one
+                new ConditionalField(HDFields.DoAlphaTest,                          alphaTest.isOn && (pass.pixelPorts.Contains(AlphaClipThresholdSlotId) &&
+                                                                                        !(alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)))),
+                new ConditionalField(HDFields.DoAlphaTestShadow,                    alphaTest.isOn && alphaTestShadow.isOn && pass.pixelPorts.Contains(AlphaClipThresholdShadowSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPrepass,                   alphaTest.isOn && alphaTestDepthPrepass.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPrepassSlotId)),
+                new ConditionalField(HDFields.DoAlphaTestPostpass,                  alphaTest.isOn && alphaTestDepthPostpass.isOn && pass.pixelPorts.Contains(AlphaClipThresholdDepthPostpassSlotId)),
+                new ConditionalField(Fields.AlphaToMask,                            alphaTest.isOn && pass.pixelPorts.Contains(AlphaClipThresholdSlotId) && alphaToMask.isOn),
                 new ConditionalField(HDFields.AlphaFog,                             surfaceType != SurfaceType.Opaque && transparencyFog.isOn),
                 new ConditionalField(HDFields.BlendPreserveSpecular,                surfaceType != SurfaceType.Opaque && blendPreserveSpecular.isOn),
                 new ConditionalField(HDFields.TransparentWritesMotionVec,           surfaceType != SurfaceType.Opaque && transparentWritesMotionVec.isOn),
                 new ConditionalField(HDFields.DisableDecals,                        !receiveDecals.isOn),
                 new ConditionalField(HDFields.DisableSSR,                           !receiveSSR.isOn),
+                new ConditionalField(HDFields.DisableSSRTransparent,                !receiveSSRTransparent.isOn),
                 new ConditionalField(Fields.VelocityPrecomputed,                    addPrecomputedVelocity.isOn),
                 new ConditionalField(HDFields.BentNormal,                           IsSlotConnected(BentNormalSlotId) &&
                                                                                         pass.pixelPorts.Contains(BentNormalSlotId)),
@@ -995,12 +1031,13 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Add all shader properties required by the inspector
-            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, receiveSSR.isOn);
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, false, surfaceType == SurfaceType.Opaque ? receiveSSR.isOn : receiveSSRTransparent.isOn, receiveSSR.isOn, receiveSSRTransparent.isOn);
             HDSubShaderUtilities.AddBlendingStatesShaderProperties(
                 collector,
                 surfaceType,
                 HDSubShaderUtilities.ConvertAlphaModeToBlendMode(alphaMode),
                 sortPriority,
+                alphaToMask.isOn,
                 zWrite.isOn,
                 transparentCullMode,
                 zTest,
@@ -1009,8 +1046,11 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, alphaTest.isOn, alphaTestShadow.isOn);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, doubleSidedMode);
+            HDSubShaderUtilities.AddPrePostPassProperties(collector, alphaTestDepthPrepass.isOn, alphaTestDepthPostpass.isOn);
 
             base.CollectShaderProperties(collector, generationMode);
         }
+
+        public bool supportsVirtualTexturing => true;
     }
 }

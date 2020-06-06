@@ -3,10 +3,12 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel ScreenSpaceReflectionsTracing      SSR_TRACE
 #pragma kernel ScreenSpaceReflectionsReprojection SSR_REPROJECT
+
+#pragma multi_compile _ DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
 
 // Tweak parameters.
 // #define DEBUG
@@ -22,6 +24,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceReflection.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 
 
@@ -40,6 +43,20 @@
     RW_TEXTURE2D(float4, _SsrDebugTexture);
 #endif
 
+// For opaque we do the following operation:
+// - Render opaque object in depth buffer
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth pyramid and raymarch with depth pyramid
+// For transparent reflection we chose to not regenerate a depth pyramid to save performance. So we have
+// - Generate depth pyramid from opaque depth buffer
+// - Trigger ray from position recover from depth buffer (use depth pyramid) and raymarch with depth pyramid
+// - Render transparent object with reflection in depth buffer in transparent prepass
+// - Trigger ray from position recover from new depth buffer and raymarch with opaque depth pyramid
+// So we need a seperate texture for the mip chain and for the depth source when doing the transprent reflection
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+TEXTURE2D_X(_DepthTexture);
+#endif
+
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
     RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
@@ -51,24 +68,6 @@
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
     StructuredBuffer<int2>  _DepthPyramidMipLevelOffsets;
     StructuredBuffer<uint>  _CoarseStencilBuffer;
-
-CBUFFER_START(UnityScreenSpaceReflections)
-    int   _SsrStencilBit;
-    int   _SsrIterLimit;
-    float _SsrThicknessScale;
-    float _SsrThicknessBias;
-
-    float _SsrRoughnessFadeEnd;
-    float _SsrRoughnessFadeRcpLength;
-    float _SsrRoughnessFadeEndTimesRcpLength;
-    float _SsrEdgeFadeRcpLength;
-
-    float4 _ColorPyramidUvScaleAndLimitPrevFrame;
-
-    int    _SsrDepthPyramidMaxMip;
-    int    _SsrColorPyramidMaxMip;
-    int    _SsrReflectsSky;         // bool...
-CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
@@ -121,7 +120,12 @@ void ScreenSpaceReflectionsTracing(uint3 groupId          : SV_GroupID,
     }
 
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); // Should we precompute the half-texel bias? We seem to use it a lot.
+
+#ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
+    float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
+#else
     float  deviceDepth = LOAD_TEXTURE2D_X(_CameraDepthTexture, positionSS).r;
+#endif
 
     bool killRay = deviceDepth == UNITY_RAW_FAR_CLIP_VALUE;
 

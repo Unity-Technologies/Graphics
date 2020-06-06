@@ -13,8 +13,6 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     class VFXExpressionTests
     {
-
-
         [Test]
         public void ProcessStoreValue()
         {
@@ -237,6 +235,53 @@ namespace UnityEditor.VFX.Test
             var reduced = context.Compile(xValue);
 
             Assert.AreEqual(new Vector4(1, 0, 0, 0), reduced.Get<Vector4>());
+        }
+
+
+        [Test]
+        public void OuputExpression_From_Slot_Mesh_Should_Be_Invalid_Constant()
+        {
+            var source = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            source.SetSettingValue("m_Type", (SerializableType)typeof(Mesh));
+            var expressionOutput = source.outputSlots[0].GetExpression();
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding);
+            var reduced = context.Compile(expressionOutput);
+
+            Assert.IsTrue(expressionOutput.Is(VFXExpression.Flags.InvalidConstant));
+        }
+
+        [Test]
+        public void OuputExpression_From_Slot_Mesh_Should_Be_Invalid_Constant_Propagation()
+        {
+            var source = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            source.SetSettingValue("m_Type", (SerializableType)typeof(Mesh));
+
+            var meshCount = ScriptableObject.CreateInstance<Operator.MeshVertexCount>();
+            meshCount.inputSlots[0].Link(source.outputSlots[0]);
+
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            add.SetOperandType(0, typeof(uint));
+            add.SetOperandType(1, typeof(uint));
+            add.inputSlots[1].value = 8u;
+
+            var expressionOutputBefore = add.outputSlots[0].GetExpression();
+            var contextBefore = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding); //Used by runtime
+            var reducedBeforeLink = contextBefore.Compile(expressionOutputBefore);
+
+            bool success = add.inputSlots[0].Link(meshCount.outputSlots[0]);
+            Assert.IsTrue(success);
+
+            var expressionOutputAfter = add.outputSlots[0].GetExpression();
+            var contextAfter = new VFXExpression.Context(VFXExpressionContextOption.ConstantFolding); //Used by runtime
+            var reducedAfterLink = contextAfter.Compile(expressionOutputAfter);
+
+            var contextAfterCPUEvaluation = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation | VFXExpressionContextOption.ConstantFolding); //Used by GUI
+            var reducedAfterLinkCPUEvaluation = contextAfterCPUEvaluation.Compile(expressionOutputAfter);
+
+            Assert.IsAssignableFrom(typeof(VFXValue<uint>), reducedBeforeLink);
+            Assert.IsAssignableFrom(typeof(VFXExpressionAdd), reducedAfterLink);
+            Assert.IsAssignableFrom(typeof(VFXValue<uint>), reducedAfterLinkCPUEvaluation);
         }
     }
 }
