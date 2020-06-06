@@ -879,6 +879,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             var cs = m_Resources.shaders.exposureCS;
 
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+
             GrabExposureHistoryTextures(camera, out var prevExposure, out _);
 
             int kernel = 0;

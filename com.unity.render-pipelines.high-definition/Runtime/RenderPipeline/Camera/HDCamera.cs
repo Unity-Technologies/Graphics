@@ -376,6 +376,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
         }
 
+        internal bool IsSSGIEnabled()
+        {
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
+        }
+
         internal bool IsTransparentSSREnabled()
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -432,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;

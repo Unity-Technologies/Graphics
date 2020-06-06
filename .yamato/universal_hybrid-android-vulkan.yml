@@ -21,7 +21,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%
+                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -77,7 +77,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_fast-trunk:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%
+                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -134,7 +134,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_CUSTOM-REVISION:
       -  |5-
 
                  set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200 --player-connection-ip=%BOKKEN_DEVICE_IP%
+                 utr\utr --suite=playmode --platform=Android --editor-location=WindowsEditor --artifacts_path=test-results --player-load-path=players --scripting-backend=il2cpp --timeout=1200
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:

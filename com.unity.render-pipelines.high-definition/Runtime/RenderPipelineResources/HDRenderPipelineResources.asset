@@ -115,13 +115,11 @@ MonoBehaviour:
       type: 3}
     encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
     cubeToPanoPS: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
-    blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163,
-      type: 3}
-    filterAreaLightCookiesPS: {fileID: 4800000, guid: c243aac96dda5fa40bed693ed5ba02c4,
-      type: 3}
-    clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76,
-      type: 3}
     customPassUtils: {fileID: 4800000, guid: 7e3722d0388000848acb25fd3cc8c088, type: 3}
+    customPassRenderersUtils: {fileID: 4800000, guid: cef5ba33ee5063d4c8b495d2292e394d, type: 3}
+    blitCubeTextureFacePS: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}
+    filterAreaLightCookiesPS: {fileID: 4800000, guid: c243aac96dda5fa40bed693ed5ba02c4, type: 3}
+    clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76, type: 3}
     xrMirrorViewPS: {fileID: 4800000, guid: e6255f98cf405eb45ab6f9006cf11e1f, type: 3}
     xrOcclusionMeshPS: {fileID: 4800000, guid: 46a45b32bb110604fb36216b63bcdb81, type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
