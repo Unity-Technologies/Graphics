@@ -37,6 +37,11 @@ all:
       api: Vulkan
       test_platforms:
         - playmode
+    - platform: Linux
+      api: Vulkan
+      test_platforms:
+        - editmode
+        - playmode        
     - platform: OSX
       api: Metal
       test_platforms:
