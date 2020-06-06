@@ -73,7 +73,7 @@ Shader "Universal Render Pipeline/Particles/Unlit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _EMISSION
 
             // -------------------------------------

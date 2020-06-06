@@ -68,9 +68,9 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -158,13 +158,13 @@ Shader "Universal Render Pipeline/Simple Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
             //#pragma shader_feature _ALPHAPREMULTIPLY_ON
-            #pragma shader_feature _ _SPECGLOSSMAP _SPECULAR_COLOR
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
+            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
@@ -294,9 +294,9 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
             #pragma shader_feature_local_fragment _ _SPECGLOSSMAP _SPECULAR_COLOR
             #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
-            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _EMISSION
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Universal Pipeline keywords
