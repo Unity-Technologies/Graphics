@@ -196,23 +196,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.Transpose(worldToViewMatrix.transpose * viewSpaceRasterTransform);
         }
 
-        // Scale and bias to transform unnormalized viewport/pixel coordinates to normalized device coordinates
-        internal static Vector4 ComputeInverseViewportScaleBias(HDCamera hdCamera)
-        {
-            float verticalFoV = hdCamera.camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
-            Vector2 lensShift = hdCamera.camera.GetGateFittedLensShift();
-
-            float aspectRatio = hdCamera.camera.aspect < 0 ? hdCamera.screenSize.x * hdCamera.screenSize.w : hdCamera.camera.aspect;
-            float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
-
-            // See the comment in ComputePixelCoordToWorldSpaceViewDirectionMatrix for the derivation
-            return new Vector4(
-                -2.0f * hdCamera.screenSize.z * tanHalfVertFoV * aspectRatio,
-                -2.0f * hdCamera.screenSize.w * tanHalfVertFoV,
-                (1.0f - 2.0f * lensShift.x) * tanHalfVertFoV * aspectRatio,
-                (1.0f - 2.0f * lensShift.y) * tanHalfVertFoV);
-        }
-
         internal static float ComputZPlaneTexelSpacing(float planeDepth, float verticalFoV, float resolutionY)
         {
             float tanHalfVertFoV = Mathf.Tan(0.5f * verticalFoV);
