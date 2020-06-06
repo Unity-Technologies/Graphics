@@ -551,14 +551,22 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDRenderPipeline.defaultAsset.renderPipelineResources == null)
                 HDRenderPipeline.defaultAsset.renderPipelineResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
-			ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
+            ResourceReloader.TryReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+#else
+            ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+#endif
 
             if (m_RayTracingSupported)
             {
                 if (HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources == null)
                     HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                         = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
+#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
+                ResourceReloader.TryReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+#else
                 ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+#endif
             }
             else
             {
@@ -613,13 +621,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        /// <summary>
-        /// Resets the reference size of the internal RTHandle System.
-        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
-        /// </summary>
-        /// <param name="width">New width of the internal RTHandle System.</param>
-        /// <param name="height">New height of the internal RTHandle System.</param>
-        public void ResetRTHandleReferenceSize(int width, int height)
+                /// <summary>
+                /// Resets the reference size of the internal RTHandle System.
+                /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+                /// </summary>
+                /// <param name="width">New width of the internal RTHandle System.</param>
+                /// <param name="height">New height of the internal RTHandle System.</param>
+                public void ResetRTHandleReferenceSize(int width, int height)
         {
             RTHandles.ResetReferenceSize(width, height);
             HDCamera.ResetAllHistoryRTHandleSystems(width, height);
