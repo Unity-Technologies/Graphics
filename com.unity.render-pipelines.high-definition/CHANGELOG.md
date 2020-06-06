@@ -126,11 +126,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added Virtual Texturing cache settings to control the size of the Streaming Virtual Texturing caches.
 - Added back-compatibility with builtin stereo matrices.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
 - Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 
 ### Fixed
 - Fixed black screens for linux/HDRP (1246407)
@@ -630,6 +632,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where the light list is not cleared but still used when resizing the RT.
 - Fixed exposure debug shader with XR single-pass rendering.
 - Fixed issues with scene view and transparent motion vectors.
+- Fixed black screens for linux/HDRP (1246407)
 
 ### Changed
 - Improve MIP selection for decals on Transparents

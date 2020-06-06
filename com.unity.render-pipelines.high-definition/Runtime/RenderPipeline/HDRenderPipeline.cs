@@ -10,6 +10,10 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 using UnityEditorInternal;
 #endif
 
+#if ENABLE_VIRTUALTEXTURES
+using UnityEngine.Rendering.VirtualTexturing;
+#endif
+
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -398,6 +402,24 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
+#if ENABLE_VIRTUALTEXTURES
+            VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
+
+            if (settings == null)
+                settings = new VirtualTexturingSettingsSRP();
+
+            VirtualTexturing.Streaming.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
+
+            GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
+            for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
+            {
+                GPUCacheSettingSRP srpSetting = settings.streamingGpuCacheSettings[i];
+                gpuCacheSettings[i] = new GPUCacheSetting() { format = srpSetting.format, sizeInMegaBytes = srpSetting.sizeInMegaBytes };
+            }
+
+            VirtualTexturing.Streaming.SetGPUCacheSettings(gpuCacheSettings);
+#endif
+
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
@@ -551,7 +573,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (HDRenderPipeline.defaultAsset.renderPipelineResources == null)
                 HDRenderPipeline.defaultAsset.renderPipelineResources
                     = UnityEditor.AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
-			ResourceReloader.TryReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
+            ResourceReloader.TryReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 
             if (m_RayTracingSupported)
             {
@@ -613,13 +635,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-        /// <summary>
-        /// Resets the reference size of the internal RTHandle System.
-        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
-        /// </summary>
-        /// <param name="width">New width of the internal RTHandle System.</param>
-        /// <param name="height">New height of the internal RTHandle System.</param>
-        public void ResetRTHandleReferenceSize(int width, int height)
+                /// <summary>
+                /// Resets the reference size of the internal RTHandle System.
+                /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+                /// </summary>
+                /// <param name="width">New width of the internal RTHandle System.</param>
+                /// <param name="height">New height of the internal RTHandle System.</param>
+                public void ResetRTHandleReferenceSize(int width, int height)
         {
             RTHandles.ResetReferenceSize(width, height);
             HDCamera.ResetAllHistoryRTHandleSystems(width, height);
@@ -2061,9 +2083,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
-                            {
-                                HDAdditionalCameraData acd;
-                                if (renderRequest.hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd) && acd.xrRendering)
+                            {                                
+                                if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
                                 }
