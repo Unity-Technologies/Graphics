@@ -223,8 +223,29 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     }
 
 #else // HAS_LIGHTLOOP
+
     pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+
+// Simulate opacity blending by simply continuing along the current ray
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    if (builtinData.opacity < 1.0)
+    {
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = GetAbsolutePositionWS(fragInput.positionRWS) - fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        rayDescriptor.Direction = WorldRayDirection();
+        rayDescriptor.TMin = 0.0;
+        rayDescriptor.TMax = FLT_INF;
+
+        PathIntersection nextPathIntersection = pathIntersection;
+        nextPathIntersection.remainingDepth--;
+
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+
+        pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
+    }
 #endif
+
+#endif // HAS_LIGHTLOOP
 
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
