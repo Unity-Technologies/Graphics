@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_RequireDepthTexture = false;
         [SerializeField] bool m_RequireOpaqueTexture = false;
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
+        [SerializeField] bool m_RequireVolumeFrameworkUpdate = true;
         [SerializeField] bool m_SupportsTerrainHoles = true;
 
         // Quality settings
@@ -195,7 +196,7 @@ namespace UnityEngine.Rendering.Universal
                 instance.m_RendererDataList[0] = rendererData;
             else
                 instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
-            
+
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
@@ -261,7 +262,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
-                
+
                 string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
@@ -487,6 +488,14 @@ namespace UnityEngine.Rendering.Universal
             get { return m_OpaqueDownsampling; }
         }
 
+        /// <summary>
+        /// Returns whether the volume framework will be updated every frame for each camera
+        /// </summary>
+        public bool supportsVolumeFrameworkUpdate
+        {
+            get { return m_RequireVolumeFrameworkUpdate; }
+        }
+
         public bool supportsTerrainHoles
         {
             get { return m_SupportsTerrainHoles; }
@@ -691,7 +700,7 @@ namespace UnityEngine.Rendering.Universal
                     if (defaultShader != null)
                         return defaultShader;
                 }
-                
+
                 if (m_DefaultShader == null)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));
