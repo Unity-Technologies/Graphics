@@ -75,12 +75,12 @@ namespace UnityEngine.Rendering.Universal
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-            
+
             if (setInverseMatrices)
             {
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
-                
+
                 Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
                 Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
@@ -199,6 +199,11 @@ namespace UnityEngine.Rendering.Universal
         /// <see cref="SupportedRenderingFeatures"/>
         /// </summary>
         public RenderingFeatures supportedRenderingFeatures { get; set; } = new RenderingFeatures();
+
+        /// <summary>
+        /// Controls whether this renderer should update the volume framework each frame for each camera
+        /// </summary>
+        public bool shouldUpdateVolumeFramework { get; set; } = true;
 
         static class RenderPassBlock
         {
@@ -890,7 +895,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (!stereo)
                 return;
-            
+
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -907,7 +912,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 QualitySettings.antiAliasing = msaaSamples;
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }  
+            }
 #endif
         }
     }

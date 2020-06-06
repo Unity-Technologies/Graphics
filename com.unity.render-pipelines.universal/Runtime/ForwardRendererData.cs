@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] LayerMask m_TransparentLayerMask = -1;
         [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
         [SerializeField] bool m_ShadowTransparentReceive = true;
+        [SerializeField] bool m_ShouldUpdateVolumeFramework = true;
 
         protected override ScriptableRenderer Create()
         {
@@ -124,6 +125,11 @@ namespace UnityEngine.Rendering.Universal
                 m_ShadowTransparentReceive = value;
             }
         }
+
+        /// <summary>
+        /// True if this renderer should update the volume framework each frame for each camera
+        /// </summary>
+        public bool shouldUpdateVolumeFramework => m_ShouldUpdateVolumeFramework;
 
         protected override void OnEnable()
         {

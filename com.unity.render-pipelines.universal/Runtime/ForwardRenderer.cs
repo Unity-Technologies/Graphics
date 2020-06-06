@@ -109,6 +109,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 cameraStacking = true,
             };
+
+            shouldUpdateVolumeFramework = data.shouldUpdateVolumeFramework;
         }
 
         /// <inheritdoc />
