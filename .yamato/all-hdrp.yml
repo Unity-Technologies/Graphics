@@ -15,6 +15,10 @@ All_HDRP_trunk:
          rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_trunk
          rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_trunk
+         rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_trunk
+         rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_trunk
          rerun: always
 All_HDRP_fast-trunk:
@@ -34,6 +38,10 @@ All_HDRP_fast-trunk:
          rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_fast-trunk
          rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_fast-trunk
+         rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_fast-trunk
+         rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-trunk
          rerun: always
 All_HDRP_CUSTOM-REVISION:
@@ -52,6 +60,10 @@ All_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-dx12.yml#HDRP_Win_DX12_playmode_XR_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION
          rerun: always
