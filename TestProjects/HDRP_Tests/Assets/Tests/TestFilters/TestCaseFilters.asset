@@ -595,3 +595,10 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Wrong result on vulkan
+  - FilteredScene: {fileID: 102900000, guid: 708bd21bc204d2342bc1702a5a6de1d3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: layer disappeard
