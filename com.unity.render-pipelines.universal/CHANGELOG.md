@@ -30,7 +30,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to disable XR autotests on test settings.
 - Added option to enable/disable Adaptive Performance when it's package is available.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
-- Added the option, in the Universal Render Pipeline Asset, to disable updates to the volume framework, which by default happens every frame for each camera.
 
 ### Changed
 
