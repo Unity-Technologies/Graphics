@@ -190,11 +190,6 @@ namespace UnityEngine.Rendering.HighDefinition
             FilterCubemapCommon(cmd, source, target, m_faceWorldToViewMatrixMatrices);
         }
 
-        float RoughnessStep(int textureResolution)
-        {
-            return 1.0f / (Mathf.Log((float)textureResolution, 2.0f) - 2.0f);
-        }
-
         void CheckIntermediateTexturesSize(int texWidth, int texHeight)
         {
             // If the first texture is not the right size
