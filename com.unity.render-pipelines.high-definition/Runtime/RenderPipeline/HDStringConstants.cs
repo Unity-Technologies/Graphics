@@ -583,7 +583,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RayBinResult                    = Shader.PropertyToID("_RayBinResult");
         public static readonly int _RayBinSizeResult                = Shader.PropertyToID("_RayBinSizeResult");
         public static readonly int _RayBinTileCountX                = Shader.PropertyToID("_RayBinTileCountX");
-
+        public static readonly int _BufferSizeX                     = Shader.PropertyToID("_BufferSizeX");
+        
         // Sub Surface
         public static readonly int _ThroughputTextureRW             = Shader.PropertyToID("_ThroughputTextureRW");
         public static readonly int _NormalTextureRW                 = Shader.PropertyToID("_NormalTextureRW");
@@ -615,6 +616,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AdaptationParams               = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture           = Shader.PropertyToID("_ExposureCurveTexture");
         public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");
+        public static readonly int _ProceduralMaskParams           = Shader.PropertyToID("_ProceduralMaskParams");
+        public static readonly int _ProceduralMaskParams2          = Shader.PropertyToID("_ProceduralMaskParams2");
         public static readonly int _Variants                       = Shader.PropertyToID("_Variants");
         public static readonly int _InputTexture                   = Shader.PropertyToID("_InputTexture");
         public static readonly int _InputTextureMSAA               = Shader.PropertyToID("_InputTextureMSAA");

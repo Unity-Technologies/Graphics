@@ -81,14 +81,21 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.pipelineSupportsRayTracing && m_RayTracing.overrideState.boolValue && m_RayTracing.value.boolValue)
             {
                 PropertyField(m_LayerMask, EditorGUIUtility.TrTextContent("Layer Mask", "Layer mask used to include the objects for ambient occlusion."));
-                PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
-                PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
-                PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
+                base.OnInspectorGUI(); // Quality Setting
+                GUI.enabled = useCustomValue;
                 {
                     EditorGUI.indentLevel++;
-                    PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
+                    PropertyField(m_RayLength, EditorGUIUtility.TrTextContent("Ray Length", "Controls the length of ambient occlusion rays."));
+                    PropertyField(m_SampleCount, EditorGUIUtility.TrTextContent("Sample Count", "Number of samples for ray traced ambient occlusion."));
+                    PropertyField(m_Denoise, EditorGUIUtility.TrTextContent("Denoise", "Enable denoising on the ray traced ambient occlusion."));
+                    {
+                        EditorGUI.indentLevel++;
+                        PropertyField(m_DenoiserRadius, EditorGUIUtility.TrTextContent("Denoiser Radius", "Radius parameter for the denoising."));
+                        EditorGUI.indentLevel--;
+                    }
                     EditorGUI.indentLevel--;
                 }
+                GUI.enabled = true;
             }
             else
             {
