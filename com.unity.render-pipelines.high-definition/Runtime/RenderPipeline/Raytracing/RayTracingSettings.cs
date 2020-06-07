@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds the general settings for ray traced effects.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Ray Tracing/Settings (Preview)")]
+    [Serializable, VolumeComponentMenu("Ray Tracing/Ray Tracing Settings (Preview)")]
     public sealed class RayTracingSettings : VolumeComponent
     {
         /// <summary>
@@ -19,5 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Enables the override of the shadow culling.")]
         public BoolParameter extendCulling = new BoolParameter(false);
+
+        RayTracingSettings()
+        {
+            displayName = "Ray Tracing Settings (Preview)";
+        }
     }
 }
