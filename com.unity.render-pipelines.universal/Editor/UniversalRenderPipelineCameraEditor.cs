@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent volumeLayerMask = EditorGUIUtility.TrTextContent("Volume Mask", "This camera will only be affected by volumes in the selected scene-layers.");
             public static GUIContent volumeTrigger = EditorGUIUtility.TrTextContent("Volume Trigger", "A transform that will act as a trigger for volume blending. If none is set, the camera itself will act as a trigger.");
 
-            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post Processing", "Enable this to make this camera render post-processing effects.");
+            public static GUIContent renderPostProcessing = EditorGUIUtility.TrTextContent("Post-Processing", "Enable this to make this camera render post-processing effects.");
             public static GUIContent antialiasing = EditorGUIUtility.TrTextContent("Anti-aliasing", "The anti-aliasing method to use.");
             public static GUIContent antialiasingQuality = EditorGUIUtility.TrTextContent("Quality", "The quality level to use for the selected anti-aliasing method.");
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
 
             public static readonly string missingRendererWarning = "The currently selected Renderer is missing form the Universal Render Pipeline asset.";
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
+            public static readonly string disabledPostprocessing = "Post-processing is currently disabled on the current Universal Render Pipeline asset.";
 
             public static GUIContent[] cameraBackgroundType =
             {
@@ -572,6 +573,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessingOverlay()
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            if (!m_UniversalRenderPipeline.postProcessIncluded)
+            {
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            }
         }
 
         void DrawOutputSettings()
@@ -741,6 +746,10 @@ namespace UnityEditor.Rendering.Universal
         void DrawPostProcessing()
         {
             EditorGUILayout.PropertyField(m_AdditionalCameraDataRenderPostProcessing, Styles.renderPostProcessing);
+            if (!m_UniversalRenderPipeline.postProcessIncluded)
+            {
+                EditorGUILayout.HelpBox(Styles.disabledPostprocessing, MessageType.Warning);
+            }
 
             // Draw Final Post-processing
             DrawIntPopup(m_AdditionalCameraDataAntialiasing, Styles.antialiasing, Styles.antialiasingOptions, Styles.antialiasingValues);

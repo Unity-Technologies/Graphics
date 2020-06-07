@@ -43,15 +43,45 @@ namespace UnityEditor.Rendering.Universal
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
 
+        static readonly string[] s_PostProcessingShaderGUIDS = new[]
+        {
+            "5f1864addb451f54bae8c86d230f736e",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Bloom.shader
+            "2aed67ad60045d54ba3a00c91e2d2631",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/BokehDepthOfField.shader
+            "1edcd131364091c46a17cbff0b1de97a",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/CameraMotionBlur.shader
+            "c49e63ed1bbcb334780a3bd19dfed403",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/FinalPost.shader
+            "5e7134d6e63e0bc47a1dd2669cedb379",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/GaussianDepthOfField.shader
+            "ec9fec698a3456d4fb18cf8bacb7a2bc",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/LutBuilderHdr.shader
+            "65df88701913c224d95fc554db28381a",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/LutBuilderLdr.shader
+            "a15b78cf8ca26ca4fb2090293153c62c",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/PaniniProjection.shader
+            "1121bb4e615ca3c48b214e79e841e823",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/StopNaN.shader
+            "63eaba0ebfb82cc43bde059b4a8c65f6",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/SubpixelMorphologicalAntialiasing.shader
+            "e7857e9d0c934dc4f83f270f8447b006",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/UberPost.shader
+
+        };
+
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        bool StripUnusedShader(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData)
+        bool StripUnusedShader(ShaderFeatures features, Shader shader, ShaderCompilerData compilerData, ref UniversalRenderPipelineAsset urpAsset)
         {
-            if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) &&
-                shader.name.Contains("ScreenSpaceShadows"))
+            if (!CoreUtils.HasFlag(features, ShaderFeatures.MainLightShadows) && shader.name.Contains("ScreenSpaceShadows"))
+            {
                 return true;
+            }
+
+            if (!urpAsset.postProcessIncluded)
+            {
+                var path = AssetDatabase.GetAssetPath(shader);
+                var guid = AssetDatabase.AssetPathToGUID(path);
+                for (int i = 0; i < s_PostProcessingShaderGUIDS.Length; i++)
+                {
+                    if (guid == s_PostProcessingShaderGUIDS[i])
+                    {
+                        return true;
+                    }
+                }
+            }
 
             return false;
         }
@@ -166,9 +196,9 @@ namespace UnityEditor.Rendering.Universal
             return false;
         }
 
-        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(ShaderFeatures features, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData, ref UniversalRenderPipelineAsset urpAsset)
         {
-            if (StripUnusedShader(features, shader, compilerData))
+            if (StripUnusedShader(features, shader, compilerData, ref urpAsset))
                 return true;
 
             if (StripUnusedPass(features, snippetData))
@@ -212,17 +242,17 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             int prevVariantCount = compilerDataList.Count;
-            
+
             var inputShaderVariantCount = compilerDataList.Count;
             for (int i = 0; i < inputShaderVariantCount;)
             {
-                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i]);
+                bool removeInput = StripUnused(ShaderBuildPreprocessor.supportedFeatures, shader, snippetData, compilerDataList[i], ref urpAsset);
                 if (removeInput)
                     compilerDataList[i] = compilerDataList[--inputShaderVariantCount];
                 else
                     ++i;
             }
-            
+
             if(compilerDataList is List<ShaderCompilerData> inputDataList)
                 inputDataList.RemoveRange(inputShaderVariantCount, inputDataList.Count - inputShaderVariantCount);
             else
@@ -239,7 +269,7 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        
+
     }
     class ShaderBuildPreprocessor : IPreprocessBuildWithReport
     {

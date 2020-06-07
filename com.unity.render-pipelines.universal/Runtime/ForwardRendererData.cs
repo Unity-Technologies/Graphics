@@ -50,9 +50,6 @@ namespace UnityEngine.Rendering.Universal
             public Shader fallbackErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
-        public PostProcessData postProcessData = null;
-
         [Reload("Runtime/Data/XRSystemData.asset")]
         public XRSystemData xrSystemData = null;
 
@@ -69,7 +66,6 @@ namespace UnityEngine.Rendering.Universal
             if (!Application.isPlaying)
             {
                 ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
                 ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
             }
 #endif
@@ -138,7 +134,6 @@ namespace UnityEngine.Rendering.Universal
 
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
             ResourceReloader.TryReloadAllNullIn(xrSystemData, UniversalRenderPipelineAsset.packagePath);
 #endif
         }

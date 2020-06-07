@@ -162,6 +162,8 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_UseAdaptivePerformance = true;
 
         // Post-processing settings
+        [SerializeField] bool m_PostProcessIncluded = true;
+        [SerializeField] PostProcessData m_PostProcessData = null;
         [SerializeField] ColorGradingMode m_ColorGradingMode = ColorGradingMode.LowDynamicRange;
         [SerializeField] int m_ColorGradingLutSize = 32;
 
@@ -186,16 +188,14 @@ namespace UnityEngine.Rendering.Universal
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
         public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
+        public static readonly string postProcessingResourcesGUID = "41439944d30ece34e96484bdb6645b55";
 
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
             // Create Universal RP Asset
-            var instance = CreateInstance<UniversalRenderPipelineAsset>();
-            if (rendererData != null)
-                instance.m_RendererDataList[0] = rendererData;
-            else
-                instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
-            
+            UniversalRenderPipelineAsset instance = CreateInstance<UniversalRenderPipelineAsset>();
+            instance.m_RendererDataList[0] = (rendererData != null) ? rendererData : CreateInstance<ForwardRendererData>();
+
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
 
@@ -261,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_EditorResourcesAsset != null && !m_EditorResourcesAsset.Equals(null))
                     return m_EditorResourcesAsset;
-                
+
                 string resourcePath = AssetDatabase.GUIDToAssetPath(editorResourcesGUID);
                 var objs = InternalEditorUtility.LoadSerializedFileAndForget(resourcePath);
                 m_EditorResourcesAsset = objs != null && objs.Length > 0 ? objs.First() as UniversalRenderPipelineEditorResources : null;
@@ -431,6 +431,22 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        internal PostProcessData postProcessData
+        {
+            get
+            {
+                #if UNITY_EDITOR
+                if (m_PostProcessData == null || m_PostProcessData.Equals(null))
+                {
+                    string resourcePath = AssetDatabase.GUIDToAssetPath(postProcessingResourcesGUID);
+                    m_PostProcessData = AssetDatabase.LoadAssetAtPath<PostProcessData>(resourcePath);
+                }
+                #endif
+
+                return m_PostProcessData;
+            }
+        }
+
 #if UNITY_EDITOR
         internal GUIContent[] rendererDisplayList
         {
@@ -574,6 +590,24 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShadowDepthBias = ValidateShadowBias(value); }
         }
 
+        internal bool postProcessIncluded
+        {
+            get
+            {
+                #if UNITY_EDITOR
+                    if (m_PostProcessData == null || m_PostProcessData.Equals(null))
+                    {
+                        m_PostProcessData = postProcessData;
+                    }
+
+                    string resourcePath = AssetDatabase.GUIDToAssetPath(postProcessingResourcesGUID);
+                    m_PostProcessData = AssetDatabase.LoadAssetAtPath<PostProcessData>(resourcePath);
+                #endif
+
+                return m_PostProcessIncluded;
+            }
+        }
+
         public float shadowNormalBias
         {
             get { return m_ShadowNormalBias; }
@@ -691,7 +725,7 @@ namespace UnityEngine.Rendering.Universal
                     if (defaultShader != null)
                         return defaultShader;
                 }
-                
+
                 if (m_DefaultShader == null)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(ShaderPathID.Lit));

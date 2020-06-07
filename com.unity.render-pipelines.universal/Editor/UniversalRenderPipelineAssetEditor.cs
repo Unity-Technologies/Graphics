@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
 
             // Post-processing
+            public static GUIContent postProcessInclude = EditorGUIUtility.TrTextContent("Include Post-processing", "Includes or removes Post-processing from builds, this includes rendering passes, shaders and texture resources.");
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
@@ -135,6 +136,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShaderVariantLogLevel;
 
         LightRenderingMode selectedLightRenderingMode;
+        SerializedProperty m_PostProcessIncluded;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
 
@@ -206,6 +208,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_ShaderVariantLogLevel = serializedObject.FindProperty("m_ShaderVariantLogLevel");
 
+            m_PostProcessIncluded = serializedObject.FindProperty("m_PostProcessIncluded");
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
@@ -356,16 +359,28 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.indentLevel++;
 
-                EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
-                if (!isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
-                else if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange)
-                    EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+                EditorGUILayout.PropertyField(m_PostProcessIncluded, Styles.postProcessInclude);
+                EditorGUI.BeginDisabledGroup(!m_PostProcessIncluded.boolValue);
+                {
+                    EditorGUILayout.PropertyField(m_ColorGradingMode, Styles.colorGradingMode);
+                    if (!isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange)
+                    {
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeWarning, MessageType.Warning);
+                    }
+                    else if (isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange)
+                    {
+                        EditorGUILayout.HelpBox(Styles.colorGradingModeSpecInfo, MessageType.Info);
+                    }
 
-                EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
-                m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
-                if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
-                    EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                    EditorGUILayout.DelayedIntField(m_ColorGradingLutSize, Styles.colorGradingLutSize);
+                    m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
+                    if (isHdrOn && m_ColorGradingMode.intValue == (int) ColorGradingMode.HighDynamicRange &&
+                        m_ColorGradingLutSize.intValue < 32)
+                    {
+                        EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+                    }
+                }
+                EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
