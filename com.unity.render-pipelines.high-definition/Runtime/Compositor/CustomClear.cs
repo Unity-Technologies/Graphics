@@ -43,7 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         protected override void Execute(CustomPassContext ctx)
         {
             // Executed every frame for all the camera inside the pass volume
-            AdditionalCompositorData layerData = ctx.hdCamera.camera.gameObject.GetComponent<AdditionalCompositorData>();
+            AdditionalCompositorData layerData = null;
+            ctx.hdCamera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out layerData);
             if (layerData == null || layerData.clearColorTexture == null)
             {
                 return;
