@@ -112,7 +112,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // If ray tracing is supported display the content of the volume component
             if (HDRenderPipeline.pipelineSupportsRayTracing)
             {
-                PropertyField(m_RayTracing);
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced global illumination."));
             }
 
             // Flag to track if the ray tracing parameters were displayed

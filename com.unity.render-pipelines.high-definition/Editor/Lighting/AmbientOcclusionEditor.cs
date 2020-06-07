@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (HDRenderPipeline.pipelineSupportsRayTracing)
-                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced ambient occlusion."));
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced ambient occlusion."));
 
             // Shared attributes
             PropertyField(m_Intensity, EditorGUIUtility.TrTextContent("Intensity", "Controls the strength of the ambient occlusion effect. Increase this value to produce darker areas."));
