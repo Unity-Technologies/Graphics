@@ -77,16 +77,16 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         var sceneListComponent = config.GetComponent<SceneList>();
         sceneListComponent.SceneInfos = scenelist;
         config.SetComponent<SceneList>(sceneListComponent);
-        config.SaveAsset();
+        //config.SaveAsset();
         //AssetDatabase.Refresh();
         
         Log("*************** SetupGraphicsTestCases - Synced "+buildSettingScenes.Length+ " scenes to scenelist");
 
         //Wait for a bit because Editor will be compiling the config asset update
-        while(EditorApplication.isCompiling)
-        {
-            Log("*************** SetupGraphicsTestCases - Editor is compiling");
-        }
+        // while(EditorApplication.isCompiling)
+        // {
+        //     Log("*************** SetupGraphicsTestCases - Editor is compiling");
+        // }
 
         Log("*************** SetupGraphicsTestCases - Triggering BuildConfig.Build()");
 
