@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Cloud Layer Volume Component.
     /// This component setups the cloud layer for rendering.
     /// </summary>
-    [VolumeComponentMenu("Sky/Cloud Layer")]
+    [VolumeComponentMenu("Sky/Cloud Layer (Preview)")]
     public class CloudLayer : VolumeComponent
     {
         /// <summary>Enable fog.</summary>
@@ -44,6 +44,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         private float scrollFactor = 0.0f, lastTime = 0.0f;
+
+        CloudLayer()
+        {
+            displayName = "CloudLayer (Preview)";
+
+        }
 
         /// <summary>
         /// Returns the shader parameters of the cloud layer.
