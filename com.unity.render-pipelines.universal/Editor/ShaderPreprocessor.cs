@@ -56,7 +56,6 @@ namespace UnityEditor.Rendering.Universal
             "1121bb4e615ca3c48b214e79e841e823",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/StopNaN.shader
             "63eaba0ebfb82cc43bde059b4a8c65f6",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/SubpixelMorphologicalAntialiasing.shader
             "e7857e9d0c934dc4f83f270f8447b006",// : Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/UberPost.shader
-
         };
 
         // Multiple callback may be implemented.
