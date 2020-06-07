@@ -590,23 +590,7 @@ namespace UnityEngine.Rendering.Universal
             set { m_ShadowDepthBias = ValidateShadowBias(value); }
         }
 
-        internal bool postProcessIncluded
-        {
-            get
-            {
-                #if UNITY_EDITOR
-                    if (m_PostProcessData == null || m_PostProcessData.Equals(null))
-                    {
-                        m_PostProcessData = postProcessData;
-                    }
-
-                    string resourcePath = AssetDatabase.GUIDToAssetPath(postProcessingResourcesGUID);
-                    m_PostProcessData = AssetDatabase.LoadAssetAtPath<PostProcessData>(resourcePath);
-                #endif
-
-                return m_PostProcessIncluded;
-            }
-        }
+        internal bool postProcessIncluded => m_PostProcessIncluded;
 
         public float shadowNormalBias
         {
