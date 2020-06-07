@@ -141,6 +141,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a minimal lit used for RTGI in peformance mode.
 - Added procedural metering mask that can follow an object
 - Added presets quality settings for RTAO and RTGI.
+- Added an override for the shadow culling that allows better directional shadow maps in ray tracing effects (RTR, RTGI, RTSSS and RR).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
