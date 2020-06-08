@@ -593,7 +593,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out LightLoopOutput lightLoopOutput))
+                        out LightLoopOutput lightLoopOutput)
 {
     AmbientOcclusionFactor aoFactor;
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.ambientOcclusion, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);

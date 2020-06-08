@@ -3,10 +3,6 @@
 
 float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinData builtinData, const PreLightData preLightData, BSDFData bsdfData, const PositionInputs posInput, float3 posRWS)
 {
-    float3 diffuseLighting;
-    float3 specularLighting;
-
-
     #if IS_OPAQUE_PARTICLE
     uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
     #elif USE_ONLY_AMBIENT_LIGHTING
