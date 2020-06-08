@@ -41,7 +41,7 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
     // World space position of the capture camera (non camera relative)
     float3 _CaptureCameraPositon;
     // The mip index of the source data
-    int _SourceMipIndex;
+    uint _SourceMipIndex;
     // Inverse view projection of the capture camera (oblique)
     float4x4 _CaptureCameraIVP;
     // Inverse view projection of the capture camera (non oblique)
@@ -53,7 +53,7 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
     // Far plane of the capture camera
     float _CaptureCameraFarPlane;
     // The number of valid mips in the mip chain
-    int _MaxMipLevels;
+    uint _MaxMipLevels;
 CBUFFER_END
 
 // Output buffer of our filtering code
@@ -69,7 +69,7 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     // Compute the pixel position to process
-    int2 currentCoord = (int2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
+    uint2 currentCoord = (uint2)(groupId * PLANAR_REFLECTION_TILE_SIZE + groupThreadId);
 
     // Compute the coordinates that shall be used for sampling
     float2 sampleCoords = (currentCoord << (int)(_SourceMipIndex)) * _CaptureBaseScreenSize.zw * _RTScaleFactor;
