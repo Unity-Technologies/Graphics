@@ -156,6 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (deferredParameters.viewCount > 1 && deferredParameters.rayBinning)
             {
                 deferredParameters.rayBinning = false;
+                Debug.LogWarning("Ray binning is not supported with XR single-pass rendering!");
             }
 
             deferredParameters.globalCB = m_ShaderVariablesRayTracingCB;

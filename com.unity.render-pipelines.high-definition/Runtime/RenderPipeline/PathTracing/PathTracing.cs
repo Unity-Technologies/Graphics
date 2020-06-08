@@ -226,12 +226,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!pathTracingShader || !m_PathTracingSettings.enable.value)
                 return;
 
-            if (hdCamera.viewCount > 1)
-            {
-                Debug.LogError("Path Tracing is not supported when using XR single-pass rendering.");
-                return;
-            }
-
             CheckDirtiness(hdCamera);
 
             // Inject the ray-tracing sampling data
