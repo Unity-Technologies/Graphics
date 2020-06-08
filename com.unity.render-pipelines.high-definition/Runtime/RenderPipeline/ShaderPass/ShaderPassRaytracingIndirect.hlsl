@@ -117,9 +117,12 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     #endif
     
     // Run the lightloop
-    float3 diffuseLighting;
-    float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, 0.0, reflected,  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    LightLoopOutput lightLoopOutput;
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, 0.0, reflected,  float3(0.0, 0.0, 0.0), lightLoopOutput);
+
+    // Alias
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;
