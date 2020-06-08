@@ -390,14 +390,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var vt = prop.vtProperty.value;
                         for (int layer = 0; layer < vt.layers.Count; layer++)
                         {
-                            if (vt.layers[layer].layerTexture?.texture != null)
+                            var texture = vt.layers[layer].layerTexture?.texture;
+                            int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
+                            if (propIndex != -1)
                             {
-                                int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
-                                if (propIndex != -1)
-                                {
-                                    mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
-                                    setAnyTextures = true;
-                                }
+                                mat.SetTexture(vt.layers[layer].layerRefName, texture);
+                                setAnyTextures = true;
                             }
                         }
                         // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
