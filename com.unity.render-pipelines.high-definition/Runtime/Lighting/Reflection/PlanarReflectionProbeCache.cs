@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = atlasResolution;
-            m_TextureAtlas = new PowerOfTwoTextureAtlas(atlasResolution, 1, probeFormat, useMipMap: isMipmaped, name: "PlanarReflectionProbe Atlas");
+            m_TextureAtlas = new PowerOfTwoTextureAtlas(atlasResolution, 0, probeFormat, useMipMap: isMipmaped, name: "PlanarReflectionProbe Atlas");
             m_IBLFilterGGX = iblFilter;
 
             m_PerformBC6HCompression = probeFormat == GraphicsFormat.RGB_BC6H_SFloat;
