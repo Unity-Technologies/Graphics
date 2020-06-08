@@ -13,7 +13,7 @@ HDRP_Win_Vulkan_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -33,7 +33,7 @@ HDRP_Win_Vulkan_playmode_XR_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -53,7 +53,7 @@ HDRP_Win_Vulkan_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -73,9 +73,9 @@ HDRP_Win_Vulkan_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_trunk
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -96,7 +96,7 @@ Build_HDRP_Win_Vulkan_Player_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -119,7 +119,7 @@ HDRP_Win_Vulkan_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -139,7 +139,7 @@ HDRP_Win_Vulkan_playmode_XR_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -159,7 +159,7 @@ HDRP_Win_Vulkan_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -179,9 +179,9 @@ HDRP_Win_Vulkan_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-vulkan.yml#Build_HDRP_Win_Vulkan_Player_fast-trunk
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
@@ -202,7 +202,7 @@ Build_HDRP_Win_Vulkan_Player_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_RuntimeTests/utr
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade

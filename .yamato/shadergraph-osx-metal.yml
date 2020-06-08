@@ -13,7 +13,7 @@ ShaderGraph_OSX_Metal_Standalone_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
@@ -41,7 +41,7 @@ ShaderGraph_OSX_Metal_playmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
@@ -69,7 +69,7 @@ ShaderGraph_OSX_Metal_editmode_trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
@@ -97,7 +97,7 @@ ShaderGraph_OSX_Metal_Standalone_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
@@ -125,7 +125,7 @@ ShaderGraph_OSX_Metal_playmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"
@@ -153,7 +153,7 @@ ShaderGraph_OSX_Metal_editmode_fast-trunk:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:macos
-         rerun: always
+         rerun: on-new-revision
     commands:
       -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/ShaderGraph/utr
       -  ssh -i ~/.ssh/id_rsa_macmini -o "StrictHostKeyChecking=no" bokken@$BOKKEN_DEVICE_IP "bash -lc 'pip3 install --user unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade'"

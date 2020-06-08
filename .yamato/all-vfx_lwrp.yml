@@ -7,16 +7,16 @@ All_VFX_LWRP_trunk:
     name: All VFX_LWRP CI - trunk
     dependencies:
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
 All_VFX_LWRP_fast-trunk:
     name: All VFX_LWRP CI - fast-trunk
     dependencies:
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_Standalone_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
 All_VFX_LWRP_CUSTOM-REVISION:
     name: All VFX_LWRP CI - CUSTOM-REVISION
     dependencies:

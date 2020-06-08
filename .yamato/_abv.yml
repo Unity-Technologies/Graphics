@@ -18,7 +18,7 @@ smoke_test_Standalone_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -38,7 +38,7 @@ smoke_test_playmode_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -58,7 +58,7 @@ smoke_test_editmode_trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -67,51 +67,51 @@ all_smoke_tests_trunk:
     name: All Smoke Tests - trunk
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
 all_project_ci_trunk:
     name: _ABV for SRP repository - trunk
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-vfxmain.yml#All_VFXMain_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_trunk
-         rerun: always
+         rerun: on-new-revision
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
       -  path: .yamato/_abv.yml#all_project_ci_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-universal_hybrid.yml#All_Universal_Hybrid_trunk
-         rerun: always
+         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
@@ -120,23 +120,23 @@ trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_playmode_trunk
-         rerun: always
+         rerun: on-new-revision
 smoke_test_Standalone_fast-trunk:
     name: SRP Smoke Test - Standalone_fast-trunk
     agent:
@@ -152,7 +152,7 @@ smoke_test_Standalone_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -172,7 +172,7 @@ smoke_test_playmode_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -192,7 +192,7 @@ smoke_test_editmode_fast-trunk:
       -  cd TestProjects/SRP_SmokeTest && utr\utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
     dependencies:
       -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
+         rerun: on-new-revision
     artifacts:
         logs:
             paths:
@@ -201,53 +201,53 @@ all_smoke_tests_fast-trunk:
     name: All Smoke Tests - fast-trunk
     dependencies:
       -  path: .yamato/_abv.yml#smoke_test_Standalone_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
 all_project_ci_fast-trunk:
     name: _ABV for SRP repository - fast-trunk
     dependencies:
       -  path: .yamato/_packages.yml#all_package_ci_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-universal_stereo.yml#All_Universal_Stereo_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-shadergraph_stereo.yml#All_ShaderGraph_Stereo_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-hdrp.yml#All_HDRP_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-vfxmain.yml#All_VFXMain_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/all-vfx_lwrp.yml#All_VFX_LWRP_fast-trunk
-         rerun: always
+         rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 trunk_verification_fast-trunk:
     name: Trunk verification - fast-trunk
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfxmain-win-dx11.yml#VFXMain_Win_DX11_editmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
       -  path: .yamato/vfx_lwrp-win-dx11.yml#VFX_LWRP_Win_DX11_playmode_fast-trunk
-         rerun: always
+         rerun: on-new-revision
 smoke_test_Standalone_CUSTOM-REVISION:
     name: SRP Smoke Test - Standalone_CUSTOM-REVISION
     agent:
