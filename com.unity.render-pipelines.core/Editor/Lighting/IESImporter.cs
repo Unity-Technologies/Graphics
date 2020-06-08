@@ -14,12 +14,12 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// IES Engine
         /// </summary>
-        public IESEngine    engine      = new IESEngine();
+        public IESEngine engine = new IESEngine();
 
         /// <summary>
         /// IES Meta data stored in the ies file
         /// </summary>
-        public IESMetaData  iesMetaData = new IESMetaData();
+        public IESMetaData iesMetaData = new IESMetaData();
 
         /// <summary>
         /// Delegate prototype which will be sent by the pipeline implementation of the IES Importer
@@ -33,21 +33,21 @@ namespace UnityEditor.Rendering
         /// <param name="setupRenderPipelinePrefabLight">Delegate needed to perform operation which are "Render Pipeline specific" here setuping the prefab of light</param>
         public void CommonOnImportAsset(AssetImportContext ctx, SetupRenderPipelinePrefabLight setupRenderPipelinePrefabLight)
         {
-            Texture cookieTextureCube   = null;
-            Texture cookieTexture2D     = null;
+            Texture cookieTextureCube = null;
+            Texture cookieTexture2D = null;
 
-            string iesFilePath  = Path.Combine(Path.GetDirectoryName(Application.dataPath), ctx.assetPath);
+            string iesFilePath = Path.Combine(Path.GetDirectoryName(Application.dataPath), ctx.assetPath);
             string errorMessage = engine.ReadFile(iesFilePath);
 
             if (string.IsNullOrEmpty(errorMessage))
             {
-                iesMetaData.FileFormatVersion      = engine.FileFormatVersion;
-                iesMetaData.IESPhotometricType     = engine.GetPhotometricType();
-                iesMetaData.Manufacturer           = engine.GetKeywordValue("MANUFAC");
+                iesMetaData.FileFormatVersion = engine.FileFormatVersion;
+                iesMetaData.IESPhotometricType = engine.GetPhotometricType();
+                iesMetaData.Manufacturer = engine.GetKeywordValue("MANUFAC");
                 iesMetaData.LuminaireCatalogNumber = engine.GetKeywordValue("LUMCAT");
-                iesMetaData.LuminaireDescription   = engine.GetKeywordValue("LUMINAIRE");
-                iesMetaData.LampCatalogNumber      = engine.GetKeywordValue("LAMPCAT");
-                iesMetaData.LampDescription        = engine.GetKeywordValue("LAMP");
+                iesMetaData.LuminaireDescription = engine.GetKeywordValue("LUMINAIRE");
+                iesMetaData.LampCatalogNumber = engine.GetKeywordValue("LAMPCAT");
+                iesMetaData.LampDescription = engine.GetKeywordValue("LAMP");
 
                 (iesMetaData.IESMaximumIntensity, iesMetaData.IESMaximumIntensityUnit) = engine.GetMaximumIntensity();
 
@@ -81,9 +81,9 @@ namespace UnityEditor.Rendering
             lightObject.transform.localEulerAngles = new Vector3(90f, 0f, iesMetaData.LightAimAxisRotation);
 
             Light light = lightObject.AddComponent<Light>();
-            light.type      = (iesMetaData.PrefabLightType == IESLightType.Point) ? LightType.Point : LightType.Spot;
+            light.type = (iesMetaData.PrefabLightType == IESLightType.Point) ? LightType.Point : LightType.Spot;
             light.intensity = 1f;  // would need a better intensity value formula
-            light.range     = 10f; // would need a better range value formula
+            light.range = 10f; // would need a better range value formula
             light.spotAngle = iesMetaData.SpotAngle;
 
             setupRenderPipelinePrefabLight(engine, light, (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D);

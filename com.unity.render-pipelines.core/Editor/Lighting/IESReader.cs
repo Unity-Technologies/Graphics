@@ -50,8 +50,8 @@ namespace UnityEditor.Rendering
 
         Dictionary<string, string> m_KeywordDictionary = new Dictionary<string, string>();
 
-        int     m_VerticalAngleCount;
-        int     m_HorizontalAngleCount;
+        int m_VerticalAngleCount;
+        int m_HorizontalAngleCount;
         float[] m_VerticalAngles;
         float[] m_HorizontalAngles;
         float[] m_CandelaValues;
@@ -102,7 +102,7 @@ namespace UnityEditor.Rendering
                 }
 
                 var keywordRegex = new Regex(@"\s*\[(?<keyword>\w+)\]\s*(?<data>.*)", RegexOptions.Compiled);
-                var tiltRegex    = new Regex(@"TILT=(?<data>.*)", RegexOptions.Compiled);
+                var tiltRegex = new Regex(@"TILT=(?<data>.*)", RegexOptions.Compiled);
 
                 string currentKeyword = string.Empty;
 
@@ -154,9 +154,9 @@ namespace UnityEditor.Rendering
                     }
                 }
 
-                string[] iesDataTokens          = Regex.Split(iesReader.ReadToEnd().Trim(), @"[\s,]+");
-                var      iesDataTokenEnumerator = iesDataTokens.GetEnumerator();
-                string   iesDataToken;
+                string[] iesDataTokens = Regex.Split(iesReader.ReadToEnd().Trim(), @"[\s,]+");
+                var iesDataTokenEnumerator = iesDataTokens.GetEnumerator();
+                string iesDataToken;
 
 
                 if (iesDataTokens.Length == 1 && string.IsNullOrWhiteSpace(iesDataTokens[0]))
@@ -364,7 +364,7 @@ namespace UnityEditor.Rendering
                 }
 
                 m_FirstHorizontalAngle = m_HorizontalAngles[0];
-                m_LastHorizontalAngle  = m_HorizontalAngles[m_HorizontalAngleCount - 1];
+                m_LastHorizontalAngle = m_HorizontalAngles[m_HorizontalAngleCount - 1];
 
                 m_CandelaValues = new float[m_HorizontalAngleCount * m_VerticalAngleCount];
                 m_MaxCandelas = 0f;
@@ -465,7 +465,7 @@ namespace UnityEditor.Rendering
         internal float ComputeAnglePosition(float value, float[] angles)
         {
             int start = 0;
-            int end   = angles.Length - 1;
+            int end = angles.Length - 1;
 
             if (value < angles[start])
             {
@@ -494,7 +494,7 @@ namespace UnityEditor.Rendering
             }
 
             float leftValue = angles[start];
-            float fraction  = 0f;
+            float fraction = 0f;
 
             if (start + 1 < angles.Length)
             {

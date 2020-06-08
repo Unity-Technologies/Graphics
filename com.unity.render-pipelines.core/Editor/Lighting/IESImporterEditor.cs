@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
         protected SerializedProperty m_LightAimAxisRotationProp;
 
         bool m_ShowLuminaireProductInformation = true;
-        bool m_ShowLightProperties             = true;
+        bool m_ShowLightProperties = true;
 
         protected PreviewRenderUtility m_PreviewRenderUtility = null;
 
@@ -71,24 +71,24 @@ namespace UnityEditor.Rendering
         {
             m_WordWrapStyle.wordWrap = true;
 
-            m_FileFormatVersionProp       = serializedObject.FindPropertyRelative("FileFormatVersion");
-            m_IESPhotometricTypeProp      = serializedObject.FindPropertyRelative("IESPhotometricType");
-            m_IESMaximumIntensityProp     = serializedObject.FindPropertyRelative("IESMaximumIntensity");
+            m_FileFormatVersionProp = serializedObject.FindPropertyRelative("FileFormatVersion");
+            m_IESPhotometricTypeProp = serializedObject.FindPropertyRelative("IESPhotometricType");
+            m_IESMaximumIntensityProp = serializedObject.FindPropertyRelative("IESMaximumIntensity");
             m_IESMaximumIntensityUnitProp = serializedObject.FindPropertyRelative("IESMaximumIntensityUnit");
 
-            m_ManufacturerProp            = serializedObject.FindPropertyRelative("Manufacturer");
-            m_LuminaireCatalogNumberProp  = serializedObject.FindPropertyRelative("LuminaireCatalogNumber");
-            m_LuminaireDescriptionProp    = serializedObject.FindPropertyRelative("LuminaireDescription");
-            m_LampCatalogNumberProp       = serializedObject.FindPropertyRelative("LampCatalogNumber");
-            m_LampDescriptionProp         = serializedObject.FindPropertyRelative("LampDescription");
+            m_ManufacturerProp = serializedObject.FindPropertyRelative("Manufacturer");
+            m_LuminaireCatalogNumberProp = serializedObject.FindPropertyRelative("LuminaireCatalogNumber");
+            m_LuminaireDescriptionProp = serializedObject.FindPropertyRelative("LuminaireDescription");
+            m_LampCatalogNumberProp = serializedObject.FindPropertyRelative("LampCatalogNumber");
+            m_LampDescriptionProp = serializedObject.FindPropertyRelative("LampDescription");
 
-            m_PrefabLightTypeProp         = serializedObject.FindPropertyRelative("PrefabLightType");
-            m_SpotAngleProp               = serializedObject.FindPropertyRelative("SpotAngle");
-            m_IESSizeProp                 = serializedObject.FindPropertyRelative("iesSize");
-            m_ApplyLightAttenuationProp   = serializedObject.FindPropertyRelative("ApplyLightAttenuation");
-            m_UseIESMaximumIntensityProp  = serializedObject.FindPropertyRelative("UseIESMaximumIntensity");
-            m_CookieCompressionProp       = serializedObject.FindPropertyRelative("CookieCompression");
-            m_LightAimAxisRotationProp    = serializedObject.FindPropertyRelative("LightAimAxisRotation");
+            m_PrefabLightTypeProp = serializedObject.FindPropertyRelative("PrefabLightType");
+            m_SpotAngleProp = serializedObject.FindPropertyRelative("SpotAngle");
+            m_IESSizeProp = serializedObject.FindPropertyRelative("iesSize");
+            m_ApplyLightAttenuationProp = serializedObject.FindPropertyRelative("ApplyLightAttenuation");
+            m_UseIESMaximumIntensityProp = serializedObject.FindPropertyRelative("UseIESMaximumIntensity");
+            m_CookieCompressionProp = serializedObject.FindPropertyRelative("CookieCompression");
+            m_LightAimAxisRotationProp = serializedObject.FindPropertyRelative("LightAimAxisRotation");
         }
 
         /// <summary>
@@ -100,16 +100,16 @@ namespace UnityEditor.Rendering
             scriptedImporter.serializedObject.Update();
 
             EditorGUILayout.LabelField("File Format Version", m_FileFormatVersionProp.stringValue);
-            EditorGUILayout.LabelField("Photometric Type",    m_IESPhotometricTypeProp.stringValue);
-            EditorGUILayout.LabelField("Maximum Intensity",   $"{m_IESMaximumIntensityProp.floatValue} {m_IESMaximumIntensityUnitProp.stringValue}");
+            EditorGUILayout.LabelField("Photometric Type", m_IESPhotometricTypeProp.stringValue);
+            EditorGUILayout.LabelField("Maximum Intensity", $"{m_IESMaximumIntensityProp.floatValue} {m_IESMaximumIntensityUnitProp.stringValue}");
 
             if (m_ShowLuminaireProductInformation = EditorGUILayout.Foldout(m_ShowLuminaireProductInformation, "Luminaire Product Information"))
             {
-                EditorGUILayout.LabelField(m_ManufacturerProp.displayName,           m_ManufacturerProp.stringValue, m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_ManufacturerProp.displayName, m_ManufacturerProp.stringValue, m_WordWrapStyle);
                 EditorGUILayout.LabelField(m_LuminaireCatalogNumberProp.displayName, m_LuminaireCatalogNumberProp.stringValue, m_WordWrapStyle);
-                EditorGUILayout.LabelField(m_LuminaireDescriptionProp.displayName,   m_LuminaireDescriptionProp.stringValue,   m_WordWrapStyle);
-                EditorGUILayout.LabelField(m_LampCatalogNumberProp.displayName,      m_LampCatalogNumberProp.stringValue,      m_WordWrapStyle);
-                EditorGUILayout.LabelField(m_LampDescriptionProp.displayName,        m_LampDescriptionProp.stringValue,        m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LuminaireDescriptionProp.displayName, m_LuminaireDescriptionProp.stringValue, m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LampCatalogNumberProp.displayName, m_LampCatalogNumberProp.stringValue, m_WordWrapStyle);
+                EditorGUILayout.LabelField(m_LampDescriptionProp.displayName, m_LampDescriptionProp.stringValue, m_WordWrapStyle);
             }
 
             if (m_ShowLightProperties = EditorGUILayout.Foldout(m_ShowLightProperties, "Light and Cookie Properties"))
@@ -156,62 +156,62 @@ namespace UnityEditor.Rendering
         /// <param name="setupRenderPipelinePreviewFloorRenderer">Delegate provided by the Render pipeline to setup the Preview Light</param>
         /// <param name="setupRenderPipelinePreviewLight">Delegate provided by the Render pipeline to setup the Preview Wall</param>
         /// <param name="setupRenderPipelinePreviewWallRenderer">Delegate provided by the Render pipeline to setup the Preview Floor</param>
-        public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera        setupRenderPipelinePreviewCamera,
-                                        SetupRenderPipelinePreviewLight         setupRenderPipelinePreviewLight,
-                                        SetupRenderPipelinePreviewWallRenderer  setupRenderPipelinePreviewWallRenderer,
+        public bool CommonHasPreviewGUI(SetupRenderPipelinePreviewCamera setupRenderPipelinePreviewCamera,
+                                        SetupRenderPipelinePreviewLight setupRenderPipelinePreviewLight,
+                                        SetupRenderPipelinePreviewWallRenderer setupRenderPipelinePreviewWallRenderer,
                                         SetupRenderPipelinePreviewFloorRenderer setupRenderPipelinePreviewFloorRenderer)
         {
             if (m_PreviewRenderUtility == null)
             {
                 m_PreviewRenderUtility = new PreviewRenderUtility();
 
-                m_PreviewRenderUtility.ambientColor                         = Color.black;
+                m_PreviewRenderUtility.ambientColor = Color.black;
 
-                m_PreviewRenderUtility.camera.fieldOfView                   = 60f;
-                m_PreviewRenderUtility.camera.nearClipPlane                 = 0.1f;
-                m_PreviewRenderUtility.camera.farClipPlane                  = 10f;
-                m_PreviewRenderUtility.camera.transform.localPosition       = new Vector3(1.85f, 0.71f, 0f);
-                m_PreviewRenderUtility.camera.transform.localEulerAngles    = new Vector3(15f, -90f, 0f);
+                m_PreviewRenderUtility.camera.fieldOfView = 60f;
+                m_PreviewRenderUtility.camera.nearClipPlane = 0.1f;
+                m_PreviewRenderUtility.camera.farClipPlane = 10f;
+                m_PreviewRenderUtility.camera.transform.localPosition = new Vector3(1.85f, 0.71f, 0f);
+                m_PreviewRenderUtility.camera.transform.localEulerAngles = new Vector3(15f, -90f, 0f);
 
                 setupRenderPipelinePreviewCamera(m_PreviewRenderUtility.camera);
 
-                m_PreviewRenderUtility.lights[0].type                       = (m_PrefabLightTypeProp.enumValueIndex == (int)IESLightType.Point) ? LightType.Point : LightType.Spot;
-                m_PreviewRenderUtility.lights[0].color                      = Color.white;
-                m_PreviewRenderUtility.lights[0].intensity                  = 1f;
-                m_PreviewRenderUtility.lights[0].range                      = 10f;
-                m_PreviewRenderUtility.lights[0].spotAngle                  = m_SpotAngleProp.floatValue;
-                m_PreviewRenderUtility.lights[0].transform.localPosition    = new Vector3(0.14f, 1f, 0f);
+                m_PreviewRenderUtility.lights[0].type = (m_PrefabLightTypeProp.enumValueIndex == (int)IESLightType.Point) ? LightType.Point : LightType.Spot;
+                m_PreviewRenderUtility.lights[0].color = Color.white;
+                m_PreviewRenderUtility.lights[0].intensity = 1f;
+                m_PreviewRenderUtility.lights[0].range = 10f;
+                m_PreviewRenderUtility.lights[0].spotAngle = m_SpotAngleProp.floatValue;
+                m_PreviewRenderUtility.lights[0].transform.localPosition = new Vector3(0.14f, 1f, 0f);
                 m_PreviewRenderUtility.lights[0].transform.localEulerAngles = new Vector3(90f, 0f, -90f);
 
                 setupRenderPipelinePreviewLight(m_PreviewRenderUtility.lights[0]);
 
-                m_PreviewRenderUtility.lights[1].intensity                  = 0f;
+                m_PreviewRenderUtility.lights[1].intensity = 0f;
 
                 GameObject previewWall = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                previewWall.name                         = "IESPreviewWall";
-                previewWall.hideFlags                    = HideFlags.HideAndDontSave;
-                previewWall.transform.localPosition      = new Vector3(0f, 4f, 0f);
-                previewWall.transform.localEulerAngles   = new Vector3(0f, 0f, -90f);
-                previewWall.transform.localScale         = new Vector3(1f, 1f, 10f);
-                MeshRenderer previewWallRenderer         = previewWall.GetComponent<MeshRenderer>();
-                previewWallRenderer.lightProbeUsage      = LightProbeUsage.Off;
+                previewWall.name = "IESPreviewWall";
+                previewWall.hideFlags = HideFlags.HideAndDontSave;
+                previewWall.transform.localPosition = new Vector3(0f, 4f, 0f);
+                previewWall.transform.localEulerAngles = new Vector3(0f, 0f, -90f);
+                previewWall.transform.localScale = new Vector3(1f, 1f, 10f);
+                MeshRenderer previewWallRenderer = previewWall.GetComponent<MeshRenderer>();
+                previewWallRenderer.lightProbeUsage = LightProbeUsage.Off;
                 previewWallRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-                previewWallRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
+                previewWallRenderer.material = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
 
                 setupRenderPipelinePreviewWallRenderer(previewWallRenderer);
 
                 m_PreviewRenderUtility.AddSingleGO(previewWall);
 
                 GameObject previewFloor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                previewFloor.name                         = "IESPreviewFloor";
-                previewFloor.hideFlags                    = HideFlags.HideAndDontSave;
-                previewFloor.transform.localPosition      = new Vector3(4f, 0f, 0f);
-                previewFloor.transform.localEulerAngles   = new Vector3(0f, 0f, 0f);
-                previewFloor.transform.localScale         = new Vector3(1f, 1f, 10f);
-                MeshRenderer previewFloorRenderer         = previewFloor.GetComponent<MeshRenderer>();
-                previewFloorRenderer.lightProbeUsage      = LightProbeUsage.Off;
+                previewFloor.name = "IESPreviewFloor";
+                previewFloor.hideFlags = HideFlags.HideAndDontSave;
+                previewFloor.transform.localPosition = new Vector3(4f, 0f, 0f);
+                previewFloor.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+                previewFloor.transform.localScale = new Vector3(1f, 1f, 10f);
+                MeshRenderer previewFloorRenderer = previewFloor.GetComponent<MeshRenderer>();
+                previewFloorRenderer.lightProbeUsage = LightProbeUsage.Off;
                 previewFloorRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-                previewFloorRenderer.material             = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+                previewFloorRenderer.material = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
 
                 setupRenderPipelinePreviewFloorRenderer(previewFloorRenderer);
 
@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering
         {
             if (Event.current.type == EventType.Repaint)
             {
-                Texture cookieTexture  = null;
+                Texture cookieTexture = null;
                 Texture previewTexture = null;
 
                 if (m_PrefabLightTypeProp.enumValueIndex == (int)IESLightType.Point)

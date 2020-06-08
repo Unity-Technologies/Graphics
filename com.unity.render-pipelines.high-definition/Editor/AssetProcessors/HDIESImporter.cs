@@ -46,7 +46,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 delegate (IESEngine engine, Light light, Texture ies)
                 {
                     SetupRenderPipelinePrefabLight(engine, light, ies);
-                } );
+                });
         }
     }
 }

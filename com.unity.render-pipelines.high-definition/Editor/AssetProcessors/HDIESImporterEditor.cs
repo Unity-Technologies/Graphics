@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             HDAdditionalCameraData hdCamera = camera.gameObject.AddComponent<HDAdditionalCameraData>();
 
-            hdCamera.clearDepth     = true;
+            hdCamera.clearDepth = true;
             hdCamera.clearColorMode = HDAdditionalCameraData.ClearColorMode.None;
 
             hdCamera.GetType().GetProperty("isEditorCameraPreview", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).SetValue(hdCamera, true, null);
@@ -36,8 +36,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             hdLight.SetIntensity(20000f, LightUnit.Lumen);
 
-            hdLight.affectDiffuse     = true;
-            hdLight.affectSpecular    = false;
+            hdLight.affectDiffuse = true;
+            hdLight.affectSpecular = false;
             hdLight.affectsVolumetric = false;
         }
 
