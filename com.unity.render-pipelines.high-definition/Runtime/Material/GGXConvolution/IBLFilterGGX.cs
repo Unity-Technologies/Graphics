@@ -301,8 +301,8 @@ namespace UnityEngine.Rendering.HighDefinition
             texWidth = texWidth >> 1;
             texHeight = texHeight >> 1;
 
-            // Loop until we have an 8x8 texture
-            while (texWidth >= 8 && texHeight >= 8)
+            // Loop until we have the right amount of mips
+            while (mipIndex < (int)EnvConstants.ConvolutionMipCount)
             {
                 // Evaluate the dispatch parameters
                 int numTilesXHR = (texWidth + (tileSize - 1)) / tileSize;

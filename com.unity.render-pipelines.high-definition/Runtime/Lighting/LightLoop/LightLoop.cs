@@ -1807,7 +1807,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         // We need to collect the set of parameters required for the filtering
                         IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
-                        planarTextureFilteringParameters.probeNormal = probe.gameObject.transform.up;
+                        planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
                         planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
                         planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
                         planarTextureFilteringParameters.captureCameraScreenSize = new Vector4(probe.texture.width, probe.texture.height, 1.0f / probe.texture.width, 1.0f / probe.texture.height);
