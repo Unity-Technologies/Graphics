@@ -75,18 +75,20 @@ def create_project_specific_jobs(metafile_name):
             yml = {}
             for editor in get_editors(metafile):
                 for test_platform in get_test_platforms(metafile['test_platforms']):
-                    
-                    if test_platform["name"].lower() == 'standalone':
-                        if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
-                            job = Project_StandaloneJob(project, editor, platform, api, test_platform)
+
+                    if test_platform["name"].lower() not in map(str.lower, platform.get('exclude_test_platforms', [])):
+
+                        if test_platform["name"].lower() == 'standalone':
+                            if api.lower() != 'openglcore': # skip standalone for openglcore (osx and linux)
+                                job = Project_StandaloneJob(project, editor, platform, api, test_platform)
+                                yml[job.job_id] = job.yml
+                                
+                                if job.build_job is not None:
+                                    yml[job.build_job.job_id] = job.build_job.yml
+                        
+                        else: 
+                            job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
                             yml[job.job_id] = job.yml
-                            
-                            if job.build_job is not None:
-                                yml[job.build_job.job_id] = job.build_job.yml
-                    
-                    elif platform["name"].lower() not in ["iphone","android"]: # mobile only has standalone
-                        job = Project_NotStandaloneJob(project, editor, platform, api, test_platform)
-                        yml[job.job_id] = job.yml
                     
             # store yml per [project]-[platform]-[api]
             yml_file = project_filepath_specific(project["name"], platform["name"], api)

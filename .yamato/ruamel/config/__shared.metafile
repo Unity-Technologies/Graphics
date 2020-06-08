@@ -63,6 +63,8 @@ project_platforms:
     components:
       - editor
       - il2cpp 
+    exclude_test_platforms:
+      - Standalone
     agent_default:
       type: Unity::VM::osx
       image: buildfarm/mac:stable
@@ -76,6 +78,8 @@ project_platforms:
     components:
       - editor
       - il2cpp
+    exclude_test_platforms:
+      - playmode_XR
     agent_default:
       type: Unity::VM::GPU
       image: cds-ops/ubuntu-18.04-base:stable
@@ -94,6 +98,10 @@ project_platforms:
       - editor
       - il2cpp
       - android
+    exclude_test_platforms:
+      - editmode
+      - playmode
+      - playmode_XR
     agent_default:
       type: Unity::mobile::android
       image: mobile/android-execution-r19:stable
@@ -110,6 +118,10 @@ project_platforms:
     components:
       - editor
       - iOS
+    exclude_test_platforms:
+      - editmode
+      - playmode
+      - playmode_XR
     agent_default:
       type: Unity::mobile::iPhone
       image: mobile/macos-10.13-testing:stable
