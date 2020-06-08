@@ -648,7 +648,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed path traced DoF focusing issue
 - Fix an issue with the half resolution Mode (performance)
 - Fix an issue with the color intensity of emissive for performance rtgi
-- Fixed path traced DoF focusing issue.
 - Fixed issue with rendering being mostly broken when target platform disables VR. 
 
 ### Changed
