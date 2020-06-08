@@ -27,7 +27,9 @@ from jobs.templates.template_test import Template_TestJob
 from jobs.templates.template_test_dependencies import Template_TestDependenciesJob
 from jobs.templates.test_all import Template_AllTemplateCiJob
 
-save_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+root_dir = os.path.dirname(os.path.dirname(os.getcwd()))
+yamato_dir = os.path.join(root_dir,'.yamato')
+config_dir = os.path.join(yamato_dir,'config')
 shared_editors = []
 shared_platforms = []
 shared_test_platforms = []
@@ -39,7 +41,7 @@ def load_yml(filepath):
         return yaml.load(f)
 
 def dump_yml(filepath, yml_dict):
-    with open(os.path.join(save_dir,filepath), 'w') as f:
+    with open(os.path.join(root_dir,filepath), 'w') as f:
         yaml.dump(yml_dict, f)
 
 def get_editors(metafile):
@@ -244,7 +246,7 @@ if __name__== "__main__":
 
 
     # parse shared file
-    shared = load_yml('config/__shared.metafile')
+    shared = load_yml(os.path.join(config_dir,'__shared.metafile'))
     shared_editors = shared['editors']
     shared_platforms = shared['project_platforms']
     shared_test_platforms = shared['test_platforms']
@@ -252,33 +254,33 @@ if __name__== "__main__":
     shared_agents = shared['non_project_agents']
 
     # clear directory from existing yml files, not to have old duplicates etc
-    print(save_dir)
-    old_yml_files = glob.glob(f'{save_dir}/.yamato/**/*.yml', recursive=True)
+    print(root_dir)
+    old_yml_files = glob.glob(os.path.join(yamato_dir,'**/*.yml'), recursive=True)
     for f in old_yml_files:
         os.remove(f)
 
     # create editor
     print(f'Running: editor')
-    create_editor_job('config/_editor.metafile')
+    create_editor_job(os.path.join(config_dir,'_editor.metafile'))
 
     # create package jobs
     print(f'Running: packages')
-    create_package_jobs('config/_packages.metafile')
+    create_package_jobs(os.path.join(config_dir,'_packages.metafile'))
 
     # create abv
     print(f'Running: abv')
-    create_abv_jobs('config/_abv.metafile')
+    create_abv_jobs(os.path.join(config_dir,'_abv.metafile'))
 
     # create preview publish
     print(f'Running: preview_publish')
-    create_preview_publish_jobs('config/_preview_publish.metafile')
+    create_preview_publish_jobs(os.path.join(config_dir,'_preview_publish.metafile'))
 
      # create template jobs
     print(f'Running: templates')
-    create_template_jobs('config/_templates.metafile')
+    create_template_jobs(os.path.join(config_dir,'_templates.metafile'))
 
     # create yml jobs for each specified project
-    for project_metafile in glob.glob('config/[!_]*.metafile'):
+    for project_metafile in glob.glob(os.path.join(config_dir,'[!_]*.metafile')):
         print(f'Running: {project_metafile}')   
         create_project_specific_jobs(project_metafile) # create jobs for testplatforms
         create_project_all_jobs(project_metafile) # create All_ job
