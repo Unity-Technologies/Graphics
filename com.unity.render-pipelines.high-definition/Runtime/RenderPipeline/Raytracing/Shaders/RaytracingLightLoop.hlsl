@@ -3,10 +3,12 @@
 #define USE_LIGHT_CLUSTER 
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, 
-            float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,
-			out float3 diffuseLighting,
-            out float3 specularLighting)
+                float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,
+			    out LightLoopOutput lightLoopOutput)
 {
+    // Init LightLoop output structure
+    ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
+
     LightLoopContext context;
     context.contactShadow    = 1.0;
     context.shadowContext    = InitShadowContext();
@@ -217,5 +219,5 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
-    PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, diffuseLighting, specularLighting);
+    PostEvaluateBSDF(context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, lightLoopOutput);
 }

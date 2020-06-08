@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Fog Volume Component.
     /// </summary>
-    [Serializable, VolumeComponentMenu("Fog/Fog")]
+    [Serializable, VolumeComponentMenu("Fog")]
     public class Fog : VolumeComponent
     {
         /// <summary>Enable fog.</summary>

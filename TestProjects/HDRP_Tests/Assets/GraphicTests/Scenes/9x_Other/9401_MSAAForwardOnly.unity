@@ -98,7 +98,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: d38511e38b409a745a47b6eaa41c92c5,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 0ff952c950a9df744ad2738e374a9e37,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -265,7 +265,7 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
-      propertyPath: renderGraphCompatible
+      propertyPath: xrCompatible
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
