@@ -119,15 +119,15 @@ void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinD
 #ifdef DEBUG_DISPLAY
 // mipmapColor is color use to store texture streaming information in XXXData.hlsl (look for DEBUGMIPMAPMODE_NONE)
 void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
-                                    inout float3 diffuseLighting, inout float3 specularLighting)
+                                    inout LightLoopOutput lightLoopOutput)
 {
     if (_DebugShadowMapMode != SHADOWMAPDEBUGMODE_NONE)
     {
         switch (_DebugShadowMapMode)
         {
         case SHADOWMAPDEBUGMODE_SINGLE_SHADOW:
-            diffuseLighting = g_DebugShadowAttenuation.xxx;
-            specularLighting = float3(0, 0, 0);
+            lightLoopOutput.diffuseLighting = g_DebugShadowAttenuation.xxx;
+            lightLoopOutput.specularLighting = float3(0, 0, 0);
             break ;
         }
     }
@@ -139,46 +139,46 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             // Note: We don't include emissive here (and in deferred it is correct as lux calculation of bakeDiffuseLighting don't consider emissive)
-            diffuseLighting = lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+            lightLoopOutput.diffuseLighting = lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
 
             //Compress lighting values for color picker if enabled
             if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
-                diffuseLighting = diffuseLighting / LUXMETER_COMPRESSION_RATIO;
+                lightLoopOutput.diffuseLighting = lightLoopOutput.diffuseLighting / LUXMETER_COMPRESSION_RATIO;
 
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
-            diffuseLighting = aoFactor.indirectAmbientOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            lightLoopOutput.diffuseLighting = aoFactor.indirectAmbientOcclusion;
+            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
-            diffuseLighting = aoFactor.indirectSpecularOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+            lightLoopOutput.diffuseLighting = aoFactor.indirectSpecularOcclusion;
+            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
-            diffuseLighting = float3(
+            lightLoopOutput.diffuseLighting = float3(
                 builtinData.shadowMask0 / 2 + builtinData.shadowMask1 / 2,
                 builtinData.shadowMask1 / 2 + builtinData.shadowMask2 / 2,
                 builtinData.shadowMask2 / 2 + builtinData.shadowMask3 / 2
             );
-            specularLighting = float3(0, 0, 0);
+            lightLoopOutput.specularLighting = float3(0, 0, 0);
             #endif
             break ;
 
         case DEBUGLIGHTINGMODE_PROBE_VOLUME:
-            diffuseLighting = builtinData.bakeDiffuseLighting;
-            specularLighting = float3(0, 0, 0);
+            lightLoopOutput.diffuseLighting = builtinData.bakeDiffuseLighting;
+            lightLoopOutput.specularLighting = float3(0, 0, 0);
             break;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        diffuseLighting = mipmapColor;
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        lightLoopOutput.diffuseLighting = mipmapColor;
+        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     else if (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_NONE)
     {
@@ -186,8 +186,8 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         {
         case PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS:
         case PROBEVOLUMEDEBUGMODE_VISUALIZE_VALIDITY:
-            diffuseLighting = builtinData.bakeDiffuseLighting;
-            specularLighting = float3(0.0, 0.0, 0.0);
+            lightLoopOutput.diffuseLighting = builtinData.bakeDiffuseLighting;
+            lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
             break;
         }
     }
