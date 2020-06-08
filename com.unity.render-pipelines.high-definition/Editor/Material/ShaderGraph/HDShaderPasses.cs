@@ -223,6 +223,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
                 includes = GenerateIncludes(),
+
+                virtualTextureFeedback = true,
             };
 
             FieldCollection GenerateRequiredFields()
