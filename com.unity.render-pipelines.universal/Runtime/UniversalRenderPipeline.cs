@@ -174,7 +174,9 @@ namespace UnityEngine.Rendering.Universal
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref cameraData);
 #endif
-            RenderSingleCamera(context, cameraData, cameraData.postProcessEnabled);
+
+            bool anyPostProcessing = cameraData.postProcessEnabled && asset.postProcessIncluded;
+            RenderSingleCamera(context, cameraData, anyPostProcessing);
         }
 
         static bool TryGetCullingParameters(CameraData cameraData, out ScriptableCullingParameters cullingParams)
@@ -207,7 +209,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             if (!TryGetCullingParameters(cameraData, out var cullingParameters))
+            {
                 return;
+            }
 
             ScriptableRenderer.current = renderer;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
@@ -231,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
                 var cullResults = context.Cull(ref cullingParameters);
-                InitializeRenderingData(asset, ref cameraData, ref cullResults, ref anyPostProcessingEnabled, out var renderingData);
+                InitializeRenderingData(asset, ref cameraData, ref cullResults, anyPostProcessingEnabled, out var renderingData);
 
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
                 if (asset.useAdaptivePerformance)
@@ -270,7 +274,6 @@ namespace UnityEngine.Rendering.Universal
             List<Camera> cameraStack = (supportsCameraStacking) ? baseCameraAdditionalData?.cameraStack : null;
 
             bool anyPostProcessingEnabled = baseCameraAdditionalData != null && baseCameraAdditionalData.renderPostProcessing;
-            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             // We need to know the last active camera in the stack to be able to resolve
             // rendering to screen when rendering it. The last camera in the stack is not
@@ -311,9 +314,11 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Make sure we don't allow Post Processing if it's disabled in the asset or on OpenGLES2
+            anyPostProcessingEnabled &= asset.postProcessIncluded;
+            anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
-
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -624,9 +629,9 @@ namespace UnityEngine.Rendering.Universal
                 cameraData.requiresOpaqueTexture = false;
             }
 
-            // Disables post if GLes2
+            // Make sure we don't allow Post Processing if it's disabled in the asset or on OpenGLES2
+            cameraData.postProcessEnabled &= settings.postProcessIncluded;
             cameraData.postProcessEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
-            cameraData.postProcessEnabled &= asset.postProcessIncluded;
 
             cameraData.requiresDepthTexture |= isSceneViewCamera || CheckPostProcessForDepth(cameraData);
             cameraData.resolveFinalTarget = resolveFinalTarget;
@@ -649,8 +654,7 @@ namespace UnityEngine.Rendering.Universal
             cameraData.SetViewAndProjectionMatrix(camera.worldToCameraMatrix, projectionMatrix);
         }
 
-        static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults,
-            ref bool anyPostProcessingEnabled, out RenderingData renderingData)
+        static void InitializeRenderingData(UniversalRenderPipelineAsset settings, ref CameraData cameraData, ref CullingResults cullResults, bool anyPostProcessingEnabled, out RenderingData renderingData)
         {
             var visibleLights = cullResults.visibleLights;
 
@@ -690,7 +694,6 @@ namespace UnityEngine.Rendering.Universal
             InitializePostProcessingData(settings, out renderingData.postProcessingData);
             renderingData.supportsDynamicBatching = settings.supportsDynamicBatching;
             renderingData.perObjectData = GetPerObjectLightFlags(renderingData.lightData.additionalLightsCount);
-            anyPostProcessingEnabled &= settings.postProcessIncluded;
             renderingData.postProcessingEnabled = anyPostProcessingEnabled;
         }
 
