@@ -17,11 +17,11 @@ namespace UnityEditor.Rendering
     public class IESEngine
     {
         const float k_HalfPi = 0.5f * Mathf.PI;
-        const float k_TwoPi  = 2.0f * Mathf.PI;
+        const float k_TwoPi = 2.0f * Mathf.PI;
 
-        internal IESReader m_IesReader = new IESReader();
+        internal IESReader m_iesReader = new IESReader();
 
-        internal string FileFormatVersion { get => m_IesReader.FileFormatVersion; }
+        internal string FileFormatVersion { get => m_iesReader.FileFormatVersion; }
 
         internal TextureImporterType m_TextureGenerationType = TextureImporterType.Cookie;
 
@@ -42,14 +42,14 @@ namespace UnityEditor.Rendering
         {
             if (!File.Exists(iesFilePath))
             {
-               return "IES file does not exist.";
+                return "IES file does not exist.";
             }
 
             string errorMessage;
 
             try
             {
-                errorMessage = m_IesReader.ReadFile(iesFilePath);
+                errorMessage = m_iesReader.ReadFile(iesFilePath);
             }
             catch (IOException ioEx)
             {
@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering
         /// <returns>A Keyword if exist inside the internal Dictionary</returns>
         public string GetKeywordValue(string keyword)
         {
-            return m_IesReader.GetKeywordValue(keyword);
+            return m_iesReader.GetKeywordValue(keyword);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace UnityEditor.Rendering
         /// <returns>The current Photometric Type</returns>
         public string GetPhotometricType()
         {
-            switch (m_IesReader.PhotometricType)
+            switch (m_iesReader.PhotometricType)
             {
                 case 3: // type A
                     return "Type A";
@@ -92,13 +92,13 @@ namespace UnityEditor.Rendering
         /// <returns>A pair of the intensity follow by the used unit (candelas or lumens)</returns>
         public (float, string) GetMaximumIntensity()
         {
-            if (m_IesReader.TotalLumens == -1f) // absolute photometry
+            if (m_iesReader.TotalLumens == -1f) // absolute photometry
             {
-                return (m_IesReader.MaxCandelas, "Candelas");
+                return (m_iesReader.MaxCandelas, "Candelas");
             }
             else
             {
-                return (m_IesReader.TotalLumens, "Lumens");
+                return (m_iesReader.TotalLumens, "Lumens");
             }
         }
 
@@ -110,12 +110,12 @@ namespace UnityEditor.Rendering
         /// <returns>A Cubemap representing this IES</returns>
         public (string, Texture) GenerateCubeCookie(TextureImporterCompression compression, int textureSize)
         {
-            int width  = 2 * textureSize;
+            int width = 2 * textureSize;
             int height = 2 * textureSize;
 
             NativeArray<Color32> colorBuffer;
 
-            switch (m_IesReader.PhotometricType)
+            switch (m_iesReader.PhotometricType)
             {
                 case 3: // type A
                     colorBuffer = BuildTypeACylindricalTexture(width, height);
@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering
         {
             NativeArray<Color32> colorBuffer;
 
-            switch (m_IesReader.PhotometricType)
+            switch (m_iesReader.PhotometricType)
             {
                 case 3: // type A
                     colorBuffer = BuildTypeAGnomonicTexture(coneAngle, textureSize, applyLightAttenuation);
@@ -163,12 +163,12 @@ namespace UnityEditor.Rendering
 
         private (string, Texture) GenerateCylindricalTexture(TextureImporterCompression compression, int textureSize)
         {
-            int width  = 2 * textureSize;
+            int width = 2 * textureSize;
             int height = textureSize;
 
             NativeArray<Color32> colorBuffer;
 
-            switch (m_IesReader.PhotometricType)
+            switch (m_iesReader.PhotometricType)
             {
                 case 3: // type A
                     colorBuffer = BuildTypeACylindricalTexture(width, height);
@@ -193,25 +193,25 @@ namespace UnityEditor.Rendering
 
             SourceTextureInformation textureInfo = settings.sourceTextureInformation;
             textureInfo.containsAlpha = true;
-            textureInfo.height        = height;
-            textureInfo.width         = width;
+            textureInfo.height = height;
+            textureInfo.width = width;
 
             TextureImporterSettings textureImporterSettings = settings.textureImporterSettings;
-            textureImporterSettings.alphaSource     = TextureImporterAlphaSource.FromInput;
-            textureImporterSettings.aniso           = 0;
-            textureImporterSettings.borderMipmap    = (textureImporterSettings.textureType == TextureImporterType.Cookie);
-            textureImporterSettings.filterMode      = FilterMode.Bilinear;
+            textureImporterSettings.alphaSource = TextureImporterAlphaSource.FromInput;
+            textureImporterSettings.aniso = 0;
+            textureImporterSettings.borderMipmap = (textureImporterSettings.textureType == TextureImporterType.Cookie);
+            textureImporterSettings.filterMode = FilterMode.Bilinear;
             textureImporterSettings.generateCubemap = TextureImporterGenerateCubemap.Cylindrical;
-            textureImporterSettings.mipmapEnabled   = false;
-            textureImporterSettings.npotScale       = TextureImporterNPOTScale.None;
-            textureImporterSettings.readable        = true;
-            textureImporterSettings.sRGBTexture     = false;
-            textureImporterSettings.textureShape    = shape;
+            textureImporterSettings.mipmapEnabled = false;
+            textureImporterSettings.npotScale = TextureImporterNPOTScale.None;
+            textureImporterSettings.readable = true;
+            textureImporterSettings.sRGBTexture = false;
+            textureImporterSettings.textureShape = shape;
             textureImporterSettings.wrapMode = textureImporterSettings.wrapModeU = textureImporterSettings.wrapModeV = textureImporterSettings.wrapModeW = TextureWrapMode.Clamp;
 
             TextureImporterPlatformSettings platformSettings = settings.platformSettings;
-            platformSettings.maxTextureSize     = 2048;
-            platformSettings.resizeAlgorithm    = TextureResizeAlgorithm.Bilinear;
+            platformSettings.maxTextureSize = 2048;
+            platformSettings.resizeAlgorithm = TextureResizeAlgorithm.Bilinear;
             platformSettings.textureCompression = compression;
 
             TextureGenerationOutput output = TextureGenerator.GenerateTexture(settings, colorBuffer);
@@ -237,16 +237,16 @@ namespace UnityEditor.Rendering
 
                 float latitude = y * stepV - 90f; // in range [-90..+90] degrees
 
-                float verticalAnglePosition = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
                 for (int x = 0; x < width; x++)
                 {
                     float longitude = x * stepU - 180f; // in range [-180..+180] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_IesReader.MaxCandelas) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
@@ -278,13 +278,13 @@ namespace UnityEditor.Rendering
 
                     // Since a type B luminaire is turned on its side, rotate it to make its polar axis horizontal.
                     float longitude = Mathf.Atan2(sinV, cosU * cosV) * Mathf.Rad2Deg; // in range [-180..+180] degrees
-                    float latitude  = Mathf.Asin(-sinU * cosV) * Mathf.Rad2Deg;       // in range [-90..+90] degrees
+                    float latitude = Mathf.Asin(-sinU * cosV) * Mathf.Rad2Deg;       // in range [-90..+90] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
-                    float verticalAnglePosition   = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeAorBHorizontalAnglePosition(longitude);
+                    float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_IesReader.MaxCandelas) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
@@ -316,13 +316,13 @@ namespace UnityEditor.Rendering
 
                     // Since a type C luminaire is generally aimed at nadir, orient it toward +Z at the center of the cylindrical texture.
                     float longitude = ((Mathf.Atan2(sinU * cosV, sinV) + k_TwoPi) % k_TwoPi) * Mathf.Rad2Deg; // in range [0..360] degrees
-                    float latitude  = (Mathf.Asin(-cosU * cosV) + k_HalfPi) * Mathf.Rad2Deg;                  // in range [0..180] degrees
+                    float latitude = (Mathf.Asin(-cosU * cosV) + k_HalfPi) * Mathf.Rad2Deg;                  // in range [0..180] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeCHorizontalAnglePosition(longitude);
-                    float verticalAnglePosition   = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
+                    float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_IesReader.MaxCandelas) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / m_iesReader.MaxCandelas) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering
         NativeArray<Color32> BuildTypeAGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
-            float stepUV  = (2 * limitUV) / (size - 3);
+            float stepUV = (2 * limitUV) / (size - 3);
 
             var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
@@ -350,16 +350,16 @@ namespace UnityEditor.Rendering
                     float rayLengthSquared = u * u + v * v + 1;
 
                     float longitude = Mathf.Atan(u) * Mathf.Rad2Deg;                                // in range [-90..+90] degrees
-                    float latitude  = Mathf.Asin(v / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
+                    float latitude = Mathf.Asin(v / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeCHorizontalAnglePosition(longitude);
-                    float verticalAnglePosition   = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
+                    float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_IesReader.MaxCandelas * lightAttenuation)) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
@@ -369,7 +369,7 @@ namespace UnityEditor.Rendering
         NativeArray<Color32> BuildTypeBGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
-            float stepUV  = (2 * limitUV) / (size - 3);
+            float stepUV = (2 * limitUV) / (size - 3);
 
             var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
@@ -388,16 +388,16 @@ namespace UnityEditor.Rendering
 
                     // Since a type B luminaire is turned on its side, U and V are flipped.
                     float longitude = Mathf.Atan(v) * Mathf.Rad2Deg;                                // in range [-90..+90] degrees
-                    float latitude  = Mathf.Asin(u / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
+                    float latitude = Mathf.Asin(u / Mathf.Sqrt(rayLengthSquared)) * Mathf.Rad2Deg; // in range [-90..+90] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeCHorizontalAnglePosition(longitude);
-                    float verticalAnglePosition   = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
+                    float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? rayLengthSquared : 1f;
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_IesReader.MaxCandelas * lightAttenuation)) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
@@ -407,7 +407,7 @@ namespace UnityEditor.Rendering
         NativeArray<Color32> BuildTypeCGnomonicTexture(float coneAngle, int size, bool applyLightAttenuation)
         {
             float limitUV = Mathf.Tan(0.5f * coneAngle * Mathf.Deg2Rad);
-            float stepUV  = (2 * limitUV) / (size - 3);
+            float stepUV = (2 * limitUV) / (size - 3);
 
             var textureBuffer = new NativeArray<Color32>(size * size, Allocator.Temp, NativeArrayOptions.ClearMemory);
 
@@ -425,16 +425,16 @@ namespace UnityEditor.Rendering
                     float uvLength = Mathf.Sqrt(u * u + v * v);
 
                     float longitude = ((Mathf.Atan2(v, u) - k_HalfPi + k_TwoPi) % k_TwoPi) * Mathf.Rad2Deg; // in range [0..360] degrees
-                    float latitude  = Mathf.Atan(uvLength) * Mathf.Rad2Deg;                                 // in range [0..90] degrees
+                    float latitude = Mathf.Atan(uvLength) * Mathf.Rad2Deg;                                 // in range [0..90] degrees
 
-                    float horizontalAnglePosition = m_IesReader.ComputeTypeCHorizontalAnglePosition(longitude);
-                    float verticalAnglePosition   = m_IesReader.ComputeVerticalAnglePosition(latitude);
+                    float horizontalAnglePosition = m_iesReader.ComputeTypeCHorizontalAnglePosition(longitude);
+                    float verticalAnglePosition = m_iesReader.ComputeVerticalAnglePosition(latitude);
 
                     // Factor in the light attenuation further from the texture center.
                     float lightAttenuation = applyLightAttenuation ? (uvLength * uvLength + 1) : 1f;
 
-                    byte value = (byte)((m_IesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_IesReader.MaxCandelas * lightAttenuation)) * 255);
-                    slice[x]   = new Color32(value, value, value, value);
+                    byte value = (byte)((m_iesReader.InterpolateBilinear(horizontalAnglePosition, verticalAnglePosition) / (m_iesReader.MaxCandelas * lightAttenuation)) * 255);
+                    slice[x] = new Color32(value, value, value, value);
                 }
             }
 
