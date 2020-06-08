@@ -5,15 +5,15 @@ using Chunk = UnityEngine.Rendering.HighDefinition.ProbeBrickPool.BrickChunkAllo
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class ProbeBrickIndex
+    public class ProbeBrickIndex
     {
         // a few constants
         internal const int kMaxSubdivisionLevels = 15; // 4 bits
 
-        internal struct Brick
+        public struct Brick
         {
-            internal Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
-            internal int size;              // size as factor covered elementary cells
+            public Vector3Int position;   // refspace index, indices are cell coordinates at max resolution
+            public int size;              // size as factor covered elementary cells
 
             internal Brick(Vector3Int position, int size)
             {
@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // chunk data
                     int poolIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), b.size);
-                    
+
                     for (pos.z = b.position.z; pos.z < b.position.z + b.size; pos.z++)
                         for (pos.y = b.position.y; pos.y < b.position.y + b.size; pos.y++)
                         {
