@@ -212,6 +212,11 @@ namespace UnityEngine.Rendering.HighDefinition
         IrradianceSH1_1,
         IrradianceSH10,
         IrradianceSH11,
+        IrradianceSH2_2,
+        IrradianceSH2_1,
+        IrradianceSH20,
+        IrradianceSH21,
+        IrradianceSH22,
         Validity,
         OctahedralDepth
     }
