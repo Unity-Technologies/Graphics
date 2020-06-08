@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             bool rayTracingSupported = HDRenderPipeline.pipelineSupportsRayTracing;
             if (rayTracingSupported)
-                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing", "Enable ray traced reflections."));
+                PropertyField(m_RayTracing, EditorGUIUtility.TrTextContent("Ray Tracing (Preview)", "Enable ray traced reflections."));
 
             // Shared Data
             PropertyField(m_MinSmoothness,        EditorGUIUtility.TrTextContent("Minimum Smoothness", "Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops."));

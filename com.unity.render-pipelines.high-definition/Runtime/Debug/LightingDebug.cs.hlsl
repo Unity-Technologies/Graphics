@@ -73,6 +73,14 @@
 #define EXPOSUREDEBUGMODE_METERING_WEIGHTED (3)
 
 //
+// UnityEngine.Rendering.HighDefinition.ExposureDebugMode:  static fields
+//
+#define EXPOSUREDEBUGMODE_NONE (0)
+#define EXPOSUREDEBUGMODE_SCENE_EV100VALUES (1)
+#define EXPOSUREDEBUGMODE_HISTOGRAM_VIEW (2)
+#define EXPOSUREDEBUGMODE_METERING_WEIGHTED (3)
+
+//
 // UnityEngine.Rendering.HighDefinition.ProbeVolumeDebugMode:  static fields
 //
 #define PROBEVOLUMEDEBUGMODE_NONE (0)
