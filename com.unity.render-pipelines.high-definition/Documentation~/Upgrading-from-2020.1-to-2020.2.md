@@ -2,6 +2,14 @@
 
 In the High Definition Render Pipeline (HDRP), some features work differently between major versions of Unity. This document helps you upgrade HDRP from Unity 2020.1 to 2020.2.
 
+## Constant Buffer API
+
+From Unity 2020.2, HDRP is using a new constant buffer API that allow to setup uniform used during the Frame and sent to the shader in a single transfer instead of multiple one. The consequence is that it is no longer possible to setup any of the values declare in ShaderVariablesGlobal.cs individualy with cmd.SetVectorXXX() or related function. It is now required to update the value of ShaderVariablesGlobal to be able to update the values use in the shaders.
+
+## FrameSettings
+
+From Unity 2020.2, "MSAA Within Forward" Camera Frame Setting is enabled by default when new Render Pipeline asset is created.
+
 ## Lighting
 
 From Unity 2020.2, when the Sky component affected to the volume profile used for Static Lighting Sky in Environment settings of the Lighting panel is disabled. It now don't affect the bake lighting. Previously the Sky was still affecting the bake lighting even if disabled.
