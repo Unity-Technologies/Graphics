@@ -85,8 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
                 // Inject the ray generation data (be careful of the global constant buffer limitation)
-                globalCB._RaytracingRayMaxLength = aoSettings.rayLength.value;
-                globalCB._RaytracingNumSamples = aoSettings.sampleCount.value;
+                globalCB._RaytracingRayMaxLength = aoSettings.rayLength;
+                globalCB._RaytracingNumSamples = aoSettings.sampleCount;
                 ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Set the data for the ray generation
@@ -110,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion)))
             {
-                if(aoSettings.denoise.value)
+                if(aoSettings.denoise)
                 {
                     // Grab the history buffer
                     RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply the diffuse denoiser
                     HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius.value);
+                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius);
                 }
                 else
                 {

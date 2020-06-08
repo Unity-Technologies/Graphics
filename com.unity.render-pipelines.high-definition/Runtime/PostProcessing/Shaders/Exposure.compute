@@ -12,6 +12,7 @@ TEXTURE2D(_InputTexture);
 
 #define PREPASS_TEX_SIZE 1024.0
 #define PREPASS_TEX_HALF_SIZE 512.0
+//#pragma enable_d3d11_debug_symbols
 
 //
 // Fixed exposure
@@ -51,7 +52,7 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma = SampleLuminance(uv);
 
-    float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx);
+    float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx, luma);
 
     float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4), MeterCalibrationConstant);
     _OutputTexture[posInputs.positionSS] = float2(logLuma, weight);
