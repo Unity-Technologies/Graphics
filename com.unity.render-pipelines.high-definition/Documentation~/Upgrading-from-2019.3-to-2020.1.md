@@ -12,5 +12,4 @@ From Unity 2020.1, Cookie on light are not taken into account for the lightmaps 
 
 ## Default Volume Profile
 
-From Unity 2020.1, the default Volume Profile Asset has the [Exposure](Override-Exposure.md) override's **Compensation** set to 0. This may cause a decrease in brightness of 1[EV](Physical-Light-Units.md#EV) in scene's that have not changed the default settings and do not override them.
-
+From Unity 2020.1, the Default Volume Profile asset has changed so that the Exposure component sets the default Compensation to 0. This may cause a decrease of brightness of 1EV on scene that haven't change the default settings and aren't overriding it.
