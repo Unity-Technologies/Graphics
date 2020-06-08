@@ -4,7 +4,7 @@ using UnityEngine.Profiling;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class ProbeBrickPool
+    public class ProbeBrickPool
     {
         internal struct BrickChunkAlloc
         {
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int flattenIndex(int sx, int sy) { return z * (sx * sy) + y * sx + x; }
         }
 
-        internal struct DataLocation
+        public struct DataLocation
         {
             internal Texture3D TexL0;
             internal Texture3D TexL1_R;
@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal static DataLocation CreateDataLocation(int numProbes, bool compressed)
+        public static DataLocation CreateDataLocation(int numProbes, bool compressed)
         {
             Debug.Assert(numProbes % (kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim) == 0);
 
@@ -140,7 +140,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return loc;
         }
 
-        internal static void FillDataLocation( ref DataLocation loc, SphericalHarmonicsL1[] shl1 )
+        public static void FillDataLocation( ref DataLocation loc, SphericalHarmonicsL1[] shl1 )
         {
             int numBricks = shl1.Length / kBrickProbeCountTotal;
             int shidx = 0;
