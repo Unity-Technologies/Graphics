@@ -1,5 +1,4 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -52,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
                                         enableRandomWrite: true, useMipMap: false, autoGenerateMips: false,
-                                        name: string.Format("AmbientOcclusionHistoryBuffer{0}", frameIndex));
+                                        name: string.Format("{0}_AmbientOcclusionHistoryBuffer{1}", viewName, frameIndex));
         }
 
 
@@ -61,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._AmbientOcclusionTexture, TextureXR.GetBlackTexture());
         }
 
-        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ScriptableRenderContext renderContext, int frameCount)
+        public void RenderAO(HDCamera hdCamera, CommandBuffer cmd, RTHandle outputTexture, ShaderVariablesRaytracing globalCB, ScriptableRenderContext renderContext, int frameCount)
         {
             // If any of the previous requirements is missing, the effect is not requested or no acceleration structure, set the default one and leave right away
             if (!m_RenderPipeline.GetRayTracingState())
@@ -72,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RayTracingShader aoShader = m_PipelineRayTracingResources.aoRaytracing;
             var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
-            RayTracingSettings rayTracingSettings = hdCamera.volumeStack.GetComponent<RayTracingSettings>();
             RayCountManager rayCountManager = m_RenderPipeline.GetRayCountManager();
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
@@ -87,10 +85,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingAccelerationStructure(aoShader, HDShaderIDs._RaytracingAccelerationStructureName, accelerationStructure);
 
                 // Inject the ray generation data (be careful of the global constant buffer limitation)
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayBias, rayTracingSettings.rayBias.value);
-                cmd.SetGlobalFloat(HDShaderIDs._RaytracingRayMaxLength, aoSettings.rayLength.value);
-                cmd.SetGlobalInt(HDShaderIDs._RaytracingNumSamples, aoSettings.sampleCount.value);
-                int frameIndex = m_RenderPipeline.RayTracingFrameIndex(hdCamera);
+                globalCB._RaytracingRayMaxLength = aoSettings.rayLength;
+                globalCB._RaytracingNumSamples = aoSettings.sampleCount;
+                ConstantBuffer.PushGlobal(cmd, globalCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Set the data for the ray generation
                 cmd.SetRayTracingTextureParam(aoShader, HDShaderIDs._DepthTexture, m_RenderPipeline.sharedRTManager.GetDepthStencilBuffer());
@@ -113,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion)))
             {
-                if(aoSettings.denoise.value)
+                if(aoSettings.denoise)
                 {
                     // Grab the history buffer
                     RTHandle ambientOcclusionHistory = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedAmbientOcclusion)
@@ -134,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Apply the diffuse denoiser
                     HDDiffuseDenoiser diffuseDenoiser = m_RenderPipeline.GetDiffuseDenoiser();
-                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius.value);
+                    diffuseDenoiser.DenoiseBuffer(cmd, hdCamera, m_AOIntermediateBuffer1, outputTexture, aoSettings.denoiserRadius);
                 }
                 else
                 {

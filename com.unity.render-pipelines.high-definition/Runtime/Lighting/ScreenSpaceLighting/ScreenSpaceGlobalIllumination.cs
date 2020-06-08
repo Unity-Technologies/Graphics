@@ -1,5 +1,4 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -28,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IndirectDiffuseBuffer0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer0");
                 m_IndirectDiffuseBuffer1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseBuffer1");
                 m_IndirectDiffuseHitPointBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, autoGenerateMips: false, name: "IndirectDiffuseHitBuffer");
-                
+
                 // Grab the sets of shaders that we'll be using
                 ComputeShader ssGICS = m_Asset.renderPipelineResources.shaders.screenSpaceGlobalIlluminationCS;
                 ComputeShader bilateralUpsampleCS = m_Asset.renderPipelineResources.shaders.bilateralUpsampleCS;
@@ -68,8 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, m_IndirectDiffuseBuffer0);
         }
 
-        // If there is no SSGI, bind a black 1x1 texture 
-        void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
+        // If there is no SSGI, bind a black 1x1 texture
+        static void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, TextureXR.GetBlackTexture());
         }
@@ -152,10 +151,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Fetch the right kernel to use
                 currentKernel = giSettings.fullResolutionSS ? m_ReprojectGlobalIlluminationKernel : m_ReprojectGlobalIlluminationHalfKernel;
 
+                // Update global constant buffer.
+                // This should probably be a shader specific uniform instead of reusing the global constant buffer one since it's the only one udpated here.
+                m_ShaderVariablesRayTracingCB._RaytracingIntensityClamp = giSettings.clampValueSS;
+                ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
                 // Inject all the input scalars
-                cmd.SetComputeFloatParam(ssGICS, HDShaderIDs._RaytracingIntensityClamp, giSettings.clampValueSS);
                 cmd.SetComputeVectorParam(ssGICS, HDShaderIDs._ColorPyramidUvScaleAndLimitPrevFrame, HDUtils.ComputeViewportScaleAndLimit(hdCamera.historyRTHandleProperties.previousViewportSize, hdCamera.historyRTHandleProperties.previousRenderTargetSize));
-                
+
                 // Bind all the input buffers
                 cmd.SetComputeTextureParam(ssGICS, currentKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
                 cmd.SetComputeTextureParam(ssGICS, currentKernel, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
@@ -165,16 +168,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 var historyDepthBuffer = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth);
                 cmd.SetComputeTextureParam(ssGICS, currentKernel, HDShaderIDs._HistoryDepthTexture, historyDepthBuffer != null ? historyDepthBuffer : TextureXR.GetBlackTexture());
                 cmd.SetComputeBufferParam(ssGICS, currentKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
-                
+
                 // Bind the output texture
                 cmd.SetComputeTextureParam(ssGICS, currentKernel, HDShaderIDs._IndirectDiffuseTextureRW, buffer1);
 
                 // Do the reprojection
                 cmd.DispatchCompute(ssGICS, currentKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
+                float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+                if (Application.isPlaying)
+                    historyValidity = 0.0f;
+                else
+#endif
+                    // We need to check if something invalidated the history buffers
+                    historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+
                 // Do the denoising part
                 SSGIDenoiser ssgiDenoiser = GetSSGIDenoiser();
-                ssgiDenoiser.Denoise(cmd, hdCamera, buffer1, buffer0, halfResolution: !giSettings.fullResolutionSS);
+                ssgiDenoiser.Denoise(cmd, hdCamera, buffer1, buffer0, halfResolution: !giSettings.fullResolutionSS, historyValidity: historyValidity);
 
                 // If this was a half resolution effect, we still have to upscale it
                 if (!giSettings.fullResolutionSS)
@@ -189,12 +201,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeVectorParam(bilateralUpsampleCS, HDShaderIDs._HalfScreenSize, halfScreenSize);
                     firstMipOffset.Set(HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].x), HDShadowUtils.Asfloat((uint)info.mipLevelOffsets[1].y));
                     cmd.SetComputeVectorParam(bilateralUpsampleCS, HDShaderIDs._DepthPyramidFirstMipLevelOffset, firstMipOffset);
-                    
+
                     // Inject all the input buffers
                     cmd.SetComputeTextureParam(bilateralUpsampleCS, m_BilateralUpSampleColorTMKernel, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthTexture());
                     cmd.SetComputeTextureParam(bilateralUpsampleCS, m_BilateralUpSampleColorTMKernel, HDShaderIDs._LowResolutionTexture, buffer1);
                     cmd.SetComputeBufferParam(bilateralUpsampleCS, m_BilateralUpSampleColorTMKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, info.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer));
-                    
+
                     // Inject the output textures
                     cmd.SetComputeTextureParam(bilateralUpsampleCS, m_BilateralUpSampleColorTMKernel, HDShaderIDs._OutputUpscaledTexture, buffer0);
 

@@ -13,6 +13,13 @@ MonoBehaviour:
   m_Name: TestCaseFilters
   m_EditorClassIdentifier: 
   filters:
+  - FilteredScene: {fileID: 102900000, guid: e86a25d7e98b1c74199eaa8dbcc2cd01, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Randomly fail on yamato
   - FilteredScene: {fileID: 102900000, guid: bc3f6030b835ecd4c800561f9ff1af15, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -20,10 +27,24 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: bc3f6030b835ecd4c800561f9ff1af15, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Randomly fail on yamato
   - FilteredScene: {fileID: 102900000, guid: d2d3cc41bae835b4baad808d950d67a9, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: instable
+  - FilteredScene: {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: instable
@@ -37,10 +58,87 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: 54443f41976c13246b6b67ce1dc2a06f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
+  - FilteredScene: {fileID: 102900000, guid: 54443f41976c13246b6b67ce1dc2a06f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: d52dbea61cf2f884fadf33f8cc6afc0c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations
+  - FilteredScene: {fileID: 102900000, guid: db02f2dc6427fce4b9372c28c86f0f73, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: 'Memory allocation test failed, 2 allocations detected. '
+  - FilteredScene: {fileID: 102900000, guid: a27cb5a638892574f99eb333bb3c7722, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected
+  - FilteredScene: {fileID: 102900000, guid: d27cf5628eba05c479941957559088d1, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected
+  - FilteredScene: {fileID: 102900000, guid: accc96ed8662d3b4ebc3be051aada793, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 4 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: ead63a11c9b9ca84a9419d8625393156, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 4 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: 4ead319809e7c8544ad909dcf8fa3c4c, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: 0c8ccb28854bea64c99d7d677bd0638e, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 4 allocations detected
+  - FilteredScene: {fileID: 102900000, guid: 4462c9729d14bc14ebe49f7bc1069d4b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected.
   - FilteredScene: {fileID: 102900000, guid: 439ce9822b2644f4ea064429ed2c5955, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -48,6 +146,35 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: edea5f204710d6f428c50856ebb8ff44, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 4 allocations detected
+  - FilteredScene: {fileID: 102900000, guid: a537e2b011b7b4c07af19c8ad6b26cec, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 4 allocations detected.
+  - FilteredScene: {fileID: 102900000, guid: c566b460a3674184da6c102196a1a888, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: '[Error] Metal: Error creating pipeline state (Hidden/HDRP/Blit): output
+      of type float4 is not compatible with a MTLPixelFormatRGBA32Uint color attachement.'
+  - FilteredScene: {fileID: 102900000, guid: 2486b40270d6e524d8762a9d2a0c1e78, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 5 allocations detected.
   - FilteredScene: {fileID: 102900000, guid: 09baf18a7e1f6584f86675e6a2141c66, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -55,6 +182,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 09baf18a7e1f6584f86675e6a2141c66, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Randomly fail on yamato
   - FilteredScene: {fileID: 102900000, guid: 292a7700209ba7c49ab0bcef8b7c8940, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -62,6 +196,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Crash
+  - FilteredScene: {fileID: 102900000, guid: c034386e3fb58f44783743edf9b0f4a4, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on Yamato
   - FilteredScene: {fileID: 102900000, guid: c110cc3f909bb664b82eb554f0494597, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -69,6 +210,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: corruption
+  - FilteredScene: {fileID: 102900000, guid: c110cc3f909bb664b82eb554f0494597, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: followling test crash on Yamato
   - FilteredScene: {fileID: 102900000, guid: 5246b0356ec7dbf4aa0a3afc6b27b122, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -111,6 +259,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: corruption
+  - FilteredScene: {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 2 allocations detected.
   - FilteredScene: {fileID: 102900000, guid: c9a611601b514da47a39335dc899c5f3, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -118,6 +273,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c9a611601b514da47a39335dc899c5f3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -132,6 +294,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: f32cdac65dd17f847b4cdaaa85bb990a, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: ce905d8c0a0497f458dbe86bf3b1f615, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -181,6 +350,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: cause following test to fail
+  - FilteredScene: {fileID: 102900000, guid: 3f9e911b4dbc9464e85add595c37cb89, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: Memory allocation test failed, 3 allocations detected.
   - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -202,6 +378,20 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
+  - FilteredScene: {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: cause inconclusive on Yamato
   - FilteredScene: {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -212,24 +402,17 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: f4c1349c4fb80fc42a6633e112d14557, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 18
     XrSdk: 
     StereoModes: 0
-    Reason: flip flop
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: f4c1349c4fb80fc42a6633e112d14557, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 18
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
-    Reason: unstable
-  - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable
+    Reason: flip flop
   - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -237,6 +420,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: e75b9916869e2384b8e53bc6bffb1314, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: 277b6e81295b84afaa297d0889efb8a1, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -244,6 +434,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 9bdb6076c41f9d64099cfd338b8f4c8b, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: 9bdb6076c41f9d64099cfd338b8f4c8b, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -342,6 +539,20 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable
+  - FilteredScene: {fileID: 102900000, guid: 4fb94469014a7ce468a32889d270785d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
+  - FilteredScene: {fileID: 102900000, guid: 520aec2f141eeaf4daceb4e016157b78, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: 520aec2f141eeaf4daceb4e016157b78, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -349,6 +560,20 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: unstable
+  - FilteredScene: {fileID: 102900000, guid: 520aec2f141eeaf4daceb4e016157b78, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable on yamato
+  - FilteredScene: {fileID: 102900000, guid: 78446c36daacd444c8a07b5671274a51, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable with Yamato
   - FilteredScene: {fileID: 102900000, guid: c64196eb7ce78e84bb835b2ea858ee19, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -363,3 +588,17 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Not working
+  - FilteredScene: {fileID: 102900000, guid: 3d584f34970fc5c44871961e3178f4ce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: Wrong result on vulkan
+  - FilteredScene: {fileID: 102900000, guid: 708bd21bc204d2342bc1702a5a6de1d3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: layer disappeard

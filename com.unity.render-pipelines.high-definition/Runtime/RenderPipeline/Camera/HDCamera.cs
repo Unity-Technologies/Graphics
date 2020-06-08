@@ -291,6 +291,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal GameObject exposureTarget
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.exposureTarget;
+                }
+
+                return null;
+            }
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
@@ -363,6 +376,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return frameSettings.IsEnabled(FrameSettingsField.SSR) && ssr.enabled.value;
         }
 
+        internal bool IsSSGIEnabled()
+        {
+            var ssgi = volumeStack.GetComponent<GlobalIllumination>();
+            return frameSettings.IsEnabled(FrameSettingsField.SSGI) && ssgi.enable.value;
+        }
+
         internal bool IsTransparentSSREnabled()
         {
             var ssr = volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -419,7 +438,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.ReinitializeVolumetricBufferParams(this);
 
                 bool isCurrentColorPyramidRequired = frameSettings.IsEnabled(FrameSettingsField.Refraction) || frameSettings.IsEnabled(FrameSettingsField.Distortion);
-                bool isHistoryColorPyramidRequired = IsSSREnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
+                bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
                 int numColorPyramidBuffersRequired = 0;
@@ -499,11 +518,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
             HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
-
-            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
-            // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
-            // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-            RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -746,8 +760,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.input = builder.ReadTexture(input);
                 // We need to blit to an intermediate texture because input resolution can be bigger than the camera resolution
                 // Since recorder does not know about this, we need to send a texture of the right size.
-                passData.tempTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(actualWidth, actualHeight)
-                { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" }));
+                passData.tempTexture = builder.CreateTransientTexture(new TextureDesc(actualWidth, actualHeight)
+                { colorFormat = inputDesc.colorFormat, name = "TempCaptureActions" });
 
                 builder.SetRenderFunc(
                 (ExecuteCaptureActionsPassData data, RenderGraphContext ctx) =>
@@ -820,7 +834,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             public RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
             {
-                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("AO Packed history_{0}", frameIndex));
+                return rtHandleSystem.Alloc(Vector2.one * scaleFactor, TextureXR.slices, filterMode: FilterMode.Point, colorFormat: GraphicsFormat.R32_UInt, dimension: TextureXR.dimension, useDynamicScale: true, enableRandomWrite: true, name: string.Format("{0}_AO Packed history_{1}", id, frameIndex));
             }
         }
 
@@ -1151,6 +1165,24 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 VolumeManager.instance.Update(volumeStack, volumeAnchor, volumeLayerMask);
             }
+
+            // Update info about current target mid gray
+            TargetMidGray requestedMidGray = volumeStack.GetComponent<Exposure>().targetMidGray.value;
+            switch (requestedMidGray)
+            {
+                case TargetMidGray.Grey125:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+                case TargetMidGray.Grey14:
+                    ColorUtils.s_LightMeterCalibrationConstant = 14.0f;
+                    break;
+                case TargetMidGray.Grey18:
+                    ColorUtils.s_LightMeterCalibrationConstant = 18.0f;
+                    break;
+                default:
+                    ColorUtils.s_LightMeterCalibrationConstant = 12.5f;
+                    break;
+            }
         }
 
         Matrix4x4 GetJitteredProjectionMatrix(Matrix4x4 origProj)
@@ -1267,7 +1299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
                                         dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
-                                        name: string.Format("CameraColorBufferMipChain{0}", frameIndex));
+                                        name: string.Format("{0}_CameraColorBufferMipChain{1}", viewName, frameIndex));
         }
 
         void ReleaseHistoryBuffer()

@@ -126,7 +126,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
+- Added Virtual Texturing cache settings to control the size of the Streaming Virtual Texturing caches.
 - Added back-compatibility with builtin stereo matrices.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added Histogram guided automatic exposure.
+- Added few exposure debug modes.
+- Added support for multiple path-traced views at once (e.g., scene and game views).
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
+- Added custom target mid grey for auto exposure.
+- Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
+- Added an API in HDRP to override the camera within the rendering of a frame (mainly for custom pass).
+- Added more custom pass API functions, mainly to render objects from another camera.
+- Added support for transparent Unlit in path tracing.
+- Added a minimal lit used for RTGI in peformance mode.
+- Added procedural metering mask that can follow an object
+- Added presets quality settings for RTAO and RTGI.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -614,6 +628,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed taaFrameIndex and XR tests 4052 and 4053
+- Fixed the prefab integration of custom passes (Prefab Override Highlight not working as expected).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fix erroneous central depth sampling in TAA.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed issue with Model Importer materials falling back to the Legacy default material instead of HDRP's default material when import happens at Editor startup.
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
+- Fixed exposure debug shader with XR single-pass rendering.
+- Fixed issues with scene view and transparent motion vectors.
+- Fixed black screens for linux/HDRP (1246407)
+- Fixed a vulkan and metal warning in the SSGI compute shader.
+- Fixed an exception due to the color pyramid not allocated when SSGI is enabled.
+- Fixed an issue with the first Depth history was incorrectly copied.
+- Fixed path traced DoF focusing issue
+- Fix an issue with the half resolution Mode (performance)
+- Fix an issue with the color intensity of emissive for performance rtgi
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -742,6 +774,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Ignoring the disable SSR flags for recursive rendering.
 - Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
 - Fixed the sub surface mask not being taken into account when computing ray traced sub surface scattering.
+- MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
+- Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
+- Changed default exposure compensation to 0.
+- Refactored shadow caching system.
+- Removed experimental namespace for ray tracing code.
+- Increase limit for max numbers of lights in UX
+- Removed direct use of BSDFData in the path tracing pass, delegated to the material instead.
+- Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- DXR: Only read the geometric attributes that are required using the share pass info and shader graph defines.
+- DXR: Dispatch binned rays in 1D instead of 2D.
 
 ## [7.1.1] - 2019-09-05
 

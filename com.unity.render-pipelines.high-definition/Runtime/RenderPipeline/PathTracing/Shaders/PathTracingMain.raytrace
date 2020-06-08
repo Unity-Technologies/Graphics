@@ -25,7 +25,6 @@ float3   _RaytracingCameraClearColor;
 
 // DoF related parameters
 float4   _PathTracedDoFConstants;     // x: aperture radius, y: focus distance, zw: unused
-float4   _InvViewportScaleBias;
 
 // Output(s)
 RWTexture2D<float4> _RadianceTexture;
@@ -71,22 +70,14 @@ void RayGen()
     jitteredPixelCoord.x += GetSample(currentPixelCoord, _RaytracingSampleIndex, 40);
     jitteredPixelCoord.y += GetSample(currentPixelCoord, _RaytracingSampleIndex, 41);
 
-    float3 directionWS;
-    float3 cameraPosWS;
+    // Compute the ray direction from those coordinates (for zero aperture)
+    float3 directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
+    float3 cameraPosWS = _WorldSpaceCameraPos;
 
     float apertureRadius = _PathTracedDoFConstants.x;
-    if (apertureRadius == 0.0)
-    {
-        // Compute the ray direction from those coordinates (fast path for zero aperture)
-        directionWS = -normalize(mul(jitteredPixelCoord, (float3x3)_PixelCoordToViewDirWS));
-        cameraPosWS = _WorldSpaceCameraPos;
-    }
-    else
+    if (apertureRadius > 0.0)
     {
         // Compute the ray origin and direction for a lens with non-zero aperture
-
-        // Apply the inverse viewport transform to go from viewport coordinates to NDC
-        jitteredPixelCoord.xy = jitteredPixelCoord.xy * _InvViewportScaleBias.xy + _InvViewportScaleBias.zw;
 
         // Sample the lens apperture using the next available dimensions (we use 40 for path tracing, 2 for sub-pixel jittering, 64 for SSS -> 106, 107)
         float r1 = GetSample(currentPixelCoord, _RaytracingSampleIndex, 106);
@@ -94,16 +85,15 @@ void RayGen()
         float2 uv = apertureRadius * SampleDiskUniform(r1, r2);
 
         // Compute the new ray origin ( _ViewMatrix[0] = right, _ViewMatrix[1] = up, _ViewMatrix[2] = forward )
+        cameraPosWS += _ViewMatrix[0] * uv.x + _ViewMatrix[1] * uv.y;
+
+        // Compute the focus point by intersecting the pinhole ray with the focus plane
         float focusDistance = _PathTracedDoFConstants.y;
-        float3 focusPoint = _WorldSpaceCameraPos - _ViewMatrix[2] * focusDistance;
-        cameraPosWS = _WorldSpaceCameraPos + _ViewMatrix[0] * uv.x + _ViewMatrix[1] * uv.y;
+        float t = focusDistance / dot(directionWS, _ViewMatrix[2]);
+        float3 focusPointWS = _WorldSpaceCameraPos - t * directionWS;
 
-        // Create the new view matrix 
-        float3 newForward = normalize(focusPoint - cameraPosWS);
-        float3 newRight = cross(newForward, _ViewMatrix[1]);
-        float3x3 newViewMatrix = GetLocalFrame(newForward, newRight);
-
-        directionWS = normalize(mul(jitteredPixelCoord, newViewMatrix));
+        // The new ray direction should pass through the focus point
+        directionWS = normalize(focusPointWS - cameraPosWS);
     }
 
     // Create the ray descriptor for this pixel

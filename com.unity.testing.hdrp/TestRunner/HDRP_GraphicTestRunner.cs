@@ -35,11 +35,11 @@ public class HDRP_GraphicTestRunner
 
         Time.captureFramerate = settings.captureFramerate;
 
-        if (XRSystem.testModeEnabled)
+        if (XRGraphicsAutomatedTests.enabled)
         {
             if (settings.xrCompatible)
             {
-                XRSystem.automatedTestRunning = true;
+                XRGraphicsAutomatedTests.running = true;
 
                 // Increase tolerance to account for slight changes due to float precision
                 settings.ImageComparisonSettings.AverageCorrectnessThreshold *= settings.xrThresholdMultiplier;
@@ -86,12 +86,6 @@ public class HDRP_GraphicTestRunner
                 {
                     // GC alloc from Camera.CustomRender (case 1206364)
                     int gcAllocThreshold = 2;
-
-#if UNITY_2019_3
-                    // In case playmode tests for XR are enabled in 2019.3 we allow one GC alloc from XRSystem:120
-                    if (XRSystem.testModeEnabled)
-                        gcAllocThreshold += 1;
-#endif
 
                     ImageAssert.AllocatesMemory(camera, settings?.ImageComparisonSettings, gcAllocThreshold);
                 }
@@ -165,7 +159,7 @@ public class HDRP_GraphicTestRunner
     [TearDown]
     public void ResetSystemState()
     {
-        XRSystem.automatedTestRunning = false;
+        XRGraphicsAutomatedTests.running = false;
     }
 #endif
 
