@@ -963,6 +963,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
         {
+            FastMemoryDesc colorFastMemDesc;
+            colorFastMemDesc.inFastMemory = true;
+            colorFastMemDesc.residencyFraction = 1.0f;
+            colorFastMemDesc.flags = FastMemoryFlags.SpillTop;
+
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
@@ -972,7 +977,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableMSAA = msaa,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = string.Format("CameraColor{0}", msaa ? "MSAA" : "")});
+                    name = string.Format("CameraColor{0}", msaa ? "MSAA" : ""),
+                    fastMemoryDesc = colorFastMemDesc
+                });
         }
 
         class ResolveColorData

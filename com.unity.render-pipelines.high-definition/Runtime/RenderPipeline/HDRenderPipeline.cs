@@ -613,6 +613,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+        internal void SwitchRenderTargetsToFastMem(CommandBuffer cmd, HDCamera camera)
+        {
+            // Color and normal buffer will always be in fast memory
+            m_CameraColorBuffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+            m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+            // Following might need to change depending on context... TODO: Do a deep investigation of projects we have to check what is the most beneficial.
+            RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
+
+            if (settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                // Switch gbuffers to fast memory when we are in deferred
+                var buffers = m_GbufferManager.GetBuffers();
+                foreach (var buffer in buffers)
+                {
+                    buffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+                }
+            }
+
+            // Trying to fit the depth pyramid
+            m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, false);
+        }
+
         /// <summary>
         /// Resets the reference size of the internal RTHandle System.
         /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
@@ -2120,18 +2142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
 
-            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
-            //var rts = m_GbufferManager.GetBuffers();
-            //foreach (var gbuff in rts)
-            //{
-            //    if (gbuff != null)
-            //        gbuff.SwitchToFastMemory(cmd);
-            //}
-            //m_SharedRTManager.GetMotionVectorsBuffer().SwitchToFastMemory(cmd);
-            //m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd);
-            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
-            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
-            //m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd);
+            SwitchRenderTargetsToFastMem(cmd, hdCamera);
 
             if (m_RayTracingSupported)
             {
