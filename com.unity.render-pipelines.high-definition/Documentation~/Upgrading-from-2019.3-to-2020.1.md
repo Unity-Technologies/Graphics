@@ -4,7 +4,7 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Mesh LOD Transition
 
-From Unity 2020.1, the cross LOD fade transition between a LitTessellation.shader or a LayeredLit.shader to object with a Material with no tessellation is no longer a dithering but a smooth decrease of the displacement strenght. It allow to improve transition between Firt high quality LOD done with tessellation to a second mid-qality LOD without it. The remaining transition are the same, i.e transition to low decimated mesh will still be a dithering.
+From Unity 2020.1, HDRP no longer uses dithering for the LOD crossfade transition between a LOD that uses a material with tessellation and a LOD that uses a material with no tessellation. Instead, HDRP smoothly decreases the tessellation displacement strength. This improves the transition between the first high-quality LOD with tessellation and a second mid-quality LOD without tessellation. The remaining transitions between non-tessellation materials still use dithering.
 
 ## Scene View Camera Settings
 
