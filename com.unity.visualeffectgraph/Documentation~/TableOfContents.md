@@ -94,6 +94,7 @@
         * [Transform (Matrix)](Operator-Transform(Matrix).md)
         * [Transform (Position)](Operator-Transform(Position).md)
         * [Transform (Vector)](Operator-Transform(Vector).md)
+        * [Transpose (Matrix)](Operator-Transpose(Matrix).md))
         * [Volume (Axis Aligned Box)](Operator-Volume(AxisAlignedBox).md)
         * [Volume (Cone)](Operator-Volume(Cone).md)
         * [Volume (Cylinder)](Operator-Volume(Cylinder).md)
