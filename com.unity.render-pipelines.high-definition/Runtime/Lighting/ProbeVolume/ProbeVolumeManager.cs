@@ -186,7 +186,8 @@ namespace UnityEngine.Rendering.HighDefinition
             refVol.CreateBricks(vols, subdivDel, bricks, out int numProbes);
 
             // convert the brick data into actual probe positions
-            probePositions = new Vector3[bricks.Count * 64];
+            probePositions = new Vector3[numProbes];
+            refVol.ConvertBricks(bricks, probePositions);
             Profiler.EndSample();
         }
 #endif
