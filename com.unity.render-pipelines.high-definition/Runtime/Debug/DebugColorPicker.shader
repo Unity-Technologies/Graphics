@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugColorPicker"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -183,10 +183,6 @@ Shader "Hidden/HDRP/DebugColorPicker"
                     //Decompress value if luxMeter is active
                     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
                         mouseResult = mouseResult * LUXMETER_COMPRESSION_RATIO;
-
-                    // Reverse debug exposure in order to display the real values.
-                    // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
-                    mouseResult = mouseResult / exp2(_DebugExposure);
 
                     result = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
                 }

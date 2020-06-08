@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Default HDAdditionalCameraData</summary>
         static internal HDAdditionalCameraData s_DefaultHDAdditionalCameraData { get { return ComponentSingleton<HDAdditionalCameraData>.instance; } }
 
+        static List<CustomPassVolume> m_TempCustomPassVolumeList = new List<CustomPassVolume>();
+
         static Texture3D m_ClearTexture3D;
         static RTHandle m_ClearTexture3DRTH;
         /// <summary>
@@ -335,7 +337,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -354,7 +355,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, colorBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -373,7 +373,6 @@ namespace UnityEngine.Rendering.HighDefinition
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffers, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._RTHandleScale, depthStencilBuffer.rtHandleProperties.rtHandleScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -471,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Set the renderPipelineAsset, either on the quality settings if it was unset from there or in GraphicsSettings.
-        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made. 
+        // IMPORTANT: RenderPipelineManager.currentPipeline won't be HDRP until a camera.Render() call is made.
         internal static void RestoreRenderPipelineAsset(bool wasUnsetFromQuality, RenderPipelineAsset renderPipelineAsset)
         {
             if(wasUnsetFromQuality)
@@ -590,20 +589,30 @@ namespace UnityEngine.Rendering.HighDefinition
                 rt.Create();
         }
 
-        internal static Vector4 ComputeUvScaleAndLimit(Vector2Int viewportResolution, Vector2Int bufferSize)
+        internal static float ComputeViewportScale(int viewportSize, int bufferSize)
         {
-            Vector2 rcpBufferSize = new Vector2(1.0f / bufferSize.x, 1.0f / bufferSize.y);
+            float rcpBufferSize = 1.0f / bufferSize;
 
-            // vp_scale = vp_dim / tex_dim.
-            Vector2 uvScale = new Vector2(viewportResolution.x * rcpBufferSize.x,
-                                          viewportResolution.y * rcpBufferSize.y);
-
-            // clamp to (vp_dim - 0.5) / tex_dim.
-            Vector2 uvLimit = new Vector2((viewportResolution.x - 0.5f) * rcpBufferSize.x,
-                                          (viewportResolution.y - 0.5f) * rcpBufferSize.y);
-
-            return new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
+            // Scale by (vp_dim / buf_dim).
+            return viewportSize * rcpBufferSize;
         }
+
+        internal static float ComputeViewportLimit(int viewportSize, int bufferSize)
+        {
+            float rcpBufferSize = 1.0f / bufferSize;
+
+            // Clamp to (vp_dim - 0.5) / buf_dim.
+            return (viewportSize - 0.5f) * rcpBufferSize;
+        }
+
+        internal static Vector4 ComputeViewportScaleAndLimit(Vector2Int viewportSize, Vector2Int bufferSize)
+        {
+            return new Vector4(ComputeViewportScale(viewportSize.x, bufferSize.x),  // Scale(x)
+                               ComputeViewportScale(viewportSize.y, bufferSize.y),  // Scale(y)
+                               ComputeViewportLimit(viewportSize.x, bufferSize.x),  // Limit(x)
+                               ComputeViewportLimit(viewportSize.y, bufferSize.y)); // Limit(y)
+        }
+
 
 #if UNITY_EDITOR
         // This function can't be in HDEditorUtils because we need it in HDRenderPipeline.cs (and HDEditorUtils is in an editor asmdef)
@@ -734,12 +743,17 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.CustomPass))
                 return false;
 
-            var customPass = CustomPassVolume.GetActivePassVolume(injectionPoint);
+            bool executed = false;
+            CustomPassVolume.GetActivePassVolumes(injectionPoint, m_TempCustomPassVolumeList);
+            foreach(var customPassVolume in m_TempCustomPassVolumeList)
+            {
+                if (customPassVolume == null)
+                    return false;
 
-            if (customPass == null)
-                return false;
+                executed |= customPassVolume.WillExecuteInjectionPoint(hdCamera);
+            }
 
-            return customPass.WillExecuteInjectionPoint(hdCamera);
+            return executed;
         }
 
         internal static bool PostProcessIsFinalPass(HDCamera hdCamera)
@@ -993,6 +1007,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             string msg = "Platform " + currentPlatform + " with device " + graphicAPI + " is not supported with High Definition Render Pipeline, no rendering will occur";
             DisplayUnsupportedMessage(msg);
+        }
+
+        internal static void ReleaseComponentSingletons()
+        {
+            ComponentSingleton<HDAdditionalReflectionData>.Release();
+            ComponentSingleton<HDAdditionalLightData>.Release();
+            ComponentSingleton<HDAdditionalCameraData>.Release();
         }
     }
 }

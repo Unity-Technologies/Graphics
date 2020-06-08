@@ -11,10 +11,11 @@
     * [Color Modes](Color-Modes)
     * [Precision Modes](Precision-Modes)
     * [Custom Function Node](Custom-Function-Node)
+    * [Shader Graph Preferences](Shader-Graph-Preferences)
     * [Samples](ShaderGraph-Samples.md)
 * Inside Shader Graph  
     * [Shader Graph Asset](Shader-Graph-Asset) 
-	* [Sub Graph Asset](Sub-graph-Asset)
+    * [Sub Graph Asset](Sub-graph-Asset)
     * [Node](Node) 
         * [Port](Port)  
         * [Custom Port Menu](Custom-Port-Menu)
@@ -192,6 +193,9 @@
             * [Sawtooth Wave](Sawtooth-Wave-Node)
             * [Square Wave](Square-Wave-Node)  
             * [Triangle Wave](Triangle-Wave-Node)    
+    * Mesh Deformation
+        * [Compute Deformation](Compute-Deformation-Node)    
+        * [Linear Blend Skinning](Linear-Blend-Skinning-Node)    
     * [Procedural](Procedural-Nodes)
         * Noise   
             * [Gradient Noise](Gradient-Noise-Node)  

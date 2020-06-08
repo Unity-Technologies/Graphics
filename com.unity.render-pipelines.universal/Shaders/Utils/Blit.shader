@@ -16,45 +16,28 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma vertex Vertex
+
+            #pragma vertex FullscreenVert
             #pragma fragment Fragment
-
             #pragma multi_compile _ _LINEAR_TO_SRGB_CONVERSION
+            #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #ifdef _LINEAR_TO_SRGB_CONVERSION
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-            #endif
 
-            struct Attributes
+            TEXTURE2D_X(_SourceTex);
+            SAMPLER(sampler_SourceTex);
+
+            half4 Fragment(FullscreenVaryings input) : SV_Target
             {
-                float4 positionOS   : POSITION;
-                float2 uv           : TEXCOORD0;
-            };
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                
+                half4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv);
 
-            struct Varyings
-            {
-                half4 positionCS    : SV_POSITION;
-                half2 uv            : TEXCOORD0;
-            };
-
-            TEXTURE2D(_BlitTex);
-            SAMPLER(sampler_BlitTex);
-
-            Varyings Vertex(Attributes input)
-            {
-                Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = UnityStereoTransformScreenSpaceTex(input.uv);
-                return output;
-            }
-
-            half4 Fragment(Varyings input) : SV_Target
-            {
-                half4 col = SAMPLE_TEXTURE2D(_BlitTex, sampler_BlitTex, input.uv);
-                #ifdef _LINEAR_TO_SRGB_CONVERSION
+             #ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
-                #endif
+             #endif
+
                 return col;
             }
             ENDHLSL

@@ -113,26 +113,15 @@ namespace UnityEditor.VFX.Block
             {
                 var attrib = currentAttribute;
 
-                VFXPropertyAttribute[] attr = null;
-
                 Type slotType = VFXExpression.TypeToType(attrib.type);
                 object content = attrib.value.GetContent();
 
                 if (Random == RandomMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name))
-                    {
-                        attributes = attr
-                    }, content);
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)), content);
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min")
-                    {
-                        attributes = attr
-                    });
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max")
-                    {
-                        attributes = attr
-                    }, content);
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min"));
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max"), content);
                 }
 
                 if (Composition == AttributeCompositionMode.Blend)

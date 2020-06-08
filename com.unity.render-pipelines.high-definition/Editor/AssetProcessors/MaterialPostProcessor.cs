@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist)
+                        if (!inTestSuite && fileExist && !Application.isBatchMode)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                                         " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
@@ -189,6 +189,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
              StencilRefactor,
              ZWriteForTransparent,
+             RenderQueueUpgrade,
         };
 
         #region Migrations
@@ -272,6 +273,69 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
+        static void RenderQueueUpgrade(Material material, HDShaderUtils.ShaderID id)
+        {
+            // In order for the ray tracing keyword to be taken into account, we need to make it dirty so that the parameter is created first
+            HDShaderUtils.ResetMaterialKeywords(material);
+
+            // Replace previous ray tracing render queue for opaque to regular opaque with raytracing
+            if (material.renderQueue == ((int)UnityEngine.Rendering.RenderQueue.GeometryLast + 20))
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.Opaque;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+            // Replace previous ray tracing render queue for transparent to regular transparent with raytracing
+            else if (material.renderQueue == 3900)
+            {
+                material.renderQueue = (int)HDRenderQueue.Priority.Transparent;
+                material.SetFloat(kRayTracing, 1.0f);
+            }
+
+            // For shader graphs, there is an additional pass we need to do
+            if (material.HasProperty("_RenderQueueType"))
+            {
+                int renderQueueType = (int)material.GetFloat("_RenderQueueType");
+                switch (renderQueueType)
+                {
+                    // This was ray tracing opaque, should go back to opaque
+                    case 3:
+                    {
+                        renderQueueType = 1;
+                    }
+                    break;
+                    // If it was in the transparent range, reduce it by 1
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    {
+                        renderQueueType = renderQueueType - 1;
+                    }
+                    break;
+                    // If it was in the ray tracing transparent, should go back to transparent
+                    case 8:
+                    {
+                        renderQueueType = renderQueueType - 4;
+                    }
+                    break;
+                    // If it was in overlay should be reduced by 2
+                    case 10:
+                    {
+                        renderQueueType = renderQueueType - 2;
+                    }
+                    break;
+                    // background, opaque and AfterPostProcessOpaque are not impacted
+                    default:
+                        break;
+                }
+
+
+                // Push it back to the material
+                material.SetFloat("_RenderQueueType", (float)renderQueueType);
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
 
         #region Serialization_API
         //Methods in this region interact on the serialized material

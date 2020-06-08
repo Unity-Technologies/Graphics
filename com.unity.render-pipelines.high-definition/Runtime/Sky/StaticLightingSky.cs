@@ -1,25 +1,28 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>
+    /// Class controlling which sky is used for static and baked lighting.
+    /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Static-Lighting-Sky" + Documentation.endURL)]
     [ExecuteAlways]
     [AddComponentMenu("")] // Hide this object from the Add Component menu
-    class StaticLightingSky : MonoBehaviour
+    public class StaticLightingSky : MonoBehaviour
     {
         [SerializeField]
         VolumeProfile m_Profile;
         [SerializeField, FormerlySerializedAs("m_BakingSkyUniqueID")]
         int m_StaticLightingSkyUniqueID = 0;
-        int m_LastComputedHash;
+        int m_LastComputedHash, m_LastComputedCloudHash;
         bool m_NeedUpdateStaticLightingSky;
 
-        // This one contain only property values from overridden properties in the original profile component
-        public SkySettings m_SkySettings;
-        public SkySettings m_SkySettingsFromProfile;
+        SkySettings m_SkySettings; // This one contain only property values from overridden properties in the original profile component
+        SkySettings m_SkySettingsFromProfile;
 
-        public SkySettings skySettings
+        internal SkySettings skySettings
         {
             get
             {
@@ -32,7 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    Reset();
+                    ResetSky();
                 }
                 return m_SkySettings;
             }
@@ -41,6 +44,31 @@ namespace UnityEngine.Rendering.HighDefinition
         List<SkySettings> m_VolumeSkyList = new List<SkySettings>();
 
 
+        CloudLayer m_CloudLayer; // This one contain only property values from overridden properties in the original profile component
+        CloudLayer m_CloudLayerFromProfile;
+
+        internal CloudLayer cloudLayer
+        {
+            get
+            {
+                GetCloudFromVolume(m_Profile, out var cloudFromProfile);
+                if (cloudFromProfile != null)
+                {
+                    int newHash = cloudFromProfile.GetHashCode();
+                    if (m_LastComputedCloudHash != newHash)
+                        UpdateCurrentStaticLightingCloud();
+                }
+                else
+                {
+                    ResetCloud();
+                }
+                return m_CloudLayer;
+            }
+        }
+
+        /// <summary>
+        /// Volume profile where the sky settings used for static lighting will be fetched.
+        /// </summary>
         public VolumeProfile profile
         {
             get
@@ -67,6 +95,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Unique ID of the sky used for static lighting.
+        /// The unique ID should be for a sky that is present in the profile. See SkySettings.GetUniqueID to get the ID per sky type.
+        /// </summary>
         public int staticLightingSkyUniqueID
         {
             get
@@ -91,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     foreach (var sky in m_VolumeSkyList)
                     {
-                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()))
+                        if (skyUniqueID == SkySettings.GetUniqueID(sky.GetType()) && sky.active)
                         {
                             skyType = sky.GetType();
                             skySetting = sky;
@@ -123,7 +155,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 var profileSkyParameters = m_SkySettingsFromProfile.parameters;
 
                 var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
-                defaultVolume.sharedProfile.TryGet(skyType, out SkySettings defaultSky);
+                SkySettings defaultSky = null;
+                if (defaultVolume.sharedProfile != null) // This can happen with old projects.
+                    defaultVolume.sharedProfile.TryGet(skyType, out defaultSky);
                 var defaultSkyParameters = defaultSky != null ? defaultSky.parameters : null; // Can be null if the profile does not contain the component.
 
                 // Seems to inexplicably happen sometimes on domain reload.
@@ -150,6 +184,68 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_LastComputedHash = m_SkySettingsFromProfile.GetHashCode();
             }
         }
+
+        void GetCloudFromVolume(VolumeProfile profile, out CloudLayer cloudLayer)
+        {
+            if (profile != null)
+            {
+                profile.TryGet(out cloudLayer);
+                if (cloudLayer != null && !cloudLayer.active)
+                    cloudLayer = null;
+            }
+            else
+                cloudLayer = null;
+        }
+
+        void UpdateCurrentStaticLightingCloud()
+        {
+            // First, grab the cloud layer of the right type in the profile.
+            CoreUtils.Destroy(m_CloudLayer);
+            m_CloudLayer = null;
+            m_LastComputedCloudHash = 0;
+            GetCloudFromVolume(m_Profile, out m_CloudLayerFromProfile);
+
+            if (m_CloudLayerFromProfile != null)
+            {
+                // The static lighting sky is a Volume Component that lives outside of the volume system (we just grab a component from a profile)
+                // As such, it may contain values that are not actually overridden
+                // For example, user overrides a value, change it, and disable overrides. In this case the volume still contains the old overridden value
+                // In this case, we want to use values only if they are still overridden, so we create a volume component with default values and then copy the overridden values from the profile.
+                // Also, a default profile might be set in the HDRP project settings, this volume is applied by default to all the scene so it should also be taken into account here.
+
+                // Create an instance with default values
+                m_CloudLayer = ScriptableObject.CreateInstance<CloudLayer>();
+                var newCloudParameters = m_CloudLayer.parameters;
+                var profileCloudParameters = m_CloudLayerFromProfile.parameters;
+
+                var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+                defaultVolume.sharedProfile.TryGet(out CloudLayer defaultCloud);
+                var defaultCloudParameters = defaultCloud != null ? defaultCloud.parameters : null; // Can be null if the profile does not contain the component.
+
+                // Seems to inexplicably happen sometimes on domain reload.
+                if (profileCloudParameters == null)
+                    return;
+
+                int parameterCount = m_CloudLayer.parameters.Count;
+                // Copy overridden parameters.
+                for (int i  = 0; i < parameterCount; ++i)
+                {
+                    if (profileCloudParameters[i].overrideState == true)
+                    {
+                        newCloudParameters[i].SetValue(profileCloudParameters[i]);
+                    }
+                    // Fallback to the default profile if values are overridden in there.
+                    else if (defaultCloudParameters != null && defaultCloudParameters[i].overrideState == true)
+                    {
+                        newCloudParameters[i].SetValue(defaultCloudParameters[i]);
+                    }
+                }
+
+                m_LastComputedCloudHash = m_CloudLayerFromProfile.GetHashCode();
+            }
+        }
+
+
 
         // All actions done in this method are because Editor won't go through setters so we need to manually check consistency of our data.
         void OnValidate()
@@ -190,7 +286,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Profile != null)
                 SkyManager.UnRegisterStaticLightingSky(this);
 
-            Reset();
+            ResetSky();
+            ResetCloud();
         }
 
         void Update()
@@ -202,12 +299,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void Reset()
+        void ResetSky()
         {
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;
             m_SkySettingsFromProfile = null;
             m_LastComputedHash = 0;
+        }
+
+        void ResetCloud()
+        {
+            CoreUtils.Destroy(m_CloudLayer);
+            m_CloudLayer = null;
+            m_CloudLayerFromProfile = null;
+            m_LastComputedCloudHash = 0;
         }
     }
 }

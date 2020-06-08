@@ -57,14 +57,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Number of cascades HDRP uses for cascaded shadow maps.</summary>
         [Tooltip("Controls the number of cascades HDRP uses for cascaded shadow maps.")]
         public NoInterpClampedIntParameter      cascadeShadowSplitCount = new NoInterpClampedIntParameter(4, 1, 4);
-        /// <summary>Position of the first cascade split as a percentage of Max Distance.</summary>
-        [Tooltip("Sets the position of the first cascade split as a percentage of Max Distance.")]
+        /// <summary>Position of the first cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
+        [Tooltip("Sets the position of the first cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
         public CascadePartitionSplitParameter   cascadeShadowSplit0 = new CascadePartitionSplitParameter(0.05f);
-        /// <summary>Position of the second cascade split as a percentage of Max Distance.</summary>
-        [Tooltip("Sets the position of the second cascade split as a percentage of Max Distance.")]
+        /// <summary>Position of the second cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
+        [Tooltip("Sets the position of the second cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
         public CascadePartitionSplitParameter   cascadeShadowSplit1 = new CascadePartitionSplitParameter(0.15f);
-        /// <summary>Sets the position of the third cascade split as a percentage of Max Distance.</summary>
-        [Tooltip("Position of the third cascade split as a percentage of Max Distance.")]
+        /// <summary>Sets the position of the third cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.</summary>
+        [Tooltip("Sets the position of the third cascade split as a percentage of Max Distance if the parameter is normalized or as the distance from the camera if it's not normalized.")]
         public CascadePartitionSplitParameter   cascadeShadowSplit2 = new CascadePartitionSplitParameter(0.3f);
         /// <summary>Border size between the first and second cascade split.</summary>
         [Tooltip("Sets the border size between the first and second cascade split.")]

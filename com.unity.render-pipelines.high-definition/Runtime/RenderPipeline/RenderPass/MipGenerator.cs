@@ -39,6 +39,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(m_TempDownsamplePyramid[i]);
                 m_TempDownsamplePyramid[i] = null;
             }
+
+            CoreUtils.Destroy(m_ColorPyramidPSMat);
         }
 
         private int tmpTargetCount
@@ -144,6 +146,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 useDynamicScale: true,
                 name: "Temporary Downsampled Pyramid"
                 );
+
+                cmd.SetRenderTarget(m_TempDownsamplePyramid[rtIndex]);
+                cmd.ClearRenderTarget(false, true, Color.black);
             }
 
             float sourceScaleX = (float)size.x / source.width;

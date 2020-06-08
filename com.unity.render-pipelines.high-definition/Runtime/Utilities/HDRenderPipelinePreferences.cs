@@ -12,30 +12,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         static bool m_Loaded = false;
 
-        static AntialiasingMode s_SceneViewAntialiasing;
-        public static AntialiasingMode sceneViewAntialiasing
-        {
-            get => s_SceneViewAntialiasing;
-            set
-            {
-                if (s_SceneViewAntialiasing == value) return;
-                s_SceneViewAntialiasing = value;
-                EditorPrefs.SetInt(Keys.sceneViewAntialiasing, (int)s_SceneViewAntialiasing);
-            }
-        }
-
-        static bool s_SceneViewStopNaNs;
-        public static bool sceneViewStopNaNs
-        {
-            get => s_SceneViewStopNaNs;
-            set
-            {
-                if (s_SceneViewStopNaNs == value) return;
-                s_SceneViewStopNaNs = value;
-                EditorPrefs.SetBool(Keys.sceneViewStopNaNs, s_SceneViewStopNaNs);
-            }
-        }
-
         static bool s_MatcapMixAlbedo;
         public static bool matcapViewMixAlbedo
         {
@@ -105,13 +81,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (!m_Loaded)
                         Load();
 
-                    sceneViewAntialiasing = (AntialiasingMode)EditorGUILayout.EnumPopup("Scene View Anti-aliasing", sceneViewAntialiasing);
-
-                    if (sceneViewAntialiasing == AntialiasingMode.TemporalAntialiasing)
-                        EditorGUILayout.HelpBox("Temporal Anti-aliasing in the Scene View is only supported when Animated Materials are enabled.", MessageType.Info);
-
-                    sceneViewStopNaNs = EditorGUILayout.Toggle("Scene View Stop NaNs", sceneViewStopNaNs);
-
                     matcapViewMixAlbedo = EditorGUILayout.Toggle("Mix Albedo in the Matcap", matcapViewMixAlbedo);
                     if(matcapViewMixAlbedo)
                         matcapViewScale = EditorGUILayout.FloatField("Matcap intensity scale", matcapViewScale);
@@ -134,8 +103,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void Load()
         {
-            s_SceneViewAntialiasing = (AntialiasingMode)EditorPrefs.GetInt(Keys.sceneViewAntialiasing, (int)AntialiasingMode.None);
-            s_SceneViewStopNaNs = EditorPrefs.GetBool(Keys.sceneViewStopNaNs, false);
             s_MatcapMixAlbedo = EditorPrefs.GetBool(Keys.matcapViewMixAlbedo, true);
             s_MatcapScale = EditorPrefs.GetFloat(Keys.matcapViewScale, 1.0f);
             s_LightColorNormalization = EditorPrefs.GetBool(Keys.lightColorNormalization, false);

@@ -10,10 +10,24 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         /// <summary>No lighting debug mode.</summary>
         None,
+        // Caution: Shader code assume that all lighting decomposition mode are contiguous
+        // i.e start with DiffuseLighting and end with EmissiveLighting. Keep those boundary.
         /// <summary>Display only diffuse lighting.</summary>
         DiffuseLighting,
         /// <summary>Display only specular lighting.</summary>
         SpecularLighting,
+        /// <summary>Display only direct diffuse lighting.</summary>
+        DirectDiffuseLighting,
+        /// <summary>Display only direct specular lighting.</summary>
+        DirectSpecularLighting,
+        /// <summary>Display only indirect diffuse lighting.</summary>
+        IndirectDiffuseLighting,
+        /// <summary>Display only reflection.</summary>
+        ReflectionLighting,
+        /// <summary>Display only refraction.</summary>
+        RefractionLighting,
+        /// <summary>Display only Emissive lighting.</summary>
+        EmissiveLighting,
         /// <summary>Display lux values.</summary>
         LuxMeter,
         /// <summary>Display luminance values.</summary>
@@ -27,7 +41,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display indirect diffuse occlusion.</summary>
         IndirectDiffuseOcclusion,
         /// <summary>Display indirect specular occlusion.</summary>
-        IndirectSpecularOcclusion
+        IndirectSpecularOcclusion,
+        /// <summary>Display Probe Volumes.</summary>
+        ProbeVolume
     }
 
     /// <summary>
@@ -146,6 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VisualizeDirectionalLightAtlas,
         /// <summary>Display area lights shadow atlas as an overlay.</summary>
         VisualizeAreaLightAtlas,
+        /// <summary>Display punctual lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedPunctualLightAtlas,
+        /// <summary>Display area lights cached shadow atlas as an overlay.</summary>
+        VisualizeCachedAreaLightAtlas,
         /// <summary>Display a single light shadow map as an overlay.</summary>
         VisualizeShadowMap,
         /// <summary>Replace rendering with a black and white view of the shadow of a single light in the scene.</summary>
@@ -153,6 +173,50 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Exposure debug mode.
+    /// </summary>
+    [GenerateHLSL]
+    public enum ExposureDebugMode
+    {
+        /// <summary>No exposure debug.</summary>
+        None,
+        /// <summary>Display the EV100 values of the scene, color-coded.</summary>
+        SceneEV100Values,
+        /// <summary>Display the Histogram used for exposure.</summary>
+        HistogramView,
+        /// <summary>Visualize the scene color weighted as the metering mode selected.</summary>
+        MeteringWeighted,
+
+    }
+
+
+    /// <summary>
+    /// Probe Volume Debug Modes.
+    /// </summary>
+    [GenerateHLSL]
+    internal enum ProbeVolumeDebugMode
+    {
+        None,
+        VisualizeAtlas,
+        VisualizeDebugColors,
+        VisualizeValidity
+    }
+
+	/// <summary>
+    /// Probe Volume Atlas Slicing Modes.
+    /// </summary>
+    [GenerateHLSL]
+    internal enum ProbeVolumeAtlasSliceMode
+    {
+        IrradianceSH00,
+        IrradianceSH1_1,
+        IrradianceSH10,
+        IrradianceSH11,
+        Validity,
+        OctahedralDepth
+    }
+
+	/// <summary>
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
@@ -173,7 +237,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 || overrideAmbientOcclusion
                 || overrideSpecularColor
                 || overrideEmissiveColor
-                || shadowDebugMode == ShadowMapDebugMode.SingleShadow;
+                || shadowDebugMode == ShadowMapDebugMode.SingleShadow
+                || probeVolumeDebugMode != ProbeVolumeDebugMode.None;
         }
 
         /// <summary>Current Light Filtering.</summary>
@@ -192,7 +257,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4[]            debugRenderingLayersColors = GetDefaultRenderingLayersColorPalette();
         /// <summary>Current Shadow Maps debug mode.</summary>
         public ShadowMapDebugMode   shadowDebugMode = ShadowMapDebugMode.None;
-        /// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
+        /// <summary>Current Probe Volume Debug Mode.</summary>
+        [SerializeField] internal ProbeVolumeDebugMode probeVolumeDebugMode = ProbeVolumeDebugMode.None;
+		/// <summary>Current Probe Volume Atlas Slicing Mode.</summary>
+        [SerializeField] internal ProbeVolumeAtlasSliceMode probeVolumeAtlasSliceMode = ProbeVolumeAtlasSliceMode.IrradianceSH00;
+		/// <summary>The minimum display threshold for atlas slices.</summary>
+        [SerializeField] internal float probeVolumeMinValue = 0.0f;
+		/// <summary>The maximum display threshold for atlas slices.</summary>
+        [SerializeField] internal float probeVolumeMaxValue = 1.0f;
+		/// <summary>True if Shadow Map debug mode should be displayed for the currently selected light.</summary>
         public bool                 shadowDebugUseSelection = false;
         /// <summary>Index in the list of currently visible lights of the shadow map to display.</summary>
         public uint                 shadowMapIndex = 0;
@@ -240,8 +313,16 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights against which the light overdraw gradient is displayed.</summary>
         public uint                 maxDebugLightCount = 24;
 
-        /// <summary>Exposure used for lighting debug modes.</summary>
+        /// <summary>Exposure debug mode.</summary>
+        public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
+        /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Debug lens attenuation factor for the virtual camera.</summary>
+        public float                debugLensAttenuation = 0.65f;
+        /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
+        public bool                 showTonemapCurveAlongHistogramView = true;
+        /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
+        public bool                 centerHistogramAroundMiddleGrey = false;
 
         /// <summary>Display the light cookies atlas.</summary>
         public bool                 displayCookieAtlas = false;
@@ -278,7 +359,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {
-            return debugLightingMode != DebugLightingMode.None && debugLightingMode != DebugLightingMode.MatcapView;
+            return  debugLightingMode == DebugLightingMode.LuxMeter || debugLightingMode == DebugLightingMode.LuminanceMeter ||
+                    debugLightingMode == DebugLightingMode.VisualizeCascade || debugLightingMode == DebugLightingMode.VisualizeShadowMasks ||
+                    debugLightingMode == DebugLightingMode.IndirectDiffuseOcclusion || debugLightingMode == DebugLightingMode.IndirectSpecularOcclusion ||
+                    debugLightingMode == DebugLightingMode.ProbeVolume;
         }
 
         internal static Vector4[] GetDefaultRenderingLayersColorPalette()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.VFX;
 using UnityEngine;
@@ -18,6 +19,19 @@ namespace UnityEditor.VFX
     [InitializeOnLoad]
     class VFXGraphPreprocessor : AssetPostprocessor
     {
+        void OnPreprocessAsset()
+        {
+            bool isVFX = assetPath.EndsWith(VisualEffectResource.Extension);
+            if (isVFX)
+            {
+                VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if (resource == null)
+                    return;
+
+                resource.GetOrCreateGraph().SanitizeForImport();
+            }
+        }
+
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -278,7 +292,11 @@ namespace UnityEditor.VFX
             dependencies.Add(this);
             CollectDependencies(dependencies);
 
-            var result = VFXMemorySerializer.StoreObjectsToByteArray(dependencies.Cast<ScriptableObject>().ToArray(), CompressionLevel.Fastest);
+            // This is a guard where dependencies that couldnt be deserialized (because script is missing for instance) are removed from the list
+            // because else StoreObjectsToByteArray is crashing
+            // TODO Fix that
+            var safeDependencies = dependencies.Where(o => o != null);
+            var result = VFXMemorySerializer.StoreObjectsToByteArray(safeDependencies.ToArray(), CompressionLevel.Fastest);
 
             Profiler.EndSample();
 
@@ -360,8 +378,38 @@ namespace UnityEditor.VFX
 
             systemNames.Sync(this);
 
+
+            int resourceCurrentVersion = 0;
+            // Stop using reflection after 2020.2;
+            FieldInfo info = typeof(VisualEffectResource).GetField("CurrentVersion", BindingFlags.Static | System.Reflection.BindingFlags.Public);
+            if (info != null)
+                resourceCurrentVersion = (int)info.GetValue(null);
+
+            if (m_ResourceVersion < resourceCurrentVersion) // Graph not up to date
+            {
+                if (m_ResourceVersion < 1) // Version before gradient interpreted as linear
+                {
+                    foreach (var model in objs.OfType<VFXSlotGradient>())
+                    {
+                        Gradient value = (Gradient)model.value;
+                        GradientColorKey[] keys = value.colorKeys;
+
+                        for (int i = 0; i < keys.Length; ++i)
+                        {
+                            var colorKey = keys[i];
+                            colorKey.color = colorKey.color.linear;
+                            keys[i] = colorKey;
+                        }
+                        value.colorKeys = keys;
+                        model.value = new Gradient();
+                        model.value = value;
+                    }
+                }
+            }
+            m_ResourceVersion = resourceCurrentVersion;
             m_GraphSanitized = true;
             m_GraphVersion = CurrentVersion;
+
             UpdateSubAssets(); //Should not be necessary : force remove no more referenced object from asset
         }
 
@@ -665,6 +713,24 @@ namespace UnityEditor.VFX
         //Explicit compile must be used if we want to force compilation even if a dependency is needed, which me must not do on a deleted library import.
         public static bool explicitCompile { get; set; } = false;
 
+
+        public void SanitizeForImport()
+        {
+            if (!explicitCompile)
+            {
+                HashSet<int> dependentAsset = new HashSet<int>();
+                GetImportDependentAssets(dependentAsset);
+
+                foreach (var instanceID in dependentAsset)
+                {
+                    if (EditorUtility.InstanceIDToObject(instanceID) == null)
+                    {
+                        return;
+                    }
+                }
+            }
+            SanitizeGraph();
+        }
         public void CompileForImport()
         {
             if (!GetResource().isSubgraph)
@@ -680,13 +746,11 @@ namespace UnityEditor.VFX
                     {
                         if (EditorUtility.InstanceIDToObject(instanceID) == null)
                         {
-                            //Debug.LogWarning("Refusing to compile " + AssetDatabase.GetAssetPath(this) + "because dependency is not yet loaded");
                             return;
                         }
                     }
                 }
-
-                SanitizeGraph();
+                // Graph must have been sanitized at this point by the VFXGraphPreprocessor.OnPreprocess
                 BuildSubgraphDependencies();
                 PrepareSubgraphs();
 
@@ -752,6 +816,9 @@ namespace UnityEditor.VFX
 
         [SerializeField]
         private int m_GraphVersion = CurrentVersion;
+
+        [SerializeField]
+        private int m_ResourceVersion;
 
         [NonSerialized]
         private bool m_GraphSanitized = false;

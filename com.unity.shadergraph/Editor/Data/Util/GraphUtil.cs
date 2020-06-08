@@ -113,6 +113,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graph = new GraphData();
             graph.AddNode(node);
+            graph.outputNode = node;
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -186,19 +187,19 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
+        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<string, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
-            if (!unmarkedNodes.ContainsKey(node.guid))
+            if (!unmarkedNodes.ContainsKey(node.objectId))
                 return;
-            foreach (var slot in node.GetInputSlots<ISlot>())
+            foreach (var slot in node.GetInputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var inputNode = edge.outputSlot.node;
                     Visit(outputList, unmarkedNodes, inputNode);
                 }
             }
-            unmarkedNodes.Remove(node.guid);
+            unmarkedNodes.Remove(node.objectId);
             outputList.Add(node);
         }
 
@@ -249,6 +250,8 @@ namespace UnityEditor.ShaderGraph
         /// </returns>
         internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
+            //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
+            name = name.Replace("\"", "_");
             if (!existingNames.Contains(name))
                 return name;
 
@@ -352,18 +355,65 @@ namespace UnityEditor.ShaderGraph
 
         public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
         {
-            foreach (var implementation in (masterNode as AbstractMaterialNode).owner.validImplementations)
+            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
             {
-                if (implementation.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
+                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
                 {
-                    var context = implementation.GetSubShaderDescriptorFromMasterNode(masterNode);
-                    if (context != null)
-                        return context.Value.customEditorOverride;
+                    var context = new TargetSetupContext();
+                    context.SetMasterNode(masterNode);
+                    target.Setup(ref context);
+
+                    var defaultShaderGUI = context.defaultShaderGUI;
+                    if (!string.IsNullOrEmpty(defaultShaderGUI))
+                        return defaultShaderGUI;
                 }
             }
 
             return null;
         }
 
+        //
+        //  Find all nodes of the given type downstream from the given node
+        //  Returns a unique list. So even if a node can be reached through different paths it will be present only once.
+        //
+        public static List<NodeType> FindDownStreamNodesOfType<NodeType>(AbstractMaterialNode node) where NodeType : AbstractMaterialNode
+        {
+            // Should never be called without a node
+            Debug.Assert(node != null);
+
+            HashSet<AbstractMaterialNode> visitedNodes = new HashSet<AbstractMaterialNode>();
+            List<NodeType> vtNodes = new List<NodeType>();
+            Queue<AbstractMaterialNode> nodeStack = new Queue<AbstractMaterialNode>();
+            nodeStack.Enqueue(node);
+            visitedNodes.Add(node);
+
+            while (nodeStack.Count > 0)
+            {
+                AbstractMaterialNode visit = nodeStack.Dequeue();
+
+                // Flood fill through all the nodes
+                foreach (var slot in visit.GetInputSlots<MaterialSlot>())
+                {
+                    foreach (var edge in visit.owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = edge.outputSlot.node;
+                        if (!visitedNodes.Contains(inputNode))
+                        {
+                            nodeStack.Enqueue(inputNode);
+                            visitedNodes.Add(inputNode);
+                        }
+                    }
+                }
+
+                // Extract vt node
+                if (visit is NodeType)
+                {
+                    NodeType vtNode = visit as NodeType;
+                    vtNodes.Add(vtNode);
+                }
+            }
+
+            return vtNodes;
+        }
     }
 }

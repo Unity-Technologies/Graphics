@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -97,9 +97,9 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 94fa62de253dc7b46814c9ba31baa6d6,
+  m_LightingDataAsset: {fileID: 112000002, guid: 0d54ea8b8bb6b46af9f185f49efa3381,
     type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 3bc0fcee017f02b4aa15220e5d2e02e6,
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 0ca42b082390fae4fae354b3b4f65427,
     type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -276,6 +276,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
   WaitFrames: 0
+  XRCompatible: 0
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0

@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     [GenerationAPI]
     internal struct PassDescriptor
@@ -8,6 +8,11 @@
         public string referenceName;
         public string lightMode;
         public bool useInPreview;
+        public bool virtualTextureFeedback;
+
+        // Templates
+        public string passTemplatePath;
+        public string sharedTemplateDirectory;
 
         // Port mask
         public int[] vertexPorts;
@@ -22,10 +27,6 @@
         public DefineCollection defines;
         public KeywordCollection keywords;
         public IncludeCollection includes;
-
-        // Custom Template
-        public string passTemplatePath;
-        public string sharedTemplateDirectory;
 
         // Methods
         public bool Equals(PassDescriptor other)

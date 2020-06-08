@@ -8,10 +8,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
             materialEditor.PropertiesDefaultGUI(props);
-            if (materialEditor.EmissionEnabledProperty())
-            {
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true, true);
-            }
+
+            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
 
             // Make sure all selected materials are initialized.
             string materialTag = "MotionVector";
@@ -42,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
-                DiffusionProfileMaterialUI.OnGUI(FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props));
+                DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset", props), FindProperty("_DiffusionProfileHash", props), 0);
         }
     }
 }

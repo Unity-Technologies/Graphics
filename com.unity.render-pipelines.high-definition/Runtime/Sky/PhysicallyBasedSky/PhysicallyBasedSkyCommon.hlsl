@@ -5,46 +5,8 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
-
-CBUFFER_START(UnityPhysicallyBasedSky)
-    // All the distance-related entries use SI units (meter, 1/meter, etc).
-    float  _PlanetaryRadius;
-    float  _RcpPlanetaryRadius;
-    float  _AtmosphericDepth;
-    float  _RcpAtmosphericDepth;
-
-    float  _AtmosphericRadius;
-    float  _AerosolAnisotropy;
-    float  _AerosolPhasePartConstant;
-    float  _Unused;
-
-    float  _AirDensityFalloff;
-    float  _AirScaleHeight;
-    float  _AerosolDensityFalloff;
-    float  _AerosolScaleHeight;
-
-    float3 _AirSeaLevelExtinction;
-    float  _AerosolSeaLevelExtinction;
-
-    float3 _AirSeaLevelScattering;
-    float  _IntensityMultiplier;
-
-    float3 _AerosolSeaLevelScattering;
-    float  _ColorSaturation;
-
-    float3 _GroundAlbedo;
-    float  _AlphaSaturation;
-
-    float3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
-    float  _AlphaMultiplier;
-
-    float3 _HorizonTint;
-    float  _HorizonZenithShiftPower;
-
-    float3 _ZenithTint;
-    float  _HorizonZenithShiftScale;
-CBUFFER_END
 
 TEXTURE2D(_GroundIrradianceTexture);
 
