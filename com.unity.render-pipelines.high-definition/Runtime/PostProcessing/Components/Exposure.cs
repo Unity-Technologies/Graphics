@@ -113,6 +113,37 @@ namespace UnityEngine.Rendering.HighDefinition
         public TargetMidGrayParameter targetMidGray = new TargetMidGrayParameter(TargetMidGray.Grey125);
 
         /// <summary>
+        /// Sets whether the procedural metering mask is centered around the exposure target (to be set on the camera)
+        /// </summary>
+        [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
+        public BoolParameter centerAroundExposureTarget = new BoolParameter(false);
+
+        /// <summary>
+        /// Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)
+        /// </summary>
+        public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
+        /// <summary>
+        /// Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).
+        /// </summary>
+        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
+        /// <summary>
+        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// </summary>
+        [Tooltip("All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
+        public FloatParameter maskMinIntensity = new FloatParameter(-30.0f);
+        /// <summary>
+        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// </summary>
+        [Tooltip("All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
+        public FloatParameter maskMaxIntensity = new FloatParameter(30.0f);
+
+        /// <summary>
+        /// Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask.
+        /// </summary>
+        public NoInterpMinFloatParameter proceduralSoftness = new NoInterpMinFloatParameter(0.5f, 0.0f);
+
+
+        /// <summary>
         /// Tells if the effect needs to be rendered or not.
         /// </summary>
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
@@ -185,7 +216,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// the exposure. The weighting is specified by the texture provided by the user. Note that if
         /// no texture is provided, then this metering mode is equivalent to Average.
         /// </summary>
-        MaskWeighted
+        MaskWeighted,
+
+        /// <summary>
+        /// Create a weight mask centered around the specified UV and with the desired parameters. 
+        /// </summary>
+        ProceduralMask,
+
 
     }
 

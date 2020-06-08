@@ -225,24 +225,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Only compute diffuse lighting if required
             cmd.SetGlobalInt(HDShaderIDs._RayTracingDiffuseLightingOnly, parameters.diffuseLightingOnly ? 1 : 0);
-            CoreUtils.SetKeyword(cmd, "MULTI_BOUNCE_INDIRECT", false);
+            CoreUtils.SetKeyword(cmd, "MINIMAL_GBUFFER", parameters.diffuseLightingOnly);
 
             if (parameters.rayBinning)
             {
                 // Evaluate the dispatch parameters
                 int numTilesRayBinX = (texWidth + (binningTileSize - 1)) / binningTileSize;
                 int numTilesRayBinY = (texHeight + (binningTileSize - 1)) / binningTileSize;
-
                 int bufferSizeX = numTilesRayBinX * binningTileSize;
                 int bufferSizeY = numTilesRayBinY * binningTileSize;
+                cmd.SetRayTracingIntParam(parameters.gBufferRaytracingRT, HDShaderIDs._BufferSizeX, bufferSizeX);
 
-                cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, (uint)bufferSizeX, (uint)bufferSizeY, 1);
+                // A really nice tip is to dispatch the rays as a 1D array instead of 2D, the performance difference has been measured.
+                uint dispatchSize = (uint)(bufferSizeX * bufferSizeY);
+                cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBufferBinned, dispatchSize, 1, 1);
             }
             else
             {
                 cmd.SetRayTracingIntParams(parameters.gBufferRaytracingRT, "_RaytracingHalfResolution", parameters.halfResolution ? 1 : 0);
                 cmd.DispatchRays(parameters.gBufferRaytracingRT, m_RayGenGBuffer, widthResolution, heightResolution, (uint)parameters.viewCount);
             }
+
+            CoreUtils.SetKeyword(cmd, "MINIMAL_GBUFFER", false);
 
             // Now let's do the deferred shading pass on the samples
             int currentKernel = parameters.deferredRaytracingCS.FindKernel(parameters.halfResolution ? "RaytracingDeferredHalf" : "RaytracingDeferred");
