@@ -509,27 +509,42 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             m_VTLayer_Name.RegisterValueChangedCallback(
                 evt =>
                 {
-                    this._preChangeValueCallback("Change Layer Name");
-
                     int index = m_VTReorderableList.index;
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
-                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerName = evt.newValue;
-
-                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                    {
+                        var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
+                        var otherPropertyNames = graphData.BuildPropertyDisplayNameList(virtualTextureProperty, svt.layerName);
+                        var newLayerName = GraphUtil.SanitizeName(otherPropertyNames, "{0} ({1})", evt.newValue);
+                        if (newLayerName != svt.layerName)
+                        {
+                            this._preChangeValueCallback("Change Layer Name");
+                            svt.layerName = newLayerName;
+                            this._postChangeValueCallback(false, ModificationScope.Graph);
+                            m_VTLayer_Name.SetValueWithoutNotify(newLayerName);
+                        }
+                    }
                 });
             AddPropertyRowToSheet(propertySheet, m_VTLayer_Name, "  Layer Name");
 
             m_VTLayer_RefName = new IdentifierField();
+            m_VTLayer_RefName.isDelayed = true;
             m_VTLayer_RefName.RegisterValueChangedCallback(
                 evt =>
                 {
-                    this._preChangeValueCallback("Change Layer Ref Name");
-
                     int index = m_VTReorderableList.index;
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
-                        (m_VTReorderableList.list[index] as SerializableVirtualTextureLayer).layerRefName = evt.newValue;
-
-                    this._postChangeValueCallback(false, ModificationScope.Graph);
+                    {
+                        var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
+                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerName);
+                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", evt.newValue);
+                        if (newLayerRefName != svt.layerRefName)
+                        {
+                            this._preChangeValueCallback("Change Layer Ref Name");
+                            svt.layerRefName = newLayerRefName;
+                            this._postChangeValueCallback(false, ModificationScope.Graph);
+                            m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
+                        }
+                    }
                 });
             AddPropertyRowToSheet(propertySheet, m_VTLayer_RefName, "  Layer Reference");
 
