@@ -145,28 +145,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public TextureType[] textureTypes => m_TextureTypes;
-
-        [SerializeField]
-        protected TextureType[] m_TextureTypes = { TextureType.Default, TextureType.Default, TextureType.Default, TextureType.Default };
-
-        // We have one normal/object space field for all layers for now, probably a nice compromise
-        // between lots of settings and user flexibility?
-        [SerializeField]
-        private NormalMapSpace m_NormalMapSpace = NormalMapSpace.Tangent;
-        public NormalMapSpace normalMapSpace
-        {
-            get { return m_NormalMapSpace; }
-            set
-            {
-                if (m_NormalMapSpace == value)
-                    return;
-
-                m_NormalMapSpace = value;
-                Dirty(ModificationScope.Graph);
-            }
-        }
-
         public SampleVirtualTextureNode() : this(false, false)
         { }
 
@@ -309,7 +287,7 @@ namespace UnityEditor.ShaderGraph
         {
             sb.AppendIndentation();
             sb.Append(outputVariableName); sb.Append(" = ");
-            sb.Append("SampleVTLayer(");
+            sb.Append("SampleVTLayerWithTextureType(");
             sb.Append(propertiesName);          sb.Append(", ");
             sb.Append(vtInputVariable);         sb.Append(", ");
             sb.Append(infoVariable);            sb.Append(", ");
@@ -373,7 +351,7 @@ namespace UnityEditor.ShaderGraph
                                 dyExpr = "dy";
                                 break;
                         }
-                        s.Append(", VTProperty vtProperty");
+                        s.Append(", VTPropertyWithTextureType vtProperty");
                         for (int i = 0; i < layerOutputVariableNames.Count; i++)
                         {
                             s.Append(", out float4 " + layerOutputVariableNames[i]);
@@ -396,7 +374,7 @@ namespace UnityEditor.ShaderGraph
                                 UvSpace.VtUvSpace_Regular,
                                 m_SampleQuality);
 
-                            s.AppendLine("StackInfo info = PrepareVT(vtProperty, vtParams);");
+                            s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
 
                             for (int i = 0; i < layerOutputVariableNames.Count; i++)
                             {
@@ -404,21 +382,6 @@ namespace UnityEditor.ShaderGraph
                                 int layer = layerOutputLayerIndex[i];
                                 string layerOutputVariable = layerOutputVariableNames[i];
                                 AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
-
-                                // apply normal conversion code, if necessary
-                                if (m_TextureTypes[layer] == TextureType.Normal)
-                                {
-                                    s.AppendIndentation();
-                                    s.Append(layerOutputVariable);
-                                    s.Append(".rgb = ");
-                                    if (normalMapSpace == NormalMapSpace.Tangent)
-                                        s.Append("UnpackNormalmapRGorAG(");
-                                    else
-                                        s.Append("UnpackNormalRGB(");
-                                    s.Append(layerOutputVariable);
-                                    s.Append(");");
-                                    s.AppendNewLine();
-                                }
                             }
 
                             s.AppendLine("return GetResolveOutput(info);");

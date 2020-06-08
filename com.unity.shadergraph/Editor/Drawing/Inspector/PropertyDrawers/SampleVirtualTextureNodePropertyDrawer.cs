@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using Data.Interfaces;
@@ -62,50 +62,6 @@ namespace Drawing.Inspector.PropertyDrawers
                 node.noFeedback,
                 "No Feedback",
                 out var propertyToggle));
-
-            var vtProperty = node.GetSlotProperty(SampleVirtualTextureNode.VirtualTextureInputId) as VirtualTextureShaderProperty;
-            if (vtProperty == null)
-            {
-                propertySheet.Add(new HelpBoxRow(MessageType.Warning),
-                    (row) => row.Add(
-                        new Label("Please connect a VirtualTexture property to configure texture sampling type.")));
-            }
-            else
-            {
-                int numLayers = vtProperty.value.layers.Count;
-
-                for (int i = 0; i < numLayers; i++)
-                {
-                    int currentIndex = i; // to make lambda by-ref capturing happy
-
-                    propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
-                        {
-                            if (node.textureTypes[currentIndex] == (TextureType) newValue)
-                                return;
-
-                            node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
-                            node.textureTypes[currentIndex] = (TextureType) newValue;
-                            node.Dirty(ModificationScope.Graph);
-                        },
-                        node.textureTypes[i],
-                        "Layer " + (i + 1) + " Type",
-                        TextureType.Default,
-                        out var layersVisualElement));
-                }
-            }
-
-            propertySheet.Add(enumPropertyDrawer.CreateGUI((newValue) =>
-                {
-                    if (node.normalMapSpace == (NormalMapSpace) newValue)
-                        return;
-
-                    node.owner.owner.RegisterCompleteObjectUndo("Normal Map space Change");
-                    node.normalMapSpace = (NormalMapSpace) newValue;
-                },
-                node.normalMapSpace,
-                "Normal Space",
-                NormalMapSpace.Tangent,
-                out var normalMapSpaceVisualElement));
 
             // display warning if the current master node doesn't support virtual texturing
             // TODO: Add warning when no active subTarget supports VT
