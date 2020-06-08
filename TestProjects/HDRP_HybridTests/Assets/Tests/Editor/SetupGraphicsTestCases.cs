@@ -9,6 +9,7 @@ using System.Collections.Generic;
 public class SetupGraphicsTestCases : IPrebuildSetup
 {
     private static BuildTarget target;
+    private static BuildConfiguration config;
 
     public void Setup()
     {
@@ -18,23 +19,6 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
         // can be used directly instead.
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(GraphicsTests.path);
-    }
-
-    private static void Log(string t)
-    {
-        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, t);
-    }
-
-    private static BuildConfiguration FindConfig(BuildTarget t)
-    {
-        string configPath = "";
-        switch (t)
-        {
-            case BuildTarget.StandaloneWindows: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
-            case BuildTarget.StandaloneWindows64: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
-            case BuildTarget.StandaloneOSX: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Mac.buildconfiguration"; break;
-        }
-        return (BuildConfiguration)AssetDatabase.LoadAssetAtPath(configPath, typeof(BuildConfiguration));
     }
 
     public static void TriggerPreparePlayerTest()
@@ -64,29 +48,10 @@ public class SetupGraphicsTestCases : IPrebuildSetup
 
         //Get the correct config file
         target = EditorUserBuildSettings.activeBuildTarget;
-        BuildConfiguration config = FindConfig(target);
+        config = FindConfig(target);
 
-        //Sync the scenelist from BuildSettings to the Config file
-        List<SceneList.SceneInfo> scenelist = new List<SceneList.SceneInfo>();
-        EditorBuildSettingsScene[] buildSettingScenes = EditorBuildSettings.scenes;
-        for (int i = 0; i < buildSettingScenes.Length; i++)
-        {
-            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(buildSettingScenes[i].path);
-            scenelist.Add(new SceneList.SceneInfo() { AutoLoad = false, Scene = GlobalObjectId.GetGlobalObjectIdSlow(sceneAsset) });
-        }
-        var sceneListComponent = config.GetComponent<SceneList>();
-        sceneListComponent.SceneInfos = scenelist;
-        config.SetComponent<SceneList>(sceneListComponent);
-        config.SaveAsset();
-        //AssetDatabase.Refresh();
-
-        Log("*************** SetupGraphicsTestCases - Synced " + buildSettingScenes.Length + " scenes to scenelist");
-
-        //Wait for a bit because Editor will be compiling the config asset update
-        while (EditorApplication.isCompiling)
-        {
-            Log("*************** SetupGraphicsTestCases - Editor is compiling");
-        }
+        //Sync scenelist
+        SyncSceneList(false);
 
         Log("*************** SetupGraphicsTestCases - Triggering BuildConfig.Build()");
 
@@ -96,6 +61,60 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         Log("*************** SetupGraphicsTestCases - Moving subscene cache");
         CreateFolder();
         CopyFiles();
+    }
+
+    private static void Log(string t)
+    {
+        Debug.LogFormat(LogType.Log, LogOption.NoStacktrace, null, t);
+    }
+
+    private static BuildConfiguration FindConfig(BuildTarget t)
+    {
+        string configPath = "";
+        switch (t)
+        {
+            case BuildTarget.StandaloneWindows: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
+            case BuildTarget.StandaloneWindows64: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Win.buildconfiguration"; break;
+            case BuildTarget.StandaloneOSX: configPath = "Assets/Tests/Editor/GraphicsBuildconfig_Mac.buildconfiguration"; break;
+        }
+        return (BuildConfiguration)AssetDatabase.LoadAssetAtPath(configPath, typeof(BuildConfiguration));
+    }
+
+    //Sync scenelist from BuildSettings to BuildConfig
+    //Cannot automate this because Yamato complains "InvalidOperationException: Building is not allowed while Unity is compiling."
+    [MenuItem("GraphicsTest/SyncSceneListToAllConfig")]
+    private static void SyncSceneList(bool applyToAll = true)
+    {
+        EditorBuildSettingsScene[] buildSettingScenes = EditorBuildSettings.scenes;
+        List<SceneList.SceneInfo> scenelist = new List<SceneList.SceneInfo>();
+        for (int i = 0; i < buildSettingScenes.Length; i++)
+        {
+            var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(buildSettingScenes[i].path);
+            scenelist.Add(new SceneList.SceneInfo() { AutoLoad = false, Scene = GlobalObjectId.GetGlobalObjectIdSlow(sceneAsset) });
+        }
+
+        if (applyToAll)
+        {
+            var assets = AssetDatabase.FindAssets("t:BuildConfiguration", new[] { "Assets/Tests/Editor" });
+            foreach (var guid in assets)
+            {
+                var c = AssetDatabase.LoadAssetAtPath<BuildConfiguration>(AssetDatabase.GUIDToAssetPath(guid));
+                var sceneListComponent = c.GetComponent<SceneList>();
+                sceneListComponent.SceneInfos = scenelist;
+                c.SetComponent<SceneList>(sceneListComponent);
+                c.SaveAsset();
+            }
+            AssetDatabase.Refresh();
+            Log("*************** SetupGraphicsTestCases - Synced " + buildSettingScenes.Length + " scenes to scenelist on " + assets.Length + " Assets/Tests/Editor/ BuildConfig assets.");
+        }
+        else
+        {
+            //Yamato will run this
+            var sceneListComponent = config.GetComponent<SceneList>();
+            sceneListComponent.SceneInfos = scenelist;
+            config.SetComponent<SceneList>(sceneListComponent);
+            Log("*************** SetupGraphicsTestCases - Synced " + buildSettingScenes.Length + " scenes to scenelist");
+        }
     }
 
     [MenuItem("GraphicsTest/Debug/CreateFolder")]
