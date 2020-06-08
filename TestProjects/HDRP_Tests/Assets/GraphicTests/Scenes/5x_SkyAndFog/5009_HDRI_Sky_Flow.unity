@@ -283,7 +283,7 @@ PrefabInstance:
         type: 3}
       propertyPath: renderPipelineAsset
       value: 
-      objectReference: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
+      objectReference: {fileID: 11400000, guid: 8650072ee85219341b65a263bf871815,
         type: 2}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
