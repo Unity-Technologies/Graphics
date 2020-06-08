@@ -39,5 +39,18 @@ namespace UnityEditor.ShaderGraph
                     return false;
             }
         }
+
+        public static ShaderStageCapability GetShaderStageCapability(this ShaderStage stage)
+        {
+            switch (stage)
+            {
+                case ShaderStage.Vertex:
+                    return ShaderStageCapability.Vertex;
+                case ShaderStage.Fragment:
+                    return ShaderStageCapability.Fragment;
+                default:
+                    return ShaderStageCapability.Fragment;
+            }
+        }
     }
 }

@@ -1,25 +1,96 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Legacy;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
+using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
-    sealed class HDUnlitSubTarget : SubTarget<HDTarget>
+    sealed partial class HDUnlitSubTarget : SurfaceSubTarget, ILegacyTarget, IRequiresData<HDUnlitData>
     {
-        const string kAssetGuid = "4516595d40fa52047a77940183dc8e74";
-
+        // Templates
+        // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
+        // TODO: This should be resolved so we can delete the second pass template
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
+        protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
+        protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
+        protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
+        protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
 
-        public HDUnlitSubTarget()
+        public HDUnlitSubTarget() => displayName = "Unlit";
+
+        HDUnlitData m_UnlitData;
+
+        HDUnlitData IRequiresData<HDUnlitData>.data
         {
-            displayName = "Unlit";
+            get => m_UnlitData;
+            set => m_UnlitData = value;
         }
 
-        public override void Setup(ref TargetSetupContext context)
+        public HDUnlitData unlitData
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
-            context.SetDefaultShaderGUI("Rendering.HighDefinition.HDUnlitGUI");
-            context.AddSubShader(SubShaders.Unlit);
-            context.AddSubShader(SubShaders.UnlitRaytracing);
+            get => m_UnlitData;
+            set => m_UnlitData = value;
+        }
+
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
+        {
+            yield return SubShaders.Unlit;
+            yield return SubShaders.UnlitRaytracing;
+        }
+
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            base.GetFields(ref context);
+            AddDistortionFields(ref context);
+
+            // Unlit specific properties
+            context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
+            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            base.GetActiveBlocks(ref context);
+            AddDistortionBlocks(ref context);
+
+            // Unlit specific blocks
+            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
+        }
+
+        protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
+        {
+            blockList.AddPropertyBlock(new HDUnlitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Unlit, unlitData));
+            if (systemData.surfaceType == SurfaceType.Transparent)
+                blockList.AddPropertyBlock(new HDUnlitDistortionPropertyBlock(unlitData));
+            blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+    
+            if (unlitData.enableShadowMatte)
+            {
+                uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;
+                uint exponent = 0b10000000u; // 0 as exponent
+                collector.AddShaderProperty(new Vector1ShaderProperty
+                {
+                    hidden = true,
+                    value = HDShadowUtils.Asfloat((exponent << 23) | mantissa),
+                    overrideReferenceName = HDMaterialProperties.kShadowMatteFilter
+                });
+            }
+
+            // Stencil state for unlit:
+            HDSubShaderUtilities.AddStencilShaderProperties(collector, systemData, null);
         }
 
 #region SubShaders
@@ -72,8 +143,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -97,9 +168,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -123,9 +194,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -150,9 +221,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -176,9 +247,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentOnlyAlpha,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentOnlyAlpha,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -202,9 +273,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDistortion,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDistortion,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -228,9 +299,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentForward,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentForward,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -256,9 +327,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -281,9 +352,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -306,9 +377,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -331,9 +402,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -356,9 +427,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
-                // Port Mask
-                vertexPorts = UnlitPortMasks.Vertex,
-                pixelPorts = UnlitPortMasks.FragmentDefault,
+                // Block Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = UnlitBlockMasks.FragmentDefault,
 
                 // Collections
                 structs = CoreStructCollections.Default,
@@ -371,45 +442,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 #endregion
 
-#region PortMasks
-        static class UnlitPortMasks
+#region BlockMasks
+        static class UnlitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
             {
-                HDUnlitMasterNode.PositionSlotId,
-                HDUnlitMasterNode.VertexNormalSlotId,
-                HDUnlitMasterNode.VertexTangentSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                BlockFields.SurfaceDescription.Emission,
             };
 
-            public static int[] FragmentDefault = new int[]
+            public static BlockFieldDescriptor[] FragmentOnlyAlpha = new BlockFieldDescriptor[]
             {
-                HDUnlitMasterNode.ColorSlotId,
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static int[] FragmentOnlyAlpha = new int[]
+            public static BlockFieldDescriptor[] FragmentDistortion = new BlockFieldDescriptor[]
             {
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                HDBlockFields.SurfaceDescription.Distortion,
+                HDBlockFields.SurfaceDescription.DistortionBlur,
             };
 
-            public static int[] FragmentDistortion = new int[]
+            public static BlockFieldDescriptor[] FragmentForward = new BlockFieldDescriptor[]
             {
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.DistortionSlotId,
-                HDUnlitMasterNode.DistortionBlurSlotId,
-            };
-
-            public static int[] FragmentForward = new int[]
-            {
-                HDUnlitMasterNode.ColorSlotId,
-                HDUnlitMasterNode.AlphaSlotId,
-                HDUnlitMasterNode.AlphaThresholdSlotId,
-                HDUnlitMasterNode.EmissionSlotId,
-                HDUnlitMasterNode.ShadowTintSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
+                BlockFields.SurfaceDescription.Emission,
+                HDBlockFields.SurfaceDescription.ShadowTint,
             };
         }
 #endregion
