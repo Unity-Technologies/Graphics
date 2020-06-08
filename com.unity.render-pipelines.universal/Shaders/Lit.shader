@@ -80,9 +80,6 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -127,8 +124,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LitInput.hlsl"
-            #include "LitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
 
@@ -142,8 +139,6 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -188,9 +183,6 @@ Shader "Universal Render Pipeline/Lit"
             }
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
@@ -247,8 +239,6 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -279,8 +269,6 @@ Shader "Universal Render Pipeline/Lit"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -310,8 +298,6 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -348,10 +334,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             //--------------------------------------
@@ -391,8 +374,8 @@ Shader "Universal Render Pipeline/Lit"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
-            #include "LitInput.hlsl"
-            #include "LitForwardPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
             ENDHLSL
         }
 
@@ -406,9 +389,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             //--------------------------------------
@@ -439,9 +420,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             //--------------------------------------
@@ -470,9 +449,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
@@ -500,9 +477,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
 
             #pragma vertex vert
             #pragma fragment frag

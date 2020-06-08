@@ -446,7 +446,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
@@ -458,18 +458,18 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Note: Unlike Lit material, the SimpleLit material don't have ModifyBakedDiffuseLighting() function
     // So we need to multiply by the diffuse albedo here.
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.emissiveColor;
+    lightLoopOutput.diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.emissiveColor;
 
     #ifdef HDRP_ENABLE_ENV_LIGHT // TODO: check what this is suppose to do?
     // Note: When baking reflection probes, we approximate the diffuse with the fresnel0
     bsdfData.diffuseColor = modifiedDiffuseColor; // Note: This affect the debug mode of mipmap streaming for simple Lit in PostEvaluateBSDFDebugDisplay. But we are ok with that.
-    diffuseLighting += builtinData.bakeDiffuseLighting * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
+    lightLoopOutput.diffuseLighting += builtinData.bakeDiffuseLighting * GetDiffuseOrDefaultColor(bsdfData, _ReplaceDiffuseForIndirect).rgb;
     #endif
 
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 
