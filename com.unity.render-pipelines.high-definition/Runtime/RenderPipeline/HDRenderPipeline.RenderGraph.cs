@@ -4,8 +4,11 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+
     public partial class HDRenderPipeline
     {
+        class TempPassData { };
+
         void ExecuteWithRenderGraph(    RenderRequest           renderRequest,
                                         AOVRequestData          aovRequest,
                                         List<RTHandle>          aovBuffers,
@@ -105,6 +108,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 //        RenderIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
                 //    }
                 //}
+
+                // Temporary workaround otherwise the texture is not bound when executing directly with rendergraph
+                using (var builder = m_RenderGraph.AddRenderPass<TempPassData>("TempPass", out var passData))
+                {
+                    builder.AllowPassPruning(false);
+                    builder.SetRenderFunc(
+                    (TempPassData data, RenderGraphContext context) =>
+                    {
+                        BindBlackIndirectDiffuseTexture(context.cmd);
+                    });
+                }
+
 
                 // TODO RENDERGRAPH
                 //using (new ProfilingSample(cmd, "Render screen space shadows", CustomSamplerId.ScreenSpaceShadows.GetSampler()))
@@ -342,12 +357,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public RendererListHandle   rendererList;
             public TextureHandle[]      renderTarget = new TextureHandle[3];
-            public int                          renderTargetCount;
+            public int                  renderTargetCount;
             public TextureHandle        depthBuffer;
-            public ComputeBuffer                lightListBuffer;
-            public FrameSettings                frameSettings;
-            public bool                         decalsEnabled;
-            public bool                         renderMotionVecForTransparent;
+            public ComputeBuffer        lightListBuffer;
+            public FrameSettings        frameSettings;
+            public bool                 decalsEnabled;
+            public bool                 renderMotionVecForTransparent;
+            public DBufferOutput?       dbuffer;
         }
 
         void PrepareForwardPassData(RenderGraph renderGraph, RenderGraphBuilder builder, ForwardPassData data, bool opaque, FrameSettings frameSettings, RendererListDesc rendererListDesc, TextureHandle depthBuffer, ShadowResult shadowResult, DBufferOutput? dbuffer = null)
@@ -365,7 +381,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDShadowManager.ReadShadowResult(shadowResult, builder);
             if (dbuffer != null)
-                ReadDBuffer(dbuffer.Value, builder);
+                data.dbuffer = ReadDBuffer(dbuffer.Value, builder);
         }
 
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
@@ -410,10 +426,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ForwardPassData data, RenderGraphContext context) =>
                 {
-                    // TODO: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
+                    // TODO RENDERGRAPH: replace with UseColorBuffer when removing old rendering (SetRenderTarget is called inside RenderForwardRendererList because of that).
                     var mrt = context.renderGraphPool.GetTempArray<RenderTargetIdentifier>(data.renderTargetCount);
                     for (int i = 0; i < data.renderTargetCount; ++i)
                         mrt[i] = context.resources.GetTexture(data.renderTarget[i]);
+
+                    if (data.dbuffer != null)
+                        BindDBufferGlobalData(data.dbuffer.Value, context);
 
                     RenderForwardRendererList(data.frameSettings,
                             context.resources.GetRendererList(data.rendererList),
@@ -902,7 +921,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.frameSettings = hdCamera.frameSettings;
                 passData.distortionBuffer = builder.UseColorBuffer(renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetDistortionBufferFormat(), clearBuffer = true, clearColor = Color.clear, name = "Distortion" }), 0);
-                passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Write);
+                passData.depthStencilBuffer = builder.UseDepthBuffer(depthStencilBuffer, DepthAccess.Read);
                 passData.distortionRendererList = builder.UseRendererList(renderGraph.CreateRendererList(
                     CreateTransparentRendererListDesc(cullResults, hdCamera.camera, HDShaderPassNames.s_DistortionVectorsName)));
 
@@ -918,12 +937,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class RenderDistortionPassData
         {
-            public Material                     applyDistortionMaterial;
+            public Material         applyDistortionMaterial;
             public TextureHandle    colorPyramidBuffer;
             public TextureHandle    distortionBuffer;
             public TextureHandle    colorBuffer;
             public TextureHandle    depthStencilBuffer;
-            public Vector4                      size;
+            public Vector4          size;
         }
 
         void RenderDistortion(  RenderGraph     renderGraph,
@@ -972,7 +991,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableMSAA = msaa,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = string.Format("CameraColor{0}", msaa ? "MSAA" : "")});
+                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+                });
         }
 
         class ResolveColorData
@@ -1044,7 +1064,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
 
                     builder.SetRenderFunc(
-                        (ResolveColorData data, RenderGraphContext context) =>
+                        (ResolveMotionVectorData data, RenderGraphContext context) =>
                         {
                             var res = context.resources;
                             var mpb = context.renderGraphPool.GetTempMaterialPropertyBlock();
