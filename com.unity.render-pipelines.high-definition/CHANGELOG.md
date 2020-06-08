@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved performance of reflection probe management when using a lot of probes.
 - MSAA Within Forward Frame Setting is now enabled by default on Cameras when new Render Pipeline Asset is created
 - Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
 
 ## [8.1.0] - 2020-04-21
 
