@@ -292,11 +292,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Initialize the parameters for the descent
             int mipIndex = 1;
             int tileSize = 8;
-            // The number of mips that are used at the the end is fixed
-            const float roughnessStep = 1.0f / k_GgxIblMipCountMinusOne;
             // Based on the initial texture resolution, the number of available mips for us to read from is variable and is based on the maximal texture width
             int numMipsChain = (int)(Mathf.Log((float)texWidth, 2.0f) - 1.0f);
-            float currentRoughness = roughnessStep;
             float rtScaleFactor = texWidth / (float)m_PlanarReflectionFilterTex0.rt.width;
             texWidth = texWidth >> 1;
             texHeight = texHeight >> 1;
@@ -316,7 +313,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureBaseScreenSize, planarTextureFilteringParameters.captureCameraScreenSize);
                 currentScreenSize.Set(texWidth, texHeight, 1.0f / texWidth, 1.0f / texHeight);
                 cmd.SetComputeVectorParam(m_PlanarReflectionFilteringCS, HDShaderIDs._CaptureCurrentScreenSize, currentScreenSize);
-                cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._IntegrationRoughness, currentRoughness);
                 cmd.SetComputeIntParam(m_PlanarReflectionFilteringCS, HDShaderIDs._SourceMipIndex, mipIndex);
                 cmd.SetComputeIntParam(m_PlanarReflectionFilteringCS, HDShaderIDs._MaxMipLevels, numMipsChain);
                 cmd.SetComputeFloatParam(m_PlanarReflectionFilteringCS, HDShaderIDs._RTScaleFactor, rtScaleFactor);
@@ -339,9 +335,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 texWidth = texWidth >> 1;
                 texHeight = texHeight >> 1;
                 mipIndex++;
-
-                // Increase the integration roughness
-                currentRoughness += roughnessStep;
             }
         }
     }

@@ -257,7 +257,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DepthTextureMipChain = Shader.PropertyToID("_DepthTextureMipChain");
         public static readonly int _ReflectionPlaneNormal = Shader.PropertyToID("_ReflectionPlaneNormal");
         public static readonly int _ReflectionPlanePosition = Shader.PropertyToID("_ReflectionPlanePosition");
-        public static readonly int _IntegrationRoughness = Shader.PropertyToID("_IntegrationRoughness");
         public static readonly int _FilteredPlanarReflectionBuffer = Shader.PropertyToID("_FilteredPlanarReflectionBuffer");
         public static readonly int _HalfResReflectionBuffer = Shader.PropertyToID("_HalfResReflectionBuffer");
         public static readonly int _HalfResDepthBuffer = Shader.PropertyToID("_HalfResDepthBuffer");

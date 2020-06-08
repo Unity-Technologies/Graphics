@@ -15,6 +15,7 @@
 // HDRP generic includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
 
@@ -32,8 +33,6 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
     float4 _CaptureCurrentScreenSize;
     // Normal of the planar reflection plane
     float3 _ReflectionPlaneNormal;
-    // Roughness value of the current integration
-    float _IntegrationRoughness;
     // World space position of the planar reflection (non camera relative)
     float3 _ReflectionPlanePosition;
     // FOV of the capture camera
@@ -61,7 +60,7 @@ RW_TEXTURE2D(float4, _FilteredPlanarReflectionBuffer);
 
 // These angles have been experimentally computed to match the result of reflection probes. Initially this was a table dependent on angle and roughness, but given that every planar has a 
 // finite number of LODs and those LODS have fixed roughness and the angle changes the result, but not that much. I changed it to a per LOD LUT
-static const float reflectionProbeEquivalentAngles[8] = {0.0, 0.04, 0.12, 0.4, 0.9, 1.2, 1.2, 1.2};
+static const float reflectionProbeEquivalentAngles[UNITY_SPECCUBE_LOD_STEPS + 1] = {0.0, 0.04, 0.12, 0.4, 0.9, 1.2, 1.2};
 
 [numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
 void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
