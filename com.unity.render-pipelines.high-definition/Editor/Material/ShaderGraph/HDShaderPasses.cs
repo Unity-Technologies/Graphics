@@ -223,8 +223,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
                 keywords = CoreKeywords.DepthMotionVectorsNoNormal,
                 includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
             };
 
             FieldCollection GenerateRequiredFields()
@@ -359,6 +357,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = supportLighting ? CoreDefines.Forward : null,
                 keywords = supportLighting ? CoreKeywords.Forward : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
+
+                virtualTextureFeedback = supportLighting ? false : true,
             };
 
             IncludeCollection GenerateIncludes()
