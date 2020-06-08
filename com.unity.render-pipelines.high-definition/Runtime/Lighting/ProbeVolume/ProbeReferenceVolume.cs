@@ -5,16 +5,16 @@ using Brick = UnityEngine.Rendering.HighDefinition.ProbeBrickIndex.Brick;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal class ProbeReferenceVolume
+    public class ProbeReferenceVolume
     {
-        internal struct Volume
+        public struct Volume
         {
             public Vector3 Corner;
             public Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
             public Vector3 Y;
             public Vector3 Z;
 
-            internal Volume(Matrix4x4 trs)
+            public Volume(Matrix4x4 trs)
             {
                 X = trs.GetColumn(0);
                 Y = trs.GetColumn(1);
@@ -22,7 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
             }
 
-            internal Bounds CalculateAABB()
+            public Bounds CalculateAABB()
             {
                 Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
                 Vector3 max = new Vector3(float.MinValue, float.MinValue, float.MinValue);
@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal struct BrickFlags
+        public struct BrickFlags
         {
             uint  flags;
 
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool subdivide { get { return (flags & 2) != 0; } set { flags = (flags & (~2u)) | (value ? 2u : 0); } }
         }
 
-        internal struct RefVolTransform
+        public struct RefVolTransform
         {
             public Matrix4x4   refSpaceToWS;
             public Vector3     posWS;
@@ -79,7 +79,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // index related
         Texture3D indexTex;
 
-        internal ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
+        public ProbeReferenceVolume(int allocationSize, int memoryBudget, Vector3Int indexDimensions)
         {
             Profiler.BeginSample("Create Reference volume");
             m_Transform.posWS = Vector3.zero;
@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.EndSample();
         }
 
-        internal void SetGridDensity(float minBrickSize, int maxSubdivision)
+        public void SetGridDensity(float minBrickSize, int maxSubdivision)
         {
             m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
 
@@ -117,9 +117,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
         internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
 
-        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
+        public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
-        internal void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
+        public void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
             Profiler.BeginSample("CreateBricks");
             // generate bricks for all areas covered by the passed in volumes, potentially subdividing them based on the subdivider's decisions

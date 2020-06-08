@@ -9,11 +9,11 @@ namespace UnityEngine.Rendering.HighDefinition
     using Volume = ProbeReferenceVolume.Volume;
     using RefTrans = ProbeReferenceVolume.RefVolTransform;
 
-    internal static class ProbeVolumePositioning
+    public static class ProbeVolumePositioning
     {
         internal static Vector3[] m_Axes = new Vector3[6];
 
-        internal static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
+        public static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
         {
             Flags f = new Flags();
             for( int i = 0; i < inBricks.Count; i++ )
