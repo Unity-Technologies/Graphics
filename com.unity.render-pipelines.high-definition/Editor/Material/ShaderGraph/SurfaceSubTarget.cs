@@ -71,8 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var passes = new PassCollection
                 {
                     // Common "surface" passes
-                    HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
