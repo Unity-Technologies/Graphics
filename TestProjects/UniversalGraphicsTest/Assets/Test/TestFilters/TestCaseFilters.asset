@@ -70,13 +70,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS Tracked issue (005)
-  - FilteredScene: {fileID: 102900000, guid: fddcdd964deca1d42b2952f32f67f694, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: iOS Tracked issue (012)
   - FilteredScene: {fileID: 102900000, guid: 245a2b08a4f72437193b06846a5c8e33, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
@@ -175,7 +168,7 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: iOS tracked regression (118)
-   - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
     BuildPlatform: 9
     GraphicsDevice: 16
