@@ -121,8 +121,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal struct CompiledPassInfo
         {
             public RenderGraphPass      pass;
-            public List<TextureHandle>  textureCreateList;
-            public List<TextureHandle>  textureReleaseList;
+            public List<int>            textureCreateList;
+            public List<int>            textureReleaseList;
             public int                  refCount;
             public bool                 pruned;
             public bool                 hasSideEffect;
@@ -146,8 +146,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 if (textureCreateList == null)
                 {
-                    textureCreateList = new List<TextureHandle>();
-                    textureReleaseList = new List<TextureHandle>();
+                    textureCreateList = new List<int>();
+                    textureReleaseList = new List<int>();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
                     debugTextureReads = new List<string>();
@@ -182,8 +182,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         bool                                m_ExecutionExceptionWasRaised;
 
         // Compiled Render Graph info.
-        DynamicArray<CompiledResourceInfo>  m_CompiledTextureInfos = new DynamicArray<CompiledResourceInfo>();
-        DynamicArray<CompiledResourceInfo>  m_CompiledBufferInfos = new DynamicArray<CompiledResourceInfo>();
+        DynamicArray<CompiledResourceInfo>[] m_CompiledResourcesInfos = new DynamicArray<CompiledResourceInfo>[(int)RenderGraphResourceType.Count];
+
+        //DynamicArray<CompiledResourceInfo>  m_CompiledTextureInfos = new DynamicArray<CompiledResourceInfo>();
+        //DynamicArray<CompiledResourceInfo>  m_CompiledBufferInfos = new DynamicArray<CompiledResourceInfo>();
         DynamicArray<CompiledPassInfo>      m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
         Stack<int>                          m_PruningStack = new Stack<int>();
 
@@ -212,6 +214,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraph(bool supportMSAA, MSAASamples initialSampleCount)
         {
             m_Resources = new RenderGraphResourceRegistry(supportMSAA, initialSampleCount, m_DebugParameters, m_Logger);
+
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+            {
+                m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
+            }
         }
 
         /// <summary>
@@ -278,10 +285,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="desc">Texture descriptor.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
         /// <returns>A new TextureHandle.</returns>
-        public TextureHandle CreateTexture(TextureDesc desc, int shaderProperty = 0)
+        public TextureHandle CreateTexture(in TextureDesc desc, int shaderProperty = 0)
         {
-            if (m_DebugParameters.tagResourceNamesWithRG)
-                desc.name = string.Format("{0}_RenderGraph", desc.name);
             return m_Resources.CreateTexture(desc, shaderProperty);
         }
 
@@ -293,10 +298,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new TextureHandle.</returns>
         public TextureHandle CreateTexture(TextureHandle texture, int shaderProperty = 0)
         {
-            var desc = m_Resources.GetTextureResourceDesc(texture);
-            if (m_DebugParameters.tagResourceNamesWithRG)
-                desc.name = string.Format("{0}_RenderGraph", desc.name);
-            return m_Resources.CreateTexture(desc, shaderProperty);
+            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture), shaderProperty);
         }
 
         /// <summary>
@@ -328,6 +330,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
             return m_Resources.ImportComputeBuffer(computeBuffer);
+        }
+
+        public ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc)
+        {
+            return m_Resources.CreateComputeBuffer(desc);
+        }
+
+        public ComputeBufferHandle CreateComputeBuffer(ComputeBufferHandle computeBuffer)
+        {
+            return m_Resources.CreateComputeBuffer(m_Resources.GetComputeBufferResourceDesc(computeBuffer));
+        }
+
+        public ComputeBufferDesc GetComputeBufferDesc(ComputeBufferHandle computeBuffer)
+        {
+            return m_Resources.GetComputeBufferResourceDesc(computeBuffer);
         }
 
         /// <summary>
@@ -740,7 +757,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 int firstWriteIndex = GetFirstValidWriteIndex(textureInfo);
                 // This can happen for imported textures (for example an imported dummy black texture will never be written to but does not need creation anyway)
                 if (firstWriteIndex != -1)
-                    m_CompiledPassInfos[firstWriteIndex].textureCreateList.Add(new TextureHandle(i));
+                    m_CompiledPassInfos[firstWriteIndex].textureCreateList.Add(i);
 
                 // Texture release
                 // Sometimes, a texture can be written by a pass after the last pass that reads it.
@@ -765,7 +782,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                         // Finally add the release command to the pass before the first pass that waits for the compute pipe.
                         ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
-                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+                        passInfo.textureReleaseList.Add(i);
 
                         // Fail safe in case render graph is badly formed.
                         if (currentPassIndex == m_CompiledPassInfos.size)
@@ -777,7 +794,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     else
                     {
                         ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
-                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+                        passInfo.textureReleaseList.Add(i);
                     }
                 }
             }

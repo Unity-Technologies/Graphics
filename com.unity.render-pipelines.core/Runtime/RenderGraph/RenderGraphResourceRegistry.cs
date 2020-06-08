@@ -5,6 +5,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
+    // RendererList is a different case so not represented here.
+    internal enum RenderGraphResourceType
+    {
+        Texture = 0,
+        ComputeBuffer,
+        Count
+    }
+
     #region Resource Descriptors
     // BEHOLD C# COPY PASTA
     // Struct can't be inherited and can't have default member values
@@ -320,6 +328,63 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return hashCode;
         }
     }
+
+    /// <summary>
+    /// Descriptor used to create compute buffer resources
+    /// </summary>
+    public struct ComputeBufferDesc
+    {
+        ///<summary>Number of elements in the buffer..</summary>
+        public int                  count;
+        ///<summary>Size of one element in the buffer. Has to match size of buffer type in the shader.</summary>
+        public int                  stride;
+        ///<summary>Type of the buffer, default is ComputeBufferType.Default (structured buffer).</summary>
+        public ComputeBufferType    type;
+        /// <summary>Compute Buffer name.</summary>
+        public string               name;
+
+        /// <summary>
+        /// ComputeBufferDesc constructor.
+        /// </summary>
+        /// <param name="count">Number of elements in the buffer.</param>
+        /// <param name="stride">Size of one element in the buffer.</param>
+        public ComputeBufferDesc(int count, int stride)
+            : this()
+        {
+            this.count = count;
+            this.stride = stride;
+            type = ComputeBufferType.Default;
+        }
+
+        /// <summary>
+        /// ComputeBufferDesc constructor.
+        /// </summary>
+        /// <param name="count">Number of elements in the buffer.</param>
+        /// <param name="stride">Size of one element in the buffer.</param>
+        /// <param name="type">Type of the buffer.</param>
+        public ComputeBufferDesc(int count, int stride, ComputeBufferType type)
+            : this()
+        {
+            this.count = count;
+            this.stride = stride;
+            this.type = type;
+        }
+
+        /// <summary>
+        /// Hash function
+        /// </summary>
+        /// <returns>The texture descriptor hash.</returns>
+        public override int GetHashCode()
+        {
+            int hashCode = 17;
+
+            hashCode = hashCode * 23 + count;
+            hashCode = hashCode * 23 + stride;
+            hashCode = hashCode * 23 + (int)type;
+
+            return hashCode;
+        }
+    }
     #endregion
 
     class RenderGraphTexturePool
@@ -408,6 +473,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         static readonly ShaderTagId s_EmptyName = new ShaderTagId("");
 
+
+        internal struct RenderGraphResource<DescType, ResType>
+        {
+            public DescType desc;
+            public ResType resource;
+            public bool imported;
+            public int cachedHash;
+            public int shaderProperty;
+            public bool wasReleased;
+        }
+
         #region Resources
         internal struct TextureResource
         {
@@ -460,13 +536,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal struct ComputeBufferResource
         {
-            public ComputeBuffer    computeBuffer;
-            public bool             imported;
+            public ComputeBufferDesc    desc;
+            public ComputeBuffer        computeBuffer;
+            public bool                 imported;
+            public bool                 wasReleased;
 
-            internal ComputeBufferResource(ComputeBuffer computeBuffer, bool imported)
+            internal ComputeBufferResource(ComputeBuffer computeBuffer)
+                : this()
             {
                 this.computeBuffer = computeBuffer;
-                this.imported = imported;
+                this.imported = true;
+                wasReleased = false;
+            }
+
+            internal ComputeBufferResource(in ComputeBufferDesc desc)
+                : this()
+            {
+                this.desc = desc;
+                computeBuffer = null;
+                wasReleased = false;
             }
         }
         #endregion
@@ -533,6 +621,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+
+            var res = m_ComputeBufferResources[handle];
+
+            if (res.computeBuffer == null && !res.wasReleased)
+                throw new InvalidOperationException(string.Format("Trying to access compute buffer \"{0}\" that was never created. Check that it was written at least once before trying to get it.", res.desc.name));
+
+            if (res.computeBuffer == null && res.wasReleased)
+                throw new InvalidOperationException(string.Format("Trying to access compute buffer \"{0}\" that was already released. Check that the last pass where it's read is after this one.", res.desc.name));
+#endif
+
             return m_ComputeBufferResources[handle].computeBuffer;
         }
         #endregion
@@ -596,12 +695,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_TextureResources.size;
         }
 
-        ref TextureResource GetTextureResource(TextureHandle res)
+        ref TextureResource GetTextureResource(int res)
         {
             return ref m_TextureResources[res];
         }
 
-        internal TextureDesc GetTextureResourceDesc(TextureHandle res)
+        internal TextureDesc GetTextureResourceDesc(int res)
         {
             return m_TextureResources[res].desc;
         }
@@ -616,8 +715,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
-            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer, imported: true));
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer));
             return new ComputeBufferHandle(newHandle);
+        }
+
+        internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc)
+        {
+            ValidateComputeBufferDesc(desc);
+
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(desc));
+            return new ComputeBufferHandle(newHandle);
+        }
+
+        internal ComputeBufferDesc GetComputeBufferResourceDesc(ComputeBufferHandle res)
+        {
+            return m_ComputeBufferResources[res].desc;
         }
 
         internal bool IsComputeBufferImported(ComputeBufferHandle handle)
@@ -635,9 +747,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return ref m_ComputeBufferResources[res];
         }
 
-        internal void CreateAndClearTexture(RenderGraphContext rgContext, TextureHandle texture)
+        internal void CreateAndClearTexture(RenderGraphContext rgContext, int index)
         {
-            ref var resource = ref GetTextureResource(texture);
+            ref var resource = ref GetTextureResource(index);
             if (!resource.imported)
             {
                 CreateTextureForPass(ref resource);
@@ -675,6 +787,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.rt = null;
             if (!TryGetRenderTarget(hashCode, out resource.rt))
             {
+                string name = desc.name;
+                if (m_RenderGraphDebug.tagResourceNamesWithRG)
+                    name = $"RenderGraph_{name}";
+
                 // Note: Name used here will be the one visible in the memory profiler so it means that whatever is the first pass that actually allocate the texture will set the name.
                 // TODO: Find a way to display name by pass.
                 switch (desc.sizeMode)
@@ -695,7 +811,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             //// Try to update name when re-using a texture.
-            //// TODO: Check if that actually works.
+            //// TODO RENDERGRAPH: Check if that actually works.
             //resource.rt.name = desc.name;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
@@ -734,7 +850,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             SetGlobalTextures(rgContext, textures, true);
         }
 
-        internal void ReleaseTexture(RenderGraphContext rgContext, TextureHandle resource)
+        internal void ReleaseTexture(RenderGraphContext rgContext, int resource)
         {
             ref var resourceDesc = ref GetTextureResource(resource);
             if (!resourceDesc.imported)
@@ -744,7 +860,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
                     {
                         var clearFlag = resourceDesc.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
-                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(resource), clearFlag, Color.magenta);
+                        // Not ideal to do new TextureHandle here but GetTexture is a public API and we rather have it take an explicit TextureHandle parameters.
+                        // Everywhere else internally int is better because it allows us to share more code.
+                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(resource)), clearFlag, Color.magenta);
                     }
                 }
 
@@ -818,6 +936,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 throw new ArgumentException("Renderer List creation descriptor must have a valid Camera.");
             }
+#endif
+        }
+
+        void ValidateComputeBufferDesc(in ComputeBufferDesc desc)
+        {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // TODO RENDERGRAPH: Check actual condition on stride.
+            //if (desc.stride % 4 != 0)
+            //{
+            //    throw new ArgumentException("Compute Buffer stride must be at least 4.");
+            //}
 #endif
         }
 
