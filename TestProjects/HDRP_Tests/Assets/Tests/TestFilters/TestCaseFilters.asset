@@ -184,17 +184,17 @@ MonoBehaviour:
   - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 18
-    XrSdk: 
-    StereoModes: 0
-    Reason: Not working
-  - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
     GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: c2f6e1c5441279d42b05dbe99212bf2d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: Not working
   - FilteredScene: {fileID: 102900000, guid: 92280049d357c564b9a9297b39e02a92, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -307,6 +307,13 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: aa2b8ed7d0d276340b794c91ebc7cdce, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: dbac54cd53110e949bff19f8be4e39bf, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -321,6 +328,20 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: flip flop
+  - FilteredScene: {fileID: 102900000, guid: 4fb94469014a7ce468a32889d270785d, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
+  - FilteredScene: {fileID: 102900000, guid: 520aec2f141eeaf4daceb4e016157b78, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: unstable
   - FilteredScene: {fileID: 102900000, guid: c64196eb7ce78e84bb835b2ea858ee19, type: 3}
     ColorSpace: 1
     BuildPlatform: -2

@@ -73,9 +73,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
-        bool m_AddPrecomputedVelocity = false;
-
-        [SerializeField]
         string m_CustomEditorGUI;
         
         public UniversalTarget()
@@ -140,12 +137,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaClip = value;
         }
 
-        public bool addPrecomputedVelocity
-        {
-            get => m_AddPrecomputedVelocity;
-            set => m_AddPrecomputedVelocity = value;
-        }
-
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;
@@ -177,13 +168,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetFields(ref TargetFieldContext context)
         {
+            var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex,            context.blocks.Contains(BlockFields.VertexDescription.Position) ||
-                                                            context.blocks.Contains(BlockFields.VertexDescription.Normal) ||
-                                                            context.blocks.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
+                                                            descs.Contains(BlockFields.VertexDescription.Normal) ||
+                                                            descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip,              alphaClip);
-            context.AddField(Fields.VelocityPrecomputed,    addPrecomputedVelocity);
             context.AddField(Fields.DoubleSided,            twoSided);
 
             // SubTarget fields
@@ -276,7 +267,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
                     m_TwoSided = pbrMasterNode.m_TwoSided;
                     UpgradeAlphaClip();
-                    m_AddPrecomputedVelocity = false;
                     m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
                     break;
                 case UnlitMasterNode1 unlitMasterNode:
@@ -284,7 +274,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
                     m_TwoSided = unlitMasterNode.m_TwoSided;
                     UpgradeAlphaClip();
-                    m_AddPrecomputedVelocity = unlitMasterNode.m_AddPrecomputedVelocity;
                     m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
                     break;
                 case SpriteLitMasterNode1 spriteLitMasterNode:
@@ -310,6 +299,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             blockMap = null;
             return false;
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
         }
     }
 

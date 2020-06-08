@@ -13,9 +13,16 @@ namespace UnityEditor.ShaderGraph
             if(subTargets == null || subTargets.Count == 0)
                 return;
 
-            if(activeSubTarget.value == null)
+            // assign the initial sub-target, if none is assigned yet
+            if (activeSubTarget.value == null)
             {
-                activeSubTarget = subTargets[0];
+                // this is a bit of a hack: prefer subtargets named "Lit" if they exist, otherwise default to the first one
+                // in the future, we should make the default sub-target user configurable
+                var litSubTarget = subTargets.FirstOrDefault(x => x.displayName == "Lit");
+                if (litSubTarget != null)
+                    activeSubTarget = litSubTarget;
+                else
+                    activeSubTarget = subTargets[0];
                 return;
             }
 

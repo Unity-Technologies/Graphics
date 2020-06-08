@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             base.GetFields(ref context);
             AddDistortionFields(ref context);
+            var descs = context.blocks.Select(x => x.descriptor);
 
             bool hasRefraction = (systemData.surfaceType == SurfaceType.Transparent && systemData.renderingPass != HDRenderQueue.RenderQueueType.PreRefraction && litData.refractionModel != ScreenSpaceRefraction.RefractionModel.None);
 
@@ -73,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.Refraction,                           hasRefraction);
             context.AddField(HDFields.RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
             context.AddField(HDFields.RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
+            context.AddField(HDFields.RefractionThin,                       hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
 
             // AlphaTest
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
@@ -83,8 +85,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Misc
 
             context.AddField(HDFields.EnergyConservingSpecular,             litData.energyConservingSpecular);
-            context.AddField(HDFields.CoatMask,                             context.blocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask));
-            context.AddField(HDFields.Tangent,                              context.blocks.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
+            context.AddField(HDFields.CoatMask,                             descs.Contains(HDBlockFields.SurfaceDescription.CoatMask) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) && litData.clearCoat);
+            context.AddField(HDFields.ClearCoat,                            litData.clearCoat); // Enable clear coat material feature
+            context.AddField(HDFields.Tangent,                              descs.Contains(HDBlockFields.SurfaceDescription.Tangent) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             context.AddField(HDFields.RayTracing,                           litData.rayTracing);
         }
 
@@ -98,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddDistortionBlocks(ref context);
 
             // Common
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             litData.clearCoat);
 
             // Refraction
             context.AddBlock(HDBlockFields.SurfaceDescription.RefractionIndex,      hasRefraction);
@@ -137,12 +140,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override int ComputeMaterialNeedsUpdateHash()
         {
-            bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
             int hash = base.ComputeMaterialNeedsUpdateHash();
 
             unchecked
             {
-                hash = hash * 23 + lightingData.receiveSSRTransparent.GetHashCode();
+                bool subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
                 hash = hash * 23 + subsurfaceScattering.GetHashCode();
             }
 
@@ -408,7 +410,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = LitRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPrePass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -489,7 +491,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPostPass,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = CoreKeywords.HDBase,
@@ -867,20 +869,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDistortionVec,
                     Ref = CoreRenderStates.Uniforms.stencilRefDistortionVec,
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-            };
-
-            public static RenderStateCollection TransparentDepthPrePostPass = new RenderStateCollection
-            {
-                { RenderState.Blend(Blend.One, Blend.Zero) },
-                { RenderState.Cull(CoreRenderStates.Uniforms.cullMode) },
-                { RenderState.ZWrite(ZWrite.On) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = CoreRenderStates.Uniforms.stencilWriteMaskDepth,
-                    Ref = CoreRenderStates.Uniforms.stencilRefDepth,
                     Comp = "Always",
                     Pass = "Replace",
                 }) },

@@ -66,6 +66,10 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedInputs; }
         }
 
+        [NonSerialized]
+        bool m_MovedContexts = false;
+        public bool movedContexts => m_MovedContexts;
+
         public string assetGuid { get; set; }
 
         #endregion
@@ -454,6 +458,7 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
             m_MostRecentlyCreatedGroup = null;
+            m_MovedContexts = false;
         }
 
         public void AddNode(AbstractMaterialNode node)
@@ -681,7 +686,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         var slot = block.value.FindSlot<MaterialSlot>(0);
                         //Need to check if a slot is not default value OR is an untracked unknown block type
-                        if(!slot.isConnected && slot.isDefaultValue || block.value.descriptor.isUnknown) // TODO: How to check default value
+                        if(slot.IsUsingDefaultValue() || block.value.descriptor.isUnknown) // TODO: How to check default value
                         {
                             blocksToRemove.Add(block);
                         }
@@ -930,7 +935,7 @@ namespace UnityEditor.ShaderGraph
                 if(!activeBlockDescriptors.Contains(b.descriptor))
                 {
                     var slot = b.FindSlot<MaterialSlot>(0);
-                    if(!slot.isConnected && slot.isDefaultValue) // TODO: How to check default value
+                    if(slot.IsUsingDefaultValue()) // TODO: How to check default value
                     {
                         RemoveNodeNoValidate(b);
                         input = null;
@@ -1374,6 +1379,14 @@ namespace UnityEditor.ShaderGraph
 
             concretePrecision = other.concretePrecision;
             m_OutputNode = other.m_OutputNode;
+
+            if ((this.vertexContext.position != other.vertexContext.position) ||
+                (this.fragmentContext.position != other.fragmentContext.position))
+            {
+                this.vertexContext.position = other.vertexContext.position;
+                this.fragmentContext.position = other.fragmentContext.position;
+                m_MovedContexts = true;
+            }
 
             using (var inputsToRemove = PooledList<ShaderInput>.Get())
             {
@@ -1898,7 +1911,10 @@ namespace UnityEditor.ShaderGraph
                     var masterNode = m_OutputNode.value as IMasterNode1;
 
                     // This is required for edge lookup during Target upgrade
-                    m_OutputNode.value.owner = this;
+                    if (m_OutputNode.value != null)
+                    {
+                        m_OutputNode.value.owner = this;
+                    }
                     foreach (var edge in m_Edges)
                     {
                         AddEdgeToNodeEdges(edge);
@@ -1908,7 +1924,11 @@ namespace UnityEditor.ShaderGraph
                     AddContexts();
 
                     // Position Contexts to the match master node
-                    var oldPosition = m_OutputNode.value.drawState.position.position;
+                    var oldPosition = Vector2.zero;
+                    if (m_OutputNode.value != null)
+                    {
+                        oldPosition = m_OutputNode.value.drawState.position.position;
+                    }
                     m_VertexContext.position = oldPosition;
                     m_FragmentContext.position = new Vector2(oldPosition.x, oldPosition.y + 200);
 

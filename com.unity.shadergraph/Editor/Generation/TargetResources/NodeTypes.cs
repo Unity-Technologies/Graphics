@@ -155,6 +155,12 @@ namespace UnityEditor.ShaderGraph
 #endif // PROCEDURAL_VT_IN_GRAPH
             };
 
+            public static NodeTypeCollection MeshDeformation = new NodeTypeCollection()
+            {
+                typeof(ComputeDeformNode ),
+                typeof(LinearBlendSkinningNode )
+            };
+
             public static NodeTypeCollection All = new NodeTypeCollection()
             {
                 Basic,
@@ -165,6 +171,7 @@ namespace UnityEditor.ShaderGraph
                 PBR,
                 Scene,
                 Texture,
+                MeshDeformation,
                 typeof(PropertyNode)
             };
         }

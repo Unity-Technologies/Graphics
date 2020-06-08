@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition
             { ShaderID.Decal, DecalUI.SetupMaterialKeywordsAndPass },
             { ShaderID.TerrainLit, TerrainLitGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.AxF, AxFGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Unlit, UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
+            { ShaderID.SG_Unlit, HDUnlitGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Lit, HDLitGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Hair, HairGUI.SetupMaterialKeywordsAndPass },
             { ShaderID.SG_Fabric, FabricGUI.SetupMaterialKeywordsAndPass },

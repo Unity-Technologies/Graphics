@@ -30,6 +30,7 @@ Pass
     $Material.Anisotropy:               #define _MATERIAL_FEATURE_ANISOTROPY 1
     $Material.Iridescence:              #define _MATERIAL_FEATURE_IRIDESCENCE 1
     $Material.SpecularColor:            #define _MATERIAL_FEATURE_SPECULAR_COLOR 1
+    $Material.ClearCoat:                #define _MATERIAL_FEATURE_CLEAR_COAT
     $AmbientOcclusion:                  #define _AMBIENT_OCCLUSION 1
     $SpecularOcclusionFromAO:           #define _SPECULAR_OCCLUSION_FROM_AO 1
     $SpecularOcclusionFromAOBentNormal: #define _SPECULAR_OCCLUSION_FROM_AO_BENT_NORMAL 1
@@ -207,7 +208,9 @@ Pass
             surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
         #endif
 
-        $CoatMask: surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+        #ifdef _MATERIAL_FEATURE_CLEAR_COAT
+            surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+        #endif
 
         #if defined (_MATERIAL_FEATURE_SPECULAR_COLOR) && defined (_ENERGY_CONSERVING_SPECULAR)
             // Require to have setup baseColor

@@ -50,13 +50,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             base.GetFields(ref context);
 
+            var descs = context.blocks.Select(x => x.descriptor);
             // Hair specific properties:
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && !context.pass.Equals(HairSubTarget.HairPasses.MotionVectors));
             context.AddField(HDFields.KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(HDFields.HairStrandDirection,                  context.blocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
-            context.AddField(HDFields.RimTransmissionIntensity,             context.blocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
+            context.AddField(HDFields.HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
+            context.AddField(HDFields.RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
-            context.AddField(HDFields.Transmittance,                        context.blocks.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
+            context.AddField(HDFields.Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
 
             // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
             // Do alpha test only if we aren't using the TestShadow one
@@ -74,7 +75,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Hair specific blocks
-            context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
             context.AddBlock(HDBlockFields.SurfaceDescription.BentNormal);
             context.AddBlock(HDBlockFields.SurfaceDescription.Transmittance);
             context.AddBlock(HDBlockFields.SurfaceDescription.RimTransmissionIntensity);
@@ -106,8 +106,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HairPasses.SceneSelection },
                     { HairPasses.DepthForwardOnly },
                     { HairPasses.MotionVectors },
-                    { HairPasses.TransparentBackface, new FieldCondition(HDFields.TransparentBackFace, true) },
-                    { HairPasses.TransparentDepthPrepass, new FieldCondition(HDFields.TransparentDepthPrePass, true) },
+                    { HairPasses.TransparentBackface,       new FieldCondition(HDFields.TransparentBackFace, true) },
+                    { HairPasses.TransparentDepthPrepass,   new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) }},
+                    { HairPasses.TransparentDepthPrepass,   new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
+                    { HairPasses.TransparentDepthPrepass,   new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) }},
                     { HairPasses.ForwardOnly },
                     { HairPasses.TransparentDepthPostpass, new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 },
@@ -280,8 +288,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 structs = CoreStructCollections.Default,
+                requiredFields = CoreRequiredFields.LitFull,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPrePass,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.TransparentDepthPrepass,
                 keywords = CoreKeywords.HDBase,
@@ -361,7 +370,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
-                renderStates = CoreRenderStates.TransparentDepthPrePostPass,
+                renderStates = CoreRenderStates.TransparentDepthPostPass,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = CoreDefines.ShaderGraphRaytracingHigh,
                 keywords = CoreKeywords.HDBase,
@@ -388,7 +397,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = HairDefines.RaytracingForwardIndirect,
+                defines = HairDefines.RaytracingIndirect,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingIndirect },
@@ -414,7 +423,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                keywords = CoreKeywords.HDBase,
+                keywords = CoreKeywords.RaytracingVisiblity,
+                defines = HairDefines.RaytracingVisibility,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingVisibility },
             };
@@ -439,7 +449,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = HairDefines.RaytracingForwardIndirect,
+                defines = HairDefines.RaytracingForward,
                 keywords = CoreKeywords.RaytracingGBufferForward,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.SubShader.Hair, HDFields.ShaderPass.RaytracingForward },
@@ -507,6 +517,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 HDBlockFields.SurfaceDescription.SpecularOcclusion,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 HDBlockFields.SurfaceDescription.HairStrandDirection,
                 HDBlockFields.SurfaceDescription.Transmittance,
@@ -543,6 +555,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static BlockFieldDescriptor[] FragmentDepthMotionVectors = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 BlockFields.SurfaceDescription.Smoothness,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
@@ -554,6 +568,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.Alpha,
                 HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
                 HDBlockFields.SurfaceDescription.DepthOffset,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.Smoothness,
             };
 
             public static BlockFieldDescriptor[] FragmentTransparentBackface = new BlockFieldDescriptor[]
@@ -561,6 +579,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 HDBlockFields.SurfaceDescription.SpecularOcclusion,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 HDBlockFields.SurfaceDescription.HairStrandDirection,
                 HDBlockFields.SurfaceDescription.Transmittance,
@@ -585,6 +605,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 HDBlockFields.SurfaceDescription.SpecularOcclusion,
                 BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.NormalOS,
                 HDBlockFields.SurfaceDescription.BentNormal,
                 HDBlockFields.SurfaceDescription.HairStrandDirection,
                 HDBlockFields.SurfaceDescription.Transmittance,
@@ -635,15 +657,36 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Defines
         static class HairDefines
         {
-            public static DefineCollection RaytracingForwardIndirect = new DefineCollection
+            public static DefineCollection RaytracingForward = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
                 { CoreKeywordDescriptors.HasLightloop, 1 },
+            };
+
+            public static DefineCollection RaytracingIndirect = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
+            };
+
+            public static DefineCollection RaytracingVisibility = new DefineCollection
+            {
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
             };
 
             public static DefineCollection RaytracingGBuffer = new DefineCollection
             {
                 { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 1 },
+            };
+
+            public static DefineCollection RaytracingPathTracing = new DefineCollection
+            {
+                { CoreKeywordDescriptors.Shadow, 0 },
+                { RayTracingNode.GetRayTracingKeyword(), 0 },
+                { CoreKeywordDescriptors.HasLightloop, 1 },
             };
         }
 #endregion

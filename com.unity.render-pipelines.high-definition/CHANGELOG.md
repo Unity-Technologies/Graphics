@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [9.0.0] - 2020-07-09
 
 ### Added
 - Ray tracing support for VR single-pass
@@ -126,10 +126,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Implemented ray traced reflections for transparent objects.
 - Add a new parameter to control reflections in recursive rendering.
 - Added an initial version of SSGI.
-- Added back-compatibility with builtin stereo matrices.
 - Added CustomPassUtils API to simplify Blur, Copy and DrawRenderers custom passes.
 - Added Histogram guided automatic exposure.
 - Added few exposure debug modes.
+- Added support for multiple path-traced views at once (e.g., scene and game views).
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -613,7 +613,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the show cookie atlas debug mode not displaying correctly when enabling the clear cookie atlas option.
 - Fixed various multi-editing issues when changing Emission parameters.
 - Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
-- Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
 - Fixed the light overlap scene view draw mode (wasn't working at all).
 - Fixed taaFrameIndex and XR tests 4052 and 4053
@@ -622,6 +621,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Wizard check on default volume profile to also check it is not the default one in package.
 - Fix erroneous central depth sampling in TAA.
 - Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fixed a bug where the light list is not cleared but still used when resizing the RT.
+- Fixed exposure debug shader with XR single-pass rendering.
+- Fixed issues with scene view and transparent motion vectors.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -754,6 +758,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Slightly changed the TAA anti-flicker mechanism so that it is more aggressive on almost static images (only on High preset for now).
 - Changed default exposure compensation to 0.
 - Refactored shadow caching system.
+- Removed experimental namespace for ray tracing code.
+- Increase limit for max numbers of lights in UX
 
 ## [7.1.1] - 2019-09-05
 

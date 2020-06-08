@@ -24,6 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Set data
             systemData.surfaceType = (SurfaceType)fabricMasterNode.m_SurfaceType;
             systemData.blendMode = HDSubShaderUtilities.UpgradeLegacyAlphaModeToBlendMode((int)fabricMasterNode.m_AlphaMode);
+            // Previous master node wasn't having any renderingPass. Assign it correctly now.
+            systemData.renderingPass = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
             systemData.alphaTest = fabricMasterNode.m_AlphaTest;
             systemData.sortPriority = fabricMasterNode.m_SortPriority;
             systemData.doubleSidedMode = fabricMasterNode.m_DoubleSidedMode;
@@ -42,6 +44,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.blendPreserveSpecular = fabricMasterNode.m_BlendPreserveSpecular;
             lightingData.receiveDecals = fabricMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = fabricMasterNode.m_ReceivesSSR;
+            lightingData.receiveSSRTransparent = fabricMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = fabricMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = fabricMasterNode.m_overrideBakedGI;
             lightingData.subsurfaceScattering = fabricMasterNode.m_SubsurfaceScattering;

@@ -19,7 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         // TODO: Why do the raytracing passes use the template for the pipeline agnostic Unlit master node?
         // TODO: This should be resolved so we can delete the second pass template
         static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
-        static string raytracingPassTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/UnlitPass.template";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
@@ -70,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             blockList.AddPropertyBlock(new HDUnlitSurfaceOptionPropertyBlock(SurfaceOptionPropertyBlock.Features.Unlit, unlitData));
             if (systemData.surfaceType == SurfaceType.Transparent)
-                blockList.AddPropertyBlock(new DistortionPropertyBlock());
+                blockList.AddPropertyBlock(new HDUnlitDistortionPropertyBlock(unlitData));
             blockList.AddPropertyBlock(new AdvancedOptionsPropertyBlock());
         }
 
@@ -325,7 +324,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -350,7 +349,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -375,7 +374,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -400,7 +399,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -425,7 +424,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = raytracingPassTemplatePath,
+                passTemplatePath = passTemplatePath,
                 sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
 
                 // Block Mask
@@ -598,7 +597,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         static class UnlitIncludes
         {
             const string kPassForwardUnlit = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardUnlit.hlsl";
-            
+
             public static IncludeCollection Meta = new IncludeCollection
             {
                 { CoreIncludes.CorePregraph },

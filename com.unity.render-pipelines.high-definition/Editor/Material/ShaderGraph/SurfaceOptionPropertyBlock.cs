@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         class Styles
         {
             public static GUIContent fragmentNormalSpace = new GUIContent("Fragment Normal Space", "TODO");
+            public static GUIContent doubleSidedModeText = new GUIContent("Double Sided Mode", "TODO");
         }
 
         Features enabledFeatures;
@@ -78,10 +79,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             AddProperty(alphaCutoffEnableText, () => systemData.alphaTest, (newValue) => systemData.alphaTest = newValue);
             AddProperty(useShadowThresholdText, () => builtinData.alphaTestShadow, (newValue) => builtinData.alphaTestShadow = newValue);
             AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
-            AddProperty(alphaToMaskText, () => builtinData.alphaToMask, (newValue) => builtinData.alphaToMask = newValue);
 
             // Misc
-            AddProperty(doubleSidedNormalModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
+            AddProperty(Styles.doubleSidedModeText, () => systemData.doubleSidedMode, (newValue) => systemData.doubleSidedMode = newValue);
             if (lightingData != null)
                 AddProperty(Styles.fragmentNormalSpace, () => lightingData.normalDropOffSpace, (newValue) => lightingData.normalDropOffSpace = newValue);
 
@@ -89,7 +89,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             if (lightingData != null)
             {
                 AddProperty(supportDecalsText, () => lightingData.receiveDecals, (newValue) => lightingData.receiveDecals = newValue);
-                AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
+
+                if (systemData.surfaceType == SurfaceType.Transparent)
+                    AddProperty(receivesSSRTransparentText, () => lightingData.receiveSSRTransparent, (newValue) => lightingData.receiveSSRTransparent = newValue);
+                else
+                    AddProperty(receivesSSRText, () => lightingData.receiveSSR, (newValue) => lightingData.receiveSSR = newValue);
+                
                 AddProperty(enableGeometricSpecularAAText, () => lightingData.specularAA, (newValue) => lightingData.specularAA = newValue);
             }
             AddProperty(depthOffsetEnableText, () => builtinData.depthOffset, (newValue) => builtinData.depthOffset = newValue);
