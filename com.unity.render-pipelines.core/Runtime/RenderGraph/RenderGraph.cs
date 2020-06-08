@@ -420,13 +420,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources.Clear(m_ExecutionExceptionWasRaised);
             m_DefaultResources.Clear();
             m_RendererLists.Clear();
-            m_CompiledBufferInfos.Clear();
-            m_CompiledTextureInfos.Clear();
+            for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
+                m_CompiledResourcesInfos[i].Clear();
             m_CompiledPassInfos.Clear();
         }
 
         void InitializeCompilationData()
         {
+            m_CompiledResourcesInfos[(int)RenderGraphResourceType.Texture]
             m_CompiledBufferInfos.Resize(m_Resources.GetComputeBufferResourceCount());
             for (int i = 0; i < m_CompiledBufferInfos.size; ++i)
                 m_CompiledBufferInfos[i].Reset();
