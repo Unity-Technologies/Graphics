@@ -141,10 +141,10 @@ void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId
     // Unfortunately, we have to go wider than the simple 2x2 neighborhood or there is too much aliasing
     float3 averageColor = 0.0;
     float sumW = 0.0;
-    const float radius = 2;
-    for (int y = -radius; y <= radius; ++y)
+    // In order to avoid a one pixel shift to the right, we need to center our down sample.
+    for (int y = -1; y <= 2; ++y)
     {
-        for (int x = -radius; x <= radius; ++x)
+        for (int x = -1; x <= 2; ++x)
         {
             const int2 tapCoord = currentCoord * 2 + uint2(x, y);
             // If the pixel is outside the current screen size, its weight becomes zero
