@@ -4,7 +4,6 @@ Shader "Hidden/ScriptableRenderPipeline/DebugDisplayProbeVolume"
         #pragma target 4.5
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-        #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeShaderVariables.hlsl"
