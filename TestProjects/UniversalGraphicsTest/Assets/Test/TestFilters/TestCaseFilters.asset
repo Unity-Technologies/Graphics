@@ -280,3 +280,108 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: 'Android 124: tracked regression'
+  - FilteredScene: {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 13
+    GraphicsDevice: 21
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'Android Vulkan 119: tracked regression (1252270)'
+  - FilteredScene: {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 4387c323b80b3f8479359d07b90f0031, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: c8f0da7688959b142bebd1f707d6f935, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 25cb76fbf82e5924f817e3466acb803a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 9173c5ffc1365594aa9b927c4cd84c54, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: d66b74ae4e7264d62bdb2c4f56261030, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 716466bc92f8e4eeeb3c138524b04021, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 27e9bb11ee6914e44bf36ad688926b50, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: d37e4ef718eada94db246dbd8ef33205, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 46788dd77b1c63144b05ad4e2bbe58d5, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 736a5167224854841be61166040606c6, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 17
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing in OpenGL

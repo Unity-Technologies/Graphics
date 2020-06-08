@@ -1,3 +1,4 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
 
 #define HISTOGRAM_BINS 128
 
@@ -25,12 +26,17 @@ float UnpackWeight(uint val)
 
 float GetFractionWithinHistogram(float value)
 {
-    return ComputeEV100FromAvgLuminance(value) * _HistogramRangeScale + _HistogramRangeBias;
+    return ComputeEV100FromAvgLuminance(value, MeterCalibrationConstant) * _HistogramRangeScale + _HistogramRangeBias;
 }
 
 uint GetHistogramBinLocation(float value)
 {
     return uint(saturate(GetFractionWithinHistogram(value)) * (HISTOGRAM_BINS - 1));
+}
+
+uint EVToBinLocation(float ev)
+{
+    return uint((ev * _HistogramRangeScale + _HistogramRangeBias) * (HISTOGRAM_BINS - 1));
 }
 
 float BinLocationToEV(uint binIdx)
