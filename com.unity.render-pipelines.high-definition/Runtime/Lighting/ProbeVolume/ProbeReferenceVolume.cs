@@ -267,7 +267,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         // Runtime API starts here
-        internal void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        public void AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
         {
             Profiler.BeginSample("AddBricks");
             m_TmpSrcChunks.Clear();
