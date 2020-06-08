@@ -48,6 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Defines the maximum intensity value computed for a path segment.")]
         public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+
+        PathTracing()
+        {
+            displayName = "Path Tracing (Preview)";
+        }
     }
 
     public partial class HDRenderPipeline

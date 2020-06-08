@@ -28,6 +28,14 @@ struct LightLoopContext
     DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
 };
 
+// LightLoopOutput is the output of the LightLoop fuction call.
+// It allow to retrieve the data output by the LightLoop
+struct LightLoopOutput
+{
+    float3 diffuseLighting;
+    float3 specularLighting;
+};
+
 //-----------------------------------------------------------------------------
 // Reflection probe / Sky sampling function
 // ----------------------------------------------------------------------------
