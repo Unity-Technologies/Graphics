@@ -30,6 +30,8 @@
     #else
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
     #endif
+        // Make VFX only sample probe volumes as SH0 for performance.
+        #define PROBE_VOLUMES_SAMPLING_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.hlsl"
 
 #else // (SHADERPASS == SHADERPASS_FORWARD)
