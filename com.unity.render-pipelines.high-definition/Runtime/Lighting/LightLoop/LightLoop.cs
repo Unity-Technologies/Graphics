@@ -1976,7 +1976,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        void CreateBoxVolumeDataAndBound(out LightVolumeData volumeData, out SFiniteLightBound bound, OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation = 0.0f)
+        void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
             volumeData = new LightVolumeData();
             bound = new SFiniteLightBound();
@@ -2682,7 +2682,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(out LightVolumeData volumeData, out SFiniteLightBound bound, densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR);
+                        CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
@@ -2692,7 +2692,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
                         float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
-                        CreateBoxVolumeDataAndBound(out LightVolumeData volumeData, out SFiniteLightBound bound, probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS);
+                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
                         {
                             // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
