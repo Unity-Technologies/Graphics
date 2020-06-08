@@ -71,12 +71,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_FeatureWarningMessage(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUILayout.HelpBox(Styles.k_featureWarning, MessageType.Warning);
+            EditorGUILayout.HelpBox(Styles.k_FeatureWarning, MessageType.Warning);
         }
 
         static void Drawer_FeatureEnableInfo(SerializedProbeVolume serialized, Editor owner)
         {
-            EditorGUILayout.HelpBox(Styles.k_featureEnableInfo, MessageType.Error);
+            EditorGUILayout.HelpBox(Styles.k_FeatureEnableInfo, MessageType.Error);
         }
 
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
@@ -84,19 +84,19 @@ namespace UnityEditor.Rendering.HighDefinition
             var asset = serialized.probeVolumeAsset.objectReferenceValue as ProbeVolumeAsset;
             if (asset != null && asset.payload.encodingMode != ShaderConfig.s_ProbeVolumesEncodingMode)
             {
-                EditorGUILayout.HelpBox(Styles.k_featureEncodingModeMismatchError, MessageType.Error);
+                EditorGUILayout.HelpBox(Styles.k_FeatureEncodingModeMismatchError, MessageType.Error);
             }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
                 && asset != null && asset.payload.dataOctahedralDepth == null)
             {
-                EditorGUILayout.HelpBox(Styles.k_featureOctahedralDepthEnabledNoData, MessageType.Error);
+                EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthEnabledNoData, MessageType.Error);
             }
             
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth
                 && asset != null && asset.payload.dataOctahedralDepth != null)
             {
-                EditorGUILayout.HelpBox(Styles.k_featureOctahedralDepthDisableYesData, MessageType.Error);
+                EditorGUILayout.HelpBox(Styles.k_FeatureOctahedralDepthDisableYesData, MessageType.Error);
             }
 
             EditorGUILayout.PropertyField(serialized.probeVolumeAsset, Styles.s_DataAssetLabel);
@@ -296,7 +296,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (ShaderConfig.s_ProbeVolumesAdditiveBlending == 0 && serialized.volumeBlendMode.intValue != (int)VolumeBlendMode.Normal)
             {
-                EditorGUILayout.HelpBox(Styles.k_featureAdditiveBlendingDisabledError, MessageType.Error);
+                EditorGUILayout.HelpBox(Styles.k_FeatureAdditiveBlendingDisabledError, MessageType.Error);
             }
         }
     }
