@@ -649,6 +649,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an issue with the half resolution Mode (performance)
 - Fix an issue with the color intensity of emissive for performance rtgi
 - Fixed issue with rendering being mostly broken when target platform disables VR. 
+- Fixed transparent motion vector framesetting not sanitized.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
