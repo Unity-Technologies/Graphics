@@ -693,8 +693,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 m_ShaderVariablesGlobalCB._ViewProjMatrix = m_ViewProjMatrixFlipped;
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
-                cmd.Blit(null, BuiltinRenderTextureType.CurrentActive, m_Material, m_Material.FindPass("ForwardOnly"));
-                cmd.Blit(BuiltinRenderTextureType.CurrentActive, camera.camera.targetTexture);
+                cmd.Blit(null, camera.camera.targetTexture, m_Material, m_Material.FindPass("ForwardOnly"));
             }
             else
             {

@@ -503,8 +503,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -512,9 +511,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -522,10 +520,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -533,10 +530,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly PragmaCollection GBuffer = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3 }) },
+            { Pragma.OnlyRenderers(new[]{ Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -545,7 +541,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.ExcludeRenderers(new[]{ Platform.D3D9 }) },
-            { Pragma.PreferHlslCC(new[]{ Platform.GLES }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };

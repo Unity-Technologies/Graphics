@@ -9,7 +9,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
 
 #define _UpsampleTolerance 1e-7f
 #define _NoiseFilterStrength 0.99999f
@@ -33,10 +33,10 @@ float3 BilUpColor(float HiDepth, float4 LowDepths, float3 lowValue0, float3 lowV
 {
     float4 weights = float4(9, 3, 1, 3) / (abs(HiDepth - LowDepths) + _UpsampleTolerance);
     float TotalWeight = dot(weights, 1) + _NoiseFilterStrength;
-    float3 WeightedSum = lowValue0 * weights.x 
-                        + lowValue1 * weights.y 
-                        + lowValue2 * weights.z 
-                        + lowValue3 * weights.w 
+    float3 WeightedSum = lowValue0 * weights.x
+                        + lowValue1 * weights.y
+                        + lowValue2 * weights.z
+                        + lowValue3 * weights.w
                         + _NoiseFilterStrength;
     return WeightedSum / TotalWeight;
 }
@@ -63,7 +63,7 @@ void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // If out of bounds, discard
     if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
-        return; 
+        return;
 
     // The pixel position to process
     const uint2 outputCoord = dispatchThreadId.xy;
@@ -76,7 +76,7 @@ void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // Define what is the half resolution of this pixel
     int2 coordRepresenatative = halfResolution * 2;
-    
+
     // Compute the shift within the half res
     int2 halfResShift = outputCoord - coordRepresenatative;
 
