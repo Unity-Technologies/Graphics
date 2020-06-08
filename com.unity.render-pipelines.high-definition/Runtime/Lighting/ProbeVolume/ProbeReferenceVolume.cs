@@ -232,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Converts brick information into positional data at kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim resolution
-        internal void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
+        public void ConvertBricks(List<Brick> bricks, Vector3[] outProbePositions)
         {
             Profiler.BeginSample("ConvertBricks");
             Matrix4x4 m = GetRefSpaceToWS();
