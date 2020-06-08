@@ -72,8 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     // Common "surface" passes
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
-                    HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
@@ -168,8 +168,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Replace valid pixel blocks by automatic thing so we don't have to write them
                 var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
                 GetActiveBlocks(ref tmpCtx);
-                passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
-                passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+                if (passDescriptor.validPixelBlocks == null)
+                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+                if (passDescriptor.validVertexBlocks == null)
+                    // passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+                    passDescriptor.validVertexBlocks = CoreBlockMasks.Vertex;
 
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)

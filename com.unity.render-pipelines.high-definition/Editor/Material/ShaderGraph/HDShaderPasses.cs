@@ -135,7 +135,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
-                requiredFields = supportLighting ? null : UnlitFieldCollection,
             };
 
             IncludeCollection GenerateIncludes()
@@ -158,11 +157,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return includes;
             }
         }
-
-        public static FieldCollection UnlitFieldCollection = new FieldCollection
-        {
-            HDFields.SubShader.Unlit,
-        };
 
 #endregion
 
@@ -357,11 +351,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 useInPreview = true,
 
                 // Collections
-                requiredFields = CoreRequiredFields.LitFull,
+                requiredFields = supportLighting ? CoreRequiredFields.LitFull : null,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.Forward : null,
-                keywords = CoreKeywords.Forward,
+                keywords = supportLighting ? CoreKeywords.Forward : UnlitForwardKeywords,
                 includes = GenerateIncludes(),
             };
 
@@ -394,6 +388,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return includes;
             }
         }
+
+        public static KeywordCollection UnlitForwardKeywords = new KeywordCollection
+        {
+            { CoreKeywords.HDBase },
+            { CoreKeywordDescriptors.DebugDisplay },
+            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDFields.EnableShadowMatte, true) },
+        };
 
 #endregion
 
