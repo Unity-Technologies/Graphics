@@ -1,5 +1,4 @@
 {
-    "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
     "dependencies": {
         "com.unity.ide.rider": "1.1.4",
         "com.unity.ide.visualstudio": "2.0.0",
@@ -9,7 +8,7 @@
         "com.unity.render-pipelines.high-definition-config": "file:../../../com.unity.render-pipelines.high-definition-config",
         "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
         "com.unity.test-framework": "1.1.14",
-        "com.unity.testframework.graphics": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git",
+        "com.unity.testframework.graphics": "7.2.2-preview",
         "com.unity.testing.hdrp": "file:../../../com.unity.testing.hdrp",
         "com.unity.ugui": "1.0.0",
         "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
