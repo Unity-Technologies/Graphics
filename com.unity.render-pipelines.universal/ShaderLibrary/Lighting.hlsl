@@ -463,23 +463,42 @@ half3 HackSampleSH(half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
+half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
+{
+    half3 pos = _WorldSpaceCameraPos;
+    // TODO: Check optimized version in the builtin renderer.
+    
+        float3 nrdir = normalize(reflectVector);
+
+        float3 rbmax = (boxMax.xyz - pos) / nrdir;
+        float3 rbmin = (boxMin.xyz - pos) / nrdir;
+
+        float3 rbminmax = (nrdir > 0.0f) ? rbmax : rbmin;
+
+        float fa = min(min(rbminmax.x, rbminmax.y), rbminmax.z);
+
+        pos -= cubemapCenter.xyz;
+        reflectVector = pos + nrdir * fa;
+    
+    return reflectVector;
+}
+
+half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
+#if BOX_PROJECTION
+    half3 originalReflectVector = reflectVector;
+    reflectVector = BoxProjectedCubemapDirection(reflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+#endif // BOX_PROJECTION
+
 #if REFLECTION_PROBE
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
     half3 irradiance = half3(0.0, 0.0, 0.0);
-    // Blending Reflection Probes is disabled since there is a problem with the SRP Batcher not passing the data correctly in
-    // When this is fixed uncomment the lines in this function which are not supposed to be comments.
-#if !BLEND_REFLECTION_PROBE
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-#if !defined(UNITY_USE_NATIVE_HDR)
-    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#else
-    irradiance = encodedIrradiance.rbg;
-#endif
+#if BLEND_REFLECTION_PROBE
+#if BOX_PROJECTION
+    reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+#endif // BOX_PROJECTION
 
-#else
     half4 encodedIrradiance0 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
     half4 encodedIrradiance1 = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
@@ -490,7 +509,14 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness,
     half4 encodedIrradiance = encodedIrradiance0 * unity_SpecCube0_BoxMin.w + encodedIrradiance1 * (1 - unity_SpecCube0_BoxMin.w);
     irradiance = encodedIrradiance.rbg;
 #endif
+#else
+    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+#if !defined(UNITY_USE_NATIVE_HDR)
+    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+    irradiance = encodedIrradiance.rbg;
 #endif
+#endif // BLEND_REFLECTION_PROBE
     return irradiance * occlusion;
 #endif // REFLECTION_PROBE
 #endif // GLOSSY_REFLECTIONS
@@ -525,13 +551,13 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
     return min(bakedGI, realtimeShadow);
 }
 
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
     half fresnelTerm = Pow4(1.0 - saturate(dot(normalWS, viewDirectionWS)));
 
     half3 indirectDiffuse = bakedGI * occlusion;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, occlusion);
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, occlusion);
 
     return EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 }
@@ -604,7 +630,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     mainLight.shadowAttenuation = ApplyShadowFade(mainLight.shadowAttenuation, inputData.positionWS);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0));
 
-    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.normalWS, inputData.viewDirectionWS);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, occlusion, inputData.positionWS, inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS);
 
 #ifdef _ADDITIONAL_LIGHTS

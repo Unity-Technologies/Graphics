@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public static int reflectionProbe = 1;
         public static int blendReflectionProbe = 0;
+        public static int boxProjection = 0;
         public static int bumpScale = 0;
         public static int fadeShadows = 0;
     }

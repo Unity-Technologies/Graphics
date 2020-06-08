@@ -205,6 +205,12 @@ SAMPLER(samplerunity_SpecCube0);
 TEXTURECUBE(unity_SpecCube1);
 SAMPLER(samplerunity_SpecCube1);
 real4 unity_SpecCube0_BoxMin;
+real4 unity_SpecCube0_BoxMax;
+real4 unity_SpecCube0_ProbePosition;
+real4 unity_SpecCube1_BoxMin;
+real4 unity_SpecCube1_BoxMax;
+real4 unity_SpecCube1_ProbePosition;
+
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
