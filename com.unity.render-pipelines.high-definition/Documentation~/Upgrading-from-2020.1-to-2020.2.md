@@ -60,3 +60,7 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
 
+## Shader code
+Cubemap Array for PointLight Cookies don’t exist anymore. Switch to Octahedral Projection to regular 2D-Cookie Atlas. Could produce artifacts for non-continuous cubemap low res cube-cookie (like pixel-art projection of a pixel art data). Fix just increases the resolution.
+
+As the Cubemap cookie atlas didn’t exist anymore it’s possible we don’t have enough space on the current 2D Atlas anymore. We display a warning on the log, but it’s on the hand of the user to increase the size by hand. We can’t increase automatically the size by taking the risk of busting the footprint of a project making it not working anymore.
