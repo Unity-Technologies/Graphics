@@ -19,5 +19,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => m_MaterialType;
             set => m_MaterialType = value;
         }
+
+        [SerializeField]
+        bool m_SubsurfaceScattering = false;
+        public bool subsurfaceScattering
+        {
+            get => m_SubsurfaceScattering;
+            set => m_SubsurfaceScattering = value;
+        }
     }
 }

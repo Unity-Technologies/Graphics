@@ -250,7 +250,10 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest: DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
         #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
@@ -264,7 +267,10 @@ Pass
 
         #ifdef _ALPHATEST_ON
             // Used for sharpening by alpha to mask
-            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+            $DoAlphaTest:         builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+            $DoAlphaTestPrepass:  builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            $DoAlphaTestPostpass: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
         #endif
 
         // override sampleBakedGI:

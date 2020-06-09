@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTestDepthPostpass = eyeMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = eyeMasterNode.m_SortPriority;
             systemData.doubleSidedMode = eyeMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = eyeMasterNode.m_ZWrite;
+            systemData.transparentZWrite = eyeMasterNode.m_ZWrite;
             systemData.transparentCullMode = eyeMasterNode.m_transparentCullMode;
             systemData.zTest = eyeMasterNode.m_ZTest;
             systemData.supportLodCrossFade = eyeMasterNode.m_SupportLodCrossFade;
@@ -49,8 +49,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.receiveSSRTransparent = eyeMasterNode.m_ReceivesSSRTransparent;
             lightingData.specularOcclusionMode = eyeMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = eyeMasterNode.m_overrideBakedGI;
-            lightingData.subsurfaceScattering = eyeMasterNode.m_SubsurfaceScattering;
             
+            eyeData.subsurfaceScattering = eyeMasterNode.m_SubsurfaceScattering;
             eyeData.materialType = (EyeData.MaterialType)eyeMasterNode.m_MaterialType;
             target.customEditorGUI = eyeMasterNode.m_OverrideEnabled ? eyeMasterNode.m_ShaderGUIOverride : "";
 
@@ -84,9 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     case EyeMasterNode1.SlotMask.SpecularOcclusion:
                         return lightingData.specularOcclusionMode == SpecularOcclusionMode.Custom;
                     case EyeMasterNode1.SlotMask.DiffusionProfile:
-                        return lightingData.subsurfaceScattering;
+                        return eyeData.subsurfaceScattering;
                     case EyeMasterNode1.SlotMask.SubsurfaceMask:
-                        return lightingData.subsurfaceScattering;
+                        return eyeData.subsurfaceScattering;
                     case EyeMasterNode1.SlotMask.AlphaClipThreshold:
                         return systemData.alphaTest;
                     default:

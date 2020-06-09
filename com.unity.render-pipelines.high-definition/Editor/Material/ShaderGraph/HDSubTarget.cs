@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract string subTargetAssetGuid { get; }
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
+        protected abstract string templatePath { get; }
 
         public virtual string identifier => GetType().Name;
 
@@ -58,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return hdMetadata;
         }
 
-        public sealed override void Setup(ref TargetSetupContext context)
+        public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("c09e6e9062cbd5a48900c48a0c2ed1c2")); // HDSubTarget.cs
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(subTargetAssetGuid));
