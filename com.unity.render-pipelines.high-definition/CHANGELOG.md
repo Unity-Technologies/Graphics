@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix spelling and grammatical errors in material samples
 - Fixed issues with scene view and transparent motion vectors.
 - Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
