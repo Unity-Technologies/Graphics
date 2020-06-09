@@ -58,68 +58,124 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             PropertyField(m_FocusMode);
 
+            // Draw the focus mode controls
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
-                return;
+            {
+                GUI.enabled = false;
+            }
 
+            HDEditorUtils.BeginIndent();
+            DrawFocusSettings(mode);
+            HDEditorUtils.EndIndent();
+
+            EditorGUILayout.Space();
+
+            // Draw the quality controls
             base.OnInspectorGUI();
+            HDEditorUtils.BeginIndent();
+            DrawQualitySettings();
+            HDEditorUtils.EndIndent();
 
-            bool advanced = isInAdvancedMode;
+            GUI.enabled = true;
+        }
 
-            if (mode == (int)DepthOfFieldMode.UsePhysicalCamera)
+        void DrawFocusSettings(int mode)
+        {
+            if (mode == (int)DepthOfFieldMode.Off)
+            {
+                // When DoF is off, display a focus distance at infinity
+                var val = m_FocusDistance.value.floatValue;
+                m_FocusDistance.value.floatValue = Mathf.Infinity;
+                PropertyField(m_FocusDistance);
+                m_FocusDistance.value.floatValue = val;
+            }
+            else if (mode == (int)DepthOfFieldMode.UsePhysicalCamera)
             {
                 PropertyField(m_FocusDistance);
-
-                if (advanced)
-                {
-                    GUI.enabled = useCustomValue;
-                    EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
-                    PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-
-                    EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
-                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-                    GUI.enabled = true;
-                }
             }
             else if (mode == (int)DepthOfFieldMode.Manual)
             {
-                EditorGUILayout.Space();
-
-                EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("Near Range", EditorStyles.miniLabel);
                 PropertyField(m_NearFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_NearFocusEnd, EditorGUIUtility.TrTextContent("End"));
 
-                if (advanced)
-                {
-                    GUI.enabled = useCustomValue;
-                    PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-                    GUI.enabled = true;
-                }
-
-                EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
+                EditorGUILayout.LabelField("Far Range", EditorStyles.miniLabel);
                 PropertyField(m_FarFocusStart, EditorGUIUtility.TrTextContent("Start"));
                 PropertyField(m_FarFocusEnd, EditorGUIUtility.TrTextContent("End"));
-
-                if (advanced)
-                {
-                    GUI.enabled = useCustomValue;
-                    PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
-                    PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
-                    GUI.enabled = true;
-                }
             }
+        }
 
-            if (advanced)
+        void DrawQualitySettings()
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
+            PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+            PropertyField(m_NearMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+
+            EditorGUILayout.LabelField("Far Blur", EditorStyles.miniLabel);
+            PropertyField(m_FarSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
+            PropertyField(m_FarMaxBlur, EditorGUIUtility.TrTextContent("Max Radius"));
+
+            if (isInAdvancedMode)
             {
-                GUI.enabled = useCustomValue;
                 EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
-                GUI.enabled = true;
             }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                QualitySettingsWereChanged();
+            }
+        }
+
+        class QualitySettings
+        {
+            public int nearSampleCount;
+            public float nearMaxBlur;
+            public int farSampleCount;
+            public float farMaxBlur;
+            public DepthOfFieldResolution resolution;
+            public bool hqFiltering;
+        }
+
+        public override void LoadSettingsFromObject(object settings)
+        {
+            QualitySettings qualitySettings = settings as QualitySettings;
+
+            m_NearSampleCount.value.intValue = qualitySettings.nearSampleCount;
+            m_NearMaxBlur.value.floatValue = qualitySettings.nearMaxBlur;
+            m_FarSampleCount.value.intValue = qualitySettings.farSampleCount;
+            m_FarMaxBlur.value.floatValue = qualitySettings.farMaxBlur;
+            m_Resolution.value.intValue = (int) qualitySettings.resolution;
+            m_HighQualityFiltering.value.boolValue = qualitySettings.hqFiltering;
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            m_NearSampleCount.value.intValue = settings.postProcessQualitySettings.NearBlurSampleCount[level];
+            m_NearMaxBlur.value.floatValue = settings.postProcessQualitySettings.NearBlurMaxRadius[level];
+
+            m_FarSampleCount.value.intValue = settings.postProcessQualitySettings.FarBlurSampleCount[level];
+            m_FarMaxBlur.value.floatValue = settings.postProcessQualitySettings.FarBlurMaxRadius[level];
+
+            m_Resolution.value.intValue = (int) settings.postProcessQualitySettings.DoFResolution[level];
+            m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.DoFHighQualityFiltering[level];
+        }
+
+        public override object SaveCustomQualitySettingsAsObject(object history)
+        {
+
+            QualitySettings qualitySettings = (history != null) ? history as QualitySettings : new QualitySettings();
+            
+            qualitySettings.nearSampleCount = m_NearSampleCount.value.intValue;
+            qualitySettings.nearMaxBlur = m_NearMaxBlur.value.floatValue;
+            qualitySettings.farSampleCount = m_FarSampleCount.value.intValue;
+            qualitySettings.farMaxBlur = m_FarMaxBlur.value.floatValue;
+            qualitySettings.resolution = (DepthOfFieldResolution) m_Resolution.value.intValue;
+            qualitySettings.hqFiltering = m_HighQualityFiltering.value.boolValue;
+            return qualitySettings;
         }
     }
 }
