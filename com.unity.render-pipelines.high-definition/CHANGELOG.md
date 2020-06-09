@@ -652,6 +652,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an issue with the color intensity of emissive for performance rtgi
 - Fixed issue with rendering being mostly broken when target platform disables VR. 
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
