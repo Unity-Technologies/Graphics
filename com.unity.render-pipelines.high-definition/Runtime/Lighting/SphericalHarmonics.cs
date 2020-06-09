@@ -31,61 +31,6 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [Serializable]
-    [GenerateHLSL]
-    internal struct SphericalHarmonicsL0
-    {
-        public Vector3 shrgb;
-
-        public static readonly SphericalHarmonicsL0 zero = new SphericalHarmonicsL0
-        {
-            shrgb = Vector3.zero
-        };
-
-        // These operators are implemented so that SphericalHarmonicsL0 matches API of SphericalHarmonicsL2.
-        public static SphericalHarmonicsL0 operator +(SphericalHarmonicsL0 lhs, SphericalHarmonicsL0 rhs) => new SphericalHarmonicsL0()
-        {
-            shrgb = lhs.shrgb + rhs.shrgb
-        };
-
-        public static SphericalHarmonicsL0 operator -(SphericalHarmonicsL0 lhs, SphericalHarmonicsL0 rhs) => new SphericalHarmonicsL0()
-        {
-            shrgb = lhs.shrgb - rhs.shrgb
-        };
-
-        public static SphericalHarmonicsL0 operator *(SphericalHarmonicsL0 lhs, float rhs) => new SphericalHarmonicsL0()
-        {
-            shrgb = lhs.shrgb * rhs
-        };
-
-        public static SphericalHarmonicsL0 operator /(SphericalHarmonicsL0 lhs, float rhs) => new SphericalHarmonicsL0()
-        {
-            shrgb = lhs.shrgb / rhs
-        };
-
-        public static bool operator ==(SphericalHarmonicsL0 lhs, SphericalHarmonicsL0 rhs)
-        {
-            return lhs.shrgb == rhs.shrgb;
-        }
-
-        public static bool operator !=(SphericalHarmonicsL0 lhs, SphericalHarmonicsL0 rhs)
-        {
-            return !(lhs == rhs);
-        }
-
-        public override bool Equals(object other)
-        {
-            if (!(other is SphericalHarmonicsL0)) return false;
-            return this == (SphericalHarmonicsL0) other;
-        }
-
-        public override int GetHashCode()
-        {
-            return 17 * 23 + shrgb.GetHashCode();
-        }
-    }
-
-    [Serializable]
-    [GenerateHLSL]
     internal struct SphericalHarmonicsL1
     {
         public Vector4 shAr;

@@ -82,10 +82,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_BakeToolBar(SerializedProbeVolume serialized, Editor owner)
         {
             var asset = serialized.probeVolumeAsset.objectReferenceValue as ProbeVolumeAsset;
-            if (asset != null && asset.payload.encodingMode != ShaderConfig.s_ProbeVolumesEncodingMode)
-            {
-                EditorGUILayout.HelpBox(Styles.k_FeatureEncodingModeMismatchError, MessageType.Error);
-            }
 
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth
                 && asset != null && asset.payload.dataOctahedralDepth == null)

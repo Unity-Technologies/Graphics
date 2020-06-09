@@ -22,41 +22,87 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     // Container structure for managing a probe volume's payload.
-    // Spherical Harmonics data is stored as a flat float coefficients array.
-    // encodingMode defines the view for dataSH, specifically the stride at which coefficients map to a single probe's SH sample.
-    // In the future, encodingMode could possibly be extended to handle different compression modes as well.
+    // Spherical Harmonics L2 data is stored across two flat float coefficients arrays, one for L0 and L1 terms, and one for L2 terms.
+    // Storing these as two seperate arrays makes it easy for us to conditionally only upload SHL01 terms when the render pipeline is
+    // configured to unly use an SphericalHarmonicsL1 atlas.
+    // It will also enable us in the future to strip the SHL2 coefficients from the project at build time if only SHL1 is requested.
+    // SH Coefficients are serialized in this order, regardless of their format.
+    // SH1 will only serialize the first 12
+    // SH2 will serialize all 27
+    // This is not the order SphericalHarmonicsL2 natively stores these coefficients,
+    // and it is also not the order that GPU EntityLighting.hlsl functions expect them in.
+    // This order is optimized for minimizing the number of coefficients fetched on the GPU
+    // when sampling various SH formats.
+    // i.e: If the atlas is configured for SH2, but only SH0 is requested by a specific shader,
+    // only the first three coefficients need to be fetched.
+    // The atlasing code may make changes to the way this data is laid out in textures,
+    // but having them laid out in polynomial order on disk makes writing the atlas transcodings easier.
+    // Note: the coefficients in the L2 case are not fully normalized,
+    // The data in the SH probe sample passed here is expected to already be normalized with kNormalizationConstants.
+    // The complete normalization must be deferred until sample time on the GPU, since it should only be applied for SH2.
+    // GPU code will be responsible for performing final normalization + swizzle into formats
+    // that SampleSH9(), and SHEvalLinearL0L1() expect. 
+    // Note: the names for these coefficients is consistent with Unity's internal spherical harmonics use,
+    // and are originally from: https://www.ppsloan.org/publications/StupidSH36.pdf
+    /*
+    {
+        // Constant: (used by L0, L1, and L2)
+        shAr.w, shAg.w, shAb.w,
+
+        // Linear: (used by L1 and L2)
+        shAr.x, shAr.y, shAr.z,
+        shAg.x, shAg.y, shAg.z,
+        shAb.x, shAb.y, shAb.z,
+
+        // Quadratic: (used by L2)
+        shBr.x, shBr.y, shBr.z, shBr.w,
+        shBg.x, shBg.y, shBg.z, shBg.w,
+        shBb.x, shBb.y, shBb.z, shBb.w,
+        shCr.x, shCr.y, shCr.z
+    }
+    */
     [Serializable]
     internal struct ProbeVolumePayload
     {
-        public ProbeVolumesEncodingModes encodingMode;
-        public float[] dataSH;
+        public float[] dataSHL01;
+        public float[] dataSHL2;
         public float[] dataValidity;
         public float[] dataOctahedralDepth;
 
-        public static int GetSHStride(ProbeVolumesEncodingModes encodingMode)
+        public static readonly ProbeVolumePayload zero = new ProbeVolumePayload
         {
-            switch (encodingMode)
-            {
-                case ProbeVolumesEncodingModes.SphericalHarmonicsL0: return 3;
-                case ProbeVolumesEncodingModes.SphericalHarmonicsL1: return 12;
-                case ProbeVolumesEncodingModes.SphericalHarmonicsL2: return 27;
-                default:
-                {
-                    Debug.Assert(false, "Error: encountered invalid encodingMode.");
-                    return 0;
-                }
-            }
+            dataSHL01 = null,
+            dataSHL2 = null,
+            dataValidity = null,
+            dataOctahedralDepth = null
+        };
+
+        public static int GetDataSHL01Stride()
+        {
+            return 4 * 3;
+        }
+
+        public static int GetDataSHL2Stride()
+        {
+            return 9 * 3 - GetDataSHL01Stride();
+        }
+
+        public static bool IsNull(ref ProbeVolumePayload payload)
+        {
+            return payload.dataSHL01 == null;
         }
 
         public static int GetLength(ref ProbeVolumePayload payload)
         {
+            // No need to explicitly store probe length - dataValidity is one value per probe, so we can just query the length here.
             return payload.dataValidity.Length;
         }
 
-        public static void Allocate(ref ProbeVolumePayload payload, ProbeVolumesEncodingModes encodingMode, int length)
+        public static void Allocate(ref ProbeVolumePayload payload, int length)
         {
-            payload.encodingMode = encodingMode;
-            payload.dataSH = new float[length * GetSHStride(encodingMode)];
+            payload.dataSHL01 = new float[length * GetDataSHL01Stride()];
+            payload.dataSHL2 = new float[length * GetDataSHL2Stride()];
+
 
             // TODO: Only allocate dataValidity and dataOctahedralDepth if those payload slices are in use.
             payload.dataValidity = new float[length];
@@ -68,20 +114,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void Ensure(ref ProbeVolumePayload payload, ProbeVolumesEncodingModes encodingMode, int length)
+        public static void Ensure(ref ProbeVolumePayload payload, int length)
         {
-            if (payload.encodingMode != encodingMode
-                || payload.dataSH == null
-                || payload.dataSH.Length != (length * GetSHStride(encodingMode)))
+            if (payload.dataSHL01 == null
+                || payload.dataSHL01.Length != (length * GetDataSHL01Stride()))
             {
                 ProbeVolumePayload.Dispose(ref payload);
-                ProbeVolumePayload.Allocate(ref payload, encodingMode, length);
+                ProbeVolumePayload.Allocate(ref payload, length);
             }
         }
 
         public static void Dispose(ref ProbeVolumePayload payload)
         {
-            payload.dataSH = null;
+            payload.dataSHL01 = null;
+            payload.dataSHL2 = null;
             payload.dataValidity = null;
             payload.dataOctahedralDepth = null;
         }
@@ -95,9 +141,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static void Copy(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, int length)
         {
-            Debug.Assert(payloadSrc.encodingMode == payloadDst.encodingMode);
-
-            Array.Copy(payloadSrc.dataSH, payloadDst.dataSH, length * GetSHStride(payloadSrc.encodingMode));
+            Array.Copy(payloadSrc.dataSHL01, payloadDst.dataSHL01, length * GetDataSHL01Stride());
+            Array.Copy(payloadSrc.dataSHL2, payloadDst.dataSHL2, length * GetDataSHL2Stride());
 
             Array.Copy(payloadSrc.dataValidity, payloadDst.dataValidity, length);
 
@@ -107,174 +152,201 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public static void GetSphericalHarmonicsL0FromIndex(ref SphericalHarmonicsL0 sh, ref ProbeVolumePayload payload, int indexProbe)
-        {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL0);
-
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL0);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
-
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
-
-            sh.shrgb.x = payload.dataSH[indexDataBase + 0];
-            sh.shrgb.y = payload.dataSH[indexDataBase + 1];
-            sh.shrgb.z = payload.dataSH[indexDataBase + 2];
-        }
-
         public static void GetSphericalHarmonicsL1FromIndex(ref SphericalHarmonicsL1 sh, ref ProbeVolumePayload payload, int indexProbe)
         {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+            int strideSHL01 = GetDataSHL01Stride();
+            int indexDataBaseSHL01 = indexProbe * strideSHL01;
+            int indexDataEndSHL01 = indexDataBaseSHL01 + strideSHL01;
 
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
+            Debug.Assert(payload.dataSHL01 != null);
+            Debug.Assert(payload.dataSHL01.Length >= indexDataEndSHL01);
 
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+            // Constant (DC terms):
+            sh.shAr.w = payload.dataSHL01[indexDataBaseSHL01 + 0]; // shAr.w
+            sh.shAg.w = payload.dataSHL01[indexDataBaseSHL01 + 1]; // shAg.w
+            sh.shAb.w = payload.dataSHL01[indexDataBaseSHL01 + 2]; // shAb.w
 
-            sh.shAr.x = payload.dataSH[indexDataBase + 0];
-            sh.shAr.y = payload.dataSH[indexDataBase + 1];
-            sh.shAr.z = payload.dataSH[indexDataBase + 2];
-            sh.shAr.w = payload.dataSH[indexDataBase + 3];
+            // Linear: (used by L1 and L2)
+            // Swizzle the coefficients to be in { x, y, z } order.
+            sh.shAr.x = payload.dataSHL01[indexDataBaseSHL01 + 3]; // shAr.x
+            sh.shAr.y = payload.dataSHL01[indexDataBaseSHL01 + 4]; // shAr.y
+            sh.shAr.z = payload.dataSHL01[indexDataBaseSHL01 + 5]; // shAr.z
 
-            sh.shAg.x = payload.dataSH[indexDataBase + 4];
-            sh.shAg.y = payload.dataSH[indexDataBase + 5];
-            sh.shAg.z = payload.dataSH[indexDataBase + 6];
-            sh.shAg.w = payload.dataSH[indexDataBase + 7];
+            sh.shAg.x = payload.dataSHL01[indexDataBaseSHL01 + 6]; // shAg.x
+            sh.shAg.y = payload.dataSHL01[indexDataBaseSHL01 + 7]; // shAg.y
+            sh.shAg.z = payload.dataSHL01[indexDataBaseSHL01 + 8]; // shAg.z
 
-            sh.shAb.x = payload.dataSH[indexDataBase + 8];
-            sh.shAb.y = payload.dataSH[indexDataBase + 9];
-            sh.shAb.z = payload.dataSH[indexDataBase + 10];
-            sh.shAb.w = payload.dataSH[indexDataBase + 11];
+            sh.shAb.x = payload.dataSHL01[indexDataBaseSHL01 + 9]; // shAb.x
+            sh.shAb.y = payload.dataSHL01[indexDataBaseSHL01 + 10]; // shAb.y
+            sh.shAb.z = payload.dataSHL01[indexDataBaseSHL01 + 11]; // shAb.z
         }
 
         public static void GetSphericalHarmonicsL2FromIndex(ref SphericalHarmonicsL2 sh, ref ProbeVolumePayload payload, int indexProbe)
         {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+            int strideSHL01 = GetDataSHL01Stride();
+            int indexDataBaseSHL01 = indexProbe * strideSHL01;
+            int indexDataEndSHL01 = indexDataBaseSHL01 + strideSHL01;
 
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
+            Debug.Assert(payload.dataSHL01 != null);
+            Debug.Assert(payload.dataSHL01.Length >= indexDataEndSHL01);
 
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+            int strideSHL2 = GetDataSHL2Stride();
+            int indexDataBaseSHL2 = indexProbe * strideSHL2;
+            int indexDataEndSHL2 = indexDataBaseSHL2 + strideSHL2;
 
-            sh[0, 0] = payload.dataSH[indexDataBase + 0];
-            sh[0, 1] = payload.dataSH[indexDataBase + 1];
-            sh[0, 2] = payload.dataSH[indexDataBase + 2];
-            sh[0, 3] = payload.dataSH[indexDataBase + 3];
-            sh[0, 4] = payload.dataSH[indexDataBase + 4];
-            sh[0, 5] = payload.dataSH[indexDataBase + 5];
-            sh[0, 6] = payload.dataSH[indexDataBase + 6];
-            sh[0, 7] = payload.dataSH[indexDataBase + 7];
-            sh[0, 8] = payload.dataSH[indexDataBase + 8];
+            Debug.Assert(payload.dataSHL2 != null);
+            Debug.Assert(payload.dataSHL2.Length >= indexDataEndSHL2);
 
-            sh[1, 0] = payload.dataSH[indexDataBase + 9];
-            sh[1, 1] = payload.dataSH[indexDataBase + 10];
-            sh[1, 2] = payload.dataSH[indexDataBase + 11];
-            sh[1, 3] = payload.dataSH[indexDataBase + 12];
-            sh[1, 4] = payload.dataSH[indexDataBase + 13];
-            sh[1, 5] = payload.dataSH[indexDataBase + 14];
-            sh[1, 6] = payload.dataSH[indexDataBase + 15];
-            sh[1, 7] = payload.dataSH[indexDataBase + 16];
-            sh[1, 8] = payload.dataSH[indexDataBase + 17];
+            // Constant (DC terms):
+            sh[0, 0] = payload.dataSHL01[indexDataBaseSHL01 + 0]; // shAr.w
+            sh[1, 0] = payload.dataSHL01[indexDataBaseSHL01 + 1]; // shAg.w
+            sh[2, 0] = payload.dataSHL01[indexDataBaseSHL01 + 2]; // shAb.w
 
-            sh[2, 0] = payload.dataSH[indexDataBase + 18];
-            sh[2, 1] = payload.dataSH[indexDataBase + 19];
-            sh[2, 2] = payload.dataSH[indexDataBase + 20];
-            sh[2, 3] = payload.dataSH[indexDataBase + 21];
-            sh[2, 4] = payload.dataSH[indexDataBase + 22];
-            sh[2, 5] = payload.dataSH[indexDataBase + 23];
-            sh[2, 6] = payload.dataSH[indexDataBase + 24];
-            sh[2, 7] = payload.dataSH[indexDataBase + 25];
-            sh[2, 8] = payload.dataSH[indexDataBase + 26];
+            // Linear: (used by L1 and L2)
+            // Swizzle the coefficients to be in { x, y, z } order.
+            sh[0, 3] = payload.dataSHL01[indexDataBaseSHL01 + 3]; // shAr.x
+            sh[0, 1] = payload.dataSHL01[indexDataBaseSHL01 + 4]; // shAr.y
+            sh[0, 2] = payload.dataSHL01[indexDataBaseSHL01 + 5]; // shAr.z
+
+            sh[1, 3] = payload.dataSHL01[indexDataBaseSHL01 + 6]; // shAg.x
+            sh[1, 1] = payload.dataSHL01[indexDataBaseSHL01 + 7]; // shAg.y
+            sh[1, 2] = payload.dataSHL01[indexDataBaseSHL01 + 8]; // shAg.z
+
+            sh[2, 3] = payload.dataSHL01[indexDataBaseSHL01 + 9]; // shAb.x
+            sh[2, 1] = payload.dataSHL01[indexDataBaseSHL01 + 10]; // shAb.y
+            sh[2, 2] = payload.dataSHL01[indexDataBaseSHL01 + 11]; // shAb.z
+
+            // Quadratic: (used by L2)
+            sh[0, 4] = payload.dataSHL2[indexDataBaseSHL2 + 0]; // shBr.x
+            sh[0, 5] = payload.dataSHL2[indexDataBaseSHL2 + 1]; // shBr.y
+            sh[0, 6] = payload.dataSHL2[indexDataBaseSHL2 + 2]; // shBr.z
+            sh[0, 7] = payload.dataSHL2[indexDataBaseSHL2 + 3]; // shBr.w
+
+            sh[1, 4] = payload.dataSHL2[indexDataBaseSHL2 + 4]; // shBg.x
+            sh[1, 5] = payload.dataSHL2[indexDataBaseSHL2 + 5]; // shBg.y
+            sh[1, 6] = payload.dataSHL2[indexDataBaseSHL2 + 6]; // shBg.z
+            sh[1, 7] = payload.dataSHL2[indexDataBaseSHL2 + 7]; // shBg.w
+
+            sh[2, 4] = payload.dataSHL2[indexDataBaseSHL2 + 8]; // shBb.x
+            sh[2, 5] = payload.dataSHL2[indexDataBaseSHL2 + 9]; // shBb.y
+            sh[2, 6] = payload.dataSHL2[indexDataBaseSHL2 + 10]; // shBb.z
+            sh[2, 7] = payload.dataSHL2[indexDataBaseSHL2 + 11]; // shBb.w
+
+            sh[0, 8] = payload.dataSHL2[indexDataBaseSHL2 + 12]; // shCr.x
+            sh[1, 8] = payload.dataSHL2[indexDataBaseSHL2 + 13]; // shCr.y
+            sh[2, 8] = payload.dataSHL2[indexDataBaseSHL2 + 14]; // shCr.z
         }
 
-        public static void SetSphericalHarmonicsL0FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL0 sh, int indexProbe)
+        public static void SetSphericalHarmonicsL1FromIndex(ref ProbeVolumePayload payload, SphericalHarmonicsL1 sh, int indexProbe)
         {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL0);
+            int strideSHL01 = GetDataSHL01Stride();
+            int indexDataBaseSHL01 = indexProbe * strideSHL01;
+            int indexDataEndSHL01 = indexDataBaseSHL01 + strideSHL01;
 
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL0);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
+            Debug.Assert(payload.dataSHL01 != null);
+            Debug.Assert(payload.dataSHL01.Length >= indexDataEndSHL01);
 
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+            int strideSHL2 = GetDataSHL2Stride();
+            int indexDataBaseSHL2 = indexProbe * strideSHL2;
+            int indexDataEndSHL2 = indexDataBaseSHL2 + strideSHL2;
 
-            payload.dataSH[indexDataBase + 0] = sh.shrgb.x;
-            payload.dataSH[indexDataBase + 1] = sh.shrgb.y;
-            payload.dataSH[indexDataBase + 2] = sh.shrgb.z;
+            Debug.Assert(payload.dataSHL2 != null);
+            Debug.Assert(payload.dataSHL2.Length >= indexDataEndSHL2);
+
+            // Constant (DC terms):
+            payload.dataSHL01[indexDataBaseSHL01 + 0] = sh.shAr.w;
+            payload.dataSHL01[indexDataBaseSHL01 + 1] = sh.shAg.w;
+            payload.dataSHL01[indexDataBaseSHL01 + 2] = sh.shAb.w;
+
+            // Linear: (used by L1 and L2)
+            // Swizzle the coefficients to be in { x, y, z } order.
+            payload.dataSHL01[indexDataBaseSHL01 + 3] = sh.shAr.x;
+            payload.dataSHL01[indexDataBaseSHL01 + 4] = sh.shAr.y;
+            payload.dataSHL01[indexDataBaseSHL01 + 5] = sh.shAr.z;
+            
+            payload.dataSHL01[indexDataBaseSHL01 + 6] = sh.shAg.x;
+            payload.dataSHL01[indexDataBaseSHL01 + 7] = sh.shAg.y;
+            payload.dataSHL01[indexDataBaseSHL01 + 8] = sh.shAg.z;
+            
+            payload.dataSHL01[indexDataBaseSHL01 + 9] = sh.shAb.x;
+            payload.dataSHL01[indexDataBaseSHL01 + 10] = sh.shAb.y;
+            payload.dataSHL01[indexDataBaseSHL01 + 11] = sh.shAb.z;
+
+            // Quadratic: (used by L2)
+            payload.dataSHL2[indexDataBaseSHL2 + 0] = 0.0f; // shBr.x
+            payload.dataSHL2[indexDataBaseSHL2 + 1] = 0.0f; // shBr.y
+            payload.dataSHL2[indexDataBaseSHL2 + 2] = 0.0f; // shBr.z
+            payload.dataSHL2[indexDataBaseSHL2 + 3] = 0.0f; // shBr.w
+
+            payload.dataSHL2[indexDataBaseSHL2 + 4] = 0.0f; // shBg.x
+            payload.dataSHL2[indexDataBaseSHL2 + 5] = 0.0f; // shBg.y
+            payload.dataSHL2[indexDataBaseSHL2 + 6] = 0.0f; // shBg.z
+            payload.dataSHL2[indexDataBaseSHL2 + 7] = 0.0f; // shBg.w
+
+            payload.dataSHL2[indexDataBaseSHL2 + 8] = 0.0f; // shBb.x
+            payload.dataSHL2[indexDataBaseSHL2 + 9] = 0.0f; // shBb.y
+            payload.dataSHL2[indexDataBaseSHL2 + 10] = 0.0f; // shBb.z
+            payload.dataSHL2[indexDataBaseSHL2 + 11] = 0.0f; // shBb.w
+
+            payload.dataSHL2[indexDataBaseSHL2 + 12] = 0.0f; // shCr.x
+            payload.dataSHL2[indexDataBaseSHL2 + 13] = 0.0f; // shCr.y
+            payload.dataSHL2[indexDataBaseSHL2 + 14] = 0.0f; // shCr.z
         }
 
-        public static void SetSphericalHarmonicsL1FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL1 sh, int indexProbe)
+        public static void SetSphericalHarmonicsL2FromIndex(ref ProbeVolumePayload payload, SphericalHarmonicsL2 sh, int indexProbe)
         {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+            int strideSHL01 = GetDataSHL01Stride();
+            int indexDataBaseSHL01 = indexProbe * strideSHL01;
+            int indexDataEndSHL01 = indexDataBaseSHL01 + strideSHL01;
 
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
+            Debug.Assert(payload.dataSHL01 != null);
+            Debug.Assert(payload.dataSHL01.Length >= indexDataEndSHL01);
 
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+            int strideSHL2 = GetDataSHL2Stride();
+            int indexDataBaseSHL2 = indexProbe * strideSHL2;
+            int indexDataEndSHL2 = indexDataBaseSHL2 + strideSHL2;
 
-            payload.dataSH[indexDataBase + 0] = sh.shAr.x;
-            payload.dataSH[indexDataBase + 1] = sh.shAr.y;
-            payload.dataSH[indexDataBase + 2] = sh.shAr.z;
-            payload.dataSH[indexDataBase + 3] = sh.shAr.w;
+            Debug.Assert(payload.dataSHL2 != null);
+            Debug.Assert(payload.dataSHL2.Length >= indexDataEndSHL2);
 
-            payload.dataSH[indexDataBase + 4] = sh.shAg.x;
-            payload.dataSH[indexDataBase + 5] = sh.shAg.y;
-            payload.dataSH[indexDataBase + 6] = sh.shAg.z;
-            payload.dataSH[indexDataBase + 7] = sh.shAg.w;
+            // Constant (DC terms):
+            payload.dataSHL01[indexDataBaseSHL01 + 0] = sh[0, 0]; // shAr.w
+            payload.dataSHL01[indexDataBaseSHL01 + 1] = sh[1, 0]; // shAg.w
+            payload.dataSHL01[indexDataBaseSHL01 + 2] = sh[2, 0]; // shAb.w
 
-            payload.dataSH[indexDataBase + 8] = sh.shAb.x;
-            payload.dataSH[indexDataBase + 9] = sh.shAb.y;
-            payload.dataSH[indexDataBase + 10] = sh.shAb.z;
-            payload.dataSH[indexDataBase + 11] = sh.shAb.w;
-        }
+            // Linear: (used by L1 and L2)
+            // Swizzle the coefficients to be in { x, y, z } order.
+            payload.dataSHL01[indexDataBaseSHL01 + 3] = sh[0, 3]; // shAr.x
+            payload.dataSHL01[indexDataBaseSHL01 + 4] = sh[0, 1]; // shAr.y
+            payload.dataSHL01[indexDataBaseSHL01 + 5] = sh[0, 2]; // shAr.z
 
-        public static void SetSphericalHarmonicsL2FromIndex(ref ProbeVolumePayload payload, ref SphericalHarmonicsL2 sh, int indexProbe)
-        {
-            Debug.Assert(payload.encodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2);
+            payload.dataSHL01[indexDataBaseSHL01 + 6] = sh[1, 3]; // shAg.x
+            payload.dataSHL01[indexDataBaseSHL01 + 7] = sh[1, 1]; // shAg.y
+            payload.dataSHL01[indexDataBaseSHL01 + 8] = sh[1, 2]; // shAg.z
 
-            int stride = GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL2);
-            int indexDataBase = indexProbe * stride;
-            int indexDataEnd = indexDataBase + stride;
+            payload.dataSHL01[indexDataBaseSHL01 + 9] = sh[2, 3]; // shAb.x
+            payload.dataSHL01[indexDataBaseSHL01 + 10] = sh[2, 1]; // shAb.y
+            payload.dataSHL01[indexDataBaseSHL01 + 11] = sh[2, 2]; // shAb.z
 
-            Debug.Assert(payload.dataSH != null);
-            Debug.Assert(payload.dataSH.Length >= indexDataEnd);
+            // Quadratic: (used by L2)
+            payload.dataSHL2[indexDataBaseSHL2 + 0] = sh[0, 4]; // shBr.x
+            payload.dataSHL2[indexDataBaseSHL2 + 1] = sh[0, 5]; // shBr.y
+            payload.dataSHL2[indexDataBaseSHL2 + 2] = sh[0, 6]; // shBr.z
+            payload.dataSHL2[indexDataBaseSHL2 + 3] = sh[0, 7]; // shBr.w
 
-            payload.dataSH[indexDataBase + 0] = sh[0, 0];
-            payload.dataSH[indexDataBase + 1] = sh[0, 1];
-            payload.dataSH[indexDataBase + 2] = sh[0, 2];
-            payload.dataSH[indexDataBase + 3] = sh[0, 3];
-            payload.dataSH[indexDataBase + 4] = sh[0, 4];
-            payload.dataSH[indexDataBase + 5] = sh[0, 5];
-            payload.dataSH[indexDataBase + 6] = sh[0, 6];
-            payload.dataSH[indexDataBase + 7] = sh[0, 7];
-            payload.dataSH[indexDataBase + 8] = sh[0, 8];
+            payload.dataSHL2[indexDataBaseSHL2 + 4] = sh[1, 4]; // shBg.x
+            payload.dataSHL2[indexDataBaseSHL2 + 5] = sh[1, 5]; // shBg.y
+            payload.dataSHL2[indexDataBaseSHL2 + 6] = sh[1, 6]; // shBg.z
+            payload.dataSHL2[indexDataBaseSHL2 + 7] = sh[1, 7]; // shBg.w
 
-            payload.dataSH[indexDataBase + 9] = sh[1, 0];
-            payload.dataSH[indexDataBase + 10] = sh[1, 1];
-            payload.dataSH[indexDataBase + 11] = sh[1, 2];
-            payload.dataSH[indexDataBase + 12] = sh[1, 3];
-            payload.dataSH[indexDataBase + 13] = sh[1, 4];
-            payload.dataSH[indexDataBase + 14] = sh[1, 5];
-            payload.dataSH[indexDataBase + 15] = sh[1, 6];
-            payload.dataSH[indexDataBase + 16] = sh[1, 7];
-            payload.dataSH[indexDataBase + 17] = sh[1, 8];
+            payload.dataSHL2[indexDataBaseSHL2 + 8] = sh[2, 4]; // shBb.x
+            payload.dataSHL2[indexDataBaseSHL2 + 9] = sh[2, 5]; // shBb.y
+            payload.dataSHL2[indexDataBaseSHL2 + 10] = sh[2, 6]; // shBb.z
+            payload.dataSHL2[indexDataBaseSHL2 + 11] = sh[2, 7]; // shBb.w
 
-            payload.dataSH[indexDataBase + 18] = sh[2, 0];
-            payload.dataSH[indexDataBase + 19] = sh[2, 1];
-            payload.dataSH[indexDataBase + 20] = sh[2, 2];
-            payload.dataSH[indexDataBase + 21] = sh[2, 3];
-            payload.dataSH[indexDataBase + 22] = sh[2, 4];
-            payload.dataSH[indexDataBase + 23] = sh[2, 5];
-            payload.dataSH[indexDataBase + 24] = sh[2, 6];
-            payload.dataSH[indexDataBase + 25] = sh[2, 7];
-            payload.dataSH[indexDataBase + 26] = sh[2, 8];
+            payload.dataSHL2[indexDataBaseSHL2 + 12] = sh[0, 8]; // shCr.x
+            payload.dataSHL2[indexDataBaseSHL2 + 13] = sh[1, 8]; // shCr.y
+            payload.dataSHL2[indexDataBaseSHL2 + 14] = sh[2, 8]; // shCr.z
         }
     }
 
@@ -293,7 +365,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int resolutionX;
         public int resolutionY;
         public int resolutionZ;
-        public ProbeVolumesEncodingModes encodingMode;
         public float backfaceTolerance;
         public int dilationIterations;
 
@@ -511,7 +582,6 @@ namespace UnityEngine.Rendering.HighDefinition
             resolutionX = 0,
             resolutionY = 0,
             resolutionZ = 0,
-            encodingMode = (ProbeVolumesEncodingModes)0,
             backfaceTolerance = 0.0f,
             dilationIterations = 0
         };
@@ -537,7 +607,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolutionX = 0,
                 resolutionY = 0,
                 resolutionZ = 0,
-                encodingMode = (ProbeVolumesEncodingModes)0,
                 backfaceTolerance = 0.0f,
                 dilationIterations = 0
             };
@@ -547,15 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             dataUpdated = false;
 
-            if (!probeVolumeAsset)
-            {
-                return new ProbeVolumePayload()
-                {
-                    encodingMode = ShaderConfig.s_ProbeVolumesEncodingMode,
-                    dataValidity = null,
-                    dataOctahedralDepth = null
-                };
-            }
+            if (!probeVolumeAsset) { return ProbeVolumePayload.zero; }
 
             return probeVolumeAsset.payload;
         }
@@ -598,18 +659,12 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes;
 
             int probeLength = probeVolumeAsset.dataSH.Length;
-            probeVolumeAsset.payload = new ProbeVolumePayload
-            {
-                encodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
-                dataSH = new float[probeLength * ProbeVolumePayload.GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1)],
-                dataValidity = probeVolumeAsset.dataValidity,
-                dataOctahedralDepth = probeVolumeAsset.dataOctahedralDepth
-            };
-            
-            int shStride = ProbeVolumePayload.GetSHStride(ProbeVolumesEncodingModes.SphericalHarmonicsL1);
+
+            ProbeVolumePayload.Allocate(ref probeVolumeAsset.payload, probeLength);
+
             for (int i = 0; i < probeLength; ++i)
             {
-                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, ref probeVolumeAsset.dataSH[i], i);
+                ProbeVolumePayload.SetSphericalHarmonicsL1FromIndex(ref probeVolumeAsset.payload, probeVolumeAsset.dataSH[i], i);
             }
 
             probeVolumeAsset.dataSH = null;
@@ -651,7 +706,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsAssetCompatible()
         {
-            return IsAssetCompatibleResolution() && IsAssetCompatibleEncodingMode();
+            return IsAssetCompatibleResolution();
         }
 
         internal bool IsAssetCompatibleResolution()
@@ -661,16 +716,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 return parameters.resolutionX == probeVolumeAsset.resolutionX &&
                        parameters.resolutionY == probeVolumeAsset.resolutionY &&
                        parameters.resolutionZ == probeVolumeAsset.resolutionZ;
-            }
-            return false;
-        }
-
-        internal bool IsAssetCompatibleEncodingMode()
-        {
-            if (probeVolumeAsset)
-            {
-                // TODO: Create runtime transforms between different encoding types to avoid having to rebake.
-                return probeVolumeAsset.payload.encodingMode == ShaderConfig.s_ProbeVolumesEncodingMode;
             }
             return false;
         }
@@ -713,12 +758,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         probeVolumeAsset.name, this.name,
                         probeVolumeAsset.resolutionX, probeVolumeAsset.resolutionY, probeVolumeAsset.resolutionZ,
                         parameters.resolutionX, parameters.resolutionY, parameters.resolutionZ);
-                }
-                else if (!IsAssetCompatibleEncodingMode())
-                {
-                    Debug.LogWarningFormat("The asset \"{0}\" assigned to Probe Volume \"{1}\" does not have matching encoding mode ({2} vs. {3}), please rebake.",
-                        probeVolumeAsset.name, this.name,
-                        probeVolumeAsset.payload.encodingMode, ShaderConfig.s_ProbeVolumesEncodingMode);
                 }
 
                 dataUpdated = true;
@@ -772,137 +811,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeAsset.resolutionY = parameters.resolutionY;
                 probeVolumeAsset.resolutionZ = parameters.resolutionZ;
 
-                ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, ShaderConfig.s_ProbeVolumesEncodingMode, numProbes);
+                ProbeVolumePayload.Ensure(ref probeVolumeAsset.payload, numProbes);
                 
-                int shStride = ProbeVolumePayload.GetSHStride(probeVolumeAsset.payload.encodingMode);
-
-                // SH Coefficients are serialized in this order, regardless of their format.
-                // SH0 will only serialize the first 3,
-                // SH1 will only serialize the first 12
-                // SH2 will serialize all 27
-                // This is not the order SphericalHarmonicsL2 natively stores these coefficients,
-                // and it is also not the order that GPU EntityLighting.hlsl functions expect them in.
-                // This order is optimized for minimizing the number of coefficients fetched on the GPU
-                // when sampling various SH formats.
-                // i.e: If the atlas is configured for SH2, but only SH0 is requested by a specific shader,
-                // only the first three coefficients need to be fetched.
-                // The atlasing code may make changes to the way this data is laid out in textures,
-                // but having them laid out in polynomial order on disk makes writing the atlas transcodings easier.
-                // Note: the coefficients in the L2 case are not fully normalized,
-                // The data in the SH probe sample passed here is expected to already be normalized with kNormalizationConstants.
-                // The complete normalization must be deferred until sample time on the GPU, since it should only be applied for SH2.
-                // GPU code will be responsible for performing final normalization + swizzle into formats
-                // that SampleSH9(), and SHEvalLinearL0L1() expect. 
-                // Note: the names for these coefficients is consistent with Unity's internal spherical harmonics use,
-                // and are originally from: https://www.ppsloan.org/publications/StupidSH36.pdf
-                /*
+                // Always serialize L0, L1 and L2 coefficients, even if atlas is configured to only store L1.
+                // In the future we will strip the L2 coefficients from the project at build time if L2 is never used.
+                for (int i = 0, iLen = sh.Length; i < iLen; ++i)
                 {
-                    // Constant: (used by L0, L1, and L2)
-                    shAr.w, shAg.w, shAb.w,
-
-                    // Linear: (used by L1 and L2)
-                    shAr.x, shAr.y, shAr.z,
-                    shAg.x, shAg.y, shAg.z,
-                    shAb.x, shAb.y, shAb.z,
-
-                    // Quadratic: (used by L2)
-                    shBr.x, shBr.y, shBr.z, shBr.w,
-                    shBg.x, shBg.y, shBg.z, shBg.w,
-                    shBb.x, shBb.y, shBb.z, shBb.w,
-                    shCr.x, shCr.y, shCr.z
-                }
-                */
-                switch (probeVolumeAsset.payload.encodingMode)
-                {
-                    case ProbeVolumesEncodingModes.SphericalHarmonicsL0:
-                    {
-                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
-                        {
-                            // Constant (DC terms):
-                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
-                        }
-                        break;
-                    }
-
-                    case ProbeVolumesEncodingModes.SphericalHarmonicsL1:
-                    {
-                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
-                        {
-                            // Constant (DC terms):
-                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
-
-                            // Linear: (used by L1 and L2)
-                            // Swizzle the coefficients to be in { x, y, z } order.
-                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][0, 3]; // shAr.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][0, 1]; // shAr.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][0, 2]; // shAr.z
-                            
-                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][1, 3]; // shAg.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][1, 1]; // shAg.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][1, 2]; // shAg.z
-                            
-                            probeVolumeAsset.payload.dataSH[i * shStride + 6] = sh[i][2, 3]; // shAb.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 7] = sh[i][2, 1]; // shAb.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 8] = sh[i][2, 2]; // shAb.z
-                        }
-                        break;
-                    }
-
-                    case ProbeVolumesEncodingModes.SphericalHarmonicsL2:
-                    {
-                        for (int i = 0, iLen = sh.Length; i < iLen; ++i)
-                        {
-                            // Constant (DC terms):
-                            probeVolumeAsset.payload.dataSH[i * shStride + 0] = sh[i][0, 0]; // shAr.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 1] = sh[i][1, 0]; // shAg.w
-                            probeVolumeAsset.payload.dataSH[i * shStride + 2] = sh[i][2, 0]; // shAb.w
-
-                            // Linear: (used by L1 and L2)
-                            // Swizzle the coefficients to be in { x, y, z } order.
-                            probeVolumeAsset.payload.dataSH[i * shStride + 3] = sh[i][0, 3]; // shAr.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 4] = sh[i][0, 1]; // shAr.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 5] = sh[i][0, 2]; // shAr.z
-                            
-                            probeVolumeAsset.payload.dataSH[i * shStride + 6] = sh[i][1, 3]; // shAg.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 7] = sh[i][1, 1]; // shAg.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 8] = sh[i][1, 2]; // shAg.z
-                            
-                            probeVolumeAsset.payload.dataSH[i * shStride + 9] = sh[i][2, 3]; // shAb.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 10] = sh[i][2, 1]; // shAb.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 11] = sh[i][2, 2]; // shAb.z
-
-                            // Quadratic: (used by L2)
-                            probeVolumeAsset.payload.dataSH[i * shStride + 12] = sh[i][0, 4]; // shBr.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 13] = sh[i][0, 5]; // shBr.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 14] = sh[i][0, 6]; // shBr.z
-                            probeVolumeAsset.payload.dataSH[i * shStride + 15] = sh[i][0, 7]; // shBr.w
-
-                            probeVolumeAsset.payload.dataSH[i * shStride + 16] = sh[i][1, 4]; // shBg.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 17] = sh[i][1, 5]; // shBg.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 18] = sh[i][1, 6]; // shBg.z
-                            probeVolumeAsset.payload.dataSH[i * shStride + 19] = sh[i][1, 7]; // shBg.w
-
-                            probeVolumeAsset.payload.dataSH[i * shStride + 20] = sh[i][2, 4]; // shBb.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 21] = sh[i][2, 5]; // shBb.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 22] = sh[i][2, 6]; // shBb.z
-                            probeVolumeAsset.payload.dataSH[i * shStride + 23] = sh[i][2, 7]; // shBb.w
-
-                            probeVolumeAsset.payload.dataSH[i * shStride + 24] = sh[i][0, 8]; // shCr.x
-                            probeVolumeAsset.payload.dataSH[i * shStride + 25] = sh[i][1, 8]; // shCr.y
-                            probeVolumeAsset.payload.dataSH[i * shStride + 26] = sh[i][2, 8]; // shCr.z
-                        }
-                        break;
-                    }
-
-                    default:
-                    {
-                        Debug.Assert(false, "Error: Encountered unsupported probe volume payload encoding mode: " + probeVolumeAsset.payload.encodingMode);
-                        break;
-                    }
+                    ProbeVolumePayload.SetSphericalHarmonicsL2FromIndex(ref probeVolumeAsset.payload, sh[i], i);
                 }
 
                 validity.CopyTo(probeVolumeAsset.payload.dataValidity);
@@ -945,7 +860,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 resolutionX = probeVolume.parameters.resolutionX,
                 resolutionY = probeVolume.parameters.resolutionY,
                 resolutionZ = probeVolume.parameters.resolutionZ,
-                encodingMode = probeVolume.probeVolumeAsset ? probeVolume.probeVolumeAsset.payload.encodingMode : (ProbeVolumesEncodingModes)0,
                 backfaceTolerance = probeVolume.parameters.backfaceTolerance,
                 dilationIterations = probeVolume.parameters.dilationIterations
             };
@@ -960,7 +874,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 && (a.resolutionX == b.resolutionX)
                 && (a.resolutionY == b.resolutionY)
                 && (a.resolutionZ == b.resolutionZ)
-                && (a.encodingMode == b.encodingMode)
                 && (a.backfaceTolerance == b.backfaceTolerance)
                 && (a.dilationIterations == b.dilationIterations);
         }

@@ -90,7 +90,8 @@ namespace UnityEngine.Rendering.HighDefinition
         static int s_ProbeVolumeAtlasBlitKernel = -1;
         static int s_ProbeVolumeAtlasOctahedralDepthBlitKernel = -1;
         static int s_ProbeVolumeAtlasOctahedralDepthConvolveKernel = -1;
-        static ComputeBuffer s_ProbeVolumeAtlasBlitDataBuffer = null;
+        static ComputeBuffer s_ProbeVolumeAtlasBlitDataSHL01Buffer = null;
+        static ComputeBuffer s_ProbeVolumeAtlasBlitDataSHL2Buffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasBlitDataValidityBuffer = null;
         static ComputeBuffer s_ProbeVolumeAtlasOctahedralDepthBuffer = null;
         static int s_ProbeVolumeAtlasResolution;
@@ -230,7 +231,11 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VisibleProbeVolumeData = new List<ProbeVolumeEngineData>();
             s_VisibleProbeVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             s_VisibleProbeVolumeDataBuffer = new ComputeBuffer(k_MaxVisibleProbeVolumeCount, Marshal.SizeOf(typeof(ProbeVolumeEngineData)));
-            s_ProbeVolumeAtlasBlitDataBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount * ProbeVolumePayload.GetSHStride(ShaderConfig.s_ProbeVolumesEncodingMode), Marshal.SizeOf(typeof(float)));
+            s_ProbeVolumeAtlasBlitDataSHL01Buffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount * ProbeVolumePayload.GetDataSHL01Stride(), Marshal.SizeOf(typeof(float)));
+            if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+            {
+                s_ProbeVolumeAtlasBlitDataSHL2Buffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount * ProbeVolumePayload.GetDataSHL2Stride(), Marshal.SizeOf(typeof(float)));
+            }
             s_ProbeVolumeAtlasBlitDataValidityBuffer = new ComputeBuffer(s_MaxProbeVolumeProbeCount, Marshal.SizeOf(typeof(float)));
             
             m_ProbeVolumeAtlasSHRTDepthSliceCount = GetDepthSliceCountFromEncodingMode(ShaderConfig.s_ProbeVolumesEncodingMode);
@@ -279,7 +284,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBufferDefault);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeBoundsBuffer);
             CoreUtils.SafeRelease(s_VisibleProbeVolumeDataBuffer);
-            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataBuffer);
+            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataSHL01Buffer);
+            CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataSHL2Buffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasBlitDataValidityBuffer);
             CoreUtils.SafeRelease(s_ProbeVolumeAtlasOctahedralDepthBuffer);
 
@@ -476,16 +482,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     ProbeVolumePayload payload = volume.GetPayload();
 
-                    if (payload.dataSH == null || payload.dataSH.Length == 0 || !volume.IsAssetCompatible())
+                    if (ProbeVolumePayload.IsNull(ref payload) || !volume.IsAssetCompatible())
                     {
                         ReleaseProbeVolumeFromAtlas(volume);
                         return false;
                     }
 
-                    int sizeSHCoefficients = size * ProbeVolumePayload.GetSHStride(payload.encodingMode);
+                    int sizeSHCoefficientsL01 = size * ProbeVolumePayload.GetDataSHL01Stride();
+                    int sizeSHCoefficientsL2 = size * ProbeVolumePayload.GetDataSHL2Stride();
 
-                    Debug.Assert(payload.dataSH.Length == sizeSHCoefficients, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataSH.Length + ", but resolution * SH stride size is " + sizeSHCoefficients + ".");
-                    
+                    Debug.Assert(payload.dataSHL01.Length == sizeSHCoefficientsL01, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataSHL01.Length + ", but resolution * SH stride size is " + sizeSHCoefficientsL01 + ".");
+                    if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+                    {
+                        Debug.Assert(payload.dataSHL2.Length == sizeSHCoefficientsL2, "ProbeVolume: The probe volume baked data and its resolution are out of sync! Volume data length is " + payload.dataSHL2.Length + ", but resolution * SH stride size is " + sizeSHCoefficientsL2 + ".");
+                    }
+
                     if (size > s_MaxProbeVolumeProbeCount)
                     {
                         Debug.LogWarning("ProbeVolume: probe volume baked data size exceeds the currently max supported blitable size. Volume data size is " + size + ", but s_MaxProbeVolumeProbeCount is " + s_MaxProbeVolumeProbeCount + ". Please decrease ProbeVolume resolution, or increase ProbeVolumeLighting.s_MaxProbeVolumeProbeCount.");
@@ -522,10 +533,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         1.0f / (float)m_ProbeVolumeAtlasSHRTDepthSliceCount
                     ));
                     
-                    s_ProbeVolumeAtlasBlitDataBuffer.SetData(payload.dataSH);
+                    s_ProbeVolumeAtlasBlitDataSHL01Buffer.SetData(payload.dataSHL01);
                     s_ProbeVolumeAtlasBlitDataValidityBuffer.SetData(payload.dataValidity);
                     cmd.SetComputeIntParam(s_ProbeVolumeAtlasBlitCS, HDShaderIDs._ProbeVolumeAtlasReadBufferCount, size);
-                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadBuffer, s_ProbeVolumeAtlasBlitDataBuffer);
+                    cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadSHL01Buffer, s_ProbeVolumeAtlasBlitDataSHL01Buffer);
+                    if (ShaderConfig.s_ProbeVolumesEncodingMode == ProbeVolumesEncodingModes.SphericalHarmonicsL2)
+                    {
+                        s_ProbeVolumeAtlasBlitDataSHL2Buffer.SetData(payload.dataSHL2);
+                        cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadSHL2Buffer, s_ProbeVolumeAtlasBlitDataSHL2Buffer);
+                    }
                     cmd.SetComputeBufferParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasReadValidityBuffer, s_ProbeVolumeAtlasBlitDataValidityBuffer);
                     cmd.SetComputeTextureParam(s_ProbeVolumeAtlasBlitCS, s_ProbeVolumeAtlasBlitKernel, HDShaderIDs._ProbeVolumeAtlasWriteTextureSH, m_ProbeVolumeAtlasSHRTHandle);
 

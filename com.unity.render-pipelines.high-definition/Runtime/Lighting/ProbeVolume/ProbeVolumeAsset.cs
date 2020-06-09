@@ -27,13 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal float[] dataOctahedralDepth = null;
 
 
-        [SerializeField] internal ProbeVolumePayload payload = new ProbeVolumePayload()
-        {
-            encodingMode = ShaderConfig.s_ProbeVolumesEncodingMode,
-            dataSH = null,
-            dataValidity = null,
-            dataOctahedralDepth = null
-        };
+        [SerializeField] internal ProbeVolumePayload payload = ProbeVolumePayload.zero;
 
         [SerializeField] internal int resolutionX;
         [SerializeField] internal int resolutionY;
@@ -44,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool IsDataAssigned()
         {
-            return payload.dataSH != null;
+            return payload.dataSHL01 != null;
         }
 
 #if UNITY_EDITOR
@@ -143,9 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool OverwriteInvalidProbe(ref ProbeVolumePayload payloadSrc, ref ProbeVolumePayload payloadDst, Vector3Int index3D, float backfaceTolerance)
         {
-            Debug.Assert(payloadSrc.encodingMode == payloadDst.encodingMode);
-
-            int shStride = ProbeVolumePayload.GetSHStride(payloadSrc.encodingMode);
+            int strideSHL01 = ProbeVolumePayload.GetDataSHL01Stride();
+            int strideSHL2 = ProbeVolumePayload.GetDataSHL2Stride();
             int centerIndex = ComputeIndex1DFrom3D(index3D);
 
             // Account for center sample accumulation weight, already assigned.
@@ -173,9 +166,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleWeight = 1.0f - sampleValidity;
                 weights += sampleWeight;
 
-                for (int c = 0; c < shStride; ++c)
+                for (int c = 0; c < strideSHL01; ++c)
                 {
-                    payloadDst.dataSH[centerIndex * shStride + c] += payloadSrc.dataSH[sampleIndex1D * shStride + c] * sampleWeight;
+                    payloadDst.dataSHL01[centerIndex * strideSHL01 + c] += payloadSrc.dataSHL01[sampleIndex1D * strideSHL01 + c] * sampleWeight;
+                }
+                for (int c = 0; c < strideSHL2; ++c)
+                {
+                    payloadDst.dataSHL2[centerIndex * strideSHL2 + c] += payloadSrc.dataSHL2[sampleIndex1D * strideSHL2 + c] * sampleWeight;
                 }
 
                 payloadDst.dataValidity[centerIndex] += sampleValidity * sampleWeight;
@@ -184,9 +181,13 @@ namespace UnityEngine.Rendering.HighDefinition
             if (weights > 0.0f)
             {
                 float weightsNormalization = 1.0f / weights;
-                for (int c = 0; c < shStride; ++c)
+                for (int c = 0; c < strideSHL01; ++c)
                 {
-                    payloadDst.dataSH[centerIndex * shStride + c] *= weightsNormalization;
+                    payloadDst.dataSHL01[centerIndex * strideSHL01 + c] *= weightsNormalization;
+                }
+                for (int c = 0; c < strideSHL2; ++c)
+                {
+                    payloadDst.dataSHL2[centerIndex * strideSHL2 + c] *= weightsNormalization;
                 }
 
                 payloadDst.dataValidity[centerIndex] *= weightsNormalization;
@@ -205,8 +206,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (dilateIterations == 0)
                 return;
 
-            ProbeVolumePayload payloadBackbuffer = new ProbeVolumePayload();
-            ProbeVolumePayload.Allocate(ref payloadBackbuffer, payload.encodingMode, ProbeVolumePayload.GetLength(ref payload));
+            ProbeVolumePayload payloadBackbuffer = ProbeVolumePayload.zero;
+            ProbeVolumePayload.Allocate(ref payloadBackbuffer, ProbeVolumePayload.GetLength(ref payload));
 
             int i = 0;
             for (; i < dilateIterations; ++i)
