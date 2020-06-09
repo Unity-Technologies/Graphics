@@ -50,12 +50,15 @@ namespace UnityEngine.Rendering.HighDefinition
             for( int j = 0; j < allocations.Count; j++ )
             {
                 Chunk alloc = allocations[j];
+                int count = Mathf.Min(allocationSize, bricks.Count - brickIdx);
 
-                for (int i = 0; i < allocationSize; i++, brickIdx++, alloc.x += ProbeBrickPool.kBrickProbeCountPerDim)
+                for (int i = 0; i < count; i++, brickIdx++, alloc.x += ProbeBrickPool.kBrickProbeCountPerDim)
                 {
                     // brick data
                     Brick      b   = bricks[brickIdx];
                     Vector3Int pos = b.position;
+                    if (pos.x < 0 || pos.y < 0 || pos.z < 0)
+                        Debug.Log("brick position is negative");
 
                     // chunk data
                     int poolIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), b.size);
