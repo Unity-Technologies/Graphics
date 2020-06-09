@@ -801,6 +801,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the way planar reflections are filtered in order to be a bit more "physically based".
 - Increased path tracing BSDFs roughness range from [0.001, 0.999] to [0.00001, 0.99999].
 - Changing the default SSGI radius for the all configurations.
+- Changed the default parameters for quality RTGI to match expected behavior.
 
 ## [7.1.1] - 2019-09-05
 
