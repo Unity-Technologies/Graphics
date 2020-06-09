@@ -19,5 +19,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the range of the cluster around the camera.")]
         public ClampedFloatParameter cameraClusterRange = new ClampedFloatParameter(10f, 0.001f, 50f);
+
+        LightCluster()
+        {
+            displayName = "Light Cluster (Preview)";
+        }
     }
 }
