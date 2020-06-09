@@ -390,14 +390,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var vt = prop.vtProperty.value;
                         for (int layer = 0; layer < vt.layers.Count; layer++)
                         {
-                            if (vt.layers[layer].layerTexture.texture != null)
+                            var texture = vt.layers[layer].layerTexture?.texture;
+                            int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
+                            if (propIndex != -1)
                             {
-                                int propIndex = mat.shader.FindPropertyIndex(vt.layers[layer].layerRefName);
-                                if (propIndex != -1)
-                                {
-                                    mat.SetTexture(vt.layers[layer].layerRefName, vt.layers[layer].layerTexture.texture);
-                                    setAnyTextures = true;
-                                }
+                                mat.SetTexture(vt.layers[layer].layerRefName, texture);
+                                setAnyTextures = true;
                             }
                         }
                         // also put in a request for the VT tiles, since preview rendering does not have feedback enabled
@@ -409,11 +407,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                             {
                                 // Ensure we always request the mip sized 256x256
                                 int width, height;
-                                UnityEngine.Rendering.VirtualTexturing.System.GetTextureStackSize(mat, stackPropertyId, out width, out height);
+                                UnityEngine.Rendering.VirtualTexturing.Streaming.GetTextureStackSize(mat, stackPropertyId, out width, out height);
                                 int textureMip = (int)Math.Max(Mathf.Log(width, 2f), Mathf.Log(height, 2f));
                                 const int baseMip = 8;
                                 int mip = Math.Max(textureMip - baseMip, 0);
-                                UnityEngine.Rendering.VirtualTexturing.System.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
+                                UnityEngine.Rendering.VirtualTexturing.Streaming.RequestRegion(mat, stackPropertyId, new Rect(0.0f, 0.0f, 1.0f, 1.0f), mip, UnityEngine.Rendering.VirtualTexturing.System.AllMips);
                             }
                             catch (InvalidOperationException)
                             {

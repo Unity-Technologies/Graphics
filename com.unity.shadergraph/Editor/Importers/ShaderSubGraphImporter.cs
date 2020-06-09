@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(13, Extension)]
+    [ScriptedImporter(14, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";

@@ -407,6 +407,13 @@ namespace UnityEditor.ShaderGraph
                     return redirectNode.GetSlotProperty(RedirectNodeData.kInputSlotID);
                 }
 
+#if PROCEDURAL_VT_IN_GRAPH
+                if (fromNode is ProceduralVirtualTextureNode pvtNode)
+                {
+                    return pvtNode.AsShaderProperty();
+                }
+#endif // PROCEDURAL_VT_IN_GRAPH
+
                 // TODO: what if it's from a subgraph?  should probably disallow that
 
                 return null;
