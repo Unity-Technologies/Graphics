@@ -149,9 +149,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.passTemplatePath = templatePath;
                 passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
 
+                // Add the subShader to enable fields that depends on it
+                var originalRequireFields = passDescriptor.requiredFields;
+                // Duplicate require fields to avoid unwanted shared list modification
+                passDescriptor.requiredFields = new FieldCollection();
+                if (originalRequireFields != null)
+                    foreach (var field in originalRequireFields)
+                        passDescriptor.requiredFields.Add(field.field);
+                passDescriptor.requiredFields.Add(subShaderField);
+
                 IncludeCollection finalIncludes = new IncludeCollection();
                 var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
-        
+
                 // Replace include placeholders if necessary:
                 foreach (var include in passDescriptor.includes)
                 {
@@ -179,11 +188,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.structs = CoreStructCollections.Default;
                 if (passDescriptor.fieldDependencies == null)
                     passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
-
-                // Add the subShader to enable fields that depends on it
-                if (passDescriptor.requiredFields == null)
-                    passDescriptor.requiredFields = new FieldCollection();
-                passDescriptor.requiredFields.Add(subShaderField);
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
