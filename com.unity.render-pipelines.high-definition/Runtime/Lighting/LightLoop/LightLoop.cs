@@ -1512,7 +1512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie, additionalLightData.IESPoint);
                         else if (lightComponent.cookie != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, lightComponent.cookie);
-                        else //if (additionalLightData.IESPoint != null)
+                        else if (additionalLightData.IESPoint != null)
                             lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.FetchCubeCookie(cmd, additionalLightData.IESPoint);
                         break;
                     case HDLightType.Area:
@@ -2795,7 +2795,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie, hdLightData.IESSpot);
                         else if (hdLightData.IESSpot != null)
                             m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.IESSpot);
-                        else
+                        else if (hdLightData.areaLightCookie != null)
                             m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.areaLightCookie);
                     }
                     break;
