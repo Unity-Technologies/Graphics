@@ -2206,7 +2206,11 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
 
-            SwitchRenderTargetsToFastMem(cmd, hdCamera);
+            // Render graph deals with Fast memory support in an automatic way.
+            if(!m_EnableRenderGraph)
+            {
+                SwitchRenderTargetsToFastMem(cmd, hdCamera);
+            }
 
             if (m_RayTracingSupported)
             {
