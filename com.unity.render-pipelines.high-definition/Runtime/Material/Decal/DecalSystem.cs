@@ -643,7 +643,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     int decalIndex = m_ResultIndices[resultIndex];
                     int decalMask = 1 << m_CachedLayerMask[decalIndex];
                     ulong decalSceneCullingMask = m_CachedSceneLayerMask[decalIndex];
-                    if ((cullingMask & decalMask) != 0 && (sceneCullingMask & decalSceneCullingMask) != 0)
+                    bool sceneViewCullingMaskTest = true;
+#if UNITY_EDITOR
+                    // In the player, both masks will be zero. Besides we don't want to pay the cost in this case.
+                    sceneViewCullingMaskTest = (sceneCullingMask & decalSceneCullingMask) != 0;
+#endif
+                    if ((cullingMask & decalMask) != 0 && sceneViewCullingMaskTest)
                     {
                         // do additional culling based on individual decal draw distances
                         float distanceToDecal = (cameraPos - m_BoundingSpheres[decalIndex].position).magnitude;
