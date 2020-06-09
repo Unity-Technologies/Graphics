@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with light layers bigger than 8 (and above the supported range).
 - Fixed issues with scene view and transparent motion vectors.
 - Fix reflection probe frame settings override
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 
 ## [7.4.1] - 2020-06-03
 
