@@ -482,7 +482,7 @@ void ProbeVolumeSwizzleAndNormalizeSphericalHarmonicsL2(inout ProbeVolumeSpheric
     coefficients.data[5].z *= 3.0;
 }
 
-float3 EvaluateProbeVolumeSphericalHarmonicsL0(float3 normalWS, ProbeVolumeSphericalHarmonicsL0 coefficients)
+float3 ProbeVolumeEvaluateSphericalHarmonicsL0(float3 normalWS, ProbeVolumeSphericalHarmonicsL0 coefficients)
 {
 
 #ifdef DEBUG_DISPLAY
@@ -504,7 +504,7 @@ float3 EvaluateProbeVolumeSphericalHarmonicsL0(float3 normalWS, ProbeVolumeSpher
     }
 }
 
-float3 EvaluateProbeVolumeSphericalHarmonicsL1(float3 normalWS, ProbeVolumeSphericalHarmonicsL1 coefficients)
+float3 ProbeVolumeEvaluateSphericalHarmonicsL1(float3 normalWS, ProbeVolumeSphericalHarmonicsL1 coefficients)
 {
 
 #ifdef DEBUG_DISPLAY
@@ -526,7 +526,7 @@ float3 EvaluateProbeVolumeSphericalHarmonicsL1(float3 normalWS, ProbeVolumeSpher
     }
 }
 
-float3 EvaluateProbeVolumeSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSphericalHarmonicsL2 coefficients)
+float3 ProbeVolumeEvaluateSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSphericalHarmonicsL2 coefficients)
 {
 
 #ifdef DEBUG_DISPLAY
@@ -549,7 +549,7 @@ float3 EvaluateProbeVolumeSphericalHarmonicsL2(float3 normalWS, ProbeVolumeSpher
 }
 
 // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
-float3 EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, inout float weightHierarchy)
+float3 ProbeVolumeEvaluateAmbientProbeFallback(float3 normalWS, float weightHierarchy)
 {
     float3 sampleAmbientProbeOutgoingRadiance = float3(0.0, 0.0, 0.0);
     if (weightHierarchy < 1.0
@@ -560,7 +560,6 @@ float3 EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, inout float weig
     )
     {
         sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * (1.0 - weightHierarchy);
-        weightHierarchy = 1.0;
     }
 
     return sampleAmbientProbeOutgoingRadiance;
@@ -580,5 +579,40 @@ float3 EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, inout float weig
 #define PROBE_VOLUMES_ACCUMULATE_MODE PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeAccumulate.hlsl"
 #undef PROBE_VOLUMES_ACCUMULATE_MODE
+
+#ifndef PROBE_VOLUMES_SAMPLING_MODE
+// Default to sampling probe volumes at native atlas encoding mode.
+// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
+// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
+// as there are other parameters such as bilateral filtering, additive blending, and normal bias
+// that we will want to disable for a low quality high performance mode.
+#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
+#endif
+
+void ProbeVolumeEvaluateSphericalHarmonics(PositionInputs posInput, float3 normalWS, float3 backNormalWS, uint renderingLayers, float weightHierarchy, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
+{
+#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
+        ProbeVolumeSphericalHarmonicsL0 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, normalWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL0(backNormalWS, coefficients);
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
+        ProbeVolumeSphericalHarmonicsL1 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, normalWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL1(backNormalWS, coefficients);
+
+#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
+        ProbeVolumeSphericalHarmonicsL2 coefficients;
+        ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, normalWS, renderingLayers, coefficients, weightHierarchy);
+        bakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(normalWS, coefficients);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateSphericalHarmonicsL2(backNormalWS, coefficients);
+
+#endif
+
+        bakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(normalWS, weightHierarchy);
+        backBakeDiffuseLighting += ProbeVolumeEvaluateAmbientProbeFallback(backNormalWS, weightHierarchy);
+}
 
 #endif // __PROBEVOLUME_HLSL__

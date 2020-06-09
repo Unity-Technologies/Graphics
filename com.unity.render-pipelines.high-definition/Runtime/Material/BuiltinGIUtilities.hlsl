@@ -148,26 +148,15 @@ void SampleBakedGI(
         posInputs.tileCoord = tileCoord;
         #endif
 
-#if SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-        ProbeVolumeSphericalHarmonicsL0 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL0(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
-        bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL0(normalWS, coefficients);
-        backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(backNormalWS, coefficients);
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-        ProbeVolumeSphericalHarmonicsL1 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL1(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
-        bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL1(normalWS, coefficients);
-        backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(backNormalWS, coefficients);
-#elif SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-        ProbeVolumeSphericalHarmonicsL2 coefficients;
-        ProbeVolumeAccumulateSphericalHarmonicsL2(posInputs, normalWS, renderingLayers, coefficients, probeVolumeHierarchyWeight);
-        bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(normalWS, coefficients);
-        backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(backNormalWS, coefficients);
-#endif
-        float backProbeVolumeHierarchyWeight = probeVolumeHierarchyWeight;
-        bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(normalWS, probeVolumeHierarchyWeight);
-        backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(backNormalWS, backProbeVolumeHierarchyWeight);
-
+        ProbeVolumeEvaluateSphericalHarmonics(
+            posInputs,
+            normalWS,
+            backNormalWS,
+            renderingLayers,
+            probeVolumeHierarchyWeight,
+            bakeDiffuseLighting,
+            backBakeDiffuseLighting
+        );
 #endif
 
 #endif

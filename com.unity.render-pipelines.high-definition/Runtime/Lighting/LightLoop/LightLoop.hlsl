@@ -2,16 +2,6 @@
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl"
-
-#ifndef PROBE_VOLUMES_SAMPLING_MODE
-// Default to sampling probe volumes at native atlas encoding mode.
-// Users can override this by defining PROBE_VOLUMES_SAMPLING_MODE before including LightLoop.hlsl
-// TODO: It's likely we will want to extend this out to simply be shader LOD quality levels,
-// as there are other parameters such as bilateral filtering, additive blending, and normal bias
-// that we will want to disable for a low quality high performance mode.
-#define PROBE_VOLUMES_SAMPLING_MODE SHADEROPTIONS_PROBE_VOLUMES_ENCODING_MODE
-#endif
-
 #endif
 
 // We perform scalarization only for forward rendering as for deferred loads will already be scalar since tiles will match waves and therefore all threads will read from the same tile.
@@ -502,29 +492,15 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             float probeVolumeHierarchyWeight = uninitialized ? 0.0f : 1.0f;
 
             // Note: we aren't suppose to access normalWS in lightloop, but bsdfData.normalWS is always define for any material. So this is safe.
-#if PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L0
-            ProbeVolumeSphericalHarmonicsL0 coefficients;
-            ProbeVolumeAccumulateSphericalHarmonicsL0(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL0(bsdfData.normalWS, coefficients);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL0(-bsdfData.normalWS, coefficients);
-#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L1
-            ProbeVolumeSphericalHarmonicsL1 coefficients;
-            ProbeVolumeAccumulateSphericalHarmonicsL1(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL1(bsdfData.normalWS, coefficients);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL1(-bsdfData.normalWS, coefficients);
-#elif PROBE_VOLUMES_SAMPLING_MODE == PROBEVOLUMESENCODINGMODES_SPHERICAL_HARMONICS_L2
-            ProbeVolumeSphericalHarmonicsL2 coefficients;
-            ProbeVolumeAccumulateSphericalHarmonicsL2(posInput, bsdfData.normalWS, builtinData.renderingLayers, coefficients, probeVolumeHierarchyWeight);
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(bsdfData.normalWS, coefficients);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeSphericalHarmonicsL2(-bsdfData.normalWS, coefficients);
-#endif
-
-            float probeVolumeHierarchyWeightFrontFace = probeVolumeHierarchyWeight;
-            float probeVolumeHierarchyWeightBackFace = probeVolumeHierarchyWeight;
-            builtinDataProbeVolumes.bakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(bsdfData.normalWS, probeVolumeHierarchyWeightFrontFace);
-            builtinDataProbeVolumes.backBakeDiffuseLighting += EvaluateProbeVolumeAmbientProbeFallback(-bsdfData.normalWS, probeVolumeHierarchyWeightBackFace);
-
-            // TODO: clean this case later to share more code, for now just reproduce the same behavior that is happening in PostInitBuiltinData()
+            ProbeVolumeEvaluateSphericalHarmonics(
+                posInput,
+                bsdfData.normalWS,
+                -bsdfData.normalWS,
+                builtinData.renderingLayers,
+                probeVolumeHierarchyWeight,
+                builtinDataProbeVolumes.bakeDiffuseLighting,
+                builtinDataProbeVolumes.backBakeDiffuseLighting
+            );
 
             // Apply control from the indirect lighting volume settings (Remember there is no emissive here at this step)
             builtinDataProbeVolumes.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
