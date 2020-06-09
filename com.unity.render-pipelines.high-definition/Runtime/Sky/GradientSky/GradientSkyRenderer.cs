@@ -12,6 +12,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public GradientSkyRenderer()
         {
+            SupportDynamicSunLight = false;
         }
 
         public override void Build()
@@ -33,6 +34,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_GradientSkyMaterial.SetColor(_GradientTop, gradientSky.top.value);
             m_GradientSkyMaterial.SetFloat(_GradientDiffusion, gradientSky.gradientDiffusion.value);
             m_GradientSkyMaterial.SetFloat(HDShaderIDs._SkyIntensity, GetSkyIntensity(gradientSky, builtinParams.debugSettings));
+
+            CloudLayer.Apply(builtinParams.cloudLayer, m_GradientSkyMaterial);
 
             // This matrix needs to be updated at the draw call frequency.
             m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);

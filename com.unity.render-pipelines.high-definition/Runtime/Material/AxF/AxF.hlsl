@@ -2374,23 +2374,6 @@ IndirectLighting    EvaluateBSDF_ScreenspaceRefraction( LightLoopContext lightLo
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
-float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
-{
-    float iblMipLevel;
-
-    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-    if (IsEnvIndexTexture2D(lightData.envIndex))
-    {
-        // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidLodCount);
-    }
-    else
-    {
-        iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
-    }
-    return iblMipLevel;
-}
 
 float3 GetModifiedEnvSamplingDir(EnvLightData lightData, float3 N, float3 iblR, float iblPerceptualRoughness, float clampedNdotV)
 {
@@ -2468,11 +2451,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // bottom reflection is full. Lit doesn't have this problem too much in practice since only GetModifiedEnvSamplingDir
     // changes the direction vs the coat.)
 
-    float   IBLMipLevel;
-    IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
-
     // Sample the pre-integrated environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2526,11 +2506,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
-    float   IBLMipLevel;
-    IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
-
     // Sample the actual environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
@@ -2584,7 +2561,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     // There is no AmbientOcclusion from data with AxF, but let's apply our SSAO
     AmbientOcclusionFactor aoFactor;
@@ -2595,16 +2572,16 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     ApplyAmbientOcclusionFactor(aoFactor, builtinData, lighting);
 
-    diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #if !defined(_AXF_BRDF_TYPE_SVBRDF) && !defined(_AXF_BRDF_TYPE_CAR_PAINT)
     // Not supported: Display a flashy color instead
-    diffuseLighting = 10 * float3(1, 0.3, 0.01);
+    lightLoopOutput.diffuseLighting = 10 * float3(1, 0.3, 0.01);
 #endif
 
 #ifdef DEBUG_DISPLAY
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 

@@ -235,10 +235,12 @@ void Frag(PackedVaryingsToPS packedInput,
 #else
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
-            float3 diffuseLighting;
-            float3 specularLighting;
+            LightLoopOutput lightLoopOutput;
+            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+            // Alias
+            float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+            float3 specularLighting = lightLoopOutput.specularLighting;
 
             diffuseLighting *= GetCurrentExposureMultiplier();
             specularLighting *= GetCurrentExposureMultiplier();
