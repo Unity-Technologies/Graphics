@@ -64,13 +64,17 @@ struct SpeedTreeVertexDepthNormalOutput
     half3 uvHueVariation            : TEXCOORD0;
     float4 clipPos                  : SV_POSITION;
 
+    #ifdef GEOM_TYPE_BRANCH_DETAIL
+        half3 detail                : TEXCOORD1;
+    #endif
+
     #ifdef EFFECT_BUMP
-        half4 normalWS              : TEXCOORD1;    // xyz: normal, w: viewDir.x
-        half4 tangentWS             : TEXCOORD2;    // xyz: tangent, w: viewDir.y
-        half4 bitangentWS           : TEXCOORD3;    // xyz: bitangent, w: viewDir.z
+        half4 normalWS              : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangentWS             : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS           : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
     #else
-        half3 normalWS              : TEXCOORD1;
-        half3 viewDirWS             : TEXCOORD2;
+        half3 normalWS              : TEXCOORD2;
+        half3 viewDirWS             : TEXCOORD3;
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -229,8 +233,9 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
     #ifdef EFFECT_BUMP
         half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
         #ifdef GEOM_TYPE_BRANCH_DETAIL
+            half4 detailColor = tex2D(_DetailTex, input.detail.xy);
             half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-            normalTs = lerp(normalTs, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
+            normalTS = lerp(normalTS, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
         #endif
 
         float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
@@ -240,4 +245,5 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
 
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
 }
+
 #endif

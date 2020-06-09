@@ -195,6 +195,12 @@ SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput 
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
 
+    #ifdef GEOM_TYPE_BRANCH_DETAIL
+        // The two types are always in different sub-range of the mesh so no interpolation (between detail and blend) problem.
+        output.detail.xy = input.texcoord2.xy;
+        output.detail.z = input.color.a == 0 ? input.texcoord2.z : 2.5; // stay out of Blend's .z range
+    #endif
+
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
         output.normalWS.xyz = normalWS;

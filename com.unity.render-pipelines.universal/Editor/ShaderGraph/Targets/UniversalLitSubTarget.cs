@@ -36,6 +36,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { LitPasses.GBuffer },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
+                    { LitPasses.DepthNormalOnly },
                     { LitPasses.Meta },
                     { LitPasses._2D },
                 },
@@ -49,6 +50,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     var gbuffer = LitPasses.GBuffer;
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
+                    var depthNormalOnly = LitPasses.DepthNormalOnly;
                     var meta = LitPasses.Meta;
                     var _2d = LitPasses._2D;
 
@@ -56,6 +58,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     gbuffer.pragmas = CorePragmas.DOTSGBuffer;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    depthNormalOnly.pragmas = CorePragmas.DOTSInstanced;
                     meta.pragmas = CorePragmas.DOTSDefault;
                     _2d.pragmas = CorePragmas.DOTSDefault;
 
@@ -69,6 +72,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { gbuffer },
                             { shadowCaster },
                             { depthOnly },
+                            { depthNormalOnly },
                             { meta },
                             { _2d },
                         },
@@ -186,6 +190,33 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Instanced,
                 includes = LitIncludes._2D,
             };
+
+            public static PassDescriptor DepthNormalOnly = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DepthNormals",
+                referenceName = "SHADERPASS_DEPTHNORMALSONLY",
+                lightMode = "DepthNormals",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+
+                // Port Mask
+                vertexPorts = CorePortMasks.Vertex,
+                pixelPorts = LitPortMasks.FragmentDepthNormals,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.DepthNormals,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.DepthNormalsOnly,
+                pragmas = CorePragmas.Instanced,
+                includes = CoreIncludes.DepthNormalsOnly,
+            };
         }
 #endregion
 
@@ -219,6 +250,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             };
+
+            public static int[] FragmentDepthNormals = new int[]
+            {
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            };
         }
 #endregion
 
@@ -249,6 +287,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            public static FieldCollection DepthNormals = new FieldCollection()
+            {
+                StructFields.Attributes.uv1,                            // needed for meta vertex position
+                StructFields.Varyings.normalWS,
+                StructFields.Varyings.tangentWS,                        // needed for vertex lighting
             };
 
             public static FieldCollection Meta = new FieldCollection()

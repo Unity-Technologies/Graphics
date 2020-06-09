@@ -72,6 +72,14 @@ struct SpeedTreeVertexDepthNormalOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
+struct SpeedTreeDepthNormalFragmentInput
+{
+    SpeedTreeVertexDepthNormalOutput interpolated;
+#ifdef EFFECT_BACKSIDE_NORMALS
+    half facing : VFACE;
+#endif
+};
+
 struct SpeedTreeFragmentInput
 {
     SpeedTreeVertexOutput interpolated;
@@ -460,14 +468,6 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
     UNITY_TRANSFER_INSTANCE_ID(input, output);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    #if !defined(SHADER_QUALITY_LOW)
-        #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            #ifdef EFFECT_BILLBOARD
-                LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
-            #endif
-        #endif
-    #endif
-
     // handle speedtree wind and lod
     InitializeData(input, unity_LODFade.x);
     output.uv = input.texcoord.xy;
@@ -476,7 +476,6 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
     half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
         output.normalWS.xyz = normalWS;
@@ -495,35 +494,50 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
     return output;
 }
 
-half4 SpeedTree8FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Target
+half4 SpeedTree8FragDepthNormal(SpeedTreeDepthNormalFragmentInput input) : SV_Target
 {
     UNITY_SETUP_INSTANCE_ID(input);
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
             #ifdef EFFECT_BILLBOARD
-                LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+                LODDitheringTransition(input.interpolated.clipPos.xy, unity_LODFade.x);
             #endif
         #endif
     #endif
 
-    half2 uv = input.uv;
+    half2 uv = input.interpolated.uv;
     half4 diffuse = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)) * _Color;
 
-    half alpha = diffuse.a * input.color.a;
+    half alpha = diffuse.a * input.interpolated.color.a;
     AlphaDiscard(alpha - 0.3333, 0.0);
 
+    // normal
     #ifdef EFFECT_BUMP
-        half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-        #ifdef GEOM_TYPE_BRANCH_DETAIL
-            half3 detailNormal = SampleNormal(input.detail.xy, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-            normalTs = lerp(normalTs, detailNormal, input.detail.z < 2.0f ? saturate(input.detail.z) : detailColor.a);
-        #endif
-
-        float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
-        normalWS = normalWS;
+        half3 normalTs = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
     #else
-        float3 normalWS = input.normalWS;
+        half3 normalTs = half3(0, 0, 1);
+    #endif
+
+    // flip normal on backsides
+    #ifdef EFFECT_BACKSIDE_NORMALS
+        if (input.facing < 0.5)
+        {
+            normalTs.z = -normalTs.z;
+        }
+    #endif
+
+    // adjust billboard normals to improve GI and matching
+    #ifdef EFFECT_BILLBOARD
+        normalTs.z *= 0.5;
+        normalTs = normalize(normalTs);
+    #endif
+
+    #ifdef EFFECT_BUMP
+        float3 normalWS = TransformTangentToWorld(normalTs, half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz));
+        normalWS = NormalizeNormalPerPixel(normalWS);
+    #else
+        float3 normalWS = NormalizeNormalPerPixel(input.interpolated.normalWS);
     #endif
 
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normalWS, true)), 0.0, 0.0);
