@@ -108,7 +108,7 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     const float viewConeRadius = brdfConeRadius * distanceCameraToPlane / (distancePlaneToObject + distanceCameraToPlane);
 
     // Compute the view cone's half angle. This matches the FOV angle to see exactly the half of the cone (The tangent could be precomputed in the table)
-    const float viewConeHalfAngle = atan(viewConeRadius / distanceCameraToPlane);
+    const float viewConeHalfAngle = FastATanPos(viewConeRadius / distanceCameraToPlane);
     // Given the camera's fov and pixel resolution convert the viewConeHalfAngle to a number of pixels
     const float pixelDistance = viewConeHalfAngle / _CaptureCameraFOV * _CaptureCurrentScreenSize.x;
 
