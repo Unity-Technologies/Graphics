@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issues with scene view and transparent motion vectors.
 - Fix reflection probe frame settings override
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fixed transparent motion vector framesetting not sanitized.
 
 ## [7.4.1] - 2020-06-03
 

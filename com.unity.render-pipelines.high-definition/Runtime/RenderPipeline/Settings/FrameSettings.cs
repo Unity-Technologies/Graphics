@@ -678,6 +678,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Object motion vector are disabled if motion vector are disabled
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ObjectMotionVectors] &= motionVector && !preview;
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentsWriteMotionVector] &= motionVector && !preview;
+
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Decals] &= renderPipelineSettings.supportDecals && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.TransparentPostpass] &= renderPipelineSettings.supportTransparentDepthPostpass && !preview;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.Distortion] &= renderPipelineSettings.supportDistortion && !msaa && !preview;
