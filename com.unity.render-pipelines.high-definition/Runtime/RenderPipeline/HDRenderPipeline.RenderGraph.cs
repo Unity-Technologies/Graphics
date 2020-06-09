@@ -439,7 +439,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             mrt,
                             context.resources.GetTexture(data.depthBuffer),
                             data.lightListBuffer,
-                            true, context.renderContext, context.cmd);
+                            true, debugDisplay, context.renderContext, context.cmd);
                 });
             }
         }
@@ -521,7 +521,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 mrt,
                                                 context.resources.GetTexture(data.depthBuffer),
                                                 data.lightListBuffer,
-                                                false, context.renderContext, context.cmd);
+                                                false, debugDisplay, context.renderContext, context.cmd);
                 });
             }
         }

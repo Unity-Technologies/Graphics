@@ -21,7 +21,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 // These modes are exclusive so we make only one fullscreen allocation for both.
 // For vertex density, it stores the number of vertex projected in each pixel.
 // For quad overdraw, each 2x2 quad of the UAV contains the overdraw count in top-left pixel and the locked quad in the bottom-right pixel. The two other pixels of the quad are unused.
-RW_TEXTURE2D_X(uint, _DebugDisplayUAV) :register(u2);
+RW_TEXTURE2D_X(uint, _DebugDisplayUAV) :register(u5);
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/PBRValidator.hlsl"
 
