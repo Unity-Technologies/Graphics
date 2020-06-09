@@ -647,13 +647,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
-                /// <summary>
-                /// Resets the reference size of the internal RTHandle System.
-                /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
-                /// </summary>
-                /// <param name="width">New width of the internal RTHandle System.</param>
-                /// <param name="height">New height of the internal RTHandle System.</param>
-                public void ResetRTHandleReferenceSize(int width, int height)
+        internal void SwitchRenderTargetsToFastMem(CommandBuffer cmd, HDCamera camera)
+        {
+            // Color and normal buffer will always be in fast memory
+            m_CameraColorBuffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+            m_SharedRTManager.GetNormalBuffer().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+            // Following might need to change depending on context... TODO: Do a deep investigation of projects we have to check what is the most beneficial.
+            RenderPipelineSettings settings = m_Asset.currentPlatformRenderPipelineSettings;
+
+            if (settings.supportedLitShaderMode != RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+            {
+                // Switch gbuffers to fast memory when we are in deferred
+                var buffers = m_GbufferManager.GetBuffers();
+                foreach (var buffer in buffers)
+                {
+                    buffer.SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, copyContents: false);
+                }
+            }
+
+            // Trying to fit the depth pyramid
+            m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, false);
+        }
+
+        /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
         {
             RTHandles.ResetReferenceSize(width, height);
             HDCamera.ResetAllHistoryRTHandleSystems(width, height);
@@ -1151,6 +1173,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 }
 #endif
+
+                CleanupRenderGraph();
             }
 
             ConstantBuffer.ReleaseAll();
@@ -1403,6 +1427,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 public RenderTargetIdentifier id;
                 public CubemapFace face;
                 public RenderTexture copyToTarget;
+                public RenderTexture targetDepth;
             }
             public HDCamera hdCamera;
             public bool clearCameraSettings;
@@ -1671,7 +1696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
                         // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function). 
+                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         if (m_FrameCount > 1)
                             probe.SetIsRendered(m_FrameCount);
 
@@ -1806,6 +1831,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
                             }
+                            if (visibleProbe.realtimeDepthTexture == null || visibleProbe.realtimeDepthTexture.width != desiredPlanarProbeSize)
+                            {
+                                visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
+                            }
                             // Set the viewer's camera as the default camera anchor
                             for (var i = 0; i < cameraSettings.Count; ++i)
                             {
@@ -1936,6 +1965,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 request.target = new RenderRequest.Target
                                 {
                                     id = visibleProbe.realtimeTexture,
+                                    targetDepth = visibleProbe.realtimeDepthTexture,
                                     face = CubemapFace.Unknown
                                 };
                             }
@@ -2123,7 +2153,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
-                            {                                
+                            {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
@@ -2175,6 +2205,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Updates RTHandle
             hdCamera.BeginRender(cmd);
             m_CurrentHDCamera = hdCamera;
+
+            SwitchRenderTargetsToFastMem(cmd, hdCamera);
 
             if (m_RayTracingSupported)
             {
@@ -2818,11 +2850,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitToFinalRTDevBuildOnly)))
                 {
-                    for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
-                    {
-                        var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
-                        BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
-                    }
+                        for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
+                        {
+                            var finalBlitParams = PrepareFinalBlitParameters(hdCamera, viewIndex);
+                            BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_IntermediateAfterPostProcessBuffer, target.id, cmd);
+
+                            // If a depth target is specified, fill it
+                            if (target.targetDepth != null)
+                                BlitFinalCameraTexture(finalBlitParams, m_BlitPropertyBlock, m_SharedRTManager.GetDepthTexture(), target.targetDepth, cmd);
+                        }
                 }
 
                 aovRequest.PushCameraTexture(cmd, AOVBuffers.Output, hdCamera, m_IntermediateAfterPostProcessBuffer, aovBuffers);
