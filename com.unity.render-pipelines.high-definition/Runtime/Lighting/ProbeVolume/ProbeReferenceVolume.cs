@@ -115,7 +115,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal float brickSize( int subdivisionLevel) { return m_Transform.scale * cellSize(subdivisionLevel); }
         internal float minBrickSize() { return m_Transform.scale; }
         internal float maxBrickSize() { return brickSize(m_MaxSubdivision); }
-        internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
+        public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
 
         public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
