@@ -31,6 +31,8 @@
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
+    * Bitwise
+      * [Or](Operator-BitwiseOr.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
     * Color
