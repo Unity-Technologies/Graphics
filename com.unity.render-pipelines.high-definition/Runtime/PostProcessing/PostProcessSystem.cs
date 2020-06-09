@@ -2725,7 +2725,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            uint threadX = 4;
+            uint threadY = 4;
+            uint threadZ = 4;
             cmd.DispatchCompute(builderCS, builderKernel,
                 (int)((parameters.lutSize + threadX - 1u) / threadX),
                 (int)((parameters.lutSize + threadY - 1u) / threadY),
