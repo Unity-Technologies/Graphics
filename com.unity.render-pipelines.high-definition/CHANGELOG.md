@@ -141,6 +141,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 - Fixed transparent motion vector framesetting not sanitized.
 - Fix reflection probe frame settings override
+- Fixed wrong order of post process frame settings.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
