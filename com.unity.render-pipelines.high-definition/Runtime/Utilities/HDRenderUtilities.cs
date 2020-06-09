@@ -365,6 +365,17 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
+        {
+            return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
+            {
+                dimension = TextureDimension.Tex2D,
+                enableRandomWrite = true,
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+        }
+
         /// <summary>
         /// Create the texture target for a baked reflection probe.
         /// </summary>

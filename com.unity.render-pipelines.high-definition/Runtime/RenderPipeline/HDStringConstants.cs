@@ -252,6 +252,29 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
 
+        // Planar reflection filtering
+        public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");
+        public static readonly int _DepthTextureMipChain = Shader.PropertyToID("_DepthTextureMipChain");
+        public static readonly int _ReflectionPlaneNormal = Shader.PropertyToID("_ReflectionPlaneNormal");
+        public static readonly int _ReflectionPlanePosition = Shader.PropertyToID("_ReflectionPlanePosition");
+        public static readonly int _FilteredPlanarReflectionBuffer = Shader.PropertyToID("_FilteredPlanarReflectionBuffer");
+        public static readonly int _HalfResReflectionBuffer = Shader.PropertyToID("_HalfResReflectionBuffer");
+        public static readonly int _HalfResDepthBuffer = Shader.PropertyToID("_HalfResDepthBuffer");
+        public static readonly int _CaptureBaseScreenSize = Shader.PropertyToID("_CaptureBaseScreenSize");
+        public static readonly int _CaptureCurrentScreenSize = Shader.PropertyToID("_CaptureCurrentScreenSize");
+        public static readonly int _CaptureCameraIVP = Shader.PropertyToID("_CaptureCameraIVP");
+        public static readonly int _CaptureCameraPositon = Shader.PropertyToID("_CaptureCameraPositon");
+        public static readonly int _SourceMipIndex = Shader.PropertyToID("_SourceMipIndex");
+        public static readonly int _MaxMipLevels = Shader.PropertyToID("_MaxMipLevels");
+        public static readonly int _ThetaValuesTexture = Shader.PropertyToID("_ThetaValuesTexture");
+        public static readonly int _CaptureCameraFOV = Shader.PropertyToID("_CaptureCameraFOV");
+        public static readonly int _RTScaleFactor = Shader.PropertyToID("_RTScaleFactor");
+        public static readonly int _CaptureCameraVP_NO = Shader.PropertyToID("_CaptureCameraVP_NO");
+        public static readonly int _CaptureCameraFarPlane = Shader.PropertyToID("_CaptureCameraFarPlane");
+        public static readonly int _DepthTextureOblique = Shader.PropertyToID("_DepthTextureOblique");
+        public static readonly int _DepthTextureNonOblique = Shader.PropertyToID("_DepthTextureNonOblique");
+        public static readonly int _CaptureCameraIVP_NO = Shader.PropertyToID("_CaptureCameraIVP_NO");
+        
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
         public static readonly int _DepthTextureMS = Shader.PropertyToID("_DepthTextureMS");
