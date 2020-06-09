@@ -217,14 +217,14 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesLightList
     {
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mInvScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mInvProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mInvScrProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mScrProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mInvProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         public Vector4      g_screenSize;
 
