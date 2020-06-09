@@ -143,6 +143,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added presets quality settings for RTAO and RTGI.
 - Added an override for the shadow culling that allows better directional shadow maps in ray tracing effects (RTR, RTGI, RTSSS and RR).
 - Added a Cloud Layer volume override.
+- Added Fast Memory support for platform that support it.
+- Added CPU and GPU timings for ray tracing effects.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -649,6 +651,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an issue with the half resolution Mode (performance)
 - Fix an issue with the color intensity of emissive for performance rtgi
 - Fixed issue with rendering being mostly broken when target platform disables VR. 
+- Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
+- Fix issue with fast memory and rendergraph. 
 - Fixed transparent motion vector framesetting not sanitized.
 
 ### Changed
@@ -788,6 +792,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
 - DXR: Only read the geometric attributes that are required using the share pass info and shader graph defines.
 - DXR: Dispatch binned rays in 1D instead of 2D.
+- Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
+- Changed the way planar reflections are filtered in order to be a bit more "physically based".
 
 ## [7.1.1] - 2019-09-05
 
