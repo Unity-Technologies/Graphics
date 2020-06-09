@@ -43,7 +43,7 @@ RenderSettings:
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 11
+  serializedVersion: 12
   m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
@@ -96,9 +96,11 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 112000002, guid: fd8f2c6386dc54f158818f3b4ce8a20d,
     type: 2}
-  m_UseShadowmask: 0
+  m_LightingSettings: {fileID: 4890085278179872738, guid: e2c62cc492f7f3945b1b1ac901ffc5e8,
+    type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -118,6 +120,8 @@ NavMeshSettings:
     manualTileSize: 0
     tileSize: 256
     accuratePlacement: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
@@ -128,11 +132,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
-        type: 3}
-      propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOff_Billboard
-      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -188,6 +187,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_Name
+      value: Broadleaf_Desktop_Field_OptionsOff_Billboard
+      objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
@@ -239,9 +243,9 @@ MeshCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  serializedVersion: 3
+  serializedVersion: 4
   m_Convex: 0
-  m_CookingOptions: 14
+  m_CookingOptions: 30
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &138754894
 MeshRenderer:
@@ -257,6 +261,8 @@ MeshRenderer:
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -281,6 +287,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!33 &138754895
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -317,6 +324,7 @@ GameObject:
   - component: {fileID: 380492250}
   - component: {fileID: 380492255}
   - component: {fileID: 380492256}
+  - component: {fileID: 380492252}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -340,6 +348,37 @@ Behaviour:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 380492249}
   m_Enabled: 1
+--- !u!114 &380492252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 380492249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0
@@ -391,7 +430,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 380492249}
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 50, y: 20, z: 22.5}
+  m_LocalPosition: {x: 34.6, y: 9.6, z: 22.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -422,11 +461,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 640
-    TargetHeight: 360
+    TargetWidth: 1000
+    TargetHeight: 600
     PerPixelCorrectnessThreshold: 0.001
     AverageCorrectnessThreshold: 0.005
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   WaitFrames: 0
+  XRCompatible: 1
 --- !u!1 &707831285
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,8 +495,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 707831285}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 1
+  m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
   m_Range: 10
@@ -502,6 +546,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &707831287
@@ -525,11 +570,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -927199367670048503, guid: 80e30858b19da7c4280442f8a756f145,
-        type: 3}
-      propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOn_LOD0
-      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 80e30858b19da7c4280442f8a756f145,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -585,6 +625,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 80e30858b19da7c4280442f8a756f145,
+        type: 3}
+      propertyPath: m_Name
+      value: Broadleaf_Desktop_Field_OptionsOn_LOD0
+      objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 80e30858b19da7c4280442f8a756f145,
         type: 3}
       propertyPath: m_LODs.Array.data[3].screenRelativeHeight
@@ -632,8 +677,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 819651147}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 2
+  m_Shape: 0
   m_Color: {r: 0.9150943, g: 0.40143287, b: 0.40143287, a: 1}
   m_Intensity: 100
   m_Range: 15
@@ -682,6 +728,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &819651149
@@ -723,8 +770,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1071057503}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 2
+  m_Shape: 0
   m_Color: {r: 0.84444594, g: 0.17697577, b: 0.9150943, a: 1}
   m_Intensity: 200
   m_Range: 15
@@ -773,6 +821,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1071057505
@@ -796,11 +845,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
-        type: 3}
-      propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOff_LOD0
-      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -856,6 +900,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 963e0425798c18546a875cb71184f8a4,
+        type: 3}
+      propertyPath: m_Name
+      value: Broadleaf_Desktop_Field_OptionsOff_LOD0
+      objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 963e0425798c18546a875cb71184f8a4,
         type: 3}
       propertyPath: m_LODs.Array.data[3].screenRelativeHeight
@@ -903,8 +952,9 @@ Light:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1721950901}
   m_Enabled: 1
-  serializedVersion: 9
+  serializedVersion: 10
   m_Type: 2
+  m_Shape: 0
   m_Color: {r: 0, g: 0.94772696, b: 1, a: 1}
   m_Intensity: 100
   m_Range: 15
@@ -953,6 +1003,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!4 &1721950903
@@ -976,11 +1027,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -927199367670048503, guid: 80e30858b19da7c4280442f8a756f145,
-        type: 3}
-      propertyPath: m_Name
-      value: Broadleaf_Desktop_Field_OptionsOn_Billboard
-      objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 80e30858b19da7c4280442f8a756f145,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1035,6 +1081,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -927199367670048503, guid: 80e30858b19da7c4280442f8a756f145,
+        type: 3}
+      propertyPath: m_Name
+      value: Broadleaf_Desktop_Field_OptionsOn_Billboard
       objectReference: {fileID: 0}
     - target: {fileID: 5551014577142218206, guid: 80e30858b19da7c4280442f8a756f145,
         type: 3}
