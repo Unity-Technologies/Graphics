@@ -27,6 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty supportVolumetrics;
         public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportLightLayers;
+
+        // Initial light layers
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
         public SerializedProperty lightLayerName2;
@@ -35,6 +37,17 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lightLayerName5;
         public SerializedProperty lightLayerName6;
         public SerializedProperty lightLayerName7;
+
+        // Custom light layers
+        public SerializedProperty lightLayerName8;
+        public SerializedProperty lightLayerName9;
+        public SerializedProperty lightLayerName10;
+        public SerializedProperty lightLayerName11;
+        public SerializedProperty lightLayerName12;
+        public SerializedProperty lightLayerName13;
+        public SerializedProperty lightLayerName14;
+        public SerializedProperty lightLayerName15;
+
         public SerializedProperty supportedLitShaderMode;
         public SerializedProperty colorBufferFormat;
         public SerializedProperty supportCustomPass;
@@ -80,6 +93,8 @@ namespace UnityEditor.Rendering.HighDefinition
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
             increaseResolutionOfVolumetrics = root.Find((RenderPipelineSettings s) => s.increaseResolutionOfVolumetrics);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
+
+            // Initial light layers
             lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
             lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);
             lightLayerName2                 = root.Find((RenderPipelineSettings s) => s.lightLayerName2);
@@ -88,6 +103,17 @@ namespace UnityEditor.Rendering.HighDefinition
             lightLayerName5                 = root.Find((RenderPipelineSettings s) => s.lightLayerName5);
             lightLayerName6                 = root.Find((RenderPipelineSettings s) => s.lightLayerName6);
             lightLayerName7                 = root.Find((RenderPipelineSettings s) => s.lightLayerName7);
+
+            // Custom light layers
+            lightLayerName8                 = root.Find((RenderPipelineSettings s) => s.lightLayerName8);
+            lightLayerName9                 = root.Find((RenderPipelineSettings s) => s.lightLayerName9);
+            lightLayerName10                 = root.Find((RenderPipelineSettings s) => s.lightLayerName10);
+            lightLayerName11                 = root.Find((RenderPipelineSettings s) => s.lightLayerName11);
+            lightLayerName12                 = root.Find((RenderPipelineSettings s) => s.lightLayerName12);
+            lightLayerName13                 = root.Find((RenderPipelineSettings s) => s.lightLayerName13);
+            lightLayerName14                 = root.Find((RenderPipelineSettings s) => s.lightLayerName14);
+            lightLayerName15                 = root.Find((RenderPipelineSettings s) => s.lightLayerName15);
+
             colorBufferFormat               = root.Find((RenderPipelineSettings s) => s.colorBufferFormat);
             customBufferFormat              = root.Find((RenderPipelineSettings s) => s.customBufferFormat);
             supportCustomPass               = root.Find((RenderPipelineSettings s) => s.supportCustomPass);
