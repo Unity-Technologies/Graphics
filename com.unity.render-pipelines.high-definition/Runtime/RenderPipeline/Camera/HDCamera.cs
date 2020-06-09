@@ -288,6 +288,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool dithering => m_AdditionalCameraData != null && m_AdditionalCameraData.dithering;
 
+        internal bool alwaysEnableJitter => m_AdditionalCameraData != null && m_AdditionalCameraData.alwaysEnableJitter;
+        internal int m_SamplesCount = 8;
+
+        public void AlwaysEnableJitter(bool value)
+        {
+            if (m_AdditionalCameraData != null)
+            {
+                m_AdditionalCameraData.alwaysEnableJitter = value;
+            }
+        }
+
+        public void SetJitterSamplesCount(int value)
+        {
+            m_SamplesCount = Mathf.Clamp(value, 8, value);
+        }
+
+        internal bool GetTaaEnabled()
+        {
+            return frameSettings.IsEnabled(FrameSettingsField.Postprocess)
+                   && IsTAAEnabled()
+                   && camera.cameraType == CameraType.Game;
+        }
+
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
         internal HDPhysicalCamera physicalParameters { get; private set; }
@@ -559,8 +582,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void SetupGlobalParams(CommandBuffer cmd, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
-                && antialiasing == AntialiasingMode.TemporalAntialiasing
-                && camera.cameraType == CameraType.Game;
+                              && IsTAAEnabled()
+                              && camera.cameraType == CameraType.Game;
 
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, mainViewConstants.viewMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, mainViewConstants.invViewMatrix);
@@ -581,7 +604,9 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams, projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams, unity_OrthoParams);
             cmd.SetGlobalVector(HDShaderIDs._ScreenParams, screenParams);
-            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo, new Vector4(taaSharpenStrength, 0, taaFrameIndex, taaEnabled ? 1 : 0));
+
+            var enabled = (taaEnabled || alwaysEnableJitter) ? 1 : 0;
+            cmd.SetGlobalVector(HDShaderIDs._TaaFrameInfo, new Vector4(taaSharpenStrength, 0, taaFrameIndex, enabled));
             cmd.SetGlobalVector(HDShaderIDs._TaaJitterStrength, taaJitter);
             cmd.SetGlobalInt(HDShaderIDs._FrameCount, frameCount);
             cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
@@ -856,7 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     antialiasing = AntialiasingMode.None;
             }
 
-            if (antialiasing != AntialiasingMode.TemporalAntialiasing)
+            if (antialiasing != AntialiasingMode.TemporalAntialiasing && !alwaysEnableJitter)
             {
                 taaFrameIndex = 0;
                 taaJitter = Vector4.zero;
@@ -884,7 +909,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_XRViewConstants = new ViewConstants[viewCount];
             }
 
-            UpdateAllViewConstants(IsTAAEnabled(), true);
+            UpdateAllViewConstants(IsTAAEnabled() || alwaysEnableJitter, true);
         }
 
         void UpdateAllViewConstants(bool jitterProjectionMatrix, bool updatePreviousFrameConstants)

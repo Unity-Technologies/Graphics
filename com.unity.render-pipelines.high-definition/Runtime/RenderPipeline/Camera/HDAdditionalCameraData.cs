@@ -257,6 +257,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public SMAAQualityLevel SMAAQuality = SMAAQualityLevel.High;
         /// <summary>Use dithering to filter out minor banding.</summary>
         public bool dithering = false;
+        /// <summary>Always enable Camera Jitter.</summary>
+        public bool alwaysEnableJitter = false;
         /// <summary>Use a pass to eliminate NaNs contained in the color buffer before post-processing.</summary>
         public bool stopNaNs = false;
 

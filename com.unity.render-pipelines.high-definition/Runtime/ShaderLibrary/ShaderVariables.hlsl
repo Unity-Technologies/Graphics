@@ -217,6 +217,9 @@ CBUFFER_START(UnityGlobal)
     // TAA Frame Index ranges from 0 to 7.
     float4 _TaaFrameInfo;               // { taaSharpenStrength, unused, taaFrameIndex, taaEnabled ? 1 : 0 }
 
+    // Custom Sample Count for Camera Jitter.
+    uint _JitterSampleCount;
+
     // Current jitter strength (0 if TAA is disabled)
     float4 _TaaJitterStrength;          // { x, y, x/width, y/height }
 

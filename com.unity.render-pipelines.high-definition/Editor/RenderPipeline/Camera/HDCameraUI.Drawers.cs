@@ -122,6 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.Group(
                 Drawer_Antialiasing,
                 Drawer_Dithering,
+                Drawer_AlwaysEnableJitter,
                 Drawer_StopNaNs
                 ),
             CED.space,
@@ -474,6 +475,11 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_Dithering(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.dithering, ditheringContent);
+        }
+
+        static void Drawer_AlwaysEnableJitter(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.alwaysEnableJitter, alwaysEnableJitterContent);
         }
 
         static void Drawer_StopNaNs(SerializedHDCamera p, Editor owner)

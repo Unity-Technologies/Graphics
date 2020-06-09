@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
         public SerializedProperty taaSharpenStrength;
+        public SerializedProperty alwaysEnableJitter;
         public SerializedProperty dithering;
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
@@ -68,6 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
+            alwaysEnableJitter = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.alwaysEnableJitter);
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);
             clearColorMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearColorMode);
             backgroundColorHDR = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.backgroundColorHDR);

@@ -49,7 +49,7 @@ bool ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirWS, float rayLengt
     // Dither pattern is shifted by 0.5 because we want to jitter the ray starting position backward and forward (so we need values between -0.5 and 0.5)
     float ditherBias = 0.5f;
     uint taaEnabled = _TaaFrameInfo.w;
-    float dither = InterleavedGradientNoise(positionSS, (_FrameCount % 8u) * taaEnabled) - ditherBias;
+    float dither = InterleavedGradientNoise(positionSS, (_FrameCount % _JitterSampleCount) * taaEnabled) - ditherBias;
 
     float3 rayStartWS = positionWS;
     float3 rayEndWS = rayStartWS + rayDirWS * rayLength;
