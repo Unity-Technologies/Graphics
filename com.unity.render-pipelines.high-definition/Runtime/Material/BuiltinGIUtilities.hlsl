@@ -64,7 +64,7 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #endif
 }
 
-void EvaluateLightProbeProxyVolumes(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
+void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
     if (unity_ProbeVolumeParams.x == 0.0)
     {
@@ -94,8 +94,8 @@ void EvaluateLightProbeProxyVolumes(float3 positionRWS, float3 normalWS, float3 
     }
 }
 
-void EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, float3 backNormalWS, uint renderingLayers,
-    inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float probeVolumeHierarchyWeight)
+void EvaluateProbeVolumes(  PositionInputs posInputs, float3 normalWS, float3 backNormalWS, uint renderingLayers,
+                            inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float probeVolumeHierarchyWeight)
 {
     // SHADEROPTIONS_PROBE_VOLUMES can be defined in ShaderConfig.cs.hlsl but set to 0 for disabled.
     #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
@@ -127,6 +127,7 @@ void EvaluateProbeVolumes(PositionInputs posInputs, float3 normalWS, float3 back
     #endif
 }
 
+// No need to initialize bakeDiffuseLighting and backBakeDiffuseLighting must be initialize outside the function
 void SampleBakedGI(
     PositionInputs posInputs,
     float3 normalWS,
@@ -142,7 +143,7 @@ void SampleBakedGI(
 #define SAMPLE_LIGHTMAP (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON))
 #define SAMPLE_PROBEVOLUME (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE != PROBEVOLUMESEVALUATIONMODES_DISABLED) \
     && (!SAMPLE_LIGHTMAP || SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING)
-#define SAMPLE_LIGHT_PROBE_PROXY_VOLUMES (!SAMPLE_LIGHTMAP && !SAMPLE_PROBEVOLUME)
+#define SAMPLE_PROBEVOLUME_BUILTIN (!SAMPLE_LIGHTMAP && !SAMPLE_PROBEVOLUME)
 
     bakeDiffuseLighting = float3(0, 0, 0);
     backBakeDiffuseLighting = float3(0, 0, 0);
@@ -169,19 +170,17 @@ void SampleBakedGI(
     EvaluateProbeVolumes(posInputs, normalWS, backNormalWS, renderingLayers, bakeDiffuseLighting, backBakeDiffuseLighting, probeVolumeHierarchyWeight);
 #endif
 
-#if SAMPLE_LIGHT_PROBE_PROXY_VOLUMES
-    EvaluateLightProbeProxyVolumes(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
+#if SAMPLE_PROBEVOLUME_BUILTIN
+    EvaluateLightProbeBuiltin(positionRWS, normalWS, backNormalWS, bakeDiffuseLighting, backBakeDiffuseLighting);
 #endif
 #endif
 
 #undef SAMPLE_LIGHTMAP
 #undef SAMPLE_PROBEVOLUME
-#undef SAMPLE_LIGHT_PROBE_PROXY_VOLUMES
+#undef SAMPLE_PROBEVOLUME_BUILTIN
 }
 
-// Function signature of SampleBakedGI changed when probe volumes we added, as they require full PositionInputs.
-// It was then further changed to evaluate bakeDiffuseLighting and backBakeDiffuseLighting at the same time as an optimization.
-// This legacy function signature is exposed in a shader graph node, so must continue to be supported.
+// Function signature exposed in a shader graph node, to keep
 float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
     // Need PositionInputs for indexing probe volume clusters, but they are not availbile from the current SampleBakedGI() function signature.
