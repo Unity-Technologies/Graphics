@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return Vector4.zero;
 
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie) && !m_NoMoreSpace)
-                Debug.LogError($"Cube cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+                Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, true))
             {
@@ -416,7 +416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return Vector4.zero;
 
             if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
-                Debug.LogError($"Cube cookie texture {cookie} can't be fetched without having reserved. You can try to increase the cookie atlas resolution in the HDRP settings.");
+                Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
 
             if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
             {
