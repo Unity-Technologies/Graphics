@@ -283,11 +283,9 @@ All_{{ project.name }}_{{ editor.version }}:
   {% for testplatform in testplatforms %}
   {% if platform.name == "OSX_OpenGLCore" %}
   
-  {% if testplatform.name == "editmode" %}
-    - path: .yamato/upm-ci-{{ project.name | downcase }}.yml#{{ project.name }}_{{ platform.name }}_{{ testplatform.name }}_{{ editor.version }}
-      rerun: {{ editor.rerun_strategy }}
-  {% endif %}
-  
+  {% elsif testplatform.name == "Standalone" %}
+  # skip
+
   {% elsif platform.name == "OSX_Metal"  and testplatform.name == "editmode" %}
   
   {% elsif platform.name == "OSX_Metal" %}
