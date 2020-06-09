@@ -434,6 +434,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (!string.IsNullOrEmpty(newPath))
                     {
+                        // If the newPath already exists, we are overwriting an existing file, and could be creating recursions. Let's check.
+                        var overwriteGUID = AssetDatabase.AssetPathToGUID(newPath);
+
+                        var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
+                        foreach (var sgNode in subGraphNodes)
+                        {
+                            if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                            {
+                                Debug.Log("Save As CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + newPath + "'");
+                                return false;
+                            }
+                        }
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
                         AssetDatabase.ImportAsset(newPath);
                         if (success)
@@ -479,9 +491,29 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (path.Length == 0)
                 return;
 
+            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
+
+            // Convert To Subgraph could create recursive reference loops if the target path already exists
+            // Let's check for that here
+            if (!string.IsNullOrEmpty(path))
+            {
+                var overwriteGUID = AssetDatabase.AssetPathToGUID(path);
+                if (!string.IsNullOrEmpty(overwriteGUID))
+                {
+                    var subGraphNodes = nodes.OfType<SubGraphNode>();
+                    foreach (var sgNode in subGraphNodes)
+                    {
+                        if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
+                        {
+                            Debug.Log("Convert To SubGraph CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + path + "'");
+                            return;
+                        }
+                    }
+                }
+            }
+
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
 
-            var nodes = graphView.selection.OfType<IShaderNodeView>().Where(x => !(x.node is PropertyNode || x.node is SubGraphOutputNode)).Select(x => x.node).Where(x => x.allowedInSubGraph).ToArray();
             var bounds = Rect.MinMaxRect(float.PositiveInfinity, float.PositiveInfinity, float.NegativeInfinity, float.NegativeInfinity);
             foreach (var node in nodes)
             {
