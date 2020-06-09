@@ -776,7 +776,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Pragma.Target(ShaderModel.Target45) },
             { Pragma.Vertex("Vert") },
             { Pragma.Fragment("Frag") },
-            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11, Platform.Playstation, Platform.XboxOne, Platform.Vulkan, Platform.Metal, Platform.Switch}) },
+            { Pragma.OnlyRenderers(new Platform[] {Platform.D3D11}) },
         };
 
         public static IncludeCollection RayTracingPrepassIncludes = new IncludeCollection
