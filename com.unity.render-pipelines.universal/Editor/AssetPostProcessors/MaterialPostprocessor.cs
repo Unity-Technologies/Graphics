@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -212,6 +212,13 @@ namespace UnityEditor.Rendering.Universal
                     ParticlesUnlitShader.SetMaterialKeywords(material, null, ParticleGUI.SetMaterialKeywords);
                     break;
             }
+        }
+
+        static void UpgradeV2(Material material, ShaderPathID shaderID)
+        {
+            // fix 50 offset on shaders
+            if(material.HasProperty("_QueueOffset"))
+                BaseShaderGUI.SetupMaterialBlendMode(material);
         }
     }
 
