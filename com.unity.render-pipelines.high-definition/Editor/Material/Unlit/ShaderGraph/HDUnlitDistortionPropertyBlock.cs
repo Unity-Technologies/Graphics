@@ -20,7 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override void CreatePropertyGUI()
         {
-            AddProperty(distortionOnlyText, () => unlitData.distortionOnly, (newValue) => unlitData.distortionOnly = newValue);
+            base.CreatePropertyGUI();
+            if (builtinData.distortion)
+                AddProperty(distortionOnlyText, () => unlitData.distortionOnly, (newValue) => unlitData.distortionOnly = newValue, 1);
             base.CreatePropertyGUI();
         }
     }

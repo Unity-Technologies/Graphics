@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTest = stackLitMasterNode.m_AlphaTest;
             systemData.sortPriority = stackLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = stackLitMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = stackLitMasterNode.m_ZWrite;
+            systemData.transparentZWrite = stackLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = stackLitMasterNode.m_transparentCullMode;
             systemData.zTest = stackLitMasterNode.m_ZTest;
             systemData.supportLodCrossFade = stackLitMasterNode.m_SupportLodCrossFade;
@@ -49,10 +49,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.receiveDecals = stackLitMasterNode.m_ReceiveDecals;
             lightingData.receiveSSR = stackLitMasterNode.m_ReceiveSSR;
             lightingData.receiveSSRTransparent = stackLitMasterNode.m_ReceivesSSRTransparent;
-            lightingData.subsurfaceScattering = stackLitMasterNode.m_SubsurfaceScattering;
             lightingData.overrideBakedGI = stackLitMasterNode.m_overrideBakedGI;
             lightingData.specularAA = stackLitMasterNode.m_GeometricSpecularAA;
 
+            stackLitData.subsurfaceScattering = stackLitMasterNode.m_SubsurfaceScattering;
             stackLitData.transmission = stackLitMasterNode.m_Transmission;
             stackLitData.energyConservingSpecular = stackLitMasterNode.m_EnergyConservingSpecular;
             stackLitData.baseParametrization = stackLitMasterNode.m_BaseParametrization;
@@ -190,7 +190,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             }
 
-            if (lightingData.subsurfaceScattering)
+            if (stackLitData.subsurfaceScattering)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.SubsurfaceMask, StackLitMasterNode1.SubsurfaceMaskSlotId);
             }
@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 blockMap.Add(HDBlockFields.SurfaceDescription.Thickness, StackLitMasterNode1.ThicknessSlotId);
             }
 
-            if (lightingData.subsurfaceScattering || stackLitData.transmission)
+            if (stackLitData.subsurfaceScattering || stackLitData.transmission)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.DiffusionProfileHash, StackLitMasterNode1.DiffusionProfileHashSlotId);
             }
