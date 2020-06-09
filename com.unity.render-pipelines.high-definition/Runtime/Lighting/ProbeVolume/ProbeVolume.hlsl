@@ -46,7 +46,7 @@ float ProbeVolumeLoadValidity(int3 probeVolumeAtlasTexelCoord)
 }
 
 #if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
-void EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
+void ProbeVolumeEvaluateOctahedralDepthOcclusionFilterWeights(
     out float weights[8],
     float3 probeVolumeTexel3DMin,
     float3 probeVolumeResolution,
@@ -267,7 +267,7 @@ float3 ProbeVolumeComputeTexel3DFromBilateralFilter(
         float3 probeVolumeWorldFromTexel3DTranslation = mul(obbFrame, -obbExtents) + obbCenter;
 
         float probeWeights[8];
-        EvaluateProbeVolumeOctahedralDepthOcclusionFilterWeights(
+        ProbeVolumeEvaluateOctahedralDepthOcclusionFilterWeights(
             probeWeights,
             probeVolumeTexel3DMin,
             probeVolumeData.resolution,
