@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             SetLayerCount(2);
 
             vtProperty.displayName = "ProceduralVirtualTexture";
-            vtProperty.overrideReferenceName = "MyPVT";             // TODO : make unique
+            vtProperty.overrideReferenceName = "MyPVT";
             vtProperty.generatePropertyBlock = false;
             vtProperty.value.procedural = true;
 
@@ -75,9 +75,9 @@ namespace UnityEditor.ShaderGraph
             {
                 if (vtProperty.value.layers.Count == value)
                     return;
-                // TODO: is there an easier way to do this ?
+
                 SetLayerCount(value);
-                Dirty(ModificationScope.Topological);       // TODO: need some way to re-run node setup on dependent nodes, so sampleVT nodes can update their output count
+                Dirty(ModificationScope.Topological);
             }
         }
 

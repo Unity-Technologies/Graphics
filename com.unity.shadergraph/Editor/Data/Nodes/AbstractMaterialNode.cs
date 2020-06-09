@@ -139,7 +139,6 @@ namespace UnityEditor.ShaderGraph
             get { return PreviewMode.Preview2D; }
         }
 
-        // TODO: Can actually delete this
         public virtual bool allowedInSubGraph
         {
             get { return !(this is BlockNode); }
@@ -369,7 +368,6 @@ namespace UnityEditor.ShaderGraph
             if (inputSlot == null)
                 return string.Empty;
 
-            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
             var edges = owner.GetEdges(inputSlot.slotReference);
 
             if (edges.Any())
@@ -388,7 +386,6 @@ namespace UnityEditor.ShaderGraph
             if (inputSlot == null)
                 return null;
 
-            // TODO: GetEdges() puts the edges in 3+ Lists before returning them...  seems a bit wasteful
             var edges = owner.GetEdges(inputSlot.slotReference);
             if (edges.Any())
             {
@@ -413,8 +410,6 @@ namespace UnityEditor.ShaderGraph
                     return pvtNode.AsShaderProperty();
                 }
 #endif // PROCEDURAL_VT_IN_GRAPH
-
-                // TODO: what if it's from a subgraph?  should probably disallow that
 
                 return null;
             }

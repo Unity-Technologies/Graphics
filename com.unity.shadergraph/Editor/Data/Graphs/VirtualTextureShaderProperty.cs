@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(value.layers[i].layerRefName);
                 }
                 builder.Append(")");
-                builder.Append(delimiter);      // TODO: don't like delimiter, pretty sure it's not necessary if we invert the defaults on GEtPropertyDeclaration / GetPropertyArgument string
+                builder.Append(delimiter);
                 builder.AppendNewLine();
 
                 // declare the actual virtual texture property "variable" as a macro define to the BuildVTProperties function

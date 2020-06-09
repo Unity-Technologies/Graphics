@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
-    // TODO: make TextureType work like this, combine the two enums (needs versioning for old data)
     enum LayerTextureType
     {
         Default,
