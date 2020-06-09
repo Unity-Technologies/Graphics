@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -58,7 +58,7 @@ public class MoveBallsSystem : JobComponentSystem
     protected override JobHandle OnUpdate(JobHandle inputDeps)
     {
         EntityCommandBuffer entityOriginsCommandBuffer = new EntityCommandBuffer(Allocator.TempJob, PlaybackPolicy.SinglePlayback );
-        Entities.WithNone<BallOriginalTranslation>().ForEach((Entity entity, Translation translation, SphereId sphereId) =>
+        Entities.WithNone<BallOriginalTranslation>().ForEach((Entity entity, in Translation translation, in SphereId sphereId) =>
         {
             entityOriginsCommandBuffer.AddComponent(entity, new BallOriginalTranslation{ Value = translation.Value });
         }).Run();
