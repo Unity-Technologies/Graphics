@@ -22,6 +22,13 @@ From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA W
 
 From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
 
+From Unity 2020.2, HDRP has removed the Cubemap Array for Point [Light](Light-Component.md) cookies and now uses octahedral projection with a regular 2D-Cookie atlas. This is to allow for a single path for light cookies and IES, but it may produce visual artifacts when using a low-resolution cube-cookie. For example, projecting pixel art data.
+
+As the **Cubemap cookie atlas no longer exists**, it is possible that HDRP does not have enough space on the current 2D atlas for the cookies. If this is the case, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas. To do this:
+Select your [HDRP Asset](HDRP-Asset.md).
+In the Inspector, go to Lighting > Cookies.
+In the 2D Atlas Size drop-down, select a larger cookie resolution.
+
 ## Shadows
 
 From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
@@ -60,7 +67,25 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
 
-## Shader code
-Cubemap Array for PointLight Cookies don’t exist anymore. Switch to Octahedral Projection to regular 2D-Cookie Atlas. Could produce artifacts for non-continuous cubemap low res cube-cookie (like pixel-art projection of a pixel art data). Fix just increases the resolution.
+## Custom pass API
 
-As the Cubemap cookie atlas didn’t exist anymore it’s possible we don’t have enough space on the current 2D Atlas anymore. We display a warning on the log, but it’s on the hand of the user to increase the size by hand. We can’t increase automatically the size by taking the risk of busting the footprint of a project making it not working anymore.
+The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
+`void Execute(CustomPassContext ctx)`
+
+The CustomPassContext contains all the parameters of the old Execute function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
+
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
+
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
+
+To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
+
+```
+protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { ... }
+```
+
+With:
+
+```
+protected override void Execute(CustomPassContext ctx) { ... }
+```

@@ -123,7 +123,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (cookieAtlasSize > 128f && planarSize <= 1024f)
                 {
-                    Debug.LogWarning("HDRP Internally change the storage of Cube Cookie to Octahedral Projection inside the Planar Reflection Atlas. It is recommended to increase the size of the Planar Projection Atlas if the cookies didn't fit anymore.");
+                    Debug.LogWarning("HDRP Internally change the storage of Cube Cookie to Octahedral Projection inside the Planar Reflection Atlas. It is recommended that you increase the size of the Planar Projection Atlas if the cookies no longer fit.");
                 }
             })
         );
