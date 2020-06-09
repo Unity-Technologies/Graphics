@@ -29,12 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CreatePropertyGUI()
         {
             // Lit specific properties:
-            AddProperty(materialIDText, () => litData.materialType, (newValue) => 
-            {
-                // Sync duplicated data in GUI
-                lightingData.subsurfaceScattering = litData.materialType == HDLitData.MaterialType.SubsurfaceScattering;
-                litData.materialType = newValue;
-            });
+            AddProperty(materialIDText, () => litData.materialType, (newValue) => litData.materialType = newValue);
             AddProperty(rayTracingText, () => litData.rayTracing, (newValue) => litData.rayTracing = newValue);
 
             base.CreatePropertyGUI();

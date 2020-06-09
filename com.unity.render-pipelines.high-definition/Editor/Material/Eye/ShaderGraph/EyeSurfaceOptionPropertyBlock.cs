@@ -33,7 +33,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
 
             // Eye specific properties:
-            AddProperty(subsurfaceEnableText, () => lightingData.subsurfaceScattering, (newValue) => lightingData.subsurfaceScattering = newValue);
+            AddProperty(subsurfaceEnableText, () => eyeData.subsurfaceScattering, (newValue) => eyeData.subsurfaceScattering = newValue);
         }
     }
 }

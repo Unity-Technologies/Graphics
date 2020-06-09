@@ -35,11 +35,177 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
         }
 
+        protected virtual bool supportForward => false;
+        protected virtual bool supportLighting => false;
+        protected virtual bool supportDistortion => false;
+        protected virtual bool supportPathtracing => false;
+        protected virtual bool supportRaytracing => true;
+
+        protected abstract string subShaderInclude { get; }
+        protected virtual string postDecalsInclude => null;
+        protected abstract FieldDescriptor subShaderField { get; }
+
+        public override void Setup(ref TargetSetupContext context)
+        {
+            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("f4df7e8f9b8c23648ae50cbca0221e47")); // SurfaceSubTarget.cs
+            base.Setup(ref context);
+        }
+
+        protected override IEnumerable<SubShaderDescriptor> EnumerateSubShaders()
+        {
+            yield return PostProcessSubShader(GetSubShaderDescriptor());
+            if (supportRaytracing || supportPathtracing)
+                yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
+        }
+
+        protected virtual SubShaderDescriptor GetSubShaderDescriptor()
+        {
+            return new SubShaderDescriptor
+            {
+                generatesPreview = true,
+                passes = GetPasses()
+            };
+
+            PassCollection GetPasses()
+            {
+                var passes = new PassCollection
+                {
+                    // Common "surface" passes
+                    HDShaderPasses.GenerateShadowCaster(supportLighting),
+                    HDShaderPasses.GenerateMETA(supportLighting),
+                    HDShaderPasses.GenerateSceneSelection(supportLighting),
+                    HDShaderPasses.GenerateMotionVectors(supportLighting),
+                    { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                };
+
+                if (supportLighting)
+                {
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) });
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
+                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
+                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
+                }
+                else
+                {
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                }
+
+                if (supportForward)
+                {
+                    passes.Add(HDShaderPasses.GenerateDepthForwardOnlyPass(supportLighting));
+                    passes.Add(HDShaderPasses.GenereateForwardOnlyPass(supportLighting));
+                }
+                if (supportDistortion)
+                    passes.Add(HDShaderPasses.GenerateDistortionPass(supportLighting), new FieldCondition(HDFields.TransparentDistortion, true));
+
+                return passes;
+            }
+        }
+
+        protected virtual SubShaderDescriptor GetRaytracingSubShaderDescriptor()
+        {
+            return new SubShaderDescriptor
+            {
+                generatesPreview = false,
+                passes = GetPasses(),
+            };
+
+            PassCollection GetPasses()
+            {
+                var passes = new PassCollection();
+
+                if (supportRaytracing)
+                {
+                    // Common "surface" raytracing passes
+                    passes.Add(HDShaderPasses.GenerateRaytracingIndirect(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingVisibility(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingForward(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateRaytracingGBuffer(supportLighting));
+                };
+
+                if (supportPathtracing)
+                    passes.Add(HDShaderPasses.GeneratePathTracing(supportLighting));
+                
+                return passes;
+            }
+        }
+
+        SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
+        {
+            if (String.IsNullOrEmpty(subShaderDescriptor.pipelineTag))
+                subShaderDescriptor.pipelineTag = HDRenderPipeline.k_ShaderTagName;
+            
+            var passes = subShaderDescriptor.passes.ToArray();
+            PassCollection finalPasses = new PassCollection();
+            for (int i = 0; i < passes.Length; i++)
+            {
+                var passDescriptor = passes[i].descriptor;
+                passDescriptor.passTemplatePath = templatePath;
+                passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
+
+                // Add the subShader to enable fields that depends on it
+                var originalRequireFields = passDescriptor.requiredFields;
+                // Duplicate require fields to avoid unwanted shared list modification
+                passDescriptor.requiredFields = new FieldCollection();
+                if (originalRequireFields != null)
+                    foreach (var field in originalRequireFields)
+                        passDescriptor.requiredFields.Add(field.field);
+                passDescriptor.requiredFields.Add(subShaderField);
+
+                IncludeCollection finalIncludes = new IncludeCollection();
+                var includeList = passDescriptor.includes.Select(include => include.descriptor).ToList();
+
+                // Replace include placeholders if necessary:
+                foreach (var include in passDescriptor.includes)
+                {
+                    if (include.descriptor.value == CoreIncludes.kPassPlaceholder)
+                        include.descriptor.value = subShaderInclude;
+                    if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
+                        include.descriptor.value = postDecalsInclude;
+
+                    if (!String.IsNullOrEmpty(include.descriptor.value))
+                        finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
+                }
+                passDescriptor.includes = finalIncludes;
+
+                // Replace valid pixel blocks by automatic thing so we don't have to write them
+                var tmpCtx = new TargetActiveBlockContext(new List<BlockFieldDescriptor>(), passDescriptor);
+                GetActiveBlocks(ref tmpCtx);
+                if (passDescriptor.validPixelBlocks == null)
+                    passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
+                if (passDescriptor.validVertexBlocks == null)
+                    // passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
+                    passDescriptor.validVertexBlocks = CoreBlockMasks.Vertex;
+
+                // Set default values for HDRP "surface" passes:
+                if (passDescriptor.structs == null)
+                    passDescriptor.structs = CoreStructCollections.Default;
+                if (passDescriptor.fieldDependencies == null)
+                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+
+                finalPasses.Add(passDescriptor, passes[i].fieldConditions);
+            }
+
+            subShaderDescriptor.passes = finalPasses;
+
+            return subShaderDescriptor;
+        }
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
+            
+            if (supportDistortion)
+                AddDistortionFields(ref context);
 
             // Common properties between all "surface" master nodes (everything except decal right now)
+            context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
 
             // Blend Mode
             context.AddField(Fields.BlendAdd,                       systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Additive);
@@ -85,6 +251,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            if (supportDistortion)
+                AddDistortionBlocks(ref context);
+
             // Common block between all "surface" master nodes
             // Vertex
             context.AddBlock(BlockFields.VertexDescription.Position);
@@ -98,9 +267,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, systemData.alphaTest);
 
             // Alpha Test
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass, systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
-            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow, systemData.alphaTest && builtinData.alphaTestShadow);
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass
+                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPrepass"));
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass
+                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPostpass"));
+            context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                systemData.alphaTest && builtinData.alphaTestShadow
+                && (context.pass != null && context.pass.Value.lightMode == "ShadowCaster"));
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);
@@ -163,7 +338,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.blendMode,
                 systemData.sortPriority,
                 builtinData.alphaToMask,
-                systemData.zWrite,
+                systemData.transparentZWrite,
                 systemData.transparentCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
@@ -176,12 +351,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Fixup the material settings:
             material.SetFloat(kSurfaceType, (int)systemData.surfaceType);
             material.SetFloat(kDoubleSidedNormalMode, (int)systemData.doubleSidedMode);
+            material.SetFloat(kDoubleSidedEnable, systemData.doubleSidedMode != DoubleSidedMode.Disabled ? 1 : 0);
             material.SetFloat(kAlphaCutoffEnabled, systemData.alphaTest ? 1 : 0);
             material.SetFloat(kBlendMode, (int)systemData.blendMode);
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
-            material.SetFloat(kZWrite, systemData.zWrite ? 1.0f : 0.0f);
+            material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
             material.renderQueue = (int)HDRenderQueue.ChangeType(systemData.renderingPass, offset: 0, alphaTest: systemData.alphaTest);

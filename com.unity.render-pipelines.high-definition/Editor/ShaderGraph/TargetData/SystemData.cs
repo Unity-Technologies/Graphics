@@ -50,8 +50,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }    
 
         [SerializeField]
-        bool m_ZWrite = true;
-        public bool zWrite
+        bool m_ZWrite = false;
+        public bool transparentZWrite
         {
             get => m_ZWrite;
             set => m_ZWrite = value;
