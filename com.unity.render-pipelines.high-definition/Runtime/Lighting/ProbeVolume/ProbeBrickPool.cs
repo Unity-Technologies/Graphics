@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int width, height, depth;
             DerivePoolSizeFromBudget(AllocationSize, MemoryBudget, out width, out height, out depth);
 
-            m_Pool = CreateDataLocation(width * height * depth, true);
+            m_Pool = CreateDataLocation(width * height * depth, false);
             Profiler.EndSample();
         }
 
@@ -107,30 +107,38 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 for( int j = 0; j < kBrickProbeCountPerDim; j++ )
                 {
-                    Graphics.CopyTexture(source.TexL0  , src.z + j, 0, src.x, src.y, m_AllocationSize * kBrickProbeCountPerDim, kBrickProbeCountPerDim, m_Pool.TexL0  , dst.z + j, 0, dst.x, dst.y);
-                    Graphics.CopyTexture(source.TexL1_R, src.z + j, 0, src.x, src.y, m_AllocationSize * kBrickProbeCountPerDim, kBrickProbeCountPerDim, m_Pool.TexL1_R, dst.z + j, 0, dst.x, dst.y);
-                    Graphics.CopyTexture(source.TexL1_G, src.z + j, 0, src.x, src.y, m_AllocationSize * kBrickProbeCountPerDim, kBrickProbeCountPerDim, m_Pool.TexL1_G, dst.z + j, 0, dst.x, dst.y);
-                    Graphics.CopyTexture(source.TexL1_B, src.z + j, 0, src.x, src.y, m_AllocationSize * kBrickProbeCountPerDim, kBrickProbeCountPerDim, m_Pool.TexL1_B, dst.z + j, 0, dst.x, dst.y);
+                    int width = Mathf.Min(m_AllocationSize * kBrickProbeCountPerDim, source.width - src.x);
+                    Graphics.CopyTexture(source.TexL0  , src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL0  , dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL1_R, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_R, dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL1_G, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_G, dst.z + j, 0, dst.x, dst.y);
+                    Graphics.CopyTexture(source.TexL1_B, src.z + j, 0, src.x, src.y, width, kBrickProbeCountPerDim, m_Pool.TexL1_B, dst.z + j, 0, dst.x, dst.y);
                 }
             }
         }
 
         public static DataLocation CreateDataLocation(int numProbes, bool compressed)
         {
-            Debug.Assert(numProbes % (kBrickProbeCountPerDim * kBrickProbeCountPerDim * kBrickProbeCountPerDim) == 0);
+            Debug.Assert(numProbes % kBrickProbeCountTotal == 0);
+
+            int numBricks = numProbes / kBrickProbeCountTotal;
+            int poolWidth = kMaxPoolWidth / kBrickProbeCountPerDim;
 
             int width, height, depth;
-            depth = numProbes / (kMaxPoolWidth * kMaxPoolWidth) + 1;
+            depth = (numBricks + poolWidth * poolWidth - 1) / (poolWidth * poolWidth);
             if (depth > 1)
-                width = height = kMaxPoolWidth;
+                width = height = poolWidth;
             else
             {
-                height = (numProbes / kMaxPoolWidth) + 1;
+                height = (numBricks + poolWidth - 1) / poolWidth;
                 if (height > 1)
-                    width = kMaxPoolWidth;
+                    width = poolWidth;
                 else
-                    width = numProbes;
+                    width = numBricks;
             }
+
+            width  *= kBrickProbeCountPerDim;
+            height *= kBrickProbeCountPerDim;
+            depth  *= kBrickProbeCountPerDim;
 
             DataLocation loc;
             loc.TexL0   = new Texture3D(width, height, depth, compressed ? GraphicsFormat.RGB_BC6H_UFloat : GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None, 1);
@@ -188,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         by = 0;
                         bz += kBrickProbeCountPerDim;
-                        Debug.Assert(bz < loc.depth);
+                        Debug.Assert(bz < loc.depth || brickIdx == shl1.Length - kBrickProbeCountTotal, "Location depth exceeds data texture.");
                     }
                 }
             }
