@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 - Fixed transparent motion vector framesetting not sanitized.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed wrong order of post process frame settings.
 
 ## [7.4.1] - 2020-06-03
 
