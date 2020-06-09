@@ -1,16 +1,16 @@
 target_branch: master # specifies the branch on which recurrent or pr triggers are created, etc
 editors: # applied for all yml files. Override this by specifying override_editors (in the same format) in a specific metafile
 #  - version: 2020.1
-#    rerun_strategy: always
+#    rerun_strategy: on-new-revision
 #    cmd: -u 2020.1/staging
 #  - version: fast-2020.1
-#    rerun_strategy: always
+#    rerun_strategy: on-new-revision
 #    cmd: -u 2020.1/staging --fast
   - version: trunk
-    rerun_strategy: always
+    rerun_strategy: on-new-revision
     cmd: -u trunk
   - version: fast-trunk
-    rerun_strategy: always
+    rerun_strategy: on-new-revision
     cmd: -u trunk --fast
   - version: CUSTOM-REVISION
     rerun_strategy: always
@@ -19,7 +19,6 @@ test_platforms:
   Standalone: --suite=playmode --platform=Standalone
   playmode: --suite=playmode
   playmode_XR: --suite=playmode --extra-editor-arg="-xr-tests"
-  playmode_RenderGraph: --suite=playmode --extra-editor-arg="-rendergraph-tests"
   editmode: --suite=editor --platform=editmode
 project_platforms:
   Win:
@@ -64,6 +63,8 @@ project_platforms:
     components:
       - editor
       - il2cpp 
+    exclude_test_platforms:
+      - Standalone
     agent_default:
       type: Unity::VM::osx
       image: buildfarm/mac:stable
@@ -77,6 +78,8 @@ project_platforms:
     components:
       - editor
       - il2cpp
+    exclude_test_platforms:
+      - playmode_XR
     agent_default:
       type: Unity::VM::GPU
       image: cds-ops/ubuntu-18.04-base:stable
@@ -95,6 +98,10 @@ project_platforms:
       - editor
       - il2cpp
       - android
+    exclude_test_platforms:
+      - editmode
+      - playmode
+      - playmode_XR
     agent_default:
       type: Unity::mobile::android
       image: mobile/android-execution-r19:stable
@@ -111,6 +118,10 @@ project_platforms:
     components:
       - editor
       - iOS
+    exclude_test_platforms:
+      - editmode
+      - playmode
+      - playmode_XR
     agent_default:
       type: Unity::mobile::iPhone
       image: mobile/macos-10.13-testing:stable
