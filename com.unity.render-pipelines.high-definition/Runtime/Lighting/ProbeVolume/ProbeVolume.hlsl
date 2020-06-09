@@ -487,9 +487,8 @@ float3 EvaluateProbeVolumesLightLoop(inout float probeVolumeHierarchyWeight, Pos
 }
 
 // Fallback to global ambient probe lighting when probe volume lighting weight is not fully saturated.
-float3 EvaluateProbeVolumeAmbientProbeFallback(inout float probeVolumeHierarchyWeight, float3 normalWS)
+void EvaluateProbeVolumeAmbientProbeFallback(float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting, inout float probeVolumeHierarchyWeight)
 {
-    float3 sampleAmbientProbeOutgoingRadiance = float3(0.0, 0.0, 0.0);
     if (probeVolumeHierarchyWeight < 1.0
 #ifdef DEBUG_DISPLAY
         && (_DebugProbeVolumeMode != PROBEVOLUMEDEBUGMODE_VISUALIZE_DEBUG_COLORS)
@@ -497,10 +496,11 @@ float3 EvaluateProbeVolumeAmbientProbeFallback(inout float probeVolumeHierarchyW
 #endif
     )
     {
-        sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * (1.0 - probeVolumeHierarchyWeight);
+        float fallbackWeight = 1.0 - probeVolumeHierarchyWeight;
+        bakeDiffuseLighting += SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * fallbackWeight;
+        backBakeDiffuseLighting += SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, backNormalWS) * fallbackWeight;
         probeVolumeHierarchyWeight = 1.0;
     }
-    return sampleAmbientProbeOutgoingRadiance;
 }
 
 #endif // __PROBEVOLUME_HLSL__
