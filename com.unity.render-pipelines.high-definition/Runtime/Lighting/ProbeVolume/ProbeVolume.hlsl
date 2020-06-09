@@ -559,6 +559,7 @@ float3 ProbeVolumeEvaluateAmbientProbeFallback(float3 normalWS, float weightHier
 #endif
     )
     {
+
         sampleAmbientProbeOutgoingRadiance = SampleSH9(_ProbeVolumeAmbientProbeFallbackPackedCoeffs, normalWS) * (1.0 - weightHierarchy);
     }
 
