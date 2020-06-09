@@ -142,6 +142,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
+    int _TransparentCameraOnlyMotionVectors;
+    float _Pad8;
+    float _Pad9;
+    float _Pad10;
 CBUFFER_END
 
 

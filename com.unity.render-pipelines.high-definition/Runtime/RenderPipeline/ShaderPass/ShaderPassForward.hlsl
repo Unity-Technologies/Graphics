@@ -232,7 +232,12 @@ void Frag(PackedVaryingsToPS packedInput,
             // outMotionVec is already initialize at the value of forceNoMotion (see above)
             if (!forceNoMotion)
             {
-                float2 motionVec = CalculateMotionVector(inputPass.positionCS, inputPass.previousPositionCS);
+                float4 previousPosCS = inputPass.previousPositionCS;
+                if (_TransparentCameraOnlyMotionVectors > 0)
+                {
+                    previousPosCS = mul(UNITY_MATRIX_PREV_VP, posInput.positionWS);
+                }
+                float2 motionVec = CalculateMotionVector(inputPass.positionCS, previousPosCS);
                 EncodeMotionVector(motionVec * 0.5, outMotionVec);
                 outMotionVec.zw = 1.0;
             }
