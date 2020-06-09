@@ -5,7 +5,6 @@ project:
 test_platforms:
   - playmode
   - playmode_XR
-  - playmode_RenderGraph
   - editmode
   - Standalone
 platforms:
@@ -28,7 +27,6 @@ all:
         - editmode
         - playmode
         - playmode_XR
-        - playmode_RenderGraph
         - Standalone
     - platform: Win
       api: DX12

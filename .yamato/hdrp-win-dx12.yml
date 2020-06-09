@@ -38,26 +38,6 @@ HDRP_Win_DX12_playmode_XR_trunk:
         logs:
             paths:
               -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: always
-    commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr\utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
 HDRP_Win_DX12_editmode_trunk:
     name: HDRP on Win_DX12_editmode on version trunk
     agent:
@@ -160,26 +140,6 @@ HDRP_Win_DX12_playmode_XR_fast-trunk:
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr\utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_fast-trunk:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
-         rerun: always
-    commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr\utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
@@ -288,27 +248,6 @@ HDRP_Win_DX12_playmode_XR_CUSTOM-REVISION:
       -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
       -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
       -  cd TestProjects/HDRP_Tests && utr\utr --suite=playmode --extra-editor-arg="-xr-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-HDRP_Win_DX12_playmode_RenderGraph_CUSTOM-REVISION:
-    name: HDRP on Win_DX12_playmode_RenderGraph on version CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-    commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git TestProjects/HDRP_Tests/utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/HDRP_Tests && unity-downloader-cli --source-file ../../unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  cd TestProjects/HDRP_Tests && utr\utr --suite=playmode --extra-editor-arg="-rendergraph-tests" --testproject=. --editor-location=.Editor --artifacts_path=test-results --extra-editor-arg="-force-d3d12"
     artifacts:
         logs:
             paths:
