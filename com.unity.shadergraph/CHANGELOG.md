@@ -122,6 +122,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where Redirect Nodes did not work as inputs to Custom Function Nodes. [1235999](https://issuetracker.unity3d.com/product/unity/issues/guid/1235999/)
 - Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
 - Fixed a soft lock when you open a graph when the blackboard hidden.
+- Fixed an issue where keyboard navigation in the Create Node menu no longer worked. [1253544]
 
 ## [7.1.1] - 2019-09-05
 ### Added

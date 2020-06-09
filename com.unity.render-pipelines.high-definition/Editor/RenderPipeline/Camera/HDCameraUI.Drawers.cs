@@ -116,7 +116,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 Drawer_FieldVolumeLayerMask,
                 Drawer_FieldVolumeAnchorOverride,
                 (p, owner) => EditorGUILayout.PropertyField(p.probeLayerMask, probeLayerMaskContent),
-                Drawer_FieldOcclusionCulling
+                Drawer_FieldOcclusionCulling,
+                Drawer_FieldExposureTarget
                 ),
             CED.space,
             CED.Group(
@@ -560,6 +561,11 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox(msaaWarningMessage, MessageType.Warning, true);
                 }
             }
+        }
+
+        static void Drawer_FieldExposureTarget(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.exposureTarget, exposureTargetContent);
         }
 
         static void Drawer_FieldOcclusionCulling(SerializedHDCamera p, Editor owner)
