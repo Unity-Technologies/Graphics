@@ -654,6 +654,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 - Fix issue with fast memory and rendergraph. 
 - Fixed transparent motion vector framesetting not sanitized.
+- Fixed wrong order of post process frame settings.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
