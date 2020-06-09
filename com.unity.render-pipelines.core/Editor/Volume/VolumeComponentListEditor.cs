@@ -199,10 +199,9 @@ namespace UnityEditor.Rendering
 
             // Even if the asset is not dirty, the list of component may have been changed by another inspector.
             // In this case, only the hash will tell us that we need to refresh.
-            if (asset.isDirty || asset.GetHashCode() != m_CurrentHashCode)
+             if (asset.isDirty)
             {
                 RefreshEditors();
-                m_CurrentHashCode = asset.GetHashCode();
                 asset.isDirty = false;
             }
 
