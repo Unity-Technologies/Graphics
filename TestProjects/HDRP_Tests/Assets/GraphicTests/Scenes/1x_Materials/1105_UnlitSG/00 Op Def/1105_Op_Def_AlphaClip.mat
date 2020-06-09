@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -34,6 +34,8 @@ Material:
   disabledShaderPasses:
   - MOTIONVECTORS
   - TransparentBackface
+  - TransparentDepthPrepass
+  - TransparentDepthPostpass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -105,6 +107,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_f52d4fdb162f43528f94c32d7c00fd62_Texture_1:
+        m_Texture: {fileID: 2800000, guid: 2c14474f84cbaee46a02b4501a1c41b4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SpecularColorMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -141,6 +147,7 @@ Material:
     - _AlphaCutoffShadow: 0.5
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
+    - _AlphaToMask: 0
     - _Anisotropy: 0
     - _BlendMode: 0
     - _CoatMask: 0
@@ -210,7 +217,8 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
-    - _ReceivesSSR: 1
+    - _ReceivesSSR: 0
+    - _ReceivesSSRTransparent: 0
     - _RefractionModel: 0
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
