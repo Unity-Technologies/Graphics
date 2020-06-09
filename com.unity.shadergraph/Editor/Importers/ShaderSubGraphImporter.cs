@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(12, Extension)]
+    [ScriptedImporter(13, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -105,7 +105,7 @@ namespace UnityEditor.ShaderGraph
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}";
             asset.path = graph.path;
 
-            var outputNode = (SubGraphOutputNode)graph.outputNode;
+            var outputNode = graph.outputNode;
 
             var outputSlots = PooledList<MaterialSlot>.Get();
             outputNode.GetInputSlots(outputSlots);
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots);
+            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

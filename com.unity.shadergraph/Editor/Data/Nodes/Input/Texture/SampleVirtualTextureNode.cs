@@ -14,7 +14,7 @@ using UnityEngine.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", SampleVirtualTextureNode.DefaultNodeTitle)]
-    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition, IHasSettings
+    class SampleVirtualTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IMayRequireMeshUV, IMayRequireTime, IMayRequireScreenPosition
     {
         public const string DefaultNodeTitle = "Sample Virtual Texture";
 
@@ -144,6 +144,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public TextureType[] textureTypes => m_TextureTypes;
+
         [SerializeField]
         protected TextureType[] m_TextureTypes = { TextureType.Default, TextureType.Default, TextureType.Default, TextureType.Default };
 
@@ -162,143 +164,6 @@ namespace UnityEditor.ShaderGraph
                 m_NormalMapSpace = value;
                 Dirty(ModificationScope.Graph);
             }
-        }
-
-        /*
-            The panel behind the cogwheel node settings
-        */
-        class SampleVirtualTextureNodeSettingsView : VisualElement
-        {
-            SampleVirtualTextureNode m_Node;
-            public SampleVirtualTextureNodeSettingsView(SampleVirtualTextureNode node)
-            {
-                m_Node = node;
-
-                PropertySheet ps = new PropertySheet();
-
-                ps.Add(new PropertyRow(new Label("Lod Mode")), (row) =>
-                {
-                    row.Add(new UIElements.EnumField(m_Node.lodCalculation), (field) =>
-                    {
-                        field.value = m_Node.lodCalculation;
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (m_Node.lodCalculation == (LodCalculation)evt.newValue)
-                                return;
-
-                            m_Node.owner.owner.RegisterCompleteObjectUndo("Lod Mode Change");
-                            m_Node.lodCalculation = (LodCalculation)evt.newValue;
-                        });
-                    });
-                });
-
-                ps.Add(new PropertyRow(new Label("Quality")), (row) =>
-                {
-                    row.Add(new UIElements.EnumField(m_Node.sampleQuality), (field) =>
-                    {
-                        field.value = m_Node.sampleQuality;
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (m_Node.sampleQuality == (QualityMode)evt.newValue)
-                                return;
-
-                            m_Node.owner.owner.RegisterCompleteObjectUndo("Quality Change");
-                            m_Node.sampleQuality = (QualityMode)evt.newValue;
-                        });
-                    });
-                });
-
-                ps.Add(new PropertyRow(new Label("No Feedback")), (row) =>
-                {
-                    row.Add(new UnityEngine.UIElements.Toggle(), (field) =>
-                    {
-                        field.value = m_Node.noFeedback;
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (m_Node.noFeedback == evt.newValue)
-                                return;
-
-                            m_Node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
-                            m_Node.noFeedback = evt.newValue;
-                        });
-                    });
-                });
-
-                var vtProperty = m_Node.GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
-                if (vtProperty == null)
-                {
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Please connect a VirtualTexture property to configure texture sampling type.")));
-                }
-                else
-                {
-                    int numLayers = vtProperty.value.layers.Count;
-
-                    for (int i = 0; i < numLayers; i++)
-                    {
-                        int currentIndex = i;   // to make lambda by-ref capturing happy
-                        ps.Add(new PropertyRow(new Label("Layer " + (i + 1) + " Type")), (row) =>
-                        {
-                            row.Add(new UIElements.EnumField(m_Node.m_TextureTypes[i]), (field) =>
-                            {
-                                field.value = m_Node.m_TextureTypes[i];
-                                field.RegisterValueChangedCallback(evt =>
-                                {
-                                    if (m_Node.m_TextureTypes[currentIndex] == (TextureType)evt.newValue)
-                                        return;
-
-                                    m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Type Change");
-                                    m_Node.m_TextureTypes[currentIndex] = (TextureType)evt.newValue;
-                                    m_Node.Dirty(ModificationScope.Graph);
-                                });
-                            });
-                        });
-                    }
-                }
-
-                ps.Add(new PropertyRow(new Label("Normal Space")), (row) =>
-                {
-                    row.Add(new UIElements.EnumField(m_Node.normalMapSpace), (field) =>
-                    {
-                        field.value = m_Node.normalMapSpace;
-                        field.RegisterValueChangedCallback(evt =>
-                        {
-                            if (m_Node.normalMapSpace == (NormalMapSpace)evt.newValue)
-                                return;
-
-                            m_Node.owner.owner.RegisterCompleteObjectUndo("Normal Map space Change");
-                            m_Node.normalMapSpace = (NormalMapSpace)evt.newValue;
-                        });
-                    });
-                });
-
-                // display warning if the current master node doesn't support virtual texturing
-                if (!m_Node.owner.isSubGraph)
-                {
-                    bool supportedByMasterNode = m_Node.owner.GetNodes<IMasterNode>().FirstOrDefault()?.supportsVirtualTexturing ?? false;
-                    if (!supportedByMasterNode)
-                        ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current master node does not support Virtual Texturing, this node will do regular 2D sampling.")));
-                }
-
-                // display warning if the current render pipeline doesn't support virtual texturing
-                IVirtualTexturingEnabledRenderPipeline vtRp = GraphicsSettings.currentRenderPipeline as IVirtualTexturingEnabledRenderPipeline;
-                if (vtRp == null)
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline does not support Virtual Texturing, this node will do regular 2D sampling.")));
-                else if (vtRp.virtualTexturingEnabled == false)
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("The current render pipeline has disabled Virtual Texturing, this node will do regular 2D sampling.")));
-                else
-                {
-#if !ENABLE_VIRTUALTEXTURES
-                    ps.Add(new HelpBoxRow(MessageType.Warning), (row) => row.Add(new Label("Virtual Texturing is disabled globally (possibly by the render pipeline settings), this node will do regular 2D sampling.")));
-#endif
-                }
-
-                Add(ps);
-            }
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            return new SampleVirtualTextureNodeSettingsView(this);
         }
 
         public SampleVirtualTextureNode() : this(false, false)

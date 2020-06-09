@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor Transmission =            new FieldDescriptor(kMaterial, "Transmission", "_MATERIAL_FEATURE_TRANSMISSION 1");
         public static FieldDescriptor Translucent =             new FieldDescriptor(kMaterial, "Translucent", "_MATERIAL_FEATURE_TRANSLUCENT 1");
         public static FieldDescriptor Coat =                    new FieldDescriptor(kMaterial, "Coat", "_MATERIAL_FEATURE_COAT");
+        public static FieldDescriptor ClearCoat =               new FieldDescriptor(kMaterial, "ClearCoat", "_MATERIAL_FEATURE_CLEAR_COAT");
         public static FieldDescriptor CoatNormal =              new FieldDescriptor(kMaterial, "CoatNormal", "_MATERIAL_FEATURE_COAT_NORMALMAP");
         public static FieldDescriptor DualSpecularLobe =        new FieldDescriptor(kMaterial, "DualSpecularLobe", "_MATERIAL_FEATURE_DUAL_SPECULAR_LOBE");
         public static FieldDescriptor Eye =                     new FieldDescriptor(kMaterial, "Eye", "_MATERIAL_FEATURE_EYE 1");
@@ -107,7 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
         public static FieldDescriptor TransparentWritesMotionVec = new FieldDescriptor(string.Empty, "TransparentWritesMotionVec", "_WRITE_TRANSPARENT_MOTION_VECTOR 1");
-        public static FieldDescriptor HairStrandDirection =     new FieldDescriptor(string.Empty, "DepthOffset", "_HAIR_STRAND_DIRECTION 1");
+        public static FieldDescriptor HairStrandDirection =     new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
         public static FieldDescriptor Transmittance =           new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
         public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
         public static FieldDescriptor UseLightFacingNormal =    new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");

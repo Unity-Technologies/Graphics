@@ -22,10 +22,15 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
 #if ETC1_EXTERNAL_ALPHA
     float4 alpha = SAMPLE_TEXTURE2D(_AlphaTex, sampler_AlphaTex, unpacked.texCoord0.xy);
-    surfaceDescription.Color.a = lerp (surfaceDescription.Color.a, alpha.r, _EnableAlphaTexture);
+    surfaceDescription.Alpha = lerp (surfaceDescription.Alpha, alpha.r, _EnableAlphaTexture);
 #endif
 
-    surfaceDescription.Color *= unpacked.color;
+#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
+    half4 color = surfaceDescription.SpriteColor;
+#else
+    half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+#endif
 
-    return surfaceDescription.Color;
+    color *= unpacked.color;
+    return color;
 }

@@ -8,6 +8,8 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Legacy;
 using ShaderPass = UnityEditor.ShaderGraph.PassDescriptor;
 
 // Include material common properties names
@@ -65,8 +67,21 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool ssrStencil, bool receiveSSROpaque, bool receiveSSRTransparent)
+        public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData)
         {
+            bool ssrStencil = false;
+            bool splitLighting = false;
+            bool receiveSSROpaque = false;
+            bool receiveSSRTransparent = false;
+
+            if (lightingData != null)
+            {
+                ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
+                splitLighting = lightingData.subsurfaceScattering;
+                receiveSSROpaque = lightingData.receiveSSR;
+                receiveSSRTransparent = lightingData.receiveSSRTransparent;
+            }
+
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
@@ -92,7 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
             collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
-
         }
 
         public static void AddBlendingStatesShaderProperties(
@@ -218,20 +232,32 @@ namespace UnityEditor.Rendering.HighDefinition
             return result;
         }
 
-        public static BlendMode ConvertAlphaModeToBlendMode(AlphaMode alphaMode)
+        public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)
+        {
+            var clipThresholdId = 8;
+            var node = masterNode as AbstractMaterialNode;
+            var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
+            if(clipThresholdSlot == null)
+                return false;
+
+            clipThresholdSlot.owner = node;
+            return (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f);
+        }
+
+        public static BlendMode UpgradeLegacyAlphaModeToBlendMode(int alphaMode)
         {
             switch (alphaMode)
             {
-                case AlphaMode.Additive:
-                    return BlendMode.Additive;
-                case AlphaMode.Alpha:
+                case 0: //AlphaMode.Alpha:
                     return BlendMode.Alpha;
-                case AlphaMode.Premultiply:
+                case 1: //AlphaMode.Premultiply:
                     return BlendMode.Premultiply;
-                case AlphaMode.Multiply: // In case of multiply we fall back to alpha
-                    return BlendMode.Alpha;
+                case 2: //AlphaMode.Additive:
+                    return BlendMode.Additive;
+                case 3: //AlphaMode.Multiply: // In case of multiply we fall back to Premultiply
+                    return BlendMode.Premultiply;
                 default:
-                    throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
+                    throw new System.Exception("Unknown AlphaMode at index: " + alphaMode + ": can't convert to BlendMode.");
             }
         }
 
