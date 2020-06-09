@@ -108,6 +108,8 @@ MonoBehaviour:
       type: 3}
     physicallyBasedSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4,
       type: 3}
+    planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2,
+      type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
@@ -309,6 +311,7 @@ MonoBehaviour:
     SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
     defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
+    ggxConeAngle70pc: {fileID: 2800000, guid: 794081635e7e0fe46b6c3fa0afa70d87, type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e,
       type: 2}
