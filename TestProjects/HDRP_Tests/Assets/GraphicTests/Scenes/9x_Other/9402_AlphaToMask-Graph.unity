@@ -156,6 +156,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 0}
   m_StaticLightingSkyUniqueID: 0
+  m_SkySettings: {fileID: 0}
+  m_SkySettingsFromProfile: {fileID: 0}
 --- !u!4 &313761475
 Transform:
   m_ObjectHideFlags: 1
@@ -350,11 +352,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 8650072ee85219341b65a263bf871815,
         type: 2}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: renderGraphCompatible
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!115 &1841999134
@@ -542,11 +539,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalScale.z
       value: 0.36045727
-      objectReference: {fileID: 0}
-    - target: {fileID: 4722329110318162791, guid: 788468ec810cab144bdb8014e3b29cc1,
-        type: 3}
-      propertyPath: m_Version
-      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 4722329110712897087, guid: 788468ec810cab144bdb8014e3b29cc1,
         type: 3}

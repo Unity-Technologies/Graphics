@@ -1976,10 +1976,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex, bool isProbeVolume = false, float normalBiasDilation = 0.0f)
+        void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
-            var bound      = new SFiniteLightBound();
-            var volumeData = new LightVolumeData();
+            volumeData = new LightVolumeData();
+            bound = new SFiniteLightBound();
 
             // Used in Probe Volumes:
             // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
@@ -2016,19 +2016,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.lightAxisZ   = forwardVS;
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
-
-            if (isProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass))
-            {
-                // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
-                // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
-                m_lightList.lightsPerView[viewIndex].probeVolumesBounds.Add(bound);
-                m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Add(volumeData);
-            }
-            else
-            {
-                m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-                m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-            }
         }
 
         internal int GetCurrentShadowCount()
@@ -2674,13 +2661,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
-                float probeVolumeNormalBiasWS = 0.0f;
+                bool probeVolumeNormalBiasEnabled = false;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter))
-                        ? 0.0f
-                        : settings.normalBiasWS.value;
+                    probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
                 }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2697,15 +2682,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                        CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                        m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
-
 
                     for (int i = 0, n = m_ProbeVolumeCount; i < n; i++)
                     {
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex, isProbeVolume: true, probeVolumeNormalBiasWS);
+                        float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
+                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                        {
+                            // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
+                            // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
+                            m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Add(volumeData);
+                            m_lightList.lightsPerView[viewIndex].probeVolumesBounds.Add(bound);
+                        }
+                        else
+                        {
+                            
+                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                        }
                     }
                 }
 
@@ -3007,7 +3007,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (parameters.probeVolumeEnabled)
                     {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
+                        // This is necessary because all tiles must sample ambient probe fallback.
+                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
+                        // one specifiying which tiles contain probe volumes,
+                        // and another triggered for all tiles to handle fallback.
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
