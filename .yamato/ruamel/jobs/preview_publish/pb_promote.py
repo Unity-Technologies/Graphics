@@ -12,7 +12,7 @@ class PreviewPublish_PromoteJob():
 
     def get_job_definition(self, agent, package, platforms, target_editor):
         if package["publish_source"] != True:
-                raise Exception('Tried to promote package for which "publish_source" set to false.')
+            raise Exception('Tried to promote package for which "publish_source" set to false.')
 
         # define dependencies
         dependencies = [
