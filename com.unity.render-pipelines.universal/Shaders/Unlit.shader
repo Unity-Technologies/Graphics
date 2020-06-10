@@ -37,9 +37,8 @@ Shader "Universal Render Pipeline/Unlit"
             Name "Unlit"
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers d3d11_9x gles
+            #pragma target 4.5
 
             #pragma vertex vert
             #pragma fragment frag
@@ -50,6 +49,7 @@ Shader "Universal Render Pipeline/Unlit"
             // Unity defined keywords
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
 
             #include "UnlitInput.hlsl"
 
@@ -115,8 +115,6 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -146,8 +144,6 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x gles
             #pragma target 4.5
 
@@ -174,9 +170,7 @@ Shader "Universal Render Pipeline/Unlit"
         {
             Name "Unlit"
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
             
             #pragma vertex vert
@@ -254,9 +248,7 @@ Shader "Universal Render Pipeline/Unlit"
             ColorMask 0
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -284,9 +276,7 @@ Shader "Universal Render Pipeline/Unlit"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma only_renderers gles gles3
+            #pragma only_renderers gles gles3 glcore
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMetaUnlit

@@ -25,6 +25,8 @@ namespace UnityEditor.ShaderGraph
         , IMayRequireFaceSign
         , IMayRequireCameraOpaqueTexture
         , IMayRequireDepthTexture
+        , IMayRequireVertexSkinning
+        , IMayRequireVertexID
     {
         [Serializable]
         public class MinimalSubGraphNode : IHasDependencies
@@ -38,7 +40,9 @@ namespace UnityEditor.ShaderGraph
                 var guid = assetReference?.subGraph?.guid;
                 if (guid != null)
                 {
-                    paths.Add(AssetDatabase.GUIDToAssetPath(guid));
+                    var assetPath = AssetDatabase.GUIDToAssetPath(guid);
+                    if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
+                        paths.Add(assetPath);
                 }
             }
         }
@@ -105,12 +109,20 @@ namespace UnityEditor.ShaderGraph
 
                 var graphGuid = subGraphGuid;
                 var assetPath = AssetDatabase.GUIDToAssetPath(graphGuid);
-                m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
-                m_SubGraph.LoadGraphData();
-                if (m_SubGraph == null)
+                if (string.IsNullOrEmpty(assetPath))
                 {
+                    // this happens if the editor has never seen the GUID
+                    // error will be printed by validation code in this case
                     return;
                 }
+                m_SubGraph = AssetDatabase.LoadAssetAtPath<SubGraphAsset>(assetPath);
+                if (m_SubGraph == null)
+                {
+                    // this happens if the editor has seen the GUID, but the file has been deleted since then
+                    // error will be printed by validation code in this case
+                    return;
+                }
+                m_SubGraph.LoadGraphData();
 
                 name = m_SubGraph.name;
                 concretePrecision = m_SubGraph.outputPrecision;
@@ -459,6 +471,11 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 owner.AddValidationError(objectId, $"Invalid Sub Graph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid}.");
             }
+            else if(!owner.isSubGraph && owner.activeTargets.Any(x => asset.unsupportedTargets.Contains(x)))
+            {
+                SetOverrideActiveState(ActiveState.ExplicitInactive);
+                owner.AddValidationError(objectId, $"Subgraph asset at \"{AssetDatabase.GUIDToAssetPath(subGraphGuid)}\" with GUID {subGraphGuid} contains nodes that are unsuported by the current active targets");
+            }
 
             // detect VT layer count mismatches
             foreach (var paramProp in asset.inputs)
@@ -628,6 +645,22 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return asset.requirements.requiresDepthTexture;
+        }
+
+        public bool RequiresVertexSkinning(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresVertexSkinning;
+        }
+
+        public bool RequiresVertexID(ShaderStageCapability stageCapability)
+        {
+            if (asset == null)
+                return false;
+
+            return asset.requirements.requiresVertexID;
         }
     }
 }

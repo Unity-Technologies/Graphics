@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
+        SsgiPass,
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -120,7 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareLightsForGPU,
 
         // Profile sampler for shadow
-        PushShadowGlobalParameters,
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,

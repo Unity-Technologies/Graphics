@@ -25,6 +25,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader debugFullScreenPS;
             [Reload("Runtime/Debug/DebugColorPicker.Shader")]
             public Shader debugColorPickerPS;
+            [Reload("Runtime/Debug/DebugExposure.Shader")]
+            public Shader debugExposurePS;
             [Reload("Runtime/Debug/DebugLightVolumes.Shader")]
             public Shader debugLightVolumePS;
             [Reload("Runtime/Debug/DebugLightVolumes.compute")]
@@ -143,7 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader        physicallyBasedSkyPS;
-
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -165,6 +168,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader filterAreaLightCookiesPS;
             [Reload("Runtime/Core/CoreResources/ClearUIntTextureArray.compute")]
             public ComputeShader clearUIntTextureCS;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
+            public Shader customPassUtils;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
+            public Shader customPassRenderersUtils;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]
@@ -200,6 +207,9 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/GTAOBlurAndUpsample.compute")]
             public ComputeShader GTAOBlurAndUpsample;
 
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.compute")]
+            public ComputeShader screenSpaceGlobalIlluminationCS;
+
             // MSAA Shaders
             [Reload("Runtime/RenderPipeline/RenderPass/MSAA/DepthValues.shader")]
             public Shader depthValuesPS;
@@ -215,6 +225,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader nanKillerCS;
             [Reload("Runtime/PostProcessing/Shaders/Exposure.compute")]
             public ComputeShader exposureCS;
+            [Reload("Runtime/PostProcessing/Shaders/HistogramExposure.compute")]
+            public ComputeShader histogramExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/ApplyExposure.compute")]
             public ComputeShader applyExposureCS;
             [Reload("Runtime/PostProcessing/Shaders/UberPost.compute")]
@@ -292,6 +304,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader chromaKeyingPS;
             [Reload("Runtime/Compositor/Shaders/CustomClear.shader")]
             public Shader customClearPS;
+
+            // Denoising
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/SSGIDenoiser.compute")]
+            public ComputeShader ssGIDenoiserCS;
+            [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
+            public ComputeShader bilateralUpsampleCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

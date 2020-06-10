@@ -93,7 +93,6 @@ These settings control lighting features for your rendering components. Here you
 ### Asynchronous Compute Shaders
 
 These settings control which effects, if any, can make use execute compute Shader commands in parallel.
-Note that these settings will have an effect only if asynchronous compute is supported by the target platform.
 
 | **Property**                       | **Description**                                              |
 | ---------------------------------- | ------------------------------------------------------------ |
