@@ -31,9 +31,11 @@ To follow the examples in this section:
 
 ## URP unlit basic shader
 
-This page describes the basic URP-compatible shader. This shader fills the mesh shape with a color predefined in the shader code.
+This example describes the basic URP-compatible shader.
 
-Create a shader, 
+The shader fills the mesh shape with a color predefined in the shader code.
+
+### Shader code 
 
 ```c++
 // This shader fills the mesh shape with a color predefined in the code.
@@ -107,6 +109,17 @@ Shader "Example/URPUnlitShaderBasic"
     }
 }
 ```
+
+### Shader code description
+
+TODO
+
+```c++
+    Properties
+    { }
+```
+
+In this example the block is empty since the output color is predefined in the fragment shader code.
 
 <a name="urp-unlit-color-shader"></a>
 ## URP unlit shader with color input
