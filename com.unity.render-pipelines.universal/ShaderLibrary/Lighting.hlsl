@@ -504,9 +504,9 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half pe
 #if !defined(UNITY_USE_NATIVE_HDR)
     half3 irradiance0 = DecodeHDREnvironment(encodedIrradiance0, unity_SpecCube0_HDR);
     half3 irradiance1 = DecodeHDREnvironment(encodedIrradiance1, unity_SpecCube1_HDR);
-    irradiance = irradiance0 * unity_SpecCube0_BoxMin.w + irradiance1 * (1 - unity_SpecCube0_BoxMin.w);
+    irradiance = irradiance0 * unity_LODFade.w + irradiance1 * (1 - unity_LODFade.w);
 #else
-    half4 encodedIrradiance = encodedIrradiance0 * unity_SpecCube0_BoxMin.w + encodedIrradiance1 * (1 - unity_SpecCube0_BoxMin.w);
+    half4 encodedIrradiance = encodedIrradiance0 * unity_LODFade.w + encodedIrradiance1 * (1 - unity_LODFade.w);
     irradiance = encodedIrradiance.rbg;
 #endif
 #else
