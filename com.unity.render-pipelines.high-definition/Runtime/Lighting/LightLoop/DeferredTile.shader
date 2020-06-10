@@ -243,9 +243,12 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
+                LightLoopOutput lightLoopOutput;
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
 
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();
@@ -405,9 +408,12 @@ Shader "Hidden/HDRP/DeferredTile"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoopOutput lightLoopOutput;
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
+
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
 
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();

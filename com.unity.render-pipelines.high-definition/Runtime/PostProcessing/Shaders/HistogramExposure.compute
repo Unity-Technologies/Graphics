@@ -1,4 +1,3 @@
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
 
 
@@ -45,7 +44,7 @@ void KHistogramGen(uint groupIndex : SV_GroupIndex,
     {
         float2 uv = ClampAndScaleUVForBilinear((fullResCoords + 0.5) * _ScreenSize.zw);
         float luminance = SampleLuminance(uv);
-        float weight = WeightSample(fullResCoords, _ScreenSize.xy);
+        float weight = WeightSample(fullResCoords, _ScreenSize.xy, luminance);
 
         uint  bin = GetHistogramBinLocation(luminance);
         InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
@@ -173,7 +172,7 @@ void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
         exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure), exposure);
+        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
 #ifdef OUTPUT_DEBUG_DATA
         _ExposureDebugTexture[uint2(0, 0)] = float2(avgEV - ParamExposureCompensation, 0.0f);
 #endif

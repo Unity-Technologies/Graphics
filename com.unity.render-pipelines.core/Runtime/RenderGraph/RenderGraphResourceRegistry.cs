@@ -32,6 +32,33 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
 
+        /// <summary>
+        /// Equals Override.
+        /// </summary>
+        /// <param name="obj">Other handle to test against.</param>
+        /// <returns>True if both handle are equals.</returns>
+        public override bool Equals(System.Object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                TextureHandle texture = (TextureHandle)obj;
+                return texture.handle == handle && texture.m_IsValid == m_IsValid;
+            }
+        }
+
+        /// <summary>
+        /// GetHashCode override.
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return (handle << 2) ^ (m_IsValid ? 333 : 444);
+        }
     }
 
     /// <summary>
@@ -92,6 +119,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
+    /// Subset of the texture desc containing information for fast memory allocation (when platform supports it)
+    /// </summary>
+    public struct FastMemoryDesc
+    {
+        ///<summary>Whether the texture will be in fast memory.</summary>
+        public bool inFastMemory;
+        ///<summary>Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</summary>
+        public FastMemoryFlags flags;
+        ///<summary>How much of the render target is to be switched into fast memory (between 0 and 1).</summary>
+        public float residencyFraction;
+    }
+
+    /// <summary>
     /// Descriptor used to create texture resources
     /// </summary>
     public struct TextureDesc
@@ -142,6 +182,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderTextureMemoryless memoryless;
         ///<summary>Texture name.</summary>
         public string name;
+        ///<summary>Descriptor to determine how the texture will be in fast memory on platform that supports it.</summary>
+        public FastMemoryDesc fastMemoryDesc;
 
         // Initial state. Those should not be used in the hash
         ///<summary>Texture needs to be cleared on first use.</summary>
@@ -339,11 +381,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal struct ComputeBufferResource
         {
-            public ComputeBuffer computeBuffer;
+            public ComputeBuffer    computeBuffer;
+            public bool             imported;
 
-            internal ComputeBufferResource(ComputeBuffer computeBuffer)
+            internal ComputeBufferResource(ComputeBuffer computeBuffer, bool imported)
             {
                 this.computeBuffer = computeBuffer;
+                this.imported = imported;
             }
         }
         #endregion
@@ -392,7 +436,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The Renderer List associated with the provided resource handle or an invalid renderer list if the handle is invalid.</returns>
         public RendererList GetRendererList(in RendererListHandle handle)
         {
-            if (!handle.IsValid())
+            if (!handle.IsValid() || handle >= m_RendererListResources.size)
                 return RendererList.nullRendererList;
 
             return m_RendererListResources[handle].rendererList;
@@ -420,7 +464,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RenderGraphResourceRegistry(bool supportMSAA, MSAASamples initialSampleCount, RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
         {
-            m_RTHandleSystem.Initialize(1, 1, supportMSAA, initialSampleCount);
+            // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
+            m_RTHandleSystem.Initialize(Screen.width, Screen.height, supportMSAA, initialSampleCount);
             m_RenderGraphDebug = renderGraphDebug;
             m_Logger = logger;
         }
@@ -447,9 +492,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
         {
             if (m_CurrentBackbuffer != null)
-                m_RTHandleSystem.Release(m_CurrentBackbuffer);
-
-            m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
+                m_CurrentBackbuffer.SetTexture(rt);
+            else
+                m_CurrentBackbuffer = m_RTHandleSystem.Alloc(rt);
 
             int newHandle = m_TextureResources.Add(new TextureResource(m_CurrentBackbuffer, 0));
             return new TextureHandle(newHandle);
@@ -488,8 +533,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
-            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer));
+            int newHandle = m_ComputeBufferResources.Add(new ComputeBufferResource(computeBuffer, imported: true));
             return new ComputeBufferHandle(newHandle);
+        }
+
+        internal bool IsComputeBufferImported(ComputeBufferHandle handle)
+        {
+            return handle.IsValid() ? GetComputeBufferResource(handle).imported : false;
         }
 
         internal int GetComputeBufferResourceCount()
@@ -508,6 +558,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!resource.imported)
             {
                 CreateTextureForPass(ref resource);
+
+                var fastMemDesc = resource.desc.fastMemoryDesc;
+                if(fastMemDesc.inFastMemory)
+                {
+                    resource.rt.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
+                }
 
                 if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
                 {
@@ -569,7 +625,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.cachedHash = hashCode;
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -586,12 +642,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, IReadOnlyCollection<TextureHandle> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }
@@ -714,7 +770,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void Clear()
+        internal void Clear(bool onException)
         {
             LogResources();
 
@@ -723,7 +779,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_ComputeBufferResources.Clear();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_AllocatedTextures.Count != 0)
+            if (m_AllocatedTextures.Count != 0 && !onException)
             {
                 string logMessage = "RenderGraph: Not all textures were released.";
 
@@ -736,6 +792,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 Debug.LogWarning(logMessage);
             }
+
+            // If an error occurred during execution, it's expected that textures are not all release so we clear the trakcing list.
+            if (onException)
+                m_AllocatedTextures.Clear();
 #endif
         }
 

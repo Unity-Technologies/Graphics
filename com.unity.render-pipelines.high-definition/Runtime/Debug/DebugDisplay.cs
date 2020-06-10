@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         static bool needsRefreshingCameraFreezeList = true;
 
         List<ProfilingSampler> m_RecordedSamplers = new List<ProfilingSampler>();
+        List<ProfilingSampler> m_RecordedSamplersRT = new List<ProfilingSampler>();
         enum DebugProfilingType
         {
             CPU,
@@ -691,10 +692,57 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplers.Clear();
         }
 
+        void EnableProfilingRecordersRT()
+        {
+            Debug.Assert(m_RecordedSamplersRT.Count == 0);
+
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingBuildCluster));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingCullLights));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIntegrateReflection));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterReflection));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterAmbientOcclusion));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDirectionalLightShadow));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingLightShadow));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingIntegrateIndirectDiffuse));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingFilterIndirectDiffuse));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RaytracingDebugOverlay));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.ForwardPreRefraction));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingRecursiveRendering));
+            m_RecordedSamplersRT.Add(ProfilingSampler.Get(HDProfileId.RayTracingPrepass));
+        }
+
+        void DisableProfilingRecordersRT()
+        {
+            foreach (var sampler in m_RecordedSamplersRT)
+            {
+                sampler.enableRecording = false;
+            }
+
+            m_RecordedSamplersRT.Clear();
+        }
+
         ObservableList<DebugUI.Widget> BuildProfilingSamplerList(DebugProfilingType type)
         {
             var result = new ObservableList<DebugUI.Widget>();
             foreach (var sampler in m_RecordedSamplers)
+            {
+                sampler.enableRecording = true;
+                result.Add(new DebugUI.Value
+                {
+                    displayName = sampler.name,
+                    getter = () => string.Format("{0:F2}", (type == DebugProfilingType.CPU) ? sampler.cpuElapsedTime : ((type == DebugProfilingType.GPU) ? sampler.gpuElapsedTime : sampler.inlineCpuElapsedTime)),
+                    refreshRate = 1.0f / 5.0f
+                });
+            }
+
+            return result;
+        }
+
+        ObservableList<DebugUI.Widget> BuildProfilingSamplerListRT(DebugProfilingType type)
+        {
+            var result = new ObservableList<DebugUI.Widget>();
+            foreach (var sampler in m_RecordedSamplersRT)
             {
                 sampler.enableRecording = true;
                 result.Add(new DebugUI.Value
@@ -714,11 +762,17 @@ namespace UnityEngine.Rendering.HighDefinition
             list.Add(new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 5f });
             list.Add(new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 5f });
 
+
             EnableProfilingRecorders();
             list.Add(new DebugUI.Foldout("CPU timings (Command Buffers)", BuildProfilingSamplerList(DebugProfilingType.CPU)));
             list.Add(new DebugUI.Foldout("GPU timings", BuildProfilingSamplerList(DebugProfilingType.GPU)));
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
+            {
+                EnableProfilingRecordersRT();
+                list.Add(new DebugUI.Foldout("CPU timings RT (Command Buffers)", BuildProfilingSamplerListRT(DebugProfilingType.CPU)));
+                list.Add(new DebugUI.Foldout("GPU timings RT", BuildProfilingSamplerListRT(DebugProfilingType.GPU)));
+            }
             list.Add(new DebugUI.Foldout("Inline CPU timings", BuildProfilingSamplerList(DebugProfilingType.InlineCPU)));
-
             list.Add(new DebugUI.BoolField { displayName = "Count Rays (MRays/Frame)", getter = () => data.countRays, setter = value => data.countRays = value, onValueChanged = RefreshDisplayStatsDebug });
             if (data.countRays)
             {
@@ -927,6 +981,17 @@ namespace UnityEngine.Rendering.HighDefinition
                             setter = value => data.lightingDebugSettings.centerHistogramAroundMiddleGrey = value
                         });
                 }
+
+            exposureFoldout.children.Add(
+                    new DebugUI.FloatField
+                    {
+                        displayName = "Debug Lens Attenuation",
+                        getter = () => Mathf.Clamp01(data.lightingDebugSettings.debugLensAttenuation),
+                        setter = value => data.lightingDebugSettings.debugLensAttenuation = Mathf.Clamp01(value),
+                        min = () => 0.1f,
+                        max = () => 0.78f
+
+                    });
 
                 exposureFoldout.children.Add(
                     new DebugUI.FloatField
@@ -1299,7 +1364,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 displayName = name,
                                 getter = () => {
                                     var value = property.GetValue(param);
-                                    if (value == null)
+                                    if (value == null || value.Equals(null))
                                         return "None";
                                     var valueString = nameProp.GetValue(value);
                                     return valueString == null ? "None" : valueString;
@@ -1540,6 +1605,8 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
 
             DisableProfilingRecorders();
+            if (HDRenderPipeline.currentAsset?.currentPlatformRenderPipelineSettings.supportRayTracing ?? true)
+                DisableProfilingRecordersRT();
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
 
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);

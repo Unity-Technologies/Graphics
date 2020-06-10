@@ -217,14 +217,14 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesLightList
     {
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mInvScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mScrProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mInvProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float  g_mProjectionArr[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mInvScrProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mScrProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mInvProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float  g_mProjectionArr[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         public Vector4      g_screenSize;
 
@@ -264,12 +264,12 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline
     {
         internal const int k_MaxCacheSize = 2000000000; //2 GigaByte
-        internal const int k_MaxDirectionalLightsOnScreen = 16;
-        internal const int k_MaxPunctualLightsOnScreen    = 512;
-        internal const int k_MaxAreaLightsOnScreen        = 128;
-        internal const int k_MaxDecalsOnScreen = 512;
+        internal const int k_MaxDirectionalLightsOnScreen = 512;
+        internal const int k_MaxPunctualLightsOnScreen    = 2048;
+        internal const int k_MaxAreaLightsOnScreen        = 1024;
+        internal const int k_MaxDecalsOnScreen = 2048;
         internal const int k_MaxLightsOnScreen = k_MaxDirectionalLightsOnScreen + k_MaxPunctualLightsOnScreen + k_MaxAreaLightsOnScreen + k_MaxEnvLightsOnScreen;
-        internal const int k_MaxEnvLightsOnScreen = 128;
+        internal const int k_MaxEnvLightsOnScreen = 1024;
         internal static readonly Vector3 k_BoxCullingExtentThreshold = Vector3.one * 0.01f;
 
         #if UNITY_SWITCH
@@ -1788,7 +1788,44 @@ namespace UnityEngine.Rendering.HighDefinition
                             && !hdCamera.frameSettings.IsEnabled(FrameSettingsField.PlanarProbe))
                             break;
 
-                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, out int fetchIndex);
+                        // Grab the render data that was used to render the probe
+                        var renderData = planarProbe.renderData;
+                        // Grab the world to camera matrix of the capture camera
+                        var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
+                        // Grab the projection matrix that was used to render
+                        var projectionMatrix = renderData.projectionMatrix;
+                        // Build an alternative matrix for projection that is not oblique
+                        var projectionMatrixNonOblique = Matrix4x4.Perspective(renderData.fieldOfView, probe.texture.width / probe.texture.height, probe.settings.cameraSettings.frustum.nearClipPlaneRaw, probe.settings.cameraSettings.frustum.farClipPlane);
+
+                        // Convert the projection matrices to their GPU version
+                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
+                        var gpuProjNonOblique = GL.GetGPUProjectionMatrix(projectionMatrixNonOblique, true);
+
+                        // Build the oblique and non oblique view projection matrices
+                        var vp = gpuProj * worldToCameraRHSMatrix;
+                        var vpNonOblique = gpuProjNonOblique * worldToCameraRHSMatrix;
+
+                        // We need to collect the set of parameters required for the filtering
+                        IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters = new IBLFilterBSDF.PlanarTextureFilteringParameters();
+                        planarTextureFilteringParameters.probeNormal = Vector3.Normalize(hdCamera.camera.transform.position - renderData.capturePosition);
+                        planarTextureFilteringParameters.probePosition = probe.gameObject.transform.position;
+                        planarTextureFilteringParameters.captureCameraDepthBuffer = planarProbe.realtimeDepthTexture;
+                        planarTextureFilteringParameters.captureCameraScreenSize = new Vector4(probe.texture.width, probe.texture.height, 1.0f / probe.texture.width, 1.0f / probe.texture.height);
+                        planarTextureFilteringParameters.captureCameraIVP = vp.inverse;
+                        planarTextureFilteringParameters.captureCameraIVP_NonOblique = vpNonOblique.inverse;
+                        planarTextureFilteringParameters.captureCameraVP_NonOblique = vpNonOblique;
+                        planarTextureFilteringParameters.captureCameraPosition = renderData.capturePosition;
+                        planarTextureFilteringParameters.captureFOV = renderData.fieldOfView;
+                        planarTextureFilteringParameters.captureNearPlane = probe.settings.cameraSettings.frustum.nearClipPlaneRaw;
+                        planarTextureFilteringParameters.captureFarPlane = probe.settings.cameraSettings.frustum.farClipPlane;
+
+                        // Fetch the slice and do the filtering
+                        var scaleOffset = m_TextureCaches.reflectionPlanarProbeCache.FetchSlice(cmd, probe.texture, ref planarTextureFilteringParameters, out int fetchIndex);
+
+                        // We don't need to provide the capture position
+                        // It is already encoded in the 'worldToCameraRHSMatrix'
+                        capturePosition = Vector3.zero;
+
                         // Indices start at 1, because -0 == 0, we can know from the bit sign which cache to use
                         envIndex = scaleOffset == Vector4.zero ? int.MinValue : -(fetchIndex + 1);
 
@@ -1800,19 +1837,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
 
                         atlasScaleOffset = scaleOffset;
-
-                        var renderData = planarProbe.renderData;
-                        var worldToCameraRHSMatrix = renderData.worldToCameraRHS;
-                        var projectionMatrix = renderData.projectionMatrix;
-
-                        // We don't need to provide the capture position
-                        // It is already encoded in the 'worldToCameraRHSMatrix'
-                        capturePosition = Vector3.zero;
-
-                        // get the device dependent projection matrix
-                        var gpuProj = GL.GetGPUProjectionMatrix(projectionMatrix, true);
-                        var gpuView = worldToCameraRHSMatrix;
-                        var vp = gpuProj * gpuView;
+                       
                         m_TextureCaches.env2DAtlasScaleOffset[fetchIndex] = scaleOffset;
                         m_TextureCaches.env2DCaptureVP[fetchIndex] = vp;
 
@@ -1951,10 +1976,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        void AddBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, int viewIndex, bool isProbeVolume = false, float normalBiasDilation = 0.0f)
+        void CreateBoxVolumeDataAndBound(OrientedBBox obb, LightCategory category, LightFeatureFlags featureFlags, Matrix4x4 worldToView, float normalBiasDilation, out LightVolumeData volumeData, out SFiniteLightBound bound)
         {
-            var bound      = new SFiniteLightBound();
-            var volumeData = new LightVolumeData();
+            volumeData = new LightVolumeData();
+            bound = new SFiniteLightBound();
 
             // Used in Probe Volumes:
             // Conservatively dilate bounds used for tile / cluster assignment by normal bias.
@@ -1991,19 +2016,6 @@ namespace UnityEngine.Rendering.HighDefinition
             volumeData.lightAxisZ   = forwardVS;
             volumeData.boxInnerDist = extents - k_BoxCullingExtentThreshold; // We have no blend range, but the culling code needs a small EPS value for some reason???
             volumeData.boxInvRange.Set(1.0f / k_BoxCullingExtentThreshold.x, 1.0f / k_BoxCullingExtentThreshold.y, 1.0f / k_BoxCullingExtentThreshold.z);
-
-            if (isProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass))
-            {
-                // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
-                // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
-                m_lightList.lightsPerView[viewIndex].probeVolumesBounds.Add(bound);
-                m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Add(volumeData);
-            }
-            else
-            {
-                m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
-                m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
-            }
         }
 
         internal int GetCurrentShadowCount()
@@ -2649,13 +2661,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
                 m_ProbeVolumeCount = probeVolumes.bounds != null ? probeVolumes.bounds.Count : 0;
 
-                float probeVolumeNormalBiasWS = 0.0f;
+                bool probeVolumeNormalBiasEnabled = false;
                 if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
                 {
                     var settings = hdCamera.volumeStack.GetComponent<ProbeVolumeController>();
-                    probeVolumeNormalBiasWS = (settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter))
-                        ? 0.0f
-                        : settings.normalBiasWS.value;
+                    probeVolumeNormalBiasEnabled = !(settings == null || (settings.leakMitigationMode.value != LeakMitigationMode.NormalBias && settings.leakMitigationMode.value != LeakMitigationMode.OctahedralDepthOcclusionFilter));
                 }
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2672,15 +2682,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Density volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, viewIndex);
+                        CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                        m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
-
 
                     for (int i = 0, n = m_ProbeVolumeCount; i < n; i++)
                     {
                         // Probe volumes are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        AddBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, viewIndex, isProbeVolume: true, probeVolumeNormalBiasWS);
+                        float probeVolumeNormalBiasWS = probeVolumeNormalBiasEnabled ? probeVolumes.data[i].normalBiasWS : 0.0f;
+                        CreateBoxVolumeDataAndBound(probeVolumes.bounds[i], LightCategory.ProbeVolume, featureFlags, worldToViewCR, probeVolumeNormalBiasWS, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        if (ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                        {
+                            // Only probe volume evaluation in the material pass use these custom probe volume specific lists.
+                            // Probe volumes evaluated in the light loop, as well as other volume data such as Decals get folded into the standard list data.
+                            m_lightList.lightsPerView[viewIndex].probeVolumesLightVolumes.Add(volumeData);
+                            m_lightList.lightsPerView[viewIndex].probeVolumesBounds.Add(bound);
+                        }
+                        else
+                        {
+                            
+                            m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
+                            m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
+                        }
                     }
                 }
 
@@ -2982,7 +3007,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (parameters.probeVolumeEnabled)
                     {
-                        // TODO: Verify that we should be globally enabling ProbeVolume feature for all tiles here, or if we should be using per-tile culling.
+                        // If probe volume feature is enabled, we toggle this feature on for all tiles.
+                        // This is necessary because all tiles must sample ambient probe fallback.
+                        // It is possible we could save a little bit of work by having 2x feature flags for probe volumes:
+                        // one specifiying which tiles contain probe volumes,
+                        // and another triggered for all tiles to handle fallback.
                         baseFeatureFlags |= (uint)LightFeatureFlags.ProbeVolume;
                     }
 
