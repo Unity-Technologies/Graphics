@@ -666,6 +666,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with dynamic resolution updating when not in play mode.
 - Fixed issue with Contrast Adaptive Sharpening upsample mode and preview camera.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed issue with depth pyramid generation and dynamic resolution.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
