@@ -468,17 +468,17 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 
     half3 pos = _WorldSpaceCameraPos;
     // TODO: Check optimized version in the builtin renderer.
     
-        float3 nrdir = normalize(reflectVector);
+    //float3 nrdir = normalize(reflectVector);
 
-        float3 rbmax = (boxMax.xyz - pos) / nrdir;
-        float3 rbmin = (boxMin.xyz - pos) / nrdir;
+    float3 rbmax = (boxMax.xyz - pos) / reflectVector;
+    float3 rbmin = (boxMin.xyz - pos) / reflectVector;
 
-        float3 rbminmax = (nrdir > 0.0f) ? rbmax : rbmin;
+    float3 rbminmax = (reflectVector > 0.0f) ? rbmax : rbmin;
 
-        float fa = min(min(rbminmax.x, rbminmax.y), rbminmax.z);
+    float fa = min(min(rbminmax.x, rbminmax.y), rbminmax.z);
 
-        pos -= cubemapCenter.xyz;
-        reflectVector = pos + nrdir * fa;
+    pos -= cubemapCenter.xyz;
+    reflectVector = pos + reflectVector * fa;
     
     return reflectVector;
 }
