@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
-    [Serializable, VolumeComponentMenu("Lighting/Global Illumination")]
+    [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination (Preview)")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         /// <summary>
@@ -20,6 +20,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
         public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.01f, 0, 1.0f);
+
+        GlobalIllumination()
+        {
+            displayName = "Screen Space Global Illumination (Preview)";
+        }
 
         /// <summary>
         /// The number of steps that should be used during the ray marching pass.
@@ -193,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of samples for evaluating the effect.
         /// </summary>
         [Tooltip("Number of samples for GI.")]
-        public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
+        public ClampedIntParameter sampleCount = new ClampedIntParameter(2, 1, 32);
 
         /// <summary>
         /// Number of bounces for evaluating the effect.
@@ -280,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RTGI
         [SerializeField, FormerlySerializedAs("rayLength")]
         [Tooltip("Controls the length of GI rays.")]
-        public ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        public ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]
@@ -296,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField, FormerlySerializedAs("denoise")]
         [Tooltip("Denoise the ray-traced GI.")]
-        public BoolParameter m_Denoise = new BoolParameter(false);
+        public BoolParameter m_Denoise = new BoolParameter(true);
 
         [SerializeField, FormerlySerializedAs("halfResolutionDenoiser")]
         [Tooltip("Use a half resolution denoiser.")]
@@ -308,7 +313,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [SerializeField, FormerlySerializedAs("secondDenoiserPass")]
         [Tooltip("Enable second denoising pass.")]
-        public BoolParameter m_SecondDenoiserPass = new BoolParameter(false);
+        public BoolParameter m_SecondDenoiserPass = new BoolParameter(true);
 
         [SerializeField, FormerlySerializedAs("secondDenoiserRadius")]
         [Tooltip("Controls the radius of the GI denoiser (Second Pass).")]

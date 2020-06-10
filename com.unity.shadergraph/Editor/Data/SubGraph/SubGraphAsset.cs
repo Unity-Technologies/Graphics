@@ -27,6 +27,7 @@ namespace UnityEditor.ShaderGraph
         public List<JsonData<ShaderKeyword>> keywords = new List<JsonData<ShaderKeyword>>();
         public List<JsonData<AbstractShaderProperty>> nodeProperties = new List<JsonData<AbstractShaderProperty>>();
         public List<JsonData<MaterialSlot>> outputs = new List<JsonData<MaterialSlot>>();
+        public List<JsonData<Target>> unsupportedTargets = new List<JsonData<Target>>();
     }
 
     class SubGraphAsset : ScriptableObject, ISerializationCallbackReceiver
@@ -66,6 +67,8 @@ namespace UnityEditor.ShaderGraph
 
         public DataValueEnumerable<MaterialSlot> outputs => m_SubGraphData.outputs.SelectValue();
 
+        public DataValueEnumerable<Target> unsupportedTargets => m_SubGraphData.unsupportedTargets.SelectValue();
+
         public List<string> children = new List<string>();
 
         public List<string> descendents = new List<string>();
@@ -76,7 +79,7 @@ namespace UnityEditor.ShaderGraph
 
         public ConcretePrecision outputPrecision;
         
-        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs)
+        public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
             if(m_SubGraphData == null)
             {
@@ -86,6 +89,7 @@ namespace UnityEditor.ShaderGraph
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();
             m_SubGraphData.outputs.Clear();
+            m_SubGraphData.unsupportedTargets.Clear();
 
             foreach(var input in inputs)
             {
@@ -105,6 +109,11 @@ namespace UnityEditor.ShaderGraph
             foreach(var output in outputs)
             {
                 m_SubGraphData.outputs.Add(output);
+            }
+
+            foreach(var unsupportedTarget in unsupportedTargets)
+            {
+                m_SubGraphData.unsupportedTargets.Add(unsupportedTarget);
             }
             var json = MultiJson.Serialize(m_SubGraphData);
             m_SerializedSubGraphData = new SerializationHelper.JSONSerializedElement() { JSONnodeData = json };
