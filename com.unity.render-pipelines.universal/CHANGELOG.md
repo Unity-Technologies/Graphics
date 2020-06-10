@@ -196,6 +196,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
 - Fixed an issue where the Render Scale setting of the pipeline asset didn't properly change the resolution when using the 2D Renderer. [case 1241537](https://issuetracker.unity3d.com/issues/render-scale-is-not-applied-to-the-rendered-image-when-2d-renderer-is-used-and-hdr-option-is-disabled)
 - Fixed an issue where 2D lights didn't respect the Camera's Culling Mask. [case 1239136](https://issuetracker.unity3d.com/issues/urp-2d-2d-lights-are-ignored-by-camera-culling-mask)
+- Fixed broken documentation links for some 2D related components.
 - Fixed an issue where Stencil settings wasn't serialized properly in sub object [case 1241218](https://issuetracker.unity3d.com/issues/stencil-overrides-in-urp-7-dot-3-1-render-objects-does-not-save-or-apply)
 - Fixed an issue with not being able to remove Light Mode Tags [case 1240895](https://issuetracker.unity3d.com/issues/urp-unable-to-remove-added-lightmode-tags-of-filters-property-in-render-object)
 - Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
