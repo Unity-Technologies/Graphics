@@ -94,8 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             ProbeVolume probeVolume = target as ProbeVolume;
 
-            if (Event.current.type == EventType.Layout)
-                probeVolume.DrawSelectedProbes();
+
 
             if (!blendBoxes.TryGetValue(probeVolume, out HierarchicalBox blendBox)) { return; }
             if (!shapeBoxes.TryGetValue(probeVolume, out HierarchicalBox shapeBox)) { return; }
