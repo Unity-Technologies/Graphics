@@ -41,7 +41,7 @@ Shader "Hidden/Shader/DepthTAA"
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        float depth = LoadCameraDepth(input.positionCS);
+        float depth = LoadCameraDepth(input.positionCS.xy);
 
         uint2 positionSS = input.texcoord * _ScreenSize.xy;
         float3 outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).xyz;
