@@ -390,9 +390,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4037_TonemappingExternal.unity
     guid: a29cfd59900da92428e1dc1fa215b260
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/4x_PostProcessing/4038_Bloom.unity
-    guid: 38edf17699ac89749b4f368a23b34457
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/4x_PostProcessing/4050_FXAA.unity
     guid: 736a5167224854841be61166040606c6
   - enabled: 1
