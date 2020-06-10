@@ -659,6 +659,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flash when enabling SSR or SSGI.
 - The ray traced indrect diffuse and RTGI were combined wrongly with the rest of the lighting (1254318).
 - Fixed an exception happening when using RTSSS without using RTShadows.
+- Force to rebake probe with missing baked texture. (1253367)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
