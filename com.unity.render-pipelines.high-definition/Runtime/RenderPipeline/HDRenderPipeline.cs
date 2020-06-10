@@ -1559,7 +1559,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDAdditionalCameraData hdCam;
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
-                        cameraRequestedDynamicRes = hdCam.allowDynamicResolution;
+                        cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
 
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
