@@ -288,7 +288,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.MotionVectors;
+                var renderState = new RenderStateCollection();
+                renderState.Add(CoreRenderStates.MotionVectors);
     
                 if (!supportLighting)
                 {
