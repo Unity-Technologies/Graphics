@@ -37,7 +37,6 @@ publish_all_preview:
 promote_all_preview:
     name: Promote all preview packages - nightly
     dependencies:
-      -  .yamato/_preview_publish.yml#publish_all_preview
       -  .yamato/_preview_publish.yml#promote_core
       -  .yamato/_preview_publish.yml#promote_universal
       -  .yamato/_preview_publish.yml#promote_hdrp
