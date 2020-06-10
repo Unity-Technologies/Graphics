@@ -267,7 +267,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal int GetCookieAtlasMipCount() => (int)Mathf.Log((int)currentPlatformRenderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
-        internal int GetCookieCubeArraySize() => currentPlatformRenderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize;
 
         internal int GetPlanarReflectionProbeMipCount()
         {
@@ -4945,7 +4944,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 mpb.SetTexture(HDShaderIDs._InputCubemap, debugParameters.skyReflectionTexture);
                 mpb.SetFloat(HDShaderIDs._Mipmap, lightingDebug.skyReflectionMipmap);
                 mpb.SetFloat(HDShaderIDs._ApplyExposure, 1.0f);
-                mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cookieCubeArraySliceIndex);
+                mpb.SetFloat(HDShaderIDs._SliceIndex, lightingDebug.cubeArraySliceIndex);
                 cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
                 cmd.DrawProcedural(Matrix4x4.identity, debugParameters.debugLatlongMaterial, 0, MeshTopology.Triangles, 3, 1, mpb);
                 HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, debugParameters.hdCamera);

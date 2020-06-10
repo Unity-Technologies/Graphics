@@ -234,26 +234,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.cookieFormat, Styles.cookieAtlasFormatContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize, Styles.pointCoockieSizeContent);
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.DelayedIntField(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize, Styles.pointCookieTextureArraySizeContent);
-            if (EditorGUI.EndChangeCheck())
-                serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue, 1, TextureCache.k_MaxSupported);
-            if (serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.hasMultipleDifferentValues)
-                EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
-            else
-            {
-                long currentCache = TextureCacheCubemap.GetApproxCacheSizeInByte(serialized.renderPipelineSettings.lightLoopSettings.cubeCookieTexArraySize.intValue, serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize.intValue, 1);
-                if (currentCache > HDRenderPipeline.k_MaxCacheSize)
-                {
-                    int reserved = TextureCacheCubemap.GetMaxCacheSizeForWeightInByte(HDRenderPipeline.k_MaxCacheSize, serialized.renderPipelineSettings.lightLoopSettings.pointCookieSize.intValue, 1);
-                    string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), reserved);
-                    EditorGUILayout.HelpBox(message, MessageType.Error);
-                }
-                else
-                {
-                    string message = string.Format(Styles.cacheInfoFormat, HDEditorUtils.HumanizeWeight(currentCache));
-                    EditorGUILayout.HelpBox(message, MessageType.Info);
-                }
-            }
         }
 
         static void Drawer_SectionReflection(SerializedHDRenderPipelineAsset serialized, Editor owner)
