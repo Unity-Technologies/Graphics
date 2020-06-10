@@ -249,8 +249,8 @@ MonoBehaviour:
     min: 2
     max: 4
   m_Denoise:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   m_HalfResolutionDenoiser:
     m_OverrideState: 0
     m_Value: 0
@@ -261,7 +261,7 @@ MonoBehaviour:
     max: 1
   m_SecondDenoiserPass:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
   m_SecondDenoiserRadius:
     m_OverrideState: 0
     m_Value: 0.3
