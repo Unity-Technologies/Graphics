@@ -662,6 +662,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
 - Fix reflection probe frame settings override
 - Fixed certain shadow bias artifacts present in volumetric lighting (case 1231885).
+- Fixing the internsity being applied to RTAO too early leading to unexpected results (1254626).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
