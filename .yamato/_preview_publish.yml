@@ -16,6 +16,10 @@ auto-version:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci utils auto-version bump --package-path com.unity.render-pipelines.core --package-path com.unity.render-pipelines.universal --package-path com.unity.render-pipelines.high-definition --package-path com.unity.shadergraph --package-path com.unity.visualeffectgraph --package-path com.unity.render-pipelines.high-definition-config --package-path com.unity.render-pipelines.lightweight
       -  upm-ci utils auto-version commit --push
+    triggers:
+        branches:
+            only:
+              -  master
     artifacts:
         packages:
             paths:
