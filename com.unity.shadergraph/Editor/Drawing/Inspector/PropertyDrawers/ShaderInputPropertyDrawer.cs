@@ -24,6 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
+        internal delegate  void ChangeDisplayNameCallback(string newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -42,6 +43,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ObjectField m_VTLayer_Texture;
         EnumField m_VTLayer_TextureType;
 
+        // Display Name
+        TextField m_DisplayNameField;
 
         // Reference Name
         TextField m_ReferenceNameField;
@@ -60,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         GraphData graphData;
         bool isSubGraph { get ; set;  }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
+        ChangeDisplayNameCallback _displayNameChangedCallback;
         ChangeReferenceNameCallback _referenceNameChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -70,6 +74,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             bool isSubGraph,
             GraphData graphData,
             ChangeExposedFieldCallback exposedFieldCallback,
+            ChangeDisplayNameCallback displayNameCallback,
             ChangeReferenceNameCallback referenceNameCallback,
             Action precisionChangedCallback,
             Action keywordChangedCallback,
@@ -80,6 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
             this._exposedFieldChangedCallback = exposedFieldCallback;
+            this._displayNameChangedCallback = displayNameCallback;
             this._referenceNameChangedCallback = referenceNameCallback;
             this._precisionChangedCallback = precisionChangedCallback;
             this._changeValueCallback = changeValueCallback;
@@ -99,6 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             shaderInput = actualObject as ShaderInput;
             BuildPropertyNameLabel(propertySheet);
             BuildExposedField(propertySheet);
+            BuildDisplayNameField(propertySheet);
             BuildReferenceNameField(propertySheet);
             BuildPropertyFields(propertySheet);
             BuildKeywordFields(propertySheet, shaderInput);
@@ -130,6 +137,36 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     out var propertyToggle));
                 propertyToggle.SetEnabled(shaderInput.isExposable);
             }
+        }
+
+        void BuildDisplayNameField(PropertySheet propertySheet)
+        {
+            var textPropertyDrawer = new TextPropertyDrawer();
+            propertySheet.Add(textPropertyDrawer.CreateGUI(
+                null,
+                (string)shaderInput.displayName,
+                "Display Name",
+                out var propertyVisualElement));
+
+            m_DisplayNameField = (TextField) propertyVisualElement;
+            m_DisplayNameField.RegisterValueChangedCallback(
+                evt =>
+                {
+                    this._preChangeValueCallback("Change Display Name");
+                    this._displayNameChangedCallback(evt.newValue);
+
+                    if (string.IsNullOrEmpty(shaderInput.displayName))
+                        m_DisplayNameField.RemoveFromClassList("modified");
+                    else
+                        m_DisplayNameField.AddToClassList("modified");
+
+                    this._postChangeValueCallback(true, ModificationScope.Topological);
+                });
+
+            if(!string.IsNullOrEmpty(shaderInput.displayName))
+                propertyVisualElement.AddToClassList("modified");
+            propertyVisualElement.SetEnabled(shaderInput.isRenamable);
+            propertyVisualElement.styleSheets.Add(Resources.Load<StyleSheet>("Styles/PropertyNameReferenceField"));
         }
 
         void BuildReferenceNameField(PropertySheet propertySheet)

@@ -69,6 +69,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         private Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
+        internal delegate void ChangedDisplayNameCallback(Blackboard blackboard, VisualElement visualElement, string newValue);
+
+        public ChangedDisplayNameCallback _displayNameChangedCallback;
+
         public string inspectorTitle
         {
             get
@@ -85,11 +89,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public BlackboardFieldView(GraphData graph, ShaderInput input, ChangedDisplayNameCallback displayNameCallback,
+             Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
+            this._displayNameChangedCallback = displayNameCallback;
         }
 
         public object GetObjectToInspect()
@@ -130,6 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_Graph.isSubGraph,
                     m_Graph,
                     ChangeExposedField,
+                    ChangeDisplayNameField,
                     ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
@@ -148,6 +155,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Input.generatePropertyBlock = newValue;
             icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
+        }
+        void ChangeDisplayNameField(string newValue)
+        {
+            if (newValue != m_Input.displayName)
+            {
+                m_Input.displayName = newValue;
+                m_Graph.SanitizeGraphInputName(m_Input);
+            }
         }
 
         void ChangeReferenceNameField(string newValue)
