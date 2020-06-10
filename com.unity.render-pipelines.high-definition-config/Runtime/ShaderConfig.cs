@@ -60,6 +60,9 @@ namespace UnityEngine.Rendering.HighDefinition
     // Changing a value in this enum Config here require to regenerate the hlsl include and recompile C# and shaders
     public class ShaderConfig
     {
+        public const int k_XRMaxViewsForCBuffer = 2;         // REALLY IMPORTANT! This needs to be the maximum possible XrMaxViews for any supported platform!
+                                                             // this needs to be constant and not vary like XrMaxViews does as it is used to generate the cbuffer declarations
+
         public static int s_CameraRelativeRendering = (int)ShaderOptions.CameraRelativeRendering;
         public static int s_PreExposition = (int)ShaderOptions.PreExposition;
         public static int s_XrMaxViews = (int)ShaderOptions.XrMaxViews;
