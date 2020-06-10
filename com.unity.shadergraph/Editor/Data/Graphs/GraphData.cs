@@ -634,7 +634,7 @@ namespace UnityEditor.ShaderGraph
         {
             // Get list of active Block types
             var currentBlocks = GetNodes<BlockNode>();
-            var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList());
+            var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
             foreach(var target in activeTargets)
             {
                 target.GetActiveBlocks(ref context);
