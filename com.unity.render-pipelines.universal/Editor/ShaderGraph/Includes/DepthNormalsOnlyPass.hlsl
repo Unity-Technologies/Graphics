@@ -29,11 +29,11 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
             // IMPORTANT! If we ever support Flip on double sided materials ensure bitangent and tangent are NOT flipped.
             float crossSign = (unpacked.tangentWS.w > 0.0 ? 1.0 : -1.0) * GetOddNegativeScale();
             float3 bitangent = crossSign * cross(unpacked.normalWS.xyz, unpacked.tangentWS.xyz);
-            float3 normal = TransformTangentToWorld(surfaceDescription.Normal, half3x3(unpacked.tangentWS.xyz, bitangent, unpacked.normalWS.xyz));
+            float3 normal = TransformTangentToWorld(surfaceDescription.NormalTS, half3x3(unpacked.tangentWS.xyz, bitangent, unpacked.normalWS.xyz));
         #elif _NORMAL_DROPOFF_OS
-            float3 normal = TransformObjectToWorldNormal(surfaceDescription.Normal);
+            float3 normal = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         #elif _NORMAL_DROPOFF_WS
-            float3 normal = surfaceDescription.Normal;
+            float3 normal = surfaceDescription.NormalWS;
         #endif
     #else
         float3 normal = unpacked.normalWS;

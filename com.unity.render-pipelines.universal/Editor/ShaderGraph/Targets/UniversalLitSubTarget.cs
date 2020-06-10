@@ -38,7 +38,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public override bool IsActive() => true;
-        
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
@@ -109,7 +109,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Surface");
                 target.surfaceType = (SurfaceType)evt.newValue;
                 onChange();
@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.alphaClip, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Alpha Clip");
                 target.alphaClip = evt.newValue;
                 onChange();
@@ -139,7 +139,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 if (Equals(target.twoSided, evt.newValue))
                     return;
-                
+
                 registerUndo("Change Two Sided");
                 target.twoSided = evt.newValue;
                 onChange();
@@ -161,7 +161,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             blockMap = null;
             if(!(masterNode is PBRMasterNode1 pbrMasterNode))
                 return false;
-            
+
             // Set data
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
@@ -395,8 +395,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = CorePortMasks.Vertex,
-                pixelPorts = LitPortMasks.FragmentDepthNormals,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentDepthNormals,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -437,12 +437,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
 
-            public static int[] FragmentDepthNormals = new int[]
+            public static BlockFieldDescriptor[] FragmentDepthNormals = new BlockFieldDescriptor[]
             {
-                PBRMasterNode.NormalSlotId,
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
+                BlockFields.SurfaceDescription.NormalOS,
+                BlockFields.SurfaceDescription.NormalTS,
+                BlockFields.SurfaceDescription.NormalWS,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.AlphaClipThreshold,
             };
+
         }
 #endregion
 
