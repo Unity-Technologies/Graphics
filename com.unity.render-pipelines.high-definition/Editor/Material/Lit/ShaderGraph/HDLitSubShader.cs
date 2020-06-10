@@ -968,7 +968,7 @@ namespace UnityEditor.Rendering.HighDefinition
             ExtraDefines = new List<string>()
             {
                 "#define SHADOW_LOW",
-                "#pragma shader_feature SHADERPASS_LIDAR_DXR",
+                "#define SHADERGRAPH_SENSOR_DXR",
                 DefineRaytracingKeyword(RayTracingNode.RaytracingVariant.High)
             },
             Includes = new List<string>()
