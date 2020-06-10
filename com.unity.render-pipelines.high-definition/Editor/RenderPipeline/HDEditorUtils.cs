@@ -293,7 +293,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// To be used for resetting the indetation after calling BeginIndent 
+        /// To be used for resetting the indentation after calling BeginIndent 
         /// </summary>
         internal static void EndIndent()
         {
