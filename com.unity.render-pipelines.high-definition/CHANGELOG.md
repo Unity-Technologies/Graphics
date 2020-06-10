@@ -655,6 +655,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with fast memory and rendergraph. 
 - Fixed transparent motion vector framesetting not sanitized.
 - Fixed wrong order of post process frame settings.
+- Fixed compile error in PS4 for planar reflection filtering.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
