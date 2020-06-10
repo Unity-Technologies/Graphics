@@ -104,3 +104,6 @@ def pb_job_id_wait_for_nightly():
 
 def pb_job_id_publish_all_preview():
     return f'publish_all_preview'
+
+def pb_job_id_promote_all_preview():
+    return f'promote_all_preview'

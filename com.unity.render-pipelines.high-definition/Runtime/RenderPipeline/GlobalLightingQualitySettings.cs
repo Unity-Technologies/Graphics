@@ -52,9 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             SSGIResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 3.0f;
-            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 5.0f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.5f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5.0f;
+            SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 20.0f;
 
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
             SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;

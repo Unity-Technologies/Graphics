@@ -9,7 +9,7 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SurfaceOptionUIBlock : MaterialUIBlock
+    internal class SurfaceOptionUIBlock : MaterialUIBlock
     {
         [Flags]
         public enum Features
@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             All                         = ~0,
         }
 
-        static class Styles
+        internal static class Styles
         {
             public const string optionText = "Surface Options";
             public const string surfaceTypeText = "Surface Type";
@@ -580,7 +580,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var newMode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
             if (newMode != mode) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
             {
-                materialEditor.RegisterPropertyChangeUndo("Surface Type");
+                materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
                 surfaceType.floatValue = (float)newMode;
                 HDRenderQueue.RenderQueueType targetQueueType;
                 switch(newMode)

@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;
 
-            HDRenderPipeline.currentPipeline.ResetPathTracing();
+            HDRenderPipeline.currentPipeline?.ResetPathTracing();
 
             if (!hdSaveContext.updateMaterials)
                 return;

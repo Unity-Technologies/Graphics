@@ -2,14 +2,14 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
         
-        #pragma multi_compile_local _ _DISTORTION
-        #pragma multi_compile_local _ _CHROMATIC_ABERRATION
-        #pragma multi_compile_local _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
-        #pragma multi_compile_local _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
-        #pragma multi_compile_local _ _FILM_GRAIN
-        #pragma multi_compile_local _ _DITHERING
-		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
-        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
+        #pragma multi_compile_local_fragment _ _DISTORTION
+        #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION
+        #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
+        #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma multi_compile_local_fragment _ _FILM_GRAIN
+        #pragma multi_compile_local_fragment _ _DITHERING
+        #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+		#pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
