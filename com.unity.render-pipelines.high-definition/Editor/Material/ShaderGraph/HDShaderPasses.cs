@@ -863,14 +863,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = supportLighting ? GenerateDefines() : null,
+                defines = supportLighting ? RaytracingIndirectDefines : null,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
             };
         }
 
-        public static DefineCollection RaytracingForwardDefines = new DefineCollection
+        public static DefineCollection RaytracingIndirectDefines = new DefineCollection
         {
             { Defines.shadowLow },
             { Defines.raytracingLow },
