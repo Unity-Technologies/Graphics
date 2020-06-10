@@ -668,6 +668,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Fixed issue with depth pyramid generation and dynamic resolution.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed an issue where rendering preview with MSAA might generate render graph errors.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
