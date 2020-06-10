@@ -130,7 +130,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        class QualitySettings
+        /// An opaque binary blob storing preset settings (used to remember what were the last custom settings that were used).
+        /// For the functionality to save and restore the settings <see cref="VolumeComponentWithQualityEditor"/>
+        class QualitySettingsBlob
         {
             public int nearSampleCount;
             public float nearMaxBlur;
@@ -142,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void LoadSettingsFromObject(object settings)
         {
-            QualitySettings qualitySettings = settings as QualitySettings;
+            QualitySettingsBlob qualitySettings = settings as QualitySettingsBlob;
 
             m_NearSampleCount.value.intValue = qualitySettings.nearSampleCount;
             m_NearMaxBlur.value.floatValue = qualitySettings.nearMaxBlur;
@@ -166,8 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override object SaveCustomQualitySettingsAsObject(object history)
         {
-
-            QualitySettings qualitySettings = (history != null) ? history as QualitySettings : new QualitySettings();
+            QualitySettingsBlob qualitySettings = (history != null) ? history as QualitySettingsBlob : new QualitySettingsBlob();
             
             qualitySettings.nearSampleCount = m_NearSampleCount.value.intValue;
             qualitySettings.nearMaxBlur = m_NearMaxBlur.value.floatValue;

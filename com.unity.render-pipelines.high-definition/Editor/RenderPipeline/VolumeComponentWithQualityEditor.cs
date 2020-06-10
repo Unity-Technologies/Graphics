@@ -8,6 +8,9 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Quality settings
         SerializedDataParameter m_QualitySetting;
+
+        // Note: Editors are refreshed on gui changes by the volume system, so any state that we want to store here needs to be a static (or in a serialized variable)
+        // We use ConditionalWeakTable instead of a Dictionary of InstanceIDs to get automatic clean-up of dead entries in the table
         static ConditionalWeakTable<UnityEngine.Object, object> s_CustomSettingsHistory = new ConditionalWeakTable<UnityEngine.Object, object>();
 
         static readonly int k_CustomQuality = ScalableSettingLevelParameter.LevelCount;
@@ -25,13 +28,14 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.BeginChangeCheck();
             PropertyField(m_QualitySetting);
 
-            // When the quality changes, we want to detect and reflect the changes in the UI
+            // When a quality preset changes, we want to detect and reflect the settings in the UI. PropertyFields mirror the contents of one memory loccation, so
+            // the idea is that we copy the presets to that location. This logic is optional, if volume components don't override the helper functions at the end,
+            // they will continue to work, but the preset settings will not be reflected in the UI.
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.Update();
                 int newQualityLevel = m_QualitySetting.value.intValue;
-
-                
+      
                 if (newQualityLevel == k_CustomQuality && prevQualityLevel != k_CustomQuality)
                 {
                     // If custom quality was selected, then load the last custom quality settings the user has used in this volume
@@ -71,10 +75,25 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
 
+        /// <summary>
+        /// This should be called after the user manually edits a quality setting that appears in a preset. After calling this function, the quality preset will change to Custom.
+        /// </summary>
         public void QualitySettingsWereChanged() { m_QualitySetting.value.intValue = k_CustomQuality; }
+
+        /// <summary>
+        /// This function should be overriden by a volume component to load preset settings from RenderPipelineSettings
+        /// </summary>
         public virtual void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level) { }
+
+        /// <summary>
+        /// This function should be overriden by a volume component to return an opaque object (binary blob) with the custom quality settings currently in use.
+        /// </summary>
+        public virtual object SaveCustomQualitySettingsAsObject(object history = null) { return null; }
+
+        /// <summary>
+        /// This function should be overriden by a volume component to load a custom preset setting from an opaque binary blob (as returned from SaveCustomQualitySettingsAsObject)
+        /// </summary>
         public virtual void LoadSettingsFromObject(object settings) { }
-        public virtual object SaveCustomQualitySettingsAsObject(object history = null) { return null;}
 
     }
 
