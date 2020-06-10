@@ -140,6 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 - Fixed transparent motion vector framesetting not sanitized.
+- Fix reflection probe frame settings override
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
