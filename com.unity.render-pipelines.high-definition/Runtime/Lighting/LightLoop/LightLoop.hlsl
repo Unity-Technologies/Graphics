@@ -75,23 +75,23 @@ void ApplyDebugToLighting(LightLoopContext context, inout BuiltinData builtinDat
 #endif
 }
 
-void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout float3 diffuseLighting, inout float3 specularLighting)
+void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdfData, inout LightLoopOutput lightLoopOutput)
 {
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_PROBE_VOLUME)
     {
         // Debug info is written to diffuseColor inside of light loop.
-        specularLighting = float3(0.0, 0.0, 0.0);
+        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
         // Take the luminance
-        diffuseLighting = Luminance(diffuseLighting).xxx;
+        lightLoopOutput.diffuseLighting = Luminance(lightLoopOutput.diffuseLighting).xxx;
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_VISUALIZE_CASCADE)
     {
-        specularLighting = float3(0.0, 0.0, 0.0);
+        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
 
         const float3 s_CascadeColors[] = {
             float3(0.5, 0.5, 0.7),
@@ -101,7 +101,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
             float3(1.0, 1.0, 1.0)
         };
 
-        diffuseLighting = Luminance(diffuseLighting);
+        lightLoopOutput.diffuseLighting = Luminance(lightLoopOutput.diffuseLighting);
         if (_DirectionalShadowIndex >= 0)
         {
             real alpha;
@@ -133,14 +133,14 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                 float3 cascadeShadowColor = lerp(s_CascadeColors[shadowSplitIndex], s_CascadeColors[shadowSplitIndex + 1], alpha);
                 // We can't mix with the lighting as it can be HDR and it is hard to find a good lerp operation for this case that is still compliant with
                 // exposure. So disable exposure instead and replace color.
-                diffuseLighting = cascadeShadowColor * Luminance(diffuseLighting) * shadow;
+                lightLoopOutput.diffuseLighting = cascadeShadowColor * Luminance(lightLoopOutput.diffuseLighting) * shadow;
             }
 
         }
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_MATCAP_VIEW)
     {
-        specularLighting = float3(0.0, 0.0, 0.0);
+        lightLoopOutput.specularLighting = float3(0.0, 0.0, 0.0);
         float3 normalVS = mul((float3x3)UNITY_MATRIX_V, bsdfData.normalWS).xyz;
 
         float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
@@ -155,15 +155,17 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
             UV = saturate(R.xy * 0.5f + 0.5f);
         }
 
-        diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
+        lightLoopOutput.diffuseLighting = SAMPLE_TEXTURE2D_LOD(_DebugMatCapTexture, s_linear_repeat_sampler, UV, 0).rgb * (_MatcapMixAlbedo > 0  ? defaultColor.rgb * _MatcapViewScale : 1.0f);
     }
 #endif
 }
 
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
-                out float3 diffuseLighting,
-                out float3 specularLighting)
+                out LightLoopOutput lightLoopOutput)
 {
+    // Init LightLoop output structure
+    ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
+
     LightLoopContext context;
 
     context.shadowContext    = InitShadowContext();
@@ -531,12 +533,24 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 #endif
 
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+    // If we use the texture ssgi for ssgi or rtgi, we want to combine it with the value in the bake diffuse lighting value
+    if (_UseIndirectDiffuse != INDIRECT_DIFFUSE_FLAG_OFF)
+    {
+        BuiltinData builtInDataSSGI;
+        ZERO_INITIALIZE(BuiltinData, builtInDataSSGI);
+        builtInDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+        builtInDataSSGI.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+        ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtInDataSSGI);
+        builtinData.bakeDiffuseLighting += builtInDataSSGI.bakeDiffuseLighting;
+    }
+#endif
+
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
 
     // Also Apply indiret diffuse (GI)
     // PostEvaluateBSDF will perform any operation wanted by the material and sum everything into diffuseLighting and specularLighting
-    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting,
-                        diffuseLighting, specularLighting);
+    PostEvaluateBSDF(   context, V, posInput, preLightData, bsdfData, builtinData, aggregateLighting, lightLoopOutput);
 
-    ApplyDebug(context, posInput, bsdfData, diffuseLighting, specularLighting);
+    ApplyDebug(context, posInput, bsdfData, lightLoopOutput);
 }

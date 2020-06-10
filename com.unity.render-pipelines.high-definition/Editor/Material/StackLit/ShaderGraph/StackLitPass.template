@@ -309,19 +309,19 @@ Pass
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
         $SurfaceDescription.IridescenceCoatFixupTIR:   surfaceData.iridescenceCoatFixupTIR =  surfaceDescription.IridescenceCoatFixupTIR;
         $SurfaceDescription.IridescenceCoatFixupTIRClamp: surfaceData.iridescenceCoatFixupTIRClamp =  surfaceDescription.IridescenceCoatFixupTIRClamp;
-        $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;
+        $SurfaceDescription.Specular:                  surfaceData.specularColor =            surfaceDescription.Specular;
         $SurfaceDescription.DielectricIor:             surfaceData.dielectricIor =            surfaceDescription.DielectricIor;
         $SurfaceDescription.Metallic:                  surfaceData.metallic =                 surfaceDescription.Metallic;
-        $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
+        $SurfaceDescription.Smoothness:                surfaceData.perceptualSmoothnessA =    surfaceDescription.Smoothness;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
-        $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
+        $SurfaceDescription.Occlusion:                 surfaceData.ambientOcclusion =         surfaceDescription.Occlusion;
         //TODO: if custom external values are wanted, we would ideally need one SO value per lobe.
         $SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusionCustomInput = surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
-        $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
-        $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
+        $SurfaceDescription.SOFixupVisibilityRatioThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOFixupVisibilityRatioThreshold;
+        $SurfaceDescription.SOFixupStrengthFactor:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOFixupStrengthFactor;
+        $SurfaceDescription.SOFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOFixupMaxAddedRoughness;
 
-        $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
+        $SurfaceDescription.Anisotropy:                surfaceData.anisotropyA =              surfaceDescription.Anisotropy;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
         $SurfaceDescription.CoatMask:                  surfaceData.coatMask =                 surfaceDescription.CoatMask;
@@ -392,7 +392,9 @@ Pass
 
         // normal delivered to master node
         float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
+        $SurfaceDescription.NormalOS: normalSrc = surfaceDescription.NormalOS;
+        $SurfaceDescription.NormalTS: normalSrc = surfaceDescription.NormalTS;
+        $SurfaceDescription.NormalWS: normalSrc = surfaceDescription.NormalWS;
 
         // compute world space normal
         #if _NORMAL_DROPOFF_TS
@@ -533,6 +535,8 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

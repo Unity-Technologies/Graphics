@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 // Material property names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -67,7 +69,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         string commandLineOptions = System.Environment.CommandLine;
                         bool inTestSuite = commandLineOptions.Contains("-testResults");
-                        if (!inTestSuite && fileExist)
+                        if (!inTestSuite && fileExist && !Application.isBatchMode)
                         {
                             EditorUtility.DisplayDialog("HDRP Material upgrade", "The Materials in your Project were created using an older version of the High Definition Render Pipeline (HDRP)." +
                                                         " Unity must upgrade them to be compatible with your current version of HDRP. \n" +
@@ -129,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetVersion assetVersion = null;
                 foreach (var subAsset in assetVersions)
                 {
-                    if (subAsset.GetType() == typeof(AssetVersion))
+                    if (subAsset != null && subAsset.GetType() == typeof(AssetVersion))
                     {
                         assetVersion = subAsset as AssetVersion;
                         break;
@@ -190,6 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
              StencilRefactor,
              ZWriteForTransparent,
              RenderQueueUpgrade,
+             ShaderGraphStack,
         };
 
         #region Migrations
@@ -332,6 +335,59 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 // Push it back to the material
                 material.SetFloat("_RenderQueueType", (float)renderQueueType);
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        // properties in this tab should be properties from Unlit or PBR cross pipeline shader
+        // that are suppose to be synchronize with the Material during upgrade
+        readonly static string[] s_ShadergraphStackFloatPropertiesToSynchronize = {
+            "_SurfaceType",
+            "_BlendMode",
+            "_DstBlend",
+            "_SrcBlend",
+            "_AlphaDstBlend",
+            "_AlphaSrcBlend",
+            "_AlphaCutoff",
+            "_AlphaCutoffEnable",
+            "_DoubleSidedEnable",
+            "_DoubleSidedNormalMode",
+            "_ZWrite", // Needed to fix older bug
+            "_RenderQueueType"  // Needed as seems to not reset correctly
+        };
+
+        static void ShaderGraphStack(Material material, HDShaderUtils.ShaderID id)
+        {
+            Shader shader = material.shader;
+
+            if (shader.IsShaderGraph())
+            {
+                if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
+                {
+                    // Material coming from old cross pipeline shader (Unlit and PBR) are not synchronize correctly with their
+                    // shader graph. This code below ensure it is
+                    if (obj.migrateFromOldCrossPipelineSG) // come from PBR or Unlit cross pipeline SG?
+                    {
+                        var defaultProperties = new Material(material.shader);
+
+                        foreach (var floatToSync in s_ShadergraphStackFloatPropertiesToSynchronize)
+                            if (material.HasProperty(floatToSync))
+                                material.SetFloat(floatToSync, defaultProperties.GetFloat(floatToSync));
+
+                        defaultProperties = null;
+
+                        // Postprocess now that material is correctly sync
+                        bool isTransparent = material.HasProperty("_SurfaceType") && material.GetFloat("_SurfaceType") > 0.0f;
+                        bool alphaTest = material.HasProperty("_AlphaCutoffEnable") && material.GetFloat("_AlphaCutoffEnable") > 0.0f;
+
+                        material.renderQueue = isTransparent ? (int)HDRenderQueue.Priority.Transparent :
+                                                    alphaTest ? (int)HDRenderQueue.Priority.OpaqueAlphaTest : (int)HDRenderQueue.Priority.Opaque;
+
+                        material.SetFloat("_RenderQueueType", isTransparent ? (float)HDRenderQueue.RenderQueueType.Transparent : (float)HDRenderQueue.RenderQueueType.Opaque);
+                    }
+                        
+                }
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);

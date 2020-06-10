@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Profiling;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -33,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraphObjectPool        renderGraphPool;
         ///<summary>Render Graph Resource Registry used for accessing resources.</summary>
         public RenderGraphResourceRegistry  resources;
+        ///<summary>Render Graph default resources.</summary>
+        public RenderGraphDefaultResources  defaultResources;
     }
 
     /// <summary>
@@ -50,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphDebugParams
     {
-        public bool enableRenderGraph = false; // TODO: TEMP TO REMOVE
         public bool tagResourceNamesWithRG;
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
@@ -61,7 +61,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void RegisterDebug()
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.BoolField { displayName = "Enable Render Graph", getter = () => enableRenderGraph, setter = value => enableRenderGraph = value });
             list.Add(new DebugUI.BoolField { displayName = "Tag Resources with RG", getter = () => tagResourceNamesWithRG, setter = value => tagResourceNamesWithRG = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
             list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
@@ -69,8 +68,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             list.Add(new DebugUI.Button { displayName = "Log Frame Information", action = () => logFrameInformation = true });
             list.Add(new DebugUI.Button { displayName = "Log Resources", action = () => logResources = true });
 
-            var testPanel = DebugManager.instance.GetPanel("Render Graph", true);
-            testPanel.children.Add(list.ToArray());
+            var panel = DebugManager.instance.GetPanel("Render Graph", true);
+            panel.children.Add(list.ToArray());
         }
 
         public void UnRegisterDebug()
@@ -95,118 +94,113 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
-        [DebuggerDisplay("RenderPass ({name})")]
-        internal abstract class RenderPass
+        internal struct CompiledResourceInfo
         {
-            internal RenderFunc<PassData> GetExecuteDelegate<PassData>()
-                where PassData : class, new() => ((RenderPass<PassData>)this).renderFunc;
+            public List<int>    producers;
+            public List<int>    consumers;
+            public bool         resourceCreated;
+            public int          refCount;
 
-            internal abstract void Execute(RenderGraphContext renderGraphContext);
-            internal abstract void Release(RenderGraphContext renderGraphContext);
-            internal abstract bool HasRenderFunc();
-
-            internal string                     name;
-            internal int                        index;
-            internal ProfilingSampler           customSampler;
-            internal List<TextureHandle>        textureReadList = new List<TextureHandle>();
-            internal List<TextureHandle>        textureWriteList = new List<TextureHandle>();
-            internal List<ComputeBufferHandle>  bufferReadList = new List<ComputeBufferHandle>();
-            internal List<ComputeBufferHandle>  bufferWriteList = new List<ComputeBufferHandle>();
-            internal List<RendererListHandle>   usedRendererListList = new List<RendererListHandle>();
-            internal bool                       enableAsyncCompute;
-            internal TextureHandle              depthBuffer { get { return m_DepthBuffer; } }
-            internal TextureHandle[]            colorBuffers { get { return m_ColorBuffers; } }
-            internal int                        colorBufferMaxIndex { get { return m_MaxColorBufferIndex; } }
-
-            protected TextureHandle[]           m_ColorBuffers = new TextureHandle[kMaxMRTCount];
-            protected TextureHandle             m_DepthBuffer;
-            protected int                       m_MaxColorBufferIndex = -1;
-
-            internal void Clear()
+            public void Reset()
             {
-                name = "";
-                index = -1;
-                customSampler = null;
-                textureReadList.Clear();
-                textureWriteList.Clear();
-                bufferReadList.Clear();
-                bufferWriteList.Clear();
-                usedRendererListList.Clear();
-                enableAsyncCompute = false;
+                if (producers == null)
+                    producers = new List<int>();
+                if (consumers == null)
+                    consumers = new List<int>();
 
-                // Invalidate everything
-                m_MaxColorBufferIndex = -1;
-                m_DepthBuffer = new TextureHandle();
-                for (int i = 0; i < RenderGraph.kMaxMRTCount; ++i)
+                producers.Clear();
+                consumers.Clear();
+                resourceCreated = false;
+                refCount = 0;
+            }
+        }
+
+        [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
+        internal struct CompiledPassInfo
+        {
+            public RenderGraphPass      pass;
+            public List<TextureHandle>  textureCreateList;
+            public List<TextureHandle>  textureReleaseList;
+            public int                  refCount;
+            public bool                 pruned;
+            public bool                 hasSideEffect;
+            public int                  syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int                  syncFromPassIndex; // Smaller pass index that waits for this pass.
+            public bool                 needGraphicsFence;
+            public GraphicsFence        fence;
+
+            public bool                 enableAsyncCompute { get { return pass.enableAsyncCompute; } }
+            public bool                 allowPassPruning { get { return pass.allowPassPruning; } }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // This members are only here to ease debugging.
+            public List<string>         debugTextureReads;
+            public List<string>         debugTextureWrites;
+#endif
+
+            public void Reset(RenderGraphPass pass)
+            {
+                this.pass = pass;
+
+                if (textureCreateList == null)
                 {
-                    m_ColorBuffers[i] = new TextureHandle();
+                    textureCreateList = new List<TextureHandle>();
+                    textureReleaseList = new List<TextureHandle>();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    debugTextureReads = new List<string>();
+                    debugTextureWrites = new List<string>();
+#endif
                 }
-            }
 
-            internal void SetColorBuffer(TextureHandle resource, int index)
-            {
-                Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
-                m_MaxColorBufferIndex = Math.Max(m_MaxColorBufferIndex, index);
-                m_ColorBuffers[index] = resource;
-                textureWriteList.Add(resource);
-            }
+                textureCreateList.Clear();
+                textureReleaseList.Clear();
+                refCount = 0;
+                pruned = false;
+                hasSideEffect = false;
+                syncToPassIndex = -1;
+                syncFromPassIndex = -1;
+                needGraphicsFence = false;
 
-            internal void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
-            {
-                m_DepthBuffer = resource;
-                if ((flags | DepthAccess.Read) != 0)
-                    textureReadList.Add(resource);
-                if ((flags | DepthAccess.Write) != 0)
-                    textureWriteList.Add(resource);
-
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                debugTextureReads.Clear();
+                debugTextureWrites.Clear();
+#endif
             }
         }
 
-        internal sealed class RenderPass<PassData> : RenderPass
-            where PassData : class, new()
-        {
-            internal PassData data;
-            internal RenderFunc<PassData> renderFunc;
+        RenderGraphResourceRegistry         m_Resources;
+        RenderGraphObjectPool               m_RenderGraphPool = new RenderGraphObjectPool();
+        List<RenderGraphPass>               m_RenderPasses = new List<RenderGraphPass>(64);
+        List<RendererListHandle>            m_RendererLists = new List<RendererListHandle>(32);
+        RenderGraphDebugParams              m_DebugParameters = new RenderGraphDebugParams();
+        RenderGraphLogger                   m_Logger = new RenderGraphLogger();
+        RenderGraphDefaultResources         m_DefaultResources = new RenderGraphDefaultResources();
+        Dictionary<int, ProfilingSampler>   m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
+        bool                                m_ExecutionExceptionWasRaised;
 
-            internal override void Execute(RenderGraphContext renderGraphContext)
-            {
-                GetExecuteDelegate<PassData>()(data, renderGraphContext);
-            }
-
-            internal override void Release(RenderGraphContext renderGraphContext)
-            {
-                Clear();
-                renderGraphContext.renderGraphPool.Release(data);
-                data = null;
-                renderFunc = null;
-                renderGraphContext.renderGraphPool.Release(this);
-            }
-
-            internal override bool HasRenderFunc()
-            {
-                return renderFunc != null;
-            }
-        }
-
-        RenderGraphResourceRegistry m_Resources;
-        RenderGraphObjectPool       m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderPass>            m_RenderPasses = new List<RenderPass>();
-        List<RendererListHandle>    m_RendererLists = new List<RendererListHandle>();
-        RenderGraphDebugParams      m_DebugParameters = new RenderGraphDebugParams();
-        RenderGraphLogger           m_Logger = new RenderGraphLogger();
+        // Compiled Render Graph info.
+        DynamicArray<CompiledResourceInfo>  m_CompiledTextureInfos = new DynamicArray<CompiledResourceInfo>();
+        DynamicArray<CompiledResourceInfo>  m_CompiledBufferInfos = new DynamicArray<CompiledResourceInfo>();
+        DynamicArray<CompiledPassInfo>      m_CompiledPassInfos = new DynamicArray<CompiledPassInfo>();
+        Stack<int>                          m_PruningStack = new Stack<int>();
 
         #region Public Interface
 
-        /// <summary>
-        /// Returns true if rendering with Render Graph is enabled.
-        /// </summary>
-        public bool enabled { get { return m_DebugParameters.enableRenderGraph; } }
-
-        // TODO: Currently only needed by SSAO to sample correctly depth texture mips. Need to figure out a way to hide this behind a proper formalization.
+        // TODO RENDERGRAPH: Currently only needed by SSAO to sample correctly depth texture mips. Need to figure out a way to hide this behind a proper formalization.
         /// <summary>
         /// Gets the RTHandleProperties structure associated with the Render Graph's RTHandle System.
         /// </summary>
         public RTHandleProperties rtHandleProperties { get { return m_Resources.GetRTHandleProperties(); } }
+
+        public RenderGraphDefaultResources defaultResources
+        {
+            get
+            {
+                m_DefaultResources.InitializeForRendering(this);
+                return m_DefaultResources;
+            }
+        }
 
         /// <summary>
         /// Render Graph constructor.
@@ -224,6 +218,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void Cleanup()
         {
             m_Resources.Cleanup();
+            m_DefaultResources.Cleanup();
         }
 
         /// <summary>
@@ -231,7 +226,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void RegisterDebug()
         {
-            //m_DebugParameters.RegisterDebug();
+            m_DebugParameters.RegisterDebug();
         }
 
         /// <summary>
@@ -239,11 +234,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void UnRegisterDebug()
         {
-            //m_DebugParameters.UnRegisterDebug();
+            m_DebugParameters.UnRegisterDebug();
+        }
+
+        /// <summary>
+        /// Resets the reference size of the internal RTHandle System.
+        /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
+        /// </summary>
+        /// <param name="width">New width of the internal RTHandle System.</param>
+        /// <param name="height">New height of the internal RTHandle System.</param>
+        public void ResetRTHandleReferenceSize(int width, int height)
+        {
+            m_Resources.ResetRTHandleReferenceSize(width, height);
         }
 
         /// <summary>
         /// Import an external texture to the Render Graph.
+        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
@@ -312,6 +319,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external Compute Buffer to the Render Graph
+        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
         /// <returns>A new ComputeBufferHandle.</returns>
@@ -330,12 +338,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new instance of a RenderGraphBuilder used to setup the new Render Pass.</returns>
         public RenderGraphBuilder AddRenderPass<PassData>(string passName, out PassData passData, ProfilingSampler sampler = null) where PassData : class, new()
         {
-            var renderPass = m_RenderGraphPool.Get<RenderPass<PassData>>();
-            renderPass.Clear();
-            renderPass.index = m_RenderPasses.Count;
-            renderPass.data = m_RenderGraphPool.Get<PassData>();
-            renderPass.name = passName;
-            renderPass.customSampler = sampler;
+            var renderPass = m_RenderGraphPool.Get<RenderGraphPass<PassData>>();
+            renderPass.Initialize(m_RenderPasses.Count, m_RenderGraphPool.Get<PassData>(), passName, sampler != null ? sampler : GetDefaultProfilingSampler(passName));
 
             passData = renderPass.data;
 
@@ -352,68 +356,29 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="parameters">Render Graph execution parameters.</param>
         public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
         {
-            m_Logger.Initialize();
-
-            // Update RTHandleSystem with size for this rendering pass.
-            m_Resources.SetRTHandleReferenceSize(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples);
-
-            LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
-
-            // First pass, traversal and pruning
-            for (int passIndex = 0; passIndex < m_RenderPasses.Count; ++passIndex)
-            {
-                var pass = m_RenderPasses[passIndex];
-
-                // TODO: Pruning
-
-                // Gather all renderer lists
-                m_RendererLists.AddRange(pass.usedRendererListList);
-            }
-
-            // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists);
-            LogRendererListsCreation();
-
-            // Second pass, execution
-            RenderGraphContext rgContext = new RenderGraphContext();
-            rgContext.cmd = cmd;
-            rgContext.renderContext = renderContext;
-            rgContext.renderGraphPool = m_RenderGraphPool;
-            rgContext.resources = m_Resources;
+            m_ExecutionExceptionWasRaised = false;
 
             try
             {
-                for (int passIndex = 0; passIndex < m_RenderPasses.Count; ++passIndex)
-                {
-                    var pass = m_RenderPasses[passIndex];
+                m_Logger.Initialize();
 
-                    if (!pass.HasRenderFunc())
-                    {
-                        throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", pass.name));
-                    }
+                // Update RTHandleSystem with size for this rendering pass.
+                m_Resources.SetRTHandleReferenceSize(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples);
 
-                    using (new ProfilingScope(cmd, pass.customSampler))
-                    {
-                        LogRenderPassBegin(pass);
-                        using (new RenderGraphLogIndent(m_Logger))
-                        {
-                            PreRenderPassExecute(passIndex, pass, rgContext);
-                            pass.Execute(rgContext);
-                            PostRenderPassExecute(passIndex, pass, rgContext);
-                        }
-                    }
-                }
+                LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
+
+                CompileRenderGraph();
+                ExecuteRenderGraph(renderContext, cmd);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
+                m_ExecutionExceptionWasRaised = true;
                 Debug.LogError("Render Graph Execution error");
                 Debug.LogException(e);
             }
             finally
             {
-                ClearRenderPasses();
-                m_Resources.Clear();
-                m_RendererLists.Clear();
+                ClearCompiledGraph();
 
                 if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
                     Debug.Log(m_Logger.GetLog());
@@ -430,8 +395,454 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         }
 
-        void PreRenderPassSetRenderTargets(in RenderPass pass, RenderGraphContext rgContext)
+        internal void ClearCompiledGraph()
         {
+            ClearRenderPasses();
+            m_Resources.Clear(m_ExecutionExceptionWasRaised);
+            m_DefaultResources.Clear();
+            m_RendererLists.Clear();
+            m_CompiledBufferInfos.Clear();
+            m_CompiledTextureInfos.Clear();
+            m_CompiledPassInfos.Clear();
+        }
+
+        void InitializeCompilationData()
+        {
+            m_CompiledBufferInfos.Resize(m_Resources.GetComputeBufferResourceCount());
+            for (int i = 0; i < m_CompiledBufferInfos.size; ++i)
+                m_CompiledBufferInfos[i].Reset();
+            m_CompiledTextureInfos.Resize(m_Resources.GetTextureResourceCount());
+            for (int i = 0; i < m_CompiledTextureInfos.size; ++i)
+                m_CompiledTextureInfos[i].Reset();
+            m_CompiledPassInfos.Resize(m_RenderPasses.Count);
+            for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+                m_CompiledPassInfos[i].Reset(m_RenderPasses[i]);
+        }
+
+        internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
+
+        void CountReferences()
+        {
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[passIndex];
+
+                var textureRead = passInfo.pass.textureReadList;
+                foreach (TextureHandle texture in textureRead)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
+                    info.consumers.Add(passIndex);
+                    info.refCount++;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureReads.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
+                }
+
+                var textureWrite = passInfo.pass.textureWriteList;
+                foreach (TextureHandle texture in textureWrite)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
+                    info.producers.Add(passIndex);
+                    passInfo.refCount++;
+
+                    // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
+                    if (m_Resources.IsTextureImported(texture))
+                        passInfo.hasSideEffect = true;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureWrites.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
+                }
+
+                foreach (TextureHandle texture in passInfo.pass.transientTextureList)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
+                    info.refCount++;
+                    info.consumers.Add(passIndex);
+                    info.producers.Add(passIndex);
+                }
+
+                // Can't share the code with a generic func as TextureHandle and ComputeBufferHandle are both struct and can't inherit from a common struct with a shared API (thanks C#)
+                var bufferRead = passInfo.pass.bufferReadList;
+                foreach (ComputeBufferHandle buffer in bufferRead)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledBufferInfos[buffer];
+                    info.consumers.Add(passIndex);
+                    info.refCount++;
+                }
+
+                var bufferWrite = passInfo.pass.bufferWriteList;
+                foreach (ComputeBufferHandle buffer in bufferWrite)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledBufferInfos[buffer];
+                    info.producers.Add(passIndex);
+                    passInfo.refCount++;
+
+                    // Writing to an imported compute buffer is considered as a side effect because we don't know what users will do with it outside of render graph.
+                    if (m_Resources.IsComputeBufferImported(buffer))
+                        passInfo.hasSideEffect = true;
+                }
+            }
+        }
+
+        void PruneOutputlessPasses()
+        {
+            // Gather passes that don't produce anything and prune them.
+            m_PruningStack.Clear();
+            for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
+
+                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassPruning)
+                {
+                    // Producer is not necessary as it produces zero resources
+                    // Prune it and decrement refCount of all the resources it reads.
+                    // We don't need to go recursively here because we decrement ref count of read resources
+                    // so the subsequent passes of pruning will detect those and remove the related passes.
+                    passInfo.pruned = true;
+                    foreach (var index in passInfo.pass.textureReadList)
+                    {
+                        m_CompiledTextureInfos[index].refCount--;
+                    }
+
+                    foreach (var index in passInfo.pass.bufferReadList)
+                    {
+                        m_CompiledBufferInfos[index].refCount--;
+                    }
+                }
+            }
+        }
+
+        void PruneUnusedPasses(bool textureResources)
+        {
+            DynamicArray<CompiledResourceInfo> resourceUsageList = textureResources ? m_CompiledTextureInfos : m_CompiledBufferInfos;
+
+            // Gather resources that are never read.
+            m_PruningStack.Clear();
+            for (int i = 0; i < resourceUsageList.size; ++i)
+            {
+                if (resourceUsageList[i].refCount == 0)
+                {
+                    m_PruningStack.Push(i);
+                }
+            }
+
+            while (m_PruningStack.Count != 0)
+            {
+                var unusedResource = resourceUsageList[m_PruningStack.Pop()];
+                foreach (var producerIndex in unusedResource.producers)
+                {
+                    ref var producerInfo = ref m_CompiledPassInfos[producerIndex];
+                    producerInfo.refCount--;
+                    if (producerInfo.refCount == 0 && !producerInfo.hasSideEffect && producerInfo.allowPassPruning)
+                    {
+                        // Producer is not necessary anymore as it produces zero resources
+                        // Prune it and decrement refCount of all the textures it reads.
+                        producerInfo.pruned = true;
+
+                        // Once again, can't share code because C# (can't have struct inheritance)
+                        // Making all those List <int> could help but we lose a lot of explicitness in the API...
+                        if (textureResources)
+                        {
+                            foreach (var textureIndex in producerInfo.pass.textureReadList)
+                            {
+                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[textureIndex];
+                                resourceInfo.refCount--;
+                                // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
+                                if (resourceInfo.refCount == 0)
+                                    m_PruningStack.Push(textureIndex);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var bufferIndex in producerInfo.pass.bufferReadList)
+                            {
+                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[bufferIndex];
+                                resourceInfo.refCount--;
+                                // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
+                                if (resourceInfo.refCount == 0)
+                                    m_PruningStack.Push(bufferIndex);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        void PruneUnusedPasses()
+        {
+            // TODO RENDERGRAPH: temporarily remove pruning of passes without product.
+            // Many passes are used just to set global variables so we don't want to force users to disallow pruning on those explicitly every time.
+            // This will prune passes with no outputs.
+            //PruneOutputlessPasses();
+
+            // This will prune all passes that produce resource that are never read.
+            PruneUnusedPasses(textureResources: true);
+            PruneUnusedPasses(textureResources: false);
+
+            LogPrunedPasses();
+        }
+
+        void UpdatePassSynchronization(ref CompiledPassInfo currentPassInfo, ref CompiledPassInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
+        {
+            // Current pass needs to wait for pass index lastProducer
+            currentPassInfo.syncToPassIndex = lastProducer;
+            // Update latest pass waiting for the other pipe.
+            intLastSyncIndex = lastProducer;
+
+            // Producer will need a graphics fence that this pass will wait on.
+            producerPassInfo.needGraphicsFence = true;
+            // We update the producer pass with the index of the smallest pass waiting for it.
+            // This will be used to "lock" resource from being reused until the pipe has been synchronized.
+            if (producerPassInfo.syncFromPassIndex == -1)
+                producerPassInfo.syncFromPassIndex = currentPassIndex;
+        }
+
+        void UpdateResourceSynchronization(ref int lastGraphicsPipeSync, ref int lastComputePipeSync, int currentPassIndex, in CompiledResourceInfo resource)
+        {
+            int lastProducer = GetLatestProducerIndex(currentPassIndex, resource);
+            if (lastProducer != -1)
+            {
+                ref CompiledPassInfo currentPassInfo = ref m_CompiledPassInfos[currentPassIndex];
+
+                //If the passes are on different pipes, we need synchronization.
+                if (m_CompiledPassInfos[lastProducer].enableAsyncCompute != currentPassInfo.enableAsyncCompute)
+                {
+                    // Pass is on compute pipe, need sync with graphics pipe.
+                    if (currentPassInfo.enableAsyncCompute)
+                    {
+                        if (lastProducer > lastGraphicsPipeSync)
+                        {
+                            UpdatePassSynchronization(ref currentPassInfo, ref m_CompiledPassInfos[lastProducer], currentPassIndex, lastProducer, ref lastGraphicsPipeSync);
+                        }
+                    }
+                    else
+                    {
+                        if (lastProducer > lastComputePipeSync)
+                        {
+                            UpdatePassSynchronization(ref currentPassInfo, ref m_CompiledPassInfos[lastProducer], currentPassIndex, lastProducer, ref lastComputePipeSync);
+                        }
+                    }
+                }
+            }
+        }
+
+        int GetLatestProducerIndex(int passIndex, in CompiledResourceInfo info)
+        {
+            // We want to know the highest pass index below the current pass that writes to the resource.
+            int result = -1;
+            foreach (var producer in info.producers)
+            {
+                // producers are by construction in increasing order.
+                if (producer < passIndex)
+                    result = producer;
+                else
+                    return result;
+            }
+
+            return result;
+        }
+
+        int GetLatestValidReadIndex(in CompiledResourceInfo info)
+        {
+            if (info.consumers.Count == 0)
+                return -1;
+
+            var consumers = info.consumers;
+            for (int i = consumers.Count - 1; i >= 0; --i)
+            {
+                if (!m_CompiledPassInfos[consumers[i]].pruned)
+                    return consumers[i];
+            }
+
+            return -1;
+        }
+
+        int GetFirstValidWriteIndex(in CompiledResourceInfo info)
+        {
+            if (info.producers.Count == 0)
+                return -1;
+
+            var producers = info.producers;
+            for (int i = 0; i < producers.Count; i++)
+            {
+                if (!m_CompiledPassInfos[producers[i]].pruned)
+                    return producers[i];
+            }
+
+            return -1;
+        }
+
+        int GetLatestValidWriteIndex(in CompiledResourceInfo info)
+        {
+            if (info.producers.Count == 0)
+                return -1;
+
+            var producers = info.producers;
+            for (int i = producers.Count - 1; i >= 0; --i)
+            {
+                if (!m_CompiledPassInfos[producers[i]].pruned)
+                    return producers[i];
+            }
+
+            return -1;
+        }
+
+
+        void UpdateResourceAllocationAndSynchronization()
+        {
+            int lastGraphicsPipeSync = -1;
+            int lastComputePipeSync = -1;
+
+            // First go through all passes.
+            // - Update the last pass read index for each resource.
+            // - Add texture to creation list for passes that first write to a texture.
+            // - Update synchronization points for all resources between compute and graphics pipes.
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[passIndex];
+
+                if (passInfo.pruned)
+                    continue;
+
+                foreach (TextureHandle texture in passInfo.pass.textureReadList)
+                {
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledTextureInfos[texture]);
+                }
+
+                foreach (TextureHandle texture in passInfo.pass.textureWriteList)
+                {
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledTextureInfos[texture]);
+                }
+
+                foreach (ComputeBufferHandle texture in passInfo.pass.bufferReadList)
+                {
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledBufferInfos[texture]);
+                }
+                foreach (ComputeBufferHandle texture in passInfo.pass.bufferWriteList)
+                {
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledBufferInfos[texture]);
+                }
+
+                // Gather all renderer lists
+                m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
+            }
+
+            // Now push textures to the release list of the pass that reads it last.
+            for (int i = 0; i < m_CompiledTextureInfos.size; ++i)
+            {
+                CompiledResourceInfo textureInfo = m_CompiledTextureInfos[i];
+
+                // Texture creation
+                int firstWriteIndex = GetFirstValidWriteIndex(textureInfo);
+                // This can happen for imported textures (for example an imported dummy black texture will never be written to but does not need creation anyway)
+                if (firstWriteIndex != -1)
+                    m_CompiledPassInfos[firstWriteIndex].textureCreateList.Add(new TextureHandle(i));
+
+                // Texture release
+                // Sometimes, a texture can be written by a pass after the last pass that reads it.
+                // In this case, we need to extend its lifetime to this pass otherwise the pass would get an invalid texture.
+                int lastReadPassIndex = Math.Max(GetLatestValidReadIndex(textureInfo), GetLatestValidWriteIndex(textureInfo));
+
+                if (lastReadPassIndex != -1)
+                {
+                    // In case of async passes, we need to extend lifetime of resource to the first pass on the graphics pipeline that wait for async passes to be over.
+                    // Otherwise, if we freed the resource right away during an async pass, another non async pass could reuse the resource even though the async pipe is not done.
+                    if (m_CompiledPassInfos[lastReadPassIndex].enableAsyncCompute)
+                    {
+                        int currentPassIndex = lastReadPassIndex;
+                        int firstWaitingPassIndex = m_CompiledPassInfos[currentPassIndex].syncFromPassIndex;
+                        // Find the first async pass that is synchronized by the graphics pipeline (ie: passInfo.syncFromPassIndex != -1)
+                        while (firstWaitingPassIndex == -1 && currentPassIndex < m_CompiledPassInfos.size)
+                        {
+                            currentPassIndex++;
+                            if(m_CompiledPassInfos[currentPassIndex].enableAsyncCompute)
+                                firstWaitingPassIndex = m_CompiledPassInfos[currentPassIndex].syncFromPassIndex;
+                        }
+
+                        // Finally add the release command to the pass before the first pass that waits for the compute pipe.
+                        ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[Math.Max(0, firstWaitingPassIndex - 1)];
+                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+
+                        // Fail safe in case render graph is badly formed.
+                        if (currentPassIndex == m_CompiledPassInfos.size)
+                        {
+                            RenderGraphPass invalidPass = m_RenderPasses[lastReadPassIndex];
+                            throw new InvalidOperationException($"Asynchronous pass {invalidPass.name} was never synchronized on the graphics pipeline.");
+                        }
+                    }
+                    else
+                    {
+                        ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
+                        passInfo.textureReleaseList.Add(new TextureHandle(i));
+                    }
+                }
+            }
+
+            // Creates all renderer lists
+            m_Resources.CreateRendererLists(m_RendererLists);
+        }
+
+        // Traverse the render graph:
+        // - Determines when resources are created/released
+        // - Determines async compute pass synchronization
+        // - Prune unused render passes.
+        internal void CompileRenderGraph()
+        {
+            InitializeCompilationData();
+            CountReferences();
+            PruneUnusedPasses();
+            UpdateResourceAllocationAndSynchronization();
+            LogRendererListsCreation();
+        }
+
+        // Execute the compiled render graph
+        void ExecuteRenderGraph(ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            RenderGraphContext rgContext = new RenderGraphContext();
+            rgContext.cmd = cmd;
+            rgContext.renderContext = renderContext;
+            rgContext.renderGraphPool = m_RenderGraphPool;
+            rgContext.resources = m_Resources;
+            rgContext.defaultResources = m_DefaultResources;
+
+            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            {
+                ref var passInfo = ref m_CompiledPassInfos[passIndex];
+                if (passInfo.pruned)
+                    continue;
+
+                if (!passInfo.pass.HasRenderFunc())
+                {
+                    throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", passInfo.pass.name));
+                }
+
+                try
+                {
+                    using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
+                    {
+                        LogRenderPassBegin(passInfo);
+                        using (new RenderGraphLogIndent(m_Logger))
+                        {
+                            PreRenderPassExecute(passInfo, ref rgContext);
+                            passInfo.pass.Execute(rgContext);
+                            PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    m_ExecutionExceptionWasRaised = true;
+                    Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
+                    Debug.LogException(e);
+                }
+            }
+        }
+
+        void PreRenderPassSetRenderTargets(in CompiledPassInfo passInfo, RenderGraphContext rgContext)
+        {
+            var pass = passInfo.pass;
             if (pass.depthBuffer.IsValid() || pass.colorBufferMaxIndex != -1)
             {
                 var mrtArray = rgContext.renderGraphPool.GetTempArray<RenderTargetIdentifier>(pass.colorBufferMaxIndex + 1);
@@ -473,26 +884,66 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void PreRenderPassExecute(int passIndex, in RenderPass pass, RenderGraphContext rgContext)
+        void PreRenderPassExecute(in CompiledPassInfo passInfo, ref RenderGraphContext rgContext)
         {
-            // TODO merge clear and setup here if possible
-            m_Resources.CreateAndClearTexturesForPass(rgContext, pass.index, pass.textureWriteList);
-            PreRenderPassSetRenderTargets(pass, rgContext);
+            // TODO RENDERGRAPH merge clear and setup here if possible
+            RenderGraphPass pass = passInfo.pass;
+
+            // TODO RENDERGRAPH remove this when we do away with auto global texture setup
+            // (can't put it in the profiling scope otherwise it might be executed on compute queue which is not possible for global sets)
             m_Resources.PreRenderPassSetGlobalTextures(rgContext, pass.textureReadList);
+
+            foreach (var texture in passInfo.textureCreateList)
+                m_Resources.CreateAndClearTexture(rgContext, texture);
+
+            PreRenderPassSetRenderTargets(passInfo, rgContext);
+
+            // Flush first the current command buffer on the render context.
+            rgContext.renderContext.ExecuteCommandBuffer(rgContext.cmd);
+            rgContext.cmd.Clear();
+
+            if (pass.enableAsyncCompute)
+            {
+                CommandBuffer asyncCmd = CommandBufferPool.Get(pass.name);
+                asyncCmd.SetExecutionFlags(CommandBufferExecutionFlags.AsyncCompute);
+                rgContext.cmd = asyncCmd;
+            }
+
+            // Synchronize with graphics or compute pipe if needed.
+            if (passInfo.syncToPassIndex != -1)
+            {
+                rgContext.cmd.WaitOnAsyncGraphicsFence(m_CompiledPassInfos[passInfo.syncToPassIndex].fence);
+            }
         }
 
-        void PostRenderPassExecute(int passIndex, in RenderPass pass, RenderGraphContext rgContext)
+        void PostRenderPassExecute(CommandBuffer mainCmd, ref CompiledPassInfo passInfo, ref RenderGraphContext rgContext)
         {
+            RenderGraphPass pass = passInfo.pass;
+
+            if (passInfo.needGraphicsFence)
+                passInfo.fence = rgContext.cmd.CreateAsyncGraphicsFence();
+
+            if (pass.enableAsyncCompute)
+            {
+                // The command buffer has been filled. We can kick the async task.
+                rgContext.renderContext.ExecuteCommandBufferAsync(rgContext.cmd, ComputeQueueType.Background);
+                CommandBufferPool.Release(rgContext.cmd);
+                rgContext.cmd = mainCmd; // Restore the main command buffer.
+            }
+
             if (m_DebugParameters.unbindGlobalTextures)
                 m_Resources.PostRenderPassUnbindGlobalTextures(rgContext, pass.textureReadList);
 
             m_RenderGraphPool.ReleaseAllTempAlloc();
-            m_Resources.ReleaseTexturesForPass(rgContext, pass.index, pass.textureReadList, pass.textureWriteList);
-            pass.Release(rgContext);
+
+            foreach (var texture in passInfo.textureReleaseList)
+                m_Resources.ReleaseTexture(rgContext, texture);
         }
 
         void ClearRenderPasses()
         {
+            foreach (var pass in m_RenderPasses)
+                pass.Release(m_RenderGraphPool);
             m_RenderPasses.Clear();
         }
 
@@ -501,7 +952,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (m_DebugParameters.logFrameInformation)
             {
                 m_Logger.LogLine("==== Staring frame at resolution ({0}x{1}) ====", renderingWidth, renderingHeight);
-                m_Logger.LogLine("Number of passes declared: {0}", m_RenderPasses.Count);
+                m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
         }
 
@@ -509,16 +960,55 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.logFrameInformation)
             {
-                m_Logger.LogLine("Number of renderer lists created: {0}", m_RendererLists.Count);
+                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
             }
         }
 
-        void LogRenderPassBegin(in RenderPass pass)
+        void LogRenderPassBegin(in CompiledPassInfo passInfo)
         {
             if (m_DebugParameters.logFrameInformation)
             {
-                m_Logger.LogLine("Executing pass \"{0}\" (index: {1})", pass.name, pass.index);
+                RenderGraphPass pass = passInfo.pass;
+
+                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
+                using (new RenderGraphLogIndent(m_Logger))
+                {
+                    if (passInfo.syncToPassIndex != -1)
+                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
+                }
             }
+        }
+
+        void LogPrunedPasses()
+        {
+            if (m_DebugParameters.logFrameInformation)
+            {
+                m_Logger.LogLine("Pass pruning report:");
+                using (new RenderGraphLogIndent(m_Logger))
+                {
+                    for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+                    {
+                        if (m_CompiledPassInfos[i].pruned)
+                        {
+                            var pass = m_RenderPasses[i];
+                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
+                        }
+                    }
+                    m_Logger.LogLine("\n");
+                }
+            }
+        }
+
+        ProfilingSampler GetDefaultProfilingSampler(string name)
+        {
+            int hash = name.GetHashCode();
+            if (!m_DefaultProfilingSamplers.TryGetValue(hash, out var sampler))
+            {
+                sampler = new ProfilingSampler(name);
+                m_DefaultProfilingSamplers.Add(hash, sampler);
+            }
+
+            return sampler;
         }
 
         #endregion
