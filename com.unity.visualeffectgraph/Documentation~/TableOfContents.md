@@ -31,6 +31,27 @@
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
+      * [Get Attribute: age](Operator-GetAttributeAge.md)
+      * [Get Attribute: alive](Operator-GetAttributeAlive.md)
+      * [Get Attribute: alpha](Operator-GetAttributeAlpha.md)
+      * [Get Attribute: angle](Operator-GetAttributeAngle.md)
+      * [Get Attribute: angularVelocity](Operator-GetAttributeAngularVelocity.md)
+      * [Get Attribute: axisX](Operator-GetAttributeAxisX.md)
+      * [Get Attribute: axisY](Operator-GetAttributeAxisY.md)
+      * [Get Attribute: axisZ](Operator-GetAttributeAxisZ.md)
+      * [Get Attribute: color](Operator-GetAttributeColor.md)
+      * [Get Attribute: lifetime](Operator-GetAttributeLifetime.md)
+      * [Get Attribute: mass](Operator-GetAttributeMass.md)
+      * [Get Attribute: oldPosition](Operator-GetAttributeOldPosition.md)
+      * [Get Attribute: particleId](Operator-GetAttributeParticleID.md)
+      * [Get Attribute: particleIndex](Operator-GetAttributeParticleIndex.md)
+      * [Get Attribute: pivot](Operator-GetAttributePivot.md)
+      * [Get Attribute: position](Operator-GetAttributePosition.md)
+      * [Get Attribute: seed](Operator-GetAttributeSeed.md)
+      * [Get Attribute: size](Operator-GetAttributeSize.md)
+      * [Get Attribute: targetPosition](Operator-GetAttributeTargetPosition.md)
+      * [Get Attribute: texIndex](Operator-GetAttributeTexIndex.md)
+      * [Get Attribute: velocity](Operator-GetAttributeVelocity.md)
     * Bitwise
       * [Or](Operator-BitwiseOr.md)
     * Builtin
