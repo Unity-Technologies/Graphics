@@ -669,6 +669,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with depth pyramid generation and dynamic resolution.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed an issue where rendering preview with MSAA might generate render graph errors.
+- Fixed compile error in PS4 for planar reflection filtering.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
