@@ -64,7 +64,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                             else
                             {
-                                s_CustomSettingsHistory.Add(serializedObject.targetObject, SaveCustomQualitySettingsAsObject());
+                                // Only keep track of custom settings for components that implement the new interface (and return not null)
+                                history = SaveCustomQualitySettingsAsObject();
+                                if (history != null)
+                                {   
+                                    s_CustomSettingsHistory.Add(serializedObject.targetObject, history);
+                                }
+
                             }
                         }
                         LoadSettingsFromQualityPreset(pipeline.currentPlatformRenderPipelineSettings, newQualityLevel);
