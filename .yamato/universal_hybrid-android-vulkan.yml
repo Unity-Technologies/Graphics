@@ -17,9 +17,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_trunk:
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_trunk
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
@@ -73,9 +71,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_fast-trunk:
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
@@ -130,9 +126,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_CUSTOM-REVISION:
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  git clone git@github.cds.internal.unity3d.com:unity/utr.git utr
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.eu-cph-1.unityops.net/api/pypi/common-python/simple --upgrade
-      -  unity-downloader-cli --source-file %YAMATO_SOURCE_DIR%/unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
