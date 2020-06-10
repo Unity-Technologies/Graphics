@@ -15,8 +15,8 @@ class PreviewPublish_PromoteAllPreviewJob():
         job = YMLJob()
         job.set_name(f'Promote all preview packages - nightly')
         job.add_dependencies([f'{pb_filepath()}#{pb_job_id_promote(package["name"])}' for package in packages])
-        # if auto_publish is True:
-        #     job.add_trigger_recurrent(target_branch, 'daily')
+        if auto_publish is True:
+            job.add_trigger_recurrent(target_branch, 'daily')
         return job
     
     

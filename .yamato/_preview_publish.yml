@@ -44,6 +44,10 @@ promote_all_preview:
       -  .yamato/_preview_publish.yml#promote_vfx
       -  .yamato/_preview_publish.yml#promote_config
       -  .yamato/_preview_publish.yml#promote_lwrp
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: daily
 wait_for_nightly:
     name: Wait for nightly
     dependencies:
