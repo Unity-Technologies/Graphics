@@ -661,6 +661,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exception happening when using RTSSS without using RTShadows.
 - Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
 - Fix reflection probe frame settings override
+- Fixed certain shadow bias artifacts present in volumetric lighting (case 1231885).
 
 ### Changed
 - Improve MIP selection for decals on Transparents
