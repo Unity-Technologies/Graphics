@@ -233,7 +233,7 @@ def create_preview_publish_jobs(metafile_name):
             job = PreviewPublish_PublishJob(get_agent(metafile["agent_publish"]), package, metafile["platforms"], target_editor)
             yml[job.job_id] = job.yml
 
-            job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package)
+            job = PreviewPublish_PromoteJob(get_agent(metafile["agent_promote"]), package, metafile["platforms"], target_editor)
             yml[job.job_id] = job.yml
 
     dump_yml(pb_filepath(), yml)

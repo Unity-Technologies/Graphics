@@ -83,6 +83,9 @@ promote_core:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_core
+      -  .yamato/_preview_publish.yml#publish_core
+      -  .yamato/_packages.yml#test_core_OSX_trunk
+      -  .yamato/_packages.yml#test_core_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.core
@@ -118,6 +121,9 @@ promote_universal:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_universal
+      -  .yamato/_preview_publish.yml#publish_universal
+      -  .yamato/_packages.yml#test_universal_OSX_trunk
+      -  .yamato/_packages.yml#test_universal_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal
@@ -153,6 +159,9 @@ promote_hdrp:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
+      -  .yamato/_preview_publish.yml#publish_hdrp
+      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
+      -  .yamato/_packages.yml#test_hdrp_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition
@@ -188,6 +197,9 @@ promote_shadergraph:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
+      -  .yamato/_preview_publish.yml#publish_shadergraph
+      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
+      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph
@@ -223,6 +235,9 @@ promote_vfx:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
+      -  .yamato/_preview_publish.yml#publish_vfx
+      -  .yamato/_packages.yml#test_vfx_OSX_trunk
+      -  .yamato/_packages.yml#test_vfx_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.visualeffectgraph
@@ -258,6 +273,9 @@ promote_config:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_config
+      -  .yamato/_preview_publish.yml#publish_config
+      -  .yamato/_packages.yml#test_config_OSX_trunk
+      -  .yamato/_packages.yml#test_config_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config
@@ -293,6 +311,9 @@ promote_lwrp:
         UPMCI_PROMOTION: 1
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
+      -  .yamato/_preview_publish.yml#publish_lwrp
+      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
+      -  .yamato/_packages.yml#test_lwrp_Win_trunk
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
