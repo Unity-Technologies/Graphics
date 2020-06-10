@@ -140,7 +140,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _ProbeVolumeLeakMitigationMode;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
-    float _Pad7;
+    float _Pad8;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
 CBUFFER_END
 
