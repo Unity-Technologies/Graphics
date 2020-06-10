@@ -99,7 +99,7 @@ Pass
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
         // copy across graph values, if defined
-        $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
+        $SurfaceDescription.BaseColor: surfaceData.color = surfaceDescription.BaseColor;
 
         #if defined(DEBUG_DISPLAY)
         if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
