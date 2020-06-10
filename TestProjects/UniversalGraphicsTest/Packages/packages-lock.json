@@ -12,15 +12,6 @@
       "source": "builtin",
       "dependencies": {}
     },
-    "com.unity.burst": {
-      "version": "1.2.3",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.mathematics": "1.1.0"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.ext.nunit": {
       "version": "1.0.0",
       "depth": 0,
@@ -89,12 +80,11 @@
       "dependencies": {
         "com.unity.mathematics": "1.1.0",
         "com.unity.render-pipelines.core": "10.0.0-preview.1",
-        "com.unity.shadergraph": "10.0.0-preview.1",
-        "com.unity.burst": "1.2.3"
+        "com.unity.shadergraph": "10.0.0-preview.1"
       }
     },
     "com.unity.searcher": {
-      "version": "4.2.0",
+      "version": "4.3.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -106,7 +96,7 @@
       "source": "local",
       "dependencies": {
         "com.unity.render-pipelines.core": "10.0.0-preview.1",
-        "com.unity.searcher": "4.2.0"
+        "com.unity.searcher": "4.3.1"
       }
     },
     "com.unity.subsystemregistration": {
@@ -147,7 +137,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.2.1-preview",
+      "version": "7.2.2-preview",
       "depth": 0,
       "source": "registry",
       "dependencies": {
