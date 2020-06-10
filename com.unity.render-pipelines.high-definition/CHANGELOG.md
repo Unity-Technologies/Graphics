@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix reflection probe frame settings override
 - Workaround an issue caused by GetKernelThreadGroupSizes  failing to retrieve correct group size. 
 - Fixed transparent motion vector framesetting not sanitized.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 
 ## [7.4.1] - 2020-06-03
 
