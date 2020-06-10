@@ -156,8 +156,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/WavingDoublePass"
             // -------------------------------------
             // Material Keywords
             #define _ALPHATEST_ON
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
             //--------------------------------------
             // GPU Instancing

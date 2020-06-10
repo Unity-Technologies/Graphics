@@ -191,8 +191,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
             // Defines
@@ -422,8 +422,8 @@ Shader "Universal Render Pipeline/Baked Lit"
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
 
             //--------------------------------------
             // Defines
