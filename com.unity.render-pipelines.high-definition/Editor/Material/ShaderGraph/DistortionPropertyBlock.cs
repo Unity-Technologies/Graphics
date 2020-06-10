@@ -20,8 +20,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override void CreatePropertyGUI()
         {
             AddProperty(distortionEnableText, () => builtinData.distortion, (newValue) => builtinData.distortion = newValue);
-            AddProperty(distortionBlendModeText, () => builtinData.distortionMode, (newValue) => builtinData.distortionMode = newValue);
-            AddProperty(distortionDepthTestText, () => builtinData.distortionDepthTest, (newValue) => builtinData.distortionDepthTest = newValue);
+            if (builtinData.distortion)
+            {
+                context.globalIndentLevel++;
+                AddProperty(distortionBlendModeText, () => builtinData.distortionMode, (newValue) => builtinData.distortionMode = newValue);
+                AddProperty(distortionDepthTestText, () => builtinData.distortionDepthTest, (newValue) => builtinData.distortionDepthTest = newValue);
+                context.globalIndentLevel--;
+            }
         }
     }
 }
