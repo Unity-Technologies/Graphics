@@ -5,12 +5,12 @@ from ..shared.constants import NPM_UPMCI_INSTALL_URL
 
 class PreviewPublish_PublishJob():
     
-    def __init__(self, agent, package, editors, platforms):
+    def __init__(self, agent, package, platforms, target_editor):
         self.job_id = pb_job_id_publish(package["name"])
-        self.yml = self.get_job_definition(agent, package, editors, platforms).get_yml()
+        self.yml = self.get_job_definition(agent, package, platforms, target_editor).get_yml()
 
 
-    def get_job_definition(self, agent, package,  editors, platforms):
+    def get_job_definition(self, agent, package, platforms, target_editor):
         
         if package["publish_source"] != True:
             raise Exception('Tried to publish package for which "publish_source" set to false.')
@@ -19,12 +19,12 @@ class PreviewPublish_PublishJob():
         dependencies = [
             f'{packages_filepath()}#{package_job_id_pack(package["name"])}',
             f'{pb_filepath()}#{pb_job_id_wait_for_nightly()}']
-        for editor in editors:
-            for platform in platforms:
-                if package["type"].lower() == 'package':
-                    dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], editor["version"])}')
-                else:
-                    raise Exception(f'Unknown package type in PreviewPublish_PublishJob {package["type"]}')
+            
+        for platform in platforms:
+            if package["type"].lower() == 'package':
+                dependencies.append(f'{packages_filepath()}#{package_job_id_test(package["name"],  platform["os"], target_editor)}')
+            else:
+                raise Exception(f'Unknown package type in PreviewPublish_PublishJob {package["type"]}')
 
         # construct job
         job = YMLJob()
