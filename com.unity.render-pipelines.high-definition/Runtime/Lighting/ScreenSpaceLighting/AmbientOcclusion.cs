@@ -53,22 +53,62 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the length of ray traced ambient occlusion rays.
         /// </summary>
-        public ClampedFloatParameter rayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        public float rayLength
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_RayLength.value;
+                else
+                    return GetLightingQualitySettings().RTAORayLength[(int)quality.value];
+            }
+            set { m_RayLength.value = value; }
+        }
 
         /// <summary>
         /// Number of samples for evaluating the effect.
         /// </summary>
-        public ClampedIntParameter sampleCount = new ClampedIntParameter(4, 1, 64);
+        public int sampleCount
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_SampleCount.value;
+                else
+                    return GetLightingQualitySettings().RTAOSampleCount[(int)quality.value];
+            }
+            set { m_SampleCount.value = value; }
+        }
 
         /// <summary>
         /// Defines if the ray traced ambient occlusion should be denoised.
         /// </summary>
-        public BoolParameter denoise = new BoolParameter(false);
+        public bool denoise
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_Denoise.value;
+                else
+                    return GetLightingQualitySettings().RTAODenoise[(int)quality.value];
+            }
+            set { m_Denoise.value = value; }
+        }
 
         /// <summary>
         /// Controls the radius of the ray traced ambient occlusion denoiser.
         /// </summary>
-        public ClampedFloatParameter denoiserRadius = new ClampedFloatParameter(0.5f, 0.001f, 1.0f);
+        public float denoiserRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_DenoiserRadius.value;
+                else
+                    return GetLightingQualitySettings().RTAODenoiserRadius[(int)quality.value];
+            }
+            set { m_DenoiserRadius.value = value; }
+        }
 
         /// <summary>
         /// Number of steps to take along one signed direction during horizon search (this is the number of steps in positive and negative direction). Increasing the value can lead to detection
@@ -148,22 +188,29 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_DirectionCount.value = value; }
         }
 
+        // SSAO
         [SerializeField, FormerlySerializedAs("stepCount")]
         private ClampedIntParameter m_StepCount = new ClampedIntParameter(6, 2, 32);
-
         [SerializeField, FormerlySerializedAs("fullResolution")]
         private BoolParameter m_FullResolution = new BoolParameter(false);
-
         [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
         private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
-
         // Temporal only parameter
         [SerializeField, FormerlySerializedAs("bilateralUpsample")]
         private BoolParameter m_BilateralUpsample = new BoolParameter(true);
-
         // Non-temporal only parameters
         [SerializeField, FormerlySerializedAs("directionCount")]
         private ClampedIntParameter m_DirectionCount = new ClampedIntParameter(2, 1, 6);
+
+        // RTAO
+        [SerializeField, FormerlySerializedAs("rayLength")]
+        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(0.5f, 0f, 50f);
+        [SerializeField, FormerlySerializedAs("sampleCount")]
+        public ClampedIntParameter m_SampleCount = new ClampedIntParameter(1, 1, 64);
+        [SerializeField, FormerlySerializedAs("denoise")]
+        public BoolParameter m_Denoise = new BoolParameter(true);
+        [SerializeField, FormerlySerializedAs("denoiserRadius")]
+        public ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(1.0f, 0.001f, 1.0f);
     }
 
     partial class AmbientOcclusionSystem
