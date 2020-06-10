@@ -26,4 +26,4 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        - Standalone
+        # - Standalone

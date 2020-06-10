@@ -32,5 +32,5 @@ all:
     - platform: OSX
       api: Metal
       test_platforms:
-        - Standalone
+        # - Standalone
         - playmode 
