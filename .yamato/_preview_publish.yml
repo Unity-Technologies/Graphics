@@ -33,28 +33,28 @@ publish_all_preview:
 wait_for_nightly:
     name: Wait for nightly
     dependencies:
-      -  .yamato/_abv.yml#all_project_ci_nightly_trunk
+      -  .yamato/_abv.yml#all_project_ci_nightly_2020.1
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_OSX_trunk
-      -  .yamato/_packages.yml#test_core_Win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_2020.1
+      -  .yamato/_packages.yml#test_core_Win_2020.1
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_OSX_trunk
-      -  .yamato/_packages.yml#test_universal_Win_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_2020.1
+      -  .yamato/_packages.yml#test_universal_Win_2020.1
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
-      -  .yamato/_packages.yml#test_hdrp_Win_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.1
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.1
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
-      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.1
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.1
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_OSX_trunk
-      -  .yamato/_packages.yml#test_vfx_Win_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.1
+      -  .yamato/_packages.yml#test_vfx_Win_2020.1
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_OSX_trunk
-      -  .yamato/_packages.yml#test_config_Win_trunk
+      -  .yamato/_packages.yml#test_config_OSX_2020.1
+      -  .yamato/_packages.yml#test_config_Win_2020.1
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.1
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.1
 publish_core:
     name: '[core] Candidates Publish'
     agent:
@@ -64,8 +64,8 @@ publish_core:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_core_OSX_trunk
-      -  .yamato/_packages.yml#test_core_Win_trunk
+      -  .yamato/_packages.yml#test_core_OSX_2020.1
+      -  .yamato/_packages.yml#test_core_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.core
@@ -99,8 +99,8 @@ publish_universal:
     dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_universal_OSX_trunk
-      -  .yamato/_packages.yml#test_universal_Win_trunk
+      -  .yamato/_packages.yml#test_universal_OSX_2020.1
+      -  .yamato/_packages.yml#test_universal_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.universal
@@ -134,8 +134,8 @@ publish_hdrp:
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_hdrp_OSX_trunk
-      -  .yamato/_packages.yml#test_hdrp_Win_trunk
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.1
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition
@@ -169,8 +169,8 @@ publish_shadergraph:
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_shadergraph_OSX_trunk
-      -  .yamato/_packages.yml#test_shadergraph_Win_trunk
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.1
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.shadergraph
@@ -204,8 +204,8 @@ publish_vfx:
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_vfx_OSX_trunk
-      -  .yamato/_packages.yml#test_vfx_Win_trunk
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.1
+      -  .yamato/_packages.yml#test_vfx_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.visualeffectgraph
@@ -239,8 +239,8 @@ publish_config:
     dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_config_OSX_trunk
-      -  .yamato/_packages.yml#test_config_Win_trunk
+      -  .yamato/_packages.yml#test_config_OSX_2020.1
+      -  .yamato/_packages.yml#test_config_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.high-definition-config
@@ -274,8 +274,8 @@ publish_lwrp:
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_preview_publish.yml#wait_for_nightly
-      -  .yamato/_packages.yml#test_lwrp_OSX_trunk
-      -  .yamato/_packages.yml#test_lwrp_Win_trunk
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.1
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package publish --package-path com.unity.render-pipelines.lightweight
