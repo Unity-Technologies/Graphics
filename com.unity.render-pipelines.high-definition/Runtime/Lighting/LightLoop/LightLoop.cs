@@ -1486,7 +1486,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
 
-            if (lightComponent != null && lightComponent.cookie != null)
+            // lightComponent.cookie can't be used for area lights
+            if (lightComponent != null && lightComponent.cookie != null && lightType != HDLightType.Area)
             {
                 switch (lightType)
                 {
