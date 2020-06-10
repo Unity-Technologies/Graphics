@@ -145,7 +145,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader inScatteredRadiancePrecomputationCS;
             [Reload("Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSky.shader")]
             public Shader        physicallyBasedSkyPS;
-
+            [Reload("Runtime/Lighting/PlanarReflectionFiltering.compute")]
+            public ComputeShader planarReflectionFilteringCS;
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -169,6 +170,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader clearUIntTextureCS;
             [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassUtils.shader")]
             public Shader customPassUtils;
+            [Reload("Runtime/RenderPipeline/RenderPass/CustomPass/CustomPassRenderersUtils.shader")]
+            public Shader customPassRenderersUtils;
 
             // XR
             [Reload("Runtime/ShaderLibrary/XRMirrorView.shader")]

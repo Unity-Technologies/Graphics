@@ -22,6 +22,11 @@
 #define USE_CBUFFER_FOR_TILELIST 0
 #define USE_CBUFFER_FOR_LIGHTDATA 1
 #define USE_CBUFFER_FOR_LIGHTLIST 0
+#elif defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)
+#define USE_CBUFFER_FOR_DEPTHRANGE 1
+#define USE_CBUFFER_FOR_TILELIST 1
+#define USE_CBUFFER_FOR_LIGHTDATA 1
+#define USE_CBUFFER_FOR_LIGHTLIST 1
 #else
 #define USE_CBUFFER_FOR_DEPTHRANGE 0
 #define USE_CBUFFER_FOR_TILELIST 0
@@ -49,7 +54,7 @@ Light UnityLightFromPunctualLightDataAndWorldSpacePosition(PunctualLightData pun
     float distanceSqr = max(dot(lightVector, lightVector), HALF_MIN);
 
     half3 lightDirection = half3(lightVector * rsqrt(distanceSqr));
-    
+
     half attenuation = DistanceAttenuation(distanceSqr, punctualLightData.attenuation.xy) * AngleAttenuation(punctualLightData.spotDirection.xyz, lightDirection, punctualLightData.attenuation.zw);
 
     light.direction = lightDirection;

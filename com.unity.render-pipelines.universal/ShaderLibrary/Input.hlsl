@@ -46,6 +46,7 @@ half4 _DrawObjectPassData;
 
 
 half4 _AdditionalLightsCount;
+
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<LightData> _AdditionalLightsBuffer;
 StructuredBuffer<int> _AdditionalLightsIndices;
