@@ -32,6 +32,7 @@ MonoBehaviour:
   m_SupportsHDR: 1
   m_MSAA: 4
   m_RenderScale: 1
+  m_ShaderQuality: 2
   m_MainLightRenderingMode: 1
   m_MainLightShadowsSupported: 1
   m_MainLightShadowmapResolution: 2048
