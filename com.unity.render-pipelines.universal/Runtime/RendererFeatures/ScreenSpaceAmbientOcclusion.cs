@@ -6,14 +6,14 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal bool Downsample;
-        [SerializeField] internal DepthSource Source;
-        [SerializeField] internal SSAONormalSamples NormalSamples;
-        [SerializeField] internal float Intensity;
-        [SerializeField] internal float DirectLightingStrength;
-        [SerializeField] internal float Radius;
-        [SerializeField] internal int SampleCount;
-        [SerializeField] internal int BlurPasses;
+        [SerializeField] internal bool Downsample = false;
+        [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
+        [SerializeField] internal SSAONormalSamples NormalSamples = SSAONormalSamples.Five;
+        [SerializeField] internal float Intensity = 3.0f;
+        [SerializeField] internal float DirectLightingStrength = 0.25f;
+        [SerializeField] internal float Radius = 0.035f;
+        [SerializeField] internal int SampleCount = 6;
+        [SerializeField] internal int BlurPasses = 2;
 
         // Enums
         internal enum DepthSource
@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 
+    [DisallowMultipleRendererFeature]
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
@@ -215,17 +216,15 @@ namespace UnityEngine.Rendering.Universal
 
                 // Update the offset increment for Kawase Blur
                 m_offsetIncrement = new Vector4(
-                    1.0f / m_Descriptor.width,
-                    1.0f / m_Descriptor.height,
                     -1.0f / m_Descriptor.width,
-                    -1.0f / m_Descriptor.height
+                    -1.0f / m_Descriptor.height,
+                    1.0f / m_Descriptor.width,
+                    1.0f / m_Descriptor.height
                 );
 
                 // Configure targets and clear color
                 ConfigureTarget(s_SSAOTexture1ID);
                 ConfigureClear(ClearFlag.None, Color.white);
-
-
             }
 
             /// <inheritdoc/>
@@ -291,7 +290,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTargetIdentifier curTarget = m_SSAOTexture2Target;
                 int lastTargetID = s_SSAOTexture1ID;
                 int curTargetID = s_SSAOTexture2ID;
-                Vector4 offset = 1.5f * m_offsetIncrement;
+                Vector4 offset = 0.5f * m_offsetIncrement;
                 int numOfPasses = m_CurrentSettings.BlurPasses;
                 for (int i = 0; i < numOfPasses; i++)
                 {

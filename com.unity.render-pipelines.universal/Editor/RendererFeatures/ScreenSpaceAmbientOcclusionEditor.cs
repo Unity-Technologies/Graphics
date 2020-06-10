@@ -1,12 +1,10 @@
-using UnityEditor;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    [CustomPropertyDrawer(typeof(ScreenSpaceAmbientOcclusionSettings), true)]
-    internal class ScreenSpaceAmbientOcclusionEditor : PropertyDrawer
+    [CustomEditor(typeof(ScreenSpaceAmbientOcclusion))]
+    internal class ScreenSpaceAmbientOcclusionEditor : Editor
     {
         // Serialized Properties
         private SerializedProperty m_Downsample;
@@ -17,10 +15,11 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_Radius;
         private SerializedProperty m_SampleCount;
         private SerializedProperty m_BlurPasses;
-        private List<SerializedObject> m_Properties = new List<SerializedObject>();
+
+        private bool m_IsInitialized = false;
 
         // Structs
-        internal struct Styles
+        private struct Styles
         {
             public static GUIContent Downsample = EditorGUIUtility.TrTextContent("Downsample", "With this option enabled, Unity downsamples the SSAO effect texture to improve performance. Each dimension of the texture is reduced by a factor of 2.");
             public static GUIContent Source = EditorGUIUtility.TrTextContent("Source", "This option determines whether the ambient occlusion reconstructs the normal from depth or taken from _CameraNormalsTexture.");
@@ -32,25 +31,25 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent BlurPasses = EditorGUIUtility.TrTextContent("Blur Passes", "The number of render passes for blurring the SSAO effect texture.");
         }
 
-        private void Init(SerializedProperty property)
+        private void Init()
         {
-            m_Properties.Clear();
-            m_Source = property.FindPropertyRelative("Source");
-            m_Downsample = property.FindPropertyRelative("Downsample");
-            m_NormalSamples = property.FindPropertyRelative("NormalSamples");
-            m_Intensity = property.FindPropertyRelative("Intensity");
-            m_DirectLightingStrength = property.FindPropertyRelative("DirectLightingStrength");
-            m_Radius = property.FindPropertyRelative("Radius");
-            m_SampleCount = property.FindPropertyRelative("SampleCount");
-            m_BlurPasses = property.FindPropertyRelative("BlurPasses");
-            m_Properties.Add(property.serializedObject);
+            SerializedProperty settings = serializedObject.FindProperty("settings");
+            m_Source = settings.FindPropertyRelative("Source");
+            m_Downsample = settings.FindPropertyRelative("Downsample");
+            m_NormalSamples = settings.FindPropertyRelative("NormalSamples");
+            m_Intensity = settings.FindPropertyRelative("Intensity");
+            m_DirectLightingStrength = settings.FindPropertyRelative("DirectLightingStrength");
+            m_Radius = settings.FindPropertyRelative("Radius");
+            m_SampleCount = settings.FindPropertyRelative("SampleCount");
+            m_BlurPasses = settings.FindPropertyRelative("BlurPasses");
+            m_IsInitialized = true;
         }
 
-        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
+        public override void OnInspectorGUI()
         {
-            if (!m_Properties.Contains(property.serializedObject))
+            if (!m_IsInitialized)
             {
-                Init(property);
+                Init();
             }
 
             EditorGUILayout.PropertyField(m_Downsample, Styles.Downsample);
@@ -63,9 +62,9 @@ namespace UnityEditor.Rendering.Universal
 
             m_Intensity.floatValue = EditorGUILayout.Slider(Styles.Intensity,m_Intensity.floatValue, 0f, 10f);
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength,m_DirectLightingStrength.floatValue, 0f, 1f);
-            m_Radius.floatValue = EditorGUILayout.Slider(Styles.Radius,m_Radius.floatValue, 0f, 10f);
-            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 4, 12);
-            m_BlurPasses.intValue = EditorGUILayout.IntSlider(Styles.BlurPasses,m_BlurPasses.intValue, 1, 12);
+            EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
+            m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount,m_SampleCount.intValue, 4, 20);
+            m_BlurPasses.intValue = EditorGUILayout.IntSlider(Styles.BlurPasses,m_BlurPasses.intValue, 0, 12);
         }
     }
 }

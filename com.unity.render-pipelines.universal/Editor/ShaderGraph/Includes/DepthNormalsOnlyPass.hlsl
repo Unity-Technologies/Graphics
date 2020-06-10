@@ -38,6 +38,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #else
         float3 normal = unpacked.normalWS;
     #endif
+    normal = NormalizeNormalPerPixel(normal);
 
     return float4(PackNormalOctRectEncode(TransformWorldToViewDir(normal, true)), 0.0, 0.0);
 }
