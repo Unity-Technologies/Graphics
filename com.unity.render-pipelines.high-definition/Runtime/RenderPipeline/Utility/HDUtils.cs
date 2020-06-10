@@ -943,6 +943,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         }
 
+        internal static ulong GetSceneCullingMaskFromGameObject(GameObject go)
+        {
+#if UNITY_EDITOR
+            return (go.scene == null) ? ~(ulong)0 : EditorSceneManager.GetSceneCullingMask(go.scene);
+#else
+            return 0;
+#endif
+        }
+
         internal static HDAdditionalCameraData TryGetAdditionalCameraDataOrDefault(Camera camera)
         {
             if (camera == null || camera.Equals(null))
