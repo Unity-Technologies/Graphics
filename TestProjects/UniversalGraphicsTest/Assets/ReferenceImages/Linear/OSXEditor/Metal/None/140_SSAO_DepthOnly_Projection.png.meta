@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: dbac96d7c8e8e4680bedb05417a1df1d
+guid: cb0aa4880f83e468588cc877693aaa25
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -55,6 +55,8 @@ TextureImporter:
   textureType: 0
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
