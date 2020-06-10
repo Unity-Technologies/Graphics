@@ -21,7 +21,6 @@ public class DebugViewController_Editor : Editor
 
         s_gBuffer = serializedObject.FindProperty("gBuffer");
         s_fullScreenDebugMode = serializedObject.FindProperty("fullScreenDebugMode");
-
         s_lightlayers = serializedObject.FindProperty("lightlayers");
     }
 
@@ -33,7 +32,7 @@ public class DebugViewController_Editor : Editor
         {
             int i_settingType = s_settingType.intValue;//= (int) (target as DebugViewController).settingType;
 
-            s_settingType.intValue = GUILayout.Toolbar(s_settingType.intValue, new string[] { "Material", "Rendering" });
+            s_settingType.intValue = GUILayout.Toolbar(s_settingType.intValue, new string[] { "Material", "Lighting", "Rendering" });
 
             // if (MaterialDebugSettings.debugViewMaterialGBufferStrings == null) new MaterialDebugSettings();
             // if (DebugDisplaySettings.renderingFullScreenDebugStrings == null) new DebugDisplaySettings();
@@ -44,12 +43,14 @@ public class DebugViewController_Editor : Editor
                     s_gBuffer.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_gBuffer.intValue, MaterialDebugSettings.debugViewMaterialGBufferStrings, MaterialDebugSettings.debugViewMaterialGBufferValues);
                     break;
 
+                case DebugViewController.SettingType.Lighting:
+                    s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Light Layers Visualization");
+                    break;
+
                 case DebugViewController.SettingType.Rendering:
-                    s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("GBuffer"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
+                    s_fullScreenDebugMode.intValue = EditorGUILayout.IntPopup(new GUIContent("Fullscreen Debug Mode"), s_fullScreenDebugMode.intValue, DebugDisplaySettings.renderingFullScreenDebugStrings, DebugDisplaySettings.renderingFullScreenDebugValues);
                     break;
             }
-
-            s_lightlayers.boolValue = GUILayout.Toggle(s_lightlayers.boolValue, "Enable light layers debug");
         }
 
         if ( serializedObject.ApplyModifiedProperties() )
