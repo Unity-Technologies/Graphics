@@ -91,6 +91,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Microshadow not working correctly in deferred with LightLayers
 - Tentative fix for missing include in depth of field shaders.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Fix reflection probe frame settings override
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
