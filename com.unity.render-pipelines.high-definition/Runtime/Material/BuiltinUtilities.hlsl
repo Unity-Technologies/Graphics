@@ -51,15 +51,9 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 #if RAYTRACING_ENABLED && ((SHADERPASS == SHADERPASS_GBUFFER) || (SHADERPASS == SHADERPASS_FORWARD)) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if (_UseIndirectDiffuse == RAY_TRACED_INDIRECT_DIFFUSE_FLAG)
     {
-        #if SHADERPASS == SHADERPASS_GBUFFER
-        // Incase we shall be using raytraced indirect diffuse, we want to make sure to not add the GBuffer because that will be happening later in the pipeline
+        // Incase we shall be using raytraced indirect diffuse, we want to make sure to not add the other forms of indirect lighting to avoid
+        // double contribution.
         builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-        #endif
-
-        #if SHADERPASS == SHADERPASS_FORWARD
-        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
-        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier();
-        #endif
     }
 #endif
 
