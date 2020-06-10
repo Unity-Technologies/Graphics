@@ -11,14 +11,14 @@ ResizableElement
 
 ResizableElement #right
 {
-    width: 12px;
+    width: 4px;
     flex-direction: column;
     align-items: stretch;
 }
 
 ResizableElement #left
 {
-    width: 12px;
+    width: 8px;
     flex-direction: column;
     align-items: stretch;
 }
