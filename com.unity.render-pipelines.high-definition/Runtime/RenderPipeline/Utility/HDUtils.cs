@@ -505,6 +505,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function is NOT fast, but it is illustrative, and can be optimized later.
             public void ComputePackedMipChainInfo(Vector2Int viewportSize)
             {
+                // No work needed.
+                if (viewportSize == mipLevelSizes[0])
+                    return;
+
                 textureSize = viewportSize;
                 mipLevelSizes[0] = viewportSize;
                 mipLevelOffsets[0] = Vector2Int.zero;
