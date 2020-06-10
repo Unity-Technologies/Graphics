@@ -58,13 +58,13 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             PropertyField(m_FocusMode);
 
-            // Draw the focus mode controls
             int mode = m_FocusMode.value.intValue;
             if (mode == (int)DepthOfFieldMode.Off)
             {
                 GUI.enabled = false;
             }
 
+            // Draw the focus mode controls
             HDEditorUtils.BeginIndent();
             DrawFocusSettings(mode);
             HDEditorUtils.EndIndent();
