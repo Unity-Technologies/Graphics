@@ -323,11 +323,6 @@ PrefabInstance:
       propertyPath: checkMemoryAllocation
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 3}
-      propertyPath: renderGraphCompatible
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 3}
 --- !u!1 &65093930 stripped
@@ -466,7 +461,6 @@ MonoBehaviour:
   m_ShadowUpdateMode: 0
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
-  m_preserveCachedShadow: 0
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
@@ -485,7 +479,6 @@ MonoBehaviour:
   showAdditionalSettings: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
-  m_AreaLightEmissiveMeshLayer: -1
 --- !u!108 &85208911
 Light:
   m_ObjectHideFlags: 0
@@ -1114,6 +1107,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 5
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 8192
@@ -1404,6 +1399,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 10
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 1024
@@ -1546,6 +1543,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 5
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 4096
@@ -2810,7 +2809,6 @@ MonoBehaviour:
   m_ShadowUpdateMode: 0
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
-  m_preserveCachedShadow: 0
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
@@ -2829,7 +2827,6 @@ MonoBehaviour:
   showAdditionalSettings: 1
   m_AreaLightEmissiveMeshShadowCastingMode: 0
   m_AreaLightEmissiveMeshMotionVectorGenerationMode: 0
-  m_AreaLightEmissiveMeshLayer: -1
 --- !u!108 &1302253251
 Light:
   m_ObjectHideFlags: 0
@@ -3578,6 +3575,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 5
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 2048
@@ -4081,6 +4080,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 2
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 1
@@ -4157,6 +4158,8 @@ MonoBehaviour:
         filterFoldout: 1
         rendererFoldout: 1
         renderQueueType: 2
+        passNames:
+        - Forward
         layerMask:
           serializedVersion: 2
           m_Bits: 16384

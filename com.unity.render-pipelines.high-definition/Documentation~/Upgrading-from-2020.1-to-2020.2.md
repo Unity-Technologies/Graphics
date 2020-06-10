@@ -60,3 +60,25 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
 
+## Custom pass API
+
+The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
+`void Execute(CustomPassContext ctx)`
+
+The CustomPassContext contains all the parameters of the old Execute function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
+
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
+
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
+
+To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
+
+```
+protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { ... }
+```
+
+With:
+
+```
+protected override void Execute(CustomPassContext ctx) { ... }
+```

@@ -4,25 +4,78 @@ using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.Universal;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteUnlitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalSpriteUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
         const string kAssetGuid = "ed7c0aacec26e9646b45c96fb318e5a3";
 
+        public UniversalSpriteUnlitSubTarget()
+        {
+            displayName = "Sprite Unlit";
+        }
+
+        public override bool IsActive() => true;
+        
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
             context.AddSubShader(SubShaders.SpriteUnlit);
         }
 
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            var descs = context.blocks.Select(x => x.descriptor);
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
+
+            // Surface Type & Blend Mode
+            context.AddField(Fields.SurfaceTransparent);
+            context.AddField(Fields.BlendAlpha);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
+            
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            if(!(masterNode is SpriteUnlitMasterNode1 spriteUnlitMasterNode))
+                return false;
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescriptionLegacy.SpriteColor, 0 },
+            };
+
+            return true;
+        }
+        
 #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                renderType = $"{RenderType.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -46,8 +99,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
 
                 // Port Mask
-                vertexPorts = SpriteUnlitPortMasks.Vertex,
-                pixelPorts = SpriteUnlitPortMasks.Fragment,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.Fragment,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -63,18 +116,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-        static class SpriteUnlitPortMasks
+        static class SpriteUnlitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] Fragment = new BlockFieldDescriptor[]
             {
-                SpriteUnlitMasterNode.PositionSlotId,
-                SpriteUnlitMasterNode.VertNormalSlotId,
-                SpriteUnlitMasterNode.VertTangentSlotId
-            };
-
-            public static int[] Fragment = new int[]
-            {
-                SpriteUnlitMasterNode.ColorSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
+                BlockFields.SurfaceDescription.Alpha,
             };
         }
 #endregion
