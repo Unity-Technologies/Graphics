@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public override void OnInspectorGUI()
         {
             int prevQualityLevel = m_QualitySetting.value.intValue;
-            
+
             EditorGUI.BeginChangeCheck();
             PropertyField(m_QualitySetting);
 
@@ -33,17 +33,24 @@ namespace UnityEditor.Rendering.HighDefinition
             // they will continue to work, but the preset settings will not be reflected in the UI.
             if (EditorGUI.EndChangeCheck())
             {
-                serializedObject.Update();
-                int newQualityLevel = m_QualitySetting.value.intValue;
-      
-                if (newQualityLevel == k_CustomQuality && prevQualityLevel != k_CustomQuality)
+                // The ScalableSettingLevelParameterEditor updates the value of the referenced object directly (and not the reflected one),
+                // so this is what we have to do to get the new value selected by the user:
+                var o = m_QualitySetting.GetObjectRef<ScalableSettingLevelParameter>();
+                var (preset, custom) = o.levelAndOverride;
+                int newQualityLevel = custom ? 3 : preset;
+                m_QualitySetting.value.intValue = newQualityLevel;
+
+                if (newQualityLevel == k_CustomQuality)
                 {
-                    // If custom quality was selected, then load the last custom quality settings the user has used in this volume
-                    object history = null;
-                    s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
-                    if (history != null)
+                    // If we have switched to custom quality from a preset, then load the last custom quality settings the user has used in this volume
+                    if (prevQualityLevel != k_CustomQuality)
                     {
-                        LoadSettingsFromObject(history);
+                        object history = null;
+                        s_CustomSettingsHistory.TryGetValue(serializedObject.targetObject, out history);
+                        if (history != null)
+                        {
+                            LoadSettingsFromObject(history);
+                        }
                     }
                 }
                 else
