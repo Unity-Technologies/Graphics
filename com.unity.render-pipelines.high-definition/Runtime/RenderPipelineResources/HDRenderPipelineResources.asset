@@ -108,6 +108,8 @@ MonoBehaviour:
       type: 3}
     physicallyBasedSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4,
       type: 3}
+    planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2,
+      type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
       type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,

@@ -126,6 +126,9 @@ EditorBuildSettings:
     path: Assets/Scenes/802_SubSurfaceScatteringForward.unity
     guid: 45325940ed3cc4d44a619c66066ec3d6
   - enabled: 1
+    path: Assets/Scenes/803_SubSurfaceScatteringGlobalIllumination.unity
+    guid: acbea951c17ce7944a2c6e9374b1a0f6
+  - enabled: 1
     path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
     guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
   - enabled: 1
