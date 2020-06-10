@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.ShaderGraph
         internal const string subURL = "/manual/";
         internal const string endURL = ".html";
 
-        internal const string version = "7.4";
+        internal const string version = "7.5";
 
         internal static string GetPageLink(string pageName)
         {
