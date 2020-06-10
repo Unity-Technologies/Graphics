@@ -143,6 +143,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix reflection probe frame settings override
 - Fixed wrong order of post process frame settings.
 - Force to rebake probe with missing baked texture. (1253367)
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
