@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal SerializedProperty volumeBlendMode;
         internal SerializedProperty weight;
+        internal SerializedProperty normalBiasWS;
 
         internal SerializedProperty size;
 
@@ -59,6 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             volumeBlendMode = probeVolumeParams.FindPropertyRelative("volumeBlendMode");
             weight = probeVolumeParams.FindPropertyRelative("weight");
+            normalBiasWS = probeVolumeParams.FindPropertyRelative("normalBiasWS");
 
             size = probeVolumeParams.FindPropertyRelative("size");
 
