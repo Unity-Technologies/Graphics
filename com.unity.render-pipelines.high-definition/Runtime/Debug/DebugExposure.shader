@@ -3,7 +3,6 @@ Shader "Hidden/HDRP/DebugExposure"
     HLSLINCLUDE
 
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Components/Tonemapping.cs.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
     #define DEBUG_DISPLAY
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
@@ -98,7 +97,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float GetEVAtLocation(float2 uv)
     {
-        return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4));
+        return ComputeEV100FromAvgLuminance(max(SampleLuminance(uv), 1e-4), MeterCalibrationConstant);
     }
 
     // Returns true if it drew the location of the indicator.
@@ -462,7 +461,6 @@ Shader "Hidden/HDRP/DebugExposure"
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         float2 uv = input.texcoord.xy;
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float pipFraction = 0.33f;
         uint borderSize = 3;
@@ -472,7 +470,8 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             float2 scaledUV = uv / pipFraction;
             float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
-            float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy);
+            float  luminance = SampleLuminance(scaledUV);
+            float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
             return pipColor * weight;
         }
@@ -561,7 +560,7 @@ Shader "Hidden/HDRP/DebugExposure"
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
         textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
-        textLocation =  uint2(_MousePixelCoord.xy);
+        textLocation = _MousePixelCoord.xy;
         DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;
@@ -575,7 +574,6 @@ Shader "Hidden/HDRP/DebugExposure"
         float2 uv = input.texcoord.xy;
 
         float3 color = SAMPLE_TEXTURE2D_X_LOD(_DebugFullScreenTexture, s_linear_clamp_sampler, uv, 0.0).xyz;
-        float weight = WeightSample(input.positionCS.xy, _ScreenSize.xy);
 
         float3 outputColor = color;
 
@@ -617,7 +615,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
         uint2 unormCoord = input.positionCS.xy;
         float3 textColor = float3(0.5f, 0.5f, 0.5f);
-        int2 textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
+        uint2 textLocation = uint2(DEBUG_FONT_TEXT_WIDTH * 0.5, DEBUG_FONT_TEXT_WIDTH * 0.5 + histFrameHeight * (_ScreenSize.y / _RTHandleScale.y));
         DrawCharacter('C', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
         DrawCharacter('u', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
@@ -637,7 +635,7 @@ Shader "Hidden/HDRP/DebugExposure"
         DrawCharacter(':', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         textLocation.x += DEBUG_FONT_TEXT_WIDTH * 0.5f;
         DrawFloatExplicitPrecision(currExposure, textColor, unormCoord, 3, textLocation, outputColor.rgb);
-        textLocation = int2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
+        textLocation = uint2(DEBUG_FONT_TEXT_WIDTH * 0.5, textLocation.y + DEBUG_FONT_TEXT_WIDTH);
         DrawCharacter('T', textColor, unormCoord, textLocation, outputColor.rgb, 1, 10);
         DrawCharacter('a', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);
         DrawCharacter('r', textColor, unormCoord, textLocation, outputColor.rgb, 1, 7);

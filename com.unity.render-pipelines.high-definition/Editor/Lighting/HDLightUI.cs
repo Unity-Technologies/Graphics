@@ -1005,7 +1005,9 @@ namespace UnityEditor.Rendering.HighDefinition
                             EditorGUILayout.PropertyField(serialized.filterTracedShadow, s_Styles.denoiseTracedShadow);
                             EditorGUI.indentLevel++;
                             EditorGUILayout.PropertyField(serialized.filterSizeTraced, s_Styles.denoiserRadius);
-                            EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
+                            // We only support distance based filtering if we have a punctual light source (point or spot)
+                            if (isPunctual)
+                                EditorGUILayout.PropertyField(serialized.distanceBasedFiltering, s_Styles.distanceBasedFiltering);
                             EditorGUI.indentLevel--;
                             EditorGUI.indentLevel--;
                         }
