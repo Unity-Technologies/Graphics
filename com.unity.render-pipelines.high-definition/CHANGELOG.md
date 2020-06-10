@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Cloud Layer volume override.
 - Added Fast Memory support for platform that support it.
 - Added CPU and GPU timings for ray tracing effects.
+- Added support to combine RTSSS and RTGI (1248733).
 - Added IES Profile support for Point, Spot and Rectangular-Area lights
 
 ### Fixed
@@ -656,6 +657,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with fast memory and rendergraph. 
 - Fixed transparent motion vector framesetting not sanitized.
 - Fixed wrong order of post process frame settings.
+- Fixed white flash when enabling SSR or SSGI.
+- The ray traced indrect diffuse and RTGI were combined wrongly with the rest of the lighting (1254318).
+- Fixed an exception happening when using RTSSS without using RTShadows.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -797,6 +801,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Lit and LayeredLit tessellation cross lod fade don't used dithering anymore between LOD but fade the tessellation height instead. Allow a smoother transition
 - Changed the way planar reflections are filtered in order to be a bit more "physically based".
 - Increased path tracing BSDFs roughness range from [0.001, 0.999] to [0.00001, 0.99999].
+- Changing the default SSGI radius for the all configurations.
+- Changed the default parameters for quality RTGI to match expected behavior.
 
 ## [7.1.1] - 2019-09-05
 

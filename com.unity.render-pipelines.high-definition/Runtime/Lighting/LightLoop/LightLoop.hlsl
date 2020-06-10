@@ -533,9 +533,16 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #endif
 
 #if !defined(_SURFACE_TYPE_TRANSPARENT)
-    // Only use the texture ssgi if the use indirect diffuse flag matches
-    if (_UseIndirectDiffuse == SCREEN_SPACE_INDIRECT_DIFFUSE_FLAG)
-        builtinData.bakeDiffuseLighting += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+    // If we use the texture ssgi for ssgi or rtgi, we want to combine it with the value in the bake diffuse lighting value
+    if (_UseIndirectDiffuse != INDIRECT_DIFFUSE_FLAG_OFF)
+    {
+        BuiltinData builtInDataSSGI;
+        ZERO_INITIALIZE(BuiltinData, builtInDataSSGI);
+        builtInDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
+        builtInDataSSGI.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+        ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtInDataSSGI);
+        builtinData.bakeDiffuseLighting += builtInDataSSGI.bakeDiffuseLighting;
+    }
 #endif
 
     ApplyDebugToLighting(context, builtinData, aggregateLighting);
