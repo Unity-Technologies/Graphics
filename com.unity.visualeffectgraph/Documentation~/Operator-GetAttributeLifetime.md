@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: lifetime**
 
-The **Get Attribute: lifetime** returns the lifetime, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: lifetime** returns the lifetime, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the amount of time the simulated elements should live for.<
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,8 +10,9 @@ The **Get Attribute: lifetime** returns the lifetime, which is a [standard attri
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the lifetime attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| lifetime   | float    | The value of the lifetime attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 
 The value the attribute returns uses the system’s space (either local-space or world-space).
+

@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: spawnTime**
 
-The **Get Attribute: spawnTime** returns the spawnTime, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: spawnTime** returns the spawnTime, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the internal time that the Spawn Context spawned the simulated element.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: spawnTime** returns the spawnTime, which is a [standard att
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the spawnTime attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| spawnTime  | float    | The value of the spawnTime attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 

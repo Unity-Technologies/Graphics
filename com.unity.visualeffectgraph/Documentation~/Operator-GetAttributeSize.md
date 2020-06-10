@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: size**
 
-The **Get Attribute: size** returns the size, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: size** returns the size, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the size of the simulated element.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: size** returns the size, which is a [standard attribute](Re
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the size attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| size       | float    | The value of the size attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 

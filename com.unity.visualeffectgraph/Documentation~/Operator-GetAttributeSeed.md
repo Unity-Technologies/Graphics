@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: seed**
 
-The **Get Attribute: seed** returns the seed, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: seed** returns the seed, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs a unique seed which the Visual Effect Graph uses for random number calculations.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: seed** returns the seed, which is a [standard attribute](Re
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the seed attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| seed       | uint     | The value of the seed attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 

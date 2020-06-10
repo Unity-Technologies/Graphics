@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: axisY**
 
-The **Get Attribute: axisY** returns the axisY, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: axisY** returns the axisY, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the up axis of the simulated element.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: axisY** returns the axisY, which is a [standard attribute](
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the axisY attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| axisY      | Vector3  | The value of the axisY attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 

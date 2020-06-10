@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: spawnIndex**
 
-The **Get Attribute: spawnIndex** returns the spawnIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: spawnIndex** returns the spawnIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the order ID of the simulated element when it spawned.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: spawnIndex** returns the spawnIndex, which is a [standard a
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the spawnIndex attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| spawnIndex | uint     | The value of the spawnIndex attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 

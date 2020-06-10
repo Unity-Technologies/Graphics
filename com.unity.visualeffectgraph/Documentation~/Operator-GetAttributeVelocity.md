@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: velocity**
 
-The **Get Attribute: velocity** returns the velocity, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on its [Location](Attributes.md#attribute-locations).
+The **Get Attribute: velocity** returns the velocity, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the current velocity of the simulated element, in the simulation space of the [System](Systems.md).
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
@@ -10,7 +10,7 @@ The **Get Attribute: velocity** returns the velocity, which is a [standard attri
 
 | **Output** | **Type** | **Description**                                              |
 | ---------- | -------- | ------------------------------------------------------------ |
-| age        |          | The value of the velocity attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
+| velocity   | Vector3  | The value of the velocity attribute, based on **Location**.<br/>If this attribute has not been written to, this Operator returns the default attribute value. |
 
 ## Notes
 
