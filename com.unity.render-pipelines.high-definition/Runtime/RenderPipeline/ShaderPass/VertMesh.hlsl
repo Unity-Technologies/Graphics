@@ -158,7 +158,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
         output.normalWS = normalWS;
         output.tangentWS = tangentWS;
 #endif
-#if defined(DEBUG_DISPLAY) && (SHADERPASS == SHADERPASS_FORWARD)
+#if defined(DEBUG_DISPLAY) && (SHADERPASS == SHADERPASS_FORWARD || SHADERPASS == SHADERPASS_FORWARD_UNLIT)
         if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_VERTEX_DENSITY)
             IncrementVertexDensityCounter(output.positionCS);
 #endif

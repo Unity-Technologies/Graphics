@@ -3790,11 +3790,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetRandomWriteTarget(5, TextureXR.GetBlackUIntTexture());
 
                 HDUtils.DrawRendererList(renderContext, cmd, RendererList.Create(PrepareForwardEmissiveRendererList(cullResults, hdCamera)));
-                if (debugDisplay)
-                    cmd.ClearRandomWriteTargets();
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals))
                     DecalSystem.instance.RenderForwardEmissive(cmd);
+
+                if (debugDisplay)
+                    cmd.ClearRandomWriteTargets();
             }
         }
 
