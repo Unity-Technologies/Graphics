@@ -665,6 +665,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed area light cookie not updated when switch the light type from a spot that had a cookie.
 - Fixed issue with dynamic resolution updating when not in play mode.
 - Fixed issue with Contrast Adaptive Sharpening upsample mode and preview camera.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
