@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDShaderPasses.GenerateShadowCaster(supportLighting),
                     HDShaderPasses.GenerateMETA(supportLighting),
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
-                    HDShaderPasses.GenerateMotionVectors(supportLighting),
+                    HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
                 };
@@ -180,7 +180,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.validPixelBlocks == null)
                     passDescriptor.validPixelBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Fragment).ToArray();
                 if (passDescriptor.validVertexBlocks == null)
-                    // passDescriptor.validVertexBlocks = tmpCtx.activeBlocks.Where(b => b.shaderStage == ShaderStage.Vertex).ToArray();
                     passDescriptor.validVertexBlocks = CoreBlockMasks.Vertex;
 
                 // Set default values for HDRP "surface" passes:
