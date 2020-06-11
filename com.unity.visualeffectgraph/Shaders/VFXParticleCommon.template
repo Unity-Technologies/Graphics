@@ -70,8 +70,9 @@ ${VFXBegin:VFXLoadAttributesOrCull}
 uint maxCount = asuint(nbMax);
 #if USE_DEAD_LIST_COUNT
 maxCount -= deadListCount.Load(0);
-#elif USE_COUNT_FROM_GPU
-maxCount = min(maxCount,inputAdditional.Load((offsetInAdditionalOutput * 3 + 1) << 2));
+#endif
+#if USE_COUNT_FROM_GPU
+maxCount = min(maxCount,inputAdditional.Load((asuint(offsetInAdditionalOutput) * 3 + 1) << 2));
 #endif
 if (index >= maxCount)
 #if USE_GEOMETRY_SHADER

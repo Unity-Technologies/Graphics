@@ -349,11 +349,15 @@ namespace UnityEditor.VFX
                         yield return "VFX_BYPASS_EXPOSURE";
                 }
 
-                if (NeedsDeadListCount() && GetData().IsAttributeStored(VFXAttribute.Alive)) //Actually, there are still corner cases, e.g.: particles spawning immortal particles through GPU Event
-                    yield return "USE_DEAD_LIST_COUNT";
+                if (GetData().IsAttributeStored(VFXAttribute.Alive))
+                {
+                    yield return "VFX_HAS_KILL";
+                    if (NeedsDeadListCount())
+                        yield return "USE_DEAD_LIST_COUNT";
+                }
 
                 if (HasStrips(false))
-                    yield return "HAS_STRIPS";
+                    yield return "HAS_STRIPS"; 
 
                 if (((VFXDataParticle)GetData()).HasGPUSpawn())
                     yield return "VFX_USE_SPAWNER_FROM_GPU";

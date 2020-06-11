@@ -15,7 +15,7 @@ ${VFXGlobalDeclaration}
 #define VFX_OPTIONAL_INTERPOLATION nointerpolation
 #endif
 
-#define USE_COUNT_FROM_GPU (!VFX_USE_ALIVE_CURRENT && VFX_USE_SPAWNER_FROM_GPU && !VFX_HAS_INDIRECT_DRAW)
+#define USE_COUNT_FROM_GPU (!VFX_HAS_KILL && VFX_USE_SPAWNER_FROM_GPU && !VFX_HAS_INDIRECT_DRAW)
 
 ByteAddressBuffer attributeBuffer;	
 
@@ -43,7 +43,7 @@ CBUFFER_START(outputParams)
 	float nbMax;
 	float systemSeed;
 #if USE_COUNT_FROM_GPU
-	uint offsetInAdditionalOutput;
+	float offsetInAdditionalOutput;
 #endif
 CBUFFER_END
 
