@@ -7,10 +7,6 @@ using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
-#if ENABLE_VIRTUALTEXTURES
-using UnityEngine.Rendering.VirtualTexturing;
-#endif
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
@@ -398,24 +394,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 return;
             }
-
-#if ENABLE_VIRTUALTEXTURES
-            VirtualTexturingSettingsSRP settings = asset.virtualTexturingSettings;
-
-            if (settings == null)
-                settings = new VirtualTexturingSettingsSRP();
-
-            VirtualTexturing.Streaming.SetCPUCacheSize(settings.streamingCpuCacheSizeInMegaBytes);
-
-            GPUCacheSetting[] gpuCacheSettings = new GPUCacheSetting[settings.streamingGpuCacheSettings.Count];
-            for (int i = 0; i < settings.streamingGpuCacheSettings.Count; ++i)
-            {
-                GPUCacheSettingSRP srpSetting = settings.streamingGpuCacheSettings[i];
-                gpuCacheSettings[i] = new GPUCacheSetting() { format = srpSetting.format, sizeInMegaBytes = srpSetting.sizeInMegaBytes };
-            }
-
-            VirtualTexturing.Streaming.SetGPUCacheSettings(gpuCacheSettings);
-#endif
 
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
