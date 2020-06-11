@@ -21,11 +21,13 @@ namespace UnityEditor.Rendering
             EditorGUIUtility.TrIconContent("RotateTool", "Rotate the selected plane.")
         };
 
-        const float k_HandleSizeCoef = 0.1f;
+        const float k_HandleSizeCoef = 0.05f;
 
+        Color m_MonochromeFillColor;
         Color m_MonochromeHandleColor;
         Color m_WireframeColor;
         Color m_WireframeColorBehind;
+
         List<Vector4> m_Planes;
         List<Face> m_Faces;
         int m_Selected;
@@ -35,6 +37,8 @@ namespace UnityEditor.Rendering
         {
             set
             {
+                value.a = 8f / 255;
+                m_MonochromeFillColor = value;
                 value.a = 1f;
                 m_MonochromeHandleColor = value;
                 value.a = 0.7f;
@@ -50,15 +54,8 @@ namespace UnityEditor.Rendering
             get { return m_Selected; }
             set
             {
-                if (m_Selected != value && value < m_Faces.Count)
-                {
+                if (value < m_Faces.Count)
                     m_Selected = value;
-                    if (m_Selected != -1)
-                    {
-                        rotationOrigin = m_Faces[value].center;
-                        rotation = Quaternion.LookRotation(m_Faces[value].normal, Vector3.up);
-                    }
-                }
             }
         }
 
@@ -108,7 +105,7 @@ namespace UnityEditor.Rendering
         {
             float denom = Vector3.Dot(dir, p.n);
             t = (p.d - Vector3.Dot(pos, p.n)) / denom;
-            return Mathf.Abs(denom) > Mathf.Epsilon;
+            return Mathf.Abs(denom) > 0.1f;
         }
 
         /// <summary>The planes of the convex volume in Handle.matrix space.</summary>
@@ -187,9 +184,33 @@ namespace UnityEditor.Rendering
                             if (!outside)
                             {
                                 if (indices[0] == -1 || indices[1] == -1)
-                                    m_Faces[i].inf_lines.Add(new Line() { a = points[0], b = dir });
+                                    m_Faces[i].inf_lines.Add(new Line() { a = points[0], b = dir.normalized });
                                 else
                                     m_Faces[i].lines.Add(new Line() { a=points[0], b=points[1] });
+                            }
+                        }
+                    }
+
+                    // Reorder lines to draw them with Handles.DrawAAConvexPolygon
+                    if (m_Faces[i].inf_lines.Count == 0 && m_Faces[i].lines.Count != 0)
+                    {
+                        var lines = m_Faces[i].lines;
+                        for (int k = 0; k < lines.Count - 1; k++)
+                        for (int l = k + 1; l < lines.Count; l++)
+                        {
+                            if (lines[k].b == lines[l].a)
+                            {
+                                var temp = lines[k + 1];
+                                lines[k + 1] = lines[l];
+                                lines[l] = temp;
+                                break;
+                            }
+                            else if (lines[k].b == lines[l].b)
+                            {
+                                var temp = lines[k + 1];
+                                lines[k + 1] = new Line(){ a = lines[l].b, b = lines[l].a };
+                                lines[l] = temp;
+                                break;
                             }
                         }
                     }
@@ -231,7 +252,14 @@ namespace UnityEditor.Rendering
                 lines = new List<Line>();
                 inf_lines = new List<Line>();
             }
-            public void Draw(float dist)
+            public void DrawFace()
+            {
+                Vector3[] points = new Vector3[lines.Count];
+                for (int i = 0; i < lines.Count; i++)
+                    points[i] = lines[i].a;
+                Handles.DrawAAConvexPolygon(points);
+            }
+            public void DrawLines(float dist)
             {
                 foreach (var l in lines)
                     Handles.DrawLine(l.a, l.b);
@@ -274,46 +302,54 @@ namespace UnityEditor.Rendering
         }
 
         /// <summary>Draw the hull which means the intersections between the planes</summary>
-        public void DrawHull()
+        /// <param name="filled">If true, also fill the faces of the hull</param>
+        public void DrawHull(bool filled)
         {
             Color previousColor = Handles.color;
             Matrix4x4 previousMatrix = Handles.matrix;
-            Vector3 camera = Handles.inverseMatrix * Camera.current.transform.position;
 
+            Vector3 camera = Handles.inverseMatrix * Camera.current.transform.position;
             Handles.matrix *= Matrix4x4.Translate(center);
 
-            float dot;
-            int selection = ArrayUtility.IndexOf(k_EditModes, EditMode.editMode) == -1 ? -1 : m_Selected;
-            List<Vector3> points = new List<Vector3>();
+            float dot = Vector3.Distance(center, camera) * 0.5f;
             for (int i = 0; i < m_Faces.Count; i++)
             {
+                Handles.color = m_WireframeColorBehind;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
+                m_Faces[i].DrawLines(Mathf.Abs(dot));
+
+                Handles.color = m_WireframeColor;
+                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
+                m_Faces[i].DrawLines(Mathf.Abs(dot));
+
                 if (m_Faces[i].lines.Count != 0)
-                    dot = Vector3.Dot(center + m_Faces[i].lines[0].a - camera, m_Faces[i].normal);
-                else if (m_Faces[i].inf_lines.Count != 0)
-                    dot = Vector3.Dot(center + m_Faces[i].inf_lines[0].a - camera, m_Faces[i].normal);
-                else continue;
-
-                if (selection != i && dot <= 0.0f)
                 {
-                    Handles.color = m_WireframeColor;
-                    Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                    m_Faces[i].Draw(-dot);
-
-                    Handles.color = m_WireframeColorBehind;
-                    Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                    m_Faces[i].Draw(-dot);
-                }
-                else
-                {
-                    Handles.color = (selection == i) ? m_MonochromeHandleColor : m_WireframeColorBehind;
-                    Handles.zTest = UnityEngine.Rendering.CompareFunction.Always;
-                    m_Faces[i].Draw(Mathf.Abs(dot));
+                    Handles.color = m_MonochromeFillColor;
+                    m_Faces[i].DrawFace();
                 }
             }
 
             Handles.zTest = UnityEngine.Rendering.CompareFunction.Always;
             Handles.matrix = previousMatrix;
             Handles.color = previousColor;
+        }
+
+        // Snap to collider under cursor
+        bool TrySnapPlane(out Vector4 plane)
+        {
+            plane = Vector4.zero;
+
+            if (!Event.current.shift)
+                return false;
+
+            var pos = new Vector2(Event.current.mousePosition.x, Camera.current.pixelHeight - Event.current.mousePosition.y);
+            if (Physics.Raycast(Camera.current.ScreenPointToRay(pos), out RaycastHit hit))
+            {
+                plane = -(Handles.inverseMatrix * hit.normal).normalized;
+                plane.w = Vector3.Dot((Vector3)(Handles.inverseMatrix * hit.point) - center, plane) - 0.05f;
+                return true;
+            }
+            return false;
         }
 
         // Keep this values between frames otherwise the rotation gizmo is unstable
@@ -338,64 +374,78 @@ namespace UnityEditor.Rendering
                 position = face + center;
 
                 color.a = 1.0f;
-                if (m_Selected == i)
+                if (editMode == 0)
+                {
+                    Handles.color = color;
+                    float handleSize = k_HandleSizeCoef * HandleUtility.GetHandleSize(position);
+
+                    EditorGUI.BeginChangeCheck();
+                    Vector3 newPos = Handles.Slider(position, m_Faces[i].normal, handleSize, Handles.DotHandleCap, EditorSnapSettings.scale);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        if (!TrySnapPlane(out Vector4 plane))
+                        {
+                            plane = m_Planes[i];
+                            plane.w += Vector3.Dot(newPos - position, m_Faces[i].normal);
+                        }
+                        m_Planes[i] = plane;
+                    }
+
+                    //if (GUIUtility.hotControl != 0)
+                    {
+                        Handles.DrawLine(position, position + m_Faces[i].normal * 10.0f * handleSize);
+                    }
+                }
+                else if (editMode == 1 && m_Selected == i)
                 {
                     if (Vector3.Dot(position - camera, m_Faces[i].normal) > 0.0f)
                         color.a = 1.0f - Vector3.Dot((position - camera).normalized, m_Faces[i].normal) + 0.1f;
                     Handles.color = color;
 
-                    if (editMode == 0)
+                    if (GUIUtility.hotControl == 0)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newPos = Handles.Slider(position, m_Faces[i].normal, HandleUtility.GetHandleSize(position), Handles.ArrowHandleCap, 0.5f);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            // Snap to surface under cursor
-                            if (Event.current.alt && Physics.Raycast(Camera.current.ScreenPointToRay(new Vector2(
-                                Event.current.mousePosition.x, Camera.current.pixelHeight - Event.current.mousePosition.y)),
-                                out RaycastHit hit))
-                            {
-                                Vector3 normal = -(Handles.inverseMatrix * hit.normal).normalized;
-                                Vector4 plane = normal;
-                                plane.w = Vector3.Dot((Vector3)(Handles.inverseMatrix * hit.point) - center, normal);
-                                m_Planes[i] = plane;
-                                rotation = Quaternion.LookRotation(normal, Vector3.up);
-                            }
-                            else
-                            {
-                                Vector4 plane = m_Planes[i];
-                                plane.w += Vector3.Dot(newPos - position, m_Faces[i].normal);
-                                m_Planes[i] = plane;
-                            }
-                            rotationOrigin = face;
-                        }
+                        rotation = Quaternion.LookRotation(m_Faces[i].normal, Vector3.up);
+                        rotationOrigin = face;
                     }
-                    else if (editMode == 1)
+                    EditorGUI.BeginChangeCheck();
+                    rotation = Handles.RotationHandle(rotation, rotationOrigin + center);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        EditorGUI.BeginChangeCheck();
-                        rotation = Handles.RotationHandle(rotation, rotationOrigin + center);
-                        if (EditorGUI.EndChangeCheck())
+                        if (!TrySnapPlane(out Vector4 plane))
                         {
-                            Vector4 plane = (rotation * Vector3.forward).normalized;
-                            plane.w = m_Planes[i].w;
-                            m_Planes[i] = plane;
+                            plane = (rotation * Vector3.forward).normalized;
+                            plane.w = Vector3.Dot(rotationOrigin, plane);
                         }
+                        m_Planes[i] = plane;
                     }
                 }
                 else
                 {
-                    float handleSize = k_HandleSizeCoef * HandleUtility.GetHandleSize(center);
                     Handles.color = color;
+                    float handleSize = 2.0f * k_HandleSizeCoef * HandleUtility.GetHandleSize(center);
                     if (Handles.Button(position, Quaternion.identity, handleSize, handleSize, Handles.SphereHandleCap))
-                    {
                         m_Selected = i;
-                        rotationOrigin = face;
-                        rotation = Quaternion.LookRotation(m_Faces[i].normal, Vector3.up);
-                    }
                 }
             }
 
             Handles.color = previousColor;
+        }
+
+        /// <summary>Returns an array of plane index not contributing to the convex shape.</summary>
+        /// <param name="planes">The planes making the shape.</param>
+        /// <returns>An aray of indices to useless planes</returns>
+        public static int[] ComputeUselessPlanes(Vector4[] planes)
+        {
+            ConvexVolume vol = new ConvexVolume(Color.white);
+            vol.planes = planes;
+
+            var indices = new List<int>();
+            for (int i = 0; i < vol.m_Faces.Count; i++)
+            {
+                if (vol.m_Faces[i].lines.Count == 0 && vol.m_Faces[i].inf_lines.Count == 0)
+                    indices.Add(i);
+            }
+            return indices.ToArray();
         }
     }
 }

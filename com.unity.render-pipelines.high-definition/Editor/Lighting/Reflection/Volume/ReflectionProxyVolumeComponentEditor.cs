@@ -84,12 +84,12 @@ namespace UnityEditor.Rendering.HighDefinition
                             m_ConvexVolume.planes = prox.planes;
                             m_ConvexVolume.selected = prox.selected;
                             EditorGUI.BeginChangeCheck();
-                            m_ConvexVolume.DrawHull();
+                            m_ConvexVolume.DrawHull(true);
                             if (m_TypedTargets.Length == 1)
                                 m_ConvexVolume.DrawHandle();
                             if (EditorGUI.EndChangeCheck())
                             {
-                                Undo.RecordObjects(new Object[] { tr, comp }, "Update Proxy Volume Size");
+                                Undo.RecordObjects(new Object[] { comp }, "Update Proxy Volume Size");
                                 prox.planes = m_ConvexVolume.planes;
                             }
                             if (m_ConvexVolume.selected != prox.selected)

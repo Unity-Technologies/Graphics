@@ -44,10 +44,8 @@ float IntersectBoxProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
 float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
 {
     float projectionDistance = FLT_MAX;
-    int firstPlane = (int)lightData.proxyExtents.x;
-    int lastPlane = firstPlane + (int)lightData.proxyExtents.y;
 
-    for (int i = firstPlane; i < lastPlane; i++)
+    for (int i = (int)lightData.proxyExtents.x; i < (int)lightData.proxyExtents.y; i++)
     {
         float4 plane = _ProxyPlaneDatas[i];
         float angle = dot(dirPS, plane.xyz);
@@ -55,6 +53,7 @@ float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 position
             projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
     }
 
+    // No need to handle minProjectionDistance because influence volume can't have a convex shape, only the reflection proxies
     return projectionDistance;
 }
 

@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static GUIContent addPlane = EditorGUIUtility.TrTextContent("Add Plane", "Add a new plane to the volume.");
         internal static GUIContent deleteSelected = EditorGUIUtility.TrTextContent("Delete Selected", "Remove the selected plane from the volume.");
-        internal static GUIContent clearSelection = EditorGUIUtility.TrTextContent("Clear Selection", "Unselect the selected plane.");
+        internal static GUIContent cleanShape = EditorGUIUtility.TrTextContent("Clean Shape", "Remove the planes not contributing to the shape.");
         internal static GUIContent duplicateSelected = EditorGUIUtility.TrTextContent("Duplicate Selected", "Duplicate the selected plane.");
         internal static GUIContent selectedPlane = EditorGUIUtility.TrTextContent("Selected Plane", "The coefficients of the plane relative to the volume.\nXYZ is the plane normal. W is the distance to origin");
 
@@ -83,12 +83,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     GUILayout.EndVertical();
                     GUILayout.BeginVertical();
 
-                    EditorGUI.BeginDisabledGroup(selected == -1 || !editing);
-                    if (GUILayout.Button(clearSelection))
+                    if (GUILayout.Button(cleanShape))
                     {
+                        var planes = new Vector4[serialized.planes.arraySize];
+                        for (int i = 0; i < planes.Length; i++)
+                            planes[i] = serialized.planes.GetArrayElementAtIndex(i).vector4Value;
+                        var indices = ConvexVolume.ComputeUselessPlanes(planes);
+                        for (int i = indices.Length - 1; i >= 0; i--)
+                            serialized.planes.DeleteArrayElementAtIndex(indices[i]);
                         serialized.selected.intValue = -1;
                     }
 
+                    EditorGUI.BeginDisabledGroup(selected == -1 || !editing);
                     if (GUILayout.Button(duplicateSelected))
                     {
                         int idx = serialized.planes.arraySize;

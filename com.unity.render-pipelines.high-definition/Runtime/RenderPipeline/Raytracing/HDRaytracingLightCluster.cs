@@ -560,8 +560,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void BuildEnvLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights lights)
         {
-            int proxyPlaneOffset = 0;
-
             int totalReflectionProbes = lights.reflectionProbeArray.Count;
             if (totalReflectionProbes == 0)
             {
@@ -590,7 +588,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
 
                 var envLightData = new EnvLightData();
-                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, ref proxyPlaneOffset);
+                m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.

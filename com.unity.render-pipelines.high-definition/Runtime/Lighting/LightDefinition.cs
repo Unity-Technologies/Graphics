@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
-        // Convex: extents.x = first plane in _ProxyPlaneDatas, extents.y = plane count
+        // Convex: extents.x = first plane index in _ProxyPlaneDatas, extents.y = last plane
         public Vector3 proxyExtents;
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]

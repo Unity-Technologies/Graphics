@@ -303,7 +303,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUILayout.HelpBox(message, MessageType.Info);
             }
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxPlanarReflectionOnScreen, Styles.maxPlanarReflectionOnScreen);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightLoopSettings.maxProxyPlanesOnScreen, Styles.maxProxyPlanesOnScreen);
+            if (EditorGUI.EndChangeCheck())
+               serialized.renderPipelineSettings.lightLoopSettings.maxProxyPlanesOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxProxyPlanesOnScreen.intValue, 1, HDRenderPipeline.k_MaxProxyPlanesOnScreen);
 
             EditorGUILayout.Space();
 

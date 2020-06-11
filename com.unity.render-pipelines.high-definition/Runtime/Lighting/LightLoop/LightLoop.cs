@@ -1195,20 +1195,15 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void FillConvexProxyPlanes(Vector4[] planes, ref int proxyPlaneOffset)
+        internal void FillConvexProxyPlanes(Vector4[] planes)
         {
-            int planeIndex = 0;
-            for (; planeIndex < planes.Length; planeIndex++)
+            int maxIndex = Math.Min(planes.Length, m_MaxProxyPlanesOnScreen - m_lightList.proxyPlanes.Count);
+            for (int i = 0; i < maxIndex; i++)
             {
-                if ((proxyPlaneOffset + planeIndex) >= m_MaxProxyPlanesOnScreen)
-                    break;
-
-                Vector3 n = planes[planeIndex];
+                Vector3 n = planes[i];
                 n = n.normalized;
-                m_lightList.proxyPlanes.Add(new Vector4(n.x, n.y, n.z, planes[planeIndex].w));
+                m_lightList.proxyPlanes.Add(new Vector4(n.x, n.y, n.z, planes[i].w));
             }
-
-            proxyPlaneOffset += planeIndex;
         }
 
         internal void GetDirectionalLightData(CommandBuffer cmd, HDCamera hdCamera, VisibleLight light, Light lightComponent, int lightIndex, int shadowIndex,
@@ -1792,7 +1787,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_lightList.lightsPerView[viewIndex].lightVolumes.Add(lightVolumeData);
         }
 
-        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData, ref int proxyPlaneOffset)
+        internal bool GetEnvLightData(CommandBuffer cmd, HDCamera hdCamera, in ProcessedProbeData processedProbe, ref EnvLightData envLightData)
         {
             Camera camera = hdCamera.camera;
             HDProbe probe = processedProbe.hdProbe;
@@ -1889,9 +1884,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (probe.proxyVolume != null && probe.proxyVolume.proxyVolume.shape == ProxyShape.Convex)
                         {
-                            int startOffset = proxyPlaneOffset;
-                            FillConvexProxyPlanes(probe.proxyVolume.proxyVolume.planes, ref proxyPlaneOffset);
-                            proxyExtents = new Vector3(startOffset, proxyPlaneOffset - startOffset, 0);
+                            int startOffset = m_lightList.proxyPlanes.Count;
+                            FillConvexProxyPlanes(probe.proxyVolume.proxyVolume.planes);
+                            proxyExtents = new Vector3(startOffset, m_lightList.proxyPlanes.Count, 0);
                         }
 
                         break;
@@ -2587,8 +2582,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
 
-            int proxyPlaneOffset = 0;
-
             for (int sortIndex = 0; sortIndex < processedLightCount; ++sortIndex)
             {
                 // In 1. we have already classify and sorted the light, we need to use this sorted order here
@@ -2602,7 +2595,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 EnvLightData envLightData = new EnvLightData();
 
-                if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData, ref proxyPlaneOffset))
+                if (GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData))
                 {
                     // it has been filled
                     m_lightList.envLights.Add(envLightData);
