@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow. 
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
