@@ -108,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawQualitySettings()
         {
+            object oldSettings = SaveCustomQualitySettingsAsObject();
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField("Near Blur", EditorStyles.miniLabel);
             PropertyField(m_NearSampleCount, EditorGUIUtility.TrTextContent("Sample Count"));
@@ -126,7 +127,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (EditorGUI.EndChangeCheck())
             {
-                QualitySettingsWereChanged();
+                object newSettings = SaveCustomQualitySettingsAsObject();
+
+                if (!oldSettings.Equals(newSettings))
+                    QualitySettingsWereChanged();
             }
         }
 
@@ -140,6 +144,22 @@ namespace UnityEditor.Rendering.HighDefinition
             public float farMaxBlur;
             public DepthOfFieldResolution resolution;
             public bool hqFiltering;
+
+            public override bool Equals(object obj)
+            {
+                QualitySettingsBlob right = obj as QualitySettingsBlob;
+                if (right == null)
+                {
+                    return false;
+                }
+
+                return nearSampleCount == right.nearSampleCount
+                    && nearMaxBlur == right.nearMaxBlur
+                    && farSampleCount == right.farSampleCount
+                    && farMaxBlur == right.farMaxBlur
+                    && resolution == right.resolution
+                    && hqFiltering == right.hqFiltering;
+            }
         }
 
         public override void LoadSettingsFromObject(object settings)
@@ -166,7 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.DoFHighQualityFiltering[level];
         }
 
-        public override object SaveCustomQualitySettingsAsObject(object history)
+        public override object SaveCustomQualitySettingsAsObject(object history = null)
         {
             QualitySettingsBlob qualitySettings = (history != null) ? history as QualitySettingsBlob : new QualitySettingsBlob();
             
