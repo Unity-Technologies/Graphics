@@ -139,9 +139,6 @@ Pass
     $StackLitDebug:                                      #define _STACKLIT_DEBUG
     $DepthOffset:                                        #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:                         #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
-    $NormalDropOffTS:		                            #define _NORMAL_DROPOFF_TS 1
-    $NormalDropOffOS:		                            #define _NORMAL_DROPOFF_OS 1
-    $NormalDropOffWS:		                            #define _NORMAL_DROPOFF_WS 1
 
     // StackLit.hlsl config defines (direct, no feature keywords):
     // _SCREENSPACE_SPECULAROCCLUSION_METHOD, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT, _SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR
@@ -309,19 +306,19 @@ Pass
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
         $SurfaceDescription.IridescenceCoatFixupTIR:   surfaceData.iridescenceCoatFixupTIR =  surfaceDescription.IridescenceCoatFixupTIR;
         $SurfaceDescription.IridescenceCoatFixupTIRClamp: surfaceData.iridescenceCoatFixupTIRClamp =  surfaceDescription.IridescenceCoatFixupTIRClamp;
-        $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;
+        $SurfaceDescription.Specular:                  surfaceData.specularColor =            surfaceDescription.Specular;
         $SurfaceDescription.DielectricIor:             surfaceData.dielectricIor =            surfaceDescription.DielectricIor;
         $SurfaceDescription.Metallic:                  surfaceData.metallic =                 surfaceDescription.Metallic;
-        $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
+        $SurfaceDescription.Smoothness:                surfaceData.perceptualSmoothnessA =    surfaceDescription.Smoothness;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
-        $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
+        $SurfaceDescription.Occlusion:                 surfaceData.ambientOcclusion =         surfaceDescription.Occlusion;
         //TODO: if custom external values are wanted, we would ideally need one SO value per lobe.
         $SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusionCustomInput = surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
-        $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
-        $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
+        $SurfaceDescription.SOFixupVisibilityRatioThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOFixupVisibilityRatioThreshold;
+        $SurfaceDescription.SOFixupStrengthFactor:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOFixupStrengthFactor;
+        $SurfaceDescription.SOFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOFixupMaxAddedRoughness;
 
-        $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
+        $SurfaceDescription.Anisotropy:                surfaceData.anisotropyA =              surfaceDescription.Anisotropy;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
         $SurfaceDescription.CoatMask:                  surfaceData.coatMask =                 surfaceDescription.CoatMask;
@@ -391,20 +388,14 @@ Pass
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         // normal delivered to master node
-        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
-
-        // compute world space normal
-        #if _NORMAL_DROPOFF_TS
-            GetNormalWS(fragInputs, normalSrc, surfaceData.normalWS, doubleSidedConstants);
-        #elif _NORMAL_DROPOFF_OS
-            surfaceData.normalWS = TransformObjectToWorldNormal(normalSrc);
-        #elif _NORMAL_DROPOFF_WS
-            surfaceData.normalWS = normalSrc;
-        #endif
+        $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+        $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
+        $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
 
         surfaceData.coatNormalWS = surfaceData.geomNormalWS;
-        $Material.CoatNormal: GetNormalWS(fragInputs, surfaceDescription.CoatNormal, surfaceData.coatNormalWS, doubleSidedConstants);
+        $SurfaceDescription.CoatNormalOS: surfaceData.coatNormalWS = TransformObjectToWorldNormal(surfaceDescription.CoatNormalOS);
+        $SurfaceDescription.CoatNormalTS: GetNormalWS(fragInputs, surfaceDescription.CoatNormalTS, surfaceData.coatNormalWS, doubleSidedConstants);
+        $SurfaceDescription.CoatNormalWS: surfaceData.coatNormalWS = surfaceDescription.CoatNormalWS;
 
         // surfaceData.tangentWS = normalize(fragInputs.tangentToWorld[0].xyz);
         // ...We don't need to normalize if we're going to call Orthonormalize anyways as long as

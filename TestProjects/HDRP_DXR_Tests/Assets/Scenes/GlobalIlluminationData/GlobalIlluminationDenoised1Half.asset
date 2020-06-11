@@ -260,8 +260,8 @@ MonoBehaviour:
     min: 0.001
     max: 1
   m_SecondDenoiserPass:
-    m_OverrideState: 0
-    m_Value: 1
+    m_OverrideState: 1
+    m_Value: 0
   m_SecondDenoiserRadius:
     m_OverrideState: 0
     m_Value: 0.3
