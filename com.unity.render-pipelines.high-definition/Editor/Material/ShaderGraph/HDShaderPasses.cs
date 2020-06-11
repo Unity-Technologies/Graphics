@@ -316,7 +316,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.MotionVectors;
+                var renderState = new RenderStateCollection();
+                renderState.Add(CoreRenderStates.MotionVectors);
     
                 if (!supportLighting)
                 {
@@ -862,22 +863,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = supportLighting ? GenerateDefines() : null,
+                defines = supportLighting ? RaytracingIndirectDefines : null,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
             };
-
-            DefineCollection GenerateDefines()
-            {
-                return new DefineCollection
-                {
-                    { Defines.shadowLow },
-                    { Defines.raytracingLow },
-                    { CoreKeywordDescriptors.HasLightloop, 1 },
-                };
-            }
         }
+
+        public static DefineCollection RaytracingIndirectDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { Defines.raytracingLow },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
 
 #endregion
 
@@ -938,10 +936,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 
+
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1008,7 +1007,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1061,8 +1060,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
-            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
         }
 
 #endregion
