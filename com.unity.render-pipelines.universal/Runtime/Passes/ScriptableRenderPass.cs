@@ -12,9 +12,9 @@ namespace UnityEngine.Rendering.Universal
     public enum ScriptableRenderPassInput
     {
         None = 0,
-        Depth = 1,
-        Normal = 2,
-        Color = 4,
+        Depth = 1 << 0,
+        Normal = 1 << 1,
+        Color = 1 << 2,
     }
 
     // Note: Spaced built-in events so we can add events in between them
