@@ -5,8 +5,8 @@ Shader "Universal Render Pipeline/Lit"
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
 
-        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
+        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
@@ -14,7 +14,7 @@ Shader "Universal Render Pipeline/Lit"
         _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
-        [Gamma] _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}
 
         _SpecColor("Specular", Color) = (0.2, 0.2, 0.2)

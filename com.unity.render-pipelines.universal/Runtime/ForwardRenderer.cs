@@ -172,11 +172,21 @@ namespace UnityEngine.Rendering.Universal
                 requiresDepthPrepass = true;
 
             bool createColorTexture = RequiresIntermediateColorTexture(ref cameraData);
+            createColorTexture |= (rendererFeatures.Count != 0);
             createColorTexture &= !isPreviewCamera;
 
             // If camera requires depth and there's no depth pre-pass we create a depth texture that can be read later by effect requiring it.
             bool createDepthTexture = cameraData.requiresDepthTexture && !requiresDepthPrepass;
             createDepthTexture |= (cameraData.renderType == CameraRenderType.Base && !cameraData.resolveFinalTarget);
+
+#if UNITY_ANDROID
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Vulkan)
+            {
+                // GLES can not use render texture's depth buffer with the color buffer of the backbuffer
+                // in such case we create a color texture for it too.
+                createColorTexture |= createDepthTexture;
+            }
+#endif
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
@@ -472,9 +482,8 @@ namespace UnityEngine.Rendering.Universal
             if (isOffscreenRender)
                 return requiresBlitForOffscreenCamera;
 
-            return requiresBlitForOffscreenCamera || isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                   !isCompatibleBackbufferTextureDimension || isCapturing ||
-                   (Display.main.requiresBlitToBackbuffer && !isStereoEnabled);
+            return requiresBlitForOffscreenCamera || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+                   !isCompatibleBackbufferTextureDimension || isCapturing || (Display.main.requiresBlitToBackbuffer && !isStereoEnabled);
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -147,12 +148,14 @@ namespace UnityEngine.Rendering.Universal
             context.DrawRenderers(cullResults, ref errorSettings, ref filterSettings);
         }
 
-        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat allocates memory due to boxing.
+        // Caches render texture format support. SystemInfo.SupportsRenderTextureFormat and IsFormatSupported allocate memory due to boxing.
         static Dictionary<RenderTextureFormat, bool> m_RenderTextureFormatSupport = new Dictionary<RenderTextureFormat, bool>();
+        static Dictionary<GraphicsFormat, bool> m_GraphicsFormatSupport = new Dictionary<GraphicsFormat, bool>();
 
         internal static void ClearSystemInfoCache()
         {
             m_RenderTextureFormatSupport.Clear();
+            m_GraphicsFormatSupport.Clear();
         }
 
         /// <summary>
@@ -167,6 +170,24 @@ namespace UnityEngine.Rendering.Universal
             {
                 support = SystemInfo.SupportsRenderTextureFormat(format);
                 m_RenderTextureFormatSupport.Add(format, support);
+            }
+
+            return support;
+        }
+
+        /// <summary>
+        /// Checks if a texture format is supported by the run-time system.
+        /// Similar to <see cref="SystemInfo.IsFormatSupported"/>, but doesn't allocate memory.
+        /// </summary>
+        /// <param name="format">The format to look up.</param>
+        /// <param name="usage">The format usage to look up.</param>
+        /// <returns>Returns true if the graphics card supports the given <c>GraphicsFormat</c></returns>
+        public static bool SupportsGraphicsFormat(GraphicsFormat format, FormatUsage usage)
+        {
+            if (!m_GraphicsFormatSupport.TryGetValue(format, out var support))
+            {
+                support = SystemInfo.IsFormatSupported(format, usage);
+                m_GraphicsFormatSupport.Add(format, support);
             }
 
             return support;
