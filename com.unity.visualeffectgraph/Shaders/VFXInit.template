@@ -67,20 +67,20 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU
-    uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);
-    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;
+    uint threadCount = inputAdditional.Load((offsetInAdditionalOutput * 3 + 0) << 2);
+    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 3 + 1) << 2) - threadCount;
 #else
-    uint maxThreadId = nbSpawned;
+    uint threadCount = nbSpawned;
     uint currentSpawnIndex = spawnIndex;
 #endif
 
 #if USE_DEAD_LIST
-    maxThreadId = min(maxThreadId, deadListCount.Load(0x0));
+    threadCount = min(threadCount, deadListCount.Load(0x0));
 #elif VFX_USE_SPAWNER_FROM_GPU
-    maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU
+    threadCount = min(threadCount, nbMax); //otherwise, nbSpawned already clamped on CPU
 #endif
 
-    if (id < maxThreadId)
+    if (id < threadCount)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
         int sourceIndex = eventList[id];

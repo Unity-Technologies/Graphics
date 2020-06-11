@@ -5,6 +5,7 @@
 CBUFFER_START(Uniform)
     uint maxNb;
     uint offset;
+    uint frameIndex;
 CBUFFER_END
 
 #define NB_THREADS_PER_GROUP 64
@@ -21,6 +22,21 @@ ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
 RWBuffer<uint> outputIndirectArgs;
 RWByteAddressBuffer outputAdditional;
+
+// output additional data
+#define EVENT_DATA_SPAWN_COUNT 0 // current spawn count 
+#define EVENT_DATA_TOTAL_COUNT 1 // total count
+#define EVENT_DATA_FRAME_INDEX 2 // current frame index of the data
+
+void StoreAdditionalData(uint data, uint index, uint value)
+{
+    outputAdditional.Store((index * 3 + data) << 2, value);
+}
+
+uint LoadAdditionalData(uint data, uint index)
+{
+    return outputAdditional.Load((index * 3 + data) << 2);
+}
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
@@ -120,8 +136,16 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                 args.x = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
 
                 //Update total element count (spawnIndex)
-                outputAdditional.Store((index * 2 + 0) << 2, elementCount);
-                outputAdditional.Store((index * 2 + 1) << 2, outputAdditional.Load((data.indexCount * 2 + 1) << 2) + elementCount);
+                if (LoadAdditionalData(EVENT_DATA_FRAME_INDEX, index) != frameIndex) // Do it only once per frame (else total count will be incorrect)
+                {
+                    uint oldCount = 0u;
+                    if (data.indexCount != ~0u) // if indexCount is ~0u, it means no history
+                        oldCount = LoadAdditionalData(EVENT_DATA_TOTAL_COUNT, data.indexCount);
+
+                    StoreAdditionalData(EVENT_DATA_SPAWN_COUNT, index, elementCount);
+                    StoreAdditionalData(EVENT_DATA_TOTAL_COUNT, index, oldCount + elementCount);
+                    StoreAdditionalData(EVENT_DATA_FRAME_INDEX, index, frameIndex);
+                }
 
                 args.y = args.z = 1u;
                 break;
