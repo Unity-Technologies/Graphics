@@ -2568,7 +2568,7 @@ Transform:
   - {fileID: 1629570471}
   - {fileID: 500060274}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &727242241
 GameObject:
@@ -2792,7 +2792,7 @@ Transform:
   - {fileID: 2101480157}
   - {fileID: 109033304}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &776062913
 GameObject:
@@ -4296,7 +4296,7 @@ Transform:
   - {fileID: 1171873539}
   - {fileID: 776062914}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1108458478
 GameObject:
@@ -4748,7 +4748,7 @@ Transform:
   - {fileID: 1567087355}
   - {fileID: 942806649}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1212233003
 GameObject:
@@ -4780,7 +4780,7 @@ Transform:
   - {fileID: 1793154710}
   - {fileID: 1733693145}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1228769664
 GameObject:
@@ -5291,7 +5291,7 @@ Transform:
   - {fileID: 2025479061}
   - {fileID: 1402120765}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1278735000
 GameObject:
@@ -6290,7 +6290,6 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -0.06}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 2074084323}
   - {fileID: 1271530854}
   - {fileID: 2073805725}
   - {fileID: 1824405172}
@@ -7766,7 +7765,7 @@ Transform:
   - {fileID: 599009590}
   - {fileID: 1262766468}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1834754389
 GameObject:
@@ -8450,7 +8449,7 @@ Transform:
   - {fileID: 161704040}
   - {fileID: 1807480450}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2025479060
 GameObject:
@@ -8673,72 +8672,8 @@ Transform:
   - {fileID: 43762519}
   - {fileID: 1641211894}
   m_Father: {fileID: 1496654808}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2074084322
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2074084323}
-  - component: {fileID: 2074084324}
-  m_Layer: 0
-  m_Name: Terrain
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
---- !u!4 &2074084323
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2074084322}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.62, y: 0.4, z: 0.66}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 1496654808}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!218 &2074084324
-Terrain:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2074084322}
-  m_Enabled: 1
-  serializedVersion: 6
-  m_TerrainData: {fileID: 15600000, guid: 314a80b2b890a47b298a7e557e06ba81, type: 2}
-  m_TreeDistance: 497
-  m_TreeBillboardDistance: 5
-  m_TreeCrossFadeLength: 0
-  m_TreeMaximumFullLODCount: 0
-  m_DetailObjectDistance: 80
-  m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 1
-  m_SplatMapDistance: 1000
-  m_HeightmapMaximumLOD: 0
-  m_ShadowCastingMode: 2
-  m_DrawHeightmap: 1
-  m_DrawInstanced: 1
-  m_DrawTreesAndFoliage: 0
-  m_ReflectionProbeUsage: 3
-  m_MaterialTemplate: {fileID: 2100000, guid: cb8e173bc45d94b97a9d40464cf26218, type: 2}
-  m_BakeLightProbesForTrees: 1
-  m_PreserveTreePrototypeLayers: 0
-  m_DeringLightProbesForTrees: 0
-  m_ScaleInLightmap: 0.0512
-  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
-  m_GroupingID: 0
-  m_RenderingLayerMask: 1
-  m_AllowAutoConnect: 0
 --- !u!1 &2095097461
 GameObject:
   m_ObjectHideFlags: 0
