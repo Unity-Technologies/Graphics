@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
-        public static readonly int _CookieCubeTextures = Shader.PropertyToID("_CookieCubeTextures");
+
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
         public static readonly int _DirectionalLightDatas = Shader.PropertyToID("_DirectionalLightDatas");
@@ -251,6 +251,35 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CameraSssDiffuseLightingBuffer = Shader.PropertyToID("_CameraSssDiffuseLightingTexture");
         public static readonly int _CameraFilteringBuffer          = Shader.PropertyToID("_CameraFilteringTexture");
         public static readonly int _IrradianceSource               = Shader.PropertyToID("_IrradianceSource");
+
+        // Planar reflection filtering
+        public static readonly int _ReflectionColorMipChain = Shader.PropertyToID("_ReflectionColorMipChain");
+        public static readonly int _DepthTextureMipChain = Shader.PropertyToID("_DepthTextureMipChain");
+        public static readonly int _ReflectionPlaneNormal = Shader.PropertyToID("_ReflectionPlaneNormal");
+        public static readonly int _ReflectionPlanePosition = Shader.PropertyToID("_ReflectionPlanePosition");
+        public static readonly int _FilteredPlanarReflectionBuffer = Shader.PropertyToID("_FilteredPlanarReflectionBuffer");
+        public static readonly int _HalfResReflectionBuffer = Shader.PropertyToID("_HalfResReflectionBuffer");
+        public static readonly int _HalfResDepthBuffer = Shader.PropertyToID("_HalfResDepthBuffer");
+        public static readonly int _CaptureBaseScreenSize = Shader.PropertyToID("_CaptureBaseScreenSize");
+        public static readonly int _CaptureCurrentScreenSize = Shader.PropertyToID("_CaptureCurrentScreenSize");
+        public static readonly int _CaptureCameraIVP = Shader.PropertyToID("_CaptureCameraIVP");
+        public static readonly int _CaptureCameraPositon = Shader.PropertyToID("_CaptureCameraPositon");
+        public static readonly int _SourceMipIndex = Shader.PropertyToID("_SourceMipIndex");
+        public static readonly int _MaxMipLevels = Shader.PropertyToID("_MaxMipLevels");
+        public static readonly int _ThetaValuesTexture = Shader.PropertyToID("_ThetaValuesTexture");
+        public static readonly int _CaptureCameraFOV = Shader.PropertyToID("_CaptureCameraFOV");
+        public static readonly int _RTScaleFactor = Shader.PropertyToID("_RTScaleFactor");
+        public static readonly int _CaptureCameraVP_NO = Shader.PropertyToID("_CaptureCameraVP_NO");
+        public static readonly int _CaptureCameraFarPlane = Shader.PropertyToID("_CaptureCameraFarPlane");
+        public static readonly int _DepthTextureOblique = Shader.PropertyToID("_DepthTextureOblique");
+        public static readonly int _DepthTextureNonOblique = Shader.PropertyToID("_DepthTextureNonOblique");
+        public static readonly int _CaptureCameraIVP_NO = Shader.PropertyToID("_CaptureCameraIVP_NO");
+
+        public static readonly int _Output                         = Shader.PropertyToID("_Output");
+        public static readonly int _Input                          = Shader.PropertyToID("_Input");
+        public static readonly int _InputVal                       = Shader.PropertyToID("_InputVal");
+        public static readonly int _Sizes                          = Shader.PropertyToID("_Sizes");
+        public static readonly int _ScaleBias                      = Shader.PropertyToID("_ScaleBias");
 
         // MSAA shader properties
         public static readonly int _ColorTextureMS = Shader.PropertyToID("_ColorTextureMS");
@@ -592,7 +621,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _PositionTextureRW               = Shader.PropertyToID("_PositionTextureRW");
         public static readonly int _DiffuseLightingTextureRW        = Shader.PropertyToID("_DiffuseLightingTextureRW");
         public static readonly int _SubSurfaceLightingBuffer        = Shader.PropertyToID("_SubSurfaceLightingBuffer");
-
+        public static readonly int _IndirectDiffuseLightingBuffer   = Shader.PropertyToID("_IndirectDiffuseLightingBuffer");
+        
         // Accumulation
         public static readonly int _AccumulationFrameIndex          = Shader.PropertyToID("_AccumulationFrameIndex");
         public static readonly int _AccumulationNumSamples          = Shader.PropertyToID("_AccumulationNumSamples");
@@ -808,7 +838,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ProbeVolumeAtlasScale          = Shader.PropertyToID("_ProbeVolumeAtlasScale");
         public static readonly int _ProbeVolumeAtlasBias           = Shader.PropertyToID("_ProbeVolumeAtlasBias");
         public static readonly int _ProbeVolumeAtlasReadBufferCount = Shader.PropertyToID("_ProbeVolumeAtlasReadBufferCount");
-        public static readonly int _ProbeVolumeAtlasReadBuffer     = Shader.PropertyToID("_ProbeVolumeAtlasReadBuffer");
+        public static readonly int _ProbeVolumeAtlasReadSHL01Buffer = Shader.PropertyToID("_ProbeVolumeAtlasReadSHL01Buffer");
+        public static readonly int _ProbeVolumeAtlasReadSHL2Buffer = Shader.PropertyToID("_ProbeVolumeAtlasReadSHL2Buffer");
         public static readonly int _ProbeVolumeAtlasReadValidityBuffer = Shader.PropertyToID("_ProbeVolumeAtlasReadValidityBuffer");
         public static readonly int _ProbeVolumeAtlasWriteTextureSH = Shader.PropertyToID("_ProbeVolumeAtlasWriteTextureSH");
         public static readonly int _ProbeVolumeAtlasOctahedralDepthScaleBias = Shader.PropertyToID("_ProbeVolumeAtlasOctahedralDepthScaleBias");
