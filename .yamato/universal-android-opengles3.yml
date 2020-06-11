@@ -17,7 +17,7 @@ Universal_Android_OpenGLES3_Standalone_trunk:
       -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_trunk
          rerun: on-new-revision
     commands:
-      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
@@ -71,7 +71,7 @@ Universal_Android_OpenGLES3_Standalone_fast-trunk:
       -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_fast-trunk
          rerun: on-new-revision
     commands:
-      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
@@ -126,7 +126,7 @@ Universal_Android_OpenGLES3_Standalone_CUSTOM-REVISION:
       -  path: .yamato/universal-android-opengles3.yml#Build_Universal_Android_OpenGLES3_Player_CUSTOM-REVISION
          rerun: always
     commands:
-      -  url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
+      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\utr.bat
       -  '%ANDROID_SDK_ROOT%\platform-tools\adb.exe connect %BOKKEN_DEVICE_IP%'
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off

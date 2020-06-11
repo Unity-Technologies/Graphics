@@ -14,7 +14,7 @@ def cmd_not_standalone(project_folder, platform, api, test_platform_args):
 
 def cmd_standalone(project_folder, platform, api, test_platform_args):
     # Android could be run using standalone UTR, no need to download editor which takes a lot of time.
-    base = ['url -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\\utr.bat']
+    base = ['curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output utr\\utr.bat']
     base.extend([ 
         f'%ANDROID_SDK_ROOT%\platform-tools\\adb.exe connect %BOKKEN_DEVICE_IP%',
         f'powershell %ANDROID_SDK_ROOT%\platform-tools\\adb.exe devices',
