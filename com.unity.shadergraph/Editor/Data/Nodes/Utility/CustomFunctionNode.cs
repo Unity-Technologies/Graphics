@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
 {
     [HasDependencies(typeof(MinimalCustomFunctionNode))]
     [Title("Utility", "Custom Function")]
-    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IHasSettings
+    class CustomFunctionNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction
     {
         [Serializable]
         public class MinimalCustomFunctionNode : IHasDependencies
@@ -33,7 +33,9 @@ namespace UnityEditor.ShaderGraph
                     m_FunctionSource = UpgradeFunctionSource(m_FunctionSource);
                     if (IsValidFunction(m_SourceType, m_FunctionName, m_FunctionSource, null))
                     {
-                        paths.Add(AssetDatabase.GUIDToAssetPath(m_FunctionSource));
+                        var assetPath = AssetDatabase.GUIDToAssetPath(m_FunctionSource);
+                        if (!string.IsNullOrEmpty(assetPath))   // Ideally, we would record the GUID as a missing dependency here
+                            paths.Add(assetPath);
                     }
                 }
             }
@@ -315,15 +317,6 @@ namespace UnityEditor.ShaderGraph
                 ValidateNode();
                 Dirty(ModificationScope.Graph);
             }
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
-            ps.Add(new ReorderableSlotListView(this, SlotType.Output));
-            ps.Add(new HlslFunctionView(this));
-            return ps;
         }
 
         public static string UpgradeFunctionSource(string functionSource)

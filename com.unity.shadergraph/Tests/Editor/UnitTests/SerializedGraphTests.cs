@@ -101,7 +101,7 @@ namespace UnityEditor.Graphing.UnitTests
             public const int Output1 = 4;
             public const int Output2 = 5;
 
-            public TestableNode()
+            public TestableNode() : base()
             {
                 AddSlot(new TestSlot(Input0, "Input", SlotType.Input));
                 AddSlot(new TestSlot(Input1, "Input", SlotType.Input));
@@ -396,6 +396,9 @@ namespace UnityEditor.Graphing.UnitTests
             var edgesOnMiddleNode = NodeUtils.GetAllEdges(middleNode);
             Assert.AreEqual(2, edgesOnMiddleNode.Count());
 
+            outputNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
+            middleNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
+            inputNode.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
             List<AbstractMaterialNode> result = new List<AbstractMaterialNode>();
             NodeUtils.DepthFirstCollectNodesFromNode(result, inputNode);
             Assert.AreEqual(3, result.Count);

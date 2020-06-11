@@ -21,8 +21,8 @@ public class MoveBallsSystem : JobComponentSystem
     [BurstCompile]
     struct MoveBall : IJobChunk
     {
-        public ArchetypeChunkComponentType<Translation> TranslationType;
-        [ReadOnly] public ArchetypeChunkComponentType<BallOriginalTranslation> BallOriginalTranslationType;
+        public ComponentTypeHandle<Translation> TranslationType;
+        [ReadOnly] public ComponentTypeHandle<BallOriginalTranslation> BallOriginalTranslationType;
         public uint LastSystemVersion;
         public double ElapsedTime;
         
@@ -67,8 +67,8 @@ public class MoveBallsSystem : JobComponentSystem
         
         var moveBallJob = new MoveBall
         {
-            TranslationType = GetArchetypeChunkComponentType<Translation>(),
-            BallOriginalTranslationType = GetArchetypeChunkComponentType<BallOriginalTranslation>(true),
+            TranslationType = GetComponentTypeHandle<Translation>(),
+            BallOriginalTranslationType = GetComponentTypeHandle<BallOriginalTranslation>(true),
             LastSystemVersion = LastSystemVersion,
             ElapsedTime = Time.ElapsedTime
         };
