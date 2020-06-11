@@ -6,14 +6,14 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusionSettings
     {
         // Parameters
-        [SerializeField] internal bool Downsample;
-        //[SerializeField] internal DepthSource Source;
-        [SerializeField] internal SSAONormalSamples NormalSamples;
-        [SerializeField] internal float Intensity;
-        [SerializeField] internal float DirectLightingStrength;
-        [SerializeField] internal float Radius;
-        [SerializeField] internal int SampleCount;
-        [SerializeField] internal int BlurPasses;
+        [SerializeField] internal bool Downsample = false;
+        //[SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
+        [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
+        [SerializeField] internal float Intensity = 3.0f;
+        [SerializeField] internal float DirectLightingStrength = 0.25f;
+        [SerializeField] internal float Radius = 0.035f;
+        [SerializeField] internal int SampleCount = 6;
+        [SerializeField] internal int BlurPasses = 2;
 
         // Enums
         internal enum DepthSource
@@ -23,11 +23,11 @@ namespace UnityEngine.Rendering.Universal
             //GBuffer = 2
         }
 
-        internal enum SSAONormalSamples
+        internal enum NormalQuality
         {
-            One,
-            Five,
-            Nine
+            Low,
+            Medium,
+            High
         }
     }
 
@@ -171,17 +171,17 @@ namespace UnityEngine.Rendering.Universal
                 {
                     switch (m_CurrentSettings.NormalSamples)
                     {
-                        case ScreenSpaceAmbientOcclusionSettings.SSAONormalSamples.One:
+                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Low:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, true);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, false);
                             break;
-                        case ScreenSpaceAmbientOcclusionSettings.SSAONormalSamples.Five:
+                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.Medium:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, true);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, false);
                             break;
-                        case ScreenSpaceAmbientOcclusionSettings.SSAONormalSamples.Nine:
+                        case ScreenSpaceAmbientOcclusionSettings.NormalQuality.High:
                             CoreUtils.SetKeyword(material, k_NormalReconstructionLowKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionMediumKeyword, false);
                             CoreUtils.SetKeyword(material, k_NormalReconstructionHighKeyword, true);

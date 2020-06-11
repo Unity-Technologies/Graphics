@@ -633,7 +633,7 @@ Transform:
   - {fileID: 1245293069}
   - {fileID: 950672235}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 8
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &195539789
 GameObject:
@@ -857,7 +857,7 @@ Transform:
   - {fileID: 1140456825}
   - {fileID: 1393761598}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &256051790
 GameObject:
@@ -2434,7 +2434,6 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -0.06}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 2096123793}
   - {fileID: 1606196105}
   - {fileID: 1811271059}
   - {fileID: 1177319934}
@@ -2706,7 +2705,7 @@ Transform:
   - {fileID: 1493805078}
   - {fileID: 448851292}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &653095887
 GameObject:
@@ -2738,7 +2737,7 @@ Transform:
   - {fileID: 270090249}
   - {fileID: 1031177239}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 9
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &685990185
 GameObject:
@@ -5110,7 +5109,7 @@ Transform:
   - {fileID: 1011467843}
   - {fileID: 256785996}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1184356524
 GameObject:
@@ -7000,7 +6999,7 @@ Transform:
   - {fileID: 601932763}
   - {fileID: 36993274}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1602443503
 GameObject:
@@ -7128,7 +7127,7 @@ Transform:
   - {fileID: 1347103239}
   - {fileID: 2101828720}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1691201591
 GameObject:
@@ -7996,7 +7995,7 @@ Transform:
   - {fileID: 1424050364}
   - {fileID: 1017264103}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1848143873
 GameObject:
@@ -8931,7 +8930,7 @@ Transform:
   - {fileID: 391823927}
   - {fileID: 911465324}
   m_Father: {fileID: 572674278}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2083585249
 GameObject:
@@ -8971,70 +8970,6 @@ Transform:
   m_Father: {fileID: 576074783}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &2096123792
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2096123793}
-  - component: {fileID: 2096123794}
-  m_Layer: 0
-  m_Name: Terrain
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 4294967295
-  m_IsActive: 1
---- !u!4 &2096123793
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2096123792}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.62, y: 0.4, z: 0.66}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 572674278}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!218 &2096123794
-Terrain:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2096123792}
-  m_Enabled: 1
-  serializedVersion: 6
-  m_TerrainData: {fileID: 15600000, guid: 314a80b2b890a47b298a7e557e06ba81, type: 2}
-  m_TreeDistance: 497
-  m_TreeBillboardDistance: 5
-  m_TreeCrossFadeLength: 0
-  m_TreeMaximumFullLODCount: 0
-  m_DetailObjectDistance: 80
-  m_DetailObjectDensity: 1
-  m_HeightmapPixelError: 1
-  m_SplatMapDistance: 1000
-  m_HeightmapMaximumLOD: 0
-  m_ShadowCastingMode: 2
-  m_DrawHeightmap: 1
-  m_DrawInstanced: 1
-  m_DrawTreesAndFoliage: 0
-  m_ReflectionProbeUsage: 3
-  m_MaterialTemplate: {fileID: 2100000, guid: cb8e173bc45d94b97a9d40464cf26218, type: 2}
-  m_BakeLightProbesForTrees: 1
-  m_PreserveTreePrototypeLayers: 0
-  m_DeringLightProbesForTrees: 0
-  m_ScaleInLightmap: 0.0512
-  m_LightmapParameters: {fileID: 15203, guid: 0000000000000000f000000000000000, type: 0}
-  m_GroupingID: 0
-  m_RenderingLayerMask: 1
-  m_AllowAutoConnect: 0
 --- !u!1 &2101828719
 GameObject:
   m_ObjectHideFlags: 0
