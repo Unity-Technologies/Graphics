@@ -25,14 +25,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private ComputeBuffer m_IndexBuffer;
         private Vector3Int    m_IndexDim;
-        private Vector3Int    m_Anchor;
+        private Vector3Int    m_AnchorRS;   // the anchor in ref space, around which the index is defined
+        private Vector3Int    m_AnchorIS;   // the position in index space that the anchor maps to
 
         internal ProbeBrickIndex( Vector3Int indexDimensions )
         {
             Profiler.BeginSample("Create ProbeBrickIndex");
             int index_size = indexDimensions.x * indexDimensions.y * indexDimensions.z;
             m_IndexDim    = indexDimensions;
-            m_Anchor      = new Vector3Int(0, 0, 0);
+            m_AnchorRS    = new Vector3Int(0, 0, 0);
+            m_AnchorIS    = indexDimensions / 2;
             m_IndexBuffer = new ComputeBuffer(index_size, sizeof(int), ComputeBufferType.Structured, ComputeBufferMode.SubUpdates);
             // Should be done by a compute shader
             Profiler.BeginSample("Clear Index");
@@ -55,25 +57,56 @@ namespace UnityEngine.Rendering.HighDefinition
                 for (int i = 0; i < count; i++, brickIdx++, alloc.x += ProbeBrickPool.kBrickProbeCountPerDim)
                 {
                     // brick data
-                    Brick      b   = bricks[brickIdx];
-                    Vector3Int pos = b.position;
-                    if (pos.x < 0 || pos.y < 0 || pos.z < 0)
-                        Debug.Log("brick position is negative");
+                    Brick      b        = bricks[brickIdx];
+                    int        cellSize = ProbeReferenceVolume.cellSize(b.size);
+                    Vector3Int minpos   = b.position - m_AnchorRS;
+                    Vector3Int maxpos   = minpos + new Vector3Int(cellSize, cellSize, cellSize);
+
+                    // clip to index region
+                    minpos.x = Mathf.Max(minpos.x, -m_IndexDim.x / 2);
+                    minpos.y = Mathf.Max(minpos.y, -m_IndexDim.y / 2);
+                    minpos.z = Mathf.Max(minpos.z, -m_IndexDim.z / 2);
+                    maxpos.x = Mathf.Min(maxpos.x,  m_IndexDim.x / 2);
+                    maxpos.y = Mathf.Min(maxpos.y,  m_IndexDim.y / 2);
+                    maxpos.z = Mathf.Min(maxpos.z,  m_IndexDim.z / 2);
+                    Vector3Int bsize = maxpos - minpos;
+
+                    if( bsize.x <= 0 || bsize.y <= 0 || bsize.z <= 0 )
+                    {
+                        Debug.Log("APV: Tried to add a brick that lies outside the range covered by the brick index. Ignoring brick.");
+                        continue;
+                    }
 
                     // chunk data
                     int poolIdx = MergeIndex(alloc.flattenIndex(poolWidth, poolHeight), b.size);
 
-                    for (pos.z = b.position.z; pos.z < b.position.z + b.size; pos.z++)
-                        for (pos.y = b.position.y; pos.y < b.position.y + b.size; pos.y++)
+                    Vector3Int posIS = m_AnchorIS + minpos;
+                    for( int z = 0; z < bsize.z; z++ )
+                    {
+                        for( int y = 0; y < bsize.y; y++ )
                         {
-                            pos.x = b.position.x;
-                            NativeArray<int> dst = m_IndexBuffer.BeginWrite<int>(TranslateIndex(pos), b.size);
-                            for(int idx = 0; idx < b.size; idx++)
-                            {
+                            int mz = (posIS.z + z) % m_IndexDim.z;
+                            int my = (posIS.y + y) % m_IndexDim.y;
+                            int mx = (posIS.x + 0) % m_IndexDim.x;
+
+                            // x wraps around
+                            int xmax = Mathf.Min(mx + bsize.z, m_IndexDim.x);
+
+                            NativeArray<int> dst = m_IndexBuffer.BeginWrite<int>(TranslateIndex(new Vector3Int( mx, my, mz) ), xmax - mx);
+                            for (int idx = 0; idx < xmax - mx; idx++)
                                 dst[idx] = poolIdx;
+                            m_IndexBuffer.EndWrite<int>(xmax - mx);
+
+                            int remainder = bsize.x - (xmax - mx);
+                            if( remainder > 0 )
+                            {
+                                NativeArray<int> dst2 = m_IndexBuffer.BeginWrite<int>(TranslateIndex(new Vector3Int(0, my, mz)), remainder);
+                                for (int idx = 0; idx < remainder; idx++)
+                                    dst2[idx] = poolIdx;
+                                m_IndexBuffer.EndWrite<int>(remainder);
                             }
-                            m_IndexBuffer.EndWrite<int>(b.size);
                         }
+                    }
                 }
             }
         }
