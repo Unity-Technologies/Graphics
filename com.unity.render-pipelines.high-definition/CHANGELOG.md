@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
 - Fixed wrong order of post process frame settings.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed issue with blue line in prefabs for volume mode.
 
 ## [7.4.1] - 2020-06-03
 
