@@ -15,7 +15,7 @@ To work with physically-based lighting and Materials, you need to set up the Sce
 
 | **Property** | **Description**                                              |
 | ------------ | ------------------------------------------------------------ |
-| **Mode**     | Use the drop-down to select the method that HDRP uses to process exposure: <br/>&#8226;  [**Fixed**](#FixedProperties): Allows you to manually sets the Scene exposure.<br/>&#8226;  [**Automatic**](#AutomaticProperties): Automatically sets the exposure depending on what is on screen.<br/>&#8226;  [**Curve Mapping**](#CurveMappingProperties): Maps the current Scene exposure to a custom curve.<br/>&#8226;  [**Use Physical Camera**](#UsePhysicalCameraProperties): Uses the current physical Camera settings to set the Scene exposure. |
+| **Mode**     | Use the drop-down to select the method that HDRP uses to process exposure: <br/>&#8226;  [**Fixed**](#FixedProperties): Allows you to manually sets the Scene exposure.<br/>&#8226;  [**Automatic**](#AutomaticProperties): Automatically sets the exposure depending on what is on screen.<br/>&#8226;  [**Automatic Histogram**](#AutomaticHistogram): Extends Automatic exposure with histogram control.<br/>&#8226;  [**Curve Mapping**](#CurveMappingProperties): Maps the current Scene exposure to a custom curve.<br/>&#8226;  [**Use Physical Camera**](#UsePhysicalCameraProperties): Uses the current physical Camera settings to set the Scene exposure. |
 
 <a name="FixedProperties"></a>
 
@@ -49,6 +49,22 @@ The human eye can function in both very dark and very bright areas. However, at 
 | **Mode**                | Use the drop-down to select the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa:<br />&#8226; **Progressive**: The exposure changes over the period of time defined by the **Speed Dark to Light** and **Speed Light to Dark** property fields.<br />&#8226; **Fixed**: The exposure changes instantly. Note: The Scene view uses **Fixed**. |
 | **Speed Dark to Light** | Set the speed at which the exposure changes when the Camera moves from a dark area to a bright area.<br />This property only appears when you set the **Mode** to **Progressive**. |
 | **Speed Light to Dark** | Set the speed at which the exposure changes when the Camera moves from a bright area to a dark area.<br />This property only appears when you set the **Mode** to **Progressive**. |
+| **Target Mid Gray**     | Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).<br/>Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value. |
+
+<a name="AutomaticHistogram"></a>
+
+### Automatic Histogram
+
+The automatic histogram is an extension of the Automatic mode. In particular, in order to achieve a more stable exposure result, an histogram of the image is computed and it is possible to exclude parts of it in order to discard very bright or very dark areas of the screen. 
+
+In order to control this process, in addition to the parameter already mentioned for Automatic mode, the following are added: 
+
+#### Properties
+
+| **Property**              | **Description**                                              |
+| ------------------------- | ------------------------------------------------------------ |
+| **Histogram Percentages** | Use this field to select the range of the histogram that is considered for auto exposure computations. The values for this field are percentiles, meaning that for example if low percentile set is X, if a pixel has lower intensity than (100-X)% of all the pixels on screen it is discarded for the sake of auto-exposure. Similarly, if the higher percentile is set to Y, then it means that a pixel is discarded if it is brighter than Y% of all other pixels on screen. <br />This effectively allows to discard unwanted outliers in the shadows and highlight regions. |
+| **Use curve remapping**   | Enabling this field enables all options that are used for the Curve Mapping mode on top of the histogram mode. See [Curve Mapping section](#Curve Mapping). |
 
 <a name="UsingAutomatic"></a>
 
@@ -67,6 +83,19 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
 
 - **Mask Weighted**: The Camera applies a weight to every pixel in the buffer then uses the weights to measure the exposure. To specify the weighting, this technique uses the Texture set in the **Weight Texture Mask** field. Note that, if you do not provide a Texture, this metering mode is equivalent to **Average**.
   
+- **Procedural Mask**: The Camera applies applies a weight to every pixel in the buffer then uses the weights to measure the exposure. The weights are generated using a mask that is procedurally generated with the following parameters:
+  
+  | **Property**                      | **Description**                                              |
+  | --------------------------------- | ------------------------------------------------------------ |
+  | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the Camera (TODO LINK) |
+  | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is enabled. |
+  | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
+  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen). |
+  | **Softness**                      | Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask. |
+  | **Mask Min Intensity**            | All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
+  | **Mask Max Intensity**            | All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
+  
+
 
 Next, set the **Limit Min** and **Limit Max** to define the minimum and maximum exposure values respectively. Move between light and dark areas of your Scene and alter each property until you find the perfect values for your Scene.
 
