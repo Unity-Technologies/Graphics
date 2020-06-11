@@ -531,6 +531,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = false;
 
+                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                    {
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
+                        {
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
+                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+                        }
+                    }
+
                     if (m_AntialiasingFS)
                     {
                         taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
