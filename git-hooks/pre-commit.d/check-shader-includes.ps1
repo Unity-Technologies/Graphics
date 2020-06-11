@@ -100,7 +100,7 @@ function Find-MatchesInFile {
     #> 
     param($File)
 
-    $regex = '(?<=#include\s\").+\.hlsl(?!\sfat)' 
+    $regex = '(?<=#include\s\").+\.hlsl' 
     
     $searchResult = Select-String -Path $File -Pattern $regex
     [System.Collections.ArrayList]$shaderIncludesOfFile = @()
