@@ -3986,6 +3986,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             CopyDepthBufferIfNeeded(hdCamera, cmd);
 
+            m_SharedRTManager.GetDepthBufferMipChainInfo().ComputePackedMipChainInfo(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight));
             int mipCount = m_SharedRTManager.GetDepthBufferMipChainInfo().mipLevelCount;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthPyramid)))
