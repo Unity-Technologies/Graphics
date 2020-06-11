@@ -8,7 +8,8 @@ namespace UnityEditor.Rendering.Universal
     [CustomPropertyDrawer(typeof(ScreenSpaceAmbientOcclusionSettings), true)]
     internal class ScreenSpaceAmbientOcclusionEditor : PropertyDrawer
     {
-        // Serialized Properties
+        #region Serialized Properties
+
         private SerializedProperty m_Downsample;
         //private SerializedProperty m_Source;
         private SerializedProperty m_NormalSamples;
@@ -18,6 +19,8 @@ namespace UnityEditor.Rendering.Universal
         private SerializedProperty m_SampleCount;
         private SerializedProperty m_BlurPasses;
         private List<SerializedObject> m_Properties = new List<SerializedObject>();
+
+        #endregion
 
         // Structs
         internal struct Styles
