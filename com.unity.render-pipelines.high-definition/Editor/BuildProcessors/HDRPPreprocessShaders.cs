@@ -409,14 +409,17 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             // Prompt a warning if we find 0 HDRP Assets.
-            if (_hdrpAssets.Count == 0 && !Application.isBatchMode)
+            if (_hdrpAssets.Count == 0)
             {
-                if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
-                    throw new UnityEditor.Build.BuildFailedException("Build canceled");
-            }
-            else
-            {
-                Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                if (!Application.isBatchMode)
+                {
+                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
+                        throw new UnityEditor.Build.BuildFailedException("Build canceled");
+                }
+                else
+                {
+                    Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                }
             }
 
             /*

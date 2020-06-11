@@ -531,6 +531,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = false;
 
+                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                    {
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
+                        {
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
+                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+                        }
+                    }
+
                     if (m_AntialiasingFS)
                     {
                         taaEnabled = camera.antialiasing == AntialiasingMode.TemporalAntialiasing;
@@ -2725,7 +2734,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            uint threadX = 4;
+            uint threadY = 4;
+            uint threadZ = 4;
             cmd.DispatchCompute(builderCS, builderKernel,
                 (int)((parameters.lutSize + threadX - 1u) / threadX),
                 (int)((parameters.lutSize + threadY - 1u) / threadY),
