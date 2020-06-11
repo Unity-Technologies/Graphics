@@ -611,7 +611,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.EndProperty();
             EditorGUI.EndProperty();
-            
+
             EditorGUI.PropertyField(valueRect, serialized.intensity, s_Styles.empty);
             DrawLightIntensityUnitPopup(unitRect, serialized, owner);
 
@@ -715,8 +715,55 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else if (serialized.areaLightShape == AreaLightShape.Rectangle || serialized.areaLightShape == AreaLightShape.Disc)
             {
-                EditorGUILayout.ObjectField( serialized.areaLightCookie, s_Styles.areaLightCookie );
+                EditorGUILayout.ObjectField(serialized.areaLightCookie, s_Styles.areaLightCookie);
                 ShowCookieTextureWarnings(serialized.areaLightCookie.objectReferenceValue as Texture, serialized.settings.isCompletelyBaked || serialized.settings.isBakedOrMixed);
+            }
+
+            if (serialized.type == HDLightType.Point || serialized.type == HDLightType.Spot || (serialized.type == HDLightType.Area && serialized.areaLightShape == AreaLightShape.Rectangle))
+            {
+                EditorGUI.BeginChangeCheck();
+                UnityEngine.Object iesAsset = EditorGUILayout.ObjectField(
+                                                    s_Styles.iesTexture,
+                                                    serialized.type == HDLightType.Point ? serialized.iesPoint.objectReferenceValue : serialized.iesSpot.objectReferenceValue,
+                                                    typeof(IESObject), false);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SerializedProperty pointTex = serialized.iesPoint;
+                    SerializedProperty spotTex  = serialized.iesSpot;
+                    if (iesAsset == null)
+                    {
+                        pointTex.objectReferenceValue = null;
+                        spotTex .objectReferenceValue = null;
+                    }
+                    else
+                    {
+                        string guid;
+                        long localID;
+                        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(iesAsset, out guid, out localID);
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
+                        UnityEngine.Object[] textures = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
+                        foreach (var subAsset in textures)
+                        {
+                            if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-Cube-IES"))
+                            {
+                                pointTex.objectReferenceValue = subAsset;
+                            }
+                            else if (AssetDatabase.IsSubAsset(subAsset) && subAsset.name.EndsWith("-2D-IES"))
+                            {
+                                spotTex.objectReferenceValue = subAsset;
+                            }
+                        }
+                    }
+                    serialized.iesPoint.serializedObject.ApplyModifiedProperties();
+                    serialized.iesSpot .serializedObject.ApplyModifiedProperties();
+                }
+            }
+
+            if (serialized.type == HDLightType.Spot &&
+                serialized.spotLightShape.enumValueIndex == (int)SpotLightShape.Cone &&
+                serialized.iesSpot.objectReferenceValue != null)
+            {
+                EditorGUILayout.PropertyField(serialized.spotIESCutoffPercent, s_Styles.spotIESCutoffPercent);
             }
 
             if (EditorGUI.EndChangeCheck())
