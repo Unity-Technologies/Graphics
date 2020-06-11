@@ -671,6 +671,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed an issue where rendering preview with MSAA might generate render graph errors.
 - Fixed compile error in PS4 for planar reflection filtering.
+- Fixed null reference exception when using depth pre/post pass in shadergraph with alpha clip in the material.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
