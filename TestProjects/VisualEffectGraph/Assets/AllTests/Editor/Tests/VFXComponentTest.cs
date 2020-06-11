@@ -308,6 +308,54 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
+        //Cover case : 1232862, RenderQuadIndirectCommand crashes
+        [UnityTest]
+        public IEnumerator CreateComponent_Disable_It_But_Enable_Renderer()
+        {
+            yield return new EnterPlayMode();
+
+            var graph = CreateGraph_And_System();
+            var initializeContext = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
+
+            //Really big bbox to be sure it is in view
+            var center = new Vector3(0.0f, 0.0f, 0.0f);
+            var size = new Vector3(100.0f, 100.0f, 100.0f);
+            initializeContext.inputSlots[0][0].value = center;
+            initializeContext.inputSlots[0][1].value = size;
+            graph.SetExpressionGraphDirty();
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var currentObject = new GameObject("CreateComponent_Disable_It_But_Enable_Renderer", typeof(VisualEffect));
+            var vfx = currentObject.GetComponent<VisualEffect>();
+            var asset = graph.visualEffectResource.asset;
+            vfx.visualEffectAsset = asset;
+
+            int maxFrame = 8;
+            while (vfx.culled && --maxFrame > 0)
+                yield return null;
+            Assert.IsFalse(vfx.culled);
+            vfx.enabled = false;
+            Assert.IsTrue(vfx.culled); //Should be implicitly removed from the scene at this point.
+
+            var renderer = currentObject.GetComponent<Renderer>();
+            renderer.enabled = true;
+            for (int i = 0; i < 4; ++i)
+            {
+                Assert.IsTrue(renderer.enabled);
+                Assert.IsTrue(vfx.culled);
+                yield return null;
+            }
+
+            //back to normal
+            vfx.enabled = true;
+            maxFrame = 8;
+            while (vfx.culled && --maxFrame > 0)
+                yield return null;
+            Assert.IsFalse(vfx.culled);
+
+            yield return new ExitPlayMode();
+        }
+
         [UnityTest]
         public IEnumerator CreateComponent_And_Check_NoneTexture_Constraint_Doesnt_Generate_Any_Error()
         {
