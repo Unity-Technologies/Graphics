@@ -129,7 +129,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 object newSettings = SaveCustomQualitySettingsAsObject();
 
-                if (!oldSettings.Equals(newSettings))
+                if (!QualitySettingsBlob.IsEqual(oldSettings as QualitySettingsBlob, newSettings as QualitySettingsBlob))
                     QualitySettingsWereChanged();
             }
         }
@@ -145,20 +145,24 @@ namespace UnityEditor.Rendering.HighDefinition
             public DepthOfFieldResolution resolution;
             public bool hqFiltering;
 
-            public override bool Equals(object obj)
+            public static bool IsEqual(QualitySettingsBlob left, QualitySettingsBlob right)
             {
-                QualitySettingsBlob right = obj as QualitySettingsBlob;
-                if (right == null)
+                if ((right == null && left != null) || (right != null && left == null))
                 {
                     return false;
                 }
 
-                return nearSampleCount == right.nearSampleCount
-                    && nearMaxBlur == right.nearMaxBlur
-                    && farSampleCount == right.farSampleCount
-                    && farMaxBlur == right.farMaxBlur
-                    && resolution == right.resolution
-                    && hqFiltering == right.hqFiltering;
+                if (right == null && left == null)
+                {
+                    return true;
+                }
+
+                return left.nearSampleCount == right.nearSampleCount
+                    && left.nearMaxBlur == right.nearMaxBlur
+                    && left.farSampleCount == right.farSampleCount
+                    && left.farMaxBlur == right.farMaxBlur
+                    && left.resolution == right.resolution
+                    && left.hqFiltering == right.hqFiltering;
             }
         }
 
