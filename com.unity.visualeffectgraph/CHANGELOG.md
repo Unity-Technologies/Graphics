@@ -102,6 +102,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
 - Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
 - Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
+- Fix issue with strips outputs that could cause too many vertices to be renderered
+- SpawnIndex attribute returns correct value in update and outputs contexts
 
 ## [7.1.1] - 2019-09-05
 ### Added
