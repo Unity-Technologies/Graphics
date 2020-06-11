@@ -85,7 +85,7 @@ CBUFFER_END
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
-#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0
+#define BEYOND_SHADOW_FAR(shadowCoord) shadowCoord.z <= 0.0 || shadowCoord.z >= 1.0 || shadowCoord.x <= 0.0 || shadowCoord.x >= 1.0 || shadowCoord.y <= 0.0 || shadowCoord.y >= 1.0
 
 struct ShadowSamplingData
 {
@@ -247,14 +247,14 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 }
 
 half GetAdditionalLightShadowStrenth(int lightIndex); //declare
-half AdditionalLightBakedShadow(int lightIndex, half4 shadowmask)
+half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
 {
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     int chanel = _AdditionalLightsSpotDir[lightIndex].w;
     if (chanel >= 1 && chanel <= 4)
     {
-        half bakedShadow = shadowmask[chanel - 1];
-        bakedShadow = LerpWhiteTo(bakedShadow, GetAdditionalLightShadowStrenth(lightIndex));
+        half bakedShadow = shadowMask[chanel];
+        //bakedShadow = LerpWhiteTo(bakedShadow, GetAdditionalLightShadowStrenth(lightIndex));
         return bakedShadow;
     }
     else
