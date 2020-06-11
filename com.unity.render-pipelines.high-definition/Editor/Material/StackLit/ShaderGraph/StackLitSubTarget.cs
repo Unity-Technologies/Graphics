@@ -71,7 +71,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
             // context.AddField(HDFields.CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
-            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
+            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal
+                && (context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalOS)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalTS)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalWS)));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
             context.AddField(HDFields.SubsurfaceScattering,         stackLitData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                 stackLitData.transmission);
@@ -215,7 +218,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatIor,              stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatThickness,        stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatExtinction,       stackLitData.coat);
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormal,           stackLitData.coat && stackLitData.coatNormal);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalOS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalTS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalWS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             stackLitData.coat);
 
             // Dual Specular Lobe

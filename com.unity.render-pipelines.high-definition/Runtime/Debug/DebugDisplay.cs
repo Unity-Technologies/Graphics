@@ -1237,18 +1237,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Point Light Cookie Array", getter = () => data.lightingDebugSettings.displayCookieCubeArray, setter = value => data.lightingDebugSettings.displayCookieCubeArray = value, onValueChanged = RefreshLightingDebug});
-            if (data.lightingDebugSettings.displayCookieCubeArray)
-            {
-                list.Add(new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.UIntField { displayName = "Slice Index", getter = () => data.lightingDebugSettings.cookieCubeArraySliceIndex, setter = value => data.lightingDebugSettings.cookieCubeArraySliceIndex = value, min = () => 0, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetCookieCubeArraySize() - 1},
-                    }
-                });
-            }
-
             list.Add(new DebugUI.BoolField { displayName = "Display Planar Reflection Atlas", getter = () => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas, setter = value => data.lightingDebugSettings.displayPlanarReflectionProbeAtlas = value, onValueChanged = RefreshLightingDebug});
             if (data.lightingDebugSettings.displayPlanarReflectionProbeAtlas)
             {

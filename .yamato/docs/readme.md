@@ -38,8 +38,14 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 
 
 ### Changes when branching out
-- Make Yamato jobs target a different branch: change in __shared.metafile the target_branch to the one that is needed (e.g.switch master to  9.x.x/release when branching out). This will update ci triggers (for nightly, PRs)
-- Change the editors to use on this branch: change  in __shared.metafile the editors section to include the required editors. For instance, when creating a new release branch and editors section must be updated as it is not compatible with master anymore. 
+- When branching out (e.g. moving from *master* to *9.x.x/release* branch), the following steps must be done:
+  - In *__shared.metafile* :
+    - Change `editors` section to contain the correct editor versions
+    - Change `target_editor` to the target editor version for this branch (this is used e.g. for dependencies of *packages#publish_*, *preview_publish#publish_*  and *preview_publish#wait_for_nightly*) (e.g. for 9.x.x this would correspond to `2020.1`)
+    - Change `target_branch` to the current branch (this is used for ci triggers, such as ABV  (*all_project_ci*) jobs) (e.g. for 9.x.x this would correspond to `9.x.x/release`)
+  - In *__abv.metafile* :
+    - Change `abv.trigger_editors` to the editor against which to trigger the ABV (*all_project_ci*) job (typically `fast-*` editor)  (e.g. for 9.x.x this would correspond to `fast-2020.1`)
+    - Change `nightly.allowed_editors` to contain the editors for which to run nightly (*all_project_ci_nightly*) jobs (e.g. for 9.x.x this would correspond to `2020.1`)
 
 ### Other changes to metafiles
 - All files follow a similar structure and changes can be done according to the metafile descriptions given below. 
@@ -69,6 +75,9 @@ The majority of changes are introduced within metafiles (*.yamato/config/\*.meta
 ```
 # main branch for ci triggers etc
 target_branch: master 
+
+# target editor version used for this branch 
+target_editor: trunk
 
 # editors applied for all yml files (overridable) (list)
 editors: 
@@ -277,10 +286,6 @@ override_editors:
 
 ### _preview_publish.metafile: preview publish job configurations
 ```
-# override editors from __shared.metafile file
-override_editors:
-  - version: trunk
-
 # publishing variables
 publishing: # these are currently commented out and dont work though
   auto_publish: true # if true, publish_all_preview gets daily recurrent trigger
@@ -305,6 +310,9 @@ agent_publish: package_ci_win_large
 agent_promote: package_ci_win_large
 agent_auto_version: package_ci_ubuntu_large
 
+# override editors from __shared.metafile file
+override_editors:
+  - version: trunk
 ```
 
 ### _templates.metafile: template jobs configuration (highly similar for packages configuration)

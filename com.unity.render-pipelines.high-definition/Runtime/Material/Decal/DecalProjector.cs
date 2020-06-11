@@ -238,7 +238,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-            m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+            m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
             m_OldMaterial = m_Material;
 
 #if UNITY_EDITOR
@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
             else if (m_Handle == null)
             {
                 Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-                m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+                m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
             }
         }
 #endif
@@ -299,7 +299,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (m_Material != null)
                     {
-                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, m_FadeFactor);
+                        m_Handle = DecalSystem.instance.AddDecal(position, rotation, Vector3.one, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
 
                         if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
                         {
@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else // no material change, just update whatever else changed
                 {
-                    DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
+                    DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
                 }
             }
         }
@@ -329,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
                 m_Layer = gameObject.layer;
-                DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
+                DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
             }
         }
 #endif
@@ -341,7 +341,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (transform.hasChanged == true)
                 {
                     Matrix4x4 sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-                    DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, m_FadeFactor);
+                    DecalSystem.instance.UpdateCachedData(position, rotation, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle, gameObject.layer, HDUtils.GetSceneCullingMaskFromGameObject(gameObject), m_FadeFactor);
                     transform.hasChanged = false;
                 }
             }
