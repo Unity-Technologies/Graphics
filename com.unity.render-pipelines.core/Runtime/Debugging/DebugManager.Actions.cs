@@ -255,8 +255,14 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR && !USE_INPUT_SYSTEM
             var inputEntries = new List<InputManagerEntry>
             {
-                new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "joystick button 8" },
-                new InputManagerEntry { name = kEnableDebugBtn2,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace",   altBtnPositive = "joystick button 9" },
+                // custom-begin:
+                // Disable gamepad input for toggling debug window, as this interfers with gameplay.
+                // User can still use keyboard input to toggle this menu.
+                // new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "joystick button 8" },
+                // new InputManagerEntry { name = kEnableDebugBtn2,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace",   altBtnPositive = "joystick button 9" },
+                new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "" },
+                new InputManagerEntry { name = kEnableDebugBtn2,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "backspace",   altBtnPositive = "" },
+                // custom-end
                 new InputManagerEntry { name = kResetBtn,         kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left alt",    altBtnPositive = "joystick button 1" },
                 new InputManagerEntry { name = kDebugNextBtn,     kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page down",   altBtnPositive = "joystick button 5" },
                 new InputManagerEntry { name = kDebugPreviousBtn, kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "page up",     altBtnPositive = "joystick button 4" },
