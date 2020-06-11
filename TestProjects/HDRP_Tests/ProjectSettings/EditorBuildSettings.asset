@@ -213,6 +213,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2106_GI_EmissionSG.unity
     guid: bf5546a039f560c45a12651846981034
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2107_GI_IESCookie.unity
+    guid: 8364dfd053eae8648ac8a8c149cbd091
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
