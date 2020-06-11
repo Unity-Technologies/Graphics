@@ -3,6 +3,8 @@ MasterPreviewView {
     position: absolute;
     right: 10px;
     bottom: 10px;
+    width: 225px;
+    height: 225px;
     background-color: rgb(79, 79, 79);
     justify-content: flex-start;
     border-radius: 6px;
@@ -23,12 +25,9 @@ MasterPreviewView > #top {
 }
 
 MasterPreviewView > #top > #title {
-    font-size: 12px;
+    font-size: 14px;
     color: rgb(180, 180, 180);
-    padding-top: 1px;
-    padding-bottom: 2px;
-    padding-left: 2px;
-    padding-right: 2px;
+    padding: 1px 2px 2px;
 }
 
 MasterPreviewView > #top > #collapse-container {
@@ -60,6 +59,7 @@ MasterPreviewView > #top > #collapse-container > #icon.expanded {
 }
 
 MasterPreviewView > #middle {
+    background-color: rgb(49, 49, 49);
     flex-grow: 1;
     flex-direction: row;
 }
