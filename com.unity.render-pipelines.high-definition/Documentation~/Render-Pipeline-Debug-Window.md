@@ -108,20 +108,26 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **Range Minimum Value**              | Set the minimum shadow value to display in the various shadow debug overlays. |
 | **Range Maximum Value**              | Set the maximum shadow value to display in the various shadow debug overlays. |
 
-| **Lighting Debug Option**            | **Description**                                              |
-| ------------------------------------ | ------------------------------------------------------------ |
-| **Show Lights By Type**              | Allows the user to enable or disable lights in the scene based on their type.|
-| **- Directional Lights**             | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
-| **- Punctual Lights**                | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
-| **- Area Lights**                    | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
-| **- Reflection Probes**              | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
-| **Debug Mode**                       | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
-| **Hierarchy Debug Mode**             | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
-| **Light Layers Visualization**       | Enable the checkbox to visualize light layers of objects in your Scene. |
-| **- Use Selected Light**             | Enable the checkbox to visualize objects affected by the selected light. |
-| **- Switch to Light's Shadow Layers**| Enable the checkbox to visualize objects casting shadows for the selected light. |
-| **- Filter Layers**                  | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
-| **- Layers Color**                   | Use the color pickers to select the display color of each light layer. |
+| **Lighting Debug Option**             | **Description**                                              |
+| ------------------------------------- | ------------------------------------------------------------ |
+| **Show Lights By Type**               | Allows the user to enable or disable lights in the scene based on their type. |
+| **- Directional Lights**              | Enable the checkbox to see Directional Lights in your Scene. Disable this checkbox to remove Directional Lights from your Scene's lighting. |
+| **- Punctual Lights**                 | Enable the checkbox to see [Punctual Lights](Glossary.html#PunctualLight) in your Scene. Disable this checkbox to remove Punctual Lights from your Scene's lighting. |
+| **- Area Lights**                     | Enable the checkbox to see Area Lights in your Scene. Disable this checkbox to remove Aera Lights from your Scene's lighting. |
+| **- Reflection Probes**               | Enable the checkbox to see Reflection Probes in your Scene. Disable this checkbox to remove Reflection Probes from your Scene's lighting. |
+| **Debug Mode**                        | Use the drop-down to select a lighting mode to debug. For example, you can visualize diffuse lighting, specular lighting, direct diffuse lighting, direct specular lighting, indirect diffuse lighting, indirect specular lighting, emissive lighting and Directional Light shadow cascades. |
+| **Hierarchy Debug Mode**              | Use the drop-down to select a light type to show the direct lighting for or a Reflection Probe type to show the indirect lighting for. |
+| **Light Layers Visualization**        | Enable the checkbox to visualize light layers of objects in your Scene. |
+| **- Use Selected Light**              | Enable the checkbox to visualize objects affected by the selected light. |
+| **- Switch to Light's Shadow Layers** | Enable the checkbox to visualize objects casting shadows for the selected light. |
+| **- Filter Layers**                   | Use the drop-down to filter light layers that you want to visialize. Objects having a matching layer will be displayed in a specific color. |
+| **- Layers Color**                    | Use the color pickers to select the display color of each light layer. |
+| **Exposure **                         | Allows the user to select [Exposure](Override-Exposure.html) debug modes. |
+| **- Debug Mode**                      | Use the drop-down to select a debug mode. See [Exposure](Override-Exposure.html) documentation for more information. |
+| - **Show Tonemap curve**              | Enable the checkbox to overlay the tonemap curve to the histogram debug view. Available only if **Debug Mode** is set to HistogramView. |
+| **- Center Around Exposure**          | Enable the checkbox to overlay the center the histogram around the current exposure value. Available only if **Debug Mode** is set to HistogramView. |
+| **- Debug Lens Attenuation**          | Set the imperfection factor that the lens that HDRP uses for exposure-sake. Higher the value the less the lens disperses light. |
+| **- Debug Exposure Compensation**     | Set an additional exposure compensation for debug purposes.  |
 
 | **Material Override**                | **Description**                                              |
 | ------------------------------------ | ------------------------------------------------------------ |

@@ -87,7 +87,7 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
   
   | **Property**                      | **Description**                                              |
   | --------------------------------- | ------------------------------------------------------------ |
-  | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the Camera (TODO LINK) |
+  | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.html). |
   | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is enabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
   | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen). |
@@ -128,3 +128,39 @@ This mode mainly relies on the [Camera’s](https://docs.unity3d.com/Manual/clas
 | **Property**     | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
 | **Compensation** | Set the value that the Camera uses to compensate the automatically computed exposure value. This is useful if you want to over or under expose the Scene. This works similarly to how exposure compensation works on most cameras. |
+
+<a name="DebugModes"></a>
+
+### Exposure Debug Modes
+
+HDRP offers several debug modes to help with setting the proper exposure for your scene. These can be activated in the [Debug Window](Render-Pipeline-Debug-Window.html). 
+
+#### Scene EV100 Values 
+
+ This debug mode shows a heat map of the scene luminance converted in EV100 units across the screen which is useful when determining the distribution of intensity across the screen and can help identify whether the right limits have been set and it is an informative view on how the brightness is distributed in your scene. 
+
+The debug view also shows the numerical value of the pixel at the center of the screen and that value is also indicated as a bar in the heatmap indicator to show where it is relative to the full range.
+
+
+<img src="Images/Override-Exposure4.png" style="zoom: 67%;" />
+
+
+
+#### Histogram View
+
+Setting the percentiles for the histogram mode might not be the most immediate thing. To help the process and to provide an overview of what the scene brightness distribution looks like HDRP provides an histogram debug view. 
+
+<img src="Images/Override-Exposure5.png" style="zoom: 67%;" />
+
+At the bottom of the screen, the histogram is displayed, the bars are colored in blue if they are being excluded as below the lower percentile, similarly they are red if excluded because above the higher percentile set. At the very bottom a yellow arrow points to the target exposure, while a grey arrow points at the current exposure.  
+On the screen, pixels that are excluded from auto-exposure computation because falling below the lower percentile are overlaid with a blue pattern, while pixels above the higher percentile are overlaid with a red pattern. 
+
+When the **Show Tonemap Curve** option is enabled, the curve used for tonemapping is overlaid to the histogram view. 
+
+By default the X axis with the EV units is fixed, however the histogram in the debug view can be fixed around the current exposure by enabling the **Center Around Exposure** option. This can be useful to fix the tonemap curve overlay and have a clearer view on how the scene distributes under that curve. 
+
+#### Metering Weighted
+
+This mode can be used to show a picture in picture of the scene alongside a view of what the scene looks like after being weighted by the metering mask. This is particularly useful for setting up procedural metering masks or determining the right texture mask. 
+
+<img src="Images/Override-Exposure6.png" style="zoom: 67%;" />
