@@ -26,10 +26,10 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
     float3  hitPosition = hitDistance * normal;
     hitPosition -= origin;  // Relative to bottom-left corner
 
-                            // Here, right and up vectors are not necessarily orthonormal
-                            // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
-                            //  ortho = up - (up.right') * right'
-                            // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
+    // Here, right and up vectors are not necessarily orthonormal
+    // We create the orthogonal vector "ortho" by projecting "up" onto the vector orthogonal to "right"
+    //  ortho = up - (up.right') * right'
+    // Where right' = right / sqrt( dot( right, right ) ), the normalized right vector
     float   recSqLengthRight = 1.0 / dot(right, right);
     float   upRightMixing = dot(up, right);
     float3  ortho = up - upRightMixing * right * recSqLengthRight;
@@ -93,7 +93,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         // Transform the point to light source space. First position then orientation
         float3 lightRelativePointPos = -(lightData.positionRWS - pointPosition);
         float3 pointLS = float3(dot(lightRelativePointPos, lightData.right), dot(lightRelativePointPos, lightData.up), dot(lightRelativePointPos, lightData.forward));
-        
+
         // Compute the depth of the point in the pyramid space
         float pointDepth = min(pointLS.z, lightData.size.z * lightData.size.w);
 
@@ -103,15 +103,15 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
 
         // Compute the barn door projection
         float barnDoorProjection = sinTheta * lightData.size.w * pointDepthRatio;
-        
+
         // Compute the sign of the point when in the local light space
         float2 pointSign = sign(pointLS.xy);
         // Clamp the point to the closest edge
         pointLS.xy = float2(pointSign.x, pointSign.y) * max(abs(pointLS.xy), float2(halfWidth, halfHeight) + barnDoorProjection.xx);
-        
+
         // Compute the closest rect lignt corner, offset by the barn door size
         float3 closestLightCorner = float3(pointSign.x * (halfWidth + barnDoorProjection), pointSign.y * (halfHeight + barnDoorProjection), pointDepth);
-            
+
         // Compute the point projection onto the edge and deduce the size that should be removed from the light dimensions
         float3 pointProjection  = pointLS - closestLightCorner;
         // Phi being the angle between the point projection point and the forward vector of the light source
@@ -127,7 +127,7 @@ void RectangularLightApplyBarnDoor(inout LightData lightData, float3 pointPositi
         bottomLeft += (projectionDistance.y - barnDoorProjection) * float2(max(0, -pointSign.y), -max(0, pointSign.y));
         topRight = clamp(topRight, -halfWidth, halfWidth);
         bottomLeft = clamp(bottomLeft, -halfHeight, halfHeight);
-        
+
         // Compute the offset that needs to be applied to the origin points to match the culling of the barn door
         float2 lightCenterOffset = 0.5f * float2(topRight.x + topRight.y, bottomLeft.x + bottomLeft.y);
 
@@ -302,42 +302,7 @@ DirectionalShadowType EvaluateShadow_Directional(LightLoopContext lightLoopConte
 // Punctual Light evaluation helper
 //-----------------------------------------------------------------------------
 
-// distances = {d, d^2, 1/d, d_proj}
-void ModifyDistancesForFillLighting(inout float4 distances, float lightSqRadius)
-{
-    // Apply the sphere light hack to soften the core of the punctual light.
-    // It is not physically plausible (using max() is more correct, but looks worse).
-    // See https://www.desmos.com/calculator/otqhxunqhl
-    // We only modify 1/d for performance reasons.
-    float sqDist = distances.y;
-    distances.z = rsqrt(sqDist + lightSqRadius); // Recompute 1/d
-}
-
-// Returns the normalized light vector L and the distances = {d, d^2, 1/d, d_proj}.
-void GetPunctualLightVectors(float3 positionWS, LightData light, out float3 L, out float4 distances)
-{
-    float3 lightToSample = positionWS - light.positionRWS;
-
-    distances.w = dot(lightToSample, light.forward);
-
-    if (light.lightType == GPULIGHTTYPE_PROJECTOR_BOX)
-    {
-        L = -light.forward;
-        distances.xyz = 1; // No distance or angle attenuation
-    }
-    else
-    {
-        float3 unL     = -lightToSample;
-        float  distSq  = dot(unL, unL);
-        float  distRcp = rsqrt(distSq);
-        float  dist    = distSq * distRcp;
-
-        L = unL * distRcp;
-        distances.xyz = float3(dist, distSq, distRcp);
-
-        ModifyDistancesForFillLighting(distances, light.size.x);
-    }
-}
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/PunctualLightCommon.hlsl"
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData light,
                                float3 lightToSample)
@@ -354,7 +319,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(positionLS, light.cookieIndex);
+        cookie.rgb = SamplePointCookie(mul(lightToWorld, lightToSample), light.cookieScaleOffset);
         cookie.a   = 1;
     }
     else
@@ -368,8 +333,11 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
         // Box lights have no range attenuation, so we must clip manually.
         bool isInBounds = Max3(abs(positionCS.x), abs(positionCS.y), abs(z - 0.5 * r) - 0.5 * r + 1) <= light.boxLightSafeExtent;
+        if (lightType != GPULIGHTTYPE_PROJECTOR_PYRAMID && lightType != GPULIGHTTYPE_PROJECTOR_BOX)
+        {
+            isInBounds = isInBounds & dot(positionCS, positionCS) <= light.iesCut * light.iesCut;
+        }
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).

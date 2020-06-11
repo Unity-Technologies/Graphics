@@ -7,8 +7,21 @@ Shader "HDRP/AxF"
 
         /////////////////////////////////////////////////////////////////////////////
         // General Parameters
-        _MaterialTilingU( "Material U Tiling", Float ) = 1
-        _MaterialTilingV( "Material V Tiling", Float ) = 1
+
+        // Tilings and offsets
+        _Material_SO( "Main Material Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_DiffuseColorMap_SO( "_SVBRDF_DiffuseColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_SpecularColorMap_SO( "_SVBRDF_SpecularColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_NormalMap_SO( "_SVBRDF_NormalMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_SpecularLobeMap_SO( "_SVBRDF_SpecularLobeMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_AlphaMap_SO( "_SVBRDF_AlphaMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_FresnelMap_SO( "_SVBRDF_FresnelMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_AnisoRotationMap_SO( "_SVBRDF_AnisoRotationMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_HeightMap_SO( "_SVBRDF_HeightMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_ClearcoatColorMap_SO( "_SVBRDF_ClearcoatColorMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _ClearcoatNormalMap_SO( "_ClearcoatNormalMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _SVBRDF_ClearcoatIORMap_SO( "_SVBRDF_ClearcoatIORMap Tiling & Offset", Vector) = (1, 1, 0, 0)
+        _CarPaint2_BTFFlakeMap_SO( "_CarPaint2_BTFFlakeMap Tiling & Offset", Vector) = (1, 1, 0, 0)
 
         [Enum(SVBRDF, 0, CarPaint, 1, BTF, 2)] _AxF_BRDFType("_AxF_BRDFType", Float) = 0
 
@@ -48,7 +61,6 @@ Shader "HDRP/AxF"
         _CarPaint2_BRDFColorMapUVScale("_CarPaint2_BRDFColorMapUVScale", Vector) = (1,1,0,0)  // To be used when we have the bit BRDFColorUseDiagonalClamp set in _Flags
 
         // Flakes
-        _CarPaint2_FlakeTiling("_CarPaint2_FlakeTiling", Float) = 1
         _CarPaint2_BTFFlakeMapScale("_CarPaint2_BTFFlakeMapScale", Float) = 1         // Scale is useless if we're directly provided a RGBA16F format
         _CarPaint2_BTFFlakeMap("_CarPaint2_BTFFlakeMap", 2DArray) = "black" {}
         _CarPaint2_FlakeThetaFISliceLUTMap( "_CarPaint2_FlakeThetaFISliceLUTMap", 2D ) = "black" {}
@@ -62,6 +74,10 @@ Shader "HDRP/AxF"
         _CarPaint2_CTF0s("_CarPaint2_CTF0s", Vector) = (1,1,1,1)
         _CarPaint2_CTCoeffs("_CarPaint2_CTCoeffs", Vector) = (1,1,1,1)
         _CarPaint2_CTSpreads("_CarPaint2_CTSpreads", Vector) = (1,1,1,1)
+
+        // GUI inspector only - saves state in material meta, read back from SetupMaterialKeywordsAndPass
+        //[Enum(Off, 0, From Ambient Occlusion, 1, From Bent Normals, 2)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
+        [Enum(Off, 0, From Ambient Occlusion, 1)]  _SpecularOcclusionMode("Specular Occlusion Mode", Int) = 1
 
         [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
@@ -86,6 +102,7 @@ Shader "HDRP/AxF"
         [HideInInspector] _BlendMode("__blendmode", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector][ToggleUI]_AlphaToMask("__alphaToMask", Float) = 0
         [HideInInspector][ToggleUI] _ZWrite("__zw", Float) = 1.0
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
@@ -100,6 +117,10 @@ Shader "HDRP/AxF"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
+
+        [ToggleUI] _EnableGeometricSpecularAA("EnableGeometricSpecularAA", Float) = 0.0
+        _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
+        _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -122,18 +143,22 @@ Shader "HDRP/AxF"
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
     #pragma shader_feature_local _AXF_BRDF_TYPE_SVBRDF _AXF_BRDF_TYPE_CAR_PAINT _AXF_BRDF_TYPE_BTF
 
+    #pragma shader_feature_local _ _SPECULAR_OCCLUSION_NONE //_SPECULAR_OCCLUSION_FROM_BENT_NORMAL_MAP
+
     #pragma shader_feature_local _ALPHATEST_ON
+    #pragma shader_feature_local _ALPHATOMASK_ON
     #pragma shader_feature_local _DOUBLESIDED_ON
 
     #pragma shader_feature_local _DISABLE_DECALS
     #pragma shader_feature_local _DISABLE_SSR
+    #pragma shader_feature_local _ENABLE_GEOMETRIC_SPECULAR_AA
 
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
@@ -265,6 +290,7 @@ Shader "HDRP/AxF"
             Tags{ "LightMode" = "DepthForwardOnly" }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 
@@ -309,6 +335,7 @@ Shader "HDRP/AxF"
             }
 
             Cull[_CullMode]
+            AlphaToMask [_AlphaToMask]
 
             ZWrite On
 

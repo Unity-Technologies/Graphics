@@ -53,15 +53,36 @@ class EditorTests
         }
     }
 
-    // Validate that resources Guids are valid
+    // Validate that resource Guids are valid
     [Test]
     public void ValidateBuiltinResourceFiles()
     {
         string templatePath = AssetDatabase.GUIDToAssetPath(ResourceGuid.rendererTemplate);
         Assert.IsFalse(string.IsNullOrEmpty(templatePath));
+
+        string editorResourcesPath = AssetDatabase.GUIDToAssetPath(UniversalRenderPipelineAsset.editorResourcesGUID);
+        Assert.IsFalse(string.IsNullOrEmpty(editorResourcesPath));
     }
 
-    // When creating LWRP all required resources should be initialized.
+    // Validate that ShaderUtils.GetShaderGUID results are valid and that ShaderUtils.GetShaderPath match shader names.
+    [TestCase(ShaderPathID.Lit)]
+    [TestCase(ShaderPathID.SimpleLit)]
+    [TestCase(ShaderPathID.Unlit)]
+    [TestCase(ShaderPathID.TerrainLit)]
+    [TestCase(ShaderPathID.ParticlesLit)]
+    [TestCase(ShaderPathID.ParticlesSimpleLit)]
+    [TestCase(ShaderPathID.ParticlesUnlit)]
+    [TestCase(ShaderPathID.BakedLit)]
+    public void ValidateShaderResources(ShaderPathID shaderPathID)
+    {
+        string path = AssetDatabase.GUIDToAssetPath(ShaderUtils.GetShaderGUID(shaderPathID));
+        Assert.IsFalse(string.IsNullOrEmpty(path));
+
+        var shader = AssetDatabase.LoadAssetAtPath<Shader>(path);
+        Assert.AreEqual(shader.name, ShaderUtils.GetShaderPath(shaderPathID));
+    }
+
+    // When creating URP all required resources should be initialized.
     [Test]
     public void ValidateNewAssetResources()
     {
@@ -73,7 +94,7 @@ class EditorTests
         Assert.AreNotEqual(null, asset.defaultTerrainMaterial);
         Assert.AreNotEqual(null, asset.defaultShader);
 
-        // LWRP doesn't override the following materials
+        // URP doesn't override the following materials
         Assert.AreEqual(null, asset.defaultUIMaterial);
         Assert.AreEqual(null, asset.defaultUIOverdrawMaterial);
         Assert.AreEqual(null, asset.defaultUIETC1SupportedMaterial);
@@ -85,7 +106,7 @@ class EditorTests
         ScriptableObject.DestroyImmediate(data);
     }
 
-    // When changing LWRP settings, all settings should be valid.
+    // When changing URP settings, all settings should be valid.
     [Test]
     public void ValidateAssetSettings()
     {

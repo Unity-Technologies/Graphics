@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
 #pragma kernel FilterVolumetricLightingX FilterVolumetricLighting=FilterVolumetricLightingX LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ
 #pragma kernel FilterVolumetricLightingY FilterVolumetricLighting=FilterVolumetricLightingY LIGHTLOOP_DISABLE_TILE_AND_CLUSTER VL_PRESET_HQ VERTICAL_PASS
@@ -20,8 +20,8 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-RW_TEXTURE3D(float4, _VBufferLightingIntegral);
-RW_TEXTURE3D(float4, _VBufferLightingFeedback);
+RW_TEXTURE3D(float4, _VBufferFilteringInput);
+RW_TEXTURE3D(float4, _VBufferFilteringOutput);
 
 
 #define SIGMA_FILTER 2.0
@@ -69,7 +69,7 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             // Compute the next tapping coordinate
             int3 tapCoord = int3(voxelCoord.x, voxelCoord.y, voxelCoord.z) + vec * idx;
             // Tap the value we should be tapping from
-            float4 currentValue = _VBufferLightingFeedback[tapCoord];
+            float4 currentValue = _VBufferFilteringInput[tapCoord];
             // Compute the weight for this tap
             float weight = Gaussian(abs(idx), SIGMA_FILTER);
 
@@ -85,6 +85,6 @@ void FilterVolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
             sumW += weight;
         }
         // Normalize and output
-        _VBufferLightingIntegral[voxelCoord] = value / sumW;
+        _VBufferFilteringOutput[voxelCoord] = value / sumW;
     }
 }

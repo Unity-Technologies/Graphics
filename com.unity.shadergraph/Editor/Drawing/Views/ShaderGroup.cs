@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Graphing;
@@ -28,6 +28,30 @@ namespace UnityEditor.ShaderGraph
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+        }
+
+        public override bool AcceptsElement(GraphElement element, ref string reasonWhyNotAccepted)
+        {
+            if (element is StackNode stackNode)
+            {
+                reasonWhyNotAccepted = "Vertex and Pixel Stacks cannot be grouped";
+                return false;
+            }
+
+            var nodeView = element as IShaderNodeView;
+            if (nodeView == null)
+            {
+                // sticky notes are not nodes, but still groupable
+                return true;
+            }
+
+            if (nodeView.node is BlockNode)
+            {
+                reasonWhyNotAccepted = "Block Nodes cannot be grouped";
+                return false;
+            }
+
+            return true;
         }
     }
 }

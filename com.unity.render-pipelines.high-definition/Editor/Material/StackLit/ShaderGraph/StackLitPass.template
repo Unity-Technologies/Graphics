@@ -309,19 +309,19 @@ Pass
         $SurfaceDescription.IridescenceThickness:      surfaceData.iridescenceThickness =     surfaceDescription.IridescenceThickness;
         $SurfaceDescription.IridescenceCoatFixupTIR:   surfaceData.iridescenceCoatFixupTIR =  surfaceDescription.IridescenceCoatFixupTIR;
         $SurfaceDescription.IridescenceCoatFixupTIRClamp: surfaceData.iridescenceCoatFixupTIRClamp =  surfaceDescription.IridescenceCoatFixupTIRClamp;
-        $SurfaceDescription.SpecularColor:             surfaceData.specularColor =            surfaceDescription.SpecularColor;
+        $SurfaceDescription.Specular:                  surfaceData.specularColor =            surfaceDescription.Specular;
         $SurfaceDescription.DielectricIor:             surfaceData.dielectricIor =            surfaceDescription.DielectricIor;
         $SurfaceDescription.Metallic:                  surfaceData.metallic =                 surfaceDescription.Metallic;
-        $SurfaceDescription.SmoothnessA:               surfaceData.perceptualSmoothnessA =    surfaceDescription.SmoothnessA;
+        $SurfaceDescription.Smoothness:                surfaceData.perceptualSmoothnessA =    surfaceDescription.Smoothness;
         $SurfaceDescription.SmoothnessB:               surfaceData.perceptualSmoothnessB =    surfaceDescription.SmoothnessB;
-        $SurfaceDescription.AmbientOcclusion:          surfaceData.ambientOcclusion =         surfaceDescription.AmbientOcclusion;
+        $SurfaceDescription.Occlusion:                 surfaceData.ambientOcclusion =         surfaceDescription.Occlusion;
         //TODO: if custom external values are wanted, we would ideally need one SO value per lobe.
         $SurfaceDescription.SpecularOcclusion:         surfaceData.specularOcclusionCustomInput = surfaceDescription.SpecularOcclusion;
-        $SurfaceDescription.SOConeFixupVisibilityThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOConeFixupVisibilityThreshold;
-        $SurfaceDescription.SOConeFixupStrength:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOConeFixupStrength;
-        $SurfaceDescription.SOConeFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOConeFixupMaxAddedRoughness;
+        $SurfaceDescription.SOFixupVisibilityRatioThreshold: surfaceData.soFixupVisibilityRatioThreshold = surfaceDescription.SOFixupVisibilityRatioThreshold;
+        $SurfaceDescription.SOFixupStrengthFactor:            surfaceData.soFixupStrengthFactor =           surfaceDescription.SOFixupStrengthFactor;
+        $SurfaceDescription.SOFixupMaxAddedRoughness:   surfaceData.soFixupMaxAddedRoughness =        surfaceDescription.SOFixupMaxAddedRoughness;
 
-        $SurfaceDescription.AnisotropyA:               surfaceData.anisotropyA =              surfaceDescription.AnisotropyA;
+        $SurfaceDescription.Anisotropy:                surfaceData.anisotropyA =              surfaceDescription.Anisotropy;
         $SurfaceDescription.AnisotropyB:               surfaceData.anisotropyB =              surfaceDescription.AnisotropyB;
         $SurfaceDescription.CoatSmoothness:            surfaceData.coatPerceptualSmoothness = surfaceDescription.CoatSmoothness;
         $SurfaceDescription.CoatMask:                  surfaceData.coatMask =                 surfaceDescription.CoatMask;
@@ -392,7 +392,9 @@ Pass
 
         // normal delivered to master node
         float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalSrc = surfaceDescription.Normal;
+        $SurfaceDescription.NormalOS: normalSrc = surfaceDescription.NormalOS;
+        $SurfaceDescription.NormalTS: normalSrc = surfaceDescription.NormalTS;
+        $SurfaceDescription.NormalWS: normalSrc = surfaceDescription.NormalWS;
 
         // compute world space normal
         #if _NORMAL_DROPOFF_TS
@@ -448,9 +450,10 @@ Pass
         // be read before being overwritten later.
 
         float geometricVariance = 0.0;
+    #if !defined(SHADER_STAGE_RAY_TRACING)
         // Note Specular.AA: or Specular.GeometricAA: guarantees surfaceDescription has SpecularAAScreenSpaceVariance and SpecularAAThreshold.
         $Specular.GeometricAA: geometricVariance = GeometricNormalVariance(fragInputs.tangentToWorld[2], surfaceDescription.SpecularAAScreenSpaceVariance);
-
+    #endif
         // TODO: Handle normal map filtering
         // Also handle texture normal filtering when we have the proper operator nodes and can thus have the variance port
         // in our master node:
@@ -475,7 +478,7 @@ Pass
         $Specular.AA: surfaceData.coatPerceptualSmoothness = NormalFiltering(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, surfaceDescription.SpecularAAThreshold);
     }
 
-    void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+    void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData RAY_TRACING_OPTIONAL_PARAMETERS)
     {
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
             LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
@@ -495,7 +498,7 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
         #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
@@ -505,12 +508,21 @@ Pass
         // Builtin Data
         // For back lighting we use the oposite vertex normal 
         InitBuiltinData(posInput, surfaceDescription.Alpha, surfaceData.bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+        #endif
         
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+        $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+#endif
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
@@ -523,6 +535,8 @@ Pass
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

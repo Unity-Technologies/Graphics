@@ -48,7 +48,6 @@ Pass
     #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
         #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
         #define HAS_LIGHTLOOP
-        #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
     #endif
 
     // Dots Instancing
@@ -100,13 +99,13 @@ Pass
         ZERO_INITIALIZE(SurfaceData, surfaceData);
 
         // copy across graph values, if defined
-        $SurfaceDescription.Color: surfaceData.color = surfaceDescription.Color;
+        $SurfaceDescription.BaseColor: surfaceData.color = surfaceDescription.BaseColor;
 
         #if defined(DEBUG_DISPLAY)
-            if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-            {
-                // TODO
-            }
+        if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
+        {
+            // TODO
+        }
         #endif
     }
 
@@ -118,7 +117,7 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky.
         #ifdef _ALPHATEST_ON
-            $AlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
         #endif
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
@@ -153,12 +152,23 @@ Pass
         ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
         builtinData.opacity = surfaceDescription.Alpha;
 
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+        #endif
+
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
+
+        #if !defined(_SURFACE_TYPE_TRANSPARENT)
+            $SurfaceDescription.VTPackedFeedback: builtinData.vtPackedFeedback = surfaceDescription.VTPackedFeedback;
+        #endif
 
         #if (SHADERPASS == SHADERPASS_DISTORTION)
             builtinData.distortion = surfaceDescription.Distortion;
             builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
+
+        RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }
 
     // --------------------------------------------------

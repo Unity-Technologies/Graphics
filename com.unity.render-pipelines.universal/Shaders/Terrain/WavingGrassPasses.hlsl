@@ -2,6 +2,7 @@
 #define UNIVERSAL_WAVING_GRASS_PASSES_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
 struct GrassVertexInput
 {
@@ -26,7 +27,7 @@ struct GrassVertexOutput
 
     half4 fogFactorAndVertexLight   : TEXCOORD5; // x: fogFactor, yzw: vertex light
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     float4 shadowCoord              : TEXCOORD6;
 #endif
     half4 color                     : TEXCOORD7;
@@ -46,13 +47,16 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(input.normal);
-
     inputData.viewDirectionWS = viewDirWS;
-#ifdef _MAIN_LIGHT_SHADOWS
+
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
 #else
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
+
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -86,7 +90,7 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-#ifdef _MAIN_LIGHT_SHADOWS
+#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     vertData.shadowCoord = GetShadowCoord(vertexInput);
 #endif
 }
@@ -136,30 +140,51 @@ GrassVertexOutput WavingGrassBillboardVert(GrassVertexInput v)
     return o;
 }
 
-// Used for StandardSimpleLighting shader
-half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
+inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceData outSurfaceData)
 {
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-    float2 uv = input.uv;
-    half4 diffuseAlpha = SampleAlbedoAlpha(uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
+    half4 diffuseAlpha = SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex));
     half3 diffuse = diffuseAlpha.rgb * input.color.rgb;
 
     half alpha = diffuseAlpha.a;
     AlphaDiscard(alpha, _Cutoff);
     alpha *= input.color.a;
 
-    half3 emission = 0;
-    half4 specularGloss = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
-    half shininess = input.posWSShininess.w;
+    outSurfaceData = (SurfaceData)0;
+    outSurfaceData.alpha = alpha;
+    outSurfaceData.albedo = diffuse;
+    outSurfaceData.metallic = 0.0; // unused
+    outSurfaceData.specular = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
+    outSurfaceData.smoothness = input.posWSShininess.w;
+    outSurfaceData.normalTS = 0.0; // unused
+    outSurfaceData.occlusion = 1.0; // unused
+    outSurfaceData.emission = 0.0;
+}
+
+
+// Used for StandardSimpleLighting shader
+#ifdef TERRAIN_GBUFFER
+FragmentOutput LitPassFragmentGrass(GrassVertexOutput input)
+#else
+half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
+#endif
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    SurfaceData surfaceData;
+    InitializeSimpleLitSurfaceData(input, surfaceData);
 
     InputData inputData;
     InitializeInputData(input, inputData);
 
-    half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, shininess, emission, alpha);
+    half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData.albedo, half4(surfaceData.specular, surfaceData.smoothness), surfaceData.smoothness, surfaceData.emission, surfaceData.alpha);
+
+#ifdef TERRAIN_GBUFFER
+    return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingSimpleLit);
+#else
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;
+#endif
 };
 
 struct VertexInput

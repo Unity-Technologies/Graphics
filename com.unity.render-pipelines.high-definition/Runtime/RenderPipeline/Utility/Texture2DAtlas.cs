@@ -29,10 +29,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     return node;
                 }
-                
+
                 int wPadd = 0;
                 int hPadd = 0;
-                
+
                 if (powerOfTwoPadding)
                 {
                     wPadd = (int)m_Rect.x % width;
@@ -45,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // perform the split
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
-                    
+
                     m_Rect.z += wPadd;
                     m_Rect.w += hPadd;
                     m_Rect.x -= wPadd;
@@ -134,6 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition
     class Texture2DAtlas
     {
         protected RTHandle m_AtlasTexture = null;
+        internal bool m_IsAtlasTextureOwner = false;
         protected int m_Width;
         protected int m_Height;
         protected bool m_UseMipMaps;
@@ -141,6 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
         private Dictionary<int, uint> m_IsGPUTextureUpToDate = new Dictionary<int, uint>();
+        private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
 
@@ -171,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 autoGenerateMips: false,
                 name: name
             );
+			m_IsAtlasTextureOwner = true;
 
             // We clear on create to avoid garbage data to be present in the atlas
             int mipCount = useMipMap ? GetTextureMipmapCount(m_Width, m_Height) : 1;
@@ -186,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             ResetAllocator();
-            RTHandles.Release(m_AtlasTexture);
+            if (m_IsAtlasTextureOwner) { RTHandles.Release(m_AtlasTexture); }
         }
 
         public void ResetAllocator()
@@ -253,6 +256,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
         }
 
+        public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // This atlas only support 2D texture so we only blit 2D textures
+            if (Is2D(texture))
+                BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+        }
+
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
@@ -260,14 +270,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (allocated)
             {
                 BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
-                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), true); // texture is up to date
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
             }
 
             return allocated;
         }
 
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
-            => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
+            => AllocateTextureWithoutBlit(GetTextureID(texture), width, height, ref scaleOffset);
 
         public virtual bool AllocateTextureWithoutBlit(int instanceId, int width, int height, ref Vector4 scaleOffset)
         {
@@ -278,6 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
                 m_AllocationCache.Add(instanceId, scaleOffset);
                 MarkGPUTextureInvalid(instanceId); // the texture data haven't been uploaded
+                m_TextureHashes[instanceId] = -1;
                 return true;
             }
             else
@@ -286,13 +297,54 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        protected int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+                hash = 23*hash + texture.GetInstanceID().GetHashCode();
+                hash = 23*hash + texture.graphicsFormat.GetHashCode();
+                hash = 23*hash + texture.wrapMode.GetHashCode();
+                hash = 23*hash + texture.width.GetHashCode();
+                hash = 23*hash + texture.height.GetHashCode();
+                hash = 23*hash + texture.filterMode.GetHashCode();
+                hash = 23*hash + texture.anisoLevel.GetHashCode();
+                hash = 23*hash + texture.mipmapCount.GetHashCode();
+                hash = 23*hash + texture.updateCount.GetHashCode();
+
+                RenderTexture rt = texture as RenderTexture;
+                if (rt != null)
+                    hash = 23*hash + rt.updateCount.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        public int GetTextureID(Texture texture)
+        {
+            return GetTextureHash(texture);
+        }
+
+        public int GetTextureID(Texture textureA, Texture textureB)
+        {
+            return GetTextureHash(textureA) + 23*GetTextureHash(textureB);
+        }
+
+        public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
+            => IsCached(out scaleOffset, GetTextureID(textureA, textureB));
+
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
-            => m_AllocationCache.TryGetValue(texture.GetInstanceID(), out scaleOffset);
+            => IsCached(out scaleOffset, GetTextureID(texture));
+
+        public bool IsCached(out Vector4 scaleOffset, int id)
+            => m_AllocationCache.TryGetValue(id, out scaleOffset);
 
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
-            int             key = texture.GetInstanceID();
+            int             key = GetTextureID(texture);
+            uint            textureHash = (uint)key;
 
             // Update the render texture if needed
             if (rt != null)
@@ -300,14 +352,57 @@ namespace UnityEngine.Rendering.HighDefinition
                 uint updateCount;
                 if (m_IsGPUTextureUpToDate.TryGetValue(key, out updateCount))
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
-                    if (rt.updateCount != updateCount)
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                    if (rt.updateCount != textureHash)
                         return true;
                 }
                 else
                 {
-                    m_IsGPUTextureUpToDate[key] = rt.updateCount;
+                    m_IsGPUTextureUpToDate[key] = textureHash;
                 }
+            }
+            // In case the texture settings/import settings have changed, we need to update it
+            else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            {
+                m_TextureHashes[key] = key;
+                return true;
+            }
+            // For regular textures, values == 0 means that their GPU data needs to be updated (either because
+            // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
+            // are valid for the texture if we need them
+            else if (m_IsGPUTextureUpToDate.TryGetValue(key, out var value))
+                return value == 0 || (needMips && value == 1);
+
+            return false;
+        }
+
+        public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
+        {
+            RenderTexture rtA = textureA as RenderTexture;
+            RenderTexture rtB = textureB as RenderTexture;
+            int key = GetTextureID(textureA, textureB);
+            uint textureHash = (uint)key;
+
+            // Update the render texture if needed
+            if (rtA != null || rtB != null)
+            {
+                uint currentHash;
+                if (m_IsGPUTextureUpToDate.TryGetValue(key, out currentHash))
+                {
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                    if (textureHash != currentHash)
+                        return true;
+                }
+                else
+                {
+                    m_IsGPUTextureUpToDate[key] = textureHash;
+                }
+            }
+            // In case the texture settings/import settings have changed, we need to update it
+            else if (m_TextureHashes.TryGetValue(key, out int hash) && hash != textureHash)
+            {
+                m_TextureHashes[key] = key;
+                return true;
             }
             // For regular textures, values == 0 means that their GPU data needs to be updated (either because
             // the atlas have been re-layouted or the texture have never been uploaded. We also check if the mips
@@ -338,7 +433,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (updateIfNeeded && NeedsUpdate(newTexture))
                 {
                     BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
-                    MarkGPUTextureValid(newTexture.GetInstanceID(), blitMips); // texture is up to date
+                    MarkGPUTextureValid(GetTextureID(newTexture), blitMips); // texture is up to date
                 }
                 return true;
             }
@@ -350,5 +445,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset, bool updateIfNeeded = true, bool blitMips = true)
             => UpdateTexture(cmd, texture, texture, ref scaleOffset, fullScaleOffset, updateIfNeeded, blitMips);
+        internal bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
+        {
+            isUploadNeeded = false;
+            if (m_AllocationCache.TryGetValue(key, out scaleBias)) { return true; }
+            if (!m_AtlasAllocator.Allocate(ref scaleBias, width, height)) { return false; }
+            isUploadNeeded = true;
+            scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+            m_AllocationCache.Add(key, scaleBias);
+            return true;
+        }
     }
 }

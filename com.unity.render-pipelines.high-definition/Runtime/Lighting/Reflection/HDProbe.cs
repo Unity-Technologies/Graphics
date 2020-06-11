@@ -118,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Runtime Data
         RenderTexture m_RealtimeTexture;
+        RenderTexture m_RealtimeDepthBuffer;
         RenderData m_RealtimeRenderData;
         bool m_WasRenderedSinceLastOnDemandRequest = true;
 
@@ -189,6 +190,12 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_RealtimeTexture = value;
         }
 
+        public RenderTexture realtimeDepthTexture
+        {
+            get => m_RealtimeDepthBuffer;
+            set => m_RealtimeDepthBuffer = value;
+        }
+
         /// <summary>
         /// The texture used during lighting for this probe.
         /// </summary>
@@ -231,6 +238,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public Texture SetDepthTexture(ProbeSettings.Mode targetMode, Texture texture)
+        {
+            if (targetMode == ProbeSettings.Mode.Realtime && !(texture is RenderTexture))
+                throw new ArgumentException("'texture' must be a RenderTexture for the Realtime mode.");
+
+            switch (targetMode)
+            {
+                case ProbeSettings.Mode.Baked: return m_BakedTexture = texture;
+                case ProbeSettings.Mode.Custom: return m_CustomTexture = texture;
+                case ProbeSettings.Mode.Realtime: return m_RealtimeDepthBuffer = (RenderTexture)texture;
+                default: throw new ArgumentOutOfRangeException();
+            }
+        }
+
         /// <summary>
         /// The render data of the last bake
         /// </summary>
@@ -248,7 +269,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public RenderData renderData => GetRenderData(mode);
         /// <summary>
-        /// Get the render data of a specific mode
+        /// Get the render data of a specific mode.
+        /// 
+        /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
+        /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
+        /// Otherwise the data retrieved by this function will be wrong. 
         /// </summary>
         /// <param name="targetMode">The mode to query</param>
         /// <returns>The requested render data</returns>
@@ -264,7 +289,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
         /// <summary>
-        /// Set the render data for a specific mode
+        /// Set the render data for a specific mode.
+        ///
+        /// Note: The HDProbe stores only one RenderData per mode, even for view dependent probes with multiple viewers.
+        /// In that case, make sure that you have set the RenderData relative to the expected viewer before rendering.
         /// </summary>
         /// <param name="targetMode">The mode to update</param>
         /// <param name="renderData">The data to set</param>
@@ -420,6 +448,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// be rendered the next time it will influence a camera rendering.
         /// </summary>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
+
+        // Forces the re-rendering for both OnDemand and OnEnable
+        internal void ForceRenderingNextUpdate()
+        {
+            m_WasRenderedSinceLastOnDemandRequest = false;
+            wasRenderedAfterOnEnable = false;
+        }
 
         void UpdateProbeName()
         {

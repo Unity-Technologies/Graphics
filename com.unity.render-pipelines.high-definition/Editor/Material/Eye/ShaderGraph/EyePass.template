@@ -152,7 +152,7 @@ Pass
         surfaceData.specularOcclusion = 1.0;
 
 	    // copy across graph values, if defined
-        $SurfaceDescription.Albedo:                     surfaceData.baseColor =                 surfaceDescription.Albedo;
+        $SurfaceDescription.BaseColor:                  surfaceData.baseColor =                 surfaceDescription.BaseColor;
         $SurfaceDescription.SpecularOcclusion:          surfaceData.specularOcclusion =         surfaceDescription.SpecularOcclusion;
         $SurfaceDescription.Smoothness:                 surfaceData.perceptualSmoothness =      surfaceDescription.Smoothness;
         $SurfaceDescription.Occlusion:                  surfaceData.ambientOcclusion            = surfaceDescription.Occlusion;
@@ -184,7 +184,7 @@ Pass
 
         // tangent-space normal
         float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.Normal: normalTS = surfaceDescription.Normal;
+        $SurfaceDescription.NormalTS: normalTS = surfaceDescription.NormalTS;
 
         // compute world space normal
         GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
@@ -250,7 +250,10 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $AlphaTest:         DoAlphaTest(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
+            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
+            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
+            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
         #endif
 
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
@@ -261,6 +264,14 @@ Pass
         // Builtin Data
         // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        #ifdef _ALPHATEST_ON
+            // Used for sharpening by alpha to mask
+            $DoAlphaTest:         builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
+            $DoAlphaTestPrepass:  builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            $DoAlphaTestPostpass: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPostpass;
+            $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
+        #endif
 
         // override sampleBakedGI:
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;

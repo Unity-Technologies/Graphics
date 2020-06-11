@@ -12,6 +12,7 @@
   * [Attributes](Attributes.md)
   * [Subgraph](Subgraph.md)
   * [Blackboard](Blackboard.md)
+  * [Sticky Notes](StickyNotes.md)
   * [Project Settings](VisualEffectProjectSettings.md)
   * [Preferences](VisualEffectPreferences.md)
 * [The Visual Effect Component](VisualEffectComponent.md)
@@ -25,5 +26,6 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
+  * [Mesh Sampling](MeshSampling.md)
 * Reference
   * [Standard Attributes](Reference-Attributes.md)

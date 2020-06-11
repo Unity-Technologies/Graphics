@@ -27,7 +27,7 @@ Shader "Hidden/HDRP/Deferred"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -38,6 +38,7 @@ Shader "Hidden/HDRP/Deferred"
             #pragma multi_compile _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile _ DEBUG_DISPLAY
+            #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
             #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
 
@@ -135,10 +136,13 @@ Shader "Hidden/HDRP/Deferred"
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
-                float3 diffuseLighting;
-                float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoopOutput lightLoopOutput;
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
 
+                // Alias
+                float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+                float3 specularLighting = lightLoopOutput.specularLighting;
+ 
                 diffuseLighting *= GetCurrentExposureMultiplier();
                 specularLighting *= GetCurrentExposureMultiplier();
 

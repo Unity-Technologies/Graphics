@@ -38,30 +38,24 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
 
     builtinData.opacity = alpha;
 
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+
+    // Sample lightmap/probevolume/lightprobe/volume proxy
+    builtinData.bakeDiffuseLighting = 0.0;
+    builtinData.backBakeDiffuseLighting = 0.0;
+    SampleBakedGI(  posInput, normalWS, backNormalWS, builtinData.renderingLayers, texCoord1.xy, texCoord2.xy,
+                    builtinData.bakeDiffuseLighting, builtinData.backBakeDiffuseLighting);
+    
     // We only want to read the screen space buffer that holds the indirect diffuse signal if this is not a transparent surface
-#if RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if (_RaytracedIndirectDiffuse == 1)
+#if RAYTRACING_ENABLED && ((SHADERPASS == SHADERPASS_GBUFFER) || (SHADERPASS == SHADERPASS_FORWARD)) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (_UseIndirectDiffuse == RAY_TRACED_INDIRECT_DIFFUSE_FLAG)
     {
-        #if SHADERPASS == SHADERPASS_GBUFFER
-        // Incase we shall be using raytraced indirect diffuse, we want to make sure to not add the GBuffer because that will be happening later in the pipeline
+        // Incase we shall be using raytraced indirect diffuse, we want to make sure to not add the other forms of indirect lighting to avoid
+        // double contribution.
         builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
-        #endif
-
-        #if SHADERPASS == SHADERPASS_FORWARD
-        builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz;
-        builtinData.bakeDiffuseLighting *= GetInverseCurrentExposureMultiplier();
-        #endif
     }
-    else
 #endif
-
-    // Sample lightmap/lightprobe/volume proxy
-    builtinData.bakeDiffuseLighting = SampleBakedGI(posInput.positionWS, normalWS, texCoord1.xy, texCoord2.xy);
-    // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
-    // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
-    // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
-    // TODO: optimize more this code.
-    builtinData.backBakeDiffuseLighting = SampleBakedGI(posInput.positionWS, backNormalWS, texCoord1.xy, texCoord2.xy);
 
 #ifdef SHADOWS_SHADOWMASK
     float4 shadowMask = SampleShadowMask(posInput.positionWS, texCoord1.xy);
@@ -70,9 +64,6 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     builtinData.shadowMask2 = shadowMask.z;
     builtinData.shadowMask3 = shadowMask.w;
 #endif
-
-    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
 }
 
 // This function is similar to ApplyDebugToSurfaceData but for BuiltinData
@@ -99,14 +90,32 @@ void ApplyDebugToBuiltinData(inout BuiltinData builtinData)
 #endif
 }
 
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
+{
+    // Since this is called early at PostInitBuiltinData and we need some fields from bsdfData and preLightData,
+    // we get the whole structures redundantly earlier here - compiler should optimize out everything.
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+    ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtinData);
+}
+#endif
+
 // InitBuiltinData must be call before calling PostInitBuiltinData
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
+#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+    if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
+        return;
+#else
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it
+
+    // Note: We only apply indirect multiplier for Material pass mode, for lightloop mode, the multiplier will be apply in lightloop
     builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
     builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+#endif
 
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
 
