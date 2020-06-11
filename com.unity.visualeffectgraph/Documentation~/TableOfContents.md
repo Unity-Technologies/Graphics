@@ -59,7 +59,9 @@
       * [Get Attribute: texIndex](Operator-GetAttributeTexIndex.md)
       * [Get Attribute: velocity](Operator-GetAttributeVelocity.md)
     * Bitwise
+      * [And](Operator-BitwiseAnd.md)
       * [Or](Operator-BitwiseOr.md)
+      * [Xor](Operator-BitwiseXor.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
     * Color
