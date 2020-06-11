@@ -673,6 +673,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compile error in PS4 for planar reflection filtering.
 - Fixed issue with blue line in prefabs for volume mode.
 - Fixing the internsity being applied to RTAO too early leading to unexpected results (1254626).
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
