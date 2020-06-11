@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { EyeMasterNode1.SlotMask.Albedo, BlockFields.SurfaceDescription.BaseColor },
                 { EyeMasterNode1.SlotMask.SpecularOcclusion, HDBlockFields.SurfaceDescription.SpecularOcclusion },
                 { EyeMasterNode1.SlotMask.Normal, BlockFields.SurfaceDescription.NormalTS }, 
-                { EyeMasterNode1.SlotMask.IrisNormal, HDBlockFields.SurfaceDescription.IrisNormal }, 
+                { EyeMasterNode1.SlotMask.IrisNormal, HDBlockFields.SurfaceDescription.IrisNormalTS }, 
                 { EyeMasterNode1.SlotMask.BentNormal, HDBlockFields.SurfaceDescription.BentNormal },
                 { EyeMasterNode1.SlotMask.Smoothness, BlockFields.SurfaceDescription.Smoothness }, 
                 { EyeMasterNode1.SlotMask.IOR, HDBlockFields.SurfaceDescription.IOR },
