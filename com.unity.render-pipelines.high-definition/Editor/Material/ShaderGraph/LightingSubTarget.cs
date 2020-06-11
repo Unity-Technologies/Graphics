@@ -71,11 +71,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Common properties to all Lit master nodes
             var descs = context.blocks.Select(x => x.descriptor);
 
-            // Normal dropoff space
-            context.AddField(Fields.NormalDropOffOS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(Fields.NormalDropOffTS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(Fields.NormalDropOffWS,                        lightingData.normalDropOffSpace == NormalDropOffSpace.World);
-
             // Misc
             context.AddField(HDFields.BlendPreserveSpecular,                systemData.surfaceType != SurfaceType.Opaque && lightingData.blendPreserveSpecular);
             context.AddField(HDFields.DisableDecals,                        !lightingData.receiveDecals);

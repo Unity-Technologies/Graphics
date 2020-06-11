@@ -8,7 +8,7 @@ using UnityEngine.Rendering.VirtualTexturing;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class VirtualTexturingSettingsUI
+    internal class VirtualTexturingSettingsUI
     {
         private ReorderableList m_GPUCacheSizeOverrideListStreaming;
         private SerializedProperty m_GPUCacheSizeOverridesPropertyStreaming;
