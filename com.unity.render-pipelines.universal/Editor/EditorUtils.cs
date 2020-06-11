@@ -75,14 +75,30 @@ namespace UnityEditor.Rendering.Universal
                 if (type == typeof(float))
                 {
                     var value = shadowCascadeSplit.floatValue;
-
+                    float unitValue = 0f;
                     EditorGUI.BeginChangeCheck();
-                    var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Split 1", ""), (float)Math.Round(value * distance, 2), 0f, distance, null);
+                    if (unit == Unit.Metric)
+                    {
+                        unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {1}", ""), (float)Math.Round(value * distance, 2), 0f, distance, null);
+                    }
+                    else if (unit == Unit.Percent)
+                    {
+                        var posPerc = Mathf.Clamp(value, 0.01f, distance);
+                        unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                    }
 
                     if (EditorGUI.EndChangeCheck())
                     {
-                        var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
-                        float percValue = posMeter / distance;
+                        float percValue = 0f;
+                        if (unit == Unit.Metric)
+                        {
+                            var posMeter = Mathf.Clamp(unitValue, 0.01f, distance);
+                            percValue = posMeter / distance;
+                        }
+                        else if (unit == Unit.Percent)
+                        {
+                            percValue = unitValue;
+                        }
                         shadowCascadeSplit.floatValue = percValue;
                     }
                 }
@@ -92,14 +108,32 @@ namespace UnityEditor.Rendering.Universal
                     {
                         var vec2value = shadowCascadeSplit.vector2Value;
                         var threshold = 0.1f / distance;
+                        float unitValue = 0f;
 
                         EditorGUI.BeginChangeCheck();
-                        var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec2value[i] * distance, 2), 0f, distance, null);
+                        if (unit == Unit.Metric)
+                        {
+                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec2value[i] * distance, 2), 0f, distance, null);
+                        }
+                        else if (unit == Unit.Percent)
+                        {
+                            var posPerc = Mathf.Clamp(vec2value[i], 0.01f, distance);
+                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                        }
 
                         if (EditorGUI.EndChangeCheck())
                         {
-                            var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
-                            float percValue = posMeter / distance;
+                            float percValue = 0f;
+                            if (unit == Unit.Metric)
+                            {
+                                var posMeter = Mathf.Clamp(unitValue, 0.01f, distance);
+                                percValue = posMeter / distance;
+                            }
+                            else if (unit == Unit.Percent)
+                            {
+                                percValue = unitValue;
+                            }
+
                             if (i < cascadePartitionSizes.Length - 1)
                             {
                                 percValue = Math.Min((percValue), (vec2value[i + 1] - threshold));
@@ -121,14 +155,30 @@ namespace UnityEditor.Rendering.Universal
                     {
                         var vec3value = shadowCascadeSplit.vector3Value;
                         var threshold = 0.1f / distance;
-
+                        float unitValue = 0f;
                         EditorGUI.BeginChangeCheck();
-                        var meterValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec3value[i] * distance, 2), 0f, distance, null);
+                        if (unit == Unit.Metric)
+                        {
+                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(vec3value[i] * distance, 2), 0f, distance, null);
+                        }
+                        else if (unit == Unit.Percent)
+                        {
+                            var posPerc = Mathf.Clamp(vec3value[i], 0.01f, distance);
+                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                        }
 
                         if (EditorGUI.EndChangeCheck())
                         {
-                            var posMeter = Mathf.Clamp(meterValue, 0.01f, distance);
-                            float percValue = posMeter / distance;
+                            float percValue = 0f;
+                            if (unit == Unit.Metric)
+                            {
+                                var posMeter = Mathf.Clamp(unitValue, 0.01f, distance);
+                                percValue = posMeter / distance;
+                            }
+                            else if (unit == Unit.Percent)
+                            {
+                                percValue = unitValue;
+                            }
                             if (i < cascadePartitionSizes.Length - 1)
                             {
                                 percValue = Math.Min((percValue), (vec3value[i + 1] - threshold));

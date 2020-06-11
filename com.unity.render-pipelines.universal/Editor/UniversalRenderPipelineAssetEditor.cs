@@ -122,7 +122,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_ShadowDistanceProp;
         SerializedProperty m_ShadowCascadesProp;
         SerializedProperty m_CascadeShadowSplitCountProp;
-        SerializedProperty m_ShadowCascade1SplitProp;
         SerializedProperty m_ShadowCascade2SplitProp;
         SerializedProperty m_ShadowCascade3SplitProp;
         SerializedProperty m_ShadowCascade4SplitProp;
@@ -199,7 +198,6 @@ namespace UnityEditor.Rendering.Universal
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_CascadeShadowSplitCountProp = serializedObject.FindProperty("m_CascadeShadowSplitCount");
-            m_ShadowCascade1SplitProp = serializedObject.FindProperty("m_Cascade1Split");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
@@ -362,7 +360,7 @@ namespace UnityEditor.Rendering.Universal
                 else if (cascadeCount == 2)
                     EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
                 else if (cascadeCount == 1)
-                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade1SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
+                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp, m_ShadowDistanceProp.floatValue, cascadeCount, unit);
 
                 // CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
                 //
