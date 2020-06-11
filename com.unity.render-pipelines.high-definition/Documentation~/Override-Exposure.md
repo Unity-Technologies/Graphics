@@ -55,16 +55,16 @@ The human eye can function in both very dark and very bright areas. However, at 
 
 ### Automatic Histogram
 
-The automatic histogram is an extension of the Automatic mode. In particular, in order to achieve a more stable exposure result, an histogram of the image is computed and it is possible to exclude parts of it in order to discard very bright or very dark areas of the screen. 
+The automatic histogram is an extension of the [**Automatic**](#AutomaticProperties) mode. In order to achieve a more stable exposure result, this mode calculates a histogram of the image which makes it possible exclude parts of the image from the exposure calculation. This is useful to discard very bright or very dark areas of the screen. 
 
-In order to control this process, in addition to the parameter already mentioned for Automatic mode, the following are added: 
+To control this process, in addition to the properties for **Automatic** mode, this mode includes the following properties:
 
 #### Properties
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |
-| **Histogram Percentages** | Use this field to select the range of the histogram that is considered for auto exposure computations. The values for this field are percentiles, meaning that for example if low percentile set is X, if a pixel has lower intensity than (100-X)% of all the pixels on screen it is discarded for the sake of auto-exposure. Similarly, if the higher percentile is set to Y, then it means that a pixel is discarded if it is brighter than Y% of all other pixels on screen. <br />This effectively allows to discard unwanted outliers in the shadows and highlight regions. |
-| **Use curve remapping**   | Enabling this field enables all options that are used for the Curve Mapping mode on top of the histogram mode. See [Curve Mapping section](#Curve Mapping). |
+| **Histogram Percentages** | Use this field to select the range of the histogram to consider for auto exposure calculations. The values for this field are percentiles. This means that, for example, if you set the low percentile to *X*, if a pixel has a lower intensity than (100-*X*)% of all the pixels on screen, HDRP discards it from the exposure calculation. Similarly, if you set the higher percentile to *Y*, it means that if a pixel has a higher intensity than *Y*%, HDRP discards it from the exposure calculation. <br />This allows the exposure calculation to discard unwanted outlying values in the shadows and highlight regions. |
+| **Use Curve Remapping**   | Specifies whether to apply curve mapping on top of this exposure mode or not. For information on curve mapping properties, see the [Curve Mapping section](#Curve Mapping). |
 
 <a name="UsingAutomatic"></a>
 
@@ -133,34 +133,39 @@ This mode mainly relies on the [Camera’s](https://docs.unity3d.com/Manual/clas
 
 ### Exposure Debug Modes
 
-HDRP offers several debug modes to help with setting the proper exposure for your scene. These can be activated in the [Debug Window](Render-Pipeline-Debug-Window.html). 
+HDRP offers several debug modes to help you to set the correct exposure for your scene. You can activate these in the [Debug window](Render-Pipeline-Debug-Window.md). 
 
-#### Scene EV100 Values 
+#### Scene EV<sup>100</sup> Values 
 
- This debug mode shows a heat map of the scene luminance converted in EV100 units across the screen which is useful when determining the distribution of intensity across the screen and can help identify whether the right limits have been set and it is an informative view on how the brightness is distributed in your scene. 
+This debug mode shows a heat map of the scene luminance converted to [EV<sup>100</sup>](Physical-Light-Units.md#EV) units across the screen. This is useful to determine the distribution of intensity across the screen which can help you to identify whether you have set the right exposure limits. It is also an informative view on how the brightness is distributed in your scene.
 
-The debug view also shows the numerical value of the pixel at the center of the screen and that value is also indicated as a bar in the heatmap indicator to show where it is relative to the full range.
+This debug view also shows the numerical value of the pixel at the center of the screen. It also displays this value in the heatmap indicator at the bottom of the screen to show where it is relative to the full range.
 
 
-<img src="Images/Override-Exposure4.png" style="zoom: 67%;" />
+![](Images/Override-Exposure4.png)
 
 
 
 #### Histogram View
 
-Setting the percentiles for the histogram mode might not be the most immediate thing. To help the process and to provide an overview of what the scene brightness distribution looks like HDRP provides an histogram debug view. 
+In **Automatic Histogram** mode, if may be difficult to set the upper and lower brightness percentages without a references. To help with this, HDRP includes the Histogram debug view which shows an overview of what the scene brightness distribution looks like.
 
-<img src="Images/Override-Exposure5.png" style="zoom: 67%;" />
+![](Images/Override-Exposure5.png)
 
-At the bottom of the screen, the histogram is displayed, the bars are colored in blue if they are being excluded as below the lower percentile, similarly they are red if excluded because above the higher percentile set. At the very bottom a yellow arrow points to the target exposure, while a grey arrow points at the current exposure.  
-On the screen, pixels that are excluded from auto-exposure computation because falling below the lower percentile are overlaid with a blue pattern, while pixels above the higher percentile are overlaid with a red pattern. 
+There are two places this debug mode displays information. On the screen and on a histogram at the bottom of the screen. Both of these methods show whether the exposure algorithm accepts or excludes a particular brightness value. To do this on the screen, the debug mode overlays excluded pixels with a particular color. The histogram draws bars that use the same colors to show the range of brightness values and their validity. The colors correspond to:
 
-When the **Show Tonemap Curve** option is enabled, the curve used for tonemapping is overlaid to the histogram view. 
+* **Blue**: The brightness value is below the lower percentile and is excluded.
+* **Red**: The brightness value is above the higher percentile and is excluded.
+* **White**: The brightness value is between the upper and lower percentiles and is accepted.
 
-By default the X axis with the EV units is fixed, however the histogram in the debug view can be fixed around the current exposure by enabling the **Center Around Exposure** option. This can be useful to fix the tonemap curve overlay and have a clearer view on how the scene distributes under that curve. 
+At the bottom of the histogram, a yellow arrow points to the target exposure, while a grey arrow points at the current exposure.  
+
+If you enable the **Show Tonemap Curve** option, the debug view overlays the curve used to tonemap to the histogram view.
+
+By default, the x-axis is fixed to show the EV units, however, you can also make the histogram fix around the current exposure. To do this, enable the **Center Around Exposure** option. This can be useful to fix the tonemap curve overlay and have a clearer view on how the scene distributes under that curve.
 
 #### Metering Weighted
 
-This mode can be used to show a picture in picture of the scene alongside a view of what the scene looks like after being weighted by the metering mask. This is particularly useful for setting up procedural metering masks or determining the right texture mask. 
+The Metering Weighted debug view displays the scene alongside a picture of what the scene looks like after HDRP weights it with the metering mask. This is particularly useful to set up the procedural metering masks or determine the right texture mask.
 
-<img src="Images/Override-Exposure6.png" style="zoom: 67%;" />
+![](Images/Override-Exposure6.png)
