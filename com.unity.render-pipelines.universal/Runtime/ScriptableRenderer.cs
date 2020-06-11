@@ -860,7 +860,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].OnCameraCleanup(cmd);
+                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
             // Happens when rendering the last camera in the camera stack.
             if (resolveFinalTarget)
