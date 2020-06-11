@@ -671,6 +671,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed an issue where rendering preview with MSAA might generate render graph errors.
 - Fixed compile error in PS4 for planar reflection filtering.
+- Fixed issue with blue line in prefabs for volume mode.
+- Fixing the internsity being applied to RTAO too early leading to unexpected results (1254626).
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 - Fixed null reference exception when using depth pre/post pass in shadergraph with alpha clip in the material.
 
 ### Changed
@@ -815,6 +818,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing BSDFs roughness range from [0.001, 0.999] to [0.00001, 0.99999].
 - Changing the default SSGI radius for the all configurations.
 - Changed the default parameters for quality RTGI to match expected behavior.
+- Add color clear pass while rendering XR occlusion mesh to avoid leaks.
 
 ## [7.1.1] - 2019-09-05
 
