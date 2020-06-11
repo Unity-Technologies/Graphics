@@ -4667,6 +4667,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // As a workaround we bind it regardless of debug display. Eventually with
             cmd.SetGlobalTexture(HDShaderIDs._DebugMatCapTexture, defaultResources.textures.matcapTex);
 
+            m_ShaderVariablesGlobalCB._GlobalTessellationFactorMultiplier = 1.0f;
+
             if (debugDisplayEnabledOrSceneLightingDisabled ||
                 m_CurrentDebugDisplaySettings.data.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None ||
                 m_CurrentDebugDisplaySettings.IsDebugExposureModeEnabled())
@@ -4737,6 +4739,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, defaultResources.textures.debugFontTex);
+
+                if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.QuadOverdraw)
+                    m_ShaderVariablesGlobalCB._GlobalTessellationFactorMultiplier = 0.0f;
             }
         }
 

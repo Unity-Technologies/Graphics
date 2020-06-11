@@ -252,5 +252,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
+
+        // Can be set to 0 to globally "disable" tessellation
+        // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
+        public float _GlobalTessellationFactorMultiplier;
     }
 }

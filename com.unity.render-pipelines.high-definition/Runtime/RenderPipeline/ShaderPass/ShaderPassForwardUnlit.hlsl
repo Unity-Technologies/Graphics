@@ -24,10 +24,16 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
+#if defined(DEBUG_DISPLAY)
+[earlydepthstencil] // quad overshading debug mode writes to UAV
+#endif
 void Frag(PackedVaryingsToPS packedInput,
     out float4 outResult : SV_Target0
 #ifdef UNITY_VIRTUAL_TEXTURING
     ,out float4 outVTFeedback : SV_Target1
+#endif
+#ifdef DEBUG_DISPLAY
+    ,uint primitiveID : SV_PrimitiveID
 #endif
 )
 {
@@ -94,6 +100,10 @@ void Frag(PackedVaryingsToPS packedInput,
     {
         float4 result = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
         outColor = result;
+    }
+    else if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_QUAD_OVERDRAW)
+    {
+        IncrementQuadOverdrawCounter(posInput.positionSS.xy, primitiveID);
     }
 
 #endif

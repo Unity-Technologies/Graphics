@@ -114,7 +114,7 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
         edgeTessFactors *= distFactor * distFactor;
     }
 
-    edgeTessFactors *= _TessellationFactor;
+    edgeTessFactors *= _TessellationFactor * _GlobalTessellationFactorMultiplier;
 
     // TessFactor below 1.0 have no effect. At 0 it kill the triangle, so clamp it to 1.0
     edgeTessFactors = max(edgeTessFactors, float3(1.0, 1.0, 1.0));

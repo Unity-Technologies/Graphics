@@ -142,6 +142,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
+    float _GlobalTessellationFactorMultiplier;
 CBUFFER_END
 
 

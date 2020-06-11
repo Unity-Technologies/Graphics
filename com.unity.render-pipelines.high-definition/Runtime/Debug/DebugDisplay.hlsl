@@ -273,6 +273,37 @@ void IncrementVertexDensityCounter(float4 positionCS)
     }
 }
 
+// https://blog.selfshadow.com/2012/11/12/counting-quads/
+void IncrementQuadOverdrawCounter(uint2 positionSS, uint primitiveID)
+{
+    uint2 quad = positionSS & ~1;
+    uint  prevID, thisID = primitiveID + 1;
+
+    bool processed  = false;
+    int  lockCount  = 0;
+
+    for (int i = 0; i < 16; i++)
+    {
+        if (!processed)
+            InterlockedCompareExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], 0, thisID, prevID);
+
+        [branch]
+            if (prevID == 0)
+            {
+                // Wait a bit, then unlock for other quads
+                if (++lockCount == 2)
+                    InterlockedExchange(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad+1)], 0, prevID);
+                processed = true;
+            }
+
+        if (prevID == thisID)
+            processed = true;
+    }
+
+    if (lockCount)
+        InterlockedAdd(_DebugDisplayUAV[COORD_TEXTURE2D_X(quad)], 1);
+}
+
 #endif
 
 #endif // DEBUG_DISPLAY
