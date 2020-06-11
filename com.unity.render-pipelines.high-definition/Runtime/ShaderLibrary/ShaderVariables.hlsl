@@ -337,8 +337,8 @@ float4x4 GetRawUnityWorldToObject() { return unity_WorldToObject; }
 #undef unity_ObjectToWorld
 #undef unity_WorldToObject
 UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_ObjectToWorld)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_WorldToObject)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_LODFade)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_WorldTransformParams)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_RenderingLayer)
@@ -352,8 +352,8 @@ UNITY_DOTS_INSTANCING_START(BuiltinPropertyMetadata)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHBb)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_SHC)
     UNITY_DOTS_INSTANCED_PROP(float4,   unity_ProbesOcclusion)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousM)
-    UNITY_DOTS_INSTANCED_PROP(float4x4, unity_MatrixPreviousMI)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousM)
+    UNITY_DOTS_INSTANCED_PROP(float3x4, unity_MatrixPreviousMI)
 UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 
 // Note: Macros for unity_ObjectToWorld and unity_WorldToObject are declared elsewhere
@@ -370,8 +370,9 @@ UNITY_DOTS_INSTANCING_END(BuiltinPropertyMetadata)
 #define unity_SHBb                  UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHBb)
 #define unity_SHC                   UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_SHC)
 #define unity_ProbesOcclusion       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4,   Metadata_unity_ProbesOcclusion)
-#define unity_MatrixPreviousM       UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousM)
-#define unity_MatrixPreviousMI      UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float4x4, Metadata_unity_MatrixPreviousMI)
+#define unity_MatrixPreviousM       LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousM))
+#define unity_MatrixPreviousMI      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_MatrixPreviousMI))
+
 #endif
 
 // Define View/Projection matrix macro

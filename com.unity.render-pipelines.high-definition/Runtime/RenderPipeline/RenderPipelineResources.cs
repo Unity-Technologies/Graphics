@@ -90,7 +90,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
 
-
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
             [Reload("Runtime/Material/SubsurfaceScattering/CombineLighting.shader")]
@@ -399,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             [Reload("Runtime/RenderPipelineResources/defaultDiffusionProfile.asset")]
             public DiffusionProfileSettings defaultDiffusionProfile;
-            
+
             //Area Light Emissive Meshes
             [Reload("Runtime/RenderPipelineResources/Mesh/Cylinder.fbx")]
             public Mesh emissiveCylinderMesh;

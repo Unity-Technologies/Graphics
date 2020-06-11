@@ -138,10 +138,14 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ProbeVolumeAtlasResolutionAndSliceCountInverse;
     float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
     int _ProbeVolumeLeakMitigationMode;
-    float _ProbeVolumeNormalBiasWS;
     float _ProbeVolumeBilateralFilterWeightMin;
     float _ProbeVolumeBilateralFilterWeight;
+    float _Pad8;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
+    int _TransparentCameraOnlyMotionVectors;
+    float _Pad9;
+    float _Pad10;
+    float _Pad11;
 CBUFFER_END
 
 
