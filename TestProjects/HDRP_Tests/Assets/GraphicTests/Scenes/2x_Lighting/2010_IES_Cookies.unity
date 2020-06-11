@@ -1780,8 +1780,8 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_ShapeWidth: 7.833229
-  m_ShapeHeight: 3.9737844
+  m_ShapeWidth: 4.5
+  m_ShapeHeight: 4
   m_AspectRatio: 1
   m_ShapeRadius: 0.025
   m_SoftnessScale: 1
@@ -1892,12 +1892,12 @@ Light:
     m_NormalBias: 0.4
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
-      e00: 0.25532255
+      e00: 0.44444445
       e01: 0
       e02: 0
       e03: 0
       e10: 0
-      e11: 0.5032986
+      e11: 0.5
       e12: 0
       e13: 0
       e20: 0
@@ -1923,7 +1923,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 8750
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 5.4329433, w: 6.9860206}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 5.4329433, w: 6.21123}
   m_UseBoundingSphereOverride: 1
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -4643,8 +4643,8 @@ MonoBehaviour:
   m_AffectDiffuse: 1
   m_AffectSpecular: 1
   m_NonLightmappedOnly: 0
-  m_ShapeWidth: 5.027443
-  m_ShapeHeight: 4.2050467
+  m_ShapeWidth: 4.5
+  m_ShapeHeight: 4
   m_AspectRatio: 1
   m_ShapeRadius: 0.025
   m_SoftnessScale: 1
@@ -4753,12 +4753,12 @@ Light:
     m_NormalBias: 0.4
     m_NearPlane: 0.2
     m_CullingMatrixOverride:
-      e00: 0.39781654
+      e00: 0.44444445
       e01: 0
       e02: 0
       e03: 0
       e10: 0
-      e11: 0.475619
+      e11: 0.5
       e12: 0
       e13: 0
       e20: 0
@@ -4784,7 +4784,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 8750
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 5.4329433, w: 6.3447833}
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 5.4329433, w: 6.21123}
   m_UseBoundingSphereOverride: 1
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
