@@ -258,6 +258,9 @@ namespace UnityEditor.VFX
 
                 if (skipZeroDeltaUpdate)
                     yield return "VFX_UPDATE_SKIP_ZERO_DELTA_TIME";
+
+                if (((VFXDataParticle)GetData()).HasGPUSpawn())
+                    yield return "VFX_USE_SPAWNER_FROM_GPU";
             }
         }
     }

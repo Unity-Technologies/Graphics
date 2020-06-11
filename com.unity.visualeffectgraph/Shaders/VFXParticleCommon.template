@@ -67,11 +67,13 @@ ${VFXEnd}
 ${VFXBegin:VFXFragmentCommonFunctions}#include "Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
-uint deadCount = 0;
+uint maxCount = asuint(nbMax);
 #if USE_DEAD_LIST_COUNT
-deadCount = deadListCount.Load(0);
-#endif	
-if (index >= asuint(nbMax) - deadCount)
+maxCount -= deadListCount.Load(0);
+#elif USE_COUNT_FROM_GPU
+maxCount = min(maxCount,inputAdditional.Load((offsetInAdditionalOutput * 3 + 1) << 2));
+#endif
+if (index >= maxCount)
 #if USE_GEOMETRY_SHADER
 	return; // cull
 #else

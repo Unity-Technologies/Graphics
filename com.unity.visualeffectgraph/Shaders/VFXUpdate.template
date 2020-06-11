@@ -3,6 +3,7 @@ ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
 
 #define USE_DEAD_LIST (VFX_USE_ALIVE_CURRENT && !HAS_STRIPS)
+#define USE_COUNT_FROM_GPU (!VFX_USE_ALIVE_CURRENT && VFX_USE_SPAWNER_FROM_GPU)
 
 RWByteAddressBuffer attributeBuffer;
 
@@ -22,10 +23,17 @@ RWBuffer<uint> stripDataBuffer;
 Buffer<uint> attachedStripDataBuffer;
 #endif
 
+#if USE_COUNT_FROM_GPU
+ByteAddressBuffer inputAdditional;
+#endif
+
 CBUFFER_START(updateParams)
     uint nbMax;
 	uint dispatchWidth;
 	uint systemSeed;
+#if USE_COUNT_FROM_GPU
+    uint offsetInAdditionalOutput;
+#endif
 CBUFFER_END
 
 ${VFXPerPassInclude}
@@ -38,7 +46,11 @@ void CSMain(uint3 groupId          : SV_GroupID,
 {
 	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 	uint index = id;
-	if (id < nbMax)
+    uint maxCount = nbMax;
+#if USE_COUNT_FROM_GPU
+    maxCount = min(maxCount,inputAdditional.Load((offsetInAdditionalOutput * 3 + 1) << 2));
+#endif
+	if (id < maxCount)
 	{
         Attributes attributes = (Attributes)0;
 		SourceAttributes sourceAttributes = (SourceAttributes)0;

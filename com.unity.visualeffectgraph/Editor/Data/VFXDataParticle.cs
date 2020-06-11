@@ -527,6 +527,11 @@ namespace UnityEditor.VFX
             return owners.OfType<VFXAbstractParticleOutput>().Any(o => o.HasSorting());
         }
 
+        public bool HasGPUSpawn()
+        {
+            return m_DependenciesIn.Any();
+        }
+
         public override void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,

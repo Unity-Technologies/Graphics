@@ -167,6 +167,7 @@ namespace UnityEditor.VFX
             }
 
             if (hasSoftParticles)
+            if (hasSoftParticles)
             {
                 var softParticleFade = slotExpressions.First(o => o.name == "softParticleFadeDistance");
                 var invSoftParticleFade = (VFXValue.Constant(1.0f) / softParticleFade.exp);
@@ -353,6 +354,9 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
+
+                if (((VFXDataParticle)GetData()).HasGPUSpawn())
+                    yield return "VFX_USE_SPAWNER_FROM_GPU";
             }
         }
 
