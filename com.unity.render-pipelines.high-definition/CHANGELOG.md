@@ -671,6 +671,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where decals were duplicated in prefab isolation mode.
 - Fixed an issue where rendering preview with MSAA might generate render graph errors.
 - Fixed compile error in PS4 for planar reflection filtering.
+- Fixed issue with blue line in prefabs for volume mode.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
