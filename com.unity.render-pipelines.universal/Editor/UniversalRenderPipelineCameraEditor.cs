@@ -52,6 +52,7 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent stopNaN = EditorGUIUtility.TrTextContent("Stop NaN", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will affect performances and should only be used if you experience NaN issues that you can't fix. Has no effect on GLES2 platforms.");
             public static GUIContent dithering = EditorGUIUtility.TrTextContent("Dithering", "Applies 8-bit dithering to the final render to reduce color banding.");
 
+            public static readonly GUIContent allowXRRendering = EditorGUIUtility.TrTextContent("XR Rendering");
             public static readonly GUIContent targetTextureLabel = EditorGUIUtility.TrTextContent("Output Texture", "The texture to render this camera into, if none then this camera renders to screen.");
 
             public static readonly string hdrDisabledWarning = "HDR rendering is disabled in the Universal Render Pipeline asset.";
@@ -135,6 +136,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataAntialiasingQuality;
         SerializedProperty m_AdditionalCameraDataStopNaN;
         SerializedProperty m_AdditionalCameraDataDithering;
+        SerializedProperty m_AdditionalCameraDataAllowXRRendering;
         SerializedProperty m_AdditionalCameraClearDepth;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
@@ -374,7 +376,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraDataDithering = m_AdditionalCameraDataSO.FindProperty("m_Dithering");
             m_AdditionalCameraClearDepth = m_AdditionalCameraDataSO.FindProperty("m_ClearDepth");
             m_AdditionalCameraDataCameraTypeProp = m_AdditionalCameraDataSO.FindProperty("m_CameraType");
-
+            m_AdditionalCameraDataAllowXRRendering = m_AdditionalCameraDataSO.FindProperty("m_AllowXRRendering");
             m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
         }
 
@@ -579,6 +581,9 @@ namespace UnityEditor.Rendering.Universal
             m_OutputSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_OutputSettingsFoldout.value, Styles.outputSettingsText);
             if (m_OutputSettingsFoldout.value)
             {
+#if ENABLE_VR && ENABLE_XR_MODULE
+                DrawXRRendering();
+#endif
                 DrawTargetTexture();
 
                 if (camera.targetTexture == null)
@@ -665,6 +670,11 @@ namespace UnityEditor.Rendering.Universal
             int selectedValue = !settings.allowMSAA.boolValue ? 0 : 1;
             settings.allowMSAA.boolValue = EditorGUI.IntPopup(controlRect, Styles.allowMSAA, selectedValue, Styles.displayedCameraOptions, Styles.cameraOptions) == 1;
             EditorGUI.EndProperty();
+        }
+
+        static void DrawXRRendering()
+        {
+            EditorGUILayout.PropertyField(m_AdditionalCameraDataAllowXRRendering, allowXRRendering);
         }
 
         void DrawTargetTexture()
