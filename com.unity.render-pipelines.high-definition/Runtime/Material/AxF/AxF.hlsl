@@ -2461,23 +2461,6 @@ IndirectLighting    EvaluateBSDF_ScreenspaceRefraction( LightLoopContext lightLo
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Env
 // ----------------------------------------------------------------------------
-float GetEnvMipLevel(EnvLightData lightData, float iblPerceptualRoughness)
-{
-    float iblMipLevel;
-
-    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-    if (IsEnvIndexTexture2D(lightData.envIndex))
-    {
-        // Empirical remapping
-        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(iblPerceptualRoughness, _ColorPyramidLodCount);
-    }
-    else
-    {
-        iblMipLevel = PerceptualRoughnessToMipmapLevel(iblPerceptualRoughness);
-    }
-    return iblMipLevel;
-}
 
 float3 GetModifiedEnvSamplingDir(EnvLightData lightData, float3 N, float3 iblR, float iblPerceptualRoughness, float clampedNdotV)
 {
@@ -2555,11 +2538,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // bottom reflection is full. Lit doesn't have this problem too much in practice since only GetModifiedEnvSamplingDir
     // changes the direction vs the coat.)
 
-    float   IBLMipLevel;
-    IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
-
     // Sample the pre-integrated environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
     weight *= preLD.w; // Used by planar reflection to discard pixel
 
     envLighting = GetSpecularIndirectDimmer() * preLightData.specularFGD * preLD.xyz;
@@ -2612,11 +2592,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     // Single lobe approach
     // We computed an average mip level stored in preLightData.iblPerceptualRoughness that we use for all CT lobes
-    float   IBLMipLevel;
-    IBLMipLevel = GetEnvMipLevel(lightData, preLightData.iblPerceptualRoughness);
-
     // Sample the actual environment lighting
-    float4  preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, IBLMipLevel, lightData.rangeCompressionFactorCompensation);
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, envSamplingDirForBottomLayer, PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness), lightData.rangeCompressionFactorCompensation);
     float3  envLighting;
 
     envLighting = preLightData.specularCTFGDSingleLobe * GetSpecularIndirectDimmer();
