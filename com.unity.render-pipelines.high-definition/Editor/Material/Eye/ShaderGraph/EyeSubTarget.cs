@@ -57,7 +57,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Eye specific blocks
-            context.AddBlock(HDBlockFields.SurfaceDescription.IrisNormal);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IrisNormalOS,               eyeData.irisNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IrisNormalTS,               eyeData.irisNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(HDBlockFields.SurfaceDescription.IrisNormalWS,               eyeData.irisNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.World);
+
             context.AddBlock(HDBlockFields.SurfaceDescription.IOR);
             context.AddBlock(HDBlockFields.SurfaceDescription.Mask);
             context.AddBlock(HDBlockFields.SurfaceDescription.DiffusionProfileHash,     eyeData.subsurfaceScattering);

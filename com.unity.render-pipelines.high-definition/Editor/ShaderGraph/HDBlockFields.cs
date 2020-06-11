@@ -78,8 +78,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // --------------------------------------------------
             // Eye
 
-            public static BlockFieldDescriptor IrisNormal = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormal", "Iris Normal", "SURFACEDESCRIPTION_IRISNORMAL",
+            public static BlockFieldDescriptor IrisNormalTS = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormalTS", "Iris Normal (Tangent Space)", "SURFACEDESCRIPTION_IRISNORMALTS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IrisNormalOS = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormalOS", "Iris Normal (Object Space)", "SURFACEDESCRIPTION_IRISNORMALOS",
+                new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
+            public static BlockFieldDescriptor IrisNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "IrisNormalWS", "Iris Normal (World Space)", "SURFACEDESCRIPTION_IRISNORMALWS",
+                new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
             public static BlockFieldDescriptor IOR = new BlockFieldDescriptor(SurfaceDescription.name, "IOR", "SURFACEDESCRIPTION_IOR", 
                 new FloatControl(1.4f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Mask = new BlockFieldDescriptor(SurfaceDescription.name, "Mask", "SURFACEDESCRIPTION_MASK", 
@@ -108,7 +112,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // --------------------------------------------------
             // StackLit
 
-            public static BlockFieldDescriptor CoatNormal = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormal", "Coat Normal", "SURFACEDESCRIPTION_COATNORMAL",
+            public static BlockFieldDescriptor CoatNormalOS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalOS", "Coat Normal (Object Space)", "SURFACEDESCRIPTION_COATNORMALOS",
+                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatNormalTS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalTS", "Coat Normal (Tangent Space)", "SURFACEDESCRIPTION_COATNORMALTS",
+                new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatNormalWS = new BlockFieldDescriptor(SurfaceDescription.name, "CoatNormalWS", "Coat Normal (World Space)", "SURFACEDESCRIPTION_COATNORMALWS",
                 new NormalControl(CoordinateSpace.Tangent), ShaderStage.Fragment);
             public static BlockFieldDescriptor DielectricIor = new BlockFieldDescriptor(SurfaceDescription.name, "DielectricIor", "Dielectric IOR", "SURFACEDESCRIPTION_DIELECTRICIOR", 
                 new FloatControl(1.5f), ShaderStage.Fragment);

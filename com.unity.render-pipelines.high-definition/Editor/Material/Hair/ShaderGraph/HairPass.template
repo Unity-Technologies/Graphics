@@ -220,7 +220,6 @@ Pass
         surfaceData.geomNormalWS = fragInputs.tangentToWorld[2];
 
         // normal delivered to master node
-        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
         $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
         $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
         $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
