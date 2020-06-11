@@ -36,7 +36,26 @@ namespace UnityEngine.Rendering.HighDefinition
         // currently just keeps subdividing inside probe volumes
         internal static bool ShouldKeepBrick(ref RefTrans refTrans, Brick brick)
         {
-            return true;
+            Renderer[] renderers = Object.FindObjectsOfType<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
+                bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
+
+                if (!r.enabled || !contributeGI)
+                    continue;
+
+                Volume v = new Volume();
+                v.Corner = r.bounds.center - r.bounds.size * 0.5f;
+                v.X = new Vector3(r.bounds.size.x, 0, 0);
+                v.Y = new Vector3(0, r.bounds.size.y, 0);
+                v.Z = new Vector3(0, 0, r.bounds.size.z);
+
+                if (OBBIntersect(ref refTrans, brick, ref v))
+                    return true;
+            }
+
+            return false;
         }
 
         // TODO: Take refvol translation and rotation into account
