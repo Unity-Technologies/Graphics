@@ -307,6 +307,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _TaaFrameInfo = Shader.PropertyToID("_TaaFrameInfo");
         public static readonly int _TaaJitterStrength = Shader.PropertyToID("_TaaJitterStrength");
 
+        public static readonly int _TransparentCameraOnlyMotionVectors = Shader.PropertyToID("_TransparentCameraOnlyMotionVectors ");
+
         public static readonly int _WorldSpaceCameraPos1 = Shader.PropertyToID("_WorldSpaceCameraPos1");
         public static readonly int _ViewMatrix1 = Shader.PropertyToID("_ViewMatrix1");
 

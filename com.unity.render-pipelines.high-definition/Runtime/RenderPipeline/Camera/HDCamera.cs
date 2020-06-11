@@ -650,6 +650,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalVectorArray(HDShaderIDs._XRPrevWorldSpaceCameraPos, m_XRPrevWorldSpaceCameraPos);
             }
 
+            cmd.SetGlobalInt(HDShaderIDs._TransparentCameraOnlyMotionVectors, (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) && !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0);
         }
 
         internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
