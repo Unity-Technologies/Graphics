@@ -182,12 +182,16 @@ Pass
 
         $SurfaceDescription.SubsurfaceMask: surfaceData.subsurfaceMask = surfaceDescription.SubsurfaceMask;
 
-        // tangent-space normal
-        float3 normalTS = float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescription.NormalTS: normalTS = surfaceDescription.NormalTS;
 
-        // compute world space normal
-        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS, doubleSidedConstants);
+        // normal delivered to master node
+        float3 normalTS = float3(0.0f, 0.0f, 1.0f); // tangent-space normal
+        float3 normalSrc = float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.NormalOS: surfaceData.normalWS = TransformObjectToWorldNormal(surfaceDescription.NormalOS);
+        $SurfaceDescription.NormalOS: normalTS = TransformWorldToTangent(surfaceData.normalWS, fragInputs.tangentToWorld);
+        $SurfaceDescription.NormalTS: GetNormalWS(fragInputs, surfaceDescription.NormalTS, surfaceData.normalWS, doubleSidedConstants);
+        $SurfaceDescription.NormalTS: normalTS = surfaceDescription.NormalTS;
+        $SurfaceDescription.NormalWS: surfaceData.normalWS = surfaceDescription.NormalWS;
+        $SurfaceDescription.NormalWS: normalTS = TransformWorldToTangent(surfaceData.normalWS, fragInputs.tangentToWorld);;
 
         float3 irisNormalTS = normalTS; // By default Iris normal is same as normal
         $SurfaceDescription.IrisNormal: irisNormalTS = surfaceDescription.IrisNormal;
