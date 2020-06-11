@@ -57,6 +57,10 @@ Some other Attributes are available in order to get information about system val
 | `spawnCount` | uint | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that describes how many particles were spawned this frame. | (0,0,0) |
 | `spawnTime` | float | A SpawnEvent attribute available as Source Attribute in Spawn Contexts, that contains a Spawn Context internal time (when exported using a **Set Spawn Time** Spawn Block) | 0.0 |
 | `particleIndexInStrip` | uint | The index in the Particle Strip Ring Buffer where is located this element. | 0 |
+| `particleCountInStrip` | uint | The current number of particles in the particle strip the particle belongs to. | 0 |
+| `stripIndex` | uint | The index of the particle strip that particle belongs to. | 0 |
+| `spawnIndex` | uint | The index of the particle when it spawned. This is a value from 0 to `spawnCount - 1`. | 0 |
+| `direction` | Vector3 | The direction of the simulated element based on its shape. This drives the initial direction in Set Velocity Blocks. | (0,0,1) |
 ## Attribute Usage and Implicit Behavior
 
 Some attributes combinations are used in various implicit cases during the simulation and the rendering. Here is a list of the usages and an explanation of their relationships.

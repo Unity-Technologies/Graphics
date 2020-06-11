@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: spawnIndex**
 
-The **Get Attribute: spawnIndex** returns the spawnIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the order ID of the simulated element when it spawned.
+The **Get Attribute: spawnIndex** returns the spawnIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the index of the particle when it spawned.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 

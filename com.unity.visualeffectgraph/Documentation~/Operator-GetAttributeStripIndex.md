@@ -2,7 +2,7 @@
 
 Menu Path : **Operator > Attribute > Get Attribute: stripIndex**
 
-The **Get Attribute: stripIndex** returns the stripIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the index of the particle strip this particle is bound to.
+The **Get Attribute: stripIndex** returns the stripIndex, which is a [standard attribute](Reference-Attributes.md), of a simulated element depending on [Location](Attributes.md#attribute-locations). This Operator outputs the index of the particle strip this particle belongs to.
 
 [!include[](Snippets/Operator-GetAttributeOperatorSettings.md)]
 
