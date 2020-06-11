@@ -9,10 +9,33 @@ test_platforms:
   - Standalone
 platforms:
   - name: Win
+    os: windows
     apis:
-      - DX11
-      - DX12
-      - Vulkan
+      DX11: -force-d3d11
+      DX12: -force-d3d12
+      Vulkan: -force-vulkan
+    agent_default:
+      type: Unity::VM::GPU
+      image: graphics-foundation/win10-dxr:latest
+      flavor: b1.xlarge
+      model: rtx2080
+    agent_editmode:
+      type: Unity::VM
+      image: graphics-foundation/win10-dxr:latest
+      flavor: b1.xlarge
+    agent_standalone:
+      type: Unity::VM::GPU
+      image: graphics-foundation/win10-dxr:latest
+      flavor: b1.xlarge
+      model: rtx2080
+    agent_standalone_build:
+      type: Unity::VM
+      image: graphics-foundation/win10-dxr:latest
+      flavor: b1.xlarge
+      model: rtx2080
+    components:
+      - editor
+      - il2cpp
   - name: OSX 
     apis:
       - Metal

@@ -130,6 +130,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "ShadowCaster",
                 useInPreview = false,
 
+                validPixelBlocks  = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                },
+
                 // Collections
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
@@ -171,6 +179,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_LIGHT_TRANSPORT",
                 lightMode = "META",
                 useInPreview = false,
+
+                // We don't need any vertex inputs on meta pass:
+                validVertexBlocks = new BlockFieldDescriptor[0],
 
                 // Collections
                 requiredFields = CoreRequiredFields.Meta,
@@ -267,7 +278,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
 #region Motion Vectors
 
-        public static PassDescriptor GenerateMotionVectors(bool supportLighting)
+        public static PassDescriptor GenerateMotionVectors(bool supportLighting, bool supportForward)
         {
             return new PassDescriptor
             {
@@ -280,15 +291,33 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Collections
                 requiredFields = CoreRequiredFields.LitFull,
                 renderStates = GenerateRenderState(),
-                defines = supportLighting ? CoreDefines.DepthMotionVectors : null,
+                defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
+            DefineCollection GenerateDefines()
+            {
+                if (!supportLighting)
+                    return null;
+
+                var defines = new DefineCollection
+                {
+                    { RayTracingNode.GetRayTracingKeyword(), 0 },
+                };
+
+                //  #define WRITE_NORMAL_BUFFER for forward
+                if (supportForward)
+                    defines.Add(CoreKeywordDescriptors.WriteNormalBuffer, 1);
+                
+                return defines;
+            }
+
             RenderStateCollection GenerateRenderState()
             {
-                var renderState = CoreRenderStates.MotionVectors;
+                var renderState = new RenderStateCollection();
+                renderState.Add(CoreRenderStates.MotionVectors);
     
                 if (!supportLighting)
                 {
@@ -308,7 +337,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { CoreKeywordDescriptors.AlphaToMask, new FieldCondition(Fields.AlphaToMask, true) },
                 };
 
-                if (supportLighting)
+                // #pragma multi_compile _ WRITE_NORMAL_BUFFER for deferred
+                if (supportLighting && !supportForward)
                     keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
                 
                 return keywords;
@@ -465,6 +495,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 lightMode = "TransparentDepthPrepass",
                 useInPreview = true,
 
+                validPixelBlocks = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                    BlockFields.SurfaceDescription.NormalTS,
+                    BlockFields.SurfaceDescription.NormalWS,
+                    BlockFields.SurfaceDescription.NormalOS,
+                    BlockFields.SurfaceDescription.Smoothness,
+                },
+
                 // Collections
                 requiredFields = TransparentDepthPrepassFields,
                 renderStates = GenerateRenderState(),
@@ -560,6 +601,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 referenceName = "SHADERPASS_DEPTH_ONLY",
                 lightMode = "TransparentDepthPostpass",
                 useInPreview = true,
+
+                validPixelBlocks = new BlockFieldDescriptor[]
+                {
+                    BlockFields.SurfaceDescription.Alpha,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                    HDBlockFields.SurfaceDescription.DepthOffset,
+                },
 
                 // Collections
                 renderStates = GenerateRenderState(),
@@ -815,22 +863,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Collections
                 pragmas = CorePragmas.RaytracingBasic,
-                defines = supportLighting ? GenerateDefines() : null,
+                defines = supportLighting ? RaytracingIndirectDefines : null,
                 keywords = CoreKeywords.RaytracingIndirect,
                 includes = CoreIncludes.Raytracing,
                 requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
             };
-
-            DefineCollection GenerateDefines()
-            {
-                return new DefineCollection
-                {
-                    { Defines.shadowLow },
-                    { Defines.raytracingLow },
-                    { CoreKeywordDescriptors.HasLightloop, 1 },
-                };
-            }
         }
+
+        public static DefineCollection RaytracingIndirectDefines = new DefineCollection
+        {
+            { Defines.shadowLow },
+            { Defines.raytracingLow },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+        };
 
 #endregion
 
@@ -891,10 +936,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             };
         }
 
+
         public static DefineCollection RaytracingForwardDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -961,7 +1007,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
         {
             { Defines.shadowLow },
-            { RayTracingNode.GetRayTracingKeyword(), 0 },
+            { Defines.raytracingHigh },
             { CoreKeywordDescriptors.HasLightloop, 1 },
         };
 
@@ -1014,8 +1060,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static DefineCollection shadowHigh = new DefineCollection { {CoreKeywordDescriptors.Shadow, 2} };
 
             // Raytracing Quality
-            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
-            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingLow = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 1} };
+            public static DefineCollection raytracingHigh = new DefineCollection { {RayTracingNode.GetRayTracingKeyword(), 0} };
         }
 
 #endregion
