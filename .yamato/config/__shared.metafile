@@ -62,7 +62,7 @@ project_platforms:
       - Standalone
     agent_default:
       type: Unity::VM::osx
-      image: buildfarm/mac:stable
+      image: slough-ops/macos-10.14-xcode:stable
       flavor: m1.mac
   Linux:
     name: Linux
