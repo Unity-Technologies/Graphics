@@ -1,7 +1,6 @@
 #ifndef PROBE_VOLUME_SHADER_VARIABLES
 #define PROBE_VOLUME_SHADER_VARIABLES
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/SphericalHarmonics.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
 #if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS
@@ -15,7 +14,10 @@
     StructuredBuffer<ProbeVolumeEngineData> _ProbeVolumeDatas;
 
     TEXTURE3D(_ProbeVolumeAtlasSH);
+#if SHADEROPTIONS_PROBE_VOLUMES_BILATERAL_FILTERING == PROBEVOLUMESBILATERALFILTERINGMODES_OCTAHEDRAL_DEPTH
     TEXTURE2D(_ProbeVolumeAtlasOctahedralDepth);
+#endif
+
 #endif
 
 #endif // endof PROBE_VOLUME_SHADER_VARIABLES
