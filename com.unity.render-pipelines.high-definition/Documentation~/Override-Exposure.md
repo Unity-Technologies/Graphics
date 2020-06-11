@@ -88,9 +88,9 @@ To configure **Automatic Mode**, select the **Metering Mode**. This tells the Ca
   | **Property**                      | **Description**                                              |
   | --------------------------------- | ------------------------------------------------------------ |
   | **Center Around Exposure target** | Whether the procedural mask will be centered around the GameObject set as Exposure Target in the [Camera](HDRP-Camera.html). |
-  | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is enabled. |
+  | **Center**                        | Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen). Available only when **Center Around Exposure target**  is disabled. |
   | **Offset**                        | Sets an offset to where mask is centered . Available only when **Center Around Exposure target**  is enabled. |
-  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen). |
+  | **Radii**                         | Sets the radii (horizontal and vertical) of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretches half of the screen). |
   | **Softness**                      | Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask. |
   | **Mask Min Intensity**            | All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
   | **Mask Max Intensity**            | All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. |
@@ -139,7 +139,7 @@ HDRP offers several debug modes to help you to set the correct exposure for your
 
 This debug mode shows a heat map of the scene luminance converted to [EV<sup>100</sup>](Physical-Light-Units.md#EV) units across the screen. This is useful to determine the distribution of intensity across the screen which can help you to identify whether you have set the right exposure limits. It is also an informative view on how the brightness is distributed in your scene.
 
-This debug view also shows the numerical value of the pixel at the center of the screen. It also displays this value in the heatmap indicator at the bottom of the screen to show where it is relative to the full range.
+Furthermore, this debug view shows the numerical value of the pixel at the center of the screen. It also displays this value in the heatmap indicator at the bottom of the screen to show where it is relative to the full range.
 
 
 ![](Images/Override-Exposure4.png)
@@ -162,7 +162,7 @@ At the bottom of the histogram, a yellow arrow points to the target exposure, wh
 
 If you enable the **Show Tonemap Curve** option, the debug view overlays the curve used to tonemap to the histogram view.
 
-By default, the x-axis is fixed to show the EV units, however, you can also make the histogram fix around the current exposure. To do this, enable the **Center Around Exposure** option. This can be useful to fix the tonemap curve overlay and have a clearer view on how the scene distributes under that curve.
+By default, the values on the x-axis are fixed, however, you can also make the histogram fix around the current exposure. To do this, enable the **Center Around Exposure** option. This can be useful to fix the tonemap curve overlay and have a clearer view on how the scene distributes under that curve.
 
 #### Metering Weighted
 
