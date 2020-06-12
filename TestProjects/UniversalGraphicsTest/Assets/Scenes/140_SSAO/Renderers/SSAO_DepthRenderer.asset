@@ -1,5 +1,29 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1845754664652862982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
+  m_Name: SSAO
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+  m_BlueNoise: {fileID: 2800000, guid: cbdfedcb32329429aae80014a0d36ad9, type: 3}
+  m_Settings:
+    Downsample: 0
+    Source: 0
+    NormalSamples: 2
+    Intensity: 5
+    DirectLightingStrength: 0.5
+    Radius: 0.035
+    SampleCount: 6
+    BlurPasses: 3
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13,8 +37,8 @@ MonoBehaviour:
   m_Name: SSAO_DepthRenderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
-  - {fileID: 3450427422973968531}
-  m_RendererFeatureMap: 9340a1c57561e22f
+  - {fileID: -1845754664652862982}
+  m_RendererFeatureMap: fa89d866e98f62e6
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -38,25 +62,3 @@ MonoBehaviour:
     failOperation: 0
     zFailOperation: 0
   m_ShadowTransparentReceive: 1
---- !u!114 &3450427422973968531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f62c9c65cf3354c93be831c8bc075510, type: 3}
-  m_Name: SSAO
-  m_EditorClassIdentifier: 
-  m_Active: 1
-  shader: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
-  settings:
-    Downsample: 0
-    NormalSamples: 2
-    Intensity: 5
-    DirectLightingStrength: 0.5
-    Radius: 0.035
-    SampleCount: 6
-    BlurPasses: 3
