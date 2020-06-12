@@ -894,7 +894,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Exposure
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IsExposureFixed() => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera;
+        bool IsExposureFixed() => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera || HDAdditionalSceneViewSettings.sceneExposureOverriden;
 
         public RTHandle GetExposureTexture(HDCamera camera)
         {
@@ -979,10 +979,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = 0;
 
-            if (m_Exposure.mode.value == ExposureMode.Fixed)
+            if (m_Exposure.mode.value == ExposureMode.Fixed || HDAdditionalSceneViewSettings.sceneExposureOverriden)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
+                var exposureParam = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
+                if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
+                {
+                    exposureParam = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
+                }
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParam);
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
