@@ -131,9 +131,9 @@ namespace UnityEditor.ShaderGraph
 
         public void LoadGraphData()
         {
-            if(!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
+            m_SubGraphData = new SubGraphData();
+            if (!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
-                m_SubGraphData = new SubGraphData();
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
             }
         }
