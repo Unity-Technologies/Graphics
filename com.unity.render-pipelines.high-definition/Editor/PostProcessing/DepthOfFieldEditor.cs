@@ -74,7 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw the quality controls
             base.OnInspectorGUI();
             HDEditorUtils.BeginIndent();
-            GUI.enabled = base.overrideState;
+            GUI.enabled = GUI.enabled && base.overrideState;
             DrawQualitySettings();
             HDEditorUtils.EndIndent();
 
