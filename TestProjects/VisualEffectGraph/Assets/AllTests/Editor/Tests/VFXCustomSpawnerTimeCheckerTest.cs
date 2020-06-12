@@ -4,25 +4,26 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Test
 {
-    class VFXCustomSpawnerTest : VFXSpawnerCallbacks
+    class VFXCustomSpawnerTimeCheckerTest : VFXSpawnerCallbacks
     {
-        static public float s_SpawnCount = 101.0f;
-        static public float s_LifeTime = 17.0f;
+        static public float s_ReadTotalTimeThroughInput = -571.0f;
+        static public float s_ReadInternalTotalTime = -27.0f;
 
         public class InputProperties
         {
-            public float totalTime = 8;
+            public float totalTime = 86;
         }
 
         public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
         }
 
+
+        static private int s_totalTimeID = Shader.PropertyToID("totalTime");
         public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            state.spawnCount = s_SpawnCount;
-            state.totalTime = vfxValues.GetFloat("totalTime");
-            state.vfxEventAttribute.SetFloat("lifetime", s_LifeTime);
+            s_ReadTotalTimeThroughInput = vfxValues.GetFloat(s_totalTimeID);
+            s_ReadInternalTotalTime = state.totalTime;
         }
 
         public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
