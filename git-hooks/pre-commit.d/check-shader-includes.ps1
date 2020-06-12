@@ -7,6 +7,7 @@ enum ShaderStatus {
     NotFound;
     Found;
 }
+
 function Get-CanonicalPath
 {
     <# 
@@ -93,10 +94,6 @@ function Find-MatchesInFile {
     <# 
         .Synopsis 
             Find and matches pattern in given file
-        .Description
-            If the file contains a line like this one:
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-            It will match and return "$srpRoot/Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
     #> 
     param($File)
 
@@ -184,10 +181,16 @@ function Main
     Write-Results -Results $results
 }
 
+# Make sure we're still in the repository in case of custom powershell
+# configuration on the client. (e.g. profile.ps1 that cd's to as specific dir. at startup)
 if ($null -ne $args[0]) {
-    # Make sure we're still in the repository in case of custom powershell
-    # configuration on the client. (e.g. profile.ps1 that cd's to as specific dir. at startup)
+    # If comming from the git hook, just take the argument sent by the shell script
     Set-Location -Path $args[0]
+} else {
+    # If powershell script executed manually from anywhere else in the repository, compute new location
+    $pwdRepoCommand = "git rev-parse --show-toplevel"
+    $pwdRepo = Invoke-Expression -Command $pwdRepoCommand
+    Set-Location -Path $pwdRepo
 }
 $srpRoot = Get-Location
 

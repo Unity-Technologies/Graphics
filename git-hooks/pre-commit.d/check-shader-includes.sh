@@ -1,4 +1,5 @@
 #!/bin/sh
+
 # Script (part of the pre-commit hook suite) that checks the case sensitivity 
 # of shader includes in staged files.
 # Windows is case-insensitive when it comes to path management.
@@ -8,7 +9,7 @@ check_shaders_on_windows()
 {
   echo "Windows detected. Running powershell script..."
   cd ../../../
-  path=`git rev-parse --show-toplevel`
+  path=`git rev-parse --show-toplevel` # Get path of repo, if executed from .git/hooks/pre-commit.d
   cd - > /dev/null
   exec powershell.exe -File './check-shader-includes.ps1' "$path"
   exit
