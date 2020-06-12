@@ -87,6 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         protected bool useCustomValue => m_QualitySetting.value.intValue == k_CustomQuality;
+        protected bool overrideState => m_QualitySetting.overrideState.boolValue;
 
         /// <summary>
         /// This should be called after the user manually edits a quality setting that appears in a preset. After calling this function, the quality preset will change to Custom.

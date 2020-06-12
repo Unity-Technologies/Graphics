@@ -74,6 +74,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw the quality controls
             base.OnInspectorGUI();
             HDEditorUtils.BeginIndent();
+            GUI.enabled = base.overrideState;
             DrawQualitySettings();
             HDEditorUtils.EndIndent();
 
@@ -188,6 +189,15 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_Resolution.value.intValue = (int) settings.postProcessQualitySettings.DoFResolution[level];
             m_HighQualityFiltering.value.boolValue = settings.postProcessQualitySettings.DoFHighQualityFiltering[level];
+
+            // set all quality override states to true, to indicate that these values are actually used
+            m_NearSampleCount.overrideState.boolValue = true;
+            m_NearMaxBlur.overrideState.boolValue = true;
+            m_FarSampleCount.overrideState.boolValue = true;
+            m_FarMaxBlur.overrideState.boolValue = true;
+            m_Resolution.overrideState.boolValue = true;
+            m_HighQualityFiltering.overrideState.boolValue = true;
+
         }
 
         public override object SaveCustomQualitySettingsAsObject(object history = null)
