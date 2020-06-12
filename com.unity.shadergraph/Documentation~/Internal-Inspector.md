@@ -1,13 +1,13 @@
 # Graph Inspector
 
 ## Description
-The **Graph Inspector**** is used to interact with any graph elements that the user can select and graph-wide settings for the [Shader Graph Asset](Shader-Graph-Asset.md). You can edit their attributes and default values.  
+The **Graph Inspector** is used to edit settings of selectable graph elements as well as graph-wide settings for the [Shader Graph Asset](Shader-Graph-Asset.md). You can edit their attributes and default values.  
 
 To inspect something in the graph, the user must select it. These settings are available in **Node Settings** tab of the **Graph Inspector**.
 
-The **Graph Inspector** displays the **Graph Settings* tab by default when a Shader Graph is opened.
+The **Graph Inspector** displays the **Graph Settings** tab by default when a Shader Graph is opened.
 
-When the user selects something, for instance, a Property Node from the graph or the [Blackboard](Blackboard.md), the **Node Settings** tab will display the attributes belonging to that Property that the user can edit.
+The **Node Settings** tab will display the attributes belonging to selected items that the user can edit. Multiple elements can be selected and edited at once.
 
 ![](images/InternalInspectorBlackboardProperty.png) 
 
