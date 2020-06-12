@@ -644,6 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ExposureDebugParams            = Shader.PropertyToID("_ExposureDebugParams");
         public static readonly int _HistogramExposureParams        = Shader.PropertyToID("_HistogramExposureParams");
         public static readonly int _HistogramBuffer                = Shader.PropertyToID("_HistogramBuffer");
+        public static readonly int _FullImageHistogram             = Shader.PropertyToID("_FullImageHistogram");
         public static readonly int _AdaptationParams               = Shader.PropertyToID("_AdaptationParams");
         public static readonly int _ExposureCurveTexture           = Shader.PropertyToID("_ExposureCurveTexture");
         public static readonly int _ExposureWeightMask             = Shader.PropertyToID("_ExposureWeightMask");

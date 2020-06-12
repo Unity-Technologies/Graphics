@@ -35,6 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
         const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
+        const int k_DebugImageHistogramBins = 256;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
 
@@ -42,7 +43,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RTHandle m_EmptyExposureTexture; // RGHalf
         RTHandle m_DebugExposureData;
         ComputeBuffer m_HistogramBuffer;
+        ComputeBuffer m_DebugImageHistogramBuffer;
         readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
+        readonly int[] m_EmptyDebugImageHistogram = new int[k_DebugImageHistogramBins * 4];
 
         // Depth of field data
         ComputeBuffer m_BokehNearKernel;
@@ -234,6 +237,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SafeRelease(m_FarBokehTileList);
             CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
             CoreUtils.SafeRelease(m_HistogramBuffer);
+            CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
 
             m_ExposureCurveTexture      = null;
@@ -248,7 +252,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_NearBokehTileList         = null;
             m_FarBokehTileList          = null;
             m_HistogramBuffer           = null;
-            m_DebugExposureData         = null;
+            m_DebugImageHistogramBuffer = null;
+            m_DebugExposureData = null;
 
         }
 
@@ -969,6 +974,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUtils.ConvertEvToLuminance(m_Exposure.maskMinIntensity.value), LightUtils.ConvertEvToLuminance(m_Exposure.maskMaxIntensity.value), 0.0f);
         }
+
+        internal ComputeBuffer GetDebugImageHistogramBuffer()
+        {
+            return m_DebugImageHistogramBuffer;
+        }
+
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;
@@ -1207,6 +1218,24 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+        }
+
+        internal void GenerateDebugImageHistogram(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        {
+            var cs = m_Resources.shaders.debugImageHistogramCS;
+            int kernel = cs.FindKernel("KHistogramGen");
+
+            ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
+            m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_DebugImageHistogramBuffer);
+
+            int threadGroupSizeX = 16;
+            int threadGroupSizeY = 16;
+            int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
+            int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
+            int totalPixels = camera.actualWidth * camera.actualHeight;
+            cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
         }
 
         #endregion
