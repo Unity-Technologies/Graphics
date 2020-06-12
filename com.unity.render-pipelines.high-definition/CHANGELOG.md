@@ -677,6 +677,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue that caused sky to incorrectly render when using a custom projection matrix.
 - Fixed null reference exception when using depth pre/post pass in shadergraph with alpha clip in the material.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
+- Fixed AxF handling of roughness for Blinn-Phong type materials
+- Fixed AxF UI errors when surface type is switched to transparent
 
 ### Changed
 - Improve MIP selection for decals on Transparents
