@@ -1,5 +1,4 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -296,6 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Fetch the volume overrides that we shall be using
                     RayTracingShader subSurfaceShader = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracing;
                     ComputeShader deferredRayTracing = m_Asset.renderPipelineRayTracingResources.deferredRaytracingCS;
+                    ComputeShader rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
 
                     // Fetch all the intermediate buffers that we need
                     RTHandle intermediateBuffer0 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
@@ -306,8 +306,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
 
                     // Clear the integration texture first
-                    cmd.SetComputeTextureParam(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, HDShaderIDs._RaytracedShadowIntegration, intermediateBuffer4);
-                    cmd.DispatchCompute(m_ScreenSpaceShadowsCS, m_ClearShadowTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
+                    int clearTexture = rayTracingSubSurfaceCS.FindKernel("ClearTexture");
+                    cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, clearTexture, HDShaderIDs._DiffuseLightingTextureRW, intermediateBuffer4);
+                    cmd.DispatchCompute(rayTracingSubSurfaceCS, clearTexture, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                     // Grab the acceleration structure for the target camera
                     RayTracingAccelerationStructure accelerationStructure = RequestAccelerationStructure();
@@ -388,11 +389,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     temporalFilter.DenoiseBuffer(cmd, hdCamera, intermediateBuffer4, subsurfaceHistory, intermediateBuffer0, singleChannel: false, historyValidity: historyValidity);
 
                     // Now based on the mask, we need to blend the subsurface and the diffuse lighting
-                    ComputeShader rayTracingSubSurfaceCS = m_Asset.renderPipelineRayTracingResources.subSurfaceRayTracingCS;
-                    int m_CombineSubSurfaceKernel = rayTracingSubSurfaceCS.FindKernel("BlendSubSurfaceData");
+
+                    bool validSSGI = ValidIndirectDiffuseState(hdCamera);
+                    int m_CombineSubSurfaceKernel = rayTracingSubSurfaceCS.FindKernel(validSSGI ? "BlendSubSurfaceDataWithGI" : "BlendSubSurfaceData");
                     cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._SubSurfaceLightingBuffer, intermediateBuffer0);
                     cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._DiffuseLightingTextureRW, diffuseBufferRT);
                     cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._SSSBufferTexture, m_SSSColor);
+                    if (validSSGI)
+                        cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._IndirectDiffuseLightingBuffer, m_IndirectDiffuseBuffer0);
                     cmd.DispatchCompute(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, numTilesXHR, numTilesYHR, hdCamera.viewCount);
 
                     // Push this version of the texture for debug

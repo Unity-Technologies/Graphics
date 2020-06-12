@@ -1,5 +1,4 @@
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -69,7 +68,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // If there is no SSGI, bind a black 1x1 texture
-        void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
+        static void BindBlackIndirectDiffuseTexture(CommandBuffer cmd)
         {
             cmd.SetGlobalTexture(HDShaderIDs._IndirectDiffuseTexture, TextureXR.GetBlackTexture());
         }
