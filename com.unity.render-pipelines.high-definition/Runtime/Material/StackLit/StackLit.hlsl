@@ -4377,20 +4377,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
         EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        float iblMipLevel;
-        // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-        // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-        if (IsEnvIndexTexture2D(lightData.envIndex))
-        {
-            // Empirical remapping
-            iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i], _ColorPyramidLodCount);
-        }
-        else
-        {
-            iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
-        }
+        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]), lightData.rangeCompressionFactorCompensation);
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 
@@ -4431,7 +4419,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     // Specular occlusion has been pre-computed in GetPreLightData() and applied on indirect specular light
     // while screenSpaceAmbientOcclusion has also been cached in preLightData.
@@ -4459,9 +4447,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // on it. Specular occlusion has been applied per lobe during specular lighting evaluations before.
     // We also add emissive since it is not merged with bakeDiffuseLighting in ModifyBakedDiffuseLighting.
     // (also cf lit deferred EncodeToGBuffer function).
-    diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
+    lightLoopOutput.diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
 
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
     // For specularOcclusion we display red to indicate there's not one value possible here.
@@ -4478,7 +4466,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     GetAmbientOcclusionFactor(diffuseOcclusion, specularOcclusion, directAmbientOcclusion /* not used for now in PostEvaluateBSDFDebugDisplay */ , aoFactor);
 
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 

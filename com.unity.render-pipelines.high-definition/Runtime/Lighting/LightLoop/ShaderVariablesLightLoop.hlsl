@@ -18,9 +18,6 @@ StructuredBuffer<EnvLightData>         _EnvLightDatas;
 // Used by directional and spot lights
 TEXTURE2D(_CookieAtlas);
 
-// Used by point lights
-TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
-
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
 TEXTURE2D(_Env2DTextures);
