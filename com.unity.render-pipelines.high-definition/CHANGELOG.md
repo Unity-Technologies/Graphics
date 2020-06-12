@@ -146,6 +146,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Fast Memory support for platform that support it.
 - Added CPU and GPU timings for ray tracing effects.
 - Added support to combine RTSSS and RTGI (1248733).
+- Added IES Profile support for Point, Spot and Rectangular-Area lights
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -659,6 +660,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed white flash when enabling SSR or SSGI.
 - The ray traced indrect diffuse and RTGI were combined wrongly with the rest of the lighting (1254318).
 - Fixed an exception happening when using RTSSS without using RTShadows.
+- Fix inconsistencies with transparent motion vectors and opaque by allowing camera only transparent motion vectors.
+- Fix reflection probe frame settings override
+- Fixed certain shadow bias artifacts present in volumetric lighting (case 1231885).
+- Fixed area light cookie not updated when switch the light type from a spot that had a cookie.
+- Fixed issue with dynamic resolution updating when not in play mode.
+- Fixed issue with Contrast Adaptive Sharpening upsample mode and preview camera.
+- Fix issue causing blocky artifacts when decals affect metallic and are applied on material with specular color workflow.
+- Fixed issue with depth pyramid generation and dynamic resolution.
+- Fixed an issue where decals were duplicated in prefab isolation mode.
+- Fixed an issue where rendering preview with MSAA might generate render graph errors.
+- Fixed compile error in PS4 for planar reflection filtering.
+- Fixed issue with blue line in prefabs for volume mode.
+- Fixing the internsity being applied to RTAO too early leading to unexpected results (1254626).
+- Fix issue that caused sky to incorrectly render when using a custom projection matrix.
+- Fixed null reference exception when using depth pre/post pass in shadergraph with alpha clip in the material.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -802,6 +818,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Increased path tracing BSDFs roughness range from [0.001, 0.999] to [0.00001, 0.99999].
 - Changing the default SSGI radius for the all configurations.
 - Changed the default parameters for quality RTGI to match expected behavior.
+- Add color clear pass while rendering XR occlusion mesh to avoid leaks.
 
 ## [7.1.1] - 2019-09-05
 

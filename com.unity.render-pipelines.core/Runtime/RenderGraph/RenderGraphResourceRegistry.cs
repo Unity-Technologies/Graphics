@@ -632,11 +632,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 var resourceDesc = GetTextureResource(resource);
                 if (resourceDesc.shaderProperty != 0)
                 {
-                    if (resourceDesc.rt == null)
+                    if (resourceDesc.rt != null)
                     {
-                        throw new InvalidOperationException(string.Format("Trying to set Global Texture parameter for \"{0}\" which was never created.\nCheck that at least one write operation happens before reading it.", resourceDesc.desc.name));
+                        rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.rt);
                     }
-                    rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.rt);
                 }
             }
         }

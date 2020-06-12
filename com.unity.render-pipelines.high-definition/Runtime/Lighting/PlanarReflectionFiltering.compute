@@ -77,7 +77,8 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     float centerDepthValue = SAMPLE_TEXTURE2D_LOD(_DepthTextureMipChain, s_trilinear_clamp_sampler, sampleCoords, _SourceMipIndex).x;
 
     // Compute the world position of the tapped pixel
-    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP_NO, 0, 0);
+    // Note: the view matrix here is not really used, but a valid matrix needs to be passed to this function.
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP_NO, UNITY_MATRIX_V);
 
     // Compute the direction to the reflection pixel
     const float3 rayDirection = normalize(centralPosInput.positionWS - _CaptureCameraPositon);
@@ -180,7 +181,8 @@ void DepthConversion(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupTh
     float centerDepthValue = LOAD_TEXTURE2D_LOD(_DepthTextureOblique, currentCoord, 0).x;
 
     // Compute the world position of the tapped pixel
-    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP, 0, 0);
+    // Note: the view matrix here is not really used, but a valid matrix needs to be passed to this function.
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _CaptureCurrentScreenSize.zw, centerDepthValue, _CaptureCameraIVP, UNITY_MATRIX_V);
 
     // For some reason, with oblique matrices, when the point is on the background the reconstructed position ends up behind the camera and at the wrong position
     float3 rayDirection = normalize(_CaptureCameraPositon - centralPosInput.positionWS);
