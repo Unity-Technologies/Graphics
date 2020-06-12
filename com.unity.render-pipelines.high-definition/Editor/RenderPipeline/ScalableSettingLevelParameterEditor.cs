@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 level,
                 useOverride
             );
-            value.intValue = levelAndOverride.level;
+            value.intValue = ScalableSettingLevelParameter.GetScalableSettingLevelParameterValue(levelAndOverride.level, levelAndOverride.useOverride);
             return true;
         }
     }
