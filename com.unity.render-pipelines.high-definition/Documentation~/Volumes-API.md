@@ -30,11 +30,11 @@ Note that you can use this property to assign a different Volume Profile to the 
 
 When you have a reference to the Volume Profile, you can change the properties of any Volume Components in it. This works in a similar way as changing properties in the Inspector. 
 
-First, you need to retrieve the particular Volume Component using the generic `TryGet<>` function on the profile. If the Volume Profile does not contain that particular Override and the `TryGet<>` function returns false, you can use the `Add<>` function to add the Volume Component.
+First, you need to retrieve the particular Volume Component using the generic `TryGet<>` function on the profile. If the Volume Profile does not contain that particular Volume Component  and the `TryGet<>` function returns false, you can use the `Add<>` function to add the Volume Component.
 
 When you have a reference to the Volume Component, you can access and modify its public properties. For a property to have an effect on the scene, you need to specify that it has been overridden. This makes HDRP use the value you specify, rather than using the default value. Every property in a Volume Component is made up of two parts:
 
-- A bool to contain the override state. This is `overrideState`.
+- A bool that contains the override state. This is `overrideState`.
 - The property's value itself. This is `value`.
 
 After you set a property's `overrideState` to true, you can then change the `value`.
