@@ -450,10 +450,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void Camera.IExtension.Awake(Camera owner) => m_Owner = owner;
-        void Camera.IExtension.OnDestroy() { }
+        void Awake(Camera owner) => m_Owner = owner;
 
-        void Camera.IExtension.OnEnable()
+        void OnEnable()
         {
             // Be sure legacy HDR option is disable on camera as it cause banding in SceneView. Yes, it is a contradiction, but well, Unity...
             // When HDR option is enabled, Unity render in FP16 then convert to 8bit with a stretch copy (this cause banding as it should be convert to sRGB (or other color appropriate color space)), then do a final shader with sRGB conversion
@@ -486,7 +485,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void Camera.IExtension.OnDisable()
+        void OnDisable()
         {
             UnRegisterDebug();
 
