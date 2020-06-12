@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: Take refvol translation and rotation into account
-        internal static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
+        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
         {
             float scaledSize = Mathf.Pow(3, brick.size);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
