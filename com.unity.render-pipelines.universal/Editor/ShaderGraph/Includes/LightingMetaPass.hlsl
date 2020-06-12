@@ -23,7 +23,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     MetaInput metaInput = (MetaInput)0;
-    metaInput.Albedo = surfaceDescription.Albedo;
+    metaInput.Albedo = surfaceDescription.BaseColor;
     metaInput.Emission = surfaceDescription.Emission;
 
     return MetaFragment(metaInput);

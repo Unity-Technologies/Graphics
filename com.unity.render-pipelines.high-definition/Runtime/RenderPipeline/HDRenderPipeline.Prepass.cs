@@ -115,7 +115,8 @@ namespace UnityEngine.Rendering.HighDefinition
             result.motionVectorsBuffer = CreateMotionVectorBuffer(renderGraph, msaa, clearMotionVectors);
             result.depthBuffer = CreateDepthBuffer(renderGraph, msaa);
 
-            RenderXROcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
+            // TODO RENDERGRAPH : XR occlusion mesh also need to write to color buffer
+            //RenderXROcclusionMeshes(renderGraph, hdCamera, result.depthBuffer);
 
             using (new XRSinglePassScope(renderGraph, hdCamera))
             {
