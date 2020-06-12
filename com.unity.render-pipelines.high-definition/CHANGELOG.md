@@ -679,6 +679,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 - Fixed AxF handling of roughness for Blinn-Phong type materials
 - Fixed AxF UI errors when surface type is switched to transparent
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
