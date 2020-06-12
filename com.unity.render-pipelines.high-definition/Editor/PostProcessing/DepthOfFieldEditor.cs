@@ -146,6 +146,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public DepthOfFieldResolution resolution;
             public bool hqFiltering;
 
+            public bool[] overrideState = new bool[6];
+
             public static bool IsEqual(QualitySettingsBlob left, QualitySettingsBlob right)
             {
                 if ((right == null && left != null) || (right != null && left == null))
@@ -156,6 +158,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (right == null && left == null)
                 {
                     return true;
+                }
+
+                for (int i=0; i < left.overrideState.Length; ++i)
+                {
+                    if (left.overrideState[i] != right.overrideState[i])
+                    {
+                        return false;
+                    }
                 }
 
                 return left.nearSampleCount == right.nearSampleCount
@@ -177,6 +187,13 @@ namespace UnityEditor.Rendering.HighDefinition
             m_FarMaxBlur.value.floatValue = qualitySettings.farMaxBlur;
             m_Resolution.value.intValue = (int) qualitySettings.resolution;
             m_HighQualityFiltering.value.boolValue = qualitySettings.hqFiltering;
+
+            m_NearSampleCount.overrideState.boolValue = qualitySettings.overrideState[0];
+            m_NearMaxBlur.overrideState.boolValue = qualitySettings.overrideState[1];
+            m_FarSampleCount.overrideState.boolValue = qualitySettings.overrideState[2];
+            m_FarMaxBlur.overrideState.boolValue = qualitySettings.overrideState[3];
+            m_Resolution.overrideState.boolValue = qualitySettings.overrideState[4];
+            m_HighQualityFiltering.overrideState.boolValue = qualitySettings.overrideState[5];
         }
 
         public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
@@ -210,6 +227,14 @@ namespace UnityEditor.Rendering.HighDefinition
             qualitySettings.farMaxBlur = m_FarMaxBlur.value.floatValue;
             qualitySettings.resolution = (DepthOfFieldResolution) m_Resolution.value.intValue;
             qualitySettings.hqFiltering = m_HighQualityFiltering.value.boolValue;
+
+            qualitySettings.overrideState[0] = m_NearSampleCount.overrideState.boolValue;
+            qualitySettings.overrideState[1] = m_NearMaxBlur.overrideState.boolValue;
+            qualitySettings.overrideState[2] = m_FarSampleCount.overrideState.boolValue;
+            qualitySettings.overrideState[3] = m_FarMaxBlur.overrideState.boolValue;
+            qualitySettings.overrideState[4] = m_Resolution.overrideState.boolValue;
+            qualitySettings.overrideState[5] = m_HighQualityFiltering.overrideState.boolValue;
+
             return qualitySettings;
         }
     }
