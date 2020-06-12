@@ -7,8 +7,8 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: ShaderGraph
     - name: ShaderGraph_Stereo
     - name: HDRP
-    - name: VFXMain
-    - name: VFX_LWRP
+    - name: VFX_HDRP
+    - name: VFX_URP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
     - 2020.1
@@ -60,13 +60,13 @@ trunk_verification: # jobs to include in trunk verification job
       test_platforms:
         - playmode
         - editmode
-    - project: VFXMain
+    - project: VFX_HDRP
       platform: Win
       api: DX11
       test_platforms:
         - playmode
         - editmode
-    - project: VFX_LWRP
+    - project: VFX_URP
       platform: Win
       api: DX11
       test_platforms:

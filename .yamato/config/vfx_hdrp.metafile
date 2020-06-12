@@ -1,6 +1,6 @@
 project:
-  name: VFXMain
-  folder: VisualEffectGraph
+  name: VFX_HDRP
+  folder: VisualEffectGraph_HDRP
 test_platforms:
   - Standalone
   - playmode
