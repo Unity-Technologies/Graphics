@@ -3,7 +3,6 @@ project:
   folder: UniversalGfxTestStereo
 test_platforms:
   - Standalone
-#  - playmode
   - editmode
 platforms:
   - name: Win
@@ -15,4 +14,3 @@ all:
       test_platforms:
         - Standalone
         - editmode
-  #      - playmode

@@ -9,7 +9,6 @@ platforms:
   - name: Win
     apis:
       - DX11
-  #    - DX12
       - Vulkan
   - name: OSX 
     apis:

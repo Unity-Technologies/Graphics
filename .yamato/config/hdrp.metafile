@@ -56,12 +56,10 @@ all:
       test_platforms:
         - playmode
         - playmode_XR
-        # - Standalone
     - platform: Win
       api: Vulkan
       test_platforms:
         - playmode
-        # - Standalone
     - platform: OSX
       api: Metal
       test_platforms:
@@ -78,5 +76,3 @@ all:
       api: DX12
       test_platforms:
         - playmode
-    - project: HDRP_Hybrid
-      all: true
