@@ -10,7 +10,6 @@ platforms:
   - name: Win
     apis:
       - DX11
-#      - DX12
       - Vulkan
   - name: OSX 
     apis:
@@ -24,9 +23,6 @@ platforms:
     apis: 
       - Vulkan
       - OpenGLES3
-  - name: iPhone
-    apis: 
-      - Metal
 all:
   dependencies:
     - platform: Win
@@ -35,18 +31,14 @@ all:
         - Standalone
         - editmode
         - playmode
-        - playmode_XR
     - platform: OSX
       api: Metal
       test_platforms:
         - Standalone
         - playmode 
-        - playmode_XR
     - platform: OSX
       api: OpenGLCore
       test_platforms:
         - editmode  
     - project: Universal_Stereo
-      all: true
-    - project: Universal_Hybrid
-      all: true  
+      all: true 
