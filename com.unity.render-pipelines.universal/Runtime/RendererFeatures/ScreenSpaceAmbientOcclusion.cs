@@ -34,8 +34,9 @@ namespace UnityEngine.Rendering.Universal
     internal class ScreenSpaceAmbientOcclusion : ScriptableRendererFeature
     {
         // Serialized Fields
-        [SerializeField, HideInInspector] private Shader shader = null;
-        [SerializeField] private ScreenSpaceAmbientOcclusionSettings settings = new ScreenSpaceAmbientOcclusionSettings();
+        [SerializeField, HideInInspector] private Shader m_Shader = null;
+        [SerializeField, HideInInspector] private Texture2D m_BlueNoise = null;
+        [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
         // Private Fields
         private Material m_Material;
@@ -73,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(settings);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -93,17 +94,18 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             }
 
-            if (shader == null)
+            if (m_Shader == null)
             {
-                shader = Shader.Find(k_ShaderName);
-                if (shader == null)
+                m_Shader = Shader.Find(k_ShaderName);
+                if (m_Shader == null)
                 {
                     return false;
                 }
             }
 
-            m_Material = CoreUtils.CreateEngineMaterial(shader);
+            m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             m_SSAOPass.material = m_Material;
+            m_SSAOPass.blueNoiseTexture = m_BlueNoise;
             return m_Material != null;
         }
 
@@ -113,6 +115,7 @@ namespace UnityEngine.Rendering.Universal
             // Public Variables
             internal string profilerTag;
             internal Material material;
+            internal Texture2D blueNoiseTexture;
 
             // Private Variables
             private Vector4 m_offsetIncrement = Vector4.zero;
@@ -128,6 +131,7 @@ namespace UnityEngine.Rendering.Universal
             private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
 
             // Statics
+            private static readonly int s_BlueNoiseID = Shader.PropertyToID("_BlueNoiseTexture");
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
             private static readonly int s_BlurOffsetID = Shader.PropertyToID("_BlurOffset");
@@ -269,6 +273,7 @@ namespace UnityEngine.Rendering.Universal
 
             private void ExecuteSSAO(CommandBuffer cmd, int occlusionPass)
             {
+                material.SetTexture(s_BlueNoiseID, blueNoiseTexture);
                 Render(cmd, m_SSAOTexture1Target, occlusionPass);
             }
 

@@ -9,9 +9,11 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
+TEXTURE2D_X(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
+SAMPLER(sampler_BlueNoiseTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
@@ -36,6 +38,7 @@ float4 _CameraDepthTexture_TexelSize;
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SAMPLE_BASEMAP_R(uv) SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
+#define SAMPLE_BLUE_NOISE(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)));
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
@@ -57,9 +60,10 @@ float2 GetScreenSpacePosition(float2 uv)
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float randAddon, int index)
 {
-    float2 positionSS = GetScreenSpacePosition(uv);
+    float2 positionSS = GetScreenSpacePosition(uv + randAddon);
     float noise = InterleavedGradientNoise(positionSS, index);
-    return SampleSphereUniform(frac(noise), (noise * PI));
+    float3 normal = SAMPLE_BLUE_NOISE(positionSS + noise);
+    return normal;
 }
 
 float SampleAndGetLinearDepth(float2 uv)
