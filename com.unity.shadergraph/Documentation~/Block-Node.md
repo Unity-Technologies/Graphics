@@ -2,7 +2,7 @@
 
 ## Description
 
-A Block is a specific type of Node for the Master Stack. A block represents a single piece of the surface (or vertex) description data used in the final shader output. Some Block nodes are always available, while some may only be available with certain pipelines.  
+A Block is a specific type of Node for the Master Stack. A block represents a single piece of the fragment (or vertex) description data used in the final shader output. Some Block nodes are always available, while some may only be available with certain pipelines.  
 
 Certain blocks are only compatible with specific Graph Settings. Blocks may become Active or Inactive based on the graph settings. 
 
@@ -16,13 +16,13 @@ This menu will contain only Block nodes valid for that context. Vertex blocks wi
 
 Selecting a block node from this menu will add it to the context. 
 
-Selecting a block node in the context and pressing “Delete” or right clicking and selecting “Delete” will remove the block from the context. 
+Selecting a block node entry in the context and pressing “Delete” or right clicking and selecting “Delete” will remove the block from the context. 
 
 ### Automatically Add or Remove Blocks
 
-Blocks can also be added or removed from a context automatically based on the user’s Shader Graph Preferences. If Automatically Add or Remove Blocks is enabled, the required Block nodes for a certain Target or Material type will be added automatically. Any incompatible block nodes that have no connections and default values will be removed from the context automatically. 
+Blocks can also be added or removed from a context automatically based on the user’s Shader Graph Preferences. If `Automatically Add or Remove Blocks` is enabled, the required Block nodes for a certain Target or Material type will be added automatically. Any incompatible block nodes that have no connections and default values will be removed from the context automatically. 
 
-If Automatically Add or Remove Blocks is disabled, no block nodes will ever be automatically added or removed. All required Block nodes must be added manually by the user based on the selected target and material settings. 
+If `Automatically Add or Remove Blocks` is disabled, no block nodes will ever be automatically added or removed. All required Block nodes must be added manually by the user based on the selected target and material settings. 
 
 ## Active and Inactive Blocks
 

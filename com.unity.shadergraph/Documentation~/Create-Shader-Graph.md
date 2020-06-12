@@ -21,7 +21,7 @@ Double-click your newly created Shader Graph Asset to open it in the Shader Grap
 
 ## Shader Graph window
 
-The Shader Graph window consists of the Master Node, the Preview Window, the Blackboard, and the Internal Inspector.
+The Shader Graph window consists of the Master Stack, the Preview Window, the Blackboard, and the Graph Inspector.
 
 ![](images/ShaderGraphWindow.png)
 
