@@ -4,7 +4,8 @@
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
         "GUID:ab67fb10353d84448ac887a7367cbda8",
         "GUID:d8b63aba1907145bea998dd612889d6b",
-        "GUID:2665a8d13d1b3f18800f46e256720795"
+        "GUID:2665a8d13d1b3f18800f46e256720795",
+        "GUID:7dbf32976982c98448af054f2512cb79"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -18,6 +19,11 @@
             "name": "com.unity.visualeffectgraph",
             "expression": "0.0.1",
             "define": "VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER"
+        },
+        {
+            "name": "com.unity.adaptiveperformance",
+            "expression": "2.0.0-preview.7",
+            "define": "ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER"
         },
         {
             "name": "com.unity.modules.vr",
