@@ -202,6 +202,12 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 {
 #ifdef _HEIGHTMAP
     float height = (SAMPLE_UVMAPPING_TEXTURE2D_LOD(_HeightMap, sampler_HeightMap, layerTexCoord.base, lod).r - _HeightCenter) * _HeightAmplitude;
+
+    // Scale by lod factor to ensure tessellated displacement influence is fully removed by the time we transition LODs
+#if defined(LOD_FADE_CROSSFADE) && defined(_TESSELLATION_DISPLACEMENT)
+    height *= unity_LODFade.x;
+#endif
+
 #else
     float height = 0.0;
 #endif

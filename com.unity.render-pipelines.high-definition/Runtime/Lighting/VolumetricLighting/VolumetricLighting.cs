@@ -43,8 +43,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
     unsafe struct ShaderVariablesVolumetric
     {
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _VBufferCoordToViewDirWS[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _VBufferCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
         public float _VBufferUnitDepthTexelSpacing;
         public uint _NumVisibleDensityVolumes;
