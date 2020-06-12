@@ -69,6 +69,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.enableRandomWrite = true;
                 m_ConvolutionTargetTexture.Create();
+
+                // Clear to avoid garbage in the convolution texture.
+                int mipCount = Mathf.FloorToInt(Mathf.Log(m_ProbeSize, 2)) + 1;
+                for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
+                {
+                    Graphics.SetRenderTarget(m_ConvolutionTargetTexture, mipIdx, CubemapFace.Unknown);
+                    GL.Clear(false, true, Color.clear);
+                }
+
             }
 
             m_FrameProbeIndex = 0;
@@ -100,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.DrawFullScreen(cmd, m_ConvertTextureMaterial, m_ConvertTextureMPB);
         }
 
-        Texture ConvolveProbeTexture(CommandBuffer cmd, Texture texture, out Vector4 sourceScaleOffset)
+        Texture ConvolveProbeTexture(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, out Vector4 sourceScaleOffset)
         {
             // Probes can be either Cubemaps (for baked probes) or RenderTextures (for realtime probes)
             Texture2D texture2D = texture as Texture2D;
@@ -149,12 +158,12 @@ namespace UnityEngine.Rendering.HighDefinition
             float scaleX = (float)texture.width / m_ConvolutionTargetTexture.width;
             float scaleY = (float)texture.height / m_ConvolutionTargetTexture.height;
             sourceScaleOffset = new Vector4(scaleX, scaleY, 0, 0);
-            m_IBLFilterGGX.FilterPlanarTexture(cmd, convolutionSourceTexture, m_ConvolutionTargetTexture);
+            m_IBLFilterGGX.FilterPlanarTexture(cmd, convolutionSourceTexture, ref planarTextureFilteringParameters, m_ConvolutionTargetTexture);
 
             return m_ConvolutionTargetTexture;
         }
 
-        public Vector4 FetchSlice(CommandBuffer cmd, Texture texture, out int fetchIndex)
+        public Vector4 FetchSlice(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, out int fetchIndex)
         {
             Vector4 scaleOffset = Vector4.zero;
             fetchIndex = m_FrameProbeIndex++;
@@ -163,17 +172,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If the texture is already in the atlas, we update it only if needed
                 if (NeedsUpdate(texture) || m_ProbeBakingState[scaleOffset] != ProbeFilteringState.Ready)
-                    if (!UpdatePlanarTexture(cmd, texture, ref scaleOffset))
+                    if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
                         Debug.LogError("Can't convolve or update the planar reflection render target");
             }
             else // Either we add it to the atlas
-                if (!UpdatePlanarTexture(cmd, texture, ref scaleOffset))
+                if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
                     Debug.LogError("No more space in the planar reflection probe atlas. To solve this issue, increase the size of the Planar Reflection Probe Atlas in the HDRP settings.");
 
             return scaleOffset;
         }
 
-        bool UpdatePlanarTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset)
+        bool UpdatePlanarTexture(CommandBuffer cmd, Texture texture, ref IBLFilterBSDF.PlanarTextureFilteringParameters planarTextureFilteringParameters, ref Vector4 scaleOffset)
         {
             bool    success = false;
 
@@ -183,7 +192,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ProbeBakingState[scaleOffset] = ProbeFilteringState.Convolving;
 
                 Vector4 sourceScaleOffset;
-                Texture convolvedTexture = ConvolveProbeTexture(cmd, texture, out sourceScaleOffset);
+                Texture convolvedTexture = ConvolveProbeTexture(cmd, texture, ref planarTextureFilteringParameters, out sourceScaleOffset);
                 if (convolvedTexture == null)
                     return false;
 

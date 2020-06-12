@@ -358,11 +358,11 @@
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject))
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject)))
         #else
-            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+            #define UNITY_MATRIX_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject))
         #endif
     #else
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -30,7 +31,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         Vector2 m_PreviewScrollPosition;
         ObjectField m_PreviewMeshPicker;
 
-        IMasterNode m_MasterNode;
         Mesh m_PreviousMesh;
 
         bool m_Expanded = true;
@@ -107,13 +107,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             }
             Add(preview);
 
-            m_PreviewResizeBorderFrame = new ResizeBorderFrame(previewTextureView, this) { name = "resizeBorderFrame" };
+            m_PreviewResizeBorderFrame = new ResizeBorderFrame(this, this) { name = "resizeBorderFrame" };
             m_PreviewResizeBorderFrame.maintainAspectRatio = true;
             Add(m_PreviewResizeBorderFrame);
 
             m_ExpandedPreviewSize = new Vector2(256f, 256f);
             m_RecalculateLayout = false;
-            previewTextureView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         Image CreatePreview(Texture texture)
@@ -141,11 +141,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenuAction.AlwaysEnabled);
         }
 
-        void DirtyMasterNode(ModificationScope scope)
-        {
-            m_Graph?.outputNode?.Dirty(scope);
-        }
-
         void OnPreviewChanged()
         {
             m_PreviewTextureView.image = m_PreviewRenderHandle?.texture ?? Texture2D.blackTexture;
@@ -167,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             Mesh changedMesh = mesh;
 
-            DirtyMasterNode(ModificationScope.Node);
+            m_PreviewManager.UpdateMasterPreview(ModificationScope.Node);
 
             if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
             {
@@ -222,7 +217,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             if (Mathf.Approximately(currentWidth, targetHeight) && Mathf.Approximately(currentHeight, targetWidth))
                 return;
 
-            m_PreviewManager.ResizeMasterPreview(new Vector2(targetWidth, targetHeight));
+            m_PreviewTextureView.style.width = evt.newRect.width;
+            m_PreviewTextureView.style.height = evt.newRect.height - 40.0f;
+            m_PreviewManager.ResizeMasterPreview(new Vector2(evt.newRect.width, evt.newRect.width));
         }
 
         void OnScroll(float scrollValue)
@@ -230,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             float rescaleAmount = -scrollValue * .03f;
             m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
 
-            DirtyMasterNode(ModificationScope.Node);
+            m_PreviewManager.UpdateMasterPreview(ModificationScope.Node);
         }
 
         void OnMouseDragPreviewMesh(Vector2 deltaMouse)
@@ -242,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
             m_Graph.previewData.rotation = previewRotation;
 
-            DirtyMasterNode(ModificationScope.Node);
+            m_PreviewManager.UpdateMasterPreview(ModificationScope.Node);
         }
     }
 }
