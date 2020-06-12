@@ -502,7 +502,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     InitTextureUVMapping(input, uvMapping);
     ZERO_INITIALIZE(SurfaceData, surfaceData);
 
+    float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
+#ifdef _ALPHATEST_ON
+    // TODOTODO: Move alpha test earlier and test.
+    float alphaCutoff = _AlphaCutoff;
+
+    #if SHADERPASS == SHADERPASS_SHADOWS 
+        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
+    #else
+        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
+    #endif
+#endif
 
     surfaceData.ambientOcclusion = 1.0;
     surfaceData.specularOcclusion = 1.0;
@@ -516,7 +527,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     surfaceData.diffuseColor = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_DiffuseColorMap, sampler_SVBRDF_DiffuseColorMap, uvMapping).xyz;
     surfaceData.specularColor = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularColorMap, sampler_SVBRDF_SpecularColorMap, uvMapping).xyz;
-    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, uvMapping).xy;
+    surfaceData.specularLobe.xy = _SVBRDF_SpecularLobeMapScale * AxFGetRoughnessFromSpecularLobeTexture(
+        AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_SpecularLobeMap, sampler_SVBRDF_SpecularLobeMap, uvMapping).xy);
 
     // The AxF models include both a general coloring term that they call "specular color" while the f0 is actually another term,
     // seemingly always scalar:
@@ -545,8 +557,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
-
-    alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
     //-----------------------------------------------------------------------------
     // _AXF_BRDF_TYPE_CAR_PAINT
@@ -625,17 +635,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // cross product to finish building the TBN frame and thus get a frame matching
     // the handedness of the world space (tangentToWorld can be passed right handed while
     // Unity's WS is left handed, so this makes a difference here).
-
-#ifdef _ALPHATEST_ON
-    // TODOTODO: Move alpha test earlier and test.
-    float alphaCutoff = _AlphaCutoff;
-
-    #if SHADERPASS == SHADERPASS_SHADOWS 
-        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-    #else
-        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
-    #endif
-#endif
 
 #if defined(_ENABLE_GEOMETRIC_SPECULAR_AA)
     // Specular AA for geometric curvature
