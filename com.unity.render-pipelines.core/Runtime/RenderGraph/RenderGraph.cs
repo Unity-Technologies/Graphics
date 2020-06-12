@@ -373,9 +373,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             catch (Exception e)
             {
-                m_ExecutionExceptionWasRaised = true;
                 Debug.LogError("Render Graph Execution error");
-                Debug.LogException(e);
+                if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
+                    Debug.LogException(e);
+                m_ExecutionExceptionWasRaised = true;
             }
             finally
             {
@@ -837,6 +838,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     m_ExecutionExceptionWasRaised = true;
                     Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
                     Debug.LogException(e);
+                    throw;
                 }
             }
         }

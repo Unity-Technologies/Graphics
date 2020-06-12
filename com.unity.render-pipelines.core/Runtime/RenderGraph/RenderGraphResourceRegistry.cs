@@ -119,6 +119,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
 
     /// <summary>
+    /// Subset of the texture desc containing information for fast memory allocation (when platform supports it)
+    /// </summary>
+    public struct FastMemoryDesc
+    {
+        ///<summary>Whether the texture will be in fast memory.</summary>
+        public bool inFastMemory;
+        ///<summary>Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</summary>
+        public FastMemoryFlags flags;
+        ///<summary>How much of the render target is to be switched into fast memory (between 0 and 1).</summary>
+        public float residencyFraction;
+    }
+
+    /// <summary>
     /// Descriptor used to create texture resources
     /// </summary>
     public struct TextureDesc
@@ -169,6 +182,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderTextureMemoryless memoryless;
         ///<summary>Texture name.</summary>
         public string name;
+        ///<summary>Descriptor to determine how the texture will be in fast memory on platform that supports it.</summary>
+        public FastMemoryDesc fastMemoryDesc;
 
         // Initial state. Those should not be used in the hash
         ///<summary>Texture needs to be cleared on first use.</summary>
@@ -627,6 +642,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 CreateTextureForPass(ref resource);
 
+                var fastMemDesc = resource.desc.fastMemoryDesc;
+                if(fastMemDesc.inFastMemory)
+                {
+                    resource.rt.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
+                }
+
                 if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
                 {
                     bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
@@ -694,11 +715,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 var resourceDesc = GetTextureResource(resource);
                 if (resourceDesc.shaderProperty != 0)
                 {
-                    if (resourceDesc.rt == null)
+                    if (resourceDesc.rt != null)
                     {
-                        throw new InvalidOperationException(string.Format("Trying to set Global Texture parameter for \"{0}\" which was never created.\nCheck that at least one write operation happens before reading it.", resourceDesc.desc.name));
+                        rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.rt);
                     }
-                    rgContext.cmd.SetGlobalTexture(resourceDesc.shaderProperty, bindDummyTexture ? TextureXR.GetMagentaTexture() : resourceDesc.rt);
                 }
             }
         }
