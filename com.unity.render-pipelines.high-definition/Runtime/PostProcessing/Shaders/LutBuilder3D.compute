@@ -231,6 +231,7 @@ float3 Tonemap(float3 colorLinear)
 // allow anything higher than 256 threads. We'll use 4x4x4 then.
 // Ultimately it would nice to expose `maxTotalThreadsPerThreadgroup` for Metal...
 // Source: https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf
+// It is important to keep this in sync with the group-size declared in PostProcessSystem.cs
 [numthreads(4,4,4)]
 void KBuild(uint3 dispatchThreadId : SV_DispatchThreadID)
 {

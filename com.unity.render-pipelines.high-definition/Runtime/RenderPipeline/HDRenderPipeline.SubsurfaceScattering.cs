@@ -17,8 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableMSAA = msaa,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
-                name = string.Format("SSSBuffer{0}", msaa ? "MSAA" : "" ) }
-            );
+                name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
+            });
         }
 
         class SubsurfaceScaterringPassData
