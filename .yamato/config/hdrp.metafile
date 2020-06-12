@@ -78,3 +78,5 @@ all:
       api: DX12
       test_platforms:
         - playmode
+    - project: HDRP_Hybrid
+      all: true
