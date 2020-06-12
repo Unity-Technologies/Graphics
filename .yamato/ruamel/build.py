@@ -306,8 +306,8 @@ if __name__== "__main__":
     create_abv_jobs(os.path.join(config_dir,'_abv.metafile'))
 
     # create preview publish
-    print(f'Running: preview_publish')
-    create_preview_publish_jobs(os.path.join(config_dir,'_preview_publish.metafile'))
+    # print(f'Running: preview_publish')
+    # create_preview_publish_jobs(os.path.join(config_dir,'_preview_publish.metafile'))
 
      # create template jobs
     print(f'Running: templates')
