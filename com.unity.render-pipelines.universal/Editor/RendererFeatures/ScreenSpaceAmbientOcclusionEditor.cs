@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.Universal
 
         private void Init()
         {
-            SerializedProperty settings = serializedObject.FindProperty("settings");
+            SerializedProperty settings = serializedObject.FindProperty("m_Settings");
             m_Source = settings.FindPropertyRelative("Source");
             m_Downsample = settings.FindPropertyRelative("Downsample");
             m_NormalQuality = settings.FindPropertyRelative("NormalSamples");
