@@ -273,7 +273,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var mirrorPositionProxySpace = settings.proxySettings.mirrorPositionProxySpace + Vector3.up * 0.001f;
 
             var mirrorPosition = proxyToWorld.MultiplyPoint(mirrorPositionProxySpace);
-            var mirrorRotation = proxyToWorld.rotation * settings.proxySettings.mirrorRotationProxySpace * Quaternion.Euler(0, 180, 0);
+            var mirrorRotation = (proxyToWorld.rotation * settings.proxySettings.mirrorRotationProxySpace * Quaternion.Euler(0, 180, 0)).normalized;
             var renderData = probe.renderData;
 
             var gpuProj = GL.GetGPUProjectionMatrix(renderData.projectionMatrix, true);

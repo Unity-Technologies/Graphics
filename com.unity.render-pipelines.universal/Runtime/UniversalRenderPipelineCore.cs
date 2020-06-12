@@ -4,6 +4,7 @@ using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.Experimental.Rendering;
 using Lightmapping = UnityEngine.Experimental.GlobalIllumination.Lightmapping;
 
 namespace UnityEngine.Rendering.Universal
@@ -181,7 +182,7 @@ namespace UnityEngine.Rendering.Universal
         public List<Vector4> bias;
     }
 
-    public static class ShaderPropertyId
+    internal static class ShaderPropertyId
     {
         public static readonly int scaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
         public static readonly int worldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -209,14 +210,6 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
-    }
-
-    class CameraDataComparer : IComparer<Camera>
-    {
-        public int Compare(Camera lhs, Camera rhs)
-        {
-            return (int)lhs.depth - (int)rhs.depth;
-        }
     }
 
     public static class ShaderKeywordStrings
@@ -361,18 +354,18 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        void SortCameras(Camera[] cameras)
+        Comparison<Camera> cameraComparison = (camera1, camera2) => { return (int) camera1.depth - (int) camera2.depth; };
+		void SortCameras(Camera[] cameras)
         {
-            if (cameras.Length <= 1)
-                return;
-            Array.Sort(cameras, new CameraDataComparer());
+            if (cameras.Length > 1)
+                Array.Sort(cameras, cameraComparison);
         }
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha)
         {
             RenderTextureDescriptor desc;
-            RenderTextureFormat renderTextureFormatDefault = RenderTextureFormat.Default;
+            GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
             // In test framework currently we render stereo tests to target texture
@@ -381,7 +374,7 @@ namespace UnityEngine.Rendering.Universal
             if (isStereoEnabled)
             {
                 desc = XRGraphics.eyeTextureDesc;
-                renderTextureFormatDefault = desc.colorFormat;
+                renderTextureFormatDefault = desc.graphicsFormat;
             }
             else if (camera.targetTexture == null)
             {
@@ -403,10 +396,15 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                bool use32BitHDR = !needsAlpha && RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float);
-                RenderTextureFormat hdrFormat = (use32BitHDR) ? RenderTextureFormat.RGB111110Float : RenderTextureFormat.DefaultHDR;
+                GraphicsFormat hdrFormat;
+                if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                else
+                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR); // This might actually be a LDR format on old devices.
 
-                desc.colorFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
+                desc.graphicsFormat = isHdrEnabled ? hdrFormat : renderTextureFormatDefault;
                 desc.depthBufferBits = 32;
                 desc.msaaSamples = msaaSamples;
                 desc.sRGB = (QualitySettings.activeColorSpace == ColorSpace.Linear);

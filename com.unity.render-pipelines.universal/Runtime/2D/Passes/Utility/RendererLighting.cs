@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         static Material[] s_ShadowMaterials;
         static Material[] s_RemoveSelfShadowMaterials;
 
-        static RenderTextureFormat s_RenderTextureFormatToUse = RenderTextureFormat.ARGB32;
+        static GraphicsFormat s_RenderTextureFormatToUse = GraphicsFormat.R8G8B8A8_UNorm;
         static bool s_HasSetupRenderTextureFormatToUse;
 
         static public void Setup(RenderingData renderingData, Renderer2DData renderer2DData)
@@ -93,21 +93,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(s_RenderingData.cameraData.cameraTargetDescriptor.width, s_RenderingData.cameraData.cameraTargetDescriptor.height);
-            descriptor.colorFormat = s_RenderTextureFormatToUse;
-            descriptor.sRGB = false;
+            descriptor.graphicsFormat = s_RenderTextureFormatToUse;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
-            descriptor.msaaSamples = 1;
+            descriptor.msaaSamples = s_RenderingData.cameraData.cameraTargetDescriptor.msaaSamples;
             descriptor.dimension = TextureDimension.Tex2D;
 
             cmd.GetTemporaryRT(s_NormalsTarget.id, descriptor, FilterMode.Bilinear);
@@ -117,10 +116,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             if (!s_HasSetupRenderTextureFormatToUse)
             {
-                if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.RGB111110Float;
-                else if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf))
-                    s_RenderTextureFormatToUse = RenderTextureFormat.ARGBHalf;
+                if (SystemInfo.IsFormatSupported(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, FormatUsage.Linear | FormatUsage.Render))
+                    s_RenderTextureFormatToUse = GraphicsFormat.R16G16B16A16_SFloat;
 
                 s_HasSetupRenderTextureFormatToUse = true;
             }
@@ -130,8 +129,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int height = (int)(s_RenderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = s_RenderTextureFormatToUse;
-            descriptor.sRGB = false;
+            descriptor.graphicsFormat = s_RenderTextureFormatToUse;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 0;
@@ -159,8 +157,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             int height = (int)(s_RenderingData.cameraData.cameraTargetDescriptor.height * renderTextureScale);
 
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(width, height);
-            descriptor.colorFormat = RenderTextureFormat.ARGB32;
-            descriptor.sRGB = false;
             descriptor.useMipMap = false;
             descriptor.autoGenerateMips = false;
             descriptor.depthBufferBits = 24;
@@ -188,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 
-        static private void RenderShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
+        static private void RenderShadows(CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture)
         {
             cmdBuffer.SetGlobalFloat("_ShadowIntensity", 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat("_ShadowVolumeIntensity", 1 - light.shadowVolumeIntensity);
@@ -272,7 +268,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
 
                 ReleaseShadowRenderTexture(cmdBuffer);
-                cmdBuffer.SetRenderTarget(renderTexture);
+                cmdBuffer.SetRenderTarget(renderTexture, depthTexture);
             }
         }
 
@@ -291,7 +287,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         Mesh lightMesh = light.GetMesh();
                         if (lightMesh != null)
                         {
-                            RenderShadows(cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture);
+                            RenderShadows(cmdBuffer, layerToRender, light, light.shadowIntensity, renderTexture, renderTexture);
 
                             renderedAnyLight = true;
 
@@ -326,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return renderedAnyLight;
         }
 
-        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, List<Light2D> lights)
+        static private void RenderLightVolumeSet(Camera camera, int blendStyleIndex, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTexture, RenderTargetIdentifier depthTexture, List<Light2D> lights)
         {
             if (lights.Count > 0)
             {
@@ -345,7 +341,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                                 Mesh lightMesh = light.GetMesh();
                                 if (lightMesh != null)
                                 {
-                                    RenderShadows(cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture);
+                                    RenderShadows(cmdBuffer, layerToRender, light, light.shadowVolumeIntensity, renderTexture, depthTexture);
 
                                     if (light.lightType == Light2D.LightType.Sprite && light.lightCookieSprite != null && light.lightCookieSprite.texture != null)
                                         cmdBuffer.SetGlobalTexture("_CookieTex", light.lightCookieSprite.texture);
@@ -484,10 +480,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings)
+        static public void RenderNormals(ScriptableRenderContext renderContext, CullingResults cullResults, DrawingSettings drawSettings, FilteringSettings filterSettings, RenderTargetIdentifier depthTarget)
         {
             var cmd = CommandBufferPool.Get("Clear Normals");
-            cmd.SetRenderTarget(s_NormalsTarget.Identifier());
+            cmd.SetRenderTarget(s_NormalsTarget.Identifier(), depthTarget);
             cmd.ClearRenderTarget(true, true, k_NormalClearColor);
             renderContext.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -533,7 +529,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
         }
 
-        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget, uint blendStylesUsed)
+        static public void RenderLightVolumes(Camera camera, CommandBuffer cmdBuffer, int layerToRender, RenderTargetIdentifier renderTarget, RenderTargetIdentifier depthTarget, uint blendStylesUsed)
         {
             for (int i = 0; i < s_BlendStyles.Length; ++i)
             {
@@ -549,6 +545,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     cmdBuffer,
                     layerToRender,
                     renderTarget,
+                    depthTarget,
                     Light2D.GetLightsByBlendStyle(i)                  
                 );
 

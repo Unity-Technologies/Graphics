@@ -4,13 +4,30 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.5.0] - 2020-06-08
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [7.3.0] - 2020-03-11
+## [7.4.1] - 2020-06-03
 
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.4.0] - 2020-05-22
+### Added
+- Allow filtering enums in VFXModels' VFXSettings
+
+### Fixed
+- Remove some shader warnings
+- Fixed Sample Flipbbook Texture File Names
+- height of initial event name.
+- fix colorfield height.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
+- Fix for dragged parameters order when there are categories
+- Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
+
+## [7.3.0] - 2020-03-11
 ### Fixed
 - Runtime compilation now compiles correctly when constant folding several texture ports that reference the same texture [Case 1193602](https://issuetracker.unity3d.com/issues/output-shader-errors-when-compiling-the-runtime-shader-of-a-lit-output-with-exposed-but-unassigned-additional-maps)
 - Add message in inspector for unreachable properties due to VisualEffectAsset stored in AssetBundle [Case 1193602](https://issuetracker.unity3d.com/product/unity/issues/guid/1203616/)
@@ -194,7 +211,7 @@ The version number for this package has increased due to a version update of a r
 - Crash chaining two spawners each other [Case 1135299](https://issuetracker.unity3d.com/issues/crash-chaining-two-spawners-to-each-other-produces-an-infinite-loop)
 - Inspector : Exposed parameters disregard the initial value [Case 1126471](https://issuetracker.unity3d.com/issues/parameters-exposed-parameters-disregard-the-initial-value)
 - Asset name now displayed in compile errors and output context shaders
-- Fix for linking spawner to spawner while first spawner is linked to initialize + test 
+- Fix for linking spawner to spawner while first spawner is linked to initialize + test
 - Fix space of spaceable slot not copy pasted + test
 - Position (Circle) does not take the Center Z value into account [Case 1146850](https://issuetracker.unity3d.com/issues/blocks-position-circle-does-not-take-the-center-z-value-into-account)
 - Add Exposure Weight for emissive in lit outputs
@@ -221,13 +238,13 @@ The version number for this package has increased due to a version update of a r
 - Visual Effect Inspector Cosmetic Improvements
 - Missing graph invalidation in VFXGraph.OnEnable, was causing trouble with value invalidation until next recompilation
 - Issue that remove the edge when dragging an edge from slot to the same slot.
-- Exception when undoing an edge deletion on a dynamic operator. 
+- Exception when undoing an edge deletion on a dynamic operator.
 - Exception regarding undo/redo when dragging a edge linked to a dynamic operator on another slot.
 - Exception while removing a sub-slot of a dynamic operator
 
 ## [6.5.0-preview] - 2019-03-07
 
-## [6.4.0-preview] - 2019-02-21 
+## [6.4.0-preview] - 2019-02-21
 
 ## [6.3.0-preview] - 2019-02-18
 

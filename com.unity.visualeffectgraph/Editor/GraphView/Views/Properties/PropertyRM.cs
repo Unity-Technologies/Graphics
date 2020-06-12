@@ -28,6 +28,8 @@ namespace UnityEditor.VFX.UI
         Type portType { get; }
         int depth {get; }
         bool editable { get; }
+
+        IEnumerable<int> filteredOutEnumerators { get; }
         void RetractPath();
         void ExpandPath();
     }
@@ -67,6 +69,9 @@ namespace UnityEditor.VFX.UI
                 m_Setter((T)value);
             }
         }
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return null; } }
+
         string IPropertyRMProvider.name
         {
             get { return m_Name; }
@@ -236,7 +241,7 @@ namespace UnityEditor.VFX.UI
 
         void UpdateExpandable()
         {
-            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || ! showsEverything))
+            if (m_Provider.expandable && (m_Provider.expandableIfShowsEverything || !showsEverything))
             {
                 if (!m_IconClickableAdded)
                 {
@@ -251,7 +256,7 @@ namespace UnityEditor.VFX.UI
                 {
                     RemoveFromClassList("icon-expanded");
                 }
-                    AddToClassList("icon-expandable");
+                AddToClassList("icon-expandable");
             }
             else
             {

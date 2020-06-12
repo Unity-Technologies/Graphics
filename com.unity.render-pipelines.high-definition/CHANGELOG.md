@@ -4,14 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [7.5.0] - 2020-06-08
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.4.1] - 2020-06-03
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [7.4.0] - 2020-05-22
 
 ### Added
 - Add XR setting to control camera jitter for temporal effects #6259
 - Added an error message in the DrawRenderers custom pass when rendering opaque objects with an HDRP asset in DeferredOnly mode.
 - Added Light decomposition lighting debugging modes and support in AOV
-- Added exposure compensation to Fixed exposure mode
 - Added an info box to warn about depth test artifacts when rendering object twice in custom passes with MSAA.
+- Added Layer parameter on Area Light to modify Layer of generated Emissive Mesh
 
 ### Fixed
 - Fixed an issue where a dynamic sky changing any frame may not update the ambient probe.
@@ -59,6 +69,40 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed unneeded cookie texture allocation for cone stop lights.
 - Fixed issue when toggling anything in HDRP asset that will produce an error (case 1238155)
 - Diffusion Profile and Material references in HDRP materials are now correctly exported to unity packages. Note that the diffusion profile or the material references need to be edited once before this can work properly.
+- Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
+- Fixed shadowmask UI now correctly showing shadowmask disable
+- Fixed the indirect diffuse texture not being ignored when it should (ray tracing disabled).
+- Fixed depth prepass and postpass being disabled after changing the shader in the material UI.
+- Fixed a performance issue with stochastic ray traced area shadows.
+- Made more explicit the warning about raytracing and asynchronous compute. Also fixed the condition in which it appears.
+- Fixed a null ref exception in static sky when the default volume profile is invalid.
+- Fixed flickering of the game/scene view when lookdev is running.
+- Fixed some GCAlloc in the debug window.
+- Removed logic in the UI to disable parameters for contact shadows and fog volume components as it was going against the concept of the volume system.
+- Fixed over consumption of GPU memory by the Physically Based Sky.
+- Put more information in Camera background type tooltip and fixed inconsistent exposure behavior when changing bg type.
+- Fixed an issue where asset preview could be rendered white because of static lighting sky.
+- Fixed an issue where static lighting was not updated when removing the static lighting sky profile.
+- Fixed issue with reflection probes in realtime time mode with OnEnable baking having wrong lighting with sky set to dynamic (case 1238047).
+- Fixed an invalid rotation in Planar Reflection Probe editor display, that was causing an error message (case 1182022)
+- Fixed cookie texture not updated when changing an import settings (srgb for example).
+- Fix error when removing DecalProjector from component contextual menu (case 1243960)
+- Fixed issue with post process when running in RGBA16 and an object with additive blending is in the scene.
+- Fixed issue that caused not all baked reflection to be deleted upon clicking "Clear Baked Data" in the lighting menu (case 1136080)
+- Fix issue with corrupted values with Layer Lit when using multiply mode for vertex color
+- Fixed transparent motion vectors not working when in MSAA.
+- VFX: Removed irrelevant queues in render queue selection from HDRP outputs
+- VFX: Motion Vector are correctly renderered with MSAA [Case 1240754](https://issuetracker.unity3d.com/product/unity/issues/guid/1240754/)
+- Fixed a cause of NaN when a normal of 0-length is generated (usually via shadergraph).
+- Fixed error when undo a Reflection Probe removal in a prefab instance. (case 1244047)
+- Fixed various multi-editing issues when changing Emission parameters.
+- Fixed issue that prevented cubemap thumbnails from rendering (only on D3D11 and Metal).
+- Fixed Microshadow not working correctly in deferred with LightLayers
+- Tentative fix for missing include in depth of field shaders.
+- Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
+- Cloned volume profile from read only assets are created in the root of the project. (case 1154961)
+- Fixed Wizard check on default volume profile to also check it is not the default one in package.
+- Fixed a bug where not all entries were generated for the Attributes Struct in Shader Graph shaders. (case 1250275)
 
 ### Changed
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
@@ -69,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rejecting history for ray traced reflections based on a threshold evaluated on the neighborhood of the sampled history.
 - Renamed "Environment" to "Reflection Probes" in tile/cluster debug menu.
 - Debug exposure in debug menu have been replace to debug exposure compensation in EV100 space and is always visible.
+- Improved performance of reflection probe management when using a lot of probes.
 
 ## [7.3.0] - 2020-03-11
 
@@ -284,6 +329,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with MipRatio debug mode showing _DebugMatCapTexture not being set.
 - Fixed missing initialization of input params in Blit for VR.
 - Fix Inf source in LTC for area lights.
+- Fixed light layers not correctly disabled when the lightlayers is set to Nothing and Lightlayers isn't enabled in HDRP Asset
+- Fixed a wrong condition in CameraSwitcher, potentially causing out of bound exceptions.
+- Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 
 ### Changed
 - Hide unused LOD settings in Quality Settings legacy window.

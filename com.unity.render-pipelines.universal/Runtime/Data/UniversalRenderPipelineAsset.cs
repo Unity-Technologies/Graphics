@@ -133,6 +133,7 @@ namespace UnityEngine.Rendering.Universal
         PostProcessingV2
     }
 
+    [ExcludeFromPreset]
     public class UniversalRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         Shader m_DefaultShader;
@@ -188,6 +189,9 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_SupportsDynamicBatching = false;
         [SerializeField] bool m_MixedLightingSupported = true;
         [SerializeField] PipelineDebugLevel m_DebugLevel = PipelineDebugLevel.Disabled;
+
+        // Adaptive performance settings
+        [SerializeField] bool m_UseAdaptivePerformance = false;
 
         // Post-processing settings
 #pragma warning disable 414 // 'field' is assigned but never used
@@ -684,6 +688,16 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return m_ColorGradingLutSize; }
             set { m_ColorGradingLutSize = Mathf.Clamp(value, k_MinLutSize, k_MaxLutSize); }
+        }
+
+       /// <summary>
+       /// Set to true to allow Adaptive performance to modify graphics quality settings during runtime.
+       /// Only applicable when Adaptive performance package is available.
+       /// </summary>
+        public bool useAdaptivePerformance
+        {
+            get { return m_UseAdaptivePerformance; }
+            set { m_UseAdaptivePerformance = value; }
         }
 
         public override Material defaultMaterial
