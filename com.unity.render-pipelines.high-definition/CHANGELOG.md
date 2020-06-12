@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Pre-warm the RTHandle system to reduce the amount of memory allocations and the total memory needed at all points. 
+- Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 
 ## [7.4.3] - 2020-08-06
 
