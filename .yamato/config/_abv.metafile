@@ -1,6 +1,6 @@
 abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
   trigger_editors:
-    - fast-trunk
+    - fast-2019.3
   projects:
     - name: Universal
     - name: Universal_Stereo
@@ -10,7 +10,7 @@ abv: # specify the editor versions for which to create the expression trigger fo
     - name: VFX_LWRP
 nightly:
   allowed_editors: # specify the editor versions for which to create nightly jobs
-    - trunk
+    - 2019.3
   extra_dependencies: # additional project jobs to run nightly (in addition to ABV and smoke tests)
     - project: Universal
       platform: Android
