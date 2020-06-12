@@ -148,6 +148,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support to combine RTSSS and RTGI (1248733).
 - Added IES Profile support for Point, Spot and Rectangular-Area lights
 - Added support for multiple mapping modes in AxF.
+- Added support for exposure curve remapping for min/max limits.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
