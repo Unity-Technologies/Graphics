@@ -9,6 +9,7 @@
 #define GRA_NO_UNORM 1
 #endif
 #include "VirtualTexturing.hlsl"
+#include "Packing.hlsl"
 
 /*
     This header adds the following pseudo definitions. Actual types etc may vary depending
@@ -130,9 +131,9 @@ StackInfo PrepareVT_##stackName(VtInputParameters par)\
     translationTable.Texture = stackName##_transtab;\
     translationTable.Sampler = sampler##stackName##_transtab;\
 \
-	StackInfo info;\
+    StackInfo info;\
     VirtualTexturingLookup(grCB, translationTable, par, info.lookupData, info.resolveOutput);\
-	return info;\
+    return info;\
 }
 
 // TODO: we could replace all uses of GetConstantBuffer_*() with this one:
@@ -167,13 +168,13 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
     grCB.tilesetBuffer = graniteParamBlock;\
     grCB.streamingTextureBuffer = textureParamBlock;\
 \
-	GraniteCacheTexture cache;\
-	cache.TextureArray = stackName##_c##layerIndex;\
-	cache.Sampler = sampler##stackName##_c##layerIndex;\
+    GraniteCacheTexture cache;\
+    cache.TextureArray = stackName##_c##layerIndex;\
+    cache.Sampler = sampler##stackName##_c##layerIndex;\
 \
-	float4 output;\
+    float4 output;\
     VirtualTexturingSample(grCB.tilesetBuffer, info.lookupData, cache, layerIndex, lodCalculation, quality, output);\
-	return output;\
+    return output;\
 }
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
@@ -247,6 +248,8 @@ StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
     return info;
 }
 
+// NOTE: layerIndex here can only be an immediate constant (i.e. 0,1,2, or 3) -- it CANNOT be a variable or expression
+// this is because we use macro concatentation on it when VT is disabled
 float4 SampleVTLayer(VTProperty vtProperty, VtInputParameters vtParams, StackInfo info, int layerIndex)
 {
     float4 result;
@@ -299,7 +302,7 @@ float4 GetPackedVTFeedback(float4 feedback)
 #define DECLARE_STACK_CB(stackName)
 
 // Info is just the uv's
-// We could do a straight #defube StackInfo float2 but this makes it a bit more type safe
+// We could do a straight #define StackInfo float2 but this makes it a bit more type safe
 // and allows us to do things like function overloads,...
 struct StackInfo
 {
@@ -330,16 +333,21 @@ StackInfo MakeStackInfo(VtInputParameters vt)
 #define PrepareStack(inputParams, stackName) MakeStackInfo(inputParams)
 
 // Sample just samples the texture
-#define SampleStack(info, lodMode, quality, texture) \
-    (((lodMode) == VtLevel_Automatic) ?\
-        SAMPLE_TEXTURE2D(texture, sampler##texture, info.vt.uv)\
-    :( ((lodMode) == VtLevel_Lod) ?\
-        SAMPLE_TEXTURE2D_LOD(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
-    :( ((lodMode) == VtLevel_Bias) ?\
-        SAMPLE_TEXTURE2D_BIAS(texture, sampler##texture, info.vt.uv, info.vt.lodOrOffset)\
-    :( /*((lodMode) == /VtLevel_Derivatives)*/\
-        SAMPLE_TEXTURE2D_GRAD(texture, sampler##texture, info.vt.uv, info.vt.dx, info.vt.dy)\
-    ))))
+#define SampleStack(info, vtLevelMode, quality, texture) \
+    SampleVTFallbackToTexture(info, vtLevelMode, TEXTURE2D_ARGS(texture, sampler##texture))
+
+
+float4 SampleVTFallbackToTexture(StackInfo info, int vtLevelMode, TEXTURE2D_PARAM(layerTexture, layerSampler))
+{
+    if (vtLevelMode == VtLevel_Automatic)
+        return SAMPLE_TEXTURE2D(layerTexture, layerSampler, info.vt.uv);
+    else if (vtLevelMode == VtLevel_Lod)
+        return SAMPLE_TEXTURE2D_LOD(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+    else if (vtLevelMode == VtLevel_Bias)
+        return SAMPLE_TEXTURE2D_BIAS(layerTexture, layerSampler, info.vt.uv, info.vt.lodOrOffset);
+    else // vtLevelMode == VtLevel_Derivatives
+        return SAMPLE_TEXTURE2D_GRAD(layerTexture, layerSampler, info.vt.uv, info.vt.dx, info.vt.dy);
+}
 
 StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
 {
@@ -348,16 +356,10 @@ StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
     return result;
 }
 
+// NOTE: layerIndex here can only be an immediate constant (i.e. 0,1,2, or 3) -- it CANNOT be a variable or expression
+// this is because we use macro concatentation on it when VT is disabled
 #define SampleVTLayer(vtProperty, vtParams, info, layerIndex) \
-    (((vtParams.levelMode) == VtLevel_Automatic) ?\
-        SAMPLE_TEXTURE2D(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv)\
-    :( ((vtParams.levelMode) == VtLevel_Lod) ?\
-        SAMPLE_TEXTURE2D_LOD(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.lodOrOffset)\
-    :( ((vtParams.levelMode) == VtLevel_Bias) ?\
-        SAMPLE_TEXTURE2D_BIAS(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.lodOrOffset)\
-    :( /*((vtParams.levelMode) == /VtLevel_Derivatives)*/\
-        SAMPLE_TEXTURE2D_GRAD(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex, info.vt.uv, info.vt.dx, info.vt.dy)\
-    ))))
+    SampleVTFallbackToTexture(info, vtParams.levelMode, TEXTURE2D_ARGS(vtProperty.Layer##layerIndex, vtProperty.samplerLayer##layerIndex))
 
 // Resolve does nothing
 #define GetResolveOutput(info) float4(1,1,1,1)
@@ -365,5 +367,53 @@ StackInfo PrepareVT(VTProperty vtProperty, VtInputParameters vtParams)
 #define GetPackedVTFeedback(feedback) feedback
 
 #endif
+
+
+
+// Shared code between VT enabled and VT disabled, adding TextureType handling
+
+// these texture types should be kept in sync with LayerTextureType in C# code
+#define TEXTURETYPE_DEFAULT 0                   // LayerTextureType.Default
+#define TEXTURETYPE_NORMALTANGENTSPACE 1        // LayerTextureType.NormalTangentSpace
+#define TEXTURETYPE_NORMALOBJECTSPACE 2         // LayerTextureType.NormalObjectSpace
+
+struct VTPropertyWithTextureType
+{
+    VTProperty vtProperty;
+    int layerTextureType[4];
+};
+
+VTPropertyWithTextureType AddTextureType(VTProperty vtProperty, int layer0TextureType, int layer1TextureType = TEXTURETYPE_DEFAULT, int layer2TextureType = TEXTURETYPE_DEFAULT, int layer3TextureType = TEXTURETYPE_DEFAULT)
+{
+    VTPropertyWithTextureType result;
+    result.vtProperty = vtProperty;
+    result.layerTextureType[0] = layer0TextureType;
+    result.layerTextureType[1] = layer1TextureType;
+    result.layerTextureType[2] = layer2TextureType;
+    result.layerTextureType[3] = layer3TextureType;
+    return result;
+}
+
+float4 ApplyTextureType(float4 value, int textureType)
+{
+    // NOTE: when textureType is a compile-time constant, the branches compile out
+    if (textureType == TEXTURETYPE_NORMALTANGENTSPACE)
+    {
+        value.rgb = UnpackNormalmapRGorAG(value);
+    }
+    else if (textureType == TEXTURETYPE_NORMALOBJECTSPACE)
+    {
+        value.rgb = UnpackNormalRGB(value);
+    }
+    return value;
+}
+
+// if we _could_ express it as a function, the function signature would be:
+//   float4 SampleVTLayerWithTextureType(VTPropertyWithTextureType vtProperty, VtInputParameters vtParams, StackInfo info, [immediate] int layerIndex)
+// NOTE: layerIndex here can only be an immediate constant (i.e. 0,1,2, or 3) -- it CANNOT be a variable or expression
+// this is because we use macro concatentation on it when VT is disabled
+
+#define SampleVTLayerWithTextureType(vtProperty, vtParams, info, layerIndex) \
+    ApplyTextureType(SampleVTLayer(vtProperty.vtProperty, vtParams, info, layerIndex), vtProperty.layerTextureType[layerIndex])
 
 #endif //TEXTURESTACK_include

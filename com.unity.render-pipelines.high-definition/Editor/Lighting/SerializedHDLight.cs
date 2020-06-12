@@ -11,6 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty enableSpotReflector;
         public SerializedProperty luxAtDistance;
         public SerializedProperty spotInnerPercent;
+        public SerializedProperty spotIESCutoffPercent;
         public SerializedProperty lightDimmer;
         public SerializedProperty fadeDistance;
         public SerializedProperty affectDiffuse;
@@ -40,7 +41,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty filterSampleCount;
         public SerializedProperty minFilterSize;
         public SerializedProperty scaleForSoftness;
-        public SerializedProperty areaLightCookie;   // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
+        public SerializedProperty areaLightCookie; // We can't use default light cookies because the cookie gets reset by some safety measure on C++ side... :/
+        public SerializedProperty iesPoint;
+        public SerializedProperty iesSpot;
         public SerializedProperty areaLightShadowCone;
         public SerializedProperty useCustomSpotLightShadowCone;
         public SerializedProperty customSpotLightShadowCone;
@@ -92,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty penumbraTint;
         public SerializedProperty shadowUpdateMode;
         public SerializedScalableSettingValue shadowResolution;
-        
+
         // Bias control
         public SerializedProperty slopeBias;
         public SerializedProperty normalBias;
@@ -286,10 +289,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 areaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
                 if (deportedAreaLightEmissiveMeshCastShadow != null) //only possible while editing from prefab
                     deportedAreaLightEmissiveMeshCastShadow.intValue = (int)shadowCastingMode;
-                
+
             }
         }
-        
+
         public enum MotionVector
         {
             CameraMotionOnly = MotionVectorGenerationMode.Camera,
@@ -328,6 +331,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 enableSpotReflector = o.Find("m_EnableSpotReflector");
                 luxAtDistance = o.Find("m_LuxAtDistance");
                 spotInnerPercent = o.Find("m_InnerSpotPercent");
+                spotIESCutoffPercent = o.Find("m_SpotIESCutoffPercent");
                 lightDimmer = o.Find("m_LightDimmer");
                 volumetricDimmer = o.Find("m_VolumetricDimmer");
                 lightUnit = o.Find("m_LightUnit");
@@ -351,6 +355,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 minFilterSize = o.Find("m_MinFilterSize");
                 scaleForSoftness = o.Find("m_SoftnessScale");
                 areaLightCookie = o.Find("m_AreaLightCookie");
+                iesPoint = o.Find("m_IESPoint");
+                iesSpot = o.Find("m_IESSpot");
                 areaLightShadowCone = o.Find("m_AreaLightShadowCone");
                 useCustomSpotLightShadowCone = o.Find("m_UseCustomSpotLightShadowCone");
                 customSpotLightShadowCone = o.Find("m_CustomSpotLightShadowCone");

@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Jobs;
 using Unity.Mathematics;
 using static Unity.Mathematics.math;
+//#define URP_HAS_BURST
 
 // TODO SimpleLit material, make sure when variant is !defined(_SPECGLOSSMAP) && !defined(_SPECULAR_COLOR), specular is correctly silenced.
 // TODO use InitializeSimpleLitSurfaceData() in all shader code
@@ -146,7 +147,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _ShadowLightIndex = Shader.PropertyToID("_ShadowLightIndex");
         }
 
+        // Disable Burst for now since there are issues on macos builds.
+#if URP_HAS_BURST
         [Unity.Burst.BurstCompile(CompileSynchronously = true)]
+#endif
         struct CullLightsJob : IJob
         {
             public DeferredTiler tiler;

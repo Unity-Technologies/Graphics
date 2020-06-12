@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
 
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
-            m_Enabled = settings.enabled;
+            m_Enabled = settings.enabled && (Application.isPlaying || settings.forceResolution);
             if (!m_Enabled)
             {
                 m_CurrentFraction = 1.0f;
