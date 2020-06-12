@@ -21,6 +21,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
 
         public const string kPipelineTag = "UniversalPipeline";
+        public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
+        public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
 
         public override void Setup(ref TargetSetupContext context)
         {

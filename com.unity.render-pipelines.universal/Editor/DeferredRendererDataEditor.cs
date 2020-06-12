@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent preferDepthPrepassLabel = EditorGUIUtility.TrTextContent("Prefer Depth Prepass", "Some platform configurations may still enable depth-prepass even when this checkbox is disabled.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
+            public static readonly GUIContent invalidStencilOverride = EditorGUIUtility.TrTextContent("Deferred renderer reserves the 4 highest bits of stencil to store material types. Stencil Overrides settings are constrained to ensure correct lighting results.\n");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -72,13 +73,32 @@ namespace UnityEditor.Rendering.Universal
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
-            /* // Currently not supported for deferred renderer.
             EditorGUILayout.LabelField("Overrides", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_DefaultStencilState, Styles.defaultStencilStateLabel, true);
+            SerializedProperty overrideStencil = m_DefaultStencilState.FindPropertyRelative("overrideStencilState");
+            if (overrideStencil.boolValue)
+            {
+                CompareFunction stencilFunction = (CompareFunction)m_DefaultStencilState.FindPropertyRelative("stencilCompareFunction").enumValueIndex;
+                StencilOp stencilPass = (StencilOp)m_DefaultStencilState.FindPropertyRelative("passOperation").enumValueIndex;
+                StencilOp stencilFail = (StencilOp)m_DefaultStencilState.FindPropertyRelative("failOperation").enumValueIndex;
+                StencilOp stencilZFail = (StencilOp)m_DefaultStencilState.FindPropertyRelative("zFailOperation").enumValueIndex;
+                bool invalidFunction = stencilFunction == CompareFunction.Disabled || stencilFunction == CompareFunction.Never;
+                bool invalidOp = stencilPass != StencilOp.Replace && stencilFail != StencilOp.Replace && stencilZFail != StencilOp.Replace;
+
+                if (invalidFunction || invalidOp)
+                {
+                    string errorMsg = Styles.invalidStencilOverride.text;
+                    if (invalidFunction)
+                        errorMsg += "\nError: Stencil Compare Function cannot be 'Disabled' or 'Never'.";
+                    if (invalidOp)
+                        errorMsg += "\nError: At least one of the Stencil Pass, Fail and ZFail actions must be 'Replace'.";
+
+                    EditorGUILayout.HelpBox(errorMsg, MessageType.Error, true);
+                }
+            }
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
-            */
 
             serializedObject.ApplyModifiedProperties();
 

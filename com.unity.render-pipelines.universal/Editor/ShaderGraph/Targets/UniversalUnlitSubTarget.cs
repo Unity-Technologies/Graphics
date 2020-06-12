@@ -28,6 +28,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -52,6 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     return new SubShaderDescriptor()
                     {
                         pipelineTag = UniversalTarget.kPipelineTag,
+                        customTags = UniversalTarget.kUnlitMaterialTypeTag,
                         generatesPreview = true,
                         passes = new PassCollection
                         {

@@ -16,7 +16,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit" "IgnoreProjector" = "True"}
         LOD 200
 
         // ------------------------------------------------------------------
@@ -100,17 +100,6 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Base Pass)"
         {
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
-
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard SRP library

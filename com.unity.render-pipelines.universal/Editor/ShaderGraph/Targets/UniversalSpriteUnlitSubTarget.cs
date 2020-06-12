@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static SubShaderDescriptor SpriteUnlit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
                 generatesPreview = true,
                 passes = new PassCollection
                 {

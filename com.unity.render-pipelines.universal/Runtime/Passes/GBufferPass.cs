@@ -14,8 +14,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         DeferredLights m_DeferredLights;
         bool m_HasDepthPrepass;
 
-        ShaderTagId m_ShaderTagId = new ShaderTagId("UniversalGBuffer");
-        ProfilingSampler m_ProfilingSampler = new ProfilingSampler("Render GBuffer");
+        ShaderTagId[] m_ShaderTagValues;
+        RenderStateBlock[] m_RenderStateBlocks;
 
         FilteringSettings m_FilteringSettings;
         RenderStateBlock m_RenderStateBlock;
@@ -34,6 +34,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
             }
+
+            m_ShaderTagValues = new ShaderTagId[3];
+            m_ShaderTagValues[0] = new ShaderTagId("Lit");
+            m_ShaderTagValues[1] = new ShaderTagId("SimpleLit");
+            m_ShaderTagValues[2] = new ShaderTagId("Unlit");
+
+            m_RenderStateBlocks = new RenderStateBlock[3];
+            m_RenderStateBlocks[0] = OverwriteStencil(m_RenderStateBlock, 96, 32);
+            m_RenderStateBlocks[1] = OverwriteStencil(m_RenderStateBlock, 96, 64);
+            m_RenderStateBlocks[2] = OverwriteStencil(m_RenderStateBlock, 96, 0);
         }
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle depthTexture, RenderTargetHandle[] colorAttachments, bool hasDepthPrepass)
@@ -71,27 +81,28 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
-            using (new ProfilingScope(gbufferCommands, m_ProfilingSampler))
-            {
-                if (m_DeferredLights.AccurateGbufferNormals)
-                    gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-                else
-                    gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
-                gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
+            if (m_DeferredLights.AccurateGbufferNormals)
+                gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+            else
+                gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
-                context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
-                gbufferCommands.Clear();
+            gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
 
-                DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagId, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+            context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
+            gbufferCommands.Clear();
 
-                ref CameraData cameraData = ref renderingData.cameraData;
-                Camera camera = cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            ShaderTagId lightModeTag = new ShaderTagId("UniversalGBuffer");
+            DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+            ShaderTagId universalMaterialTypeTag = new ShaderTagId("UniversalMaterialType");
 
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
-            }
-            context.ExecuteCommandBuffer(gbufferCommands);
-            CommandBufferPool.Release(gbufferCommands);
+            NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
+            NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+            tagValues.Dispose();
+            stateBlocks.Dispose();
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -99,6 +110,35 @@ namespace UnityEngine.Rendering.Universal.Internal
             for (int i = 0; i < m_ColorAttachments.Length; ++i)
                 if (i != m_DeferredLights.GBufferLightingIndex)
                     cmd.ReleaseTemporaryRT(m_ColorAttachments[i].id);
+        }
+
+        RenderStateBlock OverwriteStencil(RenderStateBlock block, byte stencilWriteMask, int stencilRef)
+        {
+            StencilState s = block.stencilState;
+            CompareFunction funcFront = s.compareFunctionFront != CompareFunction.Disabled ? s.compareFunctionFront : CompareFunction.Always;
+            CompareFunction funcBack = s.compareFunctionBack != CompareFunction.Disabled ? s.compareFunctionBack : CompareFunction.Always;
+            StencilOp passFront = s.passOperationFront;
+            StencilOp failFront = s.failOperationFront;
+            StencilOp zfailFront = s.zFailOperationFront;
+            StencilOp passBack = s.passOperationBack;
+            StencilOp failBack = s.failOperationBack;
+            StencilOp zfailBack = s.zFailOperationBack;
+
+            // Detect invalid parameter.
+            if ((passFront != StencilOp.Replace && failFront != StencilOp.Replace && zfailFront != StencilOp.Replace)
+             || (passBack != StencilOp.Replace && failBack != StencilOp.Replace && zfailBack != StencilOp.Replace))
+                Debug.LogWarning("Stencil overrides for GBuffer pass will not write correct material types in stencil buffer");
+
+            block.mask |= RenderStateMask.Stencil;
+            block.stencilReference |= stencilRef;
+            block.stencilState = new StencilState(
+                true,
+                (byte)(s.readMask & 0x0F), (byte)(s.writeMask | stencilWriteMask),
+                funcFront, passFront, failFront, zfailFront,
+                funcBack, passBack, failBack, zfailBack
+            );
+
+            return block;
         }
     }
 }
