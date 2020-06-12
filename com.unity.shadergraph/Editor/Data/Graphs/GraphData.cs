@@ -365,22 +365,36 @@ namespace UnityEditor.ShaderGraph
             m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                foreach (var nestedType in assembly.GetTypes().SelectMany(t => t.GetNestedTypes()))
+                // some assemblies don't like GetTypes()
+                Type[] asmTypes = null;
+                try
                 {
-                    var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                    if (attrs == null || attrs.Length <= 0)
-                        continue;
+                    asmTypes = assembly.GetTypes();
+                }
+                catch (Exception)
+                {
+                    asmTypes = null;
+                }
 
-                    var attribute = attrs[0] as GenerateBlocksAttribute;
-
-                    // Get all fields that are BlockFieldDescriptor
-                    // If field and context stages match add to list
-                    foreach (var fieldInfo in nestedType.GetFields())
+                if (asmTypes != null)
+                {
+                    foreach (var nestedType in asmTypes.SelectMany(t => t.GetNestedTypes()))
                     {
-                        if(fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                        var attrs = nestedType.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
+                        if (attrs == null || attrs.Length <= 0)
+                            continue;
+
+                        var attribute = attrs[0] as GenerateBlocksAttribute;
+
+                        // Get all fields that are BlockFieldDescriptor
+                        // If field and context stages match add to list
+                        foreach (var fieldInfo in nestedType.GetFields())
                         {
-                            blockFieldDescriptor.path = attribute.path;
-                            m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                            if (fieldInfo.GetValue(nestedType) is BlockFieldDescriptor blockFieldDescriptor)
+                            {
+                                blockFieldDescriptor.path = attribute.path;
+                                m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                            }
                         }
                     }
                 }
