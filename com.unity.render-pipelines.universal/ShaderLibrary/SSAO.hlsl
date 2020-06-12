@@ -21,6 +21,7 @@ float4 _BlurOffset;
 float4 _SSAOParams;
 float4 _BaseMap_TexelSize;
 float4 _CameraDepthTexture_TexelSize;
+float4 _BlueNoiseTexture_TexelSize;
 
 // SSAO Settings
 #define DOWNSAMPLE _SSAOParams.x
@@ -45,6 +46,9 @@ float4 _CameraDepthTexture_TexelSize;
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
 static const float kContrast = 0.6;
+// kColorBits is used for the endcoding of the depth buffer into the SSAO texture for use
+// later in the KawaseBlur for bi-lateral blurring.
+static const float kColorBits = 256.0;
 
 // The constants below are used in the AO estimator. Beta is mainly used for suppressing
 // self-shadowing noise, and Epsilon is used to prevent calculation underflow. See the
@@ -63,19 +67,23 @@ float3 PickSamplePoint(float2 uv, float randAddon, int index)
 {
     float2 positionSS = GetScreenSpacePosition(uv + randAddon);
     float noise = InterleavedGradientNoise(positionSS, index);
-    float3 normal = SAMPLE_BLUE_NOISE(positionSS + noise);
+    float3 normal = SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
     return normal;
+}
+
+float RawToLinearDepth(float rawDepth)
+{
+    #if defined(_ORTHOGRAPHIC)
+        return ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
+    #else
+        return LinearEyeDepth(rawDepth, _ZBufferParams);
+    #endif
 }
 
 float SampleAndGetLinearDepth(float2 uv)
 {
     float rawDepth = SampleSceneDepth(uv.xy).r;
-    #if defined(_ORTHOGRAPHIC)
-        float linearDepth = ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
-    #else
-        float linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-    #endif
-    return linearDepth;
+    return RawToLinearDepth(rawDepth);
 }
 
 float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
@@ -86,6 +94,24 @@ float3 ReconstructViewPos(float2 uv, float depth, float2 p11_22, float2 p13_31)
         float3 viewPos = float3(depth * ((uv.xy * 2.0 - 1.0 - p13_31) / p11_22), depth);
     #endif
     return viewPos;
+}
+
+// Float packing from https://skytiger.wordpress.com/2010/12/01/packing-depth-into-color/
+float3 UnitToColor24(in float unit)
+{
+    const float3 factor = float3(1, 255, 65025);
+    const float mask = 1.0 / kColorBits;
+    float3 color = unit * factor.rgb;
+    color.gb = frac(color.gb);
+    color.rg -= color.gb * mask;
+    return saturate(color);
+}
+
+// Float packing from https://skytiger.wordpress.com/2010/12/01/packing-depth-into-color/
+float ColorToUnit24(in float3 color)
+{
+    const float3 factorinv = 1.0 / float3(1, 255, 65025);
+    return dot(color, factorinv);
 }
 
 // Try reconstructing normal accurately from depth buffer.
@@ -236,7 +262,11 @@ float4 SSAO(Varyings input) : SV_Target
 
     // Apply contrast
     ao = PositivePow(ao * INTENSITY * rcpSampleCount, kContrast);
-    return 1.0 - ao;
+
+    // Pack depth for bi-lateral blur
+    float3 packedDepth = UnitToColor24(SampleSceneDepth(uv.xy).r);
+
+    return float4(1.0 - ao, packedDepth);
 }
 
 
@@ -245,14 +275,28 @@ half4 KawaseBlur(Varyings input) : SV_Target
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
     float2 uv = input.uv;
 
-    half sum  = 4.0 * SAMPLE_BASEMAP_R(uv                 );
-    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.xy);
-    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.xw);
-    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.zy);
-    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.zw);
+    float4 baseValue = SAMPLE_BASEMAP(uv);
+    float baseLinearDepth = RawToLinearDepth(ColorToUnit24(baseValue.gba));
+    half diff = 0.5; // depth difference to ignore blurring
+
+    half sum  = 4.0 * baseValue.r;
+
+    // XY
+    float4 value = SAMPLE_BASEMAP(uv + _BlurOffset.xy);
+    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
+    // XW
+    value = SAMPLE_BASEMAP(uv + _BlurOffset.xw);
+    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
+    // ZY
+    value = SAMPLE_BASEMAP(uv + _BlurOffset.zy);
+    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
+    // ZW
+    value = SAMPLE_BASEMAP(uv + _BlurOffset.zw);
+    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
+
     sum      *= 0.125; // Divide by 8
 
-    return half4(sum, sum, sum, 1.0);
+    return half4(sum, baseValue.bga);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED

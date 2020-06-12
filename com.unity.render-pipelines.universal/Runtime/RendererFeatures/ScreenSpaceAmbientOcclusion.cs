@@ -211,9 +211,9 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor = cameraTargetDescriptor;
                 m_Descriptor.msaaSamples = 1;
                 m_Descriptor.depthBufferBits = 0;
-                m_Descriptor.width = m_Descriptor.width / downsampleDivider;
-                m_Descriptor.height = m_Descriptor.height / downsampleDivider;
-                m_Descriptor.colorFormat = RenderTextureFormat.R8;
+                m_Descriptor.width /= downsampleDivider;
+                m_Descriptor.height /= downsampleDivider;
+                m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
 
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Point);
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Point);
