@@ -238,11 +238,14 @@ float4 SSAO(Varyings input) : SV_Target
 
 half4 KawaseBlur(Varyings input) : SV_Target
 {
-    half sum  = 4.0 * SAMPLE_BASEMAP_R(input.uv                 );
-    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xy);
-    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.xw);
-    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zy);
-    sum      +=       SAMPLE_BASEMAP_R(input.uv + _BlurOffset.zw);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    float2 uv = input.uv;
+
+    half sum  = 4.0 * SAMPLE_BASEMAP_R(uv                 );
+    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.xy);
+    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.xw);
+    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.zy);
+    sum      +=       SAMPLE_BASEMAP_R(uv + _BlurOffset.zw);
     sum      *= 0.125; // Divide by 8
 
     return half4(sum, sum, sum, 1.0);
