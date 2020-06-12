@@ -279,13 +279,13 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         {
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
                                          posInput.positionNDC,
-                                         fogFragDist,   
+                                         fogFragDist,
                                          _VBufferViewportSize,
                                          _VBufferLightingViewportScale.xyz,
                                          _VBufferLightingViewportLimit.xyz,
                                          _VBufferDistanceEncodingParams,
                                          _VBufferDistanceDecodingParams,
-                                         true, false);
+                                         true, true, false);
 
             // TODO: add some slowly animated noise (dither?) to the reconstructed value.
             // TODO: re-enable tone mapping after implementing pre-exposure.
