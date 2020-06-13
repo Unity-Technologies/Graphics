@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal.Internal
     // Render all tiled-based deferred lights.
     internal class GBufferPass : ScriptableRenderPass
     {
+        const string m_ProfilerTag = "GBuffer";
+        ProfilingSampler m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
+
         RenderTargetHandle[] m_ColorAttachments;
         RenderTargetHandle m_DepthBufferAttachment;
 
@@ -28,11 +31,20 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
 
+            m_RenderStateBlock.stencilReference = stencilReference;
+            m_RenderStateBlock.mask = RenderStateMask.Stencil;
             if (stencilState.enabled)
             {
-                m_RenderStateBlock.stencilReference = stencilReference;
-                m_RenderStateBlock.mask = RenderStateMask.Stencil;
                 m_RenderStateBlock.stencilState = stencilState;
+            }
+            else
+            {
+                m_RenderStateBlock.stencilState = new StencilState(
+                    true,
+                    0, 0,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep,
+                    CompareFunction.Always, StencilOp.Replace, StencilOp.Keep, StencilOp.Keep
+                );
             }
 
             m_ShaderTagValues = new ShaderTagId[3];
@@ -80,29 +92,37 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            CommandBuffer gbufferCommands = CommandBufferPool.Get("Render GBuffer");
+            CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
-            if (m_DeferredLights.AccurateGbufferNormals)
-                gbufferCommands.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
-            else
-                gbufferCommands.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            {
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
-            gbufferCommands.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
+                if (m_DeferredLights.AccurateGbufferNormals)
+                    cmd.EnableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
+                else
+                    cmd.DisableShaderKeyword(ShaderKeywordStrings._GBUFFER_NORMALS_OCT);
 
-            context.ExecuteCommandBuffer(gbufferCommands); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
-            gbufferCommands.Clear();
+                cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
 
-            ref CameraData cameraData = ref renderingData.cameraData;
-            Camera camera = cameraData.camera;
-            ShaderTagId lightModeTag = new ShaderTagId("UniversalGBuffer");
-            DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
-            ShaderTagId universalMaterialTypeTag = new ShaderTagId("UniversalMaterialType");
+                context.ExecuteCommandBuffer(cmd); // send the gbufferCommands to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
+                cmd.Clear();
 
-            NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
-            NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
-            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
-            tagValues.Dispose();
-            stateBlocks.Dispose();
+                ref CameraData cameraData = ref renderingData.cameraData;
+                Camera camera = cameraData.camera;
+                ShaderTagId lightModeTag = new ShaderTagId("UniversalGBuffer");
+                DrawingSettings drawingSettings = CreateDrawingSettings(lightModeTag, ref renderingData, renderingData.cameraData.defaultOpaqueSortFlags);
+                ShaderTagId universalMaterialTypeTag = new ShaderTagId("UniversalMaterialType");
+
+                NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
+                NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                tagValues.Dispose();
+                stateBlocks.Dispose();
+            }
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
