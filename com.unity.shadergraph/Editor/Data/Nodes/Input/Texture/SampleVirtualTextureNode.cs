@@ -296,97 +296,98 @@ namespace UnityEditor.ShaderGraph
         }
 
         // Node generations
-        string GetFunctionName()
+        string GetFunctionName(out List<int> layerIndices)
         {
-            return GetVariableNameForNode();
-        }
+            string name = "SampleVirtualTexture_" + lodCalculation + "_" + m_SampleQuality;
+            layerIndices = new List<int>();
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
-        {
-            string functionName = GetFunctionName();
-
-            registry.ProvideFunction(functionName, s =>
+            if (IsSlotConnected(VirtualTextureInputId))
             {
-                if (IsSlotConnected(VirtualTextureInputId))
+                var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
+                if (vtProperty != null)
                 {
-                    var vtProperty = GetSlotProperty(VirtualTextureInputId) as VirtualTextureShaderProperty;
                     int layerCount = vtProperty.value.layers.Count;
-
-                    var layerOutputVariableNames = new List<string>();
-                    var layerOutputLayerIndex = new List<int>();
-
                     for (int layer = 0; layer < layerCount; layer++)
                     {
                         if (IsSlotConnected(OutputSlotIds[layer]))
                         {
-                            layerOutputVariableNames.Add("Layer"+layer);
-                            layerOutputLayerIndex.Add(layer);
+                            layerIndices.Add(layer);
+                            name = name + "_" + layer;
                         }
                     }
+                }
+            }
 
-                    if (layerOutputVariableNames.Count > 0)
+            return name;
+        }
+
+        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        {
+            string functionName = GetFunctionName(out var layerOutputLayerIndex);
+
+            if (layerOutputLayerIndex.Count <= 0)
+                return;
+
+            registry.ProvideFunction(functionName, s =>
+            {
+                string lodExpr = "0.0f";
+                string dxExpr = "0.0f";
+                string dyExpr = "0.0f";
+
+                // function header
+                s.AppendIndentation();
+                s.Append("float4 ");
+                s.Append(functionName);
+                s.Append("(float2 uv");
+                switch (lodCalculation)
+                {
+                    case LodCalculation.VtLevel_Lod:
+                        s.Append(", float lod");
+                        lodExpr = "lod";
+                        break;
+                    case LodCalculation.VtLevel_Bias:
+                        s.Append(", float bias");
+                        lodExpr = "bias";
+                        break;
+                    case LodCalculation.VtLevel_Derivatives:
+                        s.Append(", float2 dx, float2 dy");
+                        dxExpr = "dx";
+                        dyExpr = "dy";
+                        break;
+                }
+                s.Append(", VTPropertyWithTextureType vtProperty");
+                for (int i = 0; i < layerOutputLayerIndex.Count; i++)
+                {
+                    s.Append(", out float4 Layer" + layerOutputLayerIndex[i]);
+                }
+                s.Append(")");
+                s.AppendNewLine();
+
+                // function body
+                using (s.BlockScope())
+                {
+                    AppendVtParameters(
+                        s,
+                        "uv",
+                        lodExpr,
+                        dxExpr,
+                        dyExpr,
+                        AddressMode.VtAddressMode_Wrap,
+                        FilterMode.VtFilter_Anisotropic,
+                        m_LodCalculation,
+                        UvSpace.VtUvSpace_Regular,
+                        m_SampleQuality);
+
+                    s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
+
+                    for (int i = 0; i < layerOutputLayerIndex.Count; i++)
                     {
-                        string lodExpr = "0.0f";
-                        string dxExpr = "0.0f";
-                        string dyExpr = "0.0f";
-
-                        // function header
-                        s.AppendIndentation();
-                        s.Append("float4 ");
-                        s.Append(functionName);
-                        s.Append("(float2 uv");
-                        switch (lodCalculation)
-                        {
-                            case LodCalculation.VtLevel_Lod:
-                                s.Append(", float lod");
-                                lodExpr = "lod";
-                                break;
-                            case LodCalculation.VtLevel_Bias:
-                                s.Append(", float bias");
-                                lodExpr = "bias";
-                                break;
-                            case LodCalculation.VtLevel_Derivatives:
-                                s.Append(", float2 dx, float2 dy");
-                                dxExpr = "dx";
-                                dyExpr = "dy";
-                                break;
-                        }
-                        s.Append(", VTPropertyWithTextureType vtProperty");
-                        for (int i = 0; i < layerOutputVariableNames.Count; i++)
-                        {
-                            s.Append(", out float4 " + layerOutputVariableNames[i]);
-                        }
-                        s.Append(")");
-                        s.AppendNewLine();
-
-                        // function body
-                        using (s.BlockScope())
-                        {
-                            AppendVtParameters(
-                                s,
-                                "uv",
-                                lodExpr,
-                                dxExpr,
-                                dyExpr,
-                                AddressMode.VtAddressMode_Wrap,
-                                FilterMode.VtFilter_Anisotropic,
-                                m_LodCalculation,
-                                UvSpace.VtUvSpace_Regular,
-                                m_SampleQuality);
-
-                            s.AppendLine("StackInfo info = PrepareVT(vtProperty.vtProperty, vtParams);");
-
-                            for (int i = 0; i < layerOutputVariableNames.Count; i++)
-                            {
-                                // sample virtual texture layer
-                                int layer = layerOutputLayerIndex[i];
-                                string layerOutputVariable = layerOutputVariableNames[i];
-                                AppendVtSample(s, "vtProperty", "vtParams", "info", layer, layerOutputVariable);
-                            }
-
-                            s.AppendLine("return GetResolveOutput(info);");
-                        }
+                        // sample virtual texture layer
+                        int layer = layerOutputLayerIndex[i];
+                        AppendVtSample(s, "vtProperty", "vtParams", "info", layer, "Layer" + layer);
                     }
+
+                    s.AppendLine("return GetResolveOutput(info);");
                 }
             });
         }
@@ -420,7 +421,7 @@ namespace UnityEditor.ShaderGraph
                         sb.Append(GetFeedbackVariableName());
                         sb.Append(" = ");
                     }
-                    sb.Append(GetFunctionName());
+                    sb.Append(GetFunctionName(out var unused));
                     sb.Append("(");
                     sb.Append(GetSlotValue(UVInputId, generationMode));
                     switch (lodCalculation)
