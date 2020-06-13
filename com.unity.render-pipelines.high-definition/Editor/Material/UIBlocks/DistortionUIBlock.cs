@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class DistortionUIBlock : MaterialUIBlock
     {
-        protected static class Styles
+        internal static class Styles
         {
             public static GUIContent distortionEnableText = new GUIContent("Distortion", "When enabled, HDRP processes distortion for this Material.");
             public static GUIContent distortionOnlyText = new GUIContent("Distortion Only", "When enabled, HDRP only uses this Material to render distortion.");
