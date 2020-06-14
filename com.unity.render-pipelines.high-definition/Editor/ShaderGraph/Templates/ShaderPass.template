@@ -313,8 +313,11 @@ Pass
 
         $DepthOffset: builtinData.depthOffset = surfaceDescription.DepthOffset;
 
+        // TODO: We should generate distortion / distortionBlur for non distortion pass
+        #if (SHADERPASS == SHADERPASS_DISTORTION)
         $SurfaceDescription.Distortion:     builtinData.distortion = surfaceDescription.Distortion;
         $SurfaceDescription.DistortionBlur: builtinData.distortionBlur = surfaceDescription.DistortionBlur;
+        #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 
