@@ -80,8 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
-        public static string sharedTemplateDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
-
         public string customEditorGUI
         {
             get => m_CustomEditorGUI;

@@ -35,6 +35,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
         }
 
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates/ShaderPass.template";
+
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
         protected virtual bool supportDistortion => false;
@@ -147,7 +149,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectory = HDTarget.sharedTemplateDirectory;
+                passDescriptor.sharedTemplateDirectory = templateMaterialDirectory;
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
