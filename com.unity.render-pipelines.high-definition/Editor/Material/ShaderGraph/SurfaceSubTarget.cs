@@ -35,7 +35,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             get => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(systemData.renderingPass, systemData.sortPriority, systemData.alphaTest));
         }
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates/ShaderPass.template";
+        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/ShaderPass.template";
 
         protected virtual bool supportForward => false;
         protected virtual bool supportLighting => false;
