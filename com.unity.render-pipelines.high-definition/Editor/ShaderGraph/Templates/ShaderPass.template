@@ -29,7 +29,7 @@ Pass
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DisableSSRTransparent:             #define _DISABLE_SSR_TRANSPARENT 1
     $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
-    $TransparentWritesMotionVec:        #define _WRITE_TRANSPARENT_MOTION_VECTOR 1
+    $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
     $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
     $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
@@ -74,7 +74,6 @@ Pass
 
     // Dots Instancing
     $splice(DotsInstancingOptions)
-    $splice(DotsInstancedProperties)
 
     $splice(HybridV1InjectedBuiltinProperties)
 
