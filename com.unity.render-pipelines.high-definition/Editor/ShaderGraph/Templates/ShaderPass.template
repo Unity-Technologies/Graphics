@@ -314,8 +314,8 @@ Pass
 
         // TODO: We should generate distortion / distortionBlur for non distortion pass
         #if (SHADERPASS == SHADERPASS_DISTORTION)
-        $SurfaceDescription.Distortion:     builtinData.distortion = surfaceDescription.Distortion;
-        $SurfaceDescription.DistortionBlur: builtinData.distortionBlur = surfaceDescription.DistortionBlur;
+        builtinData.distortion = surfaceDescription.Distortion;
+        builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
 
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
