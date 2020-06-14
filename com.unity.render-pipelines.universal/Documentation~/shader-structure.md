@@ -72,4 +72,11 @@ SRP shaders support only the HLSL language.
 
 ## CBUFFER block
 
-TODO
+In this block, you declare the variables that must be in the constant buffer.
+
+### SRP Batcher compatibility
+
+To ensure that a Shader is SRP Batcher compatible:
+* Declare all Material properties in a single CBUFFER called `UnityPerMaterial`.
+* Declare all built-in engine properties, such as `unity_ObjectToWorld` or `unity_WorldTransformParams`, in a single CBUFFER called `UnityPerDraw`.
+
