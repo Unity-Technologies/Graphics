@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public DecalSubTarget() => displayName = "Decal";
 
         public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
-        public static string passTemplateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/ShaderGraph/Templates";
+        public static string passTemplateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates";
 
         protected override string templatePath => passTemplatePath;
         protected override string templateMaterialDirectory => passTemplateMaterialDirectory;
