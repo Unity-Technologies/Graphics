@@ -200,7 +200,9 @@ real3 UnpackNormalmapRGorAG(real4 packedNormal, real scale = 1.0)
 
 real3 UnpackNormal(real4 packedNormal)
 {
-#if defined(UNITY_NO_DXT5nm)
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+    return UnpackNormalAG(packedNormal, 1.0);
+#elif defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGBNoScale(packedNormal);
 #else
     // Compiler will optimize the scale away
@@ -210,7 +212,9 @@ real3 UnpackNormal(real4 packedNormal)
 
 real3 UnpackNormalScale(real4 packedNormal, real bumpScale)
 {
-#if defined(UNITY_NO_DXT5nm)
+#if defined(UNITY_ASTC_NORMALMAP_ENCODING)
+    return UnpackNormalAG(packedNormal, bumpScale);
+#elif defined(UNITY_NO_DXT5nm)
     return UnpackNormalRGB(packedNormal, bumpScale);
 #else
     return UnpackNormalmapRGorAG(packedNormal, bumpScale);

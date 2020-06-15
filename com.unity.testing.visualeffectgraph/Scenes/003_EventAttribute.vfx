@@ -1200,7 +1200,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.9860000610351563,"g":1.0,"b":0.0,"a":1.0},"time":0.13977263867855073},{"color":{"r":1.0,"g":0.27000001072883608,"b":0.0,"a":1.0},"time":0.3775234520435333},{"color":{"r":0.0,"g":0.046000003814697269,"b":1.0,"a":1.0},"time":0.5893339514732361},{"color":{"r":1.0,"g":0.0,"b":0.9539999961853027,"a":1.0},"time":0.8371709585189819},{"color":{"r":1.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.9684471487998962,"g":1.0,"b":0.0,"a":1.0},"time":0.13977263867855073},{"color":{"r":1.0,"g":0.059253524988889697,"b":0.0,"a":1.0},"time":0.3775234520435333},{"color":{"r":0.0,"g":0.003585629165172577,"b":1.0,"a":1.0},"time":0.5893339514732361},{"color":{"r":1.0,"g":0.0,"b":0.8985305428504944,"a":1.0},"time":0.8371709585189819},{"color":{"r":1.0,"g":0.0,"b":0.0,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient
@@ -1394,6 +1394,7 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_ImportDependencies: []
   m_GraphVersion: 4
+  m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
   m_CategoryPath: 
@@ -2712,7 +2713,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEngine.Gradient, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.5,"b":0.08635091781616211,"a":1.0},"time":0.0},{"color":{"r":0.5,"g":0.3413793444633484,"b":0.0,"a":1.0},"time":0.46686503291130068},{"color":{"r":0.0,"g":0.5,"b":0.08599996566772461,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
+      m_SerializableObject: '{"colorKeys":[{"color":{"r":0.0,"g":0.21404114365577699,"b":0.008033611811697483,"a":1.0},"time":0.0},{"color":{"r":0.21404114365577699,"g":0.09542465209960938,"b":0.0,"a":1.0},"time":0.46686503291130068},{"color":{"r":0.0,"g":0.21404114365577699,"b":0.007985824719071389,"a":1.0},"time":1.0}],"alphaKeys":[{"alpha":1.0,"time":0.0},{"alpha":1.0,"time":1.0}],"gradientMode":0}'
     m_Space: 2147483647
   m_Property:
     name: gradient

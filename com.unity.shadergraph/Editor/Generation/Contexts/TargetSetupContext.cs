@@ -5,7 +5,6 @@ namespace UnityEditor.ShaderGraph
     [GenerationAPI]
     internal class TargetSetupContext
     {
-        public IMasterNode masterNode { get; private set; }
         public List<SubShaderDescriptor> subShaders { get; private set; }
         public List<string> assetDependencyPaths { get; private set; }
         public string defaultShaderGUI { get; private set; }
@@ -14,11 +13,6 @@ namespace UnityEditor.ShaderGraph
         {
             subShaders = new List<SubShaderDescriptor>();
             assetDependencyPaths = new List<string>();
-        }
-
-        public void SetMasterNode(IMasterNode masterNode)
-        {
-            this.masterNode = masterNode;
         }
 
         public void AddSubShader(SubShaderDescriptor subShader)
