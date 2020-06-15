@@ -44,7 +44,7 @@ namespace UnityEngine.VFX.Utility
             ClearPropertyBinders();
         }
 
-        void Update()
+        void LateUpdate()
         {
             if (!m_ExecuteInEditor && Application.isEditor && !Application.isPlaying) return;
 
