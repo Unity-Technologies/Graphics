@@ -9,20 +9,20 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Indirect Lighting Controller")]
     public class IndirectLightingController : VolumeComponent
     {
-        [UnityEngine.Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
-        /// <summary>Reflection probe intensity multiplier, between 0 and 1</summary>
-        public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
-
-        /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
-        public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
-        /// Controls which layer will be affected by the reflection lighting multiplier 
-        public LightLayerEnumParameter reflectionLightinglayersMask = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
-
         [UnityEngine.Serialization.FormerlySerializedAs("indirectDiffuseIntensity")]
         /// <summary>Indirect diffuse lighting multiplier, between 0 and 1</summary>
         public MinFloatParameter indirectDiffuseLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// Controls which layer will be affected by the indirect diffuse lighting multiplier 
-        public LightLayerEnumParameter indirectDiffuseLightinglayersMask = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+        public LightLayerEnumParameter indirectDiffuseLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+
+        /// <summary>Reflection lighting multiplier, between 0 and 1</summary>
+        public MinFloatParameter reflectionLightingMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// Controls which layer will be affected by the reflection lighting multiplier 
+        public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
+
+        [UnityEngine.Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
+        /// <summary>Reflection probe intensity multiplier, between 0 and 1</summary>
+        public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
 
         /// <summary>
         /// Returns a mask of reflection lighting layers as uint and handle the case of Everything as being 0xFF and not -1
@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public uint GetReflectionLightingLayers()
         {
-            int value = (int)reflectionLightinglayersMask.GetValue<LightLayerEnum>();
+            int value = (int)reflectionLightingLayers.GetValue<LightLayerEnum>();
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public uint GetIndirectDiffuseLightingLayers()
         {
-            int value = (int)indirectDiffuseLightinglayersMask.GetValue<LightLayerEnum>();
+            int value = (int)indirectDiffuseLightingLayers.GetValue<LightLayerEnum>();
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 

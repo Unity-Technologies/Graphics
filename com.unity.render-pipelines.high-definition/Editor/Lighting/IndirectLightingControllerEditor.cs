@@ -1,4 +1,6 @@
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -6,29 +8,39 @@ namespace UnityEditor.Rendering.HighDefinition
     [VolumeComponentEditor(typeof(IndirectLightingController))]
     class IndirectLightingControllerEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_ReflectionProbeIntensityMultiplier;
-        SerializedDataParameter m_ReflectionLightingMultiplier;
-        SerializedDataParameter m_ReflectionLightinglayersMask;
         SerializedDataParameter m_IndirectDiffuseLightingMultiplier;
-        SerializedDataParameter m_IndirectDiffuseLightinglayersMask;
+        SerializedDataParameter m_IndirectDiffuseLightingLayers;
+
+        SerializedDataParameter m_ReflectionLightingMultiplier;
+        SerializedDataParameter m_ReflectionLightingLayers;
+
+        SerializedDataParameter m_ReflectionProbeIntensityMultiplier;
 
         public override void OnEnable()
         {
             var o = new PropertyFetcher<IndirectLightingController>(serializedObject);
 
-            m_ReflectionProbeIntensityMultiplier = Unpack(o.Find(x => x.reflectionProbeIntensityMultiplier));
-            m_ReflectionLightingMultiplier = Unpack(o.Find(x => x.reflectionLightingMultiplier));
-            m_ReflectionLightinglayersMask = Unpack(o.Find(x => x.reflectionLightinglayersMask));
             m_IndirectDiffuseLightingMultiplier = Unpack(o.Find(x => x.indirectDiffuseLightingMultiplier));
-            m_IndirectDiffuseLightinglayersMask = Unpack(o.Find(x => x.indirectDiffuseLightinglayersMask));
+            m_IndirectDiffuseLightingLayers = Unpack(o.Find(x => x.indirectDiffuseLightingLayers));
+
+            m_ReflectionLightingMultiplier = Unpack(o.Find(x => x.reflectionLightingMultiplier));
+            m_ReflectionLightingLayers = Unpack(o.Find(x => x.reflectionLightingLayers));
+
+            m_ReflectionProbeIntensityMultiplier = Unpack(o.Find(x => x.reflectionProbeIntensityMultiplier));
         }
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_ReflectionLightingMultiplier, EditorGUIUtility.TrTextContent("Reflection Lighting Multiplier", "Sets the multiplier for reflected specular lighting."));
-            PropertyField(m_ReflectionLightinglayersMask, EditorGUIUtility.TrTextContent("Reflection Lighting Multiplier Mask", "Sets the light layer mask for reflected specular lighting."));
             PropertyField(m_IndirectDiffuseLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier", "Sets the multiplier for indirect diffuse lighting."));
-            PropertyField(m_IndirectDiffuseLightinglayersMask, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier Mask", "Sets the light layer mask for indirect diffuse lighting."));
+            GUI.enabled = HDUtils.hdrpSettings.supportLightLayers;
+            PropertyField(m_IndirectDiffuseLightingLayers, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Layers", "Sets the light layer mask for indirect diffuse lighting."));
+            GUI.enabled = true;
+
+            PropertyField(m_ReflectionLightingMultiplier, EditorGUIUtility.TrTextContent("Reflection Lighting Multiplier", "Sets the multiplier for reflected specular lighting."));
+            GUI.enabled = HDUtils.hdrpSettings.supportLightLayers;
+            PropertyField(m_ReflectionLightingLayers, EditorGUIUtility.TrTextContent("Reflection Lighting Layers", "Sets the light layer mask for reflected specular lighting."));
+            GUI.enabled = true;
+
             PropertyField(m_ReflectionProbeIntensityMultiplier, EditorGUIUtility.TrTextContent("Reflection Probe Intensity Multiplier", "Sets the intensity multiplier for reflection probes."));
         }
     }
