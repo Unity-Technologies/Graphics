@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        private Action m_inspectorUpdateTrigger;
+        public Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         internal delegate void ChangedDisplayNameCallback(Blackboard blackboard, VisualElement visualElement, string newValue);
@@ -89,13 +89,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, ChangedDisplayNameCallback displayNameCallback,
-             Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
-            this._displayNameChangedCallback = displayNameCallback;
         }
 
         public object GetObjectToInspect()
