@@ -249,7 +249,7 @@ half MainLightRealtimeShadow(float4 shadowCoord)
 half GetAdditionalLightShadowStrenth(int lightIndex); //declare
 half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
 {
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
+#if defined(SHADOWS_SHADOWMASK)
     int chanel = _AdditionalLightsSpotDir[lightIndex].w;
     if (chanel >= 1 && chanel <= 4)
     {

@@ -535,11 +535,11 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 {
 #if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
-#elif defined(_SHADOW_MASK_DISTANCE) && defined(LIGHTMAP_ON)
-    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask.g : 1.0;
+#elif defined(_SHADOW_MASK_DISTANCE)
+    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask.r : 1.0; //This might not be the channel of the main light atten - needs fix
     light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
-#elif defined(_SHADOW_MASK_ALWAYS) && defined(LIGHTMAP_ON)
-    half bakedShadow = shadowMask.g;//This might not be the channel of the main light atten
+#elif defined(_SHADOW_MASK_ALWAYS)
+    half bakedShadow = shadowMask.r;//This might not be the channel of the main light atten - needs fix
     light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
 #endif
 }
@@ -605,7 +605,7 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     Light mainLight = GetMainLight(inputData.shadowCoord);
 
     half4 shadowMask = half4(1, 1, 1, 1);
-#if defined(LIGHTMAP_ON) && defined(SHADOWS_SHADOWMASK)
+#if defined(SHADOWS_SHADOWMASK)
     shadowMask = inputData.bakedAtten;
 #endif
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, shadowMask, inputData.shadowCoord);
