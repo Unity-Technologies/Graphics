@@ -256,18 +256,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
-            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, renderContext, commandBuffer );
+            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, m_FrameCount, renderContext, commandBuffer );
 
             aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
         }
 
-        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, int frameIndex, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             var renderGraphParams = new RenderGraphExecuteParams()
             {
                 renderingWidth = hdCamera.actualWidth,
                 renderingHeight = hdCamera.actualHeight,
-                msaaSamples = msaaSample
+                msaaSamples = msaaSample,
+                currentFrameIndex = frameIndex
             };
 
             renderGraph.Execute(renderContext, cmd, renderGraphParams);

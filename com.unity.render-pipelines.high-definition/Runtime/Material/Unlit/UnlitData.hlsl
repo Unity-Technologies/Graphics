@@ -69,5 +69,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
+    ApplyDebugToBuiltinData(builtinData);
+
     RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 }

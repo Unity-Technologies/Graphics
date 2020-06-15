@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public HDLitSubTarget() => displayName = "Lit";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/LitPass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Lit/ShaderGraph/";
         protected override string customInspector => "Rendering.HighDefinition.HDLitGUI";
         protected override string subTargetAssetGuid => "caab952c840878340810cca27417971c"; // HDLitSubTarget.cs
         protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitDecalData.hlsl";
@@ -93,12 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.RefractionBox,                        hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Box);
             context.AddField(HDFields.RefractionSphere,                     hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Sphere);
             context.AddField(HDFields.RefractionThin,                       hasRefraction && litData.refractionModel == ScreenSpaceRefraction.RefractionModel.Thin);
-
-            // AlphaTest
-            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
-            // Do alpha test only if we aren't using the TestShadow one
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
 
             // Misc
 

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public FabricSubTarget() => displayName = "Fabric";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/FabricPass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/";
         protected override string subTargetAssetGuid => "74f1a4749bab90d429ac01d094be0aeb"; // FabricSubTarget.cs
         protected override string customInspector => "Rendering.HighDefinition.FabricGUI";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
@@ -58,7 +58,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.Silk,                                 fabricData.materialType == FabricData.MaterialType.Silk);
             context.AddField(HDFields.SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                         fabricData.transmission);
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(HDFields.EnergyConservingSpecular,             fabricData.energyConservingSpecular);
         }
 
