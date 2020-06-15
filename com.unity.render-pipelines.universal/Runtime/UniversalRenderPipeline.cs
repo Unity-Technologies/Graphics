@@ -556,6 +556,7 @@ namespace UnityEngine.Rendering.Universal
 
 #if ENABLE_VR && ENABLE_XR_MODULE
             cameraData.xr = m_XRSystem.emptyPass;
+            XRSystem.UpdateMSAALevel(msaaSamples);
             XRSystem.UpdateRenderScale(cameraData.renderScale);
 #else
             cameraData.xr = XRPass.emptyPass;

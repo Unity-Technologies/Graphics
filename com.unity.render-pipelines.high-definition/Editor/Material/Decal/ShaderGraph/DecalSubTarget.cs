@@ -18,8 +18,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public DecalSubTarget() => displayName = "Decal";
 
         public static string passTemplatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Decal/ShaderGraph/DecalPass.template";
+        public static string passTemplateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates";
 
         protected override string templatePath => passTemplatePath;
+        protected override string templateMaterialDirectory => passTemplateMaterialDirectory;
         protected override string subTargetAssetGuid => "3ec927dfcb5d60e4883b2c224857b6c2";
         protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
@@ -141,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -165,7 +167,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -191,7 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentEmissive,
@@ -216,7 +218,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -243,7 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentDefault,
@@ -270,7 +272,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
@@ -296,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 passTemplatePath = passTemplatePath,
-                sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                sharedTemplateDirectory = passTemplateMaterialDirectory,
 
                 // Port mask
                 validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
