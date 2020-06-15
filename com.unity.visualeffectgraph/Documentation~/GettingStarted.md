@@ -6,10 +6,11 @@ Visual Effect Graph is a Unity package that uses a [Scriptable Render Pipeline](
 ## Requirements
 * Unity 2018.3 or newer. Verified packages start at Unity 2019.3.
 * A [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) package:
-  * [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html)(2019.3 or newer)
-  * [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?preview=1) (2018.3 or newer. Verified packages start at Unity 2019.3.)
+  * [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) (HDRP): Unity 2018.3 or newer. Verified from Unity 2019.3.<br/>The Visual Effect Graph supports every platform that HDRP supports. For information on which platforms this includes, see HDRP's [system requirements](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/System-Requirements.html).
+  * [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP): Unity 2019.3 or newer.<br/>The Visual Effect Graph is not out of preview with URP and so only supports a subset of platforms that URP supports. It also does not support every feature that is does with HDRP and also only supports unlit particles.
 
 **Note:** When you download the High Definition Render Pipeline package from Package Manager, Unity automatically installs the Visual Effect Graph package.
+
 * A target device that can use compute Shaders, such as aWindows PC, Playstation 4, XBox One, or Mac running MacOS.
 
 ## Installing Visual Effect Graph
