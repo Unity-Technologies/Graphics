@@ -1,13 +1,14 @@
 {
     "name": "Unity.GraphicTests.Performance.HDRP.Runtime",
+    "rootNamespace": "",
     "references": [
-        "GUID:91836b14885b8a34196f4aa8303d7793",
+        "Unity.PerformanceTesting",
         "GUID:c081bc530f560634bb5c21d4b323a7f1",
-        "GUID:27619889b8ba8c24980f49ee34dbb44a",
-        "GUID:0acc523941302664db1f4e527237feb3",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
-        "GUID:295068ed467c2ce4a9cda3833065f650"
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.GraphicTests.Performance.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

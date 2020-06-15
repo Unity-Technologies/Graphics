@@ -291,6 +291,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        internal GameObject exposureTarget
+        {
+            get
+            {
+                if (m_AdditionalCameraData != null)
+                {
+                    return m_AdditionalCameraData.exposureTarget;
+                }
+
+                return null;
+            }
+        }
+
         // This value will always be correct for the current camera, no need to check for
         // game view / scene view / preview in the editor, it's handled automatically
         internal AntialiasingMode antialiasing { get; private set; } = AntialiasingMode.None;
@@ -441,6 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
+                    // Since we nuke all history we must inform the post process system too.
+                    resetPostProcessingHistory = true;
 
                     HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
 
@@ -505,11 +520,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
             HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
-
-            // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
-            // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
-            // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-            RTHandles.SetReferenceSize(nonScaledViewport.x, nonScaledViewport.y, msaaSamples);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
@@ -656,6 +666,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float exposureMultiplierForProbes = 1.0f / Mathf.Max(probeRangeCompressionFactor, 1e-6f);
             cb._ProbeExposureScale  = exposureMultiplierForProbes;
+
+            cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
+                                                      !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
         }
 
 
@@ -787,6 +800,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 skyAmbientMode = volumeStack.GetComponent<VisualEnvironment>().skyAmbientMode.value;
 
                 visualSky.skySettings = SkyManager.GetSkySetting(volumeStack);
+                visualSky.cloudLayer = volumeStack.GetComponent<CloudLayer>();
 
                 // Now, see if we have a lighting override
                 // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
@@ -1261,6 +1275,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             float verticalFoV = camera.GetGateFittedFieldOfView() * Mathf.Deg2Rad;
+            if (!camera.usePhysicalProperties)
+            {
+                verticalFoV = Mathf.Atan(-1.0f / viewConstants.projMatrix[1, 1]) * 2;
+            }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
             return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);

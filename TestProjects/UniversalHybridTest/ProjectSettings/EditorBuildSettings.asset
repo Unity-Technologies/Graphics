@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/SampleScenes/TestFarAwayFromOrigin.unity
     guid: f4cbc7d5e8bdf0d44af228513401cac3
+  - enabled: 1
+    path: Assets/SampleScenes/TestSkinnedMeshes.unity
+    guid: 89a2c7e6bbb468049a7fc3504d2d302e
   m_configObjects: {}

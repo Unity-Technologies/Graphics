@@ -26,7 +26,6 @@ MonoBehaviour:
   shadowFilterCS: {fileID: 7200000, guid: f71fd853a538bf74e9e5a7228fc14dae, type: 3}
   forwardRaytracing: {fileID: 4807578003741378534, guid: d3a89a2d3f73b3e4da6f191e844fe68c,
     type: 3}
-  raytracingFlagMask: {fileID: 4800000, guid: 7822c8a69a1f21144a20cf6d84e5e706, type: 3}
   lightClusterBuildCS: {fileID: 7200000, guid: c0625ea908b52854bbf1d456e34026e4, type: 3}
   lightClusterDebugS: {fileID: 4800000, guid: c4d81c6e573560444bb1ea11ae4acfcb, type: 3}
   lightClusterDebugCS: {fileID: 7200000, guid: d48a3a5496d98a44c89f335934805d10, type: 3}
@@ -34,8 +33,9 @@ MonoBehaviour:
     type: 3}
   indirectDiffuseRaytracingCS: {fileID: 7200000, guid: c5ad968b7cd39114d85dd860b3809087,
     type: 3}
-  aoRaytracing: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
+  aoRaytracingRT: {fileID: 4807578003741378534, guid: 82dc8cd069971d2488c502b0f32b94fb,
     type: 3}
+  aoRaytracingCS: {fileID: 7200000, guid: 10c05366baf9b0a44a827f3ef890b9e6, type: 3}
   subSurfaceRayTracing: {fileID: 4807578003741378534, guid: b29a18f967c92364492508dddf78cff7,
     type: 3}
   subSurfaceRayTracingCS: {fileID: 7200000, guid: 4e5684a8dba46fe42a47642f9b0a6b89,

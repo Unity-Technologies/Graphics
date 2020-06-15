@@ -2,7 +2,7 @@
 void BuildFragInputsFromIntersection(IntersectionVertex currentVertex, float3 incidentDirection, out FragInputs outFragInputs)
 {
 	outFragInputs.positionSS = float4(0.0, 0.0, 0.0, 0.0);
-	outFragInputs.positionRWS = mul(ObjectToWorld3x4(), float4(currentVertex.positionOS, 1.0)).xyz - _WorldSpaceCameraPos;
+	outFragInputs.positionRWS = WorldRayOrigin() + WorldRayDirection() * RayTCurrent() - _WorldSpaceCameraPos;
 	outFragInputs.texCoord0 = float4(currentVertex.texCoord0, 0.0, 0.0);
 	outFragInputs.texCoord1 = float4(currentVertex.texCoord1, 0.0, 0.0);
 	outFragInputs.texCoord2 = float4(currentVertex.texCoord2, 0.0, 0.0);

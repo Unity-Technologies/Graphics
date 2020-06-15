@@ -247,11 +247,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
 
         public int      _ProbeVolumeLeakMitigationMode;
-        public float    _ProbeVolumeNormalBiasWS;
         public float    _ProbeVolumeBilateralFilterWeightMin;
         public float    _ProbeVolumeBilateralFilterWeight;
+        public float    _Pad8;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
+
+        public int      _TransparentCameraOnlyMotionVectors;
+        public float    _Pad9;
+        public float    _Pad10;
+        public float    _Pad11;
     }
 }
