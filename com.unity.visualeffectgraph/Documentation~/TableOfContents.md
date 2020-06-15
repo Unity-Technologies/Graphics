@@ -132,6 +132,8 @@
         * [Volume (Oriented Box)](Operator-Volume(OrientedBox).md)
         * [Volume (Sphere)](Operator-Volume(Sphere).md)
         * [Volume (Torus)](Operator-Volume(Torus).md)
+      * Log
+        * [Log](Operator-Log.md)
       * Remap
         * [Remap](Operator-Remap.md)
         * [Remap [0..1] => [-1..1]](Operator-Remap(-11).md)
