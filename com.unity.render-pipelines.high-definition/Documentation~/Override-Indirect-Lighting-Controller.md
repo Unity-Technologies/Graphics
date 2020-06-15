@@ -11,16 +11,29 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.html) framework, 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Lighting** and click on **Indirect Lighting Controller**. You can now use the **Indirect Lighting Controller** to control baked or precomputed indirect lighting.
 
+
+
 ## Properties
 
 ![](Images/Override-IndirectLightingController1.png)
 
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
-| **Indirect Diffuse Intensity**  | A multiplier for baked and realtime Global Illumination lightmaps and Light Probes. HDRP multiplies the lightmap and Light Probe data by this value. |
-| **Indirect Specular Intensity** | A multiplier for baked, realtime, and custom Reflection Probes. HDRP multiplies the Reflection Probe data by this value. |
+| **Indirect Diffuse Lighting Multiplier**  | A multiplier for lightmaps, Light Probes, Light Probe Volumes, Screen Space Global Illumination and Raytrace Global Illumination. HDRP multiplies all those data by this value. |
+| **Indirect Diffuse Lighting Layers** | Light layers for indirect diffuse lighting. See [LightLayers](Light-Layers.md). After you enable Light Layers, you can then use them to decouple Meshes from the this multiplier in your Scene. |
+| **Reflection Lighting Multiplier**  | A multiplier for baked, realtime, custom Reflection Probes and Planar Probes, Screen Space Reflection, Raytrace Reflection and Sky Reflection. HDRP multiplies all those data by this value. |
+| **Reflection Lighting Layers**  | Light layers for reflection lighting. See [LightLayers](Light-Layers.md). After you enable Light Layers, you can then use them to decouple Meshes from the this multiplier in your Scene. |
+| **Reflection Probe Intensity Multiplier**  | A multiplier for baked, realtime, and custom Reflection Probes. HDRP multiplies the Reflection Probe data by this value. |
 
+## Using Light Layers
 
+After you enable Light Layers, you can then use them to decouple Meshes from certain Lights in your Scene. To do this:
+
+1. Click on a Light in the Hierarchy or the Scene view to view it in the Inspector.
+2. Expose [more options](More-Options.html) in the **General** section to expose the **Light Layer** property.
+3. Use the **Light Layer** property drop-down to select which Light Layers this Light affects.
+4. Click on a Mesh Renderer in the Hierarchy or the Scene view to view it in the Inspector.
+5. Use the **Rendering Layer Mask** drop-down to select which Light Layers affect this Mesh Renderer. When you enable Light Layers, a Light only affects a Mesh Renderer if they both use a matching Light Layer.
 
 ## Details
 
