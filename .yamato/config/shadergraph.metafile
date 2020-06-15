@@ -30,4 +30,6 @@ all:
       api: OpenGLCore
       test_platforms:
         - editmode   
+    - project: ShaderGraph_Stereo
+      all: true 
 

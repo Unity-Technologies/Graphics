@@ -22,6 +22,8 @@ All_HDRP_2020.1:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_2020.1
          rerun: on-new-revision
+      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_2020.1
+         rerun: on-new-revision
 All_HDRP_fast-2020.1:
     name: All HDRP CI - fast-2020.1
     dependencies:
@@ -41,6 +43,8 @@ All_HDRP_fast-2020.1:
          rerun: on-new-revision
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-2020.1
          rerun: on-new-revision
+      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_fast-2020.1
+         rerun: on-new-revision
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:
@@ -59,6 +63,8 @@ All_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-hdrp_hybrid.yml#All_HDRP_Hybrid_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
