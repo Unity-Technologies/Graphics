@@ -53,6 +53,8 @@ To upgrade the Materials in your Scene to HDRP-compatible Materials, either:
 
 * **Upgrade Selected Materials to High Definition Materials**: Converts every compatible Material currently selected in the Project window to an HDRP Material.
 
+* **Upgrade Scene Terrains to High Definition Terrains**: Replaces the built-in default standard terrain Material in every terrain in the scene with HDRP default HDRP Terrain Material.
+
 You can find these options in either:
 
 * The **Edit > Render Pipeline** menu.
