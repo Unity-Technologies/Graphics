@@ -4,7 +4,7 @@ In the High Definition Render Pipeline (HDRP), [Volumes](Volumes.md) control env
 
 ## Modifying an existing Volume
 
-Volumes store their [Volume Components](Volume-Components.md) in a [Volume Profile](Volume-Profile.md). So, to modify the properties of a Volume Component, such as [Fog](Override-Fog.md),  you need to first retrieve the Volume Profile. There are two ways to do this:
+Volumes store their [Volume Overrides](Volume-Components.md) in a [Volume Profile](Volume-Profile.md). So, to modify the properties of a Volume Override, such as [Fog](Override-Fog.md),  you need to first retrieve the Volume Profile. There are two ways to do this:
 
 ### Shared Volume Profile access
 
@@ -28,18 +28,18 @@ Note that you can use this property to assign a different Volume Profile to the 
 
 ## Changing Volume Profile properties
 
-When you have a reference to the Volume Profile, you can change the properties of any Volume Components in it. This works in a similar way as changing properties in the Inspector. 
+When you have a reference to the Volume Profile, you can change the properties of any Volume Overrides in it. This works in a similar way as changing properties in the Inspector. 
 
-First, you need to retrieve the particular Volume Component using the generic `TryGet<>` function on the profile. If the Volume Profile does not contain that particular Volume Component  and the `TryGet<>` function returns false, you can use the `Add<>` function to add the Volume Component.
+First, you need to retrieve the particular Volume Override using the generic `TryGet<>` function on the profile. If the Volume Profile does not contain that particular Volume Override and the `TryGet<>` function returns false, you can use the `Add<>` function to add the Volume Override.
 
-When you have a reference to the Volume Component, you can access and modify its public properties. For a property to have an effect on the scene, you need to specify that it has been overridden. This makes HDRP use the value you specify, rather than using the default value. Every property in a Volume Component is made up of two parts:
+When you have a reference to the Volume Override, you can access and modify its public properties. For a property to have an effect on the scene, you need to specify that it has been overridden. This makes HDRP use the value you specify, rather than using the default value. Every property in a Volume Override is made up of two parts:
 
 - A bool that contains the override state. This is `overrideState`.
 - The property's value itself. This is `value`.
 
 After you set a property's `overrideState` to true, you can then change the `value`.
 
-The following example changes the `enabled` property of the [Fog](Override-Fog.md) Volume Component:
+The following example changes the `enabled` property of the [Fog](Override-Fog.md) Volume Override:
 
 ```
 using UnityEngine.Rendering;
