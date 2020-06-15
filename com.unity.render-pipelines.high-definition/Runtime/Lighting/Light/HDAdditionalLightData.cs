@@ -2283,18 +2283,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Animated = GetComponent<Animator>() != null;
         }
 
-        void Update()
-        {
-#if UNITY_EDITOR
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
-            {
-                needRefreshPrefabInstanceEmissiveMeshes = true;
-                m_NeedsPrefabInstanceCheck = false;
-            }
-#endif
-        }
-
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
@@ -2305,6 +2293,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+            m_NeedsPrefabInstanceCheck = false;
+
             // Update the list of overlapping lights for the LightOverlap scene view mode
             if (IsOverlapping())
                 s_overlappingHDLights.Add(this);
