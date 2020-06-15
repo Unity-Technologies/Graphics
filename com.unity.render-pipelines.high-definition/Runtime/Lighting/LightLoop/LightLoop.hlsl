@@ -539,7 +539,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         BuiltinData builtInDataSSGI;
         ZERO_INITIALIZE(BuiltinData, builtInDataSSGI);
         builtInDataSSGI.bakeDiffuseLighting = LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, posInput.positionSS).xyz * GetInverseCurrentExposureMultiplier();
-        builtInDataSSGI.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+        float indirectDiffuseMultiplier = GetIndirectDiffuseMultiplier(builtinData.renderingLayers);
+        builtInDataSSGI.bakeDiffuseLighting *= indirectDiffuseMultiplier;
         ModifyBakedDiffuseLighting(V, posInput, preLightData, bsdfData, builtInDataSSGI);
         builtinData.bakeDiffuseLighting += builtInDataSSGI.bakeDiffuseLighting;
     }

@@ -25,11 +25,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            PropertyField(m_ReflectionProbeIntensityMultiplier, EditorGUIUtility.TrTextContent("Indirect Diffuse Intensity", "Sets the multiplier for baked diffuse lighting."));
-            PropertyField(m_ReflectionLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
-            PropertyField(m_ReflectionLightinglayersMask, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
-            PropertyField(m_IndirectDiffuseLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
-            PropertyField(m_IndirectDiffuseLightinglayersMask, EditorGUIUtility.TrTextContent("Indirect Specular Intensity", "Sets the multiplier for reflected specular lighting."));
+            PropertyField(m_ReflectionLightingMultiplier, EditorGUIUtility.TrTextContent("Reflection Lighting Multiplier", "Sets the multiplier for reflected specular lighting."));
+            PropertyField(m_ReflectionLightinglayersMask, EditorGUIUtility.TrTextContent("Reflection Lighting Multiplier Mask", "Sets the light layer mask for reflected specular lighting."));
+            PropertyField(m_IndirectDiffuseLightingMultiplier, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier", "Sets the multiplier for indirect diffuse lighting."));
+            PropertyField(m_IndirectDiffuseLightinglayersMask, EditorGUIUtility.TrTextContent("Indirect Diffuse Lighting Multiplier Mask", "Sets the light layer mask for indirect diffuse lighting."));
+            PropertyField(m_ReflectionProbeIntensityMultiplier, EditorGUIUtility.TrTextContent("Reflection Probe Intensity Multiplier", "Sets the intensity multiplier for reflection probes."));
         }
     }
 }

@@ -283,13 +283,13 @@ float GetInversePreviousExposureMultiplier()
 float GetIndirectDiffuseMultiplier(uint renderingLayers)
 {
     uint indirectDiffuseLayers = uint(_IndirectLightingMultiplier.y * 255.5);
-    return indirectDiffuseLayers & renderingLayers ? _IndirectLightingMultiplier.x : 1.0f;
+    return (indirectDiffuseLayers & renderingLayers) ? _IndirectLightingMultiplier.x : 1.0f;
 }
 
 float GetIndirectSpecularMultiplier(uint renderingLayers)
 {
     uint indirectSpecularLayers = uint(_IndirectLightingMultiplier.w * 255.5);
-    return indirectSpecularLayers & renderingLayers ? _IndirectLightingMultiplier.z : 1.0f;
+    return (indirectSpecularLayers & renderingLayers) ? _IndirectLightingMultiplier.z : 1.0f;
 }
 
 // Functions to clamp UVs to use when RTHandle system is used.
