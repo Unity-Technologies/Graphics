@@ -163,6 +163,18 @@ Defines a [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) value. D
 |:-------------|:------|:------------|
 | Default | Cubemap | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
 
+## Virtual Texture
+
+Defines a [Virtual Texture](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-use-in-shader-graph.html) stack. Displays as object fields of type [Texture](https://docs.unity3d.com/Manual/class-TextureImporter.html) in the material inspector based on the number of layers defined on the property.
+
+| Data Type | Modes |
+|:----------|-------|
+| Virutal Texture | |
+
+| Field        | Type  | Description |
+|:-------------|:------|:------------|
+| Default | Texture | The default value of the [Property](https://docs.unity3d.com/Manual/SL-Properties.html). |
+
 ## Boolean
 
 Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Vector 1**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 

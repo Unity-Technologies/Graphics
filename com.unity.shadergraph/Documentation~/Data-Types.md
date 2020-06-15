@@ -25,6 +25,7 @@ Some **Data Types** have associated [Property Types](Property-Types.md) for expo
 | Texture 2D Array | Red | A [Texture 2D Array](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
 | Texture 3D | Red | A [Texture 3D](https://docs.unity3d.com/Manual/class-TextureImporter.html) asset |
 | Cubemap | Red | A [Cubemap](https://docs.unity3d.com/Manual/class-Cubemap.html) asset |
+| Virtual Texture | Grey | A [Virtual Texture](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-use-in-shader-graph.html) stack. |
 | Gradient | Grey | A **Gradient** value. Defined as a struct in the generated shader |
 | SamplerState | Grey | A state used for sampling a texture |
 
