@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using Data.Interfaces;
@@ -53,14 +53,14 @@ namespace Drawing.Inspector.PropertyDrawers
             var boolPropertyDrawer = new BoolPropertyDrawer();
             propertySheet.Add(boolPropertyDrawer.CreateGUI((newValue) =>
                 {
-                    if (node.noFeedback == newValue)
+                    if (node.noFeedback == !newValue)
                         return;
 
                     node.owner.owner.RegisterCompleteObjectUndo("Feedback Settings Change");
-                    node.noFeedback = newValue;
+                    node.noFeedback = !newValue;
                 },
-                node.noFeedback,
-                "No Feedback",
+                !node.noFeedback,
+                "Automatic Streaming",
                 out var propertyToggle));
 
             // display warning if the current master node doesn't support virtual texturing
