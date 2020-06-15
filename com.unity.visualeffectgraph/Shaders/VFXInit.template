@@ -67,8 +67,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU
-    uint threadCount = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);
-    uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - threadCount;
+    uint threadCount = LOAD_INDIRECT_DATA(inputAdditional, INDIRECT_DATA_SPAWN_COUNT, offsetInAdditionalOutput);
+    uint currentSpawnIndex = LOAD_INDIRECT_DATA(inputAdditional, INDIRECT_DATA_TOTAL_COUNT, offsetInAdditionalOutput) - threadCount;
 #else
     uint threadCount = nbSpawned;
     uint currentSpawnIndex = spawnIndex;

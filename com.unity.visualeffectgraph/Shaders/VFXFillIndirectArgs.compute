@@ -1,6 +1,7 @@
 #pragma kernel CSVFXIndirectArgs
 
 #include "HLSLSupport.cginc"
+#include "VFXIndirectDataCommon.hlsl"
 
 CBUFFER_START(Uniform)
     uint maxNb;
@@ -30,20 +31,6 @@ ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
 RWBuffer<uint> outputIndirectArgs;
 RWByteAddressBuffer outputAdditional;
-
-// output additional data
-#define EVENT_DATA_SPAWN_COUNT 0 // current spawn count 
-#define EVENT_DATA_TOTAL_COUNT 1 // total count
-
-void StoreAdditionalData(uint data, uint index, uint value)
-{
-    outputAdditional.Store((index * 2 + data) << 2, value);
-}
-
-uint LoadAdditionalData(uint data, uint index)
-{
-    return outputAdditional.Load((index * 2 + data) << 2);
-}
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
@@ -149,10 +136,10 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
                 {
                     uint oldCount = 0u;
                     if (eventData.previousSlot != ~0u) // if previous slot is ~0u, it means no history
-                        oldCount = LoadAdditionalData(EVENT_DATA_TOTAL_COUNT, eventData.previousSlot);
+                        oldCount = LOAD_INDIRECT_DATA(outputAdditional, INDIRECT_DATA_TOTAL_COUNT, eventData.previousSlot);
 
-                    StoreAdditionalData(EVENT_DATA_SPAWN_COUNT, index, elementCount);
-                    StoreAdditionalData(EVENT_DATA_TOTAL_COUNT, index, oldCount + elementCount);
+                    STORE_INDIRECT_DATA(outputAdditional, INDIRECT_DATA_SPAWN_COUNT, index, elementCount);
+                    STORE_INDIRECT_DATA(outputAdditional, INDIRECT_DATA_TOTAL_COUNT, index, oldCount + elementCount);
                 }
 
                 args.y = args.z = 1u;

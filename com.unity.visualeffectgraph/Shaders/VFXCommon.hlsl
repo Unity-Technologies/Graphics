@@ -591,3 +591,10 @@ VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
 ////////////
 
 #include "VFXParticleStripCommon.hlsl"
+
+//////////////////////////////
+// Additional Indirect Data //
+//////////////////////////////
+
+#include "VFXIndirectDataCommon.hlsl"
+
