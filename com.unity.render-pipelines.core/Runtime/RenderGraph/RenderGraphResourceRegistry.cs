@@ -26,8 +26,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         bool m_IsValid;
         internal int handle { get; private set; }
-        internal int transientPassIndex { get; private set; }
-        internal TextureHandle(int handle, int transientPassIndex = -1) { this.handle = handle; m_IsValid = true; this.transientPassIndex = transientPassIndex; }
+        internal TextureHandle(int handle) { this.handle = handle; m_IsValid = true; }
         /// <summary>
         /// Conversion to int.
         /// </summary>
@@ -39,25 +38,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => m_IsValid;
-
-        /// <summary>
-        /// Equals Override.
-        /// </summary>
-        /// <param name="obj">Other handle to test against.</param>
-        /// <returns>True if both handle are equals.</returns>
-        public override bool Equals(System.Object obj)
-        {
-            //Check for null and compare run-time types.
-            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
-            {
-                return false;
-            }
-            else
-            {
-                TextureHandle texture = (TextureHandle)obj;
-                return texture.handle == handle && texture.m_IsValid == m_IsValid;
-            }
-        }
 
         /// <summary>
         /// GetHashCode override.
@@ -478,6 +458,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public bool imported;
             public int  cachedHash;
             public int  shaderProperty;
+            public int  transientPassIndex;
             public bool wasReleased;
 
             public virtual void Reset()
@@ -485,7 +466,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 imported = false;
                 cachedHash = -1;
                 shaderProperty = 0;
+                transientPassIndex = -1;
                 wasReleased = false;
+            }
+
+            public virtual string GetName()
+            {
+                return "";
             }
         }
 
@@ -524,11 +511,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 base.Reset();
                 resource = null;
-            }
-
-            public virtual string GetName()
-            {
-                return "";
             }
         }
 
@@ -727,6 +709,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RTHandleProperties GetRTHandleProperties() { return m_RTHandleSystem.rtHandleProperties; }
 
+        internal string GetResourceName(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index < 0 || index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+            return m_Resources[(int)type][index].GetName();
+        }
+
+        internal bool IsResourceImported(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index < 0 || index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+            return m_Resources[(int)type][index].imported;
+        }
+
+        internal int GetResourceTransientIndex(RenderGraphResourceType type, int index)
+        {
+            var resources = m_Resources[(int)type];
+            if (index < 0 || index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
+            return m_Resources[(int)type][index].transientPassIndex;
+        }
+
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
         internal TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
         {
@@ -736,11 +742,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             texResource.shaderProperty = shaderProperty;
 
             return new TextureHandle(newHandle);
-        }
-
-        internal bool IsTextureImported(TextureHandle handle)
-        {
-            return handle.IsValid() ? GetTextureResource(handle).imported : false;
         }
 
         internal TextureHandle ImportBackbuffer(RenderTargetIdentifier rt)
@@ -777,7 +778,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.desc = desc;
             texResource.shaderProperty = shaderProperty;
-            return new TextureHandle(newHandle, transientPassIndex);
+            texResource.transientPassIndex = transientPassIndex;
+            return new TextureHandle(newHandle);
         }
 
         internal int GetTextureResourceCount()
@@ -812,12 +814,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new ComputeBufferHandle(newHandle);
         }
 
-        internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc)
+        internal ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc, int transientPassIndex = -1)
         {
             ValidateComputeBufferDesc(desc);
 
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.ComputeBuffer], out ComputeBufferResource bufferResource);
             bufferResource.desc = desc;
+            bufferResource.transientPassIndex = transientPassIndex;
 
             return new ComputeBufferHandle(newHandle);
         }
@@ -825,11 +828,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal ComputeBufferDesc GetComputeBufferResourceDesc(ComputeBufferHandle index)
         {
             return (m_Resources[(int)RenderGraphResourceType.ComputeBuffer][index] as ComputeBufferResource).desc;
-        }
-
-        internal bool IsComputeBufferImported(ComputeBufferHandle handle)
-        {
-            return handle.IsValid() ? GetComputeBufferResource(handle).imported : false;
         }
 
         internal int GetComputeBufferResourceCount()
@@ -852,7 +850,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 var fastMemDesc = resource.desc.fastMemoryDesc;
                 if(fastMemDesc.inFastMemory)
                 {
-                    resource.rt.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
+                    resource.resource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
                 }
 
                 if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
@@ -919,7 +917,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             resource.cachedHash = hashCode;
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<int> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -935,12 +933,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<int> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<TextureHandle> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<int> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }
