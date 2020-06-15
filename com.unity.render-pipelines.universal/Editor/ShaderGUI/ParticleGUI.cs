@@ -63,9 +63,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             public static string streamPositionText = "Position (POSITION.xyz)";
             public static string streamNormalText = "Normal (NORMAL.xyz)";
             public static string streamColorText = "Color (COLOR.xyzw)";
+            public static string streamColorInstancedText = "Color (INSTANCED0.xyzw)";
             public static string streamUVText = "UV (TEXCOORD0.xy)";
             public static string streamUV2Text = "UV2 (TEXCOORD0.zw)";
             public static string streamAnimBlendText = "AnimBlend (TEXCOORD1.x)";
+            public static string streamAnimFrameText = "AnimFrame (INSTANCED1.x)";
             public static string streamTangentText = "Tangent (TANGENT.xyzw)";
 
             public static GUIContent streamApplyToAllSystemsText = new GUIContent("Fix Now",
@@ -253,6 +255,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if(material.HasProperty("_BumpMap"))
                 useNormalMap = material.GetTexture("_BumpMap");
 
+            bool useGPUInstancing = false;// ShaderUtil.HasProceduralInstancing(material.shader); // TODO - make internal API public?
+            if (useGPUInstancing && renderers.Count > 0)
+            {
+                if (!renderers[0].enableGPUInstancing || renderers[0].renderMode != ParticleSystemRenderMode.Mesh)
+                    useGPUInstancing = false;
+            }
+
             // Build the list of expected vertex streams
             List<ParticleSystemVertexStream> streams = new List<ParticleSystemVertexStream>();
             List<string> streamList = new List<string>();
@@ -272,11 +281,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
 
             streams.Add(ParticleSystemVertexStream.Color);
-            streamList.Add(Styles.streamColorText);
+            streamList.Add(useGPUInstancing ? Styles.streamColorInstancedText : Styles.streamColorText);
             streams.Add(ParticleSystemVertexStream.UV);
             streamList.Add(Styles.streamUVText);
 
-            if (useFlipbookBlending)
+            List<ParticleSystemVertexStream> instancedStreams = new List<ParticleSystemVertexStream>(streams);
+
+            if (useGPUInstancing)
+            {
+                instancedStreams.Add(ParticleSystemVertexStream.AnimFrame);
+                streamList.Add(Styles.streamAnimFrameText);
+            }
+            else if (useFlipbookBlending && !useGPUInstancing)
             {
                 streams.Add(ParticleSystemVertexStream.UV2);
                 streamList.Add(Styles.streamUV2Text);
@@ -298,7 +314,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             foreach (ParticleSystemRenderer renderer in renderers)
             {
                 renderer.GetActiveVertexStreams(rendererStreams);
-                if (!rendererStreams.SequenceEqual(streams))
+
+                bool streamsValid;
+                if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh)// && renderer.supportsMeshInstancing) // TODO - make internal API public?
+                    streamsValid = rendererStreams.SequenceEqual(instancedStreams);
+                else
+                    streamsValid = rendererStreams.SequenceEqual(streams);
+
+                if (!streamsValid)
                     Warnings += "-" + renderer.name + "\n";
             }
 
@@ -314,7 +337,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                     foreach (ParticleSystemRenderer renderer in renderers)
                     {
-                        renderer.SetActiveVertexStreams(streams);
+                        if (useGPUInstancing && renderer.renderMode == ParticleSystemRenderMode.Mesh)// && renderer.supportsMeshInstancing) // TODO - make internal API public?
+                            renderer.SetActiveVertexStreams(instancedStreams);
+                        else
+                            renderer.SetActiveVertexStreams(streams);
                     }
                 }
             }
