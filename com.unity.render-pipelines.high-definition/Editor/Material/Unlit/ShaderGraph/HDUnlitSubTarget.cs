@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -23,7 +24,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Unlit;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
+        protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;
         protected override string subShaderInclude => CoreIncludes.kUnlit;
 
         protected override bool supportDistortion => true;
@@ -44,6 +46,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_UnlitData = value;
         }
 
+        public static FieldDescriptor EnableShadowMatte =        new FieldDescriptor(string.Empty, "EnableShadowMatte", "_ENABLE_SHADOW_MATTE");
+
         protected override SubShaderDescriptor GetSubShaderDescriptor()
         {
             if (unlitData.distortionOnly && builtinData.distortion)
@@ -51,7 +55,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection{ { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(HDFields.TransparentDistortion, true) } }
+                    passes = new PassCollection{ { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
                 };
             }
             else
@@ -61,10 +65,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // We need to add includes for shadow matte as it's a special case (Lighting includes in an unlit pass)
                 var forwardUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "ForwardOnly");
 
-                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
-                forwardUnlit.descriptor.includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
-                forwardUnlit.descriptor.includes.Add(CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
-                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(HDFields.EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadow, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kPunctualLightCommon, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
+                forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
 
                 return descriptor;
             }
@@ -75,8 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
 
             // Unlit specific properties
-            context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(EnableShadowMatte, unlitData.enableShadowMatte);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -84,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Unlit specific blocks
-            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
+            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint, unlitData.enableShadowMatte);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)
