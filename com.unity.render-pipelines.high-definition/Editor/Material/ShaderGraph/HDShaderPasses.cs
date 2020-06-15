@@ -425,7 +425,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywords.HDBase },
             { CoreKeywordDescriptors.DebugDisplay },
-            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDFields.EnableShadowMatte, true) },
+            { CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true) },
         };
 
 #endregion
@@ -865,9 +865,38 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingIndirectDefines : null,
                 keywords = CoreKeywords.RaytracingIndirect,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingIndirect },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+                // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingIndirect, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingIndirectDefines = new DefineCollection
@@ -899,9 +928,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingVisibilityDefines : null,
                 keywords = CoreKeywords.RaytracingVisiblity,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingVisibility },
-                includes = CoreIncludes.Raytracing,
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingVisbility, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingVisibilityDefines = new DefineCollection
@@ -931,9 +981,41 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingForwardDefines : null,
                 keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingForward },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
+                if (supportLighting)
+                    includes.Add(CoreIncludes.kRaytracingLightLoop, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingForward, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
 
@@ -966,9 +1048,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingGBufferDefines : null,
                 keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RayTracingGBuffer },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                includes.Add(CoreIncludes.kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+
+                // We want to have the normal buffer include if this is a gbuffer and unlit shader
+                if (!supportLighting)
+                    includes.Add(CoreIncludes.kNormalBuffer, IncludeLocation.Pregraph);
+                    
+                // If this is the gbuffer sub-shader, we want the standard lit data
+                includes.Add(CoreIncludes.kStandardLit, IncludeLocation.Pregraph);
+
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingGBuffer, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingGBufferDefines = new DefineCollection
@@ -999,9 +1109,37 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = supportLighting ? RaytracingPathTracingDefines : null,
                 keywords = CoreKeywords.HDBaseNoCrossFade,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingPathTracing },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the generic payload if this is not a gbuffer or a subsurface subshader
+                includes.Add(CoreIncludes.kRaytracingIntersection, IncludeLocation.Pregraph);
+
+                // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
+                if (supportLighting)
+                {
+                    includes.Add(CoreIncludes.kLighting, IncludeLocation.Pregraph);
+                    includes.Add(CoreIncludes.kLightLoopDef, IncludeLocation.Pregraph);
+                }
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassPathTracing, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingPathTracingDefines = new DefineCollection
@@ -1037,9 +1175,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.RaytracingBasic,
                 defines = RaytracingSubsurfaceDefines,
                 keywords = CoreKeywords.RaytracingGBufferForward,
-                includes = CoreIncludes.Raytracing,
-                requiredFields = new FieldCollection(){ HDFields.ShaderPass.RaytracingSubSurface },
+                includes = GenerateIncludes(),
             };
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection { CoreIncludes.RaytracingCorePregraph };
+
+                // We want the sub-surface payload if we are in the subsurface sub shader
+                includes.Add(CoreIncludes.kRaytracingIntersectionSubSurface, IncludeLocation.Pregraph);
+
+                // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
+                includes.Add(CoreIncludes.kRaytracingPlaceholder, IncludeLocation.Pregraph);
+
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kRaytracingCommon, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+
+                // post graph includes
+                includes.Add(CoreIncludes.kPassRaytracingSubSurface, IncludeLocation.Postgraph);
+
+                return includes;
+            }
         }
 
         public static DefineCollection RaytracingSubsurfaceDefines = new DefineCollection

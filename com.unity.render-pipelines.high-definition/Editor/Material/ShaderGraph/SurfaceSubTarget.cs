@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected abstract string subShaderInclude { get; }
         protected virtual string postDecalsInclude => null;
+        protected virtual string raytracingInclude => null;
         protected abstract FieldDescriptor subShaderField { get; }
 
         public override void Setup(ref TargetSetupContext context)
@@ -170,6 +171,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                         include.descriptor.value = subShaderInclude;
                     if (include.descriptor.value == CoreIncludes.kPostDecalsPlaceholder)
                         include.descriptor.value = postDecalsInclude;
+                    if (include.descriptor.value == CoreIncludes.kRaytracingPlaceholder)
+                        include.descriptor.value = raytracingInclude;
 
                     if (!String.IsNullOrEmpty(include.descriptor.value))
                         finalIncludes.Add(include.descriptor.value, include.descriptor.location, include.fieldConditions);
@@ -204,6 +207,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             
             if (supportDistortion)
                 AddDistortionFields(ref context);
+
+            // Mark the shader as unlit so we can remove lighting in FieldConditions
+            if (!supportLighting)
+                context.AddField(HDFields.Unlit);
 
             // Common properties between all "surface" master nodes (everything except decal right now)
             context.AddField(HDStructFields.FragInputs.IsFrontFace,         systemData.doubleSidedMode != DoubleSidedMode.Disabled && context.pass.referenceName != "SHADERPASS_MOTION_VECTORS");
