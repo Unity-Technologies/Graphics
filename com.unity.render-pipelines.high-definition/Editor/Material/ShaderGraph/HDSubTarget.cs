@@ -48,6 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected abstract string renderType { get; }
         protected abstract string renderQueue { get; }
         protected abstract string templatePath { get; }
+        protected abstract string templateMaterialDirectory { get; }
 
         public virtual string identifier => GetType().Name;
 

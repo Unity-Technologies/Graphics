@@ -11,6 +11,19 @@ namespace UnityEditor.VFX
 {
     class VFXObject : ScriptableObject
     {
+        //Explicitly disable the Reset option on all VFXObject
+        //Internal Reset() behavior leads to a dandling state in graph object
+        [MenuItem("CONTEXT/VFXObject/Reset", false)]
+        public static void DummyReset()
+        {
+        }
+
+        [MenuItem("CONTEXT/VFXObject/Reset", true)]
+        static bool ValidateDummyReset()
+        {
+            return false;
+        }
+
         public Action<VFXObject> onModified;
         void OnValidate()
         {
