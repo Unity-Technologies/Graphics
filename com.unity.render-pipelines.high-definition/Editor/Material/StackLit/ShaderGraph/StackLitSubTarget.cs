@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -24,7 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
         protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.StackLit;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "StackLit SubShader", "");
+        protected override string raytracingInclude => CoreIncludes.kStackLitRaytracing;
         protected override string subShaderInclude => CoreIncludes.kStackLit;
 
         protected override bool supportDistortion => true;
@@ -44,6 +46,70 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_StackLitData = value;
         }
 
+        const string kSSSpecularOcclusionBaseMode = "ScreenSpaceSpecularOcclusionBaseMode";
+        const string kSSSpecularOcclusionAOConeSize = "ScreenSpaceSpecularOcclusionAOConeSize";
+        const string kSSSpecularOcclusionAOConeDir = "ScreenSpaceSpecularOcclusionAOConeDir";
+        const string kDataBasedSpecularOcclusionBaseMode = "DataBasedSpecularOcclusionBaseMode";
+        const string kDataBasedSpecularOcclusionAOConeSize = "DataBasedSpecularOcclusionAOConeSize";
+        const string kSpecularOcclusionConeFixupMethod = "SpecularOcclusionConeFixupMethod";
+        const string kDualSpecularLobeParametrization = "DualSpecularLobeParametrization";
+        const string kBaseParametrization = "BaseParametrization";
+
+        // Material
+        public static FieldDescriptor Coat =                    new FieldDescriptor(kMaterial, "Coat", "_MATERIAL_FEATURE_COAT");
+        public static FieldDescriptor DualSpecularLobe =        new FieldDescriptor(kMaterial, "DualSpecularLobe", "_MATERIAL_FEATURE_DUAL_SPECULAR_LOBE");
+        public static FieldDescriptor CoatNormal =              new FieldDescriptor(kMaterial, "CoatNormal", "_MATERIAL_FEATURE_COAT_NORMALMAP");
+
+        // Advanced
+        public static FieldDescriptor AnisotropyForAreaLights = new FieldDescriptor(string.Empty, "AnisotropyForAreaLights", "_ANISOTROPY_FOR_AREA_LIGHTS");
+        public static FieldDescriptor RecomputeStackPerLight =  new FieldDescriptor(string.Empty, "RecomputeStackPerLight", "_VLAYERED_RECOMPUTE_PERLIGHT");
+        public static FieldDescriptor HonorPerLightMinRoughness = new FieldDescriptor(string.Empty, "HonorPerLightMinRoughness", "_STACK_LIT_HONORS_LIGHT_MIN_ROUGHNESS");
+        public static FieldDescriptor ShadeBaseUsingRefractedAngles = new FieldDescriptor(string.Empty, "ShadeBaseUsingRefractedAngles", "_VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE");
+        public static FieldDescriptor StackLitDebug =           new FieldDescriptor(string.Empty, "StackLitDebug", "_STACKLIT_DEBUG");
+        public static FieldDescriptor CapHazinessIfNotMetallic = new FieldDescriptor(string.Empty, "CapHazinessIfNotMetallic", "");
+        public static FieldDescriptor GeometricSpecularAA =     new FieldDescriptor(kSpecular, "GeometricAA", "_ENABLE_GEOMETRIC_SPECULAR_AA 1");
+
+        // Screen Space Specular Occlusion Base Mode
+        public static FieldDescriptor SSSpecularOcclusionBaseModeOff = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "Off", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeDirectFromAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "DirectFromAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeConeConeFromBentAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "ConeConeFromBentAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeSPTDIntegrationOfBentAO = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "SPTDIntegrationOfBentAO", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD");
+        public static FieldDescriptor SSSpecularOcclusionBaseModeCustom = new FieldDescriptor(kSSSpecularOcclusionBaseMode, "Custom", "_SCREENSPACE_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+
+        // Screen Space Specular Occlusion AO Cone Size
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeUniformAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "UniformAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM");
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeCosWeightedAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "CosWeightedAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS");
+        public static FieldDescriptor SSSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO = new FieldDescriptor(kSSSpecularOcclusionAOConeSize, "CosWeightedBentCorrectAO", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION");
+
+        // Screen Space Specular Occlusion AO Cone Dir
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirGeomNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "GeomNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_GEOM_NORMAL");
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirBentNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "BentNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_BENT_NORMAL");
+        public static FieldDescriptor SSSpecularOcclusionAOConeDirShadingNormal = new FieldDescriptor(kSSSpecularOcclusionAOConeDir, "ShadingNormal", "_SCREENSPACE_SPECULAROCCLUSION_VISIBILITY_DIR BENT_VISIBILITY_DIR_SHADING_NORMAL");
+
+        // Data Bases Specular Occlusion Base Mode
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeOff = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "Off", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_DISABLED");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeDirectFromAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "DirectFromAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_FROM_AO");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeConeConeFromBentAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "ConeConeFromBentAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CONECONE");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeSPTDIntegrationOfBentAO = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "SPTDIntegrationOfBentAO", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_SPTD");
+        public static FieldDescriptor DataBasedSpecularOcclusionBaseModeCustom = new FieldDescriptor(kDataBasedSpecularOcclusionBaseMode, "Custom", "_DATABASED_SPECULAROCCLUSION_METHOD SPECULAR_OCCLUSION_CUSTOM_EXT_INPUT");
+
+        // Data Based Specular Occlusion AO Cone Size
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeUniformAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "UniformAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_UNIFORM");
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeCosWeightedAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "CosWeightedAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS");
+        public static FieldDescriptor DataBasedSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO = new FieldDescriptor(kDataBasedSpecularOcclusionAOConeSize, "CosWeightedBentCorrectAO", "_DATABASED_SPECULAROCCLUSION_VISIBILITY_FROM_AO_WEIGHT BENT_VISIBILITY_FROM_AO_COS_BENT_CORRECTION");
+
+        // Specular Occlusion Cone Fixup Method
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodOff = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "Off", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_NONE");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostBSDFRoughness = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostBSDFRoughness", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "TiltDirectionToGeomNormal", "_BENT_VISIBILITY_FIXUP_FLAGS BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM");
+        public static FieldDescriptor SpecularOcclusionConeFixupMethodBoostAndTilt = new FieldDescriptor(kSpecularOcclusionConeFixupMethod, "BoostAndTilt", "_BENT_VISIBILITY_FIXUP_FLAGS (BENT_VISIBILITY_FIXUP_FLAGS_BOOST_BSDF_ROUGHNESS|BENT_VISIBILITY_FIXUP_FLAGS_TILT_BENTNORMAL_TO_GEOM)");
+        
+        // Dual Specular Lobe Parametrization
+        public static FieldDescriptor HazyGloss =               new FieldDescriptor(kDualSpecularLobeParametrization, "HazyGloss", "_MATERIAL_FEATURE_HAZY_GLOSS");
+
+        // Base Parametrization
+        public static FieldDescriptor BaseParamSpecularColor =  new FieldDescriptor(kBaseParametrization, "SpecularColor", "_MATERIAL_FEATURE_SPECULAR_COLOR");
+
         protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
         {
             var descriptor = base.GetRaytracingSubShaderDescriptor();
@@ -62,42 +128,42 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // StackLit specific properties
             // Material
-            context.AddField(HDFields.Anisotropy,                   stackLitData.anisotropy);
-            context.AddField(HDFields.Coat,                         stackLitData.coat);
-            context.AddField(HDFields.CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
+            context.AddField(Anisotropy,                   stackLitData.anisotropy);
+            context.AddField(Coat,                         stackLitData.coat);
+            context.AddField(CoatMask,                     stackLitData.coat && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatMask) &&
                                                                         descs.Contains(HDBlockFields.SurfaceDescription.CoatMask));
-            // context.AddField(HDFields.CoatMaskZero,                 coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
+            // context.AddField(CoatMaskZero,                 coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
-            // context.AddField(HDFields.CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
+            // context.AddField(CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
-            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal
+            context.AddField(CoatNormal,                   stackLitData.coatNormal
                 && (context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalOS)
                     || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalTS)
                     || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalWS)));
-            context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
-            context.AddField(HDFields.SubsurfaceScattering,         stackLitData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.Transmission,                 stackLitData.transmission);
-            context.AddField(HDFields.DualSpecularLobe,             stackLitData.dualSpecularLobe);
+            context.AddField(Iridescence,                  stackLitData.iridescence);
+            context.AddField(SubsurfaceScattering,         stackLitData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(Transmission,                 stackLitData.transmission);
+            context.AddField(DualSpecularLobe,             stackLitData.dualSpecularLobe);
 
             // Base Parametrization
             // Even though we can just always transfer the present (check with $SurfaceDescription.*) fields like specularcolor
             // and metallic, we still need to know the baseParametrization in the template to translate into the
             // _MATERIAL_FEATURE_SPECULAR_COLOR define:
-            context.AddField(HDFields.BaseParamSpecularColor,       stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor);
+            context.AddField(BaseParamSpecularColor,       stackLitData.baseParametrization == StackLit.BaseParametrization.SpecularColor);
 
             // Dual Specular Lobe Parametrization
-            context.AddField(HDFields.HazyGloss,                    stackLitData.dualSpecularLobe &&
+            context.AddField(HazyGloss,                    stackLitData.dualSpecularLobe &&
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
-            context.AddField(HDFields.Tangent,                      descs.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
+            context.AddField(DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
+            context.AddField(Tangent,                      descs.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
             // Option for baseParametrization == Metallic && DualSpecularLobeParametrization == HazyGloss:
             // Again we assume masternode has HazyGlossMaxDielectricF0 which should always be the case
             // if capHazinessWrtMetallic.isOn.
-            context.AddField(HDFields.CapHazinessIfNotMetallic,     stackLitData.dualSpecularLobe &&
+            context.AddField(CapHazinessIfNotMetallic,     stackLitData.dualSpecularLobe &&
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss &&
                                                                             stackLitData.capHazinessWrtMetallic && stackLitData.baseParametrization == StackLit.BaseParametrization.BaseMetallic
                                                                             && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HazyGlossMaxDielectricF0));
@@ -118,68 +184,68 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //
             // (Note we can achieve the same results in the template on just single predicates by making defines out of them,
             // and using #if defined() && etc)
-            context.AddField(HDFields.GeometricSpecularAA,          lightingData.specularAA &&
+            context.AddField(GeometricSpecularAA,          lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
-            context.AddField(HDFields.SpecularAA,                   lightingData.specularAA &&
+            context.AddField(SpecularAA,                   lightingData.specularAA &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold));
-            context.AddField(HDFields.SpecularOcclusion,            stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
+            context.AddField(SpecularOcclusion,            stackLitData.screenSpaceSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off ||
                                                                             stackLitData.dataBasedSpecularOcclusionBaseMode != StackLitData.SpecularOcclusionBaseMode.Off);
 
             // Advanced
-            context.AddField(HDFields.AnisotropyForAreaLights,      stackLitData.anisotropyForAreaLights);
-            context.AddField(HDFields.RecomputeStackPerLight,       stackLitData.recomputeStackPerLight);
-            context.AddField(HDFields.HonorPerLightMinRoughness,    stackLitData.honorPerLightMinRoughness);
-            context.AddField(HDFields.ShadeBaseUsingRefractedAngles, stackLitData.shadeBaseUsingRefractedAngles);
-            context.AddField(HDFields.StackLitDebug,                stackLitData.debug);
+            context.AddField(AnisotropyForAreaLights,      stackLitData.anisotropyForAreaLights);
+            context.AddField(RecomputeStackPerLight,       stackLitData.recomputeStackPerLight);
+            context.AddField(HonorPerLightMinRoughness,    stackLitData.honorPerLightMinRoughness);
+            context.AddField(ShadeBaseUsingRefractedAngles, stackLitData.shadeBaseUsingRefractedAngles);
+            context.AddField(StackLitDebug,                stackLitData.debug);
 
             // Screen Space Specular Occlusion Base Mode
-            context.AddField(HDFields.SSSpecularOcclusionBaseModeOff, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Off);
-            context.AddField(HDFields.SSSpecularOcclusionBaseModeDirectFromAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
-            context.AddField(HDFields.SSSpecularOcclusionBaseModeConeConeFromBentAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.ConeConeFromBentAO);
-            context.AddField(HDFields.SSSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
-            context.AddField(HDFields.SSSpecularOcclusionBaseModeCustom, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Custom);
+            context.AddField(SSSpecularOcclusionBaseModeOff, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Off);
+            context.AddField(SSSpecularOcclusionBaseModeDirectFromAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
+            context.AddField(SSSpecularOcclusionBaseModeConeConeFromBentAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.ConeConeFromBentAO);
+            context.AddField(SSSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
+            context.AddField(SSSpecularOcclusionBaseModeCustom, stackLitData.screenSpaceSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Custom);
 
             // Screen Space Specular Occlusion AO Cone Size
-            context.AddField(HDFields.SSSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.UniformAO);
-            context.AddField(HDFields.SSSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.CosWeightedAO);
-            context.AddField(HDFields.SSSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO);
 
             // Screen Space Specular Occlusion AO Cone Dir
-            context.AddField(HDFields.SSSpecularOcclusionAOConeDirGeomNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeDirGeomNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeDir == StackLitData.SpecularOcclusionAOConeDir.GeomNormal);
-            context.AddField(HDFields.SSSpecularOcclusionAOConeDirBentNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeDirBentNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeDir == StackLitData.SpecularOcclusionAOConeDir.BentNormal);
-            context.AddField(HDFields.SSSpecularOcclusionAOConeDirShadingNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
+            context.AddField(SSSpecularOcclusionAOConeDirShadingNormal, SpecularOcclusionModeUsesVisibilityCone(stackLitData.screenSpaceSpecularOcclusionBaseMode) &&
                                                                             stackLitData.screenSpaceSpecularOcclusionAOConeDir == StackLitData.SpecularOcclusionAOConeDir.ShadingNormal);
 
             // Data Based Specular Occlusion Base Mode
-            context.AddField(HDFields.DataBasedSpecularOcclusionBaseModeOff, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Off);
-            context.AddField(HDFields.DataBasedSpecularOcclusionBaseModeDirectFromAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
-            context.AddField(HDFields.DataBasedSpecularOcclusionBaseModeConeConeFromBentAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.ConeConeFromBentAO);
-            context.AddField(HDFields.DataBasedSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
-            context.AddField(HDFields.DataBasedSpecularOcclusionBaseModeCustom, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Custom);
+            context.AddField(DataBasedSpecularOcclusionBaseModeOff, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Off);
+            context.AddField(DataBasedSpecularOcclusionBaseModeDirectFromAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.DirectFromAO);
+            context.AddField(DataBasedSpecularOcclusionBaseModeConeConeFromBentAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.ConeConeFromBentAO);
+            context.AddField(DataBasedSpecularOcclusionBaseModeSPTDIntegrationOfBentAO, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.SPTDIntegrationOfBentAO);
+            context.AddField(DataBasedSpecularOcclusionBaseModeCustom, stackLitData.dataBasedSpecularOcclusionBaseMode == StackLitData.SpecularOcclusionBaseMode.Custom);
 
             // Data Based Specular Occlusion AO Cone Size
-            context.AddField(HDFields.DataBasedSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
+            context.AddField(DataBasedSpecularOcclusionAOConeSizeUniformAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
                                                                             stackLitData.dataBasedSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.UniformAO);
-            context.AddField(HDFields.DataBasedSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
+            context.AddField(DataBasedSpecularOcclusionAOConeSizeCosWeightedAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
                                                                             stackLitData.dataBasedSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.CosWeightedAO);
-            context.AddField(HDFields.DataBasedSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
+            context.AddField(DataBasedSpecularOcclusionAOConeSizeCosWeightedBentCorrectAO, SpecularOcclusionModeUsesVisibilityCone(stackLitData.dataBasedSpecularOcclusionBaseMode) &&
                                                                             stackLitData.dataBasedSpecularOcclusionAOConeSize == StackLitData.SpecularOcclusionAOConeSize.CosWeightedBentCorrectAO);
 
             // Specular Occlusion Cone Fixup Method
-            context.AddField(HDFields.SpecularOcclusionConeFixupMethodOff, SpecularOcclusionUsesBentNormal(stackLitData) &&
+            context.AddField(SpecularOcclusionConeFixupMethodOff, SpecularOcclusionUsesBentNormal(stackLitData) &&
                                                                             stackLitData.specularOcclusionConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.Off);
-            context.AddField(HDFields.SpecularOcclusionConeFixupMethodBoostBSDFRoughness, SpecularOcclusionUsesBentNormal(stackLitData) &&
+            context.AddField(SpecularOcclusionConeFixupMethodBoostBSDFRoughness, SpecularOcclusionUsesBentNormal(stackLitData) &&
                                                                             stackLitData.specularOcclusionConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostBSDFRoughness);
-            context.AddField(HDFields.SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal, SpecularOcclusionUsesBentNormal(stackLitData) &&
+            context.AddField(SpecularOcclusionConeFixupMethodTiltDirectionToGeomNormal, SpecularOcclusionUsesBentNormal(stackLitData) &&
                                                                             stackLitData.specularOcclusionConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.TiltDirectionToGeomNormal);
-            context.AddField(HDFields.SpecularOcclusionConeFixupMethodBoostAndTilt, SpecularOcclusionUsesBentNormal(stackLitData) &&
+            context.AddField(SpecularOcclusionConeFixupMethodBoostAndTilt, SpecularOcclusionUsesBentNormal(stackLitData) &&
                                                                             stackLitData.specularOcclusionConeFixupMethod == StackLitData.SpecularOcclusionConeFixupMethod.BoostAndTilt);
         }
 
