@@ -17,7 +17,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
         float3 shadow3;
-        // TODO: useless?
+        // We need to recompute some coordinate not computed by default for shadow matte
         posInput = GetPositionInput(fragInputs.positionSS.xy, _ScreenSize.zw, fragInputs.positionSS.z, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float3 upWS = normalize(fragInputs.tangentToWorld[1]);
         uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
