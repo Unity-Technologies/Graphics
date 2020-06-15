@@ -8,7 +8,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            TransformObjectToWorldNormal(input.normalOS);
     $VertexDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             TransformWorldToViewDir(output.WorldSpaceNormal);
     $VertexDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-    $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS;
+    $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS.xyz;
     $VertexDescriptionInputs.WorldSpaceTangent:		    output.WorldSpaceTangent =           TransformObjectToWorldDir(input.tangentOS.xyz);
     $VertexDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
     $VertexDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
@@ -34,6 +34,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
     $VertexDescriptionInputs.BoneWeights:               output.BoneWeights =                 input.weights;
     $VertexDescriptionInputs.BoneIndices:               output.BoneIndices =                 input.indices;
+    $VertexDescriptionInputs.VertexID:                  output.VertexID =                    input.vertexID;
 
     return output;
 }
@@ -49,9 +50,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
     // copy graph output to the results
-    $VertexDescription.VertexPosition: input.positionOS = vertexDescription.VertexPosition;
-    $VertexDescription.VertexNormal:   input.normalOS = vertexDescription.VertexNormal;
-    $VertexDescription.VertexTangent:  input.tangentOS.xyz = vertexDescription.VertexTangent;
+    $VertexDescription.Position: input.positionOS = vertexDescription.Position;
+    $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
+    $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
 
     return input;
 }

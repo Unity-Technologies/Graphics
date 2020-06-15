@@ -8,6 +8,8 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Legacy;
 using ShaderPass = UnityEditor.ShaderGraph.PassDescriptor;
 
 // Include material common properties names
@@ -65,9 +67,20 @@ namespace UnityEditor.Rendering.HighDefinition
             });
         }
 
-        public static void AddStencilShaderProperties(PropertyCollector collector, bool splitLighting, bool receiveSSR, bool recieveSSRTransparent = false)
+        public static void AddStencilShaderProperties(PropertyCollector collector, SystemData systemData, LightingData lightingData, bool splitLighting)
         {
-            BaseLitGUI.ComputeStencilProperties(receiveSSR, splitLighting, out int stencilRef, out int stencilWriteMask,
+            bool ssrStencil = false;
+            bool receiveSSROpaque = false;
+            bool receiveSSRTransparent = false;
+
+            if (lightingData != null)
+            {
+                ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
+                receiveSSROpaque = lightingData.receiveSSR;
+                receiveSSRTransparent = lightingData.receiveSSRTransparent;
+            }
+
+            BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
                 out int stencilRefDepth, out int stencilWriteMaskDepth, out int stencilRefGBuffer, out int stencilWriteMaskGBuffer,
                 out int stencilRefMV, out int stencilWriteMaskMV
             );
@@ -90,14 +103,13 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddIntProperty("_ZTestGBuffer", 4);
 
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
-            collector.AddToggleProperty(kReceivesSSR, receiveSSR);
-            collector.AddToggleProperty(kReceivesSSRTransparent, recieveSSRTransparent);
-
+            collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
+            collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
         }
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool alphaToMask, bool zWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
@@ -109,8 +121,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddFloatProperty("_AlphaSrcBlend", 1.0f);
             collector.AddFloatProperty("_AlphaDstBlend", 0.0f);
             collector.AddToggleProperty("_AlphaToMask", alphaToMask);
-            collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? zWrite : true);
-            collector.AddToggleProperty(kTransparentZWrite, zWrite);
+            collector.AddToggleProperty(kZWrite, (surface == SurfaceType.Transparent) ? transparentZWrite : true);
+            collector.AddToggleProperty(kTransparentZWrite, transparentZWrite);
             collector.AddFloatProperty("_CullMode", (int)CullMode.Back);
             collector.AddIntProperty(kTransparentSortPriority, sortingPriority);
             collector.AddToggleProperty(kEnableFogOnTransparent, fogOnTransparent);
@@ -168,6 +180,12 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty("_RayTracing", isRayTracing);
         }
         
+        public static void AddPrePostPassProperties(PropertyCollector collector, bool prepass, bool postpass)
+        {
+            collector.AddToggleProperty(kTransparentDepthPrepassEnable, prepass);
+            collector.AddToggleProperty(kTransparentDepthPostpassEnable, postpass);
+        }
+
         public static string RenderQueueName(HDRenderQueue.RenderQueueType value)
         {
             switch (value)
@@ -212,20 +230,32 @@ namespace UnityEditor.Rendering.HighDefinition
             return result;
         }
 
-        public static BlendMode ConvertAlphaModeToBlendMode(AlphaMode alphaMode)
+        public static bool UpgradeLegacyAlphaClip(IMasterNode1 masterNode)
+        {
+            var clipThresholdId = 8;
+            var node = masterNode as AbstractMaterialNode;
+            var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
+            if(clipThresholdSlot == null)
+                return false;
+
+            clipThresholdSlot.owner = node;
+            return (clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f);
+        }
+
+        public static BlendMode UpgradeLegacyAlphaModeToBlendMode(int alphaMode)
         {
             switch (alphaMode)
             {
-                case AlphaMode.Additive:
-                    return BlendMode.Additive;
-                case AlphaMode.Alpha:
+                case 0: //AlphaMode.Alpha:
                     return BlendMode.Alpha;
-                case AlphaMode.Premultiply:
+                case 1: //AlphaMode.Premultiply:
                     return BlendMode.Premultiply;
-                case AlphaMode.Multiply: // In case of multiply we fall back to alpha
-                    return BlendMode.Alpha;
+                case 2: //AlphaMode.Additive:
+                    return BlendMode.Additive;
+                case 3: //AlphaMode.Multiply: // In case of multiply we fall back to Premultiply
+                    return BlendMode.Premultiply;
                 default:
-                    throw new System.Exception("Unknown AlphaMode: " + alphaMode + ": can't convert to BlendMode.");
+                    throw new System.Exception("Unknown AlphaMode at index: " + alphaMode + ": can't convert to BlendMode.");
             }
         }
 

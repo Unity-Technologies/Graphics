@@ -4,7 +4,7 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.0.0] - 2019-06-10
 ### Added
 - Added the Internal Inspector which allows the user to view data contained in selected nodes and properties in a new floating graph sub-window. Also added support for custom property drawers to let you visualize any data type you like and expose it to the inspector.  
 - Added samples for Procedural Patterns to the package.
@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added AlphaToMask render state.
 - Added a field to the Master Nodes that overrides the generated shader's ShaderGUI, which determines how a Material that uses a Shader Graph looks.
 - Added Redirect Nodes. You can now double-click an edge to add a control point that allows you to route edges around other nodes and connect multiple output edges.
+- Added `Compute Deformation` Node to read deformed vertex data from Dots Deformations.
 - Added new graph nodes that allow sampling Virtual Textures
 - Shader Graph now uses a new file format that is much friendlier towards version control systems and humans. Existing Shader Graphs and will use the new format next time they are saved.
 
@@ -37,6 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the functions in the `Normal From Height` node to avoid NaN outputs.
 - Changed the Voronoi Node algorithm to increase the useful range of the input values and to always use float values internally to avoid clipping.
 - Changed the `Reference Suffix` of Keyword Enum entries so that you cannot edit them, which ensures that material keywords compile properly. 
+- Updated the dependent version of `Searcher` to 4.2.0. 
+- Added support for `Linear Blend Skinning` Node to Universal Render Pipeline.
 
 ### Fixed
 - Edges no longer produce errors when you save a Shader Graph.
@@ -97,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a compilation error when using Hybrid Renderer due to incorrect positioning of macros.
 - Fixed a bug where the `Create Node Menu` lagged on load. Entries are now only generated when property, keyword, or subgraph changes are detected. [1209567](https://issuetracker.unity3d.com/issues/shadergraph-opening-node-search-window-is-unnecessarily-slow).
 - Fixed a bug with the `Transform` node where converting from `Absolute World` space in a sub graph causes invalid subscript errors. [1190813](https://issuetracker.unity3d.com/issues/shadergraph-invalid-subscript-errors-are-thrown-when-connecting-a-subgraph-with-transform-node-with-unlit-master-node)
+- Fixed a bug where depndencies were not getting included when exporting a shadergraph and subgraphs
 - Fixed a bug where adding a " to a property display name would cause shader compilation errors and show all nodes as broken
 - Fixed a bug where the `Position` node would change coordinate spaces from `World` to `Absolute World` when shaders recompile. [1184617](https://issuetracker.unity3d.com/product/unity/issues/guid/1184617/)
 - Fixed a bug where instanced shaders wouldn't compile on PS4.
@@ -104,15 +108,25 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a bug where nodes dealing with matricies would sometimes display a preview, sometimes not.
 - Optimized loading a large Shader Graph. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed NaN issue in triplanar SG node when blend goes to 0.
+- Fixed a recurring bug where node inputs would get misaligned from their ports. [1224480]
 - Fixed an issue where Blackboard properties would not duplicate with `Precision` or `Hybrid Instancing` options. 
 - Fixed an issue where `Texture` properties on the Blackboard would not duplicate with the same `Mode` settings. 
 - Fixed an issue where `Keywords` on the Blackboard would not duplicate with the same `Default` value.
 - Shader Graph now requests preview shader compilation asynchronously. [1209047](https://issuetracker.unity3d.com/issues/shader-graph-unresponsive-editor-when-using-large-graphs)
 - Fixed an issue where Shader Graph would not compile master previews after an assembly reload.
+- Fixed issue where `Linear Blend Skinning` node could not be converted to Sub Graph [1227087](https://issuetracker.unity3d.com/issues/shadergraph-linear-blend-skinning-node-reports-an-error-and-prevents-shader-compilation-when-used-within-a-sub-graph)
 - Fixed a compilation error in preview shaders for nodes requiring view direction.
 - Fixed undo not being recorded properly for setting active master node, graph precision, and node defaults.
 - Fixed an issue where Custum Function nodes and Sub Graph Output nodes could no longer rename slots. 
 - Fixed a bug where searcher entries would not repopulate correctly after an undo was perfromed (https://fogbugz.unity3d.com/f/cases/1241018/)
+- Fixed a bug where Redirect Nodes did not work as inputs to Custom Function Nodes. [1235999](https://issuetracker.unity3d.com/product/unity/issues/guid/1235999/)
+- Fixed a bug where changeing the default value on a keyword would reset the node input type to vec4 (https://fogbugz.unity3d.com/f/cases/1216760/)
+- Fixed a soft lock when you open a graph when the blackboard hidden.
+- Fixed an issue where keyboard navigation in the Create Node menu no longer worked. [1253544]
+- Preview correctly shows unassigned VT texture result, no longer ignores null textures
+- Don't allow duplicate VT layer names when renaming layers
+- Moved VT layer TextureType to the VTProperty from the SampleVT node
+- Fixed the squished UI of VT property layers
 
 ## [7.1.1] - 2019-09-05
 ### Added

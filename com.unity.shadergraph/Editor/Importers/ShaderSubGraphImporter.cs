@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(12, Extension)]
+    [ScriptedImporter(14, Extension)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -76,6 +76,16 @@ namespace UnityEditor.ShaderGraph
             Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
             ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
             ctx.SetMainObject(graphAsset);
+
+            var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();
+            metadata.hideFlags = HideFlags.HideInHierarchy;
+            metadata.assetDependencies = new List<UnityEngine.Object>();
+            var deps = GatherDependenciesFromSourceFile(ctx.assetPath);
+            foreach (string dependency in deps)
+            {
+                metadata.assetDependencies.Add(AssetDatabase.LoadAssetAtPath(dependency, typeof(UnityEngine.Object)));
+            }
+            ctx.AddObjectToAsset("Metadata", metadata);
         }
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
@@ -95,7 +105,7 @@ namespace UnityEditor.ShaderGraph
             asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}";
             asset.path = graph.path;
 
-            var outputNode = (SubGraphOutputNode)graph.outputNode;
+            var outputNode = graph.outputNode;
 
             var outputSlots = PooledList<MaterialSlot>.Get();
             outputNode.GetInputSlots(outputSlots);
@@ -114,7 +124,7 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
-            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode);
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
             asset.graphPrecision = graph.concretePrecision;
             asset.outputPrecision = outputNode.concretePrecision;
@@ -226,7 +236,7 @@ namespace UnityEditor.ShaderGraph
             {
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots);
+            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 

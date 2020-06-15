@@ -56,6 +56,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/307_GlobalIlluminationFog.unity
     guid: 8a5a48512a640734394f6427d94fd0f8
+  - enabled: 0
+    path: Assets/Scenes/308_ScreenSpaceGlobalIllumination.unity
+    guid: ccf33fc5169d0624c91b9116ebf44c7f
   - enabled: 1
     path: Assets/Scenes/406_RayTracedShadows.unity
     guid: 4aaf485f4ac39ff4e9fd997caff44abe
@@ -84,8 +87,14 @@ EditorBuildSettings:
     path: Assets/Scenes/701_DirectionalColorShadow.unity
     guid: 142a7be56d6440d43b4f83a92b10b2b1
   - enabled: 1
+    path: Assets/Scenes/701_DirectionalColorShadowSG.unity
+    guid: ebe458a334d4ac1488f836b86f4814a3
+  - enabled: 1
     path: Assets/Scenes/702_DirectionalShadow.unity
     guid: fef4168c8e3f3bd47b3edad8d968de9f
+  - enabled: 1
+    path: Assets/Scenes/702_DirectionalShadowSG.unity
+    guid: 97247f075d9ed4c4ab30894abe19320e
   - enabled: 1
     path: Assets/Scenes/702_DirectionalShadowFiltering.unity
     guid: 8b86ef43f75119a4dbf4af23c2b4e52e
@@ -108,11 +117,17 @@ EditorBuildSettings:
     path: Assets/Scenes/707_SpotContactShadow.unity
     guid: 8c2434edc9ef0ff468dcb254cf0a17ba
   - enabled: 1
+    path: Assets/Scenes/708_ShadowExtendedCulling.unity
+    guid: 9095cdd3e135b094aa41b57eb22c8144
+  - enabled: 1
     path: Assets/Scenes/801_SubSurfaceScatteringDeferred.unity
     guid: c939ce56b901d264baab16d584624b30
   - enabled: 1
     path: Assets/Scenes/802_SubSurfaceScatteringForward.unity
     guid: 45325940ed3cc4d44a619c66066ec3d6
+  - enabled: 1
+    path: Assets/Scenes/803_SubSurfaceScatteringGlobalIllumination.unity
+    guid: acbea951c17ce7944a2c6e9374b1a0f6
   - enabled: 1
     path: Assets/Scenes/900_Materials_AlphaTest_SG.unity
     guid: 4bc2576a0bbdfd74a86bfb57af91ccaa
@@ -134,6 +149,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/902_Materials_SG_Variants_Unlit.unity
     guid: 5b672860fdf88f84fa93bf94214514f1
+  - enabled: 1
+    path: Assets/Scenes/905_Materials_SG_TransparentRTR.unity
+    guid: cc33ef2ea5450204ab4fab18d90afaec
   - enabled: 1
     path: Assets/Scenes/3001_AreaShadowsDeferred.unity
     guid: 490feb5a82328c647b87259fba42ec1f
@@ -164,4 +182,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/5006_PathTracing_DoF.unity
     guid: c163eeeb7af1c194590ab367fb84a376
+  - enabled: 1
+    path: Assets/Scenes/5007_PathTracing_Materials_SG_Lit.unity
+    guid: 94394be5b934f2543b05529545e764f9
+  - enabled: 1
+    path: Assets/Scenes/5007_PathTracing_Materials_SG_Unlit.unity
+    guid: a8836a288e8e4ae49abdf5d23fedb3c8
   m_configObjects: {}

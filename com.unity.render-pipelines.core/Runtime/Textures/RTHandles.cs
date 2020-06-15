@@ -304,5 +304,15 @@ namespace UnityEngine.Rendering
                 msaaSamples
                 );
         }
+
+        /// <summary>
+        /// Reset the reference size of the system and reallocate all textures.
+        /// </summary>
+        /// <param name="width">New width.</param>
+        /// <param name="height">New height.</param>
+        public static void ResetReferenceSize(int width, int height)
+        {
+            s_DefaultInstance.ResetReferenceSize(width, height);
+        }
     }
 }
