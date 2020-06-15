@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -96,24 +97,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal struct CompiledResourceInfo
         {
             public List<int>    producers;
+            public List<int>    consumers;
             public bool         resourceCreated;
-            public int          lastReadPassIndex;
-            public int          firstWritePassIndex;
             public int          refCount;
 
             public void Reset()
             {
                 if (producers == null)
                     producers = new List<int>();
+                if (consumers == null)
+                    consumers = new List<int>();
 
                 producers.Clear();
+                consumers.Clear();
                 resourceCreated = false;
-                lastReadPassIndex = -1;
-                firstWritePassIndex = int.MaxValue;
                 refCount = 0;
             }
         }
 
+        [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
         internal struct CompiledPassInfo
         {
             public RenderGraphPass      pass;
@@ -128,6 +130,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             public GraphicsFence        fence;
 
             public bool                 enableAsyncCompute { get { return pass.enableAsyncCompute; } }
+            public bool                 allowPassPruning { get { return pass.allowPassPruning; } }
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // This members are only here to ease debugging.
+            public List<string>         debugTextureReads;
+            public List<string>         debugTextureWrites;
+#endif
 
             public void Reset(RenderGraphPass pass)
             {
@@ -137,6 +146,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     textureCreateList = new List<TextureHandle>();
                     textureReleaseList = new List<TextureHandle>();
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    debugTextureReads = new List<string>();
+                    debugTextureWrites = new List<string>();
+#endif
                 }
 
                 textureCreateList.Clear();
@@ -147,17 +161,23 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 syncToPassIndex = -1;
                 syncFromPassIndex = -1;
                 needGraphicsFence = false;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                debugTextureReads.Clear();
+                debugTextureWrites.Clear();
+#endif
             }
         }
 
         RenderGraphResourceRegistry         m_Resources;
         RenderGraphObjectPool               m_RenderGraphPool = new RenderGraphObjectPool();
-        List<RenderGraphPass>               m_RenderPasses = new List<RenderGraphPass>();
-        List<RendererListHandle>            m_RendererLists = new List<RendererListHandle>();
+        List<RenderGraphPass>               m_RenderPasses = new List<RenderGraphPass>(64);
+        List<RendererListHandle>            m_RendererLists = new List<RendererListHandle>(32);
         RenderGraphDebugParams              m_DebugParameters = new RenderGraphDebugParams();
         RenderGraphLogger                   m_Logger = new RenderGraphLogger();
         RenderGraphDefaultResources         m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler>   m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
+        bool                                m_ExecutionExceptionWasRaised;
 
         // Compiled Render Graph info.
         DynamicArray<CompiledResourceInfo>  m_CompiledTextureInfos = new DynamicArray<CompiledResourceInfo>();
@@ -230,6 +250,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external texture to the Render Graph.
+        /// Any pass writing to an imported texture will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="rt">External RTHandle that needs to be imported.</param>
         /// <param name="shaderProperty">Optional property that allows you to specify a Shader property name to use for automatic resource binding.</param>
@@ -298,6 +319,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Import an external Compute Buffer to the Render Graph
+        /// Any pass writing to an imported compute buffer will be considered having side effects and can't be automatically pruned.
         /// </summary>
         /// <param name="computeBuffer">External Compute Buffer that needs to be imported.</param>
         /// <returns>A new ComputeBufferHandle.</returns>
@@ -334,6 +356,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="parameters">Render Graph execution parameters.</param>
         public void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, in RenderGraphExecuteParams parameters)
         {
+            m_ExecutionExceptionWasRaised = false;
+
             try
             {
                 m_Logger.Initialize();
@@ -349,7 +373,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             catch (Exception e)
             {
                 Debug.LogError("Render Graph Execution error");
-                Debug.LogException(e);
+                if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
+                    Debug.LogException(e);
+                m_ExecutionExceptionWasRaised = true;
             }
             finally
             {
@@ -370,10 +396,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         }
 
-        void ClearCompiledGraph()
+        internal void ClearCompiledGraph()
         {
             ClearRenderPasses();
-            m_Resources.Clear();
+            m_Resources.Clear(m_ExecutionExceptionWasRaised);
             m_DefaultResources.Clear();
             m_RendererLists.Clear();
             m_CompiledBufferInfos.Clear();
@@ -394,6 +420,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledPassInfos[i].Reset(m_RenderPasses[i]);
         }
 
+        internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
+
         void CountReferences()
         {
             for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
@@ -404,7 +432,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 foreach (TextureHandle texture in textureRead)
                 {
                     ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
+                    info.consumers.Add(passIndex);
                     info.refCount++;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureReads.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
                 }
 
                 var textureWrite = passInfo.pass.textureWriteList;
@@ -417,6 +450,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
                     if (m_Resources.IsTextureImported(texture))
                         passInfo.hasSideEffect = true;
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    passInfo.debugTextureWrites.Add(m_Resources.GetTextureResourceDesc(texture).name);
+#endif
+                }
+
+                foreach (TextureHandle texture in passInfo.pass.transientTextureList)
+                {
+                    ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
+                    info.refCount++;
+                    info.consumers.Add(passIndex);
+                    info.producers.Add(passIndex);
                 }
 
                 // Can't share the code with a generic func as TextureHandle and ComputeBufferHandle are both struct and can't inherit from a common struct with a shared API (thanks C#)
@@ -424,6 +469,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 foreach (ComputeBufferHandle buffer in bufferRead)
                 {
                     ref CompiledResourceInfo info = ref m_CompiledBufferInfos[buffer];
+                    info.consumers.Add(passIndex);
                     info.refCount++;
                 }
 
@@ -431,14 +477,49 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 foreach (ComputeBufferHandle buffer in bufferWrite)
                 {
                     ref CompiledResourceInfo info = ref m_CompiledBufferInfos[buffer];
+                    info.producers.Add(passIndex);
                     passInfo.refCount++;
+
+                    // Writing to an imported compute buffer is considered as a side effect because we don't know what users will do with it outside of render graph.
+                    if (m_Resources.IsComputeBufferImported(buffer))
+                        passInfo.hasSideEffect = true;
                 }
             }
         }
 
-        void PruneUnusedPasses(DynamicArray<CompiledResourceInfo> resourceUsageList)
+        void PruneOutputlessPasses()
         {
-            // First gather resources that are never read.
+            // Gather passes that don't produce anything and prune them.
+            m_PruningStack.Clear();
+            for (int i = 0; i < m_CompiledPassInfos.size; ++i)
+            {
+                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[i];
+
+                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassPruning)
+                {
+                    // Producer is not necessary as it produces zero resources
+                    // Prune it and decrement refCount of all the resources it reads.
+                    // We don't need to go recursively here because we decrement ref count of read resources
+                    // so the subsequent passes of pruning will detect those and remove the related passes.
+                    passInfo.pruned = true;
+                    foreach (var index in passInfo.pass.textureReadList)
+                    {
+                        m_CompiledTextureInfos[index].refCount--;
+                    }
+
+                    foreach (var index in passInfo.pass.bufferReadList)
+                    {
+                        m_CompiledBufferInfos[index].refCount--;
+                    }
+                }
+            }
+        }
+
+        void PruneUnusedPasses(bool textureResources)
+        {
+            DynamicArray<CompiledResourceInfo> resourceUsageList = textureResources ? m_CompiledTextureInfos : m_CompiledBufferInfos;
+
+            // Gather resources that are never read.
             m_PruningStack.Clear();
             for (int i = 0; i < resourceUsageList.size; ++i)
             {
@@ -455,18 +536,35 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 {
                     ref var producerInfo = ref m_CompiledPassInfos[producerIndex];
                     producerInfo.refCount--;
-                    if (producerInfo.refCount == 0 && !producerInfo.hasSideEffect)
+                    if (producerInfo.refCount == 0 && !producerInfo.hasSideEffect && producerInfo.allowPassPruning)
                     {
                         // Producer is not necessary anymore as it produces zero resources
                         // Prune it and decrement refCount of all the textures it reads.
                         producerInfo.pruned = true;
-                        foreach (var textureIndex in producerInfo.pass.textureReadList)
+
+                        // Once again, can't share code because C# (can't have struct inheritance)
+                        // Making all those List <int> could help but we lose a lot of explicitness in the API...
+                        if (textureResources)
                         {
-                            ref CompiledResourceInfo resourceInfo = ref resourceUsageList[textureIndex];
-                            resourceInfo.refCount--;
-                            // If a texture is not used anymore, add it to the stack to be processed in subsequent iteration.
-                            if (resourceInfo.refCount == 0)
-                                m_PruningStack.Push(textureIndex);
+                            foreach (var textureIndex in producerInfo.pass.textureReadList)
+                            {
+                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[textureIndex];
+                                resourceInfo.refCount--;
+                                // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
+                                if (resourceInfo.refCount == 0)
+                                    m_PruningStack.Push(textureIndex);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var bufferIndex in producerInfo.pass.bufferReadList)
+                            {
+                                ref CompiledResourceInfo resourceInfo = ref resourceUsageList[bufferIndex];
+                                resourceInfo.refCount--;
+                                // If a resource is not used anymore, add it to the stack to be processed in subsequent iteration.
+                                if (resourceInfo.refCount == 0)
+                                    m_PruningStack.Push(bufferIndex);
+                            }
                         }
                     }
                 }
@@ -475,27 +573,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void PruneUnusedPasses()
         {
-            PruneUnusedPasses(m_CompiledTextureInfos);
-            PruneUnusedPasses(m_CompiledBufferInfos);
+            // TODO RENDERGRAPH: temporarily remove pruning of passes without product.
+            // Many passes are used just to set global variables so we don't want to force users to disallow pruning on those explicitly every time.
+            // This will prune passes with no outputs.
+            //PruneOutputlessPasses();
+
+            // This will prune all passes that produce resource that are never read.
+            PruneUnusedPasses(textureResources: true);
+            PruneUnusedPasses(textureResources: false);
+
             LogPrunedPasses();
         }
-
-        int GetLatestProducerIndex(int passIndex, in CompiledResourceInfo info)
-        {
-            // We want to know the highest pass index below the current pass that writes to the resource.
-            int result = -1;
-            foreach (var producer in info.producers)
-            {
-                // producers are by construction in increasing order.
-                if (producer < passIndex)
-                    result = producer;
-                else
-                    return result;
-            }
-
-            return result;
-        }
-
 
         void UpdatePassSynchronization(ref CompiledPassInfo currentPassInfo, ref CompiledPassInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
         {
@@ -541,6 +629,68 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
+        int GetLatestProducerIndex(int passIndex, in CompiledResourceInfo info)
+        {
+            // We want to know the highest pass index below the current pass that writes to the resource.
+            int result = -1;
+            foreach (var producer in info.producers)
+            {
+                // producers are by construction in increasing order.
+                if (producer < passIndex)
+                    result = producer;
+                else
+                    return result;
+            }
+
+            return result;
+        }
+
+        int GetLatestValidReadIndex(in CompiledResourceInfo info)
+        {
+            if (info.consumers.Count == 0)
+                return -1;
+
+            var consumers = info.consumers;
+            for (int i = consumers.Count - 1; i >= 0; --i)
+            {
+                if (!m_CompiledPassInfos[consumers[i]].pruned)
+                    return consumers[i];
+            }
+
+            return -1;
+        }
+
+        int GetFirstValidWriteIndex(in CompiledResourceInfo info)
+        {
+            if (info.producers.Count == 0)
+                return -1;
+
+            var producers = info.producers;
+            for (int i = 0; i < producers.Count; i++)
+            {
+                if (!m_CompiledPassInfos[producers[i]].pruned)
+                    return producers[i];
+            }
+
+            return -1;
+        }
+
+        int GetLatestValidWriteIndex(in CompiledResourceInfo info)
+        {
+            if (info.producers.Count == 0)
+                return -1;
+
+            var producers = info.producers;
+            for (int i = producers.Count - 1; i >= 0; --i)
+            {
+                if (!m_CompiledPassInfos[producers[i]].pruned)
+                    return producers[i];
+            }
+
+            return -1;
+        }
+
+
         void UpdateResourceAllocationAndSynchronization()
         {
             int lastGraphicsPipeSync = -1;
@@ -559,21 +709,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 foreach (TextureHandle texture in passInfo.pass.textureReadList)
                 {
-                    ref CompiledResourceInfo resourceInfo = ref m_CompiledTextureInfos[texture];
-                    resourceInfo.lastReadPassIndex = Math.Max(resourceInfo.lastReadPassIndex, passIndex);
-                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourceInfo);
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledTextureInfos[texture]);
                 }
 
                 foreach (TextureHandle texture in passInfo.pass.textureWriteList)
                 {
-                    ref CompiledResourceInfo resourceInfo = ref m_CompiledTextureInfos[texture];
-                    if (resourceInfo.firstWritePassIndex == int.MaxValue)
-                    {
-                        resourceInfo.firstWritePassIndex = Math.Min(resourceInfo.firstWritePassIndex, passIndex);
-                        passInfo.textureCreateList.Add(texture);
-                    }
-                    passInfo.refCount++;
-                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, resourceInfo);
+                    UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledTextureInfos[texture]);
                 }
 
                 foreach (ComputeBufferHandle texture in passInfo.pass.bufferReadList)
@@ -585,15 +726,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     UpdateResourceSynchronization(ref lastGraphicsPipeSync, ref lastComputePipeSync, passIndex, m_CompiledBufferInfos[texture]);
                 }
 
-                // Add transient resources that are only used during this pass.
-                foreach (TextureHandle texture in passInfo.pass.transientTextureList)
-                {
-                    passInfo.textureCreateList.Add(texture);
-
-                    ref CompiledResourceInfo info = ref m_CompiledTextureInfos[texture];
-                    info.lastReadPassIndex = passIndex;
-                }
-
                 // Gather all renderer lists
                 m_RendererLists.AddRange(passInfo.pass.usedRendererListList);
             }
@@ -602,13 +734,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             for (int i = 0; i < m_CompiledTextureInfos.size; ++i)
             {
                 CompiledResourceInfo textureInfo = m_CompiledTextureInfos[i];
-                if (textureInfo.lastReadPassIndex != -1)
+
+                // Texture creation
+                int firstWriteIndex = GetFirstValidWriteIndex(textureInfo);
+                // This can happen for imported textures (for example an imported dummy black texture will never be written to but does not need creation anyway)
+                if (firstWriteIndex != -1)
+                    m_CompiledPassInfos[firstWriteIndex].textureCreateList.Add(new TextureHandle(i));
+
+                // Texture release
+                // Sometimes, a texture can be written by a pass after the last pass that reads it.
+                // In this case, we need to extend its lifetime to this pass otherwise the pass would get an invalid texture.
+                int lastReadPassIndex = Math.Max(GetLatestValidReadIndex(textureInfo), GetLatestValidWriteIndex(textureInfo));
+
+                if (lastReadPassIndex != -1)
                 {
                     // In case of async passes, we need to extend lifetime of resource to the first pass on the graphics pipeline that wait for async passes to be over.
                     // Otherwise, if we freed the resource right away during an async pass, another non async pass could reuse the resource even though the async pipe is not done.
-                    if (m_CompiledPassInfos[textureInfo.lastReadPassIndex].enableAsyncCompute)
+                    if (m_CompiledPassInfos[lastReadPassIndex].enableAsyncCompute)
                     {
-                        int currentPassIndex = textureInfo.lastReadPassIndex;
+                        int currentPassIndex = lastReadPassIndex;
                         int firstWaitingPassIndex = m_CompiledPassInfos[currentPassIndex].syncFromPassIndex;
                         // Find the first async pass that is synchronized by the graphics pipeline (ie: passInfo.syncFromPassIndex != -1)
                         while (firstWaitingPassIndex == -1 && currentPassIndex < m_CompiledPassInfos.size)
@@ -625,13 +769,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         // Fail safe in case render graph is badly formed.
                         if (currentPassIndex == m_CompiledPassInfos.size)
                         {
-                            RenderGraphPass invalidPass = m_RenderPasses[textureInfo.lastReadPassIndex];
+                            RenderGraphPass invalidPass = m_RenderPasses[lastReadPassIndex];
                             throw new InvalidOperationException($"Asynchronous pass {invalidPass.name} was never synchronized on the graphics pipeline.");
                         }
                     }
                     else
                     {
-                        ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[textureInfo.lastReadPassIndex];
+                        ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[lastReadPassIndex];
                         passInfo.textureReleaseList.Add(new TextureHandle(i));
                     }
                 }
@@ -645,7 +789,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Determines when resources are created/released
         // - Determines async compute pass synchronization
         // - Prune unused render passes.
-        void CompileRenderGraph()
+        internal void CompileRenderGraph()
         {
             InitializeCompilationData();
             CountReferences();
@@ -675,15 +819,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     throw new InvalidOperationException(string.Format("RenderPass {0} was not provided with an execute function.", passInfo.pass.name));
                 }
 
-                using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
+                try
                 {
-                    LogRenderPassBegin(passInfo);
-                    using (new RenderGraphLogIndent(m_Logger))
+                    using (new ProfilingScope(rgContext.cmd, passInfo.pass.customSampler))
                     {
-                        PreRenderPassExecute(passInfo, ref rgContext);
-                        passInfo.pass.Execute(rgContext);
-                        PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                        LogRenderPassBegin(passInfo);
+                        using (new RenderGraphLogIndent(m_Logger))
+                        {
+                            PreRenderPassExecute(passInfo, ref rgContext);
+                            passInfo.pass.Execute(rgContext);
+                            PostRenderPassExecute(cmd, ref passInfo, ref rgContext);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    m_ExecutionExceptionWasRaised = true;
+                    Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
+                    Debug.LogException(e);
+                    throw;
                 }
             }
         }
@@ -786,12 +940,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             foreach (var texture in passInfo.textureReleaseList)
                 m_Resources.ReleaseTexture(rgContext, texture);
-
-            pass.Release(rgContext);
         }
 
         void ClearRenderPasses()
         {
+            foreach (var pass in m_RenderPasses)
+                pass.Release(m_RenderGraphPool);
             m_RenderPasses.Clear();
         }
 
