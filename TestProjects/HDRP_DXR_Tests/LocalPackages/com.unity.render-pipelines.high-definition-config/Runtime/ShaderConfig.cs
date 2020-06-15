@@ -21,6 +21,22 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesEncodingModes
+    {
+        SphericalHarmonicsL0 = 0,
+        SphericalHarmonicsL1 = 1,
+        SphericalHarmonicsL2 = 2
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesBilateralFilteringModes
+    {
+        Disabled = 0,
+        Validity = 1,
+        OctahedralDepth = 2
+    }
+
+    [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
@@ -47,10 +63,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // Probe Volumes feature must also be enabled inside of your HDRenderPipelineAsset.
         ProbeVolumesEvaluationMode = ProbeVolumesEvaluationModes.Disabled,
         ProbeVolumesAdditiveBlending = 1,
+        ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
+        ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL1,
 
         AreaLights = 1,
 
+        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         DeferredShadowFiltering = HDShadowFilteringQuality.Medium,
+
         BarnDoor = 0
     };
 
@@ -67,8 +87,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int s_PrecomputedAtmosphericAttenuation = (int)ShaderOptions.PrecomputedAtmosphericAttenuation;
         public static ProbeVolumesEvaluationModes s_ProbeVolumesEvaluationMode = (ProbeVolumesEvaluationModes)ShaderOptions.ProbeVolumesEvaluationMode;
         public static int s_ProbeVolumesAdditiveBlending = (int)ShaderOptions.ProbeVolumesAdditiveBlending;
+        public static ProbeVolumesBilateralFilteringModes s_ProbeVolumesBilateralFilteringMode = (ProbeVolumesBilateralFilteringModes)ShaderOptions.ProbeVolumesBilateralFilteringMode;
+        public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
         public static int s_AreaLights = (int)ShaderOptions.AreaLights;
         public static int s_BarnDoor = (int)ShaderOptions.BarnDoor;
+        [System.Obsolete("Deferred shadow can now assume any value, so this field is not used anymore.")]
         public static HDShadowFilteringQuality s_DeferredShadowFiltering = (HDShadowFilteringQuality)ShaderOptions.DeferredShadowFiltering;
     }
 }

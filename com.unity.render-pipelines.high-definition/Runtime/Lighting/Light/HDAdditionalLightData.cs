@@ -198,11 +198,35 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float innerSpotPercent01 => innerSpotPercent / 100f;
 
+
+        [Range(k_MinSpotInnerPercent, k_MaxSpotInnerPercent)]
+        [SerializeField]
+        float m_SpotIESCutoffPercent = 100.0f; // To display this field in the UI this need to be public
+        /// <summary>
+        /// Get/Set the spot ies cutoff.
+        /// </summary>
+        public float spotIESCutoffPercent
+        {
+            get => m_SpotIESCutoffPercent;
+            set
+            {
+                if (m_SpotIESCutoffPercent == value)
+                    return;
+
+                m_SpotIESCutoffPercent = Mathf.Clamp(value, k_MinSpotInnerPercent, k_MaxSpotInnerPercent);
+            }
+        }
+
+        /// <summary>
+        /// Get the inner spot radius between 0 and 1.
+        /// </summary>
+        public float spotIESCutoffPercent01 => spotIESCutoffPercent/100f;
+
         [Range(0.0f, 16.0f)]
         [SerializeField, FormerlySerializedAs("lightDimmer")]
         float m_LightDimmer = 1.0f;
         /// <summary>
-        /// Get/Set the light dimmer / multiplier, between 0 and 16. 
+        /// Get/Set the light dimmer / multiplier, between 0 and 16.
         /// </summary>
         public float lightDimmer
         {
@@ -544,6 +568,56 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 m_AreaLightCookie = value;
                 UpdateAllLightValues();
+            }
+        }
+
+
+        // Optional IES (Cubemap for PointLight)
+        [SerializeField]
+        internal Texture m_IESPoint;
+        // Optional IES (2D Square texture for Spot or rectangular light)
+        [SerializeField]
+        internal Texture m_IESSpot;
+
+        /// <summary>
+        /// Get/Set IES texture for Point
+        /// </summary>
+        internal Texture IESPoint
+        {
+            get => m_IESPoint;
+            set
+            {
+                if (value.dimension == TextureDimension.Cube)
+                {
+                    m_IESPoint = value;
+                    UpdateAllLightValues();
+                }
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for point lights.");
+                    m_IESPoint = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get/Set IES texture for Spot or rectangular light.
+        /// </summary>
+        internal Texture IESSpot
+        {
+            get => m_IESSpot;
+            set
+            {
+                if (value.dimension == TextureDimension.Tex2D && value.width == value.height)
+                {
+                    m_IESSpot = value;
+                    UpdateAllLightValues();
+                }
+                else
+                {
+                    Debug.LogError("Texture dimension " + value.dimension + " is not supported for spot lights or rectangular light (only square images).");
+                    m_IESSpot = null;
+                }
             }
         }
 
@@ -1404,7 +1478,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// True if the light affects volumetric fog, false otherwise 
+        /// True if the light affects volumetric fog, false otherwise
         /// </summary>
         public bool affectsVolumetric
         {
@@ -1595,7 +1669,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_ChildEmissiveMeshViewer);
             m_ChildEmissiveMeshViewer = null;
         }
-        
+
         [SerializeField]
         ShadowCastingMode m_AreaLightEmissiveMeshShadowCastingMode = ShadowCastingMode.Off;
         [SerializeField]
@@ -1664,7 +1738,7 @@ namespace UnityEngine.Rendering.HighDefinition
         void OnDisable()
         {
             // If it is within the cached system we need to evict it, unless user explicitly requires not to.
-            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0) 
+            if (!preserveCachedShadow && lightIdxForCachedShadows >= 0)
             {
                 HDShadowManager.cachedShadowManager.EvictLight(this);
             }
@@ -2009,7 +2083,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if(shadowIsInCachedSystem && shadowNeedsRendering)
                 {
                     // Handshake with the cached shadow manager to notify about the rendering.
-                    // Technically the rendering has not happened yet, but it is scheduled. 
+                    // Technically the rendering has not happened yet, but it is scheduled.
                     HDShadowManager.cachedShadowManager.MarkShadowAsRendered(cachedShadowID, shadowMapType);
                 }
 
@@ -2246,7 +2320,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && m_ChildEmissiveMeshViewer != null && !m_ChildEmissiveMeshViewer.Equals(null)
                 && m_ChildEmissiveMeshViewer.gameObject.layer != gameObject.layer)
                 m_ChildEmissiveMeshViewer.gameObject.layer = gameObject.layer;
-            
+
             // Delayed cleanup when removing emissive mesh from timeline
             if (needRefreshEmissiveMeshesFromTimeLineUpdate)
             {
@@ -2306,7 +2380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 timelineWorkaround.oldLightColorTemperature = legacyLight.colorTemperature;
             }
         }
-        
+
         void OnDidApplyAnimationProperties()
         {
             UpdateAllLightValues(fromTimeLine: true);
@@ -2520,7 +2594,7 @@ namespace UnityEngine.Rendering.HighDefinition
             legacyLight.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
 #endif
         }
-        
+
         void Awake()
         {
             Migrate();
@@ -2645,9 +2719,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
 
+            bool enableEmissiveColorMap = false;
             // Set the cookie (if there is one) and raise or remove the shader feature
-            emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
-            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", areaLightCookie != null);
+            if (displayEmissiveMesh && areaLightCookie != null && areaLightCookie != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", areaLightCookie);
+                enableEmissiveColorMap = true;
+            }
+            else if (displayEmissiveMesh && IESSpot != null && IESSpot != Texture2D.whiteTexture)
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", IESSpot);
+                enableEmissiveColorMap = true;
+            }
+            else
+            {
+                emissiveMeshRenderer.sharedMaterial.SetTexture("_EmissiveColorMap", Texture2D.whiteTexture);
+            }
+            CoreUtils.SetKeyword(emissiveMeshRenderer.sharedMaterial, "_EMISSIVE_COLOR_MAP", enableEmissiveColorMap);
         }
 
         void UpdateRectangleLightBounds()
@@ -2942,7 +3030,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 shadowResolution.useOverride = useOverride;
                 RefreshCachedShadow();
             }
-        } 
+        }
 
         /// <summary>
         /// Set the near plane of the shadow.
