@@ -5,17 +5,25 @@
 CBUFFER_START(Uniform)
     uint maxNb;
     uint offset;
-    uint frameIndex;
+    uint layerIndex; // ~0 for per camera
 CBUFFER_END
 
 #define NB_THREADS_PER_GROUP 64
 
-struct InputData //TODO use generic name (indexCount isn't always what it expects to be)
+struct InputData
 {
     uint type;
     uint indexCount;
     uint startIndex;
     uint baseVertex;
+};
+
+struct GPUEventInputData
+{
+    uint type;
+    uint previousSlot;
+    uint layerIndex;
+    uint _dummy0;
 };
 
 ByteAddressBuffer inputGpuBuffer;
@@ -26,16 +34,15 @@ RWByteAddressBuffer outputAdditional;
 // output additional data
 #define EVENT_DATA_SPAWN_COUNT 0 // current spawn count 
 #define EVENT_DATA_TOTAL_COUNT 1 // total count
-#define EVENT_DATA_FRAME_INDEX 2 // current frame index of the data
 
 void StoreAdditionalData(uint data, uint index, uint value)
 {
-    outputAdditional.Store((index * 3 + data) << 2, value);
+    outputAdditional.Store((index * 2 + data) << 2, value);
 }
 
 uint LoadAdditionalData(uint data, uint index)
 {
-    return outputAdditional.Load((index * 3 + data) << 2);
+    return outputAdditional.Load((index * 2 + data) << 2);
 }
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
@@ -131,20 +138,21 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
 
             case 0xffffffff: // dispatch
             {
+                GPUEventInputData eventData = (GPUEventInputData)data;
+
                 //Clamp indirect dispatch to the maximum dispatch width of DX11 : 65535 (D3D11_CS_DISPATCH_MAX_THREAD_GROUPS_PER_DIMENSION)
                 elementCount = min(elementCount, 65535 * NB_THREADS_PER_GROUP);
                 args.x = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
 
                 //Update total element count (spawnIndex)
-                if (LoadAdditionalData(EVENT_DATA_FRAME_INDEX, index) != frameIndex) // Do it only once per frame (else total count will be incorrect)
+                if (eventData.layerIndex == layerIndex) // Prevent from doing this several times per frame (which will make total count incorrect)
                 {
                     uint oldCount = 0u;
-                    if (data.indexCount != ~0u) // if indexCount is ~0u, it means no history
-                        oldCount = LoadAdditionalData(EVENT_DATA_TOTAL_COUNT, data.indexCount);
+                    if (eventData.previousSlot != ~0u) // if previous slot is ~0u, it means no history
+                        oldCount = LoadAdditionalData(EVENT_DATA_TOTAL_COUNT, eventData.previousSlot);
 
                     StoreAdditionalData(EVENT_DATA_SPAWN_COUNT, index, elementCount);
                     StoreAdditionalData(EVENT_DATA_TOTAL_COUNT, index, oldCount + elementCount);
-                    StoreAdditionalData(EVENT_DATA_FRAME_INDEX, index, frameIndex);
                 }
 
                 args.y = args.z = 1u;

@@ -72,7 +72,7 @@ uint maxCount = asuint(nbMax);
 maxCount -= deadListCount.Load(0);
 #endif
 #if USE_COUNT_FROM_GPU
-maxCount = min(maxCount,inputAdditional.Load((asuint(offsetInAdditionalOutput) * 3 + 1) << 2));
+maxCount = min(maxCount,inputAdditional.Load((asuint(offsetInAdditionalOutput) * 2 + 1) << 2));
 #endif
 if (index >= maxCount)
 #if USE_GEOMETRY_SHADER

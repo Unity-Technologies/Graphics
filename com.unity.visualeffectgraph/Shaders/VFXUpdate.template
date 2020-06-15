@@ -48,7 +48,7 @@ void CSMain(uint3 groupId          : SV_GroupID,
 	uint index = id;
     uint maxCount = nbMax;
 #if USE_COUNT_FROM_GPU
-    maxCount = min(maxCount,inputAdditional.Load((offsetInAdditionalOutput * 3 + 1) << 2));
+    maxCount = min(maxCount,inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2));
 #endif
 	if (id < maxCount)
 	{
