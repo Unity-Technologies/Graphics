@@ -25,7 +25,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Make sure this is a valid hlsl identifier. Allowed characters already ensures the characters are valid
             // but identifiers can't start with a number so fix this here.
-            if (Char.IsDigit(str[0]))
+            if (string.IsNullOrEmpty(str))
+            {
+                return "_0";
+            }
+            else if (Char.IsDigit(str[0]))
             {
                 return "_" + str;
             }
@@ -80,7 +84,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // Make sure this is a valid hlsl identifier. Allowed characters already ensures the characters are valid
                 // but identifiers can't start with a number so fix this here.
-                if (Char.IsDigit(str[0]))
+                if (string.IsNullOrEmpty(str))
+                {
+                    return "_0";
+                }
+                else if (Char.IsDigit(str[0]))
                 {
                     return "_" + str;
                 }

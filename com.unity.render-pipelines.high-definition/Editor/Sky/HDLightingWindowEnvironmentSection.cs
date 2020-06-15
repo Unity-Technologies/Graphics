@@ -207,7 +207,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 foreach (KeyValuePair<int, Type> kvp in skyTypesDict)
                 {
-                    if (profile.Has(kvp.Value))
+                    if (profile.TryGet(kvp.Value, out VolumeComponent comp) && comp.active)
                     {
                         m_SkyClassNames.Add(new GUIContent(kvp.Value.Name.ToString()));
                         m_SkyUniqueIDs.Add(kvp.Key);

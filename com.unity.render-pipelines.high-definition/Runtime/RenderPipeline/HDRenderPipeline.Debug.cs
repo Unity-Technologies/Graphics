@@ -291,7 +291,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode)
+        internal void PushFullScreenDebugTexture(RenderGraph renderGraph, TextureHandle input, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.data.fullScreenDebugMode)
             {
@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (PushFullScreenDebugPassData data, RenderGraphContext ctx) =>
                 {
-                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(passData.input), ctx.resources.GetTexture(passData.output));
+                    HDUtils.BlitCameraTexture(ctx.cmd, ctx.resources.GetTexture(data.input), ctx.resources.GetTexture(data.output));
                 });
 
                 return passData.output;
