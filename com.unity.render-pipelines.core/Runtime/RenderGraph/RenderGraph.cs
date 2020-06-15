@@ -423,12 +423,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Private Interface
+
+        // Internal for testing purpose only
+        internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
+
         private RenderGraph()
         {
 
         }
 
-        void ClearCompiledGraph()
+        // Internal for testing purpose only
+        internal void ClearCompiledGraph()
         {
             ClearRenderPasses();
             m_Resources.Clear(m_ExecutionExceptionWasRaised);
@@ -781,11 +786,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Resources.CreateRendererLists(m_RendererLists);
         }
 
+        // Internal for testing purpose only
         // Traverse the render graph:
         // - Determines when resources are created/released
         // - Determines async compute pass synchronization
         // - Prune unused render passes.
-        void CompileRenderGraph()
+        internal void CompileRenderGraph()
         {
             InitializeCompilationData();
             CountReferences();
