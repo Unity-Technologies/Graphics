@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
 
+        public bool inspectorTriggeredNameChange = false; // triggers blackboard update when inspector makes changes
+
         ShaderInput m_Input;
 
         [Inspectable("Shader Input", null)]
@@ -68,10 +70,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         public Action m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
-
-        internal delegate void ChangedDisplayNameCallback(Blackboard blackboard, VisualElement visualElement, string newValue);
-
-        public ChangedDisplayNameCallback _displayNameChangedCallback;
 
         public string inspectorTitle
         {
@@ -160,6 +158,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Input.displayName = newValue;
                 m_Graph.SanitizeGraphInputName(m_Input);
+                //needed to trigger blackboard update
+                inspectorTriggeredNameChange = true;
             }
         }
 

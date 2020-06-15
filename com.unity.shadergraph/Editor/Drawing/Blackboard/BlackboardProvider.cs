@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         Label m_PathLabel;
         TextField m_PathLabelTextField;
         bool m_EditPathCancelled = false;
-        bool m_DisplayNameChanged = false;
+        bool m_DisplayNameChanged = false; //triggers inspector update when blackboard makes changes
         List<Node> m_SelectedNodes = new List<Node>();
 
         public string assetName
@@ -256,6 +256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 input.displayName = newText;
                 m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
+                // need to set this to trigger the inspector update to match
                 m_DisplayNameChanged = true;
                 DirtyNodes();
             }
@@ -284,14 +285,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (wasUndoRedoPerformed)
             {
                 oldSelectionPersistenceData.Clear();
-                foreach (var item in selection)
-                {
-                    if (item is BlackboardFieldView blackboardFieldView)
-                    {
-                        var guid = blackboardFieldView.shaderInput.referenceName;
-                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
-                    }
-                }
             }
 
             foreach (var input in m_Graph.addedInputs)
@@ -311,15 +304,35 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_KeywordSection.Add(m_InputRows[keyword]);
             }
 
-            if(m_DisplayNameChanged)
+            //handle selected blackboard fields
+            foreach (var item in selection)
             {
-                foreach (var item in selection)
+                if (item is BlackboardFieldView blackboardFieldView)
                 {
-                    if (item is BlackboardFieldView blackboardFieldView)
+                    // the callback in the inspector has triggered a display name change
+                    if(blackboardFieldView.inspectorTriggeredNameChange)
                     {
+                        //update property pill
+                        blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
+                        //set trigger back to false
+                        blackboardFieldView.inspectorTriggeredNameChange = false;
+                        //need to update property nodes on the graph with new name 
+                        // for some reason doesn't work from the inspector calls so need it here 
+                        DirtyNodes();
+                    }
+                    //the blackboard has changed a naem and needs to trigger the inspector
+                    else if(m_DisplayNameChanged)
+                    {
+                        //triggger the inspector update callback
                         blackboardFieldView.m_inspectorUpdateTrigger();
+                        //set trigger back to false
                         m_DisplayNameChanged = false;
-                        break;
+                    }
+                    //undo action needs to be preformed
+                    else if(wasUndoRedoPerformed)
+                    {
+                        var guid = blackboardFieldView.shaderInput.referenceName;
+                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
                     }
                 }
             }
