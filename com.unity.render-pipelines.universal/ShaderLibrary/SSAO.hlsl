@@ -272,7 +272,7 @@ float4 SSAO(Varyings input) : SV_Target
 void CalculateKawaseSum(float2 uv, float baseLinearDepth, float baseValue, inout half sum)
 {
     float4 value = SAMPLE_BASEMAP(uv);
-    half diff = 0.0125; // depth difference to ignore blurring
+    half diff = 0.5; // depth difference to ignore blurring
     sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue;
 }
 
