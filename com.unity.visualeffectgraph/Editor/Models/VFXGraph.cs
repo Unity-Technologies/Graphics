@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                 resource.GetOrCreateGraph().SanitizeForImport();
             }
         }
-
+        
         static string[] OnAddResourceDependencies(string assetPath)
         {
             VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
@@ -698,6 +698,10 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+
+            foreach(var child in children)
+                child.CheckGraphBeforeImport();
+
             SanitizeGraph();
         }
         public void CompileForImport()
