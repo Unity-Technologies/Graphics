@@ -32,25 +32,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _AerosolDensityFalloff;
         public float _AerosolScaleHeight;
 
-        public Vector3 _AirSeaLevelExtinction;
+        public Vector4 _AirSeaLevelExtinction;
+        public Vector4 _AirSeaLevelScattering;
+        public Vector4 _AerosolSeaLevelScattering;
+        public Vector4 _GroundAlbedo;
+        public Vector4 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
+        public Vector4 _HorizonTint;
+        public Vector4 _ZenithTint;
+
         public float _AerosolSeaLevelExtinction;
-
-        public Vector3 _AirSeaLevelScattering;
         public float _IntensityMultiplier;
-
-        public Vector3 _AerosolSeaLevelScattering;
         public float _ColorSaturation;
-
-        public Vector3 _GroundAlbedo;
         public float _AlphaSaturation;
 
-        public Vector3 _PlanetCenterPosition; // Not used during the precomputation, but needed to apply the atmospheric effect
         public float _AlphaMultiplier;
-
-        public Vector3 _HorizonTint;
         public float _HorizonZenithShiftPower;
-
-        public Vector3 _ZenithTint;
         public float _HorizonZenithShiftScale;
+        public float _Unused2;
     }
 }
