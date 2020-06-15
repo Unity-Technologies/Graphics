@@ -274,3 +274,10 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
+    ColorSpace: -1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: Needs fixing on OSX

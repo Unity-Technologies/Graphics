@@ -20,12 +20,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public StackLitSubTarget() => displayName = "StackLit";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/StackLitPass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/StackLit/ShaderGraph/";
         protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
         protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
         protected override FieldDescriptor subShaderField => HDFields.SubShader.StackLit;
-        protected override string postDecalsInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitDecalData.hlsl";
         protected override string subShaderInclude => CoreIncludes.kStackLit;
 
         protected override bool supportDistortion => true;
@@ -71,7 +70,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 0.0f),
             // context.AddField(HDFields.CoatMaskOne,                  coat.isOn && pass.pixelBlocks.Contains(CoatMaskSlotId) &&
             //                                                                 FindSlot<Vector1MaterialSlot>(CoatMaskSlotId).value == 1.0f),
-            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormal));
+            context.AddField(HDFields.CoatNormal,                   stackLitData.coatNormal
+                && (context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalOS)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalTS)
+                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.CoatNormalWS)));
             context.AddField(HDFields.Iridescence,                  stackLitData.iridescence);
             context.AddField(HDFields.SubsurfaceScattering,         stackLitData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(HDFields.Transmission,                 stackLitData.transmission);
@@ -88,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                                                                             stackLitData.dualSpecularLobeParametrization == StackLit.DualSpecularLobeParametrization.HazyGloss);
 
             // Misc
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(HDFields.EnergyConservingSpecular,     stackLitData.energyConservingSpecular);
             context.AddField(HDFields.Tangent,                      descs.Contains(HDBlockFields.SurfaceDescription.Tangent) &&
                                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Tangent));
@@ -215,7 +216,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatIor,              stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatThickness,        stackLitData.coat);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatExtinction,       stackLitData.coat);
-            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormal,           stackLitData.coat && stackLitData.coatNormal);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalOS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalTS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddBlock(HDBlockFields.SurfaceDescription.CoatNormalWS,         stackLitData.coat && stackLitData.coatNormal && lightingData.normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(HDBlockFields.SurfaceDescription.CoatMask,             stackLitData.coat);
 
             // Dual Specular Lobe

@@ -173,18 +173,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             else
             {
-                float scalar = editorSimplifiedModeBlendDistance.floatValue;
-                if (!(Mathf.Approximately(blendDistancePositive.vector3Value.x, scalar)
-                    && Mathf.Approximately(blendDistancePositive.vector3Value.y, scalar)
-                    && Mathf.Approximately(blendDistancePositive.vector3Value.z, scalar)
-                    && Mathf.Approximately(blendDistanceNegative.vector3Value.x, scalar)
-                    && Mathf.Approximately(blendDistanceNegative.vector3Value.y, scalar)
-                    && Mathf.Approximately(blendDistanceNegative.vector3Value.z, scalar)))
-                {
-                    blendDistancePositive.vector3Value = blendDistanceNegative.vector3Value = new Vector3(scalar, scalar, scalar);
-                    serialized.Apply();
-                    SceneView.RepaintAll(); //update gizmo
-                }
+                var scalar = Mathf.Min(editorSimplifiedModeBlendDistance.floatValue, Mathf.Min(maxBlendDistance.x, maxBlendDistance.y, maxBlendDistance.z));
+                blendDistancePositive.vector3Value = blendDistanceNegative.vector3Value = new Vector3(scalar, scalar, scalar);
+                serialized.Apply();
+                SceneView.RepaintAll(); //update gizmo
             }
 
             if (serialized.editorAdvancedModeEnabled.boolValue)
