@@ -7,6 +7,29 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    internal class ShadowKeywords
+    {
+        ShaderKeyword ShadowLow;
+        ShaderKeyword ShadowMedium;
+        ShaderKeyword ShadowHigh;
+
+        public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
+
+        public ShadowKeywords()
+        {
+            ShadowLow = new ShaderKeyword("SHADOW_LOW");
+            ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
+            ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
+
+            ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
+            {
+                {HDShadowFilteringQuality.Low, ShadowLow},
+                {HDShadowFilteringQuality.Medium, ShadowMedium},
+                {HDShadowFilteringQuality.High, ShadowHigh},
+            };
+        }
+    }
+
     abstract class BaseShaderPreprocessor
     {
         // Common keyword list
@@ -26,6 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_WriteNormalBuffer;
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
+        protected ShadowKeywords m_ShadowKeywords;
 
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
@@ -48,19 +72,10 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");
             m_Decals4RT = new ShaderKeyword("DECALS_4RT");
             m_LightLayers = new ShaderKeyword("LIGHT_LAYERS");
-            m_ShadowLow = new ShaderKeyword("SHADOW_LOW");
-            m_ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
-            m_ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
-
-            m_ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
-            {
-                {HDShadowFilteringQuality.Low, m_ShadowLow},
-                {HDShadowFilteringQuality.Medium, m_ShadowMedium},
-                {HDShadowFilteringQuality.High, m_ShadowHigh},
-            };
+            m_ShadowKeywords = new ShadowKeywords();
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,
