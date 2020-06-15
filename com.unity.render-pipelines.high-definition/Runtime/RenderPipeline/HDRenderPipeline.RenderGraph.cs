@@ -237,6 +237,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
 
+                if (target.targetDepth != null)
+                {
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
+                }
+
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, colorBuffer, aovBuffers);
             }
 
@@ -283,7 +288,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.WriteTexture(destination);
 
-                // TODO REMOVE: Dummy read to avoid early release before render graph is full implemented.
+                // TODO RENDERGRAPH REMOVE: Dummy read to avoid early release before render graph is full implemented.
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                     builder.ReadTexture(motionVectors);
