@@ -384,6 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConstantBuffer._AerosolAnisotropy         = pbrSky.aerosolAnisotropy.value;
             m_ConstantBuffer._AerosolPhasePartConstant  = CornetteShanksPhasePartConstant(pbrSky.aerosolAnisotropy.value);
             m_ConstantBuffer._Unused                    = 0.0f; // Warning fix
+            m_ConstantBuffer._Unused2                   = 0.0f; // Warning fix
 
             m_ConstantBuffer._AirDensityFalloff         = 1.0f / airH;
             m_ConstantBuffer._AirScaleHeight            = airH;
