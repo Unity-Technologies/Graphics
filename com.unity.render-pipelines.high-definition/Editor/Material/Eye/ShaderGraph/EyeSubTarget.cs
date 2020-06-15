@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/";
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
@@ -49,7 +49,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
             context.AddField(HDFields.EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
             context.AddField(HDFields.SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

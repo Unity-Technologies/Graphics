@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public HDUnlitSubTarget() => displayName = "Unlit";
 
         // Templates
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/HDUnlitPass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
         protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
@@ -75,8 +75,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
 
             // Unlit specific properties
-            context.AddField(HDFields.EnableShadowMatte,            unlitData.enableShadowMatte);
-            context.AddField(HDFields.DoAlphaTest,                  systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(HDFields.EnableShadowMatte, unlitData.enableShadowMatte);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -84,7 +83,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetActiveBlocks(ref context);
 
             // Unlit specific blocks
-            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint,       unlitData.enableShadowMatte);
+            context.AddBlock(HDBlockFields.SurfaceDescription.ShadowTint, unlitData.enableShadowMatte);
         }
 
         protected override void AddInspectorPropertyBlocks(SubTargetPropertiesGUI blockList)

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HairSubTarget() => displayName = "Hair";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/HairPass.template";
+        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/";
         protected override string customInspector => "Rendering.HighDefinition.HairGUI";
         protected override string subTargetAssetGuid => "7e681cc79dd8e6c46ba1e8412d519e26"; // HairSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
@@ -51,11 +51,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
             context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
             context.AddField(HDFields.Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
-
-            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
-            // Do alpha test only if we aren't using the TestShadow one
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
 
             // Misc
             context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
