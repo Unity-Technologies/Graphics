@@ -212,7 +212,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
-        public static readonly string MixedLightingShadowmask = "SHADOWS_SHADOWMASK";
+        public static readonly string ShadowMask = "SHADOWS_SHADOWMASK";
+        public static readonly string ShadowMaskDistance = "_SHADOW_MASK_DISTANCE";
+        public static readonly string ShadowMaskAlways = "_SHADOW_MASK_ALWAYS";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";

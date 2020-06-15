@@ -535,9 +535,11 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 {
 #if defined(_MIXED_LIGHTING_SUBTRACTIVE) && defined(LIGHTMAP_ON)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
-#endif
-#if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
-    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask.r : 1.0;
+#elif defined(_SHADOW_MASK_DISTANCE) && defined(LIGHTMAP_ON)
+    half bakedShadow = BEYOND_SHADOW_FAR(shadowCoord) ? shadowMask.g : 1.0;
+    light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
+#elif defined(_SHADOW_MASK_ALWAYS) && defined(LIGHTMAP_ON)
+    half bakedShadow = shadowMask.g;//This might not be the channel of the main light atten
     light.shadowAttenuation = min(light.shadowAttenuation, bakedShadow);
 #endif
 }

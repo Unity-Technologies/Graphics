@@ -253,7 +253,7 @@ half AdditionalLightBakedShadow(int lightIndex, half4 shadowMask)
     int chanel = _AdditionalLightsSpotDir[lightIndex].w;
     if (chanel >= 1 && chanel <= 4)
     {
-        half bakedShadow = shadowMask[chanel];
+        half bakedShadow = shadowMask[chanel-1];
         //bakedShadow = LerpWhiteTo(bakedShadow, GetAdditionalLightShadowStrenth(lightIndex));
         return bakedShadow;
     }

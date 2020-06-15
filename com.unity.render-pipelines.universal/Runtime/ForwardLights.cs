@@ -91,9 +91,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive,
                 renderingData.lightData.supportsMixedLighting &&
                 m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingShadowmask, 
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskAlways,
                 renderingData.lightData.supportsMixedLighting &&
-                m_MixedLightingSetup == MixedLightingSetup.ShadowMask);
+                m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask);
+
+            CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowMaskDistance,
+                renderingData.lightData.supportsMixedLighting &&
+                m_MixedLightingSetup == MixedLightingSetup.ShadowMask &&
+                QualitySettings.shadowmaskMode == ShadowmaskMode.DistanceShadowmask);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

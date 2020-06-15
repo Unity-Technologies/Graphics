@@ -13,6 +13,10 @@
     #define MAX_VISIBLE_LIGHTS 256
 #endif
 
+#if defined(_SHADOW_MASK_DISTANCE) || defined(_SHADOW_MASK_ALWAYS)
+    #define SHADOWS_SHADOWMASK
+#endif
+
 struct InputData
 {
     float3  positionWS;
