@@ -1,10 +1,10 @@
 # Volume Scripting API
 
-In the High Definition Render Pipeline (HDRP), [Volumes](Volumes.md) control environment settings in a scene. To give you control over Volumes at runtime, HDRP provides API that you can use to create, access, and edit Volumes via C# scripting. This page describes how to use the scripting API and provides examples to help you get started.
+In the High Definition Render Pipeline (HDRP), [Volumes](Volumes.md) control environment settings in a scene. To give you control over Volumes at runtime, HDRP provides API that you can use to create, access, and edit Volumes via C# scripting. This page describes how to use the scripting API and provides examples to help you get started. You may notice that Volume Overrides, such as [Fog](Override-Fog.md), actually inherit from the VolumeComponent class. The documentation calls these Volume Overrides and not Volume Components to be consistent with the user interface and to avoid confusion with the [Volume](Volumes.md) component.
 
 ## Modifying an existing Volume
 
-Volumes store their [Volume Overrides](Volume-Components.md) in a [Volume Profile](Volume-Profile.md). So, to modify the properties of a Volume Override, such as [Fog](Override-Fog.md),  you need to first retrieve the Volume Profile. There are two ways to do this:
+Volumes store their [Volume Overrides](Volume-Components.md) in a [Volume Profile](Volume-Profile.md). So, to modify the properties of a Volume Override,  you need to first retrieve the Volume Profile. There are two ways to do this:
 
 ### Shared Volume Profile access
 
