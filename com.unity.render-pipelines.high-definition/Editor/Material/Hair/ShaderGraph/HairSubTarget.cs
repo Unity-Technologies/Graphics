@@ -59,11 +59,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(UseLightFacingNormal,                 hairData.useLightFacingNormal);
             context.AddField(Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
 
-            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
-            // Do alpha test only if we aren't using the TestShadow one
-            context.AddField(DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
-
             // Misc
             context.AddField(SpecularAA,                           lightingData.specularAA &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&

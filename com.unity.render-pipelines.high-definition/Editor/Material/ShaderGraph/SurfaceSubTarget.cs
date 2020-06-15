@@ -220,19 +220,34 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Fields.BlendAlpha,                     systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Alpha);
             context.AddField(Fields.BlendPremultiply,               systemData.surfaceType != SurfaceType.Opaque && systemData.blendMode == BlendMode.Premultiply);
 
-            // We always generate the keyword ALPHATEST_ON
-            context.AddField(Fields.AlphaTest,                      systemData.alphaTest
-                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
-                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
-                || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
-
             // Double Sided
-            context.AddField(HDFields.DoubleSided,                  systemData.doubleSidedMode != DoubleSidedMode.Disabled);
+            context.AddField(HDFields.DoubleSided, systemData.doubleSidedMode != DoubleSidedMode.Disabled);
 
-            context.AddField(HDFields.DoAlphaTestPrepass,           systemData.alphaTest && systemData.alphaTestDepthPrepass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));
-            context.AddField(HDFields.DoAlphaTestPostpass,          systemData.alphaTest && systemData.alphaTestDepthPostpass && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
-            context.AddField(HDFields.DoAlphaTestShadow,            systemData.alphaTest && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+            // We always generate the keyword ALPHATEST_ON. All the variant of AlphaClip (shadow, pre/postpass) are only available if alpha test is on.
+            context.AddField(Fields.AlphaTest, systemData.alphaTest
+                                                && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass)
+                                                    || context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass)));
+
+            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
+            // Regular alpha test is only done if artist haven't ask to use the specific alpha test shadow one
+            bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
+            bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
+            bool isTransparentDepthPostpass = context.pass.lightMode == "TransparentDepthPostpass";
+            context.AddField(HDFields.DoAlphaTest, systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
+                                                                                !(isShadowPass && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))
+                                                                                ));
+                
+            // Shadow use the specific alpha test only if user have ask to override it
+            context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&
+                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow));
+            // Pre/post pass always use the specific alpha test provided for those pass
+            context.AddField(HDFields.DoAlphaTestPrepass,   systemData.alphaTest && systemData.alphaTestDepthPrepass && isTransparentDepthPrepass &&
+                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass));           
+            context.AddField(HDFields.DoAlphaTestPostpass,  systemData.alphaTest && systemData.alphaTestDepthPostpass && isTransparentDepthPostpass &&
+                                                            context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
+
 
             context.AddField(HDFields.TransparentDepthPrePass,      systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
             context.AddField(HDFields.TransparentDepthPostPass,     systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
@@ -276,14 +291,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Alpha Test
             context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
-                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass
-                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPrepass"));
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPrepass);
             context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
-                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass
-                && (context.pass != null && context.pass.Value.lightMode == "TransparentDepthPostpass"));
+                systemData.surfaceType == SurfaceType.Transparent && systemData.alphaTest && systemData.alphaTestDepthPostpass);
             context.AddBlock(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
-                systemData.alphaTest && builtinData.alphaTestShadow
-                && (context.pass != null && context.pass.Value.lightMode == "ShadowCaster"));
+                systemData.alphaTest && builtinData.alphaTestShadow);
 
             // Misc
             context.AddBlock(HDBlockFields.SurfaceDescription.DepthOffset,          builtinData.depthOffset);

@@ -63,7 +63,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(Silk,                                 fabricData.materialType == FabricData.MaterialType.Silk);
             context.AddField(SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
             context.AddField(Transmission,                         fabricData.transmission);
-            context.AddField(DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
             context.AddField(EnergyConservingSpecular,             fabricData.energyConservingSpecular);
         }
 
