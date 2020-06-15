@@ -316,10 +316,12 @@ struct VTProperty
     TEXTURE2D(Layer1);
     TEXTURE2D(Layer2);
     TEXTURE2D(Layer3);
+#ifndef SHADER_API_GLES    
     SAMPLER(samplerLayer0);
     SAMPLER(samplerLayer1);
     SAMPLER(samplerLayer2);
     SAMPLER(samplerLayer3);
+#endif    
 };
 
 StackInfo MakeStackInfo(VtInputParameters vt)
