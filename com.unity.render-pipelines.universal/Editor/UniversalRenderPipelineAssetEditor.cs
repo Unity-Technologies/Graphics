@@ -339,7 +339,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
                 EditorUtils.Unit unit = EditorUtils.Unit.Metric;
-                if (m_ShadowCascadesProp.intValue != 0)
+                if (m_CascadeShadowSplitCountProp.intValue != 0)
                 {
                     EditorGUI.BeginChangeCheck();
                     unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter"), m_State.value);

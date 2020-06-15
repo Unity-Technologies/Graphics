@@ -26,7 +26,6 @@ namespace UnityEngine.Rendering.Universal
         NoCascades,
         TwoCascades,
         FourCascades,
-        ThreeCascades,
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum ShadowQuality
@@ -596,7 +595,7 @@ namespace UnityEngine.Rendering.Universal
         /// Returns the max shadow cascade count.
         /// </summary>
         public int cascadeShadowMaxCount { get => m_CascadeShadowMaxCount; }
-        
+
         /// <summary>
         /// Returns the split value.
         /// </summary>
@@ -845,6 +844,22 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 5;
             }
+
+            if (k_AssetVersion < 6)
+            {
+                int value = (int)m_ShadowCascades;
+                if (value == 2)
+                {
+                    m_CascadeShadowSplitCount = 4;
+                }
+                else
+                {
+                    m_CascadeShadowSplitCount = value + 1;
+                }
+                k_AssetVersion = 6;
+            }
+
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
