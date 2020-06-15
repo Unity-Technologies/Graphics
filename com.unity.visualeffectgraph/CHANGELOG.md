@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
 - Fix issue with strips outputs that could cause too many vertices to be renderered
 - SpawnIndex attribute returns correct value in update and outputs contexts
+- GPU Events fixes: now works as expected with immortal particles and ParticleID computation is correct [Case 1248346](https://issuetracker.unity3d.com/product/unity/issues/guid/1248346/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
