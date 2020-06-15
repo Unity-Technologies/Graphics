@@ -100,10 +100,6 @@ all_project_ci_nightly_2019.3:
          rerun: on-new-revision
       -  path: .yamato/_abv.yml#smoke_test_editmode_2019.3
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_2019.3
-         rerun: on-new-revision
     triggers:
         recurring:
           -  branch: 7.x.x/release

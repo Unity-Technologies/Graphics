@@ -30,8 +30,6 @@ All_HDRP_2019.3:
          rerun: on-new-revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_2019.3
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_2019.3
-         rerun: on-new-revision
 All_HDRP_fast-2019.3:
     name: All HDRP CI - fast-2019.3
     dependencies:
@@ -59,8 +57,6 @@ All_HDRP_fast-2019.3:
          rerun: on-new-revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_fast-2019.3
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_fast-2019.3
-         rerun: on-new-revision
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
     dependencies:
@@ -87,8 +83,6 @@ All_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
