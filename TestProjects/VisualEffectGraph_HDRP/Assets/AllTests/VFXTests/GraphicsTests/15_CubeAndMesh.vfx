@@ -1671,7 +1671,7 @@ MonoBehaviour:
   - {fileID: 114811204679409306}
   m_Shader: {fileID: -6465566751694194690, guid: a1f88376c5c975644a8bea93ca9eecde,
     type: 3}
-  m_ShaderName: 
+  m_ShaderName: Shader Graphs/Rim
 --- !u!114 &114782034906201374
 MonoBehaviour:
   m_ObjectHideFlags: 1
