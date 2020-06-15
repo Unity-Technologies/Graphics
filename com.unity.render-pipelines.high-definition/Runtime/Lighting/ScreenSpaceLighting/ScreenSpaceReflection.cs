@@ -9,6 +9,16 @@ namespace UnityEngine.Rendering.HighDefinition
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
+        bool UsesRayTracingQualityMode()
+        {
+            return mode.overrideState && mode == RayTracingMode.Quality;
+        }
+
+        bool UsesRayTracing()
+        {
+            return (rayTracing.overrideState && rayTracing.value);
+        }
+
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
@@ -22,12 +32,32 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the smoothness value at which HDRP activates SSR and the smoothness-controlled fade out stops.
         /// </summary>
-        public ClampedFloatParameter minSmoothness = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+        public float minSmoothness
+        {
+            get
+            {
+                if ((UsesRayTracing() && (UsesRayTracingQualityMode() || !UsesQualitySettings())) || !UsesRayTracing())
+                    return m_MinSmoothness.value;
+                else
+                    return GetLightingQualitySettings().RTRMinSmoothness[(int)quality.value];
+            }
+            set { m_MinSmoothness.value = value; }
+        }
 
         /// <summary>
         /// Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start]
         /// </summary>
-        public ClampedFloatParameter smoothnessFadeStart = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+        public float smoothnessFadeStart
+        {
+            get
+            {
+                if ((UsesRayTracing() && (UsesRayTracingQualityMode() || !UsesQualitySettings())) || !UsesRayTracing())
+                    return m_SmoothnessFadeStart.value;
+                else
+                    return GetLightingQualitySettings().RTRSmoothnessFadeStart[(int)quality.value];
+            }
+            set { m_SmoothnessFadeStart.value = value; }
+        }
 
         /// <summary>
         /// When enabled, SSR handles sky reflection.
@@ -53,23 +83,62 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the length of reflection rays.
         /// </summary>
-        public ClampedFloatParameter rayLength = new ClampedFloatParameter(10f, 0.001f, 50f);
+        public float rayLength
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_RayLength.value;
+                else
+                    return GetLightingQualitySettings().RTRRayLength[(int)quality.value];
+            }
+            set { m_RayLength.value = value; }
+        }
 
         /// <summary>
         /// Clamps the exposed intensity.
         /// </summary>
-        public ClampedFloatParameter clampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
+        public float clampValue
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_ClampValue.value;
+                else
+                    return GetLightingQualitySettings().RTRClampValue[(int)quality.value];
+            }
+            set { m_ClampValue.value = value; }
+        }
 
         /// <summary>
         /// Enable denoising on the ray traced reflections.
         /// </summary>
-        public BoolParameter denoise = new BoolParameter(false);
+        public bool denoise
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_Denoise.value;
+                else
+                    return GetLightingQualitySettings().RTRDenoise[(int)quality.value];
+            }
+            set { m_Denoise.value = value; }
+        }
 
         /// <summary>
         /// Controls the radius of reflection denoiser.
         /// </summary>
-        public ClampedIntParameter denoiserRadius = new ClampedIntParameter(8, 1, 32);
-
+        public int denoiserRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_DenoiserRadius.value;
+                else
+                    return GetLightingQualitySettings().RTRDenoiserRadius[(int)quality.value];
+            }
+            set { m_DenoiserRadius.value = value; }
+        }
         /// <summary>
         /// Controls which version of the effect should be used.
         /// </summary>
@@ -79,11 +148,33 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Controls the size of the upscale radius.
         /// </summary>
-        public IntParameter upscaleRadius = new ClampedIntParameter(2, 2, 6);
+        public int upscaleRadius
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_UpscaleRadius.value;
+                else
+                    return GetLightingQualitySettings().RTRUpScaleRadius[(int)quality.value];
+            }
+            set { m_UpscaleRadius.value = value; }
+        }
+
         /// <summary>
-        /// Enables full resolution mode.
+        /// Defines if the effect should be evaluated at full resolution.
         /// </summary>
-        public BoolParameter fullResolution = new BoolParameter(false);
+        public bool fullResolution
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                    return m_FullResolution.value;
+                else
+                    return GetLightingQualitySettings().RTRFullResolution[(int)quality.value];
+            }
+            set { m_FullResolution.value = value; }
+        }
+
 
         // Quality
         /// <summary>
@@ -110,7 +201,37 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_RayMaxIterations.value = value; }
         }
 
+        [SerializeField, FormerlySerializedAs("minSmoothness")]
+        private ClampedFloatParameter m_MinSmoothness = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+
+        [SerializeField, FormerlySerializedAs("smoothnessFadeStart")]
+        private ClampedFloatParameter m_SmoothnessFadeStart = new ClampedFloatParameter(0.9f, 0.0f, 1.0f);
+
         [SerializeField, FormerlySerializedAs("rayMaxIterations")]
         private IntParameter m_RayMaxIterations = new IntParameter(32);
+
+        [SerializeField, FormerlySerializedAs("rayLength")]
+        [Tooltip("Controls the length of reflection rays.")]
+        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+
+        [SerializeField, FormerlySerializedAs("clampValue")]
+        [Tooltip("Controls the clamp of intensity.")]
+        private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
+
+        [SerializeField, FormerlySerializedAs("upscaleRadius")]
+        [Tooltip("Upscale Radius")]
+        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 6);
+
+        [SerializeField, FormerlySerializedAs("fullResolution")]
+        [Tooltip("Full Resolution")]
+        private BoolParameter m_FullResolution = new BoolParameter(false);
+
+        [SerializeField, FormerlySerializedAs("denoise")]
+        [Tooltip("Denoise the ray-traced reflection.")]
+        private BoolParameter m_Denoise = new BoolParameter(true);
+
+        [SerializeField, FormerlySerializedAs("denoiserRadius")]
+        [Tooltip("Controls the radius of the ray traced reflection denoiser.")]
+        private ClampedIntParameter m_DenoiserRadius = new ClampedIntParameter(8, 1, 32);
     }
 }

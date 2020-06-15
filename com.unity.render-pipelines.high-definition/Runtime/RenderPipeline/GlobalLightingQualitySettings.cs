@@ -48,10 +48,6 @@ namespace UnityEngine.Rendering.HighDefinition
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
-            SSGIResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
-            SSGIResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
-            SSGIResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
-
             SSGIRadius[(int)ScalableSettingLevelParameter.Level.Low] = 1.5f;
             SSGIRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5.0f;
             SSGIRadius[(int)ScalableSettingLevelParameter.Level.High] = 20.0f;
@@ -121,6 +117,39 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 0.33f;
             RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 0.33f;
             RTGISecondDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 0.5f;
+
+            // RTR
+            RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
+            RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.Medium] = 0.4f;
+            RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.High] = 0.0f;
+
+            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
+            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Medium] = 0.4f;
+            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.High] = 0.0f;
+
+            RTRRayLength[(int)ScalableSettingLevelParameter.Level.Low] = 50.0f;
+            RTRRayLength[(int)ScalableSettingLevelParameter.Level.Medium] = 50.0f;
+            RTRRayLength[(int)ScalableSettingLevelParameter.Level.High] = 50.0f;
+
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+
+            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
+            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
+            RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 3;
+
+            RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
+            RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
+            RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            RTRDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
+            RTRDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
+            RTRDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
+
+            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Low] = 8;
+            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 12;
+            RTRDenoiserRadius[(int)ScalableSettingLevelParameter.Level.High] = 16;
         }
 
         internal static GlobalLightingQualitySettings NewDefault() => new GlobalLightingQualitySettings();
@@ -147,16 +176,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Screen Space Global Illumination
         [System.NonSerialized]
+        /// <summary>Screen space global illumination step count for the ray marching.</summary>
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
         [System.NonSerialized]
-        public bool[] SSGIResolution = new bool[s_QualitySettingCount];
-        [System.NonSerialized]
+        /// <summary>Screen space global illumination's world space maximal radius.</summary>
         public float[] SSGIRadius = new float[s_QualitySettingCount];
         [System.NonSerialized]
+        /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
         public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
         [System.NonSerialized]
+        /// <summary>Screen space global illumination signal clamping value.</summary>
         public float[] SSGIClampValue = new float[s_QualitySettingCount];
         [System.NonSerialized]
+        /// <summary>Screen space global illumination's filter size.</summary>
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
@@ -188,6 +220,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool[] RTGISecondDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the second denoiser.</summary>
         public float[] RTGISecondDenoiserRadius = new float[s_QualitySettingCount];
+
+        // Ray Traced Reflections
+        /// <summary>Controls the minimal smoothness.</summary>
+        public float[] RTRMinSmoothness = new float[s_QualitySettingCount];
+        /// <summary>Controls the minimal smoothness.</summary>
+        public float[] RTRSmoothnessFadeStart = new float[s_QualitySettingCount];
+        /// <summary>Controls the length of ray traced reflection rays.</summary>
+        public float[] RTRRayLength = new float[s_QualitySettingCount];
+        /// <summary>Clamp value used to reduce the variance in the integration signal.</summary>
+        public float[] RTRClampValue = new float[s_QualitySettingCount];
+        /// <summary>Radius for the up-sample pass.</summary>
+        public int[] RTRUpScaleRadius = new int[s_QualitySettingCount];
+        /// <summary>Controls if the effect should be computed at full resolution.</summary>
+        public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
+        /// <summary>Flag that enables the first denoising pass.</summary>
+        public bool[] RTRDenoise = new bool[s_QualitySettingCount];
+        /// <summary>Flag that defines the radius of the first denoiser.</summary>
+        public int[] RTRDenoiserRadius = new int[s_QualitySettingCount];
 
         // TODO: Volumetric fog quality
 

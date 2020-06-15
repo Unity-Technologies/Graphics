@@ -151,6 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add support of lightlayers on indirect lighting controller
 - Added compute shader stripping.
 - Added Cull Mode option for opaque materials and ShaderGraphs. 
+- Added presets for ray traced reflections.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)
@@ -686,6 +687,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an exception occuring when a camera doesn't have an HDAdditionalCameraData (1254383).
 - Fixed ray tracing with XR single-pass.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
+- Fixed a bug related to denoising ray traced reflections.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
