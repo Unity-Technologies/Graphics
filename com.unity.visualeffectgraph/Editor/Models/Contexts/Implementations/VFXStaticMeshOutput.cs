@@ -246,5 +246,13 @@ namespace UnityEditor.VFX
                 yield return new VFXMapping("sortPriority", sortPriority);
             }
         }
+
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
+
+            ResyncSlots(true);
+        }
     }
 }

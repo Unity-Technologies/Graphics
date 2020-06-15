@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove some shader warnings
 - Fixed Sample Flipbook Texture File Names
 - Don't lose SRP output specific data when SRP package is not present
+- Fix visual effect graph when a subgraph or shader graph dependency changes
 - Support of flag settings in model inspector
 - height of initial event name.
 - fix colorfield height.

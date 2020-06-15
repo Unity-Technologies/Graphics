@@ -78,6 +78,8 @@ namespace UnityEditor.VFX
 
         public virtual void Sanitize(int version) {}
 
+        public virtual void CheckGraphBeforeImport() {}
+
         public virtual void OnUnknownChange()
         {
         }
