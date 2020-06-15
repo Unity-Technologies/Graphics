@@ -13,4 +13,4 @@ rm $log_file
 # Create directories in .git/hooks/ to match the filesystem inside git-hooks/
 find . -type d -exec mkdir {} "../.git/hooks/{}" \; 2> $log_file
 # Create hardlinks for all the files (recursively), excluding some that aren't hooks
-find . -type f ! -path "./install.sh" ! -path "./$log_file" -exec ln {} "../.git/hooks/{}" \; 2>> $log_file
+find . -type f -not \( -iname \*.log -o -iname \*.md -o -iname \*.txt \) -not -path "./install.sh" -exec ln {} "../.git/hooks/{}" \; 2>> $log_file
