@@ -115,6 +115,7 @@ The version number for this package has increased due to a version update of a r
 - Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
 - Fix issue with strips outputs that could cause too many vertices to be renderered
 - SpawnIndex attribute returns correct value in update and outputs contexts
+- Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
