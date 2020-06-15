@@ -1,5 +1,5 @@
 project:
-  name: HDRP 
+  name: HDRP
   folder: HDRP_Tests
   folder_standalone: HDRP_RuntimeTests
 test_platforms:
@@ -36,11 +36,11 @@ platforms:
     components:
       - editor
       - il2cpp
-  - name: OSX 
+  - name: OSX
     apis:
       - Metal
   - name: Linux
-    apis: 
+    apis:
       - Vulkan
 all:
   dependencies:
@@ -72,11 +72,12 @@ all:
       api: Vulkan
       test_platforms:
         - editmode
-        - playmode        
+        - playmode
     - project: HDRP_DXR
       platform: Win
       api: DX12
       test_platforms:
         - playmode
+        - playmode_XR
     - project: HDRP_Hybrid
       all: true
