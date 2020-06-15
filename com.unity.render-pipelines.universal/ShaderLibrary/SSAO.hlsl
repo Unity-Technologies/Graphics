@@ -269,34 +269,29 @@ float4 SSAO(Varyings input) : SV_Target
     return float4(1.0 - ao, packedDepth);
 }
 
+void CalculateKawaseSum(float2 uv, float baseLinearDepth, float baseValue, inout half sum)
+{
+    float4 value = SAMPLE_BASEMAP(uv);
+    half diff = 0.0125; // depth difference to ignore blurring
+    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue;
+}
 
 half4 KawaseBlur(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
 
+    float2 uv = input.uv;
     float4 baseValue = SAMPLE_BASEMAP(uv);
     float baseLinearDepth = RawToLinearDepth(ColorToUnit24(baseValue.gba));
-    half diff = 0.5; // depth difference to ignore blurring
 
     half sum  = 4.0 * baseValue.r;
-
-    // XY
-    float4 value = SAMPLE_BASEMAP(uv + _BlurOffset.xy);
-    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
-    // XW
-    value = SAMPLE_BASEMAP(uv + _BlurOffset.xw);
-    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
-    // ZY
-    value = SAMPLE_BASEMAP(uv + _BlurOffset.zy);
-    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
-    // ZW
-    value = SAMPLE_BASEMAP(uv + _BlurOffset.zw);
-    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue.r;
-
+    CalculateKawaseSum(uv + _BlurOffset.xy, baseLinearDepth, baseValue.r, sum); // XY
+    CalculateKawaseSum(uv + _BlurOffset.xw, baseLinearDepth, baseValue.r, sum); // XW
+    CalculateKawaseSum(uv + _BlurOffset.zy, baseLinearDepth, baseValue.r, sum); // ZY
+    CalculateKawaseSum(uv + _BlurOffset.zw, baseLinearDepth, baseValue.r, sum); // ZW
     sum      *= 0.125; // Divide by 8
 
-    return half4(sum, baseValue.bga);
+    return half4(sum, baseValue.gba);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED
