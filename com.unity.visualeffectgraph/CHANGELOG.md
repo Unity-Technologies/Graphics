@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New built-in operator providing new times access
 - More efficient update modes inspector
 - Ability to read attribute in spawn context through graph
+- Added Degrees / Radians conversion subgraphs in samples
 
 ### Fixed
 - Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
@@ -25,6 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid other NullReferenceException using property binders
 - Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
 - Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 
 ## [9.0.0] - 2020-07-09
 
