@@ -73,11 +73,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnEnable();
 
-            PropertyFetcher<HDIESImporter> entryPoint0 = new PropertyFetcher<HDIESImporter>(serializedObject);
-            SerializedProperty entryPoint1 = entryPoint0.Find<IESImporter>(x => x.commonIESImporter);
-            SerializedProperty entryPoint = entryPoint1.FindPropertyRelative("iesMetaData");
+            PropertyFetcher<IESImporter> entryPoint0 = new PropertyFetcher<IESImporter>(serializedObject);
+            SerializedProperty entryPoint1 = entryPoint0.Find<IESMetaData>(x => x.iesMetaData);
+            //SerializedProperty entryPoint = entryPoint1.FindPropertyRelative("iesMetaData");
 
-            iesImporterEditor.CommonOnEnable(entryPoint);
+            iesImporterEditor.CommonOnEnable(entryPoint1);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="background">Style of the background of the preview.</param>
         public override void OnPreviewGUI(Rect r, GUIStyle background)
         {
-            iesImporterEditor.CommonOnPreviewGUI(r, background, target as HDIESImporter,
+            iesImporterEditor.CommonOnPreviewGUI(r, background, target as IESImporter,
                                     delegate (Light light, SerializedProperty useIESMaximumIntensityProp, SerializedProperty iesMaximumIntensityUnitProp, SerializedProperty iesMaximumIntensityProp)
                                     {
                                         SetupRenderPipelinePreviewLightIntensity(light, useIESMaximumIntensityProp, iesMaximumIntensityUnitProp, iesMaximumIntensityProp);

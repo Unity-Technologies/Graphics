@@ -9,7 +9,8 @@ namespace UnityEditor.Rendering
     /// Common class use to share code between implementation of IES Importeres
     /// </summary>
     [System.Serializable]
-    public class IESImporter
+    [ScriptedImporter(1, "ies")]
+    public partial class IESImporter : ScriptedImporter
     {
         /// <summary>
         /// IES Engine
@@ -23,16 +24,18 @@ namespace UnityEditor.Rendering
 
         /// <summary>
         /// Delegate prototype which will be sent by the pipeline implementation of the IES Importer
+        /// Must be initialized during the creation of the SRP
         /// </summary>
-        public delegate void SetupRenderPipelinePrefabLight(IESEngine engine, Light light, Texture ies);
+        public static event System.Action<bool, string, float, Light, Texture> setupRenderPipelinePrefabLight;
 
         /// <summary>
         /// Common method performing the import of the asset
         /// </summary>
         /// <param name="ctx">Asset importer context.</param>
-        /// <param name="setupRenderPipelinePrefabLight">Delegate needed to perform operation which are "Render Pipeline specific" here setuping the prefab of light</param>
-        public void CommonOnImportAsset(AssetImportContext ctx, SetupRenderPipelinePrefabLight setupRenderPipelinePrefabLight)
+        public override void OnImportAsset(AssetImportContext ctx)
         {
+            engine.TextureGenerationType = TextureImporterType.Default;
+
             Texture cookieTextureCube = null;
             Texture cookieTexture2D = null;
 
@@ -86,7 +89,7 @@ namespace UnityEditor.Rendering
             light.range = 10f; // would need a better range value formula
             light.spotAngle = iesMetaData.SpotAngle;
 
-            setupRenderPipelinePrefabLight(engine, light, (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D);
+            IESImporter.setupRenderPipelinePrefabLight?.Invoke(iesMetaData.UseIESMaximumIntensity, iesMetaData.IESMaximumIntensityUnit, iesMetaData.IESMaximumIntensity, light, (iesMetaData.PrefabLightType == IESLightType.Point) ? cookieTextureCube : cookieTexture2D);
 
             ctx.AddObjectToAsset("IES", iesObject);
             ctx.SetMainObject(iesObject);
