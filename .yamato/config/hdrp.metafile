@@ -16,21 +16,21 @@ platforms:
       Vulkan: -force-vulkan
     agent_default:
       type: Unity::VM::GPU
-      image: graphics-foundation/win10-dxr:latest
+      image: graphics-foundation/win10-dxr:stable
       flavor: b1.xlarge
       model: rtx2080
     agent_editmode:
       type: Unity::VM
-      image: graphics-foundation/win10-dxr:latest
+      image: graphics-foundation/win10-dxr:stable
       flavor: b1.xlarge
     agent_standalone:
       type: Unity::VM::GPU
-      image: graphics-foundation/win10-dxr:latest
+      image: graphics-foundation/win10-dxr:stable
       flavor: b1.xlarge
       model: rtx2080
     agent_standalone_build:
       type: Unity::VM
-      image: graphics-foundation/win10-dxr:latest
+      image: graphics-foundation/win10-dxr:stable
       flavor: b1.xlarge
       model: rtx2080
     components:
