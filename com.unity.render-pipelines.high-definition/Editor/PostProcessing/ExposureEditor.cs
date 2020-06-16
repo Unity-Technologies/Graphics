@@ -86,8 +86,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (mode == (int) ExposureMode.CurveMapping)
                 {
                     PropertyField(m_CurveMap);
-                    PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min"));
-                    PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
+                    PropertyField(m_CurveMin, EditorGUIUtility.TrTextContent("Limit Min", "Specifies a curve that determines for each current exposure value (x-value) what minimum value is allowed to auto-adaptation (y-axis)."));
+                    PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max", "Specifies a curve that determines for each current exposure value (x-value) what maximum value is allowed to auto-adaptation (y-axis)."));
                 }
                 else if(!(mode == (int)ExposureMode.AutomaticHistogram && m_HistogramCurveRemapping.value.boolValue))
                 {
