@@ -685,6 +685,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
 - Fixed an exception occuring when a camera doesn't have an HDAdditionalCameraData (1254383).
 - Fixed ray tracing with XR single-pass.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
