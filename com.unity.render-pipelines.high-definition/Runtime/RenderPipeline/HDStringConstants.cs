@@ -881,6 +881,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZWrite = "_ZWrite";
         public const string kTransparentZWrite = "_TransparentZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
+        public const string kOpaqueCullMode = "_OpaqueCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
         public const string kRayTracing = "_RayTracing";
 
