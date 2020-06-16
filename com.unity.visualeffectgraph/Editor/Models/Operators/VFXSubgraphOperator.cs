@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
             return models.OfType<VFXParameter>().Where(t => predicate(t)).OrderBy(t => t.order);
         }
     }
-    [VFXInfo(category = "Subgraph Operator")]
+    [VFXInfo]
     class VFXSubgraphOperator : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
