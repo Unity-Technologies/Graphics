@@ -360,6 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.alphaToMask,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
+                systemData.opaqueCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
@@ -377,6 +378,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             material.SetFloat(kEnableFogOnTransparent, builtinData.transparencyFog ? 1.0f : 0.0f);
             material.SetFloat(kZTestTransparent, (int)systemData.zTest);
             material.SetFloat(kTransparentCullMode, (int)systemData.transparentCullMode);
+            material.SetFloat(kOpaqueCullMode, (int)systemData.opaqueCullMode);
             material.SetFloat(kTransparentZWrite, systemData.transparentZWrite ? 1.0f : 0.0f);
 
             // No sorting priority for shader graph preview
