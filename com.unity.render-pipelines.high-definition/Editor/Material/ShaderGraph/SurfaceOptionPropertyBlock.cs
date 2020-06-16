@@ -45,6 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 systemData.TryChangeRenderingPass(systemData.renderingPass);
             });
 
+            context.globalIndentLevel++;
             var renderingPassList = HDSubShaderUtilities.GetRenderingPassList(systemData.surfaceType == SurfaceType.Opaque, false);
             var renderingPassValue = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.GetOpaqueEquivalent(systemData.renderingPass) : HDRenderQueue.GetTransparentEquivalent(systemData.renderingPass);
             var renderQueueType = systemData.surfaceType == SurfaceType.Opaque ? HDRenderQueue.RenderQueueType.Opaque : HDRenderQueue.RenderQueueType.Transparent;
@@ -55,7 +56,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     onChange();
             });
 
-            context.globalIndentLevel++;
             if (systemData.surfaceType == SurfaceType.Transparent)
             {
                 AddProperty(blendModeText, () => systemData.blendMode, (newValue) => systemData.blendMode = newValue);
