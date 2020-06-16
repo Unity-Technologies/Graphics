@@ -13,10 +13,10 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static HDIESImporter()
         {
-            UnityEditor.Rendering.IESImporter.setupRenderPipelinePrefabLight += SetupRenderPipelinePrefabLight;
+            UnityEditor.Rendering.IESImporter.createRenderPipelinePrefabLight += CreateRenderPipelinePrefabLight;
         }
 
-        static public void SetupRenderPipelinePrefabLight(bool useIESMaximumIntensity, string iesMaximumIntensityUnit, float iesMaximumIntensity, Light light, Texture ies)
+        static public void CreateRenderPipelinePrefabLight(UnityEditor.Experimental.AssetImporters.AssetImportContext ctx, string iesFileName, bool useIESMaximumIntensity, string iesMaximumIntensityUnit, float iesMaximumIntensity, Light light, Texture ies)
         {
             HDLightTypeAndShape hdLightTypeAndShape = (light.type == LightType.Point) ? HDLightTypeAndShape.Point : HDLightTypeAndShape.ConeSpot;
 
@@ -31,6 +31,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                     hdLight.IESSpot = ies;
             }
+
+            // The light object will be automatically converted into a prefab.
+            ctx.AddObjectToAsset(iesFileName + "-HDRP", light.gameObject);
         }
     }
 }
