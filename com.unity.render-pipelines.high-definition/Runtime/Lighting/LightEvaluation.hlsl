@@ -201,7 +201,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition;
+        float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
