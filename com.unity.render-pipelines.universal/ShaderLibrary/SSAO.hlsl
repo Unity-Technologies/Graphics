@@ -90,8 +90,6 @@ float CompareNormal(float3 d1, float3 d2)
     return smoothstep(kGeometryCoeff, 1.0, dot(d1, d2));
 }
 
-
-
 float2 GetScreenSpacePosition(float2 uv)
 {
     return uv * SCREEN_PARAMS.xy * DOWNSAMPLE;
@@ -104,8 +102,7 @@ float3 PickSamplePoint(float2 uv, float randAddon, int index)
     float nX = InterleavedGradientNoise(positionSS + randAddon, index);// + _Time.x * 100.0);
     float nY = InterleavedGradientNoise(positionSS - randAddon, index);// + _Time.y * 100.0);
     float2 noise = float2(nX, nY);
-    float3 normal = SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
-    return normal;
+    return SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
 }
 
 float RawToLinearDepth(float rawDepth)
@@ -255,7 +252,6 @@ float4 SSAO(Varyings input) : SV_Target
     float randAddon = uv.x * 1e-10;
 
     float rcpSampleCount = rcp(SAMPLE_COUNT);
-    float samplePointRadiusMultiplier = RADIUS * rcpSampleCount;
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
     {
@@ -266,9 +262,7 @@ float4 SSAO(Varyings input) : SV_Target
 
         // Sample point
         float3 v_s1 = PickSamplePoint(uv.xy, randAddon + s, s);
-
-        // Make it distributed between [0, _Radius]
-        v_s1 *= (s + 1.0) * samplePointRadiusMultiplier;
+        v_s1 *= sqrt((s + 1.0) * rcpSampleCount) * RADIUS;
 
         v_s1 = faceforward(v_s1, -norm_o, v_s1);
         float3 vpos_s1 = vpos_o + v_s1;

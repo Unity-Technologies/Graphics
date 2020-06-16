@@ -271,8 +271,8 @@ namespace UnityEngine.Rendering.Universal
                     ExecuteSSAO(cmd, (int) m_CurrentSettings.Source);
 
                     // Execute the Blur Passes
-                    //int SSAOTexID = ExecuteKawaseBlur(cmd);
-                    int SSAOTexID = ExecuteGaussianBlur(cmd);
+                    int SSAOTexID = ExecuteKawaseBlur(cmd);
+                    //int SSAOTexID = ExecuteGaussianBlur(cmd);
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, SSAOTexID);
@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.Universal
                 RenderTargetIdentifier curTarget = m_SSAOTexture2Target;
                 int lastTargetID = s_SSAOTexture1ID;
                 int curTargetID = s_SSAOTexture2ID;
-                Vector4 offset = 0.5f * m_offsetIncrement;
+                Vector4 offset = 1.5f * m_offsetIncrement;
                 int numOfPasses = m_CurrentSettings.BlurPasses;
                 cmd.SetGlobalFloat(s_SSAOLastKawaseID, 0.0f);
                 cmd.SetGlobalVector(s_BlurOffsetID, m_offsetIncrement);
