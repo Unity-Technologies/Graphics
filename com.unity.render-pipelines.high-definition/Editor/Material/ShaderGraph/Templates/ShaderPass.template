@@ -24,14 +24,21 @@ Pass
     $splice(PassKeywords)
     $splice(GraphKeywords)
 
+    // --------------------------------------------------
     // Defines
+
+    // Lighting Material only (will not affect unlit)
     $DisableDecals:                     #define _DISABLE_DECALS 1
     $DisableSSR:                        #define _DISABLE_SSR 1
     $DisableSSRTransparent:             #define _DISABLE_SSR_TRANSPARENT 1
+    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+
+    // Precomputed velocity is used for alembic
     $AddPrecomputedVelocity:            #define _ADD_PRECOMPUTED_VELOCITY
     $TransparentWritesMotionVec:        #define _TRANSPARENT_WRITES_MOTION_VEC 1
     $DepthOffset:                       #define _DEPTHOFFSET_ON 1
-    $BlendMode.PreserveSpecular:        #define _BLENDMODE_PRESERVE_SPECULAR_LIGHTING 1
+
+    // Attribute
     $AttributesMesh.normalOS:           #define ATTRIBUTES_NEED_NORMAL
     $AttributesMesh.tangentOS:          #define ATTRIBUTES_NEED_TANGENT
     $AttributesMesh.uv0:                #define ATTRIBUTES_NEED_TEXCOORD0
@@ -52,6 +59,7 @@ Pass
 
     // Specific Material Define
     $include("ShaderPassDefine.template.hlsl")
+    // Caution: we can use the define SHADER_UNLIT onlit after the above Material include as it is the Unlit template who define it
 
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
@@ -65,9 +73,11 @@ Pass
         #endif
     #endif
 
+    #ifndef SHADER_UNLIT
     // We need isFontFace when using double sided
     #if defined(_DOUBLESIDED_ON) && !defined(VARYINGS_NEED_CULLFACE)
         #define VARYINGS_NEED_CULLFACE
+    #endif
     #endif
 
     // Translate transparent motion vector define
@@ -83,7 +93,7 @@ Pass
     // Includes
     $splice(PreGraphIncludes)
 
-    // Used by SceneSelectionPass
+    // Properties used by SceneSelectionPass
     #ifdef SCENESELECTIONPASS
     int _ObjectId;
     int _PassValue;
@@ -263,6 +273,7 @@ Pass
         #endif
         #endif
 
+        #ifndef SHADER_UNLIT
         #ifdef _DOUBLESIDED_ON
             float3 doubleSidedConstants = _DoubleSidedConstants.xyz;
         #else
@@ -270,6 +281,7 @@ Pass
         #endif
 
         ApplyDoubleSidedFlipOrMirror(fragInputs, doubleSidedConstants); // Apply double sided flip on the vertex normal
+        #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
@@ -287,12 +299,28 @@ Pass
         $DepthOffset: ApplyDepthOffsetPositionInput(V, surfaceDescription.DepthOffset, GetViewForwardDir(), GetWorldToHClipMatrix(), posInput);
         #endif
 
+        #ifndef SHADER_UNLIT
         float3 bentNormalWS;
         BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData, bentNormalWS);
 
         // Builtin Data
         // For back lighting we use the oposite vertex normal
         InitBuiltinData(posInput, surfaceDescription.Alpha, bentNormalWS, -fragInputs.tangentToWorld[2], fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
+
+        #else
+        BuildSurfaceData(fragInputs, surfaceDescription, V, posInput, surfaceData);
+
+        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
+        builtinData.opacity = surfaceDescription.Alpha;
+
+        #if defined(DEBUG_DISPLAY)
+            // Light Layers are currently not used for the Unlit shader (because it is not lit)
+            // But Unlit objects do cast shadows according to their rendering layer mask, which is what we want to
+            // display in the light layers visualization mode, therefore we need the renderingLayers
+            builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        #endif
+
+        #endif // SHADER_UNLIT
 
         #ifdef _ALPHATEST_ON
             // Used for sharpening by alpha to mask
@@ -302,7 +330,7 @@ Pass
             $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
         #endif
 
-        // override sampleBakedGI:
+        // override sampleBakedGI - not used by Unlit
         $LightingGI: builtinData.bakeDiffuseLighting = surfaceDescription.BakedGI;
         $BackLightingGI: builtinData.backBakeDiffuseLighting = surfaceDescription.BakedBackGI;
 
@@ -321,7 +349,12 @@ Pass
         builtinData.distortionBlur = surfaceDescription.DistortionBlur;
         #endif
 
+        #ifndef SHADER_UNLIT
+        // PostInitBuiltinData call ApplyDebugToBuiltinData
         PostInitBuiltinData(V, posInput, surfaceData, builtinData);
+        #else
+        ApplyDebugToBuiltinData(builtinData);
+        #endif
 
         RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
     }

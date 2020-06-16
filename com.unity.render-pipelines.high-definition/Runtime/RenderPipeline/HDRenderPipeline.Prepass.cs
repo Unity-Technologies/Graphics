@@ -417,6 +417,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    motionVectorBufferMSAA;
             public Material         depthResolveMaterial;
             public int              depthResolvePassIndex;
+            public bool             needMotionVectors;
         }
 
         void ResolvePrepassBuffers(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -436,17 +437,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depthValuesBuffer = renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = "DepthValuesBuffer" });
 
+                passData.needMotionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
                 passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
-                passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
+                if (passData.needMotionVectors)
+                    passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
 
                 passData.normalBufferMSAA = builder.ReadTexture(output.normalBuffer);
                 passData.depthAsColorBufferMSAA = builder.ReadTexture(output.depthAsColor);
-                passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
+                if (passData.needMotionVectors)
+                    passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
 
                 output.resolvedNormalBuffer = passData.normalBuffer;
                 output.resolvedDepthBuffer = passData.depthBuffer;
@@ -456,6 +461,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ResolvePrepassData data, RenderGraphContext context) =>
                 {
+                    data.depthResolveMaterial.SetTexture(HDShaderIDs._NormalTextureMS, context.resources.GetTexture(data.normalBufferMSAA));
+                    data.depthResolveMaterial.SetTexture(HDShaderIDs._DepthTextureMS, context.resources.GetTexture(data.depthAsColorBufferMSAA));
+                    if (data.needMotionVectors)
+                        data.depthResolveMaterial.SetTexture(HDShaderIDs._MotionVectorTextureMS, context.resources.GetTexture(data.motionVectorBufferMSAA));
+
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.depthResolveMaterial, data.depthResolvePassIndex, MeshTopology.Triangles, 3, 1);
                 });
             }

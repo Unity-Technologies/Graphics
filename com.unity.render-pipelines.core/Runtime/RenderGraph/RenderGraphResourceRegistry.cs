@@ -322,6 +322,85 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     }
     #endregion
 
+    class RenderGraphTexturePool
+    {
+        // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations).
+        Dictionary<int, List<(RTHandle resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(RTHandle resource, int frameIndex)>>();
+        static int s_CurrentFrameIndex;
+
+        public void ReleaseResource(int hash, RTHandle rt, int currentFrameIndex)
+        {
+            if (!m_ResourcePool.TryGetValue(hash, out var list))
+            {
+                list = new List<(RTHandle rt, int frameIndex)>();
+                m_ResourcePool.Add(hash, list);
+            }
+
+            list.Add((rt, currentFrameIndex));
+        }
+
+        public bool TryGetResource(int hashCode, out RTHandle rt)
+        {
+            if (m_ResourcePool.TryGetValue(hashCode, out var list) && list.Count > 0)
+            {
+                rt = list[list.Count - 1].resource;
+                list.RemoveAt(list.Count - 1); // O(1) since it's the last element.
+                return true;
+            }
+
+            rt = null;
+            return false;
+        }
+
+        public void PurgeUnusedResources(int currentFrameIndex)
+        {
+            // Update the frame index for the lambda. Static because we don't want to capture.
+            s_CurrentFrameIndex = currentFrameIndex;
+
+            foreach(var kvp in m_ResourcePool)
+            {
+                var list = kvp.Value;
+                list.RemoveAll(obj =>
+                {
+                    if (obj.frameIndex < s_CurrentFrameIndex)
+                    {
+                        obj.resource.Release();
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
+
+        public void Cleanup()
+        {
+            foreach (var kvp in m_ResourcePool)
+            {
+                foreach (var res in kvp.Value)
+                {
+                    res.resource.Release();
+                }
+            }
+        }
+
+        public void LogResources(RenderGraphLogger logger)
+        {
+            List<string> allocationList = new List<string>();
+            foreach (var kvp in m_ResourcePool)
+            {
+                foreach (var res in kvp.Value)
+                {
+                    allocationList.Add(res.resource.rt.name);
+                }
+            }
+
+            allocationList.Sort();
+            int index = 0;
+            foreach (var element in allocationList)
+                logger.LogLine("[{0}] {1}", index++, element);
+        }
+    }
+
     /// <summary>
     /// The RenderGraphResourceRegistry holds all resource allocated during Render Graph execution.
     /// </summary>
@@ -393,17 +472,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         DynamicArray<TextureResource>       m_TextureResources = new DynamicArray<TextureResource>();
-        Dictionary<int, Stack<RTHandle>>    m_TexturePool = new Dictionary<int, Stack<RTHandle>>();
+        RenderGraphTexturePool              m_TexturePool = new RenderGraphTexturePool();
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         DynamicArray<ComputeBufferResource> m_ComputeBufferResources = new DynamicArray<ComputeBufferResource>();
         RTHandleSystem                      m_RTHandleSystem = new RTHandleSystem();
         RenderGraphDebugParams              m_RenderGraphDebug;
         RenderGraphLogger                   m_Logger;
+        int                                 m_CurrentFrameIndex;
 
         RTHandle                            m_CurrentBackbuffer;
 
         // Diagnostic only
-        List<(int, RTHandle)>               m_AllocatedTextures = new List<(int, RTHandle)>();
+        // This list allows us to determine if all textures were correctly released in the frame.
+        List<(int, RTHandle)>               m_FrameAllocatedTextures = new List<(int, RTHandle)>();
 
         #region Public Interface
         /// <summary>
@@ -470,8 +551,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Logger = logger;
         }
 
-        internal void SetRTHandleReferenceSize(int width, int height, MSAASamples msaaSamples)
+        internal void BeginRender(int width, int height, MSAASamples msaaSamples, int currentFrameIndex)
         {
+            m_CurrentFrameIndex = currentFrameIndex;
+            // Update RTHandleSystem with size for this rendering pass.
             m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
         }
 
@@ -618,7 +701,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (hashCode != -1)
             {
-                m_AllocatedTextures.Add((hashCode, resource.rt));
+                m_FrameAllocatedTextures.Add((hashCode, resource.rt));
             }
 #endif
 
@@ -654,6 +737,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void ReleaseTexture(RenderGraphContext rgContext, TextureHandle resource)
         {
             ref var resourceDesc = ref GetTextureResource(resource);
+            if (resourceDesc.rt == null)
+                throw new InvalidOperationException($"Tried to release a texture ({resourceDesc.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+
             if (!resourceDesc.imported)
             {
                 if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
@@ -675,16 +761,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ReleaseTextureResource(int hash, RTHandle rt)
         {
-            if (!m_TexturePool.TryGetValue(hash, out var stack))
-            {
-                stack = new Stack<RTHandle>();
-                m_TexturePool.Add(hash, stack);
-            }
-
-            stack.Push(rt);
+            m_TexturePool.ReleaseResource(hash, rt, m_CurrentFrameIndex);
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            m_AllocatedTextures.Remove((hash, rt));
+            m_FrameAllocatedTextures.Remove((hash, rt));
 #endif
         }
 
@@ -746,14 +826,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         bool TryGetRenderTarget(int hashCode, out RTHandle rt)
         {
-            if (m_TexturePool.TryGetValue(hashCode, out var stack) && stack.Count > 0)
-            {
-                rt = stack.Pop();
-                return true;
-            }
-
-            rt = null;
-            return false;
+            return m_TexturePool.TryGetResource(hashCode, out rt);
         }
 
         internal void CreateRendererLists(List<RendererListHandle> rendererLists)
@@ -778,11 +851,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_ComputeBufferResources.Clear();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-            if (m_AllocatedTextures.Count != 0 && !onException)
+            if (m_FrameAllocatedTextures.Count != 0 && !onException)
             {
-                string logMessage = "RenderGraph: Not all textures were released.";
+                string logMessage = "RenderGraph: Not all textures were released. This can be caused by a textures being allocated but never read by any pass.";
 
-                List<(int, RTHandle)> tempList = new List<(int, RTHandle)>(m_AllocatedTextures);
+                List<(int, RTHandle)> tempList = new List<(int, RTHandle)>(m_FrameAllocatedTextures);
                 foreach (var value in tempList)
                 {
                     logMessage = $"{logMessage}\n\t{value.Item2.name}";
@@ -792,10 +865,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 Debug.LogWarning(logMessage);
             }
 
-            // If an error occurred during execution, it's expected that textures are not all release so we clear the trakcing list.
+            // If an error occurred during execution, it's expected that textures are not all released so we clear the tracking list.
             if (onException)
-                m_AllocatedTextures.Clear();
+                m_FrameAllocatedTextures.Clear();
 #endif
+
+            // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
+            // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
+            // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.
+            m_TexturePool.PurgeUnusedResources(m_CurrentFrameIndex);
         }
 
         internal void ResetRTHandleReferenceSize(int width, int height)
@@ -805,13 +883,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void Cleanup()
         {
-            foreach (var value in m_TexturePool)
-            {
-                foreach (var rt in value.Value)
-                {
-                    m_RTHandleSystem.Release(rt);
-                }
-            }
+            m_TexturePool.Cleanup();
         }
 
         void LogTextureCreation(RTHandle rt, bool cleared)
@@ -836,19 +908,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_Logger.LogLine("==== Allocated Resources ====\n");
 
-                List<string> allocationList = new List<string>();
-                foreach (var stack in m_TexturePool)
-                {
-                    foreach (var rt in stack.Value)
-                    {
-                        allocationList.Add(rt.rt.name);
-                    }
-                }
-
-                allocationList.Sort();
-                int index = 0;
-                foreach (var element in allocationList)
-                    m_Logger.LogLine("[{0}] {1}", index++, element);
+                m_TexturePool.LogResources(m_Logger);
             }
         }
 

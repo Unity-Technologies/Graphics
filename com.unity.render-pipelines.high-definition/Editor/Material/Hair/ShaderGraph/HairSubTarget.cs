@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -22,9 +23,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string subTargetAssetGuid => "7e681cc79dd8e6c46ba1e8412d519e26"; // HairSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;
         protected override string subShaderInclude => CoreIncludes.kHair;
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Hair;
+        protected override string raytracingInclude => CoreIncludes.kHairRaytracing;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Hair SubShader", "");
         protected override bool requireSplitLighting => false;
-
 
         HairData m_HairData;
 
@@ -40,25 +41,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_HairData = value;
         }
 
+        public static FieldDescriptor KajiyaKay =               new FieldDescriptor(kMaterial, "KajiyaKay", "_MATERIAL_FEATURE_HAIR_KAJIYA_KAY 1");
+        public static FieldDescriptor RimTransmissionIntensity = new FieldDescriptor(string.Empty, "RimTransmissionIntensity", "_RIM_TRANSMISSION_INTENSITY 1");
+        public static FieldDescriptor HairStrandDirection =     new FieldDescriptor(string.Empty, "HairStrandDirection", "_HAIR_STRAND_DIRECTION 1");
+        public static FieldDescriptor UseLightFacingNormal =    new FieldDescriptor(string.Empty, "UseLightFacingNormal", "_USE_LIGHT_FACING_NORMAL 1");
+        public static FieldDescriptor Transmittance =           new FieldDescriptor(string.Empty, "Transmittance", "_TRANSMITTANCE 1");
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
 
             var descs = context.blocks.Select(x => x.descriptor);
             // Hair specific properties:
-            context.AddField(HDFields.KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
-            context.AddField(HDFields.HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
-            context.AddField(HDFields.RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
-            context.AddField(HDFields.UseLightFacingNormal,                 hairData.useLightFacingNormal);
-            context.AddField(HDFields.Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
-
-            // All the DoAlphaXXX field drive the generation of which code to use for alpha test in the template
-            // Do alpha test only if we aren't using the TestShadow one
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))));
+            context.AddField(KajiyaKay,                            hairData.materialType == HairData.MaterialType.KajiyaKay);
+            context.AddField(HairStrandDirection,                  descs.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.HairStrandDirection));
+            context.AddField(RimTransmissionIntensity,             descs.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.RimTransmissionIntensity));
+            context.AddField(UseLightFacingNormal,                 hairData.useLightFacingNormal);
+            context.AddField(Transmittance,                        descs.Contains(HDBlockFields.SurfaceDescription.Transmittance) && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.Transmittance));
 
             // Misc
-            context.AddField(HDFields.SpecularAA,                           lightingData.specularAA &&
+            context.AddField(SpecularAA,                           lightingData.specularAA &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAThreshold) &&
                                                                                 context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.SpecularAAScreenSpaceVariance));
         }
