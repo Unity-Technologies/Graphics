@@ -5,6 +5,13 @@
 # made to these files will also be applied to the files in .git/hooks.
 # You just have to run this script after cloning the repo and each time a new hook is added.
 
+path=`git rev-parse --show-toplevel`
+if [[ $? != 0 ]]
+then
+  echo "Please execute this script from inside the git repository."
+fi
+cd "$path/git-hooks"
+
 # Logs of the installation
 log_file="install-hooks.log"
 
