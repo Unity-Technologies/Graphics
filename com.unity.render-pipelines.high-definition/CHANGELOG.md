@@ -148,6 +148,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support to combine RTSSS and RTGI (1248733).
 - Added IES Profile support for Point, Spot and Rectangular-Area lights
 - Added support for multiple mapping modes in AxF.
+- Add support of lightlayers on indirect lighting controller
+- Added compute shader stripping.
 - Added Cull Mode option for opaque materials and ShaderGraphs. 
 
 ### Fixed

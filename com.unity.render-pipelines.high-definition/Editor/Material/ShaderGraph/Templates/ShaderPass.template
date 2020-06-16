@@ -336,22 +336,6 @@ Pass
 
         $SurfaceDescription.Emission: builtinData.emissiveColor = surfaceDescription.Emission;
 
-        #ifndef SHADER_UNLIT
-        // TODO: need to implement for shader graph raytracing
-        /*
-        // Raytracing specific code to remove Emissive color from the pass to avoid double contribution
-        // To avoid to have double lighting (once from the light source and once from the light itself)
-        #if SHADERPASS == SHADERPASS_RAYTRACING_INDIRECT || SHADERPASS == SHADERPASS_RAYTRACING_GBUFFER
-            builtinData.emissiveColor *= _IncludeIndirectLighting;
-        #elif SHADERPASS == SHADERPASS_RAYTRACING_FORWARD || SHADERPASS == SHADERPASS_PATH_TRACING
-            if (rayCone.spreadAngle < 0.0)
-            {
-                builtinData.emissiveColor *= _IncludeIndirectLighting;
-            }
-        #endif
-        */
-        #endif // SHADER_UNLIT
-
         // Note this will not fully work on transparent surfaces (can check with _SURFACE_TYPE_TRANSPARENT define)
         // We will always overwrite vt feeback with the nearest. So behind transparent surfaces vt will not be resolved
         // This is a limitation of the current MRT approach.

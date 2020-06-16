@@ -279,6 +279,17 @@ float GetInversePreviousExposureMultiplier()
     return rcp(exposure + (exposure == 0.0)); // zero-div guard
 }
 
+// Helper function for indirect control volume
+float GetIndirectDiffuseMultiplier(uint renderingLayers)
+{
+    return (_IndirectDiffuseLightingLayers & renderingLayers) ? _IndirectDiffuseLightingMultiplier : 1.0f;
+}
+
+float GetIndirectSpecularMultiplier(uint renderingLayers)
+{
+    return (_ReflectionLightingLayers & renderingLayers) ? _ReflectionLightingMultiplier : 1.0f;
+}
+
 // Functions to clamp UVs to use when RTHandle system is used.
 
 float2 ClampAndScaleUV(float2 UV, float2 texelSize, float numberOfTexels)
