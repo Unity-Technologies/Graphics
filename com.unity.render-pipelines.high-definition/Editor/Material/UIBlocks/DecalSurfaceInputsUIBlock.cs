@@ -324,11 +324,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     materialEditor.ShaderProperty(emissiveExposureWeight, Styles.emissiveExposureWeightText);
                 }
 
-                EditorGUILayout.HelpBox(
-                    "Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
-                    MessageType.Info);
+                if (!perChannelMask)
+                {
+                    EditorGUILayout.HelpBox("Enable 'Metal and AO properties' in your HDRP Asset if you want to control the Metal and AO properties of decals.\nThere is a performance cost of enabling this option.",
+                                            MessageType.Info);
+                }
             }
-
         }
     }
 }
