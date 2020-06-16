@@ -491,11 +491,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Not considered as a post-process so it's not affected by its enabled state
                 if (!IsExposureFixed() && m_ExposureControlFS)
                 {
+                    var exposureParameters = PrepareExposureParameters(camera);
+
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
                         if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
                         {
-                            DoHistogramBasedExposure(cmd, camera, source);
+                            DoHistogramBasedExposure(exposureParameters, cmd, camera, source);
                         }
                         else
                         {
@@ -932,29 +934,42 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                // Setup variants
-                var adaptationMode = m_Exposure.adaptationMode.value;
-
-                if (!Application.isPlaying || hdCamera.resetPostProcessingHistory)
-                    adaptationMode = AdaptationMode.Fixed;
-
-                m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
-                m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
-                m_ExposureVariants[2] = (int)adaptationMode;
-                m_ExposureVariants[3] = 0;
+                ComputeProceduralMeteringParams(hdCamera, out parameters.proceduralMaskParams, out parameters.proceduralMaskParams2);
 
                 bool isHistogramBased = m_Exposure.mode.value == ExposureMode.AutomaticHistogram;
                 bool needsCurve = (isHistogramBased && m_Exposure.histogramUseCurveRemapping.value) || m_Exposure.mode.value == ExposureMode.CurveMapping;
+
+                parameters.adaptationParams = new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0.0f, 0.0f);
+
+                // TODO_FCC: TODO AFTER THE MIN/MAX CURVE GO IN. Note: this need to change the bias and scale computed below for the histogram and Limit min max!
+                float limitMax = m_Exposure.limitMax.value;
+                float limitMin = m_Exposure.limitMin.value;
+
+                parameters.exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, limitMin, limitMax, 0f);
+
                 if (isHistogramBased)
                 {
-
+                    ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
+                    m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram
 
                     Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
-                    float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
+                    float evRange = limitMax - limitMin;
                     float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
-                    float histBias = -m_Exposure.limitMin.value * histScale;
-                    Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+                    float histBias = -limitMin * histScale;
+                    parameters.histogramExposureParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
 
+                    if(m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+                    {
+                        parameters.histogramExposureCS.EnableKeyword("OUTPUT_DEBUG_DATA");
+                    }
+
+                    parameters.exposurePreparationKernel = parameters.histogramExposureCS.FindKernel("KHistogramGen");
+                    parameters.exposureReductionKernel = parameters.histogramExposureCS.FindKernel("KHistogramReduce");
+                }
+                else
+                {
+                    parameters.exposurePreparationKernel = parameters.exposureCS.FindKernel("KPrePass");
+                    parameters.exposureReductionKernel = parameters.exposureCS.FindKernel("KReduction");
                 }
             }
 
@@ -1141,20 +1156,20 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureVariants[3] = 0;
         }
 
-        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        void DoDynamicExposure(in ExposureParameter exposureParameter, CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
         {
-            var cs = m_Resources.shaders.exposureCS;
+            var cs = exposureParameter.exposureCS;
             int kernel;
 
             DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
 
             var sourceTex = colorBuffer;
 
-            kernel = cs.FindKernel("KPrePass");
+            kernel = exposureParameter.exposurePreparationKernel;
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParameter.exposureParams2);
 
             if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
             {
@@ -1165,9 +1180,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
             }
 
-            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, exposureParameter.proceduralMaskParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, exposureParameter.proceduralMaskParams2);
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture1024);
             cmd.DispatchCompute(cs, kernel, 1024 / 8, 1024 / 8, 1);
@@ -1180,23 +1194,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture32);
             cmd.DispatchCompute(cs, kernel, 32, 32, 1);
 
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParameter.exposureParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParameter.exposureParams2);
+
             // Reduction: 2nd pass (32 -> 1) + evaluate exposure
             if (m_Exposure.mode.value == ExposureMode.Automatic)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
                 m_ExposureVariants[3] = 1;
             }
             else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
-                PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, min, max, 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
-
                 m_ExposureVariants[3] = 2;
             }
 
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0f, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, exposureParameter.adaptationParams);
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_TempTexture32);
@@ -1204,30 +1216,19 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
-        void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        void DoHistogramBasedExposure(in ExposureParameter exposureParameter, CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
         {
-            var cs = m_Resources.shaders.histogramExposureCS;
-            cs.shaderKeywords = null;
-            int kernel;
+            var cs = exposureParameter.histogramExposureCS;
 
             DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
-            // Parameters
-            Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
-            float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
-            float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
-            float histBias = -m_Exposure.limitMin.value * histScale;
-            Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
 
-            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, exposureParameter.proceduralMaskParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, exposureParameter.proceduralMaskParams2);
 
-            ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
-            m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._HistogramExposureParams, histogramParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._HistogramExposureParams, exposureParameter.histogramExposureParams);
 
             // Generate histogram.
-            kernel = cs.FindKernel("KHistogramGen");
+            var kernel = exposureParameter.exposurePreparationKernel;
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
             if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
@@ -1247,14 +1248,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int threadGroupSizeY = 8;
             int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
             int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
-            int totalPixels = camera.actualWidth * camera.actualHeight;
             cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
 
             // Now read the histogram
             kernel = cs.FindKernel("KHistogramReduce");
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0f, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParameter.exposureParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParameter.exposureParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, exposureParameter.adaptationParams);
             cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
@@ -1264,7 +1264,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Exposure.histogramUseCurveRemapping.value)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
                 m_ExposureVariants[3] = 2;
             }
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
@@ -1272,7 +1271,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
             {
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureDebugTexture, m_DebugExposureData);
-                cs.EnableKeyword("OUTPUT_DEBUG_DATA");
             }
 
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
@@ -1282,67 +1280,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Temporal Anti-aliasing
 
-        void DoTemporalAntialiasing(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, RTHandle depthBuffer, RTHandle depthMipChain)
+        struct TemporalAntiAliasingParameters
         {
-            m_TemporalAAMaterial.shaderKeywords = null;
+            public Material              temporalAAMaterial;
 
-            GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
-            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+            public MaterialPropertyBlock taaHistoryPropertyBlock;
+            public MaterialPropertyBlock taaPropertyBlock;
 
-            if (m_EnableAlpha)
-            {
-                m_TemporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
-            }
+            public Vector4               taaParameters;
+            public Vector4               taaFilterWeights;
+        }
 
-            if(camera.taaHistorySharpening == 0)
-            {
-                m_TemporalAAMaterial.EnableKeyword("FORCE_BILINEAR_HISTORY");
-            }
-
-            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
-            {
-                m_TemporalAAMaterial.EnableKeyword("ANTI_RINGING");
-            }
-
-            if (camera.taaMotionVectorRejection > 0)
-            {
-                m_TemporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
-            }
-
-            switch (camera.TAAQuality)
-            {
-                case HDAdditionalCameraData.TAAQualityLevel.Low:
-                    m_TemporalAAMaterial.EnableKeyword("LOW_QUALITY");
-                    break;
-                case HDAdditionalCameraData.TAAQualityLevel.Medium:
-                    m_TemporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
-                    break;
-                case HDAdditionalCameraData.TAAQualityLevel.High:
-                    m_TemporalAAMaterial.EnableKeyword("HIGH_QUALITY");
-                    break;
-                default:
-                    m_TemporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
-                    break;
-            }
-
-            if (camera.resetPostProcessingHistory)
-            {
-                m_TAAHistoryBlitPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
-                var rtScaleSource = source.rtHandleProperties.rtHandleScale;
-                m_TAAHistoryBlitPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(rtScaleSource.x, rtScaleSource.y, 0.0f, 0.0f));
-                m_TAAHistoryBlitPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
-                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), prevHistory, m_TAAHistoryBlitPropertyBlock, 0);
-                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, m_TAAHistoryBlitPropertyBlock, 0);
-            }
-
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
-
-            m_TAAPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
-
+        TemporalAntiAliasingParameters PrepareTAAParameters(HDCamera camera)
+        {
+            TemporalAntiAliasingParameters parameters = new TemporalAntiAliasingParameters();
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
             float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
@@ -1350,11 +1301,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // The anti flicker becomes much more aggressive on higher values
             float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
 
-            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
-            Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
-                                              prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
-            var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
-            var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
+            parameters.taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
 
             // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
@@ -1368,17 +1315,96 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // Weights will be x: central, y: plus neighbours, z: cross neighbours, w: total
-            Vector4 taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
+            parameters.taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
 
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParameters);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._TaaFilterWeights, taaFilterWeights);
+            parameters.temporalAAMaterial = m_TemporalAAMaterial;
+            parameters.temporalAAMaterial.shaderKeywords = null;
+
+            if (m_EnableAlpha)
+            {
+                parameters.temporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
+            }
+
+            if (camera.taaHistorySharpening == 0)
+            {
+                parameters.temporalAAMaterial.EnableKeyword("FORCE_BILINEAR_HISTORY");
+            }
+
+            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            {
+                parameters.temporalAAMaterial.EnableKeyword("ANTI_RINGING");
+            }
+
+            if (camera.taaMotionVectorRejection > 0)
+            {
+                parameters.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+            }
+
+            switch (camera.TAAQuality)
+            {
+                case HDAdditionalCameraData.TAAQualityLevel.Low:
+                    parameters.temporalAAMaterial.EnableKeyword("LOW_QUALITY");
+                    break;
+                case HDAdditionalCameraData.TAAQualityLevel.Medium:
+                    parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                    break;
+                case HDAdditionalCameraData.TAAQualityLevel.High:
+                    parameters.temporalAAMaterial.EnableKeyword("HIGH_QUALITY");
+                    break;
+                default:
+                    parameters.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                    break;
+            }
+
+            parameters.taaHistoryPropertyBlock = m_TAAHistoryBlitPropertyBlock;
+            parameters.taaPropertyBlock = m_TAAPropertyBlock;
+
+            return parameters;
+        }
+
+        void DoTemporalAntialiasing( in TemporalAntiAliasingParameters taaParams,
+                                        CommandBuffer cmd,
+                                        HDCamera camera,
+                                        RTHandle source,
+                                        RTHandle destination,
+                                        RTHandle depthBuffer,
+                                        RTHandle depthMipChain)
+        {
+
+            GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory);
+            GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+
+            if (camera.resetPostProcessingHistory)
+            {
+                taaParams.taaHistoryPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+                var rtScaleSource = source.rtHandleProperties.rtHandleScale;
+                taaParams.taaHistoryPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(rtScaleSource.x, rtScaleSource.y, 0.0f, 0.0f));
+                taaParams.taaHistoryPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), prevHistory, taaParams.taaHistoryPropertyBlock, 0);
+                HDUtils.DrawFullScreen(cmd, HDUtils.GetBlitMaterial(source.rt.dimension), nextHistory, taaParams.taaHistoryPropertyBlock, 0);
+            }
+
+            taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+            taaParams.taaPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+            taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
+            taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
+            taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
+
+            taaParams.taaPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, depthMipChain);
+
+            Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
+                                              prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
+            var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
+
+            taaParams.taaPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, taaParams.taaParameters);
+            taaParams.taaPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
+            taaParams.taaPropertyBlock.SetVector(HDShaderIDs._TaaFilterWeights, taaParams.taaFilterWeights);
 
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetRandomWriteTarget(2, nextMVLen);
-            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
-            cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, taaParams.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, taaParams.taaPropertyBlock);
             cmd.ClearRandomWriteTargets();
         }
 
