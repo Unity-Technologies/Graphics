@@ -66,7 +66,22 @@ You should only expose a property if you intend to change it in the Inspector wh
 
 If a property is not exposed, you can still edit it. To edit the property for every Material instance that uses the selected Shader, open the Shader Graph Asset and edit the property directly in the Blackboard. To edit the property for a single Material instance that uses the Shader, use a script. 
 
-**:warning: HDRP have a set of restricted property names that you shouldn't use in the blackboard if you want your material to work correctly: `_EmissionColor`,  `_BaseColor`, `_BaseColorMap`, `_RenderQueueType`, `_UseShadowThreshold`, `_ReceivesSSR`, `_RequireSplitLighting`, `_TransparentDepthPrepassEnable` and `_TransparentDepthPostpassEnable`.**
+**:warning: HDRP reserves a set of property names that you should not use in the Blackboard. If you use any of them, the Material will most likely not work correctly. The restricted property names in this table:**
+
+Property Name | HDRP Usage
+--- | ---
+`_EmissionColor` | GI emission color.
+`_BaseColor` | GI alpha clip.
+`_BaseColorMap` | GI alpha clip.
+`_RenderQueueType` | HDRP render queue to generate the material render queue.
+`_UseShadowThreshold` | HDRP internal.
+`_RequireSplitLighting` | HDRP internal.
+`_ReceivesSSR` | Already exposed in surface options.
+`_TransparentDepthPrepassEnable` | Already exposed in surface options.
+`_TransparentDepthPostpassEnable` | Already exposed in surface options.
+`_SurfaceType` | Already exposed in surface options.
+`_DoubleSidedEnable` | Already exposed in surface options.
+`_AlphaCutoffEnable` | Already exposed in surface options.
 
 <a name="ConcreteNodes"></a>
 
