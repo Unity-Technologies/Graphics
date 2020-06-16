@@ -343,15 +343,15 @@ namespace UnityEngine.Rendering.HighDefinition
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
             passData.gbufferRT[2] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2",
+                new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
 #if UNITY_2020_2_OR_NEWER
-                    fastMemoryDesc = gbufferFastMemDesc
+                    , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }, HDShaderIDs._GBufferTexture[2]), 2);
             passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3",
+                new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
 #if UNITY_2020_2_OR_NEWER
-                    fastMemoryDesc = gbufferFastMemDesc
+                  , fastMemoryDesc = gbufferFastMemDesc
 #endif
                 }, HDShaderIDs._GBufferTexture[3]), 3);
 
