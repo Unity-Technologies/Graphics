@@ -893,6 +893,75 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Exposure
 
+        struct ExposureParameter
+        {
+            public ComputeShader exposureCS;
+            public ComputeShader histogramExposureCS;
+            public int exposurePreparationKernel;
+            public int exposureReductionKernel;
+
+            public Vector4 exposureParams;
+            public Vector4 exposureParams2;
+            public Vector4 proceduralMaskParams;
+            public Vector4 proceduralMaskParams2;
+            public Vector4 histogramExposureParams;
+            public Vector4 adaptationParams;
+        }
+
+        ExposureParameter PrepareExposureParameters(HDCamera hdCamera)
+        {
+            var parameters = new ExposureParameter();
+            parameters.exposureCS = m_Resources.shaders.exposureCS;
+            parameters.histogramExposureCS = m_Resources.shaders.histogramExposureCS;
+            parameters.histogramExposureCS.shaderKeywords = null;
+
+            bool isFixed = IsExposureFixed();
+            if (isFixed)
+            {
+                parameters.exposureParams2 = new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant);
+                if (m_Exposure.mode.value == ExposureMode.Fixed)
+                {
+                    parameters.exposureReductionKernel = parameters.exposureCS.FindKernel("KFixedExposure");
+                    parameters.exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
+                }
+                else if(m_Exposure.mode == ExposureMode.UsePhysicalCamera)
+                {
+                    parameters.exposureReductionKernel = parameters.exposureCS.FindKernel("KManualCameraExposure");
+                    parameters.exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
+                }
+            }
+            else
+            {
+                // Setup variants
+                var adaptationMode = m_Exposure.adaptationMode.value;
+
+                if (!Application.isPlaying || hdCamera.resetPostProcessingHistory)
+                    adaptationMode = AdaptationMode.Fixed;
+
+                m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
+                m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
+                m_ExposureVariants[2] = (int)adaptationMode;
+                m_ExposureVariants[3] = 0;
+
+                bool isHistogramBased = m_Exposure.mode.value == ExposureMode.AutomaticHistogram;
+                bool needsCurve = (isHistogramBased && m_Exposure.histogramUseCurveRemapping.value) || m_Exposure.mode.value == ExposureMode.CurveMapping;
+                if (isHistogramBased)
+                {
+
+
+                    Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
+                    float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
+                    float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
+                    float histBias = -m_Exposure.limitMin.value * histScale;
+                    Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+
+                }
+            }
+
+
+            return parameters;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         bool IsExposureFixed() => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera;
 
