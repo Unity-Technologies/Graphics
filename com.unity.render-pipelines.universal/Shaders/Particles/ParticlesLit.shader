@@ -16,7 +16,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
         _ReceiveShadows("Receive Shadows", Float) = 1.0
         
