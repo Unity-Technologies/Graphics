@@ -80,6 +80,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// This texture will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
         /// <returns>A new transient TextureHandle.</returns>
@@ -128,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         /// <summary>
         /// Create a new Render Graph Compute Buffer resource.
-        /// This buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
+        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
         /// <param name="desc">Compute Buffer descriptor.</param>
         /// <returns>A new transient ComputeBufferHandle.</returns>
@@ -140,13 +141,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
         /// <summary>
-        /// Create a new Render Graph Texture resource using the descriptor from another texture.
+        /// Create a new Render Graph Compute Buffer resource using the descriptor from another Compute Buffer.
+        /// This Compute Buffer will only be available for the current pass and will be assumed to be both written and read so users don't need to add explicit read/write declarations.
         /// </summary>
-        /// <param name="texture">Texture from which the descriptor should be used.</param>
-        /// <returns>A new transient TextureHandle.</returns>
-        public ComputeBufferHandle CreateTransientComputeBuffer(ComputeBufferHandle buffer)
+        /// <param name="computebuffer">Compute Buffer from which the descriptor should be used.</param>
+        /// <returns>A new transient ComputeBufferHandle.</returns>
+        public ComputeBufferHandle CreateTransientComputeBuffer(ComputeBufferHandle computebuffer)
         {
-            var desc = m_Resources.GetComputeBufferResourceDesc(buffer);
+            var desc = m_Resources.GetComputeBufferResourceDesc(computebuffer);
             var result = m_Resources.CreateComputeBuffer(desc, m_RenderPass.index);
             m_RenderPass.AddTransientResource(RenderGraphResourceType.ComputeBuffer, result);
             return result;

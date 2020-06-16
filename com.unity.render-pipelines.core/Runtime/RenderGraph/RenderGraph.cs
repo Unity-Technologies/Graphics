@@ -318,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <summary>
         /// Gets the descriptor of the specified Texture resource.
         /// </summary>
-        /// <param name="texture"></param>
+        /// <param name="texture">Texture resource from which the descriptor is requested.</param>
         /// <returns>The input texture descriptor.</returns>
         public TextureDesc GetTextureDesc(TextureHandle texture)
         {
@@ -346,16 +346,31 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources.ImportComputeBuffer(computeBuffer);
         }
 
+        /// <summary>
+        /// Create a new Render Graph Compute Buffer resource.
+        /// </summary>
+        /// <param name="desc">Compute Buffer descriptor.</param>
+        /// <returns>A new ComputeBufferHandle.</returns>
         public ComputeBufferHandle CreateComputeBuffer(in ComputeBufferDesc desc)
         {
             return m_Resources.CreateComputeBuffer(desc);
         }
 
+        /// <summary>
+        /// Create a new Render Graph Compute Buffer resource using the descriptor from another compute buffer.
+        /// </summary>
+        /// <param name="computeBuffer">Compute Buffer from which the descriptor should be used.</param>
+        /// <returns>A new ComputeBufferHandle.</returns>
         public ComputeBufferHandle CreateComputeBuffer(ComputeBufferHandle computeBuffer)
         {
             return m_Resources.CreateComputeBuffer(m_Resources.GetComputeBufferResourceDesc(computeBuffer));
         }
 
+        /// <summary>
+        /// Gets the descriptor of the specified Compute Buffer resource.
+        /// </summary>
+        /// <param name="computeBuffer">Compute Buffer resource from which the descriptor is requested.</param>
+        /// <returns>The input compute buffer descriptor.</returns>
         public ComputeBufferDesc GetComputeBufferDesc(ComputeBufferHandle computeBuffer)
         {
             return m_Resources.GetComputeBufferResourceDesc(computeBuffer);
@@ -900,6 +915,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             foreach (var texture in passInfo.resourceCreateList[(int)RenderGraphResourceType.Texture])
                 m_Resources.CreateAndClearTexture(rgContext, texture);
 
+            foreach (var buffer in passInfo.resourceCreateList[(int)RenderGraphResourceType.ComputeBuffer])
+                m_Resources.CreateComputeBuffer(rgContext, buffer);
+
             PreRenderPassSetRenderTargets(passInfo, rgContext);
 
             // Flush first the current command buffer on the render context.
@@ -942,6 +960,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             foreach (var texture in passInfo.resourceReleaseList[(int)RenderGraphResourceType.Texture])
                 m_Resources.ReleaseTexture(rgContext, texture);
+            foreach (var buffer in passInfo.resourceReleaseList[(int)RenderGraphResourceType.ComputeBuffer])
+                m_Resources.ReleaseComputeBuffer(rgContext, buffer);
         }
 
         void ClearRenderPasses()

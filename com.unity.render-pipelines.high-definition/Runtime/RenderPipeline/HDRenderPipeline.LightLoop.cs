@@ -113,7 +113,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.output.perVoxelOffset = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perVoxelOffset));
                 passData.output.perTileLogBaseTweak = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perTileLogBaseTweak));
                 passData.output.tileList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.tileList));
-                passData.output.bigTileLightList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.bigTileLightList));
+                if (m_TileAndClusterData.bigTileLightList != null)
+                    passData.output.bigTileLightList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.bigTileLightList));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.perVoxelLightLists));
                 passData.output.lightList = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.lightList));
 

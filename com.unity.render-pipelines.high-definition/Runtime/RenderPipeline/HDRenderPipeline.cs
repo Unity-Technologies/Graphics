@@ -2346,7 +2346,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_EnableRenderGraph)
             {
-                ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
+                try
+                {
+                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
+                }
+                catch(Exception e)
+                {
+                    Debug.LogError("Error while building Render Graph.");
+                    Debug.LogException(e);
+                }
                 return;
             }
 
