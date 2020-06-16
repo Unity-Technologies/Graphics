@@ -737,6 +737,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         internal void ReleaseTexture(RenderGraphContext rgContext, TextureHandle resource)
         {
             ref var resourceDesc = ref GetTextureResource(resource);
+            if (resourceDesc.rt == null)
+                throw new InvalidOperationException($"Tried to release a texture ({resourceDesc.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+
             if (!resourceDesc.imported)
             {
                 if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
