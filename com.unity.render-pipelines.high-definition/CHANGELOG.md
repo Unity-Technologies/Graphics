@@ -832,6 +832,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changing the default SSGI radius for the all configurations.
 - Changed the default parameters for quality RTGI to match expected behavior.
 - Add color clear pass while rendering XR occlusion mesh to avoid leaks.
+- Only use one texture for ray traced reflection upscaling.
+- Adjust the upscale radius based on the roughness value.
 
 ## [7.1.1] - 2019-09-05
 
