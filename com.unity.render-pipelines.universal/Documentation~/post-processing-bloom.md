@@ -27,6 +27,7 @@ To add **Bloom** to a Volume:
 | **Tint**                   | Use the color picker to select a color for the Bloom effect to tint to. |
 | **Clamp**                  | Set the maximum intensity that Unity uses to calculate Bloom. If pixels in your Scene are more intense than this, URP renders them at their current intensity, but uses this intensity value for the purposes of Bloom calculations. The default value is 65472. |
 | **High Quality Filtering** | Enable this to use high quality sampling. This reduces flickering and improves the overall smoothness, but is more resource-intensive and can affect performance. |
+| **Skip Iterations** | Set how many smallest bloom pyramid iterations to skip. This reduces driver overhead and increases performance, especially on mobile. The default value is 2. |
 
 ### Lens Dirt
 
