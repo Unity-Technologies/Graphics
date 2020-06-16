@@ -2510,9 +2510,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RefreshCachedShadow();
 
             if (emissiveMeshRenderer != null && !emissiveMeshRenderer.Equals(null))
-            {
-                emissiveMeshRenderer.gameObject.layer = m_AreaLightEmissiveMeshLayer;
-            }
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+                // As we cannot Create/Destroy in OnValidate, delay call to next Update
+                needRefreshPrefabInstanceEmissiveMeshes = true;
 
 #if UNITY_EDITOR
             // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
