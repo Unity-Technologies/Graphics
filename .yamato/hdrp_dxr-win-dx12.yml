@@ -7,7 +7,7 @@ HDRP_DXR_Win_DX12_Standalone_trunk:
     name: HDRP_DXR on Win_DX12_Standalone on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -31,7 +31,7 @@ Build_HDRP_DXR_Win_DX12_Player_trunk:
     name: Build HDRP_DXR on Win_DX12_Player on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -55,7 +55,7 @@ HDRP_DXR_Win_DX12_playmode_trunk:
     name: HDRP_DXR on Win_DX12_playmode on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -97,7 +97,7 @@ HDRP_DXR_Win_DX12_Standalone_fast-trunk:
     name: HDRP_DXR on Win_DX12_Standalone on version fast-trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -121,7 +121,7 @@ Build_HDRP_DXR_Win_DX12_Player_fast-trunk:
     name: Build HDRP_DXR on Win_DX12_Player on version fast-trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -145,7 +145,7 @@ HDRP_DXR_Win_DX12_playmode_fast-trunk:
     name: HDRP_DXR on Win_DX12_playmode on version fast-trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -187,7 +187,7 @@ HDRP_DXR_Win_DX12_Standalone_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_Standalone on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -212,7 +212,7 @@ Build_HDRP_DXR_Win_DX12_Player_CUSTOM-REVISION:
     name: Build HDRP_DXR on Win_DX12_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:
@@ -237,7 +237,7 @@ HDRP_DXR_Win_DX12_playmode_CUSTOM-REVISION:
     name: HDRP_DXR on Win_DX12_playmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.large
         model: rtx2080
     variables:

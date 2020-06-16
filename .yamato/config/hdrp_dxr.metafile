@@ -12,7 +12,7 @@ platforms:
       DX12: -force-d3d12
     agent_default:
       type: Unity::VM::GPU
-      image: graphics-foundation/win10-dxr:latest
+      image: graphics-foundation/win10-dxr:stable
       flavor: b1.large
       model: rtx2080
     components:
