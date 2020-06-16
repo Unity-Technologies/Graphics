@@ -1,6 +1,10 @@
 #!/bin/sh
 
+# Script that verifies that each branch follows the naming convention.
+
 LC_ALL=C
+
+echo "Checking that branch name follows the repository convention..."
 
 local_branch="$(git rev-parse --abbrev-ref HEAD)"
 valid_branch_regex="([a-z])+\/([a-z])+"
@@ -12,4 +16,5 @@ then
     exit 1
 fi
 
+echo "Completed."
 exit 0 
