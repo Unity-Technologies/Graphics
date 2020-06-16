@@ -18,7 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public FabricSubTarget() => displayName = "Fabric";
 
-        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/";
+        static string[] passTemplateMaterialDirectories = new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
+
+        protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string subTargetAssetGuid => "74f1a4749bab90d429ac01d094be0aeb"; // FabricSubTarget.cs
         protected override string customInspector => "Rendering.HighDefinition.FabricGUI";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
