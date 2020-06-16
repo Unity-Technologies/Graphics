@@ -1905,7 +1905,7 @@ namespace UnityEngine.Rendering.HighDefinition
             envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
             envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
-            envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
+            envLightData.multiplier = probe.multiplier * m_indirectLightingController.reflectionProbeIntensityMultiplier.value;
             envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
             envLightData.influenceExtents = influence.extents;
             switch (influence.envShape)
