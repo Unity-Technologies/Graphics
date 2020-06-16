@@ -39,7 +39,7 @@ float4 _BlueNoiseTexture_TexelSize;
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SAMPLE_BASEMAP_R(uv) SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
-#define SAMPLE_BLUE_NOISE(uv) UnpackNormal(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)));
+#define SAMPLE_BLUE_NOISE(uv) normalize(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)) * 2.0 - 1.0);
 
 
 // Constants
@@ -65,8 +65,10 @@ float2 GetScreenSpacePosition(float2 uv)
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float randAddon, int index)
 {
-    float2 positionSS = GetScreenSpacePosition(uv + randAddon);
-    float noise = InterleavedGradientNoise(positionSS, index);
+    float2 positionSS = GetScreenSpacePosition(uv);
+    float nX = InterleavedGradientNoise(positionSS + randAddon, index + _Time.x * 100.0);
+    float nY = InterleavedGradientNoise(positionSS - randAddon, index + _Time.y * 100.0);
+    float2 noise = float2(nX, nY);
     float3 normal = SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
     return normal;
 }
