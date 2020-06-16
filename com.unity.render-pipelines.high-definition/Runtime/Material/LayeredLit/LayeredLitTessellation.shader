@@ -279,6 +279,7 @@ Shader "HDRP/LayeredLitTessellation"
         [HideInInspector][ToggleUI] _TransparentZWrite("_TransparentZWrite", Float) = 0.0
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal

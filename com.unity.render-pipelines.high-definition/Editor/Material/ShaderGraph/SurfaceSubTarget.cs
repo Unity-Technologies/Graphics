@@ -360,6 +360,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 builtinData.alphaToMask,
                 systemData.transparentZWrite,
                 systemData.transparentCullMode,
+                systemData.opaqueCullMode,
                 systemData.zTest,
                 builtinData.backThenFrontRendering,
                 builtinData.transparencyFog
