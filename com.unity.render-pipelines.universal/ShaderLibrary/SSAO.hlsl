@@ -448,13 +448,6 @@ float4 FragComposition(Varyings input) : SV_Target
     return 1.0 - ao;
 }
 
-void CalculateKawaseSum(float2 uv, float baseLinearDepth, float baseValue, inout half sum)
-{
-    float4 value = SAMPLE_BASEMAP(uv);
-    half diff = 0.5; // depth difference to ignore blurring
-    sum += abs(baseLinearDepth - RawToLinearDepth(ColorToUnit24(value.gba))) < diff ? value.r : baseValue;
-}
-
 float _LastKawasePass;
 half4 KawaseBlur(Varyings input) : SV_Target
 {
@@ -462,16 +455,31 @@ half4 KawaseBlur(Varyings input) : SV_Target
 
     float2 uv = input.uv;
     float4 baseValue = SAMPLE_BASEMAP(uv);
-    float baseLinearDepth = RawToLinearDepth(ColorToUnit24(baseValue.gba));
 
-    half sum  = 4.0 * baseValue.r;
-    CalculateKawaseSum(uv + _BlurOffset.xy, baseLinearDepth, baseValue.r, sum); // XY
-    CalculateKawaseSum(uv + _BlurOffset.xw, baseLinearDepth, baseValue.r, sum); // XW
-    CalculateKawaseSum(uv + _BlurOffset.zy, baseLinearDepth, baseValue.r, sum); // ZY
-    CalculateKawaseSum(uv + _BlurOffset.zw, baseLinearDepth, baseValue.r, sum); // ZW
-    sum      *= 0.125; // Divide by 8
+    float4 p0 = SAMPLE_BASEMAP(uv                 );
+    float4 p1a = SAMPLE_BASEMAP(uv + _BlurOffset.xy);
+    float4 p1b = SAMPLE_BASEMAP(uv + _BlurOffset.xw);
+    float4 p2a = SAMPLE_BASEMAP(uv + _BlurOffset.zy);
+    float4 p2b = SAMPLE_BASEMAP(uv + _BlurOffset.zw);
 
-    return _LastKawasePass == 0 ? half4(sum, baseValue.gba) : (1.0 - sum);
+    float3 n0 = GetPackedNormal(p0);
+
+    float w0 = 0.2;
+    float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.2;
+    float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.2;
+    float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.2;
+    float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.2;
+
+    float s;
+    s  = GetPackedAO(p0)  * w0;
+    s += GetPackedAO(p1a) * w1a;
+    s += GetPackedAO(p1b) * w1b;
+    s += GetPackedAO(p2a) * w2a;
+    s += GetPackedAO(p2b) * w2b;
+
+    s *= rcp(w0 + w1a + w1b + w2a + w2b);
+
+    return _LastKawasePass == 0 ? half4(s, baseValue.gba) : (1.0 - s);
 }
 
 #endif //UNIVERSAL_SSAO_INCLUDED
