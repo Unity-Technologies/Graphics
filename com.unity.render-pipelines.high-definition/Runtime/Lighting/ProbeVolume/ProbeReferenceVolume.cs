@@ -66,6 +66,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public float       scale;
         }
 
+        public struct RuntimeResources
+        {
+            public ComputeBuffer index;
+            public Texture3D     L0;
+            public Texture3D     L1_R;
+            public Texture3D     L1_G;
+            public Texture3D     L1_B;
+        }
+
         private RefVolTransform     m_Transform;
         private int                 m_MaxSubdivision;
         private ProbeBrickPool      m_Pool;
@@ -103,6 +112,14 @@ namespace UnityEngine.Rendering.HighDefinition
             Profiler.EndSample();
         }
 
+        public RuntimeResources GetRuntimeResources()
+        {
+            RuntimeResources rr = new RuntimeResources();
+            m_Index.GetRuntimeResources(ref rr);
+            m_Pool.GetRuntimeResources(ref rr);
+            return rr;
+        }
+
         public void SetGridDensity(float minBrickSize, int maxSubdivision)
         {
             m_MaxSubdivision = System.Math.Min(maxSubdivision, ProbeBrickIndex.kMaxSubdivisionLevels);
@@ -118,6 +135,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
 
         public delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
+
+        public void Clear()
+        {
+            m_Pool.Clear();
+            m_Index.Clear();
+        }
 
         public void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
@@ -304,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Update the pool and index and ignore any potential frame latency related issues
             m_Pool.Update(dataloc, m_TmpSrcChunks, m_TmpDstChunks);
             m_Index.AddBricks(bricks, m_TmpDstChunks, m_Pool.GetChunkSize(), m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
-
+            m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions());
             Profiler.EndSample();
         }
 

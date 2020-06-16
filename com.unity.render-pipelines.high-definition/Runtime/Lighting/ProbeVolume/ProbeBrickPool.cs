@@ -57,6 +57,21 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int GetChunkSize() { return m_AllocationSize; }
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
+        internal Vector3Int GetPoolDimensions() { return new Vector3Int(m_Pool.width, m_Pool.height, m_Pool.depth); }
+        internal void GetRuntimeResources(ref ProbeReferenceVolume.RuntimeResources rr)
+        {
+            rr.L0 = m_Pool.TexL0;
+            rr.L1_R = m_Pool.TexL1_R;
+            rr.L1_G = m_Pool.TexL1_G;
+            rr.L1_B = m_Pool.TexL1_B;
+        }
+
+
+        internal void Clear()
+        {
+            m_FreeList.Clear();
+            m_NextFreeChunk.x = m_NextFreeChunk.y = m_NextFreeChunk.z = 0;
+        }
 
         internal void Allocate(int numberOfBrickChunks, List<BrickChunkAlloc> outAllocations)
         {
@@ -162,25 +177,29 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         for (int x = 0; x < kBrickProbeCountPerDim; x++ )
                         {
-                            c.r = shl1[shidx].shAr[0];
-                            c.g = shl1[shidx].shAg[0];
-                            c.b = shl1[shidx].shAb[0];
-                            loc.TexL0.SetPixel(bx + x, by + y, bz + z, c);
+                            int ix = bx + x;
+                            int iy = by + y;
+                            int iz = bz + z;
 
-                            c.r = shl1[shidx].shAr[1];
-                            c.g = shl1[shidx].shAr[2];
-                            c.b = shl1[shidx].shAr[3];
-                            loc.TexL1_R.SetPixel(bx + x, by + y, bz + z, c);
-
-                            c.r = shl1[shidx].shAg[1];
-                            c.g = shl1[shidx].shAg[2];
-                            c.b = shl1[shidx].shAg[3];
-                            loc.TexL1_G.SetPixel(bx + x, by + y, bz + z, c);
-
-                            c.r = shl1[shidx].shAb[1];
-                            c.g = shl1[shidx].shAb[2];
+                            c.r = shl1[shidx].shAr[3];
+                            c.g = shl1[shidx].shAg[3];
                             c.b = shl1[shidx].shAb[3];
-                            loc.TexL1_B.SetPixel(bx + x, by + y, bz + z, c);
+                            loc.TexL0.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl1[shidx].shAr[0];
+                            c.g = shl1[shidx].shAr[1];
+                            c.b = shl1[shidx].shAr[2];
+                            loc.TexL1_R.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl1[shidx].shAg[0];
+                            c.g = shl1[shidx].shAg[1];
+                            c.b = shl1[shidx].shAg[2];
+                            loc.TexL1_G.SetPixel(ix, iy, iz, c);
+
+                            c.r = shl1[shidx].shAb[0];
+                            c.g = shl1[shidx].shAb[1];
+                            c.b = shl1[shidx].shAb[2];
+                            loc.TexL1_B.SetPixel(ix, iy, iz, c);
 
                             shidx++;
                         }
@@ -200,6 +219,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
             }
+
+            loc.TexL0.Apply(false);
+            loc.TexL1_R.Apply(false);
+            loc.TexL1_G.Apply(false);
+            loc.TexL1_B.Apply(false);
         }
 
         private void DerivePoolSizeFromBudget(int AllocationSize, int MemoryBudget, out int width, out int height, out int depth)
