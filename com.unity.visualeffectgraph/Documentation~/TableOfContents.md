@@ -60,10 +60,13 @@
       * [Get Attribute: velocity](Operator-GetAttributeVelocity.md)
     * Bitwise
       * [And](Operator-BitwiseAnd.md)
+      * [Complement](Operator-BitwiseComplement.md)
       * [Or](Operator-BitwiseOr.md)
       * [Xor](Operator-BitwiseXor.md)
     * Builtin
       * [Delta Time](Operator-DeltaTime.md)
+      * [Frame Index](Operator-FrameIndex.md)
+      * [Total Time](Operator-TotalTime.md)
     * Color
       * [Color Luma](Operator-ColorLuma.md)
       * [HSV to RGB](Operator-HSVToRGB.md)
