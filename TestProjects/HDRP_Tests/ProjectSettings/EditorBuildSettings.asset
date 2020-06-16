@@ -191,7 +191,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2009_MultipleSkies.unity
     guid: bdc9e712cf2e77a49a64859ccb7ba8d7
-  - enabled: 0
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2010_IES_Cookies.unity
     guid: ad7e365098dfb004aba8f7e35924b5ce
   - enabled: 1
