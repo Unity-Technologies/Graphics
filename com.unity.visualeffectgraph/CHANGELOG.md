@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
 - Allow filtering enums in VFXModels' VFXSettings.
+- uint parameter can be seen as an enum.
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
