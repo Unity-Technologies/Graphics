@@ -222,11 +222,14 @@ namespace UnityEditor.ShaderGraph
 
                         if (!found)
                         {
-                            Error("ERROR: $include cannot find file : " + param.GetString(), includeCommand.s, param.start);
+                            string errorStr = "ERROR: $include cannot find file : " + param.GetString() + ". Looked into:\n";
+
                             foreach (string templatePath in templatePaths)
                             {
-                                Error("ERROR: Looked into folder: " + templatePath, includeCommand.s, param.start);
+                                errorStr += "// " + templatePath + "\n";
                             }
+
+                            Error(errorStr, includeCommand.s, param.start);
                         }
                         else
                         {
