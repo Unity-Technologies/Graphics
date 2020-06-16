@@ -7,7 +7,7 @@ HDRP_Win_DX11_playmode_2020.1:
     name: HDRP on Win_DX11_playmode on version 2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -28,7 +28,7 @@ HDRP_Win_DX11_playmode_XR_2020.1:
     name: HDRP on Win_DX11_playmode_XR on version 2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -49,7 +49,7 @@ HDRP_Win_DX11_editmode_2020.1:
     name: HDRP on Win_DX11_editmode on version 2020.1
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -69,7 +69,7 @@ HDRP_Win_DX11_Standalone_2020.1:
     name: HDRP on Win_DX11_Standalone on version 2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -93,7 +93,7 @@ Build_HDRP_Win_DX11_Player_2020.1:
     name: Build HDRP on Win_DX11_Player on version 2020.1
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -117,7 +117,7 @@ HDRP_Win_DX11_playmode_fast-2020.1:
     name: HDRP on Win_DX11_playmode on version fast-2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -138,7 +138,7 @@ HDRP_Win_DX11_playmode_XR_fast-2020.1:
     name: HDRP on Win_DX11_playmode_XR on version fast-2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -159,7 +159,7 @@ HDRP_Win_DX11_editmode_fast-2020.1:
     name: HDRP on Win_DX11_editmode on version fast-2020.1
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -179,7 +179,7 @@ HDRP_Win_DX11_Standalone_fast-2020.1:
     name: HDRP on Win_DX11_Standalone on version fast-2020.1
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -203,7 +203,7 @@ Build_HDRP_Win_DX11_Player_fast-2020.1:
     name: Build HDRP on Win_DX11_Player on version fast-2020.1
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -227,7 +227,7 @@ HDRP_Win_DX11_playmode_CUSTOM-REVISION:
     name: HDRP on Win_DX11_playmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -249,7 +249,7 @@ HDRP_Win_DX11_playmode_XR_CUSTOM-REVISION:
     name: HDRP on Win_DX11_playmode_XR on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -271,7 +271,7 @@ HDRP_Win_DX11_editmode_CUSTOM-REVISION:
     name: HDRP on Win_DX11_editmode on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
@@ -292,7 +292,7 @@ HDRP_Win_DX11_Standalone_CUSTOM-REVISION:
     name: HDRP on Win_DX11_Standalone on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -317,7 +317,7 @@ Build_HDRP_Win_DX11_Player_CUSTOM-REVISION:
     name: Build HDRP on Win_DX11_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
