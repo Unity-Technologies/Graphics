@@ -17,11 +17,11 @@ The **Indirect Lighting Controller** uses the [Volume](Volumes.html) framework, 
 
 | Property                        | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ |
-| **Indirect Diffuse Lighting Multiplier**  | A multiplier for lightmaps, Light Probes, Light Probe Volumes, Screen Space Global Illumination and Raytrace Global Illumination. HDRP multiplies all those data by this value. |
-| **Indirect Diffuse Lighting Layers** | Light layers for indirect diffuse lighting. See [LightLayers](Light-Layers.md). After you enable Light Layers, you can then use them to decouple Meshes from the this multiplier in your Scene. |
-| **Reflection Lighting Multiplier**  | A multiplier for baked, realtime, custom Reflection Probes and Planar Probes, Screen Space Reflection, Raytrace Reflection and Sky Reflection. HDRP multiplies all those data by this value. |
-| **Reflection Lighting Layers**  | Light layers for reflection lighting. See [LightLayers](Light-Layers.md). After you enable Light Layers, you can then use them to decouple Meshes from the this multiplier in your Scene. |
-| **Reflection Probe Intensity Multiplier**  | A multiplier for baked, realtime, and custom Reflection Probes. HDRP multiplies the Reflection Probe data by this value. |
+| **Indirect Diffuse Lighting Multiplier**  | A multiplier for lightmaps, Light Probes, Light Probe Volumes, Screen-Space Global Illumination, and [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md). HDRP multiplies the light data from all of these by this value. |
+| **Indirect Diffuse Lighting Layers** | Specifies the [Light Layers](Light-Layers.md) for indirect diffuse lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
+| **Reflection Lighting Multiplier**  | A multiplier for baked, realtime, custom [Reflection Probes](Reflection-Probe.md) and [Planar Probes](Planar-Reflection-Probe.md), [Screen-Space Reflection](Override-Screen-Space-Reflection.md), [Ray-Traced Reflection](Ray-Traced-Reflections.md), and Sky Reflection. HDRP multiplies the light data from all of these by this value. |
+| **Reflection Lighting Layers**  | LSpecifies the [Light Layers](Light-Layers.md) for reflection lighting. If you enable Light Layers, you can use them to decouple Meshes in your Scene from the above multiplier. |
+| **Reflection Probe Intensity Multiplier**  | A multiplier for baked, realtime, and custom [Reflection Probes](Reflection-Probe.md). HDRP multiplies the Reflection Probe data by this value. |
 
 ## Details
 
