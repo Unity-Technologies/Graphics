@@ -210,8 +210,11 @@ namespace UnityEditor.ShaderGraph
                     {
                         bool found = false;
                         string includeLocation = null;
-                        foreach (string templatePath in templatePaths)
+
+                        // Use reverse order in the array, higher number element have higher priority in case $include exist in several directories
+                        for (int i = templatePaths.Length - 1; i >= 0; i--)
                         {
+                            string templatePath = templatePaths[i];
                             includeLocation = Path.Combine(templatePath, param.GetString());
                             if (File.Exists(includeLocation))
                             {
