@@ -203,6 +203,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where only unique names of cameras could be added to the camera stack.
 - Fixed issue that caused shaders to fail to compile in OpenGL 4.1 or below.
 - Optimized shader compilation times by compiling different variant sets for vertex and fragment shaders.
+- Adding HDR attribute to Lit shader emission color property to avoid gamma to linear conversion.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
