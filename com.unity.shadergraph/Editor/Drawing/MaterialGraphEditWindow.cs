@@ -435,17 +435,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (!string.IsNullOrEmpty(newPath))
                     {
                         // If the newPath already exists, we are overwriting an existing file, and could be creating recursions. Let's check.
-                        var overwriteGUID = AssetDatabase.AssetPathToGUID(newPath);
+                        if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(newPath, graphObject.graph.GetNodes<SubGraphNode>(), "Save As"))
+                            return false;
 
-                        var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
-                        foreach (var sgNode in subGraphNodes)
-                        {
-                            if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
-                            {
-                                Debug.Log("Save As CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + newPath + "'");
-                                return false;
-                            }
-                        }
                         var success = FileUtilities.WriteShaderGraphToDisk(newPath, graphObject.graph);
                         AssetDatabase.ImportAsset(newPath);
                         if (success)
@@ -497,19 +489,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Let's check for that here
             if (!string.IsNullOrEmpty(path))
             {
-                var overwriteGUID = AssetDatabase.AssetPathToGUID(path);
-                if (!string.IsNullOrEmpty(overwriteGUID))
-                {
-                    var subGraphNodes = nodes.OfType<SubGraphNode>();
-                    foreach (var sgNode in subGraphNodes)
-                    {
-                        if ((sgNode.asset.assetGuid == overwriteGUID) || sgNode.asset.descendents.Contains(overwriteGUID))
-                        {
-                            Debug.Log("Convert To SubGraph CANCELLED to avoid a generating a reference loop:  the SubGraph '" + sgNode.asset.name + "' references the target file '" + path + "'");
-                            return;
-                        }
-                    }
-                }
+                if (GraphUtil.CheckForRecursiveDependencyOnPendingSave(path, nodes.OfType<SubGraphNode>(), "Convert To SubGraph"))
+                    return;
             }
 
             graphObject.RegisterCompleteObjectUndo("Convert To Subgraph");
