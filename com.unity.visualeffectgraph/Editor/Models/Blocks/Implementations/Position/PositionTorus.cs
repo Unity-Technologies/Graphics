@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position")]
     class PositionTorus : PositionBase
     {
-        public override string name { get { return "Position (Torus)"; } }
+        public override string name { get { return string.Format(base.name,"Torus"); } }
         protected override float thicknessDimensions { get { return 2.0f; } }
 
         public class InputProperties
@@ -34,13 +34,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override bool needDirectionWrite
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
@@ -83,11 +77,10 @@ else
 
 float s,c;
 sincos(phi,c,s);
-float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);
+float3 t2 = float3(c * t.x - s * t.y,c * t.y + s * t.x,t.z);";
 
-position += ArcTorus_center + ArcTorus_majorRadius * t2;
-direction = t2;
-";
+                outSource += string.Format(composePositionFormatString, "ArcTorus_center + ArcTorus_majorRadius * t2");
+                outSource += string.Format(composeDirectionFormatString, "t2");
 
                 return outSource;
             }

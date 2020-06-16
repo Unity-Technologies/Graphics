@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position")]
     class PositionLine : PositionBase
     {
-        public override string name { get { return "Position (Line)"; } }
+        public override string name { get { return string.Format(base.name, "Line"); } }
 
         public class InputProperties
         {
@@ -29,14 +29,16 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        protected override bool needDirectionWrite => false;
+
         public override string source
         {
             get
             {
                 if (spawnMode == SpawnMode.Custom)
-                    return @"position += lerp(line_start, line_end, LineSequencer);";
+                    return string.Format(composePositionFormatString, "lerp(line_start, line_end, LineSequencer)");
                 else
-                    return @"position += lerp(line_start, line_end, RAND);";
+                    return string.Format(composePositionFormatString, "lerp(line_start, line_end, RAND)");
             }
         }
     }

@@ -4,6 +4,18 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class PositionBaseProvider : VariantProvider
+    {
+        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Blend };
+
+            foreach (var composition in compositions)
+            {
+                yield return new[] { new KeyValuePair<string, object>("composition", composition) };
+            }
+        }
+    }
     abstract class PositionBase : VFXBlock
     {
         public enum PositionMode
@@ -26,10 +38,30 @@ namespace UnityEditor.VFX.Block
             public float Thickness = 0.1f;
         }
 
+        public class CustomPropertiesBlendPosition
+        {
+            [Range(0.0f, 1.0f), Tooltip("Set the blending value for position attribute.")]
+            public float blendPosition;
+        }
+
+        public class CustomPropertiesBlendDirection
+        {
+            [Range(0.0f, 1.0f), Tooltip("Set the blending value for direction attribute.")]
+            public float blendDirection;
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Position. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionPosition = AttributeCompositionMode.Add;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on Direction. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
+        public AttributeCompositionMode compositionDirection = AttributeCompositionMode.Overwrite;
+
         [VFXSetting, Tooltip("Specifies whether particles are spawned on the surface of the shape, inside the volume, or within a defined thickness.")]
         public PositionMode positionMode;
         [VFXSetting, Tooltip("Controls whether particles are spawned randomly, or can be controlled by a deterministic input.")]
         public SpawnMode spawnMode;
+
+        public override string name => VFXBlockUtility.GetNameString(compositionPosition) + " Position : {0}";
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
@@ -41,10 +73,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Position, compositionPosition == AttributeCompositionMode.Overwrite? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 if (needDirectionWrite)
-                    yield return new VFXAttributeInfo(VFXAttribute.Direction, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Direction, compositionDirection == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -74,6 +106,12 @@ namespace UnityEditor.VFX.Block
 
                 if (spawnMode == SpawnMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomProperties"));
+
+                if (compositionPosition == AttributeCompositionMode.Blend)
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendPosition"));
+
+                if (compositionDirection == AttributeCompositionMode.Blend)
+                    properties = properties.Concat(PropertiesFromType("CustomPropertiesBlendDirection"));
 
                 return properties;
             }
@@ -121,6 +159,16 @@ namespace UnityEditor.VFX.Block
             }
 
             return new VFXExpressionPow(VFXValue.Constant(1.0f) - factor, VFXValue.Constant(thicknessDimensions));
+        }
+
+        protected string composePositionFormatString
+        {
+            get { return VFXBlockUtility.GetComposeString(compositionPosition, "position", "{0}", "blendPosition") + "\n"; }
+        }
+
+        protected string composeDirectionFormatString
+        {
+            get { return VFXBlockUtility.GetComposeString(compositionDirection, "direction", "{0}", "blendDirection") + "\n"; }
         }
     }
 }

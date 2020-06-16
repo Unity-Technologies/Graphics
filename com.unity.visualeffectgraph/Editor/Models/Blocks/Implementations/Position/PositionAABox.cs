@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Position")]
     class PositionAABox : PositionBase
     {
-        public override string name { get { return "Position (AABox)"; } }
+        public override string name { get { return string.Format(base.name, "Axis-Aligned Box"); ; } }
 
         public class InputProperties
         {
@@ -70,18 +70,22 @@ namespace UnityEditor.VFX.Block
                 yield return "spawnMode";
             }
         }
+        protected override bool needDirectionWrite => true;
 
         public override string source
         {
             get
             {
+                string outSource;
                 if (positionMode == PositionMode.Volume)
                 {
-                    return @"position = Box_size * (RAND3 - 0.5f) + Box_center;";
+                    outSource = "float3 rand = (RAND3 - 0.5f);\n";
+                    outSource += string.Format(composeDirectionFormatString, "normalize(Box_size * rand)");
+                    outSource += string.Format(composePositionFormatString, "Box_size * rand + Box_center");
                 }
                 else if (positionMode == PositionMode.Surface)
                 {
-                    return @"
+                    outSource = @"
 float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
 float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
 float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
@@ -90,43 +94,73 @@ float face = RAND * (areaXY + areaXZ + areaYZ);
 float flip = (RAND >= 0.5f) ? 0.5f : -0.5f;
 float3 cube = float3(RAND2 - 0.5f, flip);
 
+float3 mask = float3(0,0,0);
 if (face < areaXY)
+{
+    mask.z = 1;
     cube = cube.xyz;
+}
 else if(face < areaXY + areaXZ)
+{
+    mask.y = 1;
     cube = cube.xzy;
+}
 else
+{
+    mask.x = 1;
     cube = cube.zxy;
-
-position = cube * Box_size + Box_center;
+}
 ";
+                    outSource += string.Format(composeDirectionFormatString, "(floor(cube+0.5f)*2-1)* mask");
+                    outSource += string.Format(composePositionFormatString, "cube * Box_size + Box_center");
+
                 }
                 else
                 {
-                    return @"
+                    outSource = @"
 float face = RAND * cumulativeVolumes.z;
 float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
 float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
 
+float3 mask = float3(0,0,0);
 if (face < cumulativeVolumes.x)
 {
+    mask.z = flip;
     cube = (cube * volumeXY).xyz + float3(0.0f, 0.0f, Box_size.z);
     cube.z *= flip;
 }
 else if(face < cumulativeVolumes.y)
 {
+    mask.y = flip;
     cube = (cube * volumeXZ).xzy + float3(0.0f, Box_size.y, 0.0f);
     cube.y *= flip;
 }
 else
 {
+    mask.x = flip;
     cube = (cube * volumeYZ).zxy + float3(Box_size.x, 0.0f, 0.0f);
     cube.x *= flip;
 }
 
-position = cube * 0.5f + Box_center;
+
 ";
+                    outSource += string.Format(composeDirectionFormatString, "mask");
+                    outSource += string.Format(composePositionFormatString, "cube * 0.5f + Box_center");
                 }
+                return outSource;
             }
         }
+
+
+        public override void Sanitize(int version)
+        {
+            if(version < 5)
+            {
+                // SANITIZE : if older version, ensure position composition is overwrite.
+                compositionPosition = AttributeCompositionMode.Overwrite;
+            }
+            base.Sanitize(version);
+        }
+
     }
 }
