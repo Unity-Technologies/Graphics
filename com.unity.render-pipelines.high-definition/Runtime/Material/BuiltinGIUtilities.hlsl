@@ -1,6 +1,22 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+
+#define USE_ADAPTIVE_PROBE_VOLUME
+
+#ifdef USE_ADAPTIVE_PROBE_VOLUME
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+// Resources required for APV
+StructuredBuffer<int> _APVResIndex;
+TEXTURE3D(_APVResL0);
+TEXTURE3D(_APVResL1_R);
+TEXTURE3D(_APVResL1_G);
+TEXTURE3D(_APVResL1_B);
+
+#endif // USE_ADAPTIVE_PROBE_VOLUME
+
 // Include the IndirectDiffuseMode enum
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
 
@@ -86,6 +102,18 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 
 void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backNormalWS, inout float3 bakeDiffuseLighting, inout float3 backBakeDiffuseLighting)
 {
+#ifdef USE_ADAPTIVE_PROBE_VOLUME
+    //-----------------------------------------------------------------------------------------------------
+    // Adaptive Probe Volume code
+    APVResources apvRes;
+    apvRes.index = _APVResIndex;
+    apvRes.L0    = _APVResL0;
+    apvRes.L1_R  = _APVResL1_R;
+    apvRes.L1_G  = _APVResL1_G;
+    apvRes.L1_B  = _APVResL1_B;
+    return EvaluateAdaptiveProbeVolume( GetAbsolutePositionWS( positionRWS ), normalWS, apvRes );
+    //-----------------------------------------------------------------------------------------------------
+#endif
     if (unity_ProbeVolumeParams.x == 0.0)
     {
         // TODO: pass a tab of coefficient instead!
