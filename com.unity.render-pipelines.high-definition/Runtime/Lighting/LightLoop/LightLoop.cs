@@ -1911,16 +1911,29 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (influence.envShape)
             {
                 case EnvShapeType.Box:
-                    envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
-                    envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
                     envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
                     envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
-                    envLightData.boxSideFadePositive = influence.boxSideFadePositive;
-                    envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    if (envIndex >= 0) // Reflection Probes
+                    {
+                        envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
+                        envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
+                        envLightData.boxSideFadePositive = influence.boxSideFadePositive;
+                        envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    }
+                    else // Planar Probes
+                    {
+                        envLightData.blendNormalDistancePositive = Vector3.zero;
+                        envLightData.blendNormalDistanceNegative = Vector3.zero;
+                        envLightData.boxSideFadePositive = Vector3.one;
+                        envLightData.boxSideFadeNegative = Vector3.one;
+                    }
                     break;
                 case EnvShapeType.Sphere:
-                    envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
                     envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
+                    if (envIndex >= 0) // Reflection Probes
+                        envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
+                    else // Planar Probes
+                        envLightData.blendNormalDistancePositive.x = 0;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
