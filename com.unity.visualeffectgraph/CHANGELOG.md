@@ -53,6 +53,7 @@ The version number for this package has increased due to a version update of a r
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
 - Allow filtering enums in VFXModels' VFXSettings.
+- Added Degrees / Radians conversion subgraphs in samples
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -119,6 +120,11 @@ The version number for this package has increased due to a version update of a r
 - Avoid other NullReferenceException using property binders
 - Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
 - Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
 
 ## [7.1.1] - 2019-09-05
 ### Added
