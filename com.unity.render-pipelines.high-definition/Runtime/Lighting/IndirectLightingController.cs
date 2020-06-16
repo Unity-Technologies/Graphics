@@ -21,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LightLayerEnumParameter reflectionLightingLayers = new LightLayerEnumParameter(LightLayerEnum.LightLayerDefault);
 
         [UnityEngine.Serialization.FormerlySerializedAs("indirectSpecularIntensity")]
-        /// <summary>Reflection probe intensity multiplier, between 0 and 1</summary>
+        /// <summary>Reflection probe and Planar reflection intensity multiplier, between 0 and 1</summary>
         public MinFloatParameter reflectionProbeIntensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
 
         /// <summary>
