@@ -16,7 +16,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool UsesRayTracing()
         {
-            return (rayTracing.overrideState && rayTracing.value);
+            var hdAsset = HDRenderPipeline.currentAsset;
+            return hdAsset != null && hdAsset.currentPlatformRenderPipelineSettings.supportRayTracing && rayTracing.overrideState && rayTracing.value;
         }
 
         /// <summary>Enable Screen Space Reflections.</summary>
