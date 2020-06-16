@@ -9,6 +9,7 @@ using UnityEditor.UIElements;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using UnityEditor.Searcher;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -62,6 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void GenerateNodeEntries()
         {
+            Profiler.BeginSample("SearhWindowProvider.GenerateNodeEntries");
             // First build up temporary data structure containing group & title as an array of strings (the last one is the actual title) and associated node type.
             List<NodeEntry> nodeEntries = new List<NodeEntry>();
             
@@ -97,7 +99,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
             
-            foreach (var type in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
+            foreach (var type in NodeClassCache.KnownNodeTypes)
             {
                 if ((!type.IsClass || type.IsAbstract)
                     || type == typeof(PropertyNode)
@@ -105,10 +107,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     || type == typeof(SubGraphNode))
                     continue;
 
-                if (type.GetCustomAttributes(typeof(TitleAttribute), false) is TitleAttribute[] attrs && attrs.Length > 0)
+                TitleAttribute titleAttribute = NodeClassCache.GetAttributeOnNodeType<TitleAttribute>(type);
+                if (titleAttribute != null)
                 {
                     var node = (AbstractMaterialNode) Activator.CreateInstance(type);
-                    AddEntries(node, attrs[0].title, nodeEntries);
+                    AddEntries(node, titleAttribute.title, nodeEntries);
                 }
             }
 
@@ -150,6 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SortEntries(nodeEntries);
             currentNodeEntries = nodeEntries;
+            Profiler.EndSample();
         }
 
         void SortEntries(List<NodeEntry> nodeEntries)

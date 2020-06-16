@@ -9,6 +9,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    [SRPFilter(typeof(HDRenderPipeline))]
     [Title("Input", "High Definition Render Pipeline", "Exposure")]
     [FormerName("UnityEditor.Experimental.Rendering.HDPipeline.ExposureNode")]
     class ExposureNode : AbstractMaterialNode, IGeneratesBodyCode
