@@ -646,6 +646,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+#if UNITY_2020_2_OR_NEWER
         internal void SwitchRenderTargetsToFastMem(CommandBuffer cmd, HDCamera camera)
         {
             // Color and normal buffer will always be in fast memory
@@ -667,7 +668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Trying to fit the depth pyramid
             m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, false);
         }
-
+#endif
         /// <summary>
         /// Resets the reference size of the internal RTHandle System.
         /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
@@ -2206,7 +2207,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render graph deals with Fast memory support in an automatic way.
             if(!m_EnableRenderGraph)
             {
+#if UNITY_2020_2_OR_NEWER
                 SwitchRenderTargetsToFastMem(cmd, hdCamera);
+#endif
             }
 
             if (m_RayTracingSupported)
@@ -4854,6 +4857,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDUtils.DrawFullScreen(cmd, parameters.colorPickerMaterial, output);
         }
+
 
         static void RenderExposureDebug(in DebugParameters parameters,
                                             RTHandle inputColorBuffer,
