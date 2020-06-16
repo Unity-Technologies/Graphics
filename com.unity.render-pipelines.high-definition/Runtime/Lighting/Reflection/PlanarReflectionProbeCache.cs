@@ -27,6 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool                    m_PerformBC6HCompression;
         Dictionary<int, uint>   m_TextureHashes = new Dictionary<int, uint>();
         int                     m_FrameProbeIndex;
+        GraphicsFormat          m_ProbeFormat;
 
         public PlanarReflectionProbeCache(RenderPipelineResources defaultResources, IBLFilterGGX iblFilter, int atlasResolution, GraphicsFormat probeFormat, bool isMipmaped)
         {
@@ -34,15 +35,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ConvertTextureMPB = new MaterialPropertyBlock();
 
             // BC6H requires CPP feature not yet available
-            probeFormat = GraphicsFormat.R16G16B16A16_SFloat;
-
-            Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
+            // Debug.Assert(probeFormat == GraphicsFormat.RGB_BC6H_SFloat || probeFormat == GraphicsFormat.R16G16B16A16_SFloat, "Reflection Probe Cache format for HDRP can only be BC6H or FP16.");
 
             m_ProbeSize = atlasResolution;
             m_TextureAtlas = new PowerOfTwoTextureAtlas(atlasResolution, 0, probeFormat, useMipMap: isMipmaped, name: "PlanarReflectionProbe Atlas");
             m_IBLFilterGGX = iblFilter;
 
             m_PerformBC6HCompression = probeFormat == GraphicsFormat.RGB_BC6H_SFloat;
+            m_ProbeFormat = probeFormat;
         }
 
         void Initialize()
@@ -60,13 +60,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 // m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips: true);
                 // m_TempRenderTexture.Create();
 
-                m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 0, RenderTextureFormat.ARGBHalf);
+                RenderTextureFormat textureFormat = m_ProbeFormat == GraphicsFormat.R16G16B16A16_SFloat ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.RGB111110Float;
+
+                m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 0, textureFormat);
                 m_ConvolutionTargetTexture.hideFlags = HideFlags.HideAndDontSave;
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Tex2D;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
                 m_ConvolutionTargetTexture.filterMode = FilterMode.Point;
-                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, textureFormat, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.enableRandomWrite = true;
                 m_ConvolutionTargetTexture.Create();
 

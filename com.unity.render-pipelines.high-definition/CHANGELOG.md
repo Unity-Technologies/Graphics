@@ -830,6 +830,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changing the default SSGI radius for the all configurations.
 - Changed the default parameters for quality RTGI to match expected behavior.
 - Add color clear pass while rendering XR occlusion mesh to avoid leaks.
+- Making the planar probe atlas's format match the color buffer's format. 
 
 ## [7.1.1] - 2019-09-05
 
