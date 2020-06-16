@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.CreatePropertyGUI();
             if (builtinData.distortion)
                 AddProperty(distortionOnlyText, () => unlitData.distortionOnly, (newValue) => unlitData.distortionOnly = newValue, 1);
-            base.CreatePropertyGUI();
         }
     }
 }
