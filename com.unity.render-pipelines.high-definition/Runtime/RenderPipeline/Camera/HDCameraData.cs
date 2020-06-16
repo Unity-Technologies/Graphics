@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [CustomExtensionName("HDRP", typeof(HDRenderPipeline))]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Camera" + Documentation.endURL)]
     public class HDCameraData : Camera.IExtension, IFrameSettingsHistoryContainer
     {
         internal static readonly HDCameraData k_DefaultInstance = new HDCameraData();
