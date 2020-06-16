@@ -61,7 +61,7 @@ void TemporalAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 gr
     float3 history = historyRaw.xyz * GetCurrentExposureMultiplier();
 
     // If the validity of the history is lower than a given threshold, we do not want to use it
-    if (historyRaw.w < 0.0)
+    if (historyRaw.w < REFLECTION_HISTORY_REJECTION_THRESHOLD)
     {
         _DenoiseOutputTextureRW[COORD_TEXTURE2D_X(centerCoord)] = float4(color * GetInverseCurrentExposureMultiplier(), LOAD_TEXTURE2D_X(_DenoiseInputTexture, centerCoord).w);
         return;
