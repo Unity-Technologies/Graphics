@@ -12,14 +12,15 @@ namespace UnityEditor.Rendering.HighDefinition
     class HDLitGUI : HDShaderGUI
     {
         // For surface option shader graph we only want all unlit features but alpha clip and back then front rendering
-        const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit
+        const SurfaceOptionUIBlock.Features   surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Lit
             ^ SurfaceOptionUIBlock.Features.AlphaCutoffThreshold
-            ^ SurfaceOptionUIBlock.Features.BackThenFrontRendering;
+            | SurfaceOptionUIBlock.Features.ShowDepthOffsetOnly;
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
         {
             new SurfaceOptionUIBlock(MaterialUIBlock.Expandable.Base, features: surfaceOptionFeatures),
             new ShaderGraphUIBlock(MaterialUIBlock.Expandable.ShaderGraph),
+            new AdvancedOptionsUIBlock(MaterialUIBlock.Expandable.Advance, ~AdvancedOptionsUIBlock.Features.SpecularOcclusion)
         };
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)

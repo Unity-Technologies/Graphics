@@ -928,6 +928,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kReceivesSSRTransparent = "_ReceivesSSRTransparent";
         public const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
         public const string kShadowMatteFilter = "_ShadowMatteFilter";
+        public const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
         public static readonly Color[] kLayerColors =
         {

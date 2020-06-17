@@ -27,8 +27,9 @@ namespace UnityEditor.Rendering.HighDefinition
             ShowAfterPostProcessPass    = 1 << 9,
             AlphaToMask                 = 1 << 10,
             ShowPrePassAndPostPass      = 1 << 11,
+            ShowDepthOffsetOnly         = 1 << 12,
             Unlit                       = Surface | BlendMode | DoubleSided | DoubleSidedNormalMode | AlphaCutoff | AlphaCutoffShadowThreshold | AlphaCutoffThreshold | BackThenFrontRendering | ShowAfterPostProcessPass | AlphaToMask,
-            Lit                         = All,
+            Lit                         = All ^ ShowDepthOffsetOnly,
             All                         = ~0,
         }
 
@@ -185,7 +186,6 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
-        const string kDepthOffsetEnable = "_DepthOffsetEnable";
 
         MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
@@ -769,7 +769,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            if (displacementMode != null)
+            if ((m_Features & Features.ShowDepthOffsetOnly) != 0)
+                materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+            else if (displacementMode != null)
             {
                 EditorGUI.BeginChangeCheck();
                 FilterDisplacementMode();

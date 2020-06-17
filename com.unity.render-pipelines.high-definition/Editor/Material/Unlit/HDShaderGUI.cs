@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         readonly static string[] floatPropertiesToSynchronize = {
-            "_UseShadowThreshold", kReceivesSSR, kReceivesSSRTransparent, kUseSplitLighting,
+            "_UseShadowThreshold", kUseSplitLighting,
             kTransparentDepthPrepassEnable, kTransparentDepthPostpassEnable
         };
 

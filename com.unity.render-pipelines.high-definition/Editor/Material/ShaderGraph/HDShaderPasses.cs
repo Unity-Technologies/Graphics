@@ -520,7 +520,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
 
                 if (supportLighting)
-                    defines.Add(CoreKeywordDescriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false));
+                    defines.Add( new DefineCollection{ { CoreKeywordDescriptors.WriteNormalBuffer, 0 } });
 
                 return defines;
             }

@@ -79,24 +79,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     HDShaderPasses.GenerateSceneSelection(supportLighting),
                     HDShaderPasses.GenerateMotionVectors(supportLighting, supportForward),
                     { HDShaderPasses.GenerateBackThenFront(supportLighting), new FieldCondition(HDFields.TransparentBackFace, true)},
-                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting), new FieldCondition(HDFields.TransparentDepthPostPass, true) },
+                    { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting) },
                 };
 
                 if (supportLighting)
                 {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, true) });
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, true),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition[]{
-                                                            new FieldCondition(HDFields.TransparentDepthPrePass, false),
-                                                            new FieldCondition(HDFields.DisableSSRTransparent, false) });
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
                 }
                 else
                 {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting), new FieldCondition(HDFields.TransparentDepthPrePass, true));
+                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
                 }
 
                 if (supportForward)
@@ -248,18 +242,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             context.AddField(HDFields.DoAlphaTestPostpass,  systemData.alphaTest && systemData.alphaTestDepthPostpass && isTransparentDepthPostpass &&
                                                             context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass));
 
-
-            context.AddField(HDFields.TransparentDepthPrePass,      systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPrepass);
-            context.AddField(HDFields.TransparentDepthPostPass,     systemData.surfaceType != SurfaceType.Opaque && systemData.alphaTestDepthPostpass);
-
             // Features & Misc
             context.AddField(Fields.LodCrossFade,                   systemData.supportLodCrossFade);
-            context.AddField(Fields.VelocityPrecomputed,            builtinData.addPrecomputedVelocity);
-            context.AddField(HDFields.TransparentWritesMotionVec,   systemData.surfaceType != SurfaceType.Opaque && builtinData.transparentWritesMotionVec);
             context.AddField(Fields.AlphaToMask,                    systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) && builtinData.alphaToMask);
-            context.AddField(HDFields.DepthOffset,                  builtinData.depthOffset && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.DepthOffset));
             context.AddField(HDFields.AlphaFog,                     systemData.surfaceType != SurfaceType.Opaque && builtinData.transparencyFog);
             context.AddField(HDFields.TransparentBackFace,          systemData.surfaceType != SurfaceType.Opaque && builtinData.backThenFrontRendering);
+
+            // Depth offset needs positionRWS and is now a multi_compile
+            context.AddField(HDStructFields.FragInputs.positionRWS);
         }
 
         protected void AddDistortionFields(ref TargetFieldContext context)
@@ -336,15 +326,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             });
 
             //See SG-ADDITIONALVELOCITY-NOTE
-            if (builtinData.addPrecomputedVelocity)
+            collector.AddShaderProperty(new BooleanShaderProperty
             {
-                collector.AddShaderProperty(new BooleanShaderProperty
-                {
-                    value = true,
-                    hidden = true,
-                    overrideReferenceName = kAddPrecomputedVelocity,
-                });
-            }
+                value = builtinData.addPrecomputedVelocity,
+                hidden = true,
+                overrideReferenceName = kAddPrecomputedVelocity,
+            });
+
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.depthOffset,
+                hidden = true,
+                overrideReferenceName = kDepthOffsetEnable
+            });
 
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);

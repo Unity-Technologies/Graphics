@@ -72,12 +72,16 @@ namespace UnityEditor.Rendering.HighDefinition
             bool ssrStencil = false;
             bool receiveSSROpaque = false;
             bool receiveSSRTransparent = false;
+            bool receiveDecals = false;
+            bool blendPreserveSpecular = false;
 
             if (lightingData != null)
             {
                 ssrStencil = systemData.surfaceType == SurfaceType.Opaque ? lightingData.receiveSSR : lightingData.receiveSSRTransparent;
                 receiveSSROpaque = lightingData.receiveSSR;
                 receiveSSRTransparent = lightingData.receiveSSRTransparent;
+                receiveDecals = lightingData.receiveDecals;
+                blendPreserveSpecular = lightingData.blendPreserveSpecular;
             }
 
             BaseLitGUI.ComputeStencilProperties(ssrStencil, splitLighting, out int stencilRef, out int stencilWriteMask,
@@ -105,6 +109,8 @@ namespace UnityEditor.Rendering.HighDefinition
             collector.AddToggleProperty(kUseSplitLighting, splitLighting);
             collector.AddToggleProperty(kReceivesSSR, receiveSSROpaque);
             collector.AddToggleProperty(kReceivesSSRTransparent, receiveSSRTransparent);
+            collector.AddToggleProperty(kSupportDecals, receiveDecals);
+            collector.AddToggleProperty(kEnableBlendModePreserveSpecularLighting, blendPreserveSpecular);
         }
 
         public static void AddBlendingStatesShaderProperties(

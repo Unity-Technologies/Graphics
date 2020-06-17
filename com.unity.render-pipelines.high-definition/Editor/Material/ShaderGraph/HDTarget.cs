@@ -485,8 +485,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             new FieldDependency(StructFields.SurfaceDescriptionInputs.uv3,                           HDStructFields.FragInputs.texCoord3),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.VertexColor,                   HDStructFields.FragInputs.color),
             new FieldDependency(StructFields.SurfaceDescriptionInputs.FaceSign,                      HDStructFields.FragInputs.IsFrontFace),
-
-            new FieldDependency(HDFields.DepthOffset,                                                HDStructFields.FragInputs.positionRWS),
         };
 
         public static DependencyCollection Default = new DependencyCollection
@@ -820,23 +818,27 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region Keywords
     static class CoreKeywords
     {
-        public static KeywordCollection HDBase = new KeywordCollection
-        {
-            { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
-            { CoreKeywordDescriptors.SurfaceTypeTransparent },
-            { CoreKeywordDescriptors.BlendMode },
-            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
-            { CoreKeywordDescriptors.FogOnTransparent },
-            { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
-        };
-
         public static KeywordCollection HDBaseNoCrossFade = new KeywordCollection
         {
             { CoreKeywordDescriptors.SurfaceTypeTransparent },
             { CoreKeywordDescriptors.BlendMode },
             { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
+            { CoreKeywordDescriptors.DisableDecals, new FieldCondition(HDFields.Unlit, false) },
+            { CoreKeywordDescriptors.DisableSSR, new FieldCondition(HDFields.Unlit, false) },
+            { CoreKeywordDescriptors.DisableSSRTransparent, new FieldCondition(HDFields.Unlit, false) },
+            // { CoreKeywordDescriptors.EnableGeometricSpecularAA, new FieldCondition(HDFields.Unlit, false) },
+            { CoreKeywordDescriptors.BlendModePreserveSpecularLighting, new FieldCondition(HDFields.Unlit, false) },
+            { CoreKeywordDescriptors.AddPrecomputedVelocity },
+            { CoreKeywordDescriptors.TransparentWritesMotionVector },
+            { CoreKeywordDescriptors.DepthOffset },
             { CoreKeywordDescriptors.FogOnTransparent },
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
+        };
+
+        public static KeywordCollection HDBase = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
+            { HDBaseNoCrossFade }
         };
 
         public static KeywordCollection Lightmaps = new KeywordCollection
@@ -917,7 +919,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection TransparentDepthPrepass = new DefineCollection
         {
             { RayTracingNode.GetRayTracingKeyword(), 0 },
-            { CoreKeywordDescriptors.WriteNormalBufferDefine, 1, new FieldCondition(HDFields.DisableSSRTransparent, false) },
+            { CoreKeywordDescriptors.WriteNormalBuffer, 1 },
         };
 
         public static DefineCollection Forward = new DefineCollection
@@ -1042,15 +1044,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 #region KeywordDescriptors
     static class CoreKeywordDescriptors
     {
-        public static KeywordDescriptor WriteNormalBufferDefine = new KeywordDescriptor()
-        {
-            displayName = "Write Normal Buffer",
-            referenceName = "WRITE_NORMAL_BUFFER",
-            type = KeywordType.Boolean,
-            definition = KeywordDefinition.Predefined,
-            scope = KeywordScope.Global,
-        };
-        
         public static KeywordDescriptor WriteNormalBuffer = new KeywordDescriptor()
         {
             displayName = "Write Normal Buffer",
@@ -1289,6 +1282,78 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global
+        };
+
+        public static KeywordDescriptor DisableDecals = new KeywordDescriptor
+        {
+            displayName = "Disable Decals",
+            referenceName = "_DISABLE_DECALS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor DisableSSR = new KeywordDescriptor
+        {
+            displayName = "Disable SSR",
+            referenceName = "_DISABLE_SSR",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor DisableSSRTransparent = new KeywordDescriptor
+        {
+            displayName = "Disable SSR Transparent",
+            referenceName = "_DISABLE_SSR_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor EnableGeometricSpecularAA = new KeywordDescriptor
+        {
+            displayName = "Enable Geometric Specular AA",
+            referenceName = "_ENABLE_GEOMETRIC_SPECULAR_AA",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor BlendModePreserveSpecularLighting = new KeywordDescriptor
+        {
+            displayName = "BlendMode Preserve Specular Lighting",
+            referenceName = "_BLENDMODE_PRESERVE_SPECULAR_LIGHTING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor AddPrecomputedVelocity = new KeywordDescriptor
+        {
+            displayName = "Add Precomputed Velocity",
+            referenceName = "_ADD_PRECOMPUTED_VELOCITY",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
+        {
+            displayName = "Transparent Writes Motion Vector",
+            referenceName = "_TRANSPARENT_WRITES_MOTION_VEC",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor DepthOffset = new KeywordDescriptor
+        {
+            displayName = "Depth Offset",
+            referenceName = "_DEPTHOFFSET_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
         };
     }
 #endregion

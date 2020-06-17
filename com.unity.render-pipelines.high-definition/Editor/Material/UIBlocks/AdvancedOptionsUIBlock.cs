@@ -77,8 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if ( addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
+            }
         }
     }
 }
-}
-
