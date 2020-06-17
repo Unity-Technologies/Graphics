@@ -45,12 +45,12 @@ void KMainCoCPhysical(uint3 dispatchThreadId : SV_DispatchThreadID)
 }
 
 // Manual CoC using near & far planes
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
+[numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMainCoCManual(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
 
     //TODO
 
-    _OutputCoCTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = -nearCoC + farCoC;
+    _OutputTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = 0.0f;
 }
