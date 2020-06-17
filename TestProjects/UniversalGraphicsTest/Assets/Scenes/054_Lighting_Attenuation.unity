@@ -97,10 +97,8 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000002, guid: b8e3b7e9315074143a55d264e478b613,
-    type: 2}
-  m_LightingSettings: {fileID: 4890085278179872738, guid: 16621c4330d5cb241b2062c3bb31b62a,
-    type: 2}
+  m_LightingDataAsset: {fileID: 112000002, guid: 2d93222c28006244d9e226b4fc98adaa, type: 2}
+  m_LightingSettings: {fileID: 4890085278179872738, guid: 16621c4330d5cb241b2062c3bb31b62a, type: 2}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -535,6 +533,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &1153048245
@@ -1141,6 +1140,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &1783775685
@@ -1245,7 +1245,10 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   WaitFrames: 0
+  XRCompatible: 1
 --- !u!1 &1970829629
 GameObject:
   m_ObjectHideFlags: 0
@@ -1336,6 +1339,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
 --- !u!1 &1977125259
