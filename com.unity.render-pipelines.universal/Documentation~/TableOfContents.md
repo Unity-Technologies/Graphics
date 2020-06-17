@@ -61,6 +61,7 @@
   * [Particles Unlit](particles-unlit-shader.md)
   * [Upgrading shaders from Built-in](upgrading-your-shaders.md)
   * [Shader stripping](shader-stripping.md)
+  * [Writing custom shaders](writing-custom-shaders.md)
 
 * [Customizing URP](customizing-urp.md)
   * [beginCameraRendering event](using-begincamerarendering.md)

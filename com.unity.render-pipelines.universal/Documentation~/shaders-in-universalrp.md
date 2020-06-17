@@ -20,16 +20,20 @@ For [SpeedTree](https://docs.unity3d.com/Manual/SpeedTree.html) Shaders, Unity d
 
 **Note:** Unlit Shaders from the Unity built-in render pipeline work in URP.
 
-
-
 ## Choosing a Shader 
 
 With the Universal Render Pipeline, you can have real-time lighting wither either Physically Based Shaders (PBS) and non-Physically Based Rendering (PBR).
 
-For PBS, use the [Lit Shader](lit-shader.md). You can use it on all platforms. The Shader quality scales, depending on the platform, but keeps physically based rendering on all platforms. This gives you realistic graphics across hardware. The Unity [Standard Shader](<https://docs.unity3d.com/Manual/shader-StandardShader.html>) and the [Standard (Specular setup)](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) Shaders both map to the Lit Shader in URP. For a list of Shader mappings, see [Shader mappings under Upgradring your Shaders.](upgrading-your-shaders.md#shaderMappings)
+For PBS, use the [Lit Shader](lit-shader.md). You can use it on all platforms. The Shader quality scales, depending on the platform, but keeps physically based rendering on all platforms. This gives you realistic graphics across hardware. The Unity [Standard Shader](<https://docs.unity3d.com/Manual/shader-StandardShader.html>) and the [Standard (Specular setup)](https://docs.unity3d.com/Manual/StandardShaderMetallicVsSpecular.html) Shaders both map to the Lit Shader in URP. For a list of Shader mappings, see [Shader mappings under Upgrading your Shaders.](upgrading-your-shaders.md#shaderMappings)
 
 If you’re targeting less powerful devices, or just would like simpler shading, use the [Simple Lit Shader](simple-lit-shader.md), which is non-PBR. 
 
 If you don’t need real-time lighting, or would rather only use [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html) and sample global illumination, choose a Baked Lit Shader. 
 
-If you don’t need lighting on a Material at all, you can choose the an Unlit Shader. 
+If you don’t need lighting on a Material at all, you can choose the Unlit Shader. 
+
+## SRP Batcher compatibility
+
+To ensure that a Shader is SRP Batcher compatible:
+* Declare all Material properties in a single CBUFFER called `UnityPerMaterial`.
+* Declare all built-in engine properties, such as `unity_ObjectToWorld` or `unity_WorldTransformParams`, in a single CBUFFER called `UnityPerDraw`.
