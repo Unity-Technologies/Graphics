@@ -77,11 +77,11 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string outSource;
+
+                // Compute Position (unit box)
                 if (positionMode == PositionMode.Volume)
                 {
-                    outSource = "float3 rand = (RAND3 - 0.5f);\n";
-                    outSource += string.Format(composeDirectionFormatString, "normalize(Box_size * rand)");
-                    outSource += string.Format(composePositionFormatString, "Box_size * rand + Box_center");
+                    outSource = "float3 nPos = (RAND3 - 0.5f);\n";
                 }
                 else if (positionMode == PositionMode.Surface)
                 {
@@ -94,25 +94,15 @@ float face = RAND * (areaXY + areaXZ + areaYZ);
 float flip = (RAND >= 0.5f) ? 0.5f : -0.5f;
 float3 cube = float3(RAND2 - 0.5f, flip);
 
-float3 mask = float3(0,0,0);
 if (face < areaXY)
-{
-    mask.z = 1;
     cube = cube.xyz;
-}
 else if(face < areaXY + areaXZ)
-{
-    mask.y = 1;
     cube = cube.xzy;
-}
 else
-{
-    mask.x = 1;
     cube = cube.zxy;
-}
+
+float3 nPos = cube;
 ";
-                    outSource += string.Format(composeDirectionFormatString, "(floor(cube+0.5f)*2-1)* mask");
-                    outSource += string.Format(composePositionFormatString, "cube * Box_size + Box_center");
 
                 }
                 else
@@ -122,31 +112,50 @@ float face = RAND * cumulativeVolumes.z;
 float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
 float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
 
-float3 mask = float3(0,0,0);
 if (face < cumulativeVolumes.x)
 {
-    mask.z = flip;
     cube = (cube * volumeXY).xyz + float3(0.0f, 0.0f, Box_size.z);
     cube.z *= flip;
 }
 else if(face < cumulativeVolumes.y)
 {
-    mask.y = flip;
     cube = (cube * volumeXZ).xzy + float3(0.0f, Box_size.y, 0.0f);
     cube.y *= flip;
 }
 else
 {
-    mask.x = flip;
     cube = (cube * volumeYZ).zxy + float3(Box_size.x, 0.0f, 0.0f);
     cube.x *= flip;
 }
 
 
+float3 nPos = (cube / max(Box_size, VFX_EPSILON)) * 0.5;
 ";
-                    outSource += string.Format(composeDirectionFormatString, "mask");
-                    outSource += string.Format(composePositionFormatString, "cube * 0.5f + Box_center");
+                    
                 }
+
+
+                // Compute Direction from Unit Box
+                outSource += @"
+float3 aDir = abs(nPos);
+aDir.x = (Box_size.x == 0.0) ? 1 : aDir.x;
+aDir.y = (Box_size.y == 0.0) ? 1 : aDir.y;
+aDir.z = (Box_size.z == 0.0) ? 1 : aDir.z;
+
+float3 outDir;
+if (aDir.x > aDir.y && aDir.x > aDir.z)
+	outDir = float3(1,0,0);
+else
+	outDir = (aDir.y > aDir.z) ? float3(0,1,0) : float3(0,0,1);
+
+outDir *= sign(nPos);
+";
+                
+                outSource += string.Format(composeDirectionFormatString, "outDir");
+                outSource += string.Format(composePositionFormatString, "nPos * Box_size + Box_center");
+
+
+
                 return outSource;
             }
         }

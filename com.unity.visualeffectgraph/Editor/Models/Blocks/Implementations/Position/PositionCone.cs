@@ -81,16 +81,16 @@ float hNorm = 0.0f;
                 else if (spawnMode == SpawnMode.Random)
                 {
                     float distributionExponent = positionMode == PositionMode.Surface ? 2.0f : 3.0f;
-                    outSource += $@"
+                    outSource += @"
 float hNorm = 0.0f;
 if (abs(ArcCone_radius0 - ArcCone_radius1) > VFX_EPSILON)
-{{
+{
     // Uniform distribution on cone
     float heightFactor = ArcCone_radius0 / max(VFX_EPSILON,ArcCone_radius1);
     float heightFactorPow = pow(heightFactor, {distributionExponent});
     hNorm = pow(heightFactorPow + (1.0f - heightFactorPow) * RAND, rcp({distributionExponent}));
     hNorm = (hNorm - heightFactor) / (1.0f - heightFactor); // remap on [0,1]
-}}
+}
 else
     hNorm = RAND; // Uniform distribution on cylinder
 ";
@@ -102,7 +102,7 @@ float hNorm = HeightSequencer;
 ";
                 }
 
-                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y)", "blendDirection") + "\n";
+                outSource += VFXBlockUtility.GetComposeString(compositionDirection, "direction.xzy", "normalize(float3(pos * sincosSlope.x, sincosSlope.y))", "blendDirection") + "\n";
                 outSource += VFXBlockUtility.GetComposeString(compositionPosition, "position.xzy", "lerp(float3(pos * ArcCone_radius0, 0.0f), float3(pos * ArcCone_radius1, ArcCone_height), hNorm) + ArcCone_center.xzy", "blendPosition");
 
                 return outSource;
