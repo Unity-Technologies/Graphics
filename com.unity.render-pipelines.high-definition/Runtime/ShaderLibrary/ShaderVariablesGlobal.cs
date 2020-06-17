@@ -23,6 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
     // All data is aligned on Vector4 size, arrays elements included.
     // - Shader side structure will be padded for anything not aligned to Vector4. Add padding accordingly.
     // - Base element size for array should be 4 components of 4 bytes (Vector4 or Vector4Int basically) otherwise the array will be interlaced with padding on shader side.
+    // - In Metal the float3 and float4 are both actually sized and aligned to 16 bytes, whereas for Vulkan/SPIR-V, the alignment is the same. Do not use Vector3!
     // Try to keep data grouped by access and rendering system as much as possible (fog params or light params together for example).
     // => Don't move a float parameter away from where it belongs for filling a hole. Add padding in this case.
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.Global)]
@@ -177,7 +178,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _ReplaceDiffuseForIndirect;
 
         public Vector4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-        public Vector4 _IndirectLightingMultiplier; // .x indirect diffuse multiplier (use with indirect lighting volume controler)
+
+        public float _IndirectDiffuseLightingMultiplier;
+        public uint _IndirectDiffuseLightingLayers;
+        public float _ReflectionLightingMultiplier;
+        public uint _ReflectionLightingLayers;
 
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;

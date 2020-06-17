@@ -92,7 +92,7 @@ Shader "Hidden/Universal Render Pipeline/Terrain/Lit (Add Pass)"
 
         Pass
         {
-            Name "TerrainAddLit(GBuffer)"
+            Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
             Blend One One
