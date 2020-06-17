@@ -635,9 +635,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         importer.sRGBTexture = false;
                         importer.filterMode = FilterMode.Bilinear;
                         importer.mipmapEnabled = false;
-                        importer.textureCompression = false
-                            ? TextureImporterCompression.Compressed
-                            : TextureImporterCompression.Uncompressed;
+                        importer.textureCompression = TextureImporterCompression.Uncompressed;
                         importer.textureShape = TextureImporterShape.Texture2D;
                         importer.SaveAndReimport();
                         break;
