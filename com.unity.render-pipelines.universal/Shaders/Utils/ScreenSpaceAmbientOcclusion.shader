@@ -9,7 +9,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-        half4 _ScaleBiasRT;
+        half4 _ScaleBiasRt;
         struct Attributes
         {
             float4 positionHCS   : POSITION;
@@ -42,7 +42,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
             // If URP is NOT rendering to RT neither rendering with OpenGL:
             //  - Source Depth is NOT flipped. (ProjectionParams.x == 1)
             output.positionCS = float4(input.positionHCS.xyz, 1.0);
-            output.positionCS.y *= _ScaleBiasRT.x;
+            output.positionCS.y *= _ScaleBiasRt.x;
             output.uv = input.uv;
 
             // Add a small epsilon to avoid artifacts when reconstructing the normals

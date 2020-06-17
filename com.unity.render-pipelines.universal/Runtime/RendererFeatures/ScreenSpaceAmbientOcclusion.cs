@@ -130,9 +130,8 @@ namespace UnityEngine.Rendering.Universal
             private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
 
             // Statics
-            private static readonly int s_BlueNoiseID = Shader.PropertyToID("_BlueNoiseTexture");
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-            private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRT");
+            private static readonly int s_ScaleBiasId = Shader.PropertyToID("_ScaleBiasRt");
             private static readonly int s_BlurOffsetID = Shader.PropertyToID("_BlurOffset");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
@@ -217,10 +216,10 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
 
-                m_Descriptor.width *= downsampleDivider;
-                m_Descriptor.height *= downsampleDivider;
                 cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
+                m_Descriptor.width *= downsampleDivider;
+                m_Descriptor.height *= downsampleDivider;
 
                 // Update the offset increment for Kawase Blur
                 m_offsetIncrement = new Vector4(
@@ -259,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
                     // scaleBias.w = unused
                     float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(s_ScaleBiasId, scaleBias);
+                    cmd.SetGlobalVector(s_ScaleBiasId, new Vector4(-1, 0.0f, 1.0f, 1.0f));
 
                     // Execute the SSAO
                     ExecuteSSAO(cmd, (int) m_CurrentSettings.Source);
