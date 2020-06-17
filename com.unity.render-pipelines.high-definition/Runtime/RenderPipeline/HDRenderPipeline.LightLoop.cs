@@ -195,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         context.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, buildLightListResources.bigTileLightList);
                     context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, buildLightListResources.perVoxelOffset);
                     context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, buildLightListResources.perVoxelLightLists);
-                    if (k_UseDepthBuffer)
+                    if (data.buildGPULightListParameters.clusterNeedsDepth)
                         context.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, buildLightListResources.perTileLogBaseTweak);
                 });
 
@@ -470,7 +470,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle          lightList;
         }
 
-        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, BuildGPULightListOutput lightLists, int firstMipOffsetY)
+        TextureHandle RenderContactShadows(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, in BuildGPULightListOutput lightLists, int firstMipOffsetY)
         {
             if (!WillRenderContactShadow())
                 return renderGraph.ImportTexture(TextureXR.GetClearTexture(), HDShaderIDs._ContactShadowTexture);
