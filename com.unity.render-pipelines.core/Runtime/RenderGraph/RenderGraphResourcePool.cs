@@ -126,6 +126,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             }
 
+            logger.LogLine($"== {GetResourceTypeName()} Resources ==");
             allocationList.Sort();
             int index = 0;
             foreach (var element in allocationList)
@@ -160,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         protected override string GetResourceName(ComputeBuffer res)
         {
-            return "NameNotAvailable"; // res.name is a setter only :(
+            return "ComputeBufferNameNotAvailable"; // res.name is a setter only :(
         }
 
         override protected string GetResourceTypeName()

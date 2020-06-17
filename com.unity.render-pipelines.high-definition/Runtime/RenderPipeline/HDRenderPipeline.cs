@@ -989,6 +989,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
+
+            // Reset resolution dependent buffers.
+            m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 0;
         }
 
         void CleanupNonRenderGraphResources()
@@ -998,6 +1001,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();
+            LightLoopCleanupNonRenderGraphResources();
         }
 
         void InitializeDebugMaterials()
