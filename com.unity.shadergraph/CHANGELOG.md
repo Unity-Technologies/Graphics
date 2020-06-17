@@ -127,6 +127,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Don't allow duplicate VT layer names when renaming layers
 - Moved VT layer TextureType to the VTProperty from the SampleVT node
 - Fixed the squished UI of VT property layers
+- Fixed a bug where changing the name of a property did not update nodes on the graph. [1249164](https://issuetracker.unity3d.com/product/unity/issues/guid/1249164/)
 
 ## [7.1.1] - 2019-09-05
 ### Added
