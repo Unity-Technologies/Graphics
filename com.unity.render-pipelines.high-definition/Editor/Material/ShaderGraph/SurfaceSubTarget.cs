@@ -340,6 +340,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 overrideReferenceName = kDepthOffsetEnable
             });
 
+            collector.AddShaderProperty(new BooleanShaderProperty
+            {
+                value = builtinData.transparentWritesMotionVec,
+                hidden = true,
+                overrideReferenceName = kTransparentWritingMotionVec
+            });
+
             // Common properties for all "surface" master nodes
             HDSubShaderUtilities.AddAlphaCutoffShaderProperties(collector, systemData.alphaTest, builtinData.alphaTestShadow);
             HDSubShaderUtilities.AddDoubleSidedProperty(collector, systemData.doubleSidedMode);
