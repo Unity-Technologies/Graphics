@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.Universal
                     int curTargetID = s_SSAOTexture3ID;
 
                     cmd.SetGlobalVector(s_BlurOffsetID, m_offsetIncrement);
-                    for (int i = 0; i < numOfPasses; i++)
+                    for (int i = 1; i < numOfPasses; i++)
                     {
                         if (i == numOfPasses - 1)
                         {
