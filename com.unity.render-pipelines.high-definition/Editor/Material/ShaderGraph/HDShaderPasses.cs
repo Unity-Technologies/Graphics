@@ -1165,7 +1165,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 // Template
                 // passTemplatePath = passTemplatePath,
-                // sharedTemplateDirectory = HDTarget.sharedTemplateDirectory,
+                // sharedTemplateDirectories = passTemplateMaterialDirectories,
 
                 // //Port mask
                 // validVertexBlocks = CoreBlockMasks.Vertex,
