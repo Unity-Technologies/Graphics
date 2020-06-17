@@ -333,17 +333,27 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.gbufferRT[0] = builder.UseColorBuffer(sssBuffer, 0);
             passData.gbufferRT[1] = builder.UseColorBuffer(prepassOutput.normalBuffer, 1);
 
+#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc gbufferFastMemDesc;
             gbufferFastMemDesc.inFastMemory = true;
             gbufferFastMemDesc.residencyFraction = 1.0f;
             gbufferFastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
 
             // If we are in deferred mode and the SSR is enabled, we need to make sure that the second gbuffer is cleared given that we are using that information for clear coat selection
             bool clearGBuffer2 = clearGBuffer || hdCamera.IsSSREnabled();
             passData.gbufferRT[2] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2", fastMemoryDesc = gbufferFastMemDesc }, HDShaderIDs._GBufferTexture[2]), 2);
+                new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = clearGBuffer2, clearColor = Color.clear, name = "GBuffer2"
+#if UNITY_2020_2_OR_NEWER
+                    , fastMemoryDesc = gbufferFastMemDesc
+#endif
+                }, HDShaderIDs._GBufferTexture[2]), 2);
             passData.gbufferRT[3] = builder.UseColorBuffer(renderGraph.CreateTexture(
-                new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3", fastMemoryDesc = gbufferFastMemDesc }, HDShaderIDs._GBufferTexture[3]), 3);
+                new TextureDesc(Vector2.one, true, true) { colorFormat = Builtin.GetLightingBufferFormat(), clearBuffer = clearGBuffer, clearColor = Color.clear, name = "GBuffer3"
+#if UNITY_2020_2_OR_NEWER
+                  , fastMemoryDesc = gbufferFastMemDesc
+#endif
+                }, HDShaderIDs._GBufferTexture[3]), 3);
 
             prepassOutput.gbuffer.lightLayersTextureIndex = -1;
             int currentIndex = 4;
@@ -417,6 +427,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle    motionVectorBufferMSAA;
             public Material         depthResolveMaterial;
             public int              depthResolvePassIndex;
+            public bool             needMotionVectors;
         }
 
         void ResolvePrepassBuffers(RenderGraph renderGraph, HDCamera hdCamera, ref PrepassOutput output)
@@ -436,17 +447,21 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle depthValuesBuffer = renderGraph.CreateTexture(
                     new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R32G32B32A32_SFloat, name = "DepthValuesBuffer" });
 
+                passData.needMotionVectors = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors);
+
                 passData.depthResolveMaterial = m_DepthResolveMaterial;
                 passData.depthResolvePassIndex = SampleCountToPassIndex(m_MSAASamples);
 
                 passData.depthBuffer = builder.UseDepthBuffer(CreateDepthBuffer(renderGraph, false), DepthAccess.Write);
                 passData.depthValuesBuffer = builder.UseColorBuffer(depthValuesBuffer, 0);
                 passData.normalBuffer = builder.UseColorBuffer(CreateNormalBuffer(renderGraph, false), 1);
-                passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
+                if (passData.needMotionVectors)
+                    passData.motionVectorsBuffer = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 2);
 
                 passData.normalBufferMSAA = builder.ReadTexture(output.normalBuffer);
                 passData.depthAsColorBufferMSAA = builder.ReadTexture(output.depthAsColor);
-                passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
+                if (passData.needMotionVectors)
+                    passData.motionVectorBufferMSAA = builder.ReadTexture(output.motionVectorsBuffer);
 
                 output.resolvedNormalBuffer = passData.normalBuffer;
                 output.resolvedDepthBuffer = passData.depthBuffer;
@@ -456,6 +471,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                 (ResolvePrepassData data, RenderGraphContext context) =>
                 {
+                    data.depthResolveMaterial.SetTexture(HDShaderIDs._NormalTextureMS, context.resources.GetTexture(data.normalBufferMSAA));
+                    data.depthResolveMaterial.SetTexture(HDShaderIDs._DepthTextureMS, context.resources.GetTexture(data.depthAsColorBufferMSAA));
+                    if (data.needMotionVectors)
+                        data.depthResolveMaterial.SetTexture(HDShaderIDs._MotionVectorTextureMS, context.resources.GetTexture(data.motionVectorBufferMSAA));
+
                     context.cmd.DrawProcedural(Matrix4x4.identity, data.depthResolveMaterial, data.depthResolvePassIndex, MeshTopology.Triangles, 3, 1);
                 });
             }

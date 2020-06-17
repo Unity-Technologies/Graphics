@@ -788,14 +788,14 @@ namespace UnityEditor.ShaderGraph
             string passTemplatePath = pass.passTemplatePath;
 
             // Shared Templates
-            string sharedTemplateDirectory = pass.sharedTemplateDirectory;
+            string[] sharedTemplateDirectories = pass.sharedTemplateDirectories;
 
             if (!File.Exists(passTemplatePath))
                 return;
 
             // Process Template
             var templatePreprocessor = new ShaderSpliceUtil.TemplatePreprocessor(activeFields, spliceCommands,
-                isDebug, sharedTemplateDirectory, m_AssetDependencyPaths);
+                isDebug, sharedTemplateDirectories, m_AssetDependencyPaths);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
         }

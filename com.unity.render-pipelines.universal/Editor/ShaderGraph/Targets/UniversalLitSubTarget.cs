@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -303,13 +303,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBuffer = new PassDescriptor
             {
                 // Definition
-                displayName = "Universal GBuffer",
+                displayName = "GBuffer",
                 referenceName = "SHADERPASS_GBUFFER",
                 lightMode = "UniversalGBuffer",
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -336,7 +336,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -362,7 +362,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
