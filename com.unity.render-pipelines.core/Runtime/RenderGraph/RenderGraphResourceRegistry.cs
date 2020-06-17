@@ -540,10 +540,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // TODO RENDERGRAPH: Check actual condition on stride.
-            //if (desc.stride % 4 != 0)
-            //{
-            //    throw new ArgumentException("Compute Buffer stride must be at least 4.");
-            //}
+            if (desc.stride % 4 != 0)
+            {
+                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer stride must be at least 4.");
+            }
+            if (desc.count == 0)
+            {
+                throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer count  must be non zero.");
+            }
 #endif
         }
 
