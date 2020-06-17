@@ -1017,17 +1017,26 @@ namespace UnityEngine.Rendering.HighDefinition
             previous = camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.Exposure);
         }
 
-        void PrepareExposureCurveData(AnimationCurve curve, out float min, out float max)
+        void PrepareExposureCurveData(out float min, out float max)
         {
+            var curve = m_Exposure.curveMap.value;
+            var minCurve = m_Exposure.limitMinCurveMap.value;
+            var maxCurve = m_Exposure.limitMaxCurveMap.value;
+
             if (m_ExposureCurveTexture == null)
             {
-                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, TextureFormat.RHalf, false, true)
+                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, TextureFormat.RGBAHalf, false, true)
                 {
                     name = "Exposure Curve",
                     filterMode = FilterMode.Bilinear,
                     wrapMode = TextureWrapMode.Clamp
                 };
             }
+
+            bool minCurveHasPoints = minCurve.length > 0;
+            bool maxCurveHasPoints = maxCurve.length > 0;
+            float defaultMin = -100.0f;
+            float defaultMax = 100.0f;
 
             var pixels = m_ExposureCurveColorArray;
 
@@ -1047,7 +1056,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float step = (max - min) / (k_ExposureCurvePrecision - 1f);
 
                 for (int i = 0; i < k_ExposureCurvePrecision; i++)
-                    pixels[i] = new Color(curve.Evaluate(min + step * i), 0f, 0f, 0f);
+                {
+                    float currTime = min + step * i;
+                    pixels[i] = new Color(curve.Evaluate(currTime),
+                                          minCurveHasPoints ? minCurve.Evaluate(currTime) : defaultMin,
+                                          maxCurveHasPoints ? maxCurve.Evaluate(currTime) : defaultMax,
+                                          0f);
+                }
             }
 
             m_ExposureCurveTexture.SetPixels(pixels);
@@ -1124,7 +1139,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
-                PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
+                PrepareExposureCurveData(out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, min, max, 0f));
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
@@ -1199,7 +1214,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureVariants[3] = 0;
             if (m_Exposure.histogramUseCurveRemapping.value)
             {
-                PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
+                PrepareExposureCurveData(out float min, out float max);
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
                 m_ExposureVariants[3] = 2;
             }
