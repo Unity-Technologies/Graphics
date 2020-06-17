@@ -150,7 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectory = templateMaterialDirectory;
+                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;
