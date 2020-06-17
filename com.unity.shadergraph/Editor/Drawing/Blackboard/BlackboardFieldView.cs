@@ -17,8 +17,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly GraphData m_Graph;
         public GraphData graph => m_Graph;
-
-        public bool inspectorTriggeredNameChange = false; // triggers blackboard update when inspector makes changes
+        internal delegate void BlackBoardCallback();
 
         ShaderInput m_Input;
 
@@ -68,7 +67,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        public Action m_inspectorUpdateTrigger;
+        public Action InspectorUpdateTrigger;
+        public BlackBoardCallback BlackBoardUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public string inspectorTitle
@@ -87,11 +87,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public BlackboardFieldView(GraphData graph, ShaderInput input, Texture icon, string text, string typeText) : base(icon, text, typeText)
+        public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
+            Texture icon, string text, string typeText) : base(icon, text, typeText)
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ShaderGraphBlackboard"));
             m_Graph = graph;
             m_Input = input;
+            this.BlackBoardUpdateTrigger = updateBlackboardView;
         }
 
         public object GetObjectToInspect()
@@ -140,10 +142,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     RegisterPropertyChangeUndo,
                     MarkNodesAsDirty);
 
-                m_inspectorUpdateTrigger = inspectorUpdateDelegate;
+                InspectorUpdateTrigger = inspectorUpdateDelegate;
                 m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
 
-                this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
+                this.RegisterCallback<DetachFromPanelEvent>(evt => InspectorUpdateTrigger());
             }
         }
 
@@ -158,8 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Input.displayName = newValue;
                 m_Graph.SanitizeGraphInputName(m_Input);
-                //needed to trigger blackboard update
-                inspectorTriggeredNameChange = true;
+                this.BlackBoardUpdateTrigger();
             }
         }
 
@@ -180,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             DirtyNodes(modificationScope);
             if(triggerPropertyViewUpdate)
-                m_inspectorUpdateTrigger();
+                InspectorUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)

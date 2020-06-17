@@ -257,8 +257,27 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
                 // need to trigger the inspector update to match
-                fieldView.m_inspectorUpdateTrigger();
+                fieldView.InspectorUpdateTrigger();
                 DirtyNodes();
+            }
+        }
+
+        void UpdateBlackboardView()
+        {
+            var selection = new List<ISelectable>();
+            if (blackboard.selection != null)
+            {
+                selection.AddRange(blackboard.selection);
+            }
+            foreach (var item in selection)
+            {
+                if (item is BlackboardFieldView blackboardFieldView)
+                {
+                    //update property pill
+                    blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
+                    // for some reason doesn't work from the inspector calls so need it here 
+                    DirtyNodes();
+                }
             }
         }
 
@@ -285,6 +304,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (wasUndoRedoPerformed)
             {
                 oldSelectionPersistenceData.Clear();
+                foreach (var item in selection)
+                {
+                    if (item is BlackboardFieldView blackboardFieldView)
+                    {
+                        var guid = blackboardFieldView.shaderInput.referenceName;
+                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
+                    }
+                }
             }
 
             foreach (var input in m_Graph.addedInputs)
@@ -302,31 +329,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (var keyword in m_Graph.keywords)
                     m_KeywordSection.Add(m_InputRows[keyword]);
-            }
-
-            //handle selected blackboard fields
-            foreach (var item in selection)
-            {
-                if (item is BlackboardFieldView blackboardFieldView)
-                {
-                    // the callback in the inspector has triggered a display name change
-                    if(blackboardFieldView.inspectorTriggeredNameChange)
-                    {
-                        //update property pill
-                        blackboardFieldView.text = blackboardFieldView.shaderInput.displayName;
-                        //set trigger back to false
-                        blackboardFieldView.inspectorTriggeredNameChange = false;
-                        //need to update property nodes on the graph with new name 
-                        // for some reason doesn't work from the inspector calls so need it here 
-                        DirtyNodes();
-                    }
-                    //undo action needs to be preformed
-                    else if(wasUndoRedoPerformed)
-                    {
-                        var guid = blackboardFieldView.shaderInput.referenceName;
-                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
-                    }
-                }
             }
         }
 
@@ -353,7 +355,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty property:
                 {
                     var icon = (m_Graph.isSubGraph || (property.isExposable && property.generatePropertyBlock)) ? exposedIcon : null;
-                    field = new BlackboardFieldView(m_Graph, property, icon, property.displayName, property.propertyType.ToString()) { userData = property };
+                    field = new BlackboardFieldView(m_Graph, property, UpdateBlackboardView, icon, property.displayName, property.propertyType.ToString()) { userData = property };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
 
@@ -374,7 +376,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     string typeText = keyword.keywordType.ToString()  + " Keyword";
                     typeText = keyword.isBuiltIn ? "Built-in " + typeText : typeText;
 
-                    field = new BlackboardFieldView(m_Graph, keyword, icon, keyword.displayName, typeText) { userData = keyword };
+                    field = new BlackboardFieldView(m_Graph, keyword, UpdateBlackboardView, icon, keyword.displayName, typeText) { userData = keyword };
                     field.RegisterCallback<AttachToPanelEvent>(UpdateSelectionAfterUndoRedo);
                     row = new BlackboardRow(field, null);
 
