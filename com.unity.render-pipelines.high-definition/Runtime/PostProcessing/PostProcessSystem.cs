@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
                 // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
                 // Texture current and previous are swapped at the beginning of the frame.
-                bool isFixedExposure = IsExposureFixed();
+                bool isFixedExposure = IsExposureFixed(camera);
                 if (isFixedExposure)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
@@ -489,7 +489,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Dynamic exposure - will be applied in the next frame
                 // Not considered as a post-process so it's not affected by its enabled state
-                if (!IsExposureFixed() && m_ExposureControlFS)
+                if (!IsExposureFixed(camera) && m_ExposureControlFS)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
@@ -894,7 +894,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Exposure
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IsExposureFixed() => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera;
+        bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden);
 
         public RTHandle GetExposureTexture(HDCamera camera)
         {
@@ -979,10 +979,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = 0;
 
-            if (m_Exposure.mode.value == ExposureMode.Fixed)
+            if (m_Exposure.mode.value == ExposureMode.Fixed || (HDAdditionalSceneViewSettings.sceneExposureOverriden && camera.camera.cameraType == CameraType.SceneView))
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
+                var exposureParam = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
+                if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
+                {
+                    exposureParam = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
+                }
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParam);
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
