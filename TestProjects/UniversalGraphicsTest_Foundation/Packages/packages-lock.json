@@ -147,7 +147,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.2.1-preview",
+      "version": "7.2.2-preview",
       "depth": 0,
       "source": "registry",
       "dependencies": {
