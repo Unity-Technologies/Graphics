@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -219,6 +219,29 @@ namespace UnityEditor.Rendering.Universal
             // fix 50 offset on shaders
             if(material.HasProperty("_QueueOffset"))
                 BaseShaderGUI.SetupMaterialBlendMode(material);
+        }
+
+        static void UpgradeV3(Material material, ShaderPathID shaderID)
+        {
+            switch (shaderID)
+            {
+                case ShaderPathID.Lit:
+                case ShaderPathID.SimpleLit:
+                case ShaderPathID.ParticlesLit:
+                case ShaderPathID.ParticlesSimpleLit:
+                case ShaderPathID.ParticlesUnlit:
+                    var propertyID = Shader.PropertyToID("_EmissionColor");
+                    if (material.HasProperty(propertyID))
+                    {
+                        // In older version there was a bug that these shaders did not had HDR attribute on emission property.
+                        // This caused emission color to be converted from gamma to linear space.
+                        // In order to avoid visual regression on older projects we will do gamma to linear conversion here.
+                        var emissionGamma = material.GetColor(propertyID);
+                        var emissionLinear = emissionGamma.linear;
+                        material.SetColor(propertyID, emissionLinear);
+                    }
+                    break;
+            }
         }
     }
 
