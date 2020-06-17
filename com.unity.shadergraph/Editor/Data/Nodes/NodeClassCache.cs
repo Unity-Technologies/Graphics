@@ -61,24 +61,21 @@ namespace UnityEditor.ShaderGraph
         {
             Profiler.BeginSample("NodeClassCache: Re-caching all known node types");
             m_KnownTypeLookupTable = new Dictionary<Type, List<ContextFilterableAttribute>>();
-            foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                foreach (Type nodeType in assem.GetTypes())
-                {
-                    if (nodeType.IsClass && !nodeType.IsAbstract && nodeType.IsSubclassOf(typeof(AbstractMaterialNode)))
-                    {
-                        List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
-                        foreach(Attribute attribute in Attribute.GetCustomAttributes(nodeType))
-                        {
-                            Type attributeType = attribute.GetType();
-                            if(!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
-                            {
-                                filterableAttributes.Add(contextFilterableAttribute);
-                            }
-                        }
-                        m_KnownTypeLookupTable.Add(nodeType,filterableAttributes);
-                    }
-                }
+            foreach (Type nodeType in TypeCache.GetTypesDerivedFrom<AbstractMaterialNode>())
+            { 
+               if (nodeType.IsClass && !nodeType.IsAbstract)
+               {
+                   List<ContextFilterableAttribute> filterableAttributes = new List<ContextFilterableAttribute>();
+                   foreach(Attribute attribute in Attribute.GetCustomAttributes(nodeType))
+                   {
+                       Type attributeType = attribute.GetType();
+                       if(!attributeType.IsAbstract && attribute is ContextFilterableAttribute contextFilterableAttribute)
+                       {
+                           filterableAttributes.Add(contextFilterableAttribute);
+                       }
+                   }
+                   m_KnownTypeLookupTable.Add(nodeType,filterableAttributes);
+               }
             }
             Profiler.EndSample();
         }
