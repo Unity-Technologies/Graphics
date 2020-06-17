@@ -8,6 +8,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using UnityEditorInternal;
+using UnityEditor.Rendering;
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
