@@ -123,17 +123,17 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.Medium] = 0.4f;
             RTRMinSmoothness[(int)ScalableSettingLevelParameter.Level.High] = 0.0f;
 
-            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Low] = 0.6f;
-            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Medium] = 0.4f;
+            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Low] = 0.7f;
+            RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.Medium] = 0.5f;
             RTRSmoothnessFadeStart[(int)ScalableSettingLevelParameter.Level.High] = 0.0f;
 
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.Low] = 50.0f;
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.Medium] = 50.0f;
             RTRRayLength[(int)ScalableSettingLevelParameter.Level.High] = 50.0f;
 
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 0.8f;
-            RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.0f;
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Low] = 0.8f;
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.Medium] = 1.0f;
+            RTRClampValue[(int)ScalableSettingLevelParameter.Level.High] = 1.2f;
 
             RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Low] = 4;
             RTRUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
