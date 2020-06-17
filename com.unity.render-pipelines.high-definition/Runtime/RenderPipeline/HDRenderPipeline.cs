@@ -5293,7 +5293,16 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
             needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || GetIndirectDiffuseMode(hdCamera) != IndirectDiffuseMode.Off)
+            IndirectDiffuseMode indirectDiffuseMode = GetIndirectDiffuseMode(hdCamera);
+
+            // SSGI required the depth of the previous frame
+            if (indirectDiffuseMode == IndirectDiffuseMode.ScreenSpace)
+            {
+                needDepthBuffer = true;
+            }
+
+            // Raytracing require both normal and depth from previous frame.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;
