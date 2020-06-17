@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering
         /// <param name="copyCount">The number of item to copy.</param>
         public unsafe void CopyTo(T* dstBuffer, int startDstIndex, int copyCount)
         {
-            UnsafeUtility.MemCmp( dstBuffer + startDstIndex,  m_BufferPtr,
+            UnsafeUtility.MemCpy( dstBuffer + startDstIndex,  m_BufferPtr,
                 UnsafeUtility.SizeOf<T>() * copyCount);
         }
 
@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering
             if (other.Count + Count >= other.m_Capacity)
                 return false;
 
-            UnsafeUtility.MemCmp( other.m_BufferPtr + other.Count, m_BufferPtr, UnsafeUtility.SizeOf<T>() * Count);
+            UnsafeUtility.MemCpy( other.m_BufferPtr + other.Count, m_BufferPtr, UnsafeUtility.SizeOf<T>() * Count);
             *other.m_CountPtr += Count;
             return true;
         }
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering
             if (count + Count > m_Capacity)
                 return false;
 
-            UnsafeUtility.MemCmp( m_BufferPtr + Count, srcPtr, UnsafeUtility.SizeOf<T>() * count);
+            UnsafeUtility.MemCpy( m_BufferPtr + Count, srcPtr, UnsafeUtility.SizeOf<T>() * count);
             *m_CountPtr += count;
             return true;
         }

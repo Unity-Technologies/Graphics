@@ -290,7 +290,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     AssetDatabase.StartAssetEditing();
                     for (int i = 0; i < bakedProbeCount; ++i)
                     {
-                        var index = addIndices[i];
+                        var index = toBakeIndicesList.GetUnchecked(i);
                         var instanceId = states[index].instanceID;
                         var probe = (HDProbe)EditorUtility.InstanceIDToObject(instanceId);
                         var bakedTexturePath = HDBakingUtilities.GetBakedTextureFilePath(probe);
