@@ -366,6 +366,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                  renderTargetCount;
             public TextureHandle        depthBuffer;
             public ComputeBufferHandle  lightListBuffer;
+            public ComputeBufferHandle  perVoxelOffset;
+            public ComputeBufferHandle  perTileLogBaseTweak;
             public FrameSettings        frameSettings;
             public bool                 decalsEnabled;
             public bool                 renderMotionVecForTransparent;
@@ -387,7 +389,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.frameSettings = frameSettings;
             data.lightListBuffer = builder.ReadComputeBuffer(useFptl ? lightLists.lightList : lightLists.perVoxelLightLists);
-            //data.lightListBuffer = useFptl ? m_TileAndClusterData.lightList: m_TileAndClusterData.perVoxelLightLists;
+            if (!useFptl)
+            {
+                data.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
+                if (lightLists.perTileLogBaseTweak.IsValid())
+                    data.perTileLogBaseTweak = builder.ReadComputeBuffer(lightLists.perTileLogBaseTweak);
+            }
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
             // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
@@ -530,9 +537,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int i = 0; i < data.renderTargetCount; ++i)
                         mrt[i] = context.resources.GetTexture(data.renderTarget[i]);
 
+                    // Bind all global data/parameters for transparent forward pass
                     context.cmd.SetGlobalInt(HDShaderIDs._ColorMaskTransparentVel, data.renderMotionVecForTransparent ? (int)ColorWriteMask.All : 0);
                     if (data.decalsEnabled)
                         DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
+
+                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, context.resources.GetComputeBuffer(data.perVoxelOffset));
+                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, context.resources.GetComputeBuffer(data.perTileLogBaseTweak));
 
                     RenderForwardRendererList(  data.frameSettings,
                                                 context.resources.GetRendererList(data.rendererList),
