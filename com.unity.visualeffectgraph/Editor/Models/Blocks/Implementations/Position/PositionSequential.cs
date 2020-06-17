@@ -8,13 +8,15 @@ namespace UnityEditor.VFX.Block
 {
     class PositionSequentialVariantProvider : VariantProvider
     {
-        protected override sealed Dictionary<string, object[]> variants
+        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
         {
-            get
+            var shapes = new[] { PositionSequential.SequentialShape.Circle, PositionSequential.SequentialShape.Line, PositionSequential.SequentialShape.ThreeDimensional };
+
+            foreach (var shape in shapes)
             {
-                return new Dictionary<string, object[]>
-                {
-                    { "shape", Enum.GetValues(typeof(PositionSequential.SequentialShape)).Cast<object>().ToArray() }
+                yield return new[] {
+                    new KeyValuePair<string, object>("compositionPosition", AttributeCompositionMode.Overwrite),
+                    new KeyValuePair<string, object>("shape", shape)
                 };
             }
         }
