@@ -67,8 +67,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        public Action InspectorUpdateTrigger;
-        public BlackBoardCallback BlackBoardUpdateTrigger;
+        private Action m_inspectorUpdateTrigger;
+        private BlackBoardCallback BlackBoardUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
 
         public string inspectorTitle
@@ -85,6 +85,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         throw new ArgumentOutOfRangeException();
                 }
             }
+        }
+
+        public void InspectorUpdateTrigger()
+        {
+            m_inspectorUpdateTrigger();
         }
 
         public BlackboardFieldView(GraphData graph, ShaderInput input, BlackBoardCallback updateBlackboardView,
@@ -142,10 +147,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     RegisterPropertyChangeUndo,
                     MarkNodesAsDirty);
 
-                InspectorUpdateTrigger = inspectorUpdateDelegate;
+                m_inspectorUpdateTrigger = inspectorUpdateDelegate;
                 m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
 
-                this.RegisterCallback<DetachFromPanelEvent>(evt => InspectorUpdateTrigger());
+                this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }
         }
 
@@ -181,7 +186,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             DirtyNodes(modificationScope);
             if(triggerPropertyViewUpdate)
-                InspectorUpdateTrigger();
+                m_inspectorUpdateTrigger();
         }
 
         void ChangePropertyValue(object newValue)

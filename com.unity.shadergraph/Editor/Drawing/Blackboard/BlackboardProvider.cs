@@ -247,8 +247,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void EditTextRequested(Blackboard blackboard, VisualElement visualElement, string newText)
         {
-            var field = (BlackboardField)visualElement;
-            var fieldView = (BlackboardFieldView)visualElement;
+            var field = (BlackboardFieldView)visualElement;
             var input = (ShaderInput)field.userData;
             if (!string.IsNullOrEmpty(newText) && newText != input.displayName)
             {
@@ -257,19 +256,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Graph.SanitizeGraphInputName(input);
                 field.text = input.displayName;
                 // need to trigger the inspector update to match
-                fieldView.InspectorUpdateTrigger();
+                field.InspectorUpdateTrigger();
                 DirtyNodes();
             }
         }
 
         void UpdateBlackboardView()
         {
-            var selection = new List<ISelectable>();
-            if (blackboard.selection != null)
-            {
-                selection.AddRange(blackboard.selection);
-            }
-            foreach (var item in selection)
+            foreach (var item in blackboard.selection)
             {
                 if (item is BlackboardFieldView blackboardFieldView)
                 {
