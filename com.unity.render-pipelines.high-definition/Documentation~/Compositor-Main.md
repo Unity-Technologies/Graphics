@@ -17,7 +17,7 @@ The following table provides a high level overview of the advantages and disadva
 
 Furthermore, the Graphics Compositor includes functionality such as *"localized post-processing"*, where a Post-Processing Volume only affects certain GameObjects in the Scene. 
 
-For a high level overview of the Compositor's functionality please refer to the [User Guide](Compositor-User-Guide) section. For a description on specific options in the user interface, please refer to the [User Options](Compositor-User-Options) section.
+For a high level overview of the Graphics Compositor's functionality please refer to the [User Guide](Compositor-User-Guide) section. For a description on specific options in the user interface, please refer to the [User Options](Compositor-User-Options) section.
 
 ## Composition example
 
