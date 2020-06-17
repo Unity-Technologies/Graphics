@@ -899,7 +899,11 @@ namespace UnityEngine.Rendering.HighDefinition
         #region Exposure
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden);
+        bool IsExposureFixed(HDCamera camera) => m_Exposure.mode.value == ExposureMode.Fixed || m_Exposure.mode.value == ExposureMode.UsePhysicalCamera
+            #if UNITY_EDITOR
+            || (camera.camera.cameraType == CameraType.SceneView && HDAdditionalSceneViewSettings.sceneExposureOverriden)
+            #endif
+            ;
 
         public RTHandle GetExposureTexture(HDCamera camera)
         {
@@ -990,14 +994,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = 0;
 
-            if (m_Exposure.mode.value == ExposureMode.Fixed || (HDAdditionalSceneViewSettings.sceneExposureOverriden && camera.camera.cameraType == CameraType.SceneView))
+            if (m_Exposure.mode.value == ExposureMode.Fixed
+                #if UNITY_EDITOR
+                || (HDAdditionalSceneViewSettings.sceneExposureOverriden && camera.camera.cameraType == CameraType.SceneView)
+                #endif
+                )
             {
                 kernel = cs.FindKernel("KFixedExposure");
                 var exposureParam = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
+                #if UNITY_EDITOR
                 if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
                 {
                     exposureParam = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
                 }
+                #endif
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParam);
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
