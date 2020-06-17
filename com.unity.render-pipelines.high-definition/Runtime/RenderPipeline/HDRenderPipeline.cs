@@ -1267,21 +1267,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
+            m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 // Check if recursive rendering is enabled or not. This will control the cull of primitive
                 // during the gbuffer and forward pass
-                RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-                bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
-                m_ShaderVariablesGlobalCB._UseRayTracedReflections = usesRaytracedReflections ? 1 : 0;
-                m_ShaderVariablesGlobalCB._UseIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? (RayTracedIndirectDiffuseState(hdCamera) ? LightDefinitions.k_RayTracedIndirectDiffuseFlag : LightDefinitions.k_ScreenSpaceIndirectDiffuseFlag) : LightDefinitions.k_IndirectDiffuseFlagOff;
+                bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+                m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
+                RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
             }
             else
             {
-                m_ShaderVariablesGlobalCB._UseRayTracedReflections = 0;
-                m_ShaderVariablesGlobalCB._UseIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? LightDefinitions.k_ScreenSpaceIndirectDiffuseFlag : LightDefinitions.k_IndirectDiffuseFlagOff;
+                m_ShaderVariablesGlobalCB._EnableRayTracedReflections = 0;
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
@@ -2604,37 +2604,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDRaytracingLightCluster lightCluster = RequestLightCluster();
                         lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                     }
-
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    if (validIndirectDiffuse)
-                    {
-                        if (RayTracedIndirectDiffuseState(hdCamera))
-                        {
-                            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-                        }
-                        else
-                        {
-                            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                            BindIndirectDiffuseTexture(cmd);
-                        }
-                    }
-                    else
-                    {
-                        BindBlackIndirectDiffuseTexture(cmd);
-                    }
                 }
-                else
+
+                switch (GetIndirectDiffuseMode(hdCamera))
                 {
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    if (validIndirectDiffuse)
-                    {
+                    case IndirectDiffuseMode.Off:
+                        BindBlackIndirectDiffuseTexture(cmd);
+                        break;
+
+                    case IndirectDiffuseMode.ScreenSpace:
                         RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
                         BindIndirectDiffuseTexture(cmd);
-                    }
-                    else
-                    {
-                        BindBlackIndirectDiffuseTexture(cmd);
-                    }
+                        break;
+
+                    case IndirectDiffuseMode.Raytrace:
+                        RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+                        break;
                 }
 
                 if (!hdCamera.frameSettings.SSRRunsAsync())
@@ -5309,7 +5294,16 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
             needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || ValidIndirectDiffuseState(hdCamera))
+            IndirectDiffuseMode indirectDiffuseMode = GetIndirectDiffuseMode(hdCamera);
+
+            // SSGI required the depth of the previous frame
+            if (indirectDiffuseMode == IndirectDiffuseMode.ScreenSpace)
+            {
+                needDepthBuffer = true;
+            }
+
+            // Raytracing require both normal and depth from previous frame.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;
