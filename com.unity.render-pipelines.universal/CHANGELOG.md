@@ -17,6 +17,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
+- Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
 
 ## [7.4.1] - 2020-06-03
 
