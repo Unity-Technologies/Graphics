@@ -1,4 +1,5 @@
 using System;
+using ICSharpCode.NRefactory.Ast;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -216,10 +217,10 @@ namespace UnityEngine.Rendering.Universal
                 m_Descriptor.colorFormat = RenderTextureFormat.ARGB32;
 
                 cmd.GetTemporaryRT(s_SSAOTexture1ID, m_Descriptor, FilterMode.Bilinear);
-                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
 
                 m_Descriptor.width *= downsampleDivider;
                 m_Descriptor.height *= downsampleDivider;
+                cmd.GetTemporaryRT(s_SSAOTexture2ID, m_Descriptor, FilterMode.Bilinear);
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
                 // Update the offset increment for Kawase Blur
@@ -287,6 +288,7 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
+                cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);
             }
 
             private void ExecuteSSAO(CommandBuffer cmd, int occlusionPass)
@@ -296,32 +298,48 @@ namespace UnityEngine.Rendering.Universal
 
             private int ExecuteKawaseBlur(CommandBuffer cmd)
             {
-                RenderTargetIdentifier lastTarget = m_SSAOTexture1Target;
-                RenderTargetIdentifier curTarget = m_SSAOTexture2Target;
-                int lastTargetID = s_SSAOTexture1ID;
-                int curTargetID = s_SSAOTexture2ID;
-
                 Vector4 startOffset = 1.5f * m_offsetIncrement;
                 Vector4 offset = startOffset;
+
+                // First Render from AO calculations to the blurred tex
+                cmd.SetGlobalVector(s_BlurOffsetID, offset);
+
                 int numOfPasses = m_CurrentSettings.BlurPasses;
-                cmd.SetGlobalFloat(s_SSAOLastKawaseID, 0.0f);
-                cmd.SetGlobalVector(s_BlurOffsetID, m_offsetIncrement);
-                for (int i = 0; i < numOfPasses - 1; i++)
+                if (numOfPasses > 1)
                 {
-                    cmd.SetGlobalVector(s_BlurOffsetID, offset);
-                    Render(cmd, lastTargetID, curTarget, k_KawaseBlurShaderPassID);
+                    cmd.SetGlobalFloat(s_SSAOLastKawaseID, 0.0f);
+                    Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_KawaseBlurShaderPassID);
                     offset += m_offsetIncrement;
 
-                    // Ping-Pong
-                    CoreUtils.Swap(ref curTarget, ref lastTarget);
-                    CoreUtils.Swap(ref curTargetID, ref lastTargetID);
+                    RenderTargetIdentifier lastTarget = m_SSAOTexture2Target;
+                    RenderTargetIdentifier curTarget = m_SSAOTexture3Target;
+                    int lastTargetID = s_SSAOTexture2ID;
+                    int curTargetID = s_SSAOTexture3ID;
+
+                    cmd.SetGlobalVector(s_BlurOffsetID, m_offsetIncrement);
+                    for (int i = 0; i < numOfPasses; i++)
+                    {
+                        if (i == numOfPasses - 1)
+                        {
+                            cmd.SetGlobalFloat(s_SSAOLastKawaseID, 1.0f);
+                        }
+
+                        cmd.SetGlobalVector(s_BlurOffsetID, offset);
+                        Render(cmd, lastTargetID, curTarget, k_KawaseBlurShaderPassID);
+                        offset += m_offsetIncrement;
+
+                        // Ping-Pong
+                        CoreUtils.Swap(ref curTarget, ref lastTarget);
+                        CoreUtils.Swap(ref curTargetID, ref lastTargetID);
+
+                    }
+
+                    return lastTargetID;
                 }
 
-                cmd.SetGlobalVector(s_BlurOffsetID, startOffset);
                 cmd.SetGlobalFloat(s_SSAOLastKawaseID, 1.0f);
-                Render(cmd, lastTargetID, m_SSAOTexture3Target, k_KawaseBlurShaderPassID);
-
-                return s_SSAOTexture3ID;
+                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_KawaseBlurShaderPassID);
+                return s_SSAOTexture2ID;
             }
 
             private void Render(CommandBuffer cmd, RenderTargetIdentifier target, int pass)

@@ -267,7 +267,6 @@ float4 SSAO(Varyings input) : SV_Target
     float randAddon = uv.x * 1e-10;
 
     float rcpSampleCount = rcp(SAMPLE_COUNT);
-    rcpSampleCount = lerp(rcpSampleCount, 1.0, saturate(depth_o));
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
     {
