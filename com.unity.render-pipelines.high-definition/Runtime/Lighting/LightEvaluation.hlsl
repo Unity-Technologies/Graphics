@@ -495,7 +495,6 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
 #endif
     if ((light.shadowIndex >= 0) && (light.shadowDimmer > 0))
     {
-        // light.positionRWS now contains the Light vector.
         shadow = GetRectAreaShadowAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, N, light.shadowIndex, L, dist);
 
 #ifdef SHADOWS_SHADOWMASK
