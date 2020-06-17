@@ -81,6 +81,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Missing Default Renderer\nThere is no default renderer assigned, so Unity can’t perform any rendering. Set another renderer to be the new Default, or assign a renderer to the Default slot.");
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
+            public static GUIContent rendererUnsupportedAPIMessage =
+                EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
@@ -227,11 +229,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                string unsupportedGraphicsApisMessage;
 
                 if (!asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
                 else if (!asset.ValidateRendererDataList(true))
                     EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
+                else if (!asset.ValidateRendererGraphicsAPIs(out unsupportedGraphicsApisMessage))
+                    EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);

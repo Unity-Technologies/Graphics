@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added option to enable/disable Adaptive Performance when it's package is available.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
+- Added a warning message when a renderer is used with an unsupported graphics API (Deferred renderer does not officially support GL based platforms).
 
 ### Changed
 
