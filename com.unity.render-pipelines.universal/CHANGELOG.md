@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
 - Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
+- Shader Preprocessor strips gbuffer shader variants if DeferredRenderer is not in the list of renderers in any Scriptable Pipeline Assets.
 - Added option to enable/disable Adaptive Performance when it's package is available.
 - Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
 - Added support for DXT5nm-style normal maps on Android, iOS and tvOS
