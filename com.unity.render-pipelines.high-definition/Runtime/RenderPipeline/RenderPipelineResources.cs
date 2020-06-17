@@ -285,6 +285,13 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
 
+            // Physicaly based DoF
+            [Reload("Runtime/PostProcessing/Shaders/DoFCycleOfConfusion.compute")]
+            public ComputeShader dofCycleOfConfusion;
+
+            [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
+            public ComputeShader dofGatherCS;
+
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;
 #if ENABLE_VIRTUALTEXTURES
