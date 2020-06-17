@@ -59,9 +59,9 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 5388eaa32491eb5428ed31b47328704e, type: 2}
+  - {fileID: 2100000, guid: 51715d426647c0a469aa54fd0d386aa6, type: 2}
   - {fileID: 2100000, guid: 1029b38bdee65ba4482ab14d2b7a9f04, type: 2}
-  - {fileID: 2100000, guid: 5388eaa32491eb5428ed31b47328704e, type: 2}
+  - {fileID: 2100000, guid: 51715d426647c0a469aa54fd0d386aa6, type: 2}
   - {fileID: 2100000, guid: 1029b38bdee65ba4482ab14d2b7a9f04, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -94,7 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7463582231431991560}
   m_Layer: 0
-  m_Name: BallWithBase_PF
+  m_Name: BallWithBase_01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

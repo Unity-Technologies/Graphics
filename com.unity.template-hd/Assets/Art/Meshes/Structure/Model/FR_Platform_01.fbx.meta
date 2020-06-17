@@ -17,8 +17,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: ConcreteSmooth_Mat
+    second: {fileID: 2100000, guid: 975c89d1f9e67f24a88b46d50fc95a09, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: PurpleLight
     second: {fileID: 2100000, guid: 8cf9b12dac853384ab52bc59badd45cc, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: SandBlastMetal_Mat
+    second: {fileID: 2100000, guid: 2d17ebb7fe958ff4898d2c0cd1dddce9, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

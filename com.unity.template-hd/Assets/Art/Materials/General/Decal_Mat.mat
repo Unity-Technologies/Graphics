@@ -28,7 +28,6 @@ Material:
   - DBufferMesh_MS
   - DBufferMesh_AOS
   - DBufferMesh_MAOS
-  - DBufferMesh_S
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -191,7 +190,7 @@ Material:
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
-    - _MaskBlendMode: 0
+    - _MaskBlendMode: 4
     - _MaskBlendSrc: 0
     - _MaskmapAO: 0
     - _MaskmapMetal: 0
