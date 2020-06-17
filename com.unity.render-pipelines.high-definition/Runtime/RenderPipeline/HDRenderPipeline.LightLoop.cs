@@ -187,16 +187,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     VoxelLightListGeneration(data.buildGPULightListParameters, buildLightListResources, context.cmd);
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
-
-                    // TODO RENDERGRAPH this won't work with Async compute.
-                    // Need to do away with globals altogether. These are only needed in Deferred and Forward passes.
-                    // Setup global buffers
-                    if (data.buildGPULightListParameters.runBigTilePrepass)
-                        context.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, buildLightListResources.bigTileLightList);
-                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, buildLightListResources.perVoxelOffset);
-                    context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, buildLightListResources.perVoxelLightLists);
-                    if (data.buildGPULightListParameters.clusterNeedsDepth)
-                        context.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, buildLightListResources.perTileLogBaseTweak);
                 });
 
                 return passData.output;
