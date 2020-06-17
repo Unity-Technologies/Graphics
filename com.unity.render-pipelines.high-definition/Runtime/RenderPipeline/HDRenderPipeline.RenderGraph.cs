@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+                var gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_MaxLightsOnScreen, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
                 lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, m_FrameCount);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.

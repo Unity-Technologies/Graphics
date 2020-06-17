@@ -3344,7 +3344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             parameters.viewCount = hdCamera.viewCount;
-            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings);
+            parameters.enableFeatureVariants = GetFeatureVariantsEnabled(hdCamera.frameSettings) && tileAndClusterData.hasTileBuffers;
             parameters.computeMaterialVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeMaterialVariants);
             parameters.computeLightVariants = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ComputeLightVariants);
             parameters.lightList = m_lightList;
@@ -3375,7 +3375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numBigTilesY = (h + 63) / 64;
 
             // Fptl
-            parameters.runFPTL = hdCamera.frameSettings.fptl;
+            parameters.runFPTL = hdCamera.frameSettings.fptl && tileAndClusterData.hasTileBuffers;
             parameters.buildPerTileLightListShader = buildPerTileLightListShader;
             parameters.buildPerTileLightListShader.shaderKeywords = null;
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.BigTilePrepass))

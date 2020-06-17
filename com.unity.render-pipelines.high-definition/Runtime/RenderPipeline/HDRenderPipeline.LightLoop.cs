@@ -91,13 +91,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return buildLightListResources;
         }
 
-        BuildGPULightListOutput BuildGPULightList(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle stencilBufferCopy, GBufferOutput gBuffer)
+        BuildGPULightListOutput BuildGPULightList(  RenderGraph                     renderGraph,
+                                                    HDCamera                        hdCamera,
+                                                    TileAndClusterData              tileAndClusterData,
+                                                    int                             totalLightCount,
+                                                    ref ShaderVariablesLightList    constantBuffer,
+                                                    TextureHandle                   depthStencilBuffer,
+                                                    TextureHandle                   stencilBufferCopy,
+                                                    GBufferOutput                   gBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<BuildGPULightListPassData>("Build Light List", out var passData, ProfilingSampler.Get(HDProfileId.BuildLightList)))
             {
                 builder.EnableAsyncCompute(hdCamera.frameSettings.BuildLightListRunsAsync());
 
-                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, m_TotalLightCount);
+                passData.buildGPULightListParameters = PrepareBuildGPULightListParameters(hdCamera, tileAndClusterData, ref constantBuffer, totalLightCount);
                 passData.depthBuffer = builder.ReadTexture(depthStencilBuffer);
                 passData.stencilTexture = builder.ReadTexture(stencilBufferCopy);
                 if (passData.buildGPULightListParameters.computeMaterialVariants && passData.buildGPULightListParameters.enableFeatureVariants)
@@ -111,11 +118,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // This way we'll be reusing them more often.
 
                 // Those buffer are filled with the CPU outside of the render graph.
-                passData.convexBoundsBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.convexBoundsBuffer));
-                passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(m_TileAndClusterData.lightVolumeDataBuffer));
+                passData.convexBoundsBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.convexBoundsBuffer));
+                passData.lightVolumeDataBuffer = builder.ReadComputeBuffer(renderGraph.ImportComputeBuffer(tileAndClusterData.lightVolumeDataBuffer));
 
                 passData.globalLightListAtomic = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(1, sizeof(uint)) { name = "LightListAtomic"});
-                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * m_MaxLightsOnScreen, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
+                passData.AABBBoundsBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * 2 * totalLightCount, 4 * sizeof(float)) { name = "AABBBoundBuffer" });
 
                 var nrTilesX = (m_MaxCameraWidth + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
                 var nrTilesY = (m_MaxCameraHeight + LightDefinitions.s_TileSizeFptl - 1) / LightDefinitions.s_TileSizeFptl;
@@ -123,19 +130,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 const int capacityUShortsPerTile = 32;
                 const int dwordsPerTile = (capacityUShortsPerTile + 1) >> 1; // room for 31 lights and a nrLights value.
 
-                // note that nrTiles include the viewCount in allocation below
-                // Tile buffers
-                passData.output.lightList = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
-                passData.output.tileList = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
-                passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
-                // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
-                // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
-                // Use use max size of 4 unit for allocation
-                passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(
-                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * LightDefinitions.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                if (tileAndClusterData.hasTileBuffers)
+                {
+                    // note that nrTiles include the viewCount in allocation below
+                    // Tile buffers
+                    passData.output.lightList = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * dwordsPerTile * nrTiles, sizeof(uint)) { name = "LightList" }));
+                    passData.output.tileList = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(LightDefinitions.s_NumFeatureVariants * nrTiles, sizeof(uint)) { name = "TileList" }));
+                    passData.output.tileFeatureFlags = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrTiles, sizeof(uint)) { name = "TileFeatureFlags" }));
+                    // DispatchIndirect: Buffer with arguments has to have three integer numbers at given argsOffset offset: number of work groups in X dimension, number of work groups in Y dimension, number of work groups in Z dimension.
+                    // DrawProceduralIndirect: Buffer with arguments has to have four integer numbers at given argsOffset offset: vertex count per instance, instance count, start vertex location, and start instance location
+                    // Use use max size of 4 unit for allocation
+                    passData.output.dispatchIndirectBuffer = builder.WriteComputeBuffer(
+                        renderGraph.CreateComputeBuffer(new ComputeBufferDesc(m_MaxViewCount * LightDefinitions.s_NumFeatureVariants * 4, sizeof(uint), ComputeBufferType.IndirectArguments) { name = "DispatchIndirectBuffer" }));
+                }
 
                 // Big Tile buffer
                 if (passData.buildGPULightListParameters.runBigTilePrepass)
@@ -157,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc((int)LightCategory.Count * (1 << k_Log2NumClusters) * nrClusterTiles, sizeof(uint)) { name = "PerVoxelOffset" }));
                 passData.output.perVoxelLightLists = builder.WriteComputeBuffer(
                     renderGraph.CreateComputeBuffer(new ComputeBufferDesc(NumLightIndicesPerClusteredTile() * nrClusterTiles, sizeof(uint)) { name = "PerVoxelLightList" }));
-                if (k_UseDepthBuffer)
+                if (tileAndClusterData.clusterNeedsDepth)
                 {
                     passData.output.perTileLogBaseTweak = builder.WriteComputeBuffer(
                         renderGraph.CreateComputeBuffer(new ComputeBufferDesc(nrClusterTiles, sizeof(float)) { name = "PerTileLogBaseTweak" }));
@@ -178,6 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     BuildDispatchIndirectArguments(data.buildGPULightListParameters, buildLightListResources, tileFlagsWritten, context.cmd);
 
+                    // TODO RENDERGRAPH this won't work with Async compute.
+                    // Need to do away with globals altogether. These are only needed in Deferred and Forward passes.
                     // Setup global buffers
                     if (data.buildGPULightListParameters.runBigTilePrepass)
                         context.cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, buildLightListResources.bigTileLightList);
