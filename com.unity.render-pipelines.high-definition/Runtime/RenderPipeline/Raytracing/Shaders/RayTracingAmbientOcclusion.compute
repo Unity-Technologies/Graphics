@@ -26,5 +26,5 @@ void RTAOApplyIntensity(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
 
     // Grab the AO value without the intensity
     float value = _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentCoord)];
-    _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 1.0 - pow(value, _RaytracingAOIntensity);
+    _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentCoord)] = 1.0 - PositivePow(value, _RaytracingAOIntensity);
 }
