@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Metallic slider on the Lit shader is now linear meaning correct values are used for PBR.
 - Fixed issue where using DOF at the same time as Dynamic Scaling, the depth buffer was sampled with incorrect UVs. [case 1225467](https://issuetracker.unity3d.com/product/unity/issues/guid/1225467/)
 - Fixed an issue where URP Simple Lit shader had attributes swapped incorrectly for BaseMap and BaseColor properties.
+- Fixed an issue where camera stacking with MSAA on OpenGL resulted in a black screen. [case 1250602](https://issuetracker.unity3d.com/issues/urp-camera-stacking-results-in-black-screen-when-msaa-and-opengl-graphics-api-are-used)
 
 ## [8.1.0] - 2020-04-21
 
