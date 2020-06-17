@@ -8,8 +8,8 @@ struct APVConstants
     float       normalBias; // amount of biasing along the normal
     int3        centerRS;   // index center location in refspace
     int3        centerIS;   // index center location in index space
-    int3        indexDim;   // resolution of the index
-    int3        poolDim;    // resolution of the brick pool
+    uint3       indexDim;   // resolution of the index
+    uint3       poolDim;    // resolution of the brick pool
 };
 
 static const int kAPVConstantsSize = 12 + 1 + 3 + 3 + 3 + 3;
@@ -74,17 +74,17 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
            posRS -= apvConst.centerRS;
 
     // check bounds
-    if( any( abs( posRS ) > apvConst.indexDim / 2 ) )
+    if( any( abs( posRS ) > (apvConst.indexDim / 2) ) )
     {
         return EvaluateAmbientProbe( normalWS );
     }
 
     // convert to index
-    int3 index = apvConst.centerIS + int3( posRS );
+    int3 index = apvConst.centerIS + floor( posRS );
          index = index % apvConst.indexDim;
     // resolve the index
-    int flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y)  + index.y * apvConst.indexDim.x + index.x;
-    int packed_pool_idx = apvRes.index[kAPVConstantsSize + flattened_index];
+    int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y)  + index.y * apvConst.indexDim.x + index.x;
+    uint packed_pool_idx = apvRes.index[kAPVConstantsSize + flattened_index];
 
     // no valid brick loaded for this index, fallback to ambient probe
     if( packed_pool_idx == 0xffffffff )
@@ -95,26 +95,27 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     // unpack pool idx
     // size is encoded in the upper 4 bits
     uint   subdiv              = (packed_pool_idx >> 28) & 15;
-    uint   cellSize            = pow( 3, subdiv );
+    float  cellSize            = pow( 3.0, subdiv );
     uint   flattened_pool_idx  = packed_pool_idx & ((1 << 28) - 1);
     uint3  pool_idx;
            pool_idx.z          = flattened_pool_idx / (apvConst.poolDim.x * apvConst.poolDim.y);
            flattened_pool_idx -= pool_idx.z * (apvConst.poolDim.x * apvConst.poolDim.y);
            pool_idx.y          = flattened_pool_idx / apvConst.poolDim.x;
            pool_idx.x          = flattened_pool_idx - (pool_idx.y * apvConst.poolDim.x);
-    float3 pool_uvs            = pool_idx / (float3) apvConst.poolDim;
+    float3 pool_uvw            = ((float3) pool_idx + 0.5) / (float3) apvConst.poolDim;
 
     // calculate uv offset and scale
-    float3 offset    = frac( posRS / cellSize );
-           offset    = posRS < 0.0 ? (1.0 - offset) : offset;
-           offset   /= (float3) apvConst.poolDim;
-           pool_uvs += offset;
+    float3 offset    = frac( posRS / (float) cellSize );    // [0;1] in brick space
+           //offset    = clamp( offset, 0.25, 0.75 );         // [0.25;0.75] in brick space (is this actually necessary?)
+           offset   *= 3.0 / (float3) apvConst.poolDim;     // convert brick footprint to texels footprint in pool texel space
+           pool_uvw += offset;                              // add the final offset
+
 
     // sample the pool textures to get the SH coefficients
-    float3 l0   = SAMPLE_TEXTURE3D_LOD(apvRes.L0  , s_linear_clamp_sampler, pool_uvs, 0).rgb;
-    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, pool_uvs, 0).rgb;
-    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, pool_uvs, 0).rgb;
-    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, pool_uvs, 0).rgb;
+    float3 l0   = SAMPLE_TEXTURE3D_LOD(apvRes.L0  , s_linear_clamp_sampler, pool_uvw, 0).rgb;
+    float3 l1_R = SAMPLE_TEXTURE3D_LOD(apvRes.L1_R, s_linear_clamp_sampler, pool_uvw, 0).rgb;
+    float3 l1_G = SAMPLE_TEXTURE3D_LOD(apvRes.L1_G, s_linear_clamp_sampler, pool_uvw, 0).rgb;
+    float3 l1_B = SAMPLE_TEXTURE3D_LOD(apvRes.L1_B, s_linear_clamp_sampler, pool_uvw, 0).rgb;
 
     // decode the L1 coefficients
     l1_R = DecodeSH(l0.r, l1_R);
