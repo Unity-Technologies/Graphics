@@ -1077,7 +1077,6 @@ Shader "HDRP/LayeredLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
 
             #define SHADERPASS SHADERPASS_PATH_TRACING
-            #define SKIP_RASTERIZED_SHADOWS
 
             // We use the low shadow maps for raytracing
             #define SHADOW_LOW

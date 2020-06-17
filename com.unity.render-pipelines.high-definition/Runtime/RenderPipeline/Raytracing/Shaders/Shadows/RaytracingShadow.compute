@@ -11,7 +11,7 @@
 #define HAS_LIGHTLOOP
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
-#define SKIP_RASTERIZED_SHADOWS
+#define SKIP_AREA_RASTERIZED_SHADOWS
 
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW

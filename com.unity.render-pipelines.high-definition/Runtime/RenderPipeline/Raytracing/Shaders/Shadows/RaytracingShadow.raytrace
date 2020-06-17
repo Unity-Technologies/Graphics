@@ -8,7 +8,7 @@
 #define HAS_LIGHTLOOP
 
 // Given that the algorithm requires BSDF evaluation, we need to define this macro
-#define SKIP_RASTERIZED_SHADOWS
+#define SKIP_AREA_RASTERIZED_SHADOWS
 
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
@@ -63,6 +63,8 @@ void MissShaderShadowsColor(inout RayIntersection rayIntersection : SV_RayPayloa
     // Does nothing intentionally
 }
 
+// This code below is the "high quality shadow" but it is not used currently. We use the compute version which is more efficient
+// and which do a good enough approximation.
 [shader("raygeneration")]
 void RayGenAreaShadows()
 {
