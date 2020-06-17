@@ -28,7 +28,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define RING_DENSITY 8.0
 #define UNIFORM_WEIGHTS
 #define CHECKER_BOARDING
-//#define CENTER_DENSITY
+#define CENTER_DENSITY
 //#define OCTAWEB_SORTING
 
 // DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
@@ -168,21 +168,21 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float dAng = 2.0f * PI / (ring * RING_DENSITY);
         float ringOffset = dAng * 0.5 * fmod(ring, 2.0f);
 
+#ifdef OCTAWEB_SORTING
+        float4 ringColor[NUM_BUCKETS];
+        float ringMaxCoC[NUM_BUCKETS];
+        float ringHits[NUM_BUCKETS];
+
+        for (int i = 0; i < NUM_BUCKETS; ++i)
+        {
+            ringColor[i] = 0.0f;
+            ringMaxCoC[i] = 0.0f;
+            ringHits[i] = 0.0f;
+        }
+#endif
+
         for (float ang = ringOffset; ang < 2 * PI; ang += dAng)
         {
-
-#ifdef OCTAWEB_SORTING
-            float4 ringColor[NUM_BUCKETS];
-            float ringMaxCoC[NUM_BUCKETS];
-            float ringHits[NUM_BUCKETS];
-
-            for (int i = 0; i < NUM_BUCKETS; ++i)
-            {
-                ringColor[i] = 0.0f;
-                ringMaxCoC[i] = 0.0f;
-                ringHits[i] = 0.0f;
-            }
-#endif
             float2 sampleTC = posInputs.positionSS + radius * PointInCircle(ang);
             sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
 
@@ -255,7 +255,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // In focus range
     {
         // TODO: we might need to re-investigate the normaziation here, there is banding
-        float alpha = saturate(totalColor[1].w * rcp(GetNumSamples(maxCoC[1])) * rcp(getSampleWeight(maxCoC[1])));
+        float alpha = saturate(totalColor[1].w * rcp(GetNumSamples(maxCoC[1])) * rcp(GetSampleWeight(maxCoC[1])));
         outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[1].xyz;
         totalW = (1.0 - alpha) * totalW + totalColor[1].w;
     }
