@@ -59,7 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO: Take refvol translation and rotation into account
-        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
+        public static Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
             float scaledSize = Mathf.Pow(3, brick.size);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
@@ -70,10 +70,16 @@ namespace UnityEngine.Rendering.HighDefinition
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
             bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
 
-            return OBBIntersect(ref bounds, ref volume);
+            return bounds;
         }
 
-        internal static bool OBBIntersect(ref Volume a, ref Volume b)
+        public static bool OBBIntersect(ref RefTrans refTrans, Brick brick, ref Volume volume)
+        {
+            var transformed = CalculateBrickVolume(ref refTrans, brick);
+            return OBBIntersect(ref transformed, ref volume);
+        }
+
+        public static bool OBBIntersect(ref Volume a, ref Volume b)
         {
             m_Axes[0] = a.X.normalized;
             m_Axes[1] = a.Y.normalized;
