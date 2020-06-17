@@ -202,6 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where terrain and speedtree materials would not get upgraded by upgrade project materials. [case 1204189](https://fogbugz.unity3d.com/f/cases/1204189/)
 - Fixing camera overlay stacking adding to respect unity general reference restrictions. [case 1240788](https://issuetracker.unity3d.com/issues/urp-overlay-camera-is-missing-in-stack-list-of-the-base-camera-prefab)
 - Fixing RenderObject to reflect name changes done in CustomForwardRenderer asset. [case 1246256](https://issuetracker.unity3d.com/issues/urp-renderobject-name-does-not-reflect-inside-customforwardrendererdata-asset-on-renaming-in-the-inspector)
+- Fixed a case where main light hard shadows would not work if any other light is present with soft shadows.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide
