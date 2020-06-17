@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 112000004, guid: 5b6b4b569508e4b35a9a528a0a989816, type: 2}
+  m_LightingDataAsset: {fileID: 112000004, guid: aedc8ef4f95dbe94abb9c8567029827b, type: 2}
   m_LightingSettings: {fileID: 4890085278179872738, guid: 8191669b0714d1c4da4957471327f3d4, type: 2}
 --- !u!196 &4
 NavMeshSettings:
@@ -177,6 +177,8 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.001
     UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0
   WaitFrames: 0
 --- !u!20 &64132551
 Camera:
@@ -885,6 +887,7 @@ Light:
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0.1
   m_ShadowAngle: 5
 --- !u!4 &1014564737
