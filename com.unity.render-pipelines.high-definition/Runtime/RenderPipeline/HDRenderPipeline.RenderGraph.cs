@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                 //    }
 
+                // TODO: check code, everything have change
                 //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                 //    if (validIndirectDiffuse)
                 //    {
@@ -237,6 +238,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 BlitFinalCameraTexture(m_RenderGraph, hdCamera, postProcessDest, backBuffer, prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
 
+                if (target.targetDepth != null)
+                {
+                    BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), prepassOutput.resolvedMotionVectorsBuffer, prepassOutput.resolvedNormalBuffer);
+                }
+
                 aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, colorBuffer, aovBuffers);
             }
 
@@ -251,18 +257,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
-            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, renderContext, commandBuffer );
+            ExecuteRenderGraph(m_RenderGraph, hdCamera, m_MSAASamples, m_FrameCount, renderContext, commandBuffer );
 
             aovRequest.Execute(commandBuffer, aovBuffers, RenderOutputProperties.From(hdCamera));
         }
 
-        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        static void ExecuteRenderGraph(RenderGraph renderGraph, HDCamera hdCamera, MSAASamples msaaSample, int frameIndex, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             var renderGraphParams = new RenderGraphExecuteParams()
             {
                 renderingWidth = hdCamera.actualWidth,
                 renderingHeight = hdCamera.actualHeight,
-                msaaSamples = msaaSample
+                msaaSamples = msaaSample,
+                currentFrameIndex = frameIndex
             };
 
             renderGraph.Execute(renderContext, cmd, renderGraphParams);
@@ -283,7 +290,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.source = builder.ReadTexture(source);
                 passData.destination = builder.WriteTexture(destination);
 
-                // TODO REMOVE: Dummy read to avoid early release before render graph is full implemented.
+                // TODO RENDERGRAPH REMOVE: Dummy read to avoid early release before render graph is full implemented.
                 bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MotionVectors))
                     builder.ReadTexture(motionVectors);
@@ -982,10 +989,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle CreateColorBuffer(RenderGraph renderGraph, HDCamera hdCamera, bool msaa)
         {
+
+#if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
             colorFastMemDesc.residencyFraction = 1.0f;
             colorFastMemDesc.flags = FastMemoryFlags.SpillTop;
+#endif
 
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
@@ -996,8 +1006,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableMSAA = msaa,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
-                    name = msaa ? "CameraColorMSAA" : "CameraColor",
-                    fastMemoryDesc = colorFastMemDesc
+                    name = msaa ? "CameraColorMSAA" : "CameraColor"
+#if UNITY_2020_2_OR_NEWER
+                    , fastMemoryDesc = colorFastMemDesc
+#endif
                 });
         }
 

@@ -570,6 +570,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DirectionalLightDirection       = Shader.PropertyToID("_DirectionalLightDirection");
         public static readonly int _SphereLightPosition             = Shader.PropertyToID("_SphereLightPosition");
         public static readonly int _SphereLightRadius               = Shader.PropertyToID("_SphereLightRadius");
+        public static readonly int _CameraFOV                       = Shader.PropertyToID("_CameraFOV");
 
         // Ambient occlusion
         public static readonly int _RaytracingAOIntensity           = Shader.PropertyToID("_RaytracingAOIntensity");
@@ -882,6 +883,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public const string kZWrite = "_ZWrite";
         public const string kTransparentZWrite = "_TransparentZWrite";
         public const string kTransparentCullMode = "_TransparentCullMode";
+        public const string kOpaqueCullMode = "_OpaqueCullMode";
         public const string kZTestTransparent = "_ZTestTransparent";
         public const string kRayTracing = "_RayTracing";
 

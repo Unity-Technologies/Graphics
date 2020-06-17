@@ -205,10 +205,10 @@ Shader "Hidden/HDRP/TemporalAA"
 
             CTYPE finalColor;
 #if PERCEPTUAL_SPACE_ONLY_END
-            finalColor.xyz = lerp(ReinhardToneMap(history), ReinhardToneMap(filteredColor), blendFactor);
-            finalColor = InverseReinhardToneMap(finalColor);
+            finalColor.xyz = lerp(ReinhardToneMap(history).xyz, ReinhardToneMap(filteredColor).xyz, blendFactor);
+            finalColor.xyz = InverseReinhardToneMap(finalColor).xyz;
 #else
-            finalColor.xyz = lerp(history, filteredColor, blendFactor);
+            finalColor.xyz = lerp(history.xyz, filteredColor.xyz, blendFactor);
             finalColor.xyz *= PerceptualInvWeight(finalColor);
 #endif
 

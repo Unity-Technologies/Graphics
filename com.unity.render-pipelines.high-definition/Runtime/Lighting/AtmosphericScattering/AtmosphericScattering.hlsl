@@ -55,7 +55,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
 
     // TODO: Not sure it's possible to precompute cam rel pos since variables
     // in the two constant buffers may be set at a different frequency?
-    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition;
+    const float3 O     = worldSpaceCameraPos - _PlanetCenterPosition.xyz;
     const float  tFrag = abs(distAlongRay); // Clear the "hit ground" flag
 
     float3 N; float r; // These params correspond to the entry point
@@ -115,7 +115,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         // We may have swapped X and Y.
         float2 ch = abs(ch0 - ch1);
 
-        float3 optDepth = ch.x * H.x * _AirSeaLevelExtinction
+        float3 optDepth = ch.x * H.x * _AirSeaLevelExtinction.xyz
                         + ch.y * H.y * _AerosolSeaLevelExtinction;
 
         skyOpacity = 1 - TransmittanceFromOpticalDepth(optDepth); // from 'tEntry' to 'tFrag'
@@ -242,7 +242,7 @@ void EvaluatePbrAtmosphere(float3 worldSpaceCameraPos, float3 V, float distAlong
         float nrmAngle = Remap01(chiAngle, rcpLen, start * rcpLen);
         // float angle = saturate((0.5 * PI) - acos(cosChi) * rcp(0.5 * PI));
 
-        skyColor *= ExpLerp(_HorizonTint, _ZenithTint, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
+        skyColor *= ExpLerp(_HorizonTint.rgb, _ZenithTint.rgb, nrmAngle, _HorizonZenithShiftPower, _HorizonZenithShiftScale);
     }
 }
 

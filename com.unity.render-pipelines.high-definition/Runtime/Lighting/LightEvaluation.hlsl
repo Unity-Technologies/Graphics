@@ -201,7 +201,7 @@ float4 EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInpu
         // TODO: Not sure it's possible to precompute cam rel pos since variables
         // in the two constant buffers may be set at a different frequency?
         float3 X = GetAbsolutePositionWS(posInput.positionWS);
-        float3 C = _PlanetCenterPosition;
+        float3 C = _PlanetCenterPosition.xyz;
 
         float r        = distance(X, C);
         float cosHoriz = ComputeCosineOfHorizonAngle(r);
@@ -526,20 +526,17 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
 void InversePreExposeSsrLighting(inout float4 ssrLighting)
 {
-    float prevExposureInvMultiplier = GetInversePreviousExposureMultiplier();
-
-#if SHADEROPTIONS_RAYTRACING
-    if (!_UseRayTracedReflections)
-#endif
-    ssrLighting.rgb *= prevExposureInvMultiplier;
+    // Raytrace reflection use the current frame exposure - TODO: currently the buffer don't use pre-exposure.
+    // Screen space reflection reuse color buffer from previous frame
+    float exposureMultiplier = _EnableRayTracedReflections ? 1.0 : GetInversePreviousExposureMultiplier();
+    ssrLighting.rgb *= exposureMultiplier;
 }
 
 void ApplyScreenSpaceReflectionWeight(inout float4 ssrLighting)
 {
     // Note: RGB is already premultiplied by A for SSR
-#if SHADEROPTIONS_RAYTRACING
-    if (_UseRayTracedReflections)
-        ssrLighting.rgb *= ssrLighting.a;
-#endif
+    // TODO: check why it isn't consistent between SSR and RTR
+    float weight = _EnableRayTracedReflections ? 1.0 : ssrLighting.a;
+    ssrLighting.rgb *= ssrLighting.a;
 }
 #endif

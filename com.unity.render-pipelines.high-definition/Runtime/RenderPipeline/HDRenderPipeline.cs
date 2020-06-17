@@ -8,6 +8,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using UnityEditorInternal;
+using UnityEditor.Rendering;
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
@@ -646,6 +647,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #endif
 
+#if UNITY_2020_2_OR_NEWER
         internal void SwitchRenderTargetsToFastMem(CommandBuffer cmd, HDCamera camera)
         {
             // Color and normal buffer will always be in fast memory
@@ -667,7 +669,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Trying to fit the depth pyramid
             m_SharedRTManager.GetDepthTexture().SwitchToFastMemory(cmd, residencyFraction: 1.0f, FastMemoryFlags.SpillTop, false);
         }
-
+#endif
         /// <summary>
         /// Resets the reference size of the internal RTHandle System.
         /// This allows users to reduce the memory footprint of render textures after doing a super sampled rendering pass for example.
@@ -1172,6 +1174,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
                 }
 #endif
+
+                CleanupRenderGraph();
             }
 
             ConstantBuffer.ReleaseAll();
@@ -1246,7 +1250,12 @@ namespace UnityEngine.Rendering.HighDefinition
             ScreenSpaceRefraction ssRefraction = hdCamera.volumeStack.GetComponent<ScreenSpaceRefraction>();
             m_ShaderVariablesGlobalCB._SSRefractionInvScreenWeightDistance = 1.0f / ssRefraction.screenFadeDistance.value;
 
-            m_ShaderVariablesGlobalCB._IndirectLightingMultiplier = new Vector4(hdCamera.volumeStack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity.value, 0, 0, 0);
+            IndirectLightingController indirectLightingController = hdCamera.volumeStack.GetComponent<IndirectLightingController>();
+            m_ShaderVariablesGlobalCB._IndirectDiffuseLightingMultiplier = indirectLightingController.indirectDiffuseLightingMultiplier.value;
+            m_ShaderVariablesGlobalCB._IndirectDiffuseLightingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? indirectLightingController.GetIndirectDiffuseLightingLayers() : uint.MaxValue;
+            m_ShaderVariablesGlobalCB._ReflectionLightingMultiplier = indirectLightingController.reflectionLightingMultiplier.value;
+            m_ShaderVariablesGlobalCB._ReflectionLightingLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? indirectLightingController.GetReflectionLightingLayers() : uint.MaxValue;
+
             m_ShaderVariablesGlobalCB._OffScreenRendering = 0;
             m_ShaderVariablesGlobalCB._OffScreenDownsampleFactor = 1;
             m_ShaderVariablesGlobalCB._ReplaceDiffuseForIndirect = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ReplaceDiffuseForIndirect) ? 1.0f : 0.0f;
@@ -1258,21 +1267,21 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesGlobalCB._CoarseStencilBufferSize = new Vector4(coarseStencilWidth, coarseStencilHeight, 1.0f / coarseStencilWidth, 1.0f / coarseStencilHeight);
 
             m_ShaderVariablesGlobalCB._RaytracingFrameIndex = RayTracingFrameIndex(hdCamera);
+            m_ShaderVariablesGlobalCB._IndirectDiffuseMode = (int)GetIndirectDiffuseMode(hdCamera);
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
             {
                 // Check if recursive rendering is enabled or not. This will control the cull of primitive
                 // during the gbuffer and forward pass
-                RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 ScreenSpaceReflection settings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
-                bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
-                m_ShaderVariablesGlobalCB._UseRayTracedReflections = usesRaytracedReflections ? 1 : 0;
-                m_ShaderVariablesGlobalCB._UseIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? (RayTracedIndirectDiffuseState(hdCamera) ? LightDefinitions.k_RayTracedIndirectDiffuseFlag : LightDefinitions.k_ScreenSpaceIndirectDiffuseFlag) : LightDefinitions.k_IndirectDiffuseFlagOff;
+                bool enableRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+                m_ShaderVariablesGlobalCB._EnableRayTracedReflections = enableRaytracedReflections ? 1 : 0;
+                RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = recursiveSettings.enable.value ? 1u : 0u;
             }
             else
             {
-                m_ShaderVariablesGlobalCB._UseRayTracedReflections = 0;
-                m_ShaderVariablesGlobalCB._UseIndirectDiffuse = ValidIndirectDiffuseState(hdCamera) ? LightDefinitions.k_ScreenSpaceIndirectDiffuseFlag : LightDefinitions.k_IndirectDiffuseFlagOff;
+                m_ShaderVariablesGlobalCB._EnableRayTracedReflections = 0;
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
             }
 
@@ -1300,8 +1309,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness.value;
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart.value;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
@@ -1423,8 +1432,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 public RenderTargetIdentifier id;
                 public CubemapFace face;
-                public RenderTexture copyToTarget;
-                public RenderTexture targetDepth;
+                public RTHandle copyToTarget;
+                public RTHandle targetDepth;
             }
             public HDCamera hdCamera;
             public bool clearCameraSettings;
@@ -1693,7 +1702,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // NOTE: If the probe was rendered on the very first frame, we could have some data that was used and it wasn't in a fully initialized state, which is fine on PC, but on console
                         // might lead to NaNs due to lack of complete initialization. To circumvent this, we force the probe to render again only if it was rendered on the first frame. Note that the problem
                         // doesn't apply if probe is enable any frame other than the very first. Also note that we are likely to be re-rendering the probe anyway due to the issue on sky ambient probe
-                        // (see m_SkyManager.HasSetValidAmbientProbe in this function). 
+                        // (see m_SkyManager.HasSetValidAmbientProbe in this function).
                         if (m_FrameCount > 1)
                             probe.SetIsRendered(m_FrameCount);
 
@@ -1817,18 +1826,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         case ProbeSettings.ProbeType.ReflectionProbe:
                             int desiredProbeSize = (int)((HDRenderPipeline)RenderPipelineManager.currentPipeline).currentPlatformRenderPipelineSettings.lightLoopSettings.reflectionCubemapSize;
-                            if (visibleProbe.realtimeTexture == null || visibleProbe.realtimeTexture.width != desiredProbeSize)
+                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredProbeSize)
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreateReflectionProbeRenderTarget(desiredProbeSize));
                             }
                             break;
                         case ProbeSettings.ProbeType.PlanarProbe:
                             int desiredPlanarProbeSize = (int)visibleProbe.resolution;
-                            if (visibleProbe.realtimeTexture == null || visibleProbe.realtimeTexture.width != desiredPlanarProbeSize)
+                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize)
                             {
                                 visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
                             }
-                            if (visibleProbe.realtimeDepthTexture == null || visibleProbe.realtimeDepthTexture.width != desiredPlanarProbeSize)
+                            if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
                             {
                                 visibleProbe.SetDepthTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeDepthRenderTarget(desiredPlanarProbeSize));
                             }
@@ -1953,7 +1962,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var face = (CubemapFace)j;
                                 request.target = new RenderRequest.Target
                                 {
-                                    copyToTarget = visibleProbe.realtimeTexture,
+                                    copyToTarget = visibleProbe.realtimeTextureRTH,
                                     face = face
                                 };
                             }
@@ -1961,8 +1970,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 request.target = new RenderRequest.Target
                                 {
-                                    id = visibleProbe.realtimeTexture,
-                                    targetDepth = visibleProbe.realtimeDepthTexture,
+                                    id = visibleProbe.realtimeTextureRTH,
+                                    targetDepth = visibleProbe.realtimeDepthTextureRTH,
                                     face = CubemapFace.Unknown
                                 };
                             }
@@ -2150,7 +2159,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // Render XR mirror view once all render requests have been completed
                             if (i == 0 && renderRequest.hdCamera.camera.cameraType == CameraType.Game && renderRequest.hdCamera.camera.targetTexture == null)
-                            {                                
+                            {
                                 if (HDUtils.TryGetAdditionalCameraDataOrDefault(renderRequest.hdCamera.camera).xrRendering)
                                 {
                                     m_XRSystem.RenderMirrorView(cmd);
@@ -2206,7 +2215,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Render graph deals with Fast memory support in an automatic way.
             if(!m_EnableRenderGraph)
             {
+#if UNITY_2020_2_OR_NEWER
                 SwitchRenderTargetsToFastMem(cmd, hdCamera);
+#endif
             }
 
             if (m_RayTracingSupported)
@@ -2593,37 +2604,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDRaytracingLightCluster lightCluster = RequestLightCluster();
                         lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                     }
-
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    if (validIndirectDiffuse)
-                    {
-                        if (RayTracedIndirectDiffuseState(hdCamera))
-                        {
-                            RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
-                        }
-                        else
-                        {
-                            RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
-                            BindIndirectDiffuseTexture(cmd);
-                        }
-                    }
-                    else
-                    {
-                        BindBlackIndirectDiffuseTexture(cmd);
-                    }
                 }
-                else
+
+                switch (GetIndirectDiffuseMode(hdCamera))
                 {
-                    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
-                    if (validIndirectDiffuse)
-                    {
+                    case IndirectDiffuseMode.Off:
+                        BindBlackIndirectDiffuseTexture(cmd);
+                        break;
+
+                    case IndirectDiffuseMode.ScreenSpace:
                         RenderSSGI(hdCamera, cmd, renderContext, m_FrameCount);
                         BindIndirectDiffuseTexture(cmd);
-                    }
-                    else
-                    {
-                        BindBlackIndirectDiffuseTexture(cmd);
-                    }
+                        break;
+
+                    case IndirectDiffuseMode.Raytrace:
+                        RenderRayTracedIndirectDiffuse(hdCamera, cmd, renderContext, m_FrameCount);
+                        break;
                 }
 
                 if (!hdCamera.frameSettings.SSRRunsAsync())
@@ -4354,8 +4350,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrIterLimit = volumeSettings.rayMaxIterations;
             cb._SsrReflectsSky = volumeSettings.reflectSky.value ? 1 : 0;
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
-            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart.value;
-            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
+            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart;
+            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness;
             float roughnessFadeLength = cb._SsrRoughnessFadeEnd - roughnessFadeStart;
             cb._SsrRoughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (cb._SsrRoughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
             cb._SsrRoughnessFadeRcpLength = (roughnessFadeLength != 0) ? (1.0f / roughnessFadeLength) : 0;
@@ -4476,9 +4472,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool usesRaytracedReflections = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
             if (usesRaytracedReflections)
             {
-                hdCamera.xr.StartSinglePass(cmd);
                 RenderRayTracedReflections(hdCamera, cmd, m_SsrLightingTexture, renderContext, m_FrameCount, true);
-                hdCamera.xr.StopSinglePass(cmd);
             }
             else
             {
@@ -4862,6 +4856,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDUtils.DrawFullScreen(cmd, parameters.colorPickerMaterial, output);
         }
+
 
         static void RenderExposureDebug(in DebugParameters parameters,
                                             RTHandle inputColorBuffer,
@@ -5316,7 +5311,16 @@ namespace UnityEngine.Rendering.HighDefinition
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
             needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
             needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || ValidIndirectDiffuseState(hdCamera))
+            IndirectDiffuseMode indirectDiffuseMode = GetIndirectDiffuseMode(hdCamera);
+
+            // SSGI required the depth of the previous frame
+            if (indirectDiffuseMode == IndirectDiffuseMode.ScreenSpace)
+            {
+                needDepthBuffer = true;
+            }
+
+            // Raytracing require both normal and depth from previous frame.
+            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState())
             {
                 needNormalBuffer = true;
                 needDepthBuffer = true;

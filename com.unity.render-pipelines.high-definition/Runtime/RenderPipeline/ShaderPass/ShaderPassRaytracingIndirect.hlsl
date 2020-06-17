@@ -6,6 +6,8 @@
 [shader("closesthit")]
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
 	// The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
@@ -141,6 +143,9 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 #ifdef _SURFACE_TYPE_TRANSPARENT
     IgnoreHit();
 #else
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
     // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
