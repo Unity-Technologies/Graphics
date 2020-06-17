@@ -825,7 +825,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.LodFadeCrossfade, new FieldCondition(Fields.LodCrossFade, true) },
             { CoreKeywordDescriptors.SurfaceTypeTransparent },
             { CoreKeywordDescriptors.BlendMode },
-            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
+            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
             { CoreKeywordDescriptors.FogOnTransparent },
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
@@ -834,7 +834,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             { CoreKeywordDescriptors.SurfaceTypeTransparent },
             { CoreKeywordDescriptors.BlendMode },
-            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.SubShader.Unlit, false) },
+            { CoreKeywordDescriptors.DoubleSided, new FieldCondition(HDFields.Unlit, false) },
             { CoreKeywordDescriptors.FogOnTransparent },
             { CoreKeywordDescriptors.AlphaTest, new FieldCondition(Fields.AlphaTest, true) },
         };
@@ -933,41 +933,41 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     static class CoreIncludes
     {
         // CorePregraph
-        const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
-        const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
-        const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
-        const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
-        const string kShaderPass = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
-        const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
-        const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
+        public const string kCommon = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl";
+        public const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
+        public const string kShaderVariables = "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl";
+        public const string kFragInputs = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/FragInputs.hlsl";
+        public const string kShaderPass = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl";
+        public const string kMaterial = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl";
+        public const string kDebugDisplay = "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl";
 
         // CoreUtility
-        const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
-        const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
+        public const string kBuiltInUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinUtilities.hlsl";
+        public const string kMaterialUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialUtilities.hlsl";
 
         // Pregraph Raytracing
-        const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
-        const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
-        const string kShaderVariablesRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl";
-        const string kRaytracingIntersection = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl";
-        const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
-        const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
-        const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
-        const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
-        const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
-        const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
-        const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
-        const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
-        const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
-        const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
+        public const string kRaytracingMacros = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingMacros.hlsl";
+        public const string kShaderVariablesRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracing.hlsl";
+        public const string kShaderVariablesRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl";
+        public const string kRaytracingIntersection = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingIntersection.hlsl";
+        public const string kRaytracingIntersectionGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl";
+        public const string kRaytracingIntersectionSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingIntersectionSubSurface.hlsl";
+        public const string kLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitRaytracing.hlsl";
+        public const string kUnlitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/UnlitRaytracing.hlsl";
+        public const string kFabricRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/FabricRaytracing.hlsl";
+        public const string kStackLitRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/StackLit/StackLitRaytracing.hlsl";
+        public const string kHairRaytracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Hair/HairRaytracing.hlsl";
+        public const string kRaytracingLightLoop = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingLightLoop.hlsl";
+        public const string kRaytracingCommon = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl";
+        public const string kNormalBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl";
 
         // Postgraph Raytracing
-        const string kPassRaytracingIndirect = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl";
-        const string kPassRaytracingVisbility = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl";
-        const string kPassRaytracingForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl";
-        const string kPassRaytracingGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl";
-        const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
-        const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
+        public const string kPassRaytracingIndirect = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingIndirect.hlsl";
+        public const string kPassRaytracingVisbility = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingVisibility.hlsl";
+        public const string kPassRaytracingForward = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassRaytracingForward.hlsl";
+        public const string kPassRaytracingGBuffer = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingGBuffer.hlsl";
+        public const string kPassPathTracing = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassPathTracing.hlsl";
+        public const string kPassRaytracingSubSurface = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderpassRaytracingSubSurface.hlsl";
 
         // Public Pregraph Function
         public const string kCommonLighting = "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl";
@@ -991,6 +991,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public const string kDecalUtilities = "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/DecalUtilities.hlsl";
         public const string kPassPlaceholder = "Pass Include Placeholder, replace me !";
         public const string kPostDecalsPlaceholder = "After Decal Include Placeholder, replace me !";
+        public const string kRaytracingPlaceholder = "Raytracing Include Placeholder, replace me !";
 
         // Public Postgraph Pass
         public const string kPassLightTransport = "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassLightTransport.hlsl";
@@ -1014,95 +1015,26 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { kMaterial, IncludeLocation.Pregraph },
         };
 
+        public static IncludeCollection RaytracingCorePregraph = new IncludeCollection
+        {
+            // Pregraph includes
+            { CoreIncludes.kCommon, IncludeLocation.Pregraph },
+            { CoreIncludes.kTextureStack, IncludeLocation.Pregraph },
+            { CoreIncludes.kFragInputs, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderPass, IncludeLocation.Pregraph },
+
+            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
+            { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderVariables, IncludeLocation.Pregraph },
+            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
+        };
+
         public static IncludeCollection CoreUtility = new IncludeCollection
         {
             { kBuiltInUtilities, IncludeLocation.Pregraph },
             { kMaterialUtilities, IncludeLocation.Pregraph },
-        };
-
-        public static IncludeCollection Raytracing = new IncludeCollection
-        {
-            // Pregraph includes
-            { kCommon, IncludeLocation.Pregraph },
-            { kTextureStack, IncludeLocation.Pregraph },
-            { kFragInputs, IncludeLocation.Pregraph },
-            { kShaderPass, IncludeLocation.Pregraph },
-
-            // Ray Tracing macros should be included before shader variables to guarantee that the macros are overriden
-            { kRaytracingMacros, IncludeLocation.Pregraph },
-            { kShaderVariables, IncludeLocation.Pregraph },
-            { kMaterial, IncludeLocation.Pregraph },
-            { kShaderVariablesRaytracing, IncludeLocation.Pregraph },
-            { kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
-
-            // We want the gbuffer payload only if we are in the gbuffer pass 
-            { kRaytracingIntersectionGBuffer, IncludeLocation.Pregraph, new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
-
-            // We want the sub-surface payload if we are in the subsurface sub shader and this not an unlit
-            { kRaytracingIntersectionSubSurface, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true),
-                new FieldCondition(HDFields.SubShader.Unlit, false) }},
-
-            // We want the generic payload if this is not a gbuffer or a subsurface subshader
-            { kRaytracingIntersection, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false) }},
-
-            // We want to have the lighting include if this is an indirect sub-shader, a forward one or the path tracing (and this is not an unlit)
-            { kLighting, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
-                new FieldCondition(HDFields.SubShader.Unlit, false) }},
-            { kLightLoopDef, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
-                new FieldCondition(HDFields.SubShader.Unlit, false) }},
-
-            // Each material has a specific hlsl file that should be included pre-graph and holds the lighting model
-            { kLit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
-            { kFabric, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
-            { kUnlit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
-            { kStackLit, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.StackLit, true )},
-            { kHair, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Hair, true )},
-
-            // We want to have the normal buffer include if this is a gbuffer and unlit shader
-            { kNormalBuffer, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true),
-                new FieldCondition(HDFields.SubShader.Unlit, true) }},
-                
-            // If this is the gbuffer sub-shader, we want the standard lit data
-            { kStandardLit, IncludeLocation.Pregraph,
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true)},
-
-            // We need to then include the ray tracing missing bits for the lighting models (based on which lighting model)
-            { kLitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Lit, true)},
-            { kFabricRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Fabric, true)},
-            { kStackLitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.StackLit, true)},
-            { kUnlitRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Unlit, true )},
-            { kHairRaytracing, IncludeLocation.Pregraph, new FieldCondition(HDFields.SubShader.Hair, true )},
-
-            // We want to have the ray tracing light loop if this is an indirect sub-shader or a forward one and it is not the unlit shader
-            { kRaytracingLightLoop, IncludeLocation.Pregraph, new FieldCondition[]{
-                new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, false),
-                new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, false),
-                new FieldCondition(HDFields.SubShader.Unlit, false) }},
-
-            { CoreUtility },
-            { kRaytracingCommon, IncludeLocation.Pregraph },
-            { kShaderGraphFunctions, IncludeLocation.Pregraph },
-
-            // post graph includes
-            // The shader passes should always be post graph and are a 1 to 1 mapping to the shader pass name
-            { kPassRaytracingIndirect, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingIndirect, true) },
-            { kPassRaytracingVisbility, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingVisibility, true) },
-            { kPassRaytracingForward, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingForward, true) },
-            { kPassRaytracingGBuffer, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RayTracingGBuffer, true) },
-            { kPassPathTracing, IncludeLocation.Postgraph, new FieldCondition(HDFields.ShaderPass.RaytracingPathTracing, true) },
-            { kPassRaytracingSubSurface, IncludeLocation.Postgraph,  new FieldCondition(HDFields.ShaderPass.RaytracingSubSurface, true) }
         };
     }
 #endregion

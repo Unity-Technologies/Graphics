@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -17,12 +18,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public FabricSubTarget() => displayName = "Fabric";
 
-        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/";
+        static string[] passTemplateMaterialDirectories = new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Fabric/ShaderGraph/",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
+
+        protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string subTargetAssetGuid => "74f1a4749bab90d429ac01d094be0aeb"; // FabricSubTarget.cs
         protected override string customInspector => "Rendering.HighDefinition.FabricGUI";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Fabric;
+        protected override string raytracingInclude => CoreIncludes.kFabricRaytracing;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Fabric SubShader", "");
         protected override bool requireSplitLighting => fabricData.subsurfaceScattering;
 
         FabricData m_FabricData;
@@ -39,6 +47,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_FabricData = value;
         }
 
+        public static FieldDescriptor CottonWool =              new FieldDescriptor(kMaterial, "CottonWool", "_MATERIAL_FEATURE_COTTON_WOOL 1");
+        public static FieldDescriptor Silk =                    new FieldDescriptor(kMaterial, "Silk", "_MATERIAL_FEATURE_SILK 1");
+
         protected override SubShaderDescriptor GetRaytracingSubShaderDescriptor()
         {
             var descriptor = base.GetRaytracingSubShaderDescriptor();
@@ -54,12 +65,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             base.GetFields(ref context);
 
             // Fabric specific properties
-            context.AddField(HDFields.CottonWool,                           fabricData.materialType == FabricData.MaterialType.CottonWool);
-            context.AddField(HDFields.Silk,                                 fabricData.materialType == FabricData.MaterialType.Silk);
-            context.AddField(HDFields.SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.Transmission,                         fabricData.transmission);
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
-            context.AddField(HDFields.EnergyConservingSpecular,             fabricData.energyConservingSpecular);
+            context.AddField(CottonWool,                           fabricData.materialType == FabricData.MaterialType.CottonWool);
+            context.AddField(Silk,                                 fabricData.materialType == FabricData.MaterialType.Silk);
+            context.AddField(SubsurfaceScattering,                 fabricData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
+            context.AddField(Transmission,                         fabricData.transmission);
+            context.AddField(EnergyConservingSpecular,             fabricData.energyConservingSpecular);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
