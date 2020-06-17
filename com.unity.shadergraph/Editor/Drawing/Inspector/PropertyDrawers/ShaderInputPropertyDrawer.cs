@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             propertySheet.Add(textPropertyDrawer.CreateGUI(
                 null,
                 (string)shaderInput.displayName,
-                "Display Name",
+                "Name",
                 out var propertyVisualElement));
 
             m_DisplayNameField = (TextField) propertyVisualElement;
