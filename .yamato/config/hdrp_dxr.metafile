@@ -1,0 +1,26 @@
+project:
+  name: HDRP_DXR
+  folder: HDRP_DXR_Tests
+test_platforms:
+  - Standalone
+  - playmode
+platforms:
+  - name: Win
+    os: windows
+    apis:
+      DX12: -force-d3d12
+    agent_default:
+      type: Unity::VM::GPU
+      image: graphics-foundation/win10-dxr:stable
+      flavor: b1.large
+      model: rtx2080
+    components:
+      - editor
+      - il2cpp
+all:
+  dependencies:
+    - platform: Win
+      api: DX12
+      test_platforms:
+        - Standalone
+        - playmode

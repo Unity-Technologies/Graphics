@@ -48,14 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
-        bool m_SubsurfaceScattering = false;
-        public bool subsurfaceScattering
-        {
-            get => m_SubsurfaceScattering;
-            set => m_SubsurfaceScattering = value;
-        }
-
-        [SerializeField]
         bool m_SpecularAA;
         public bool specularAA
         {

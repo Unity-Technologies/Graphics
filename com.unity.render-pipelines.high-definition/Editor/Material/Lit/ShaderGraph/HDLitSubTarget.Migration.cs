@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             systemData.alphaTestDepthPostpass = hdLitMasterNode.m_AlphaTestDepthPostpass;
             systemData.sortPriority = hdLitMasterNode.m_SortPriority;
             systemData.doubleSidedMode = hdLitMasterNode.m_DoubleSidedMode;
-            systemData.zWrite = hdLitMasterNode.m_ZWrite;
+            systemData.transparentZWrite = hdLitMasterNode.m_ZWrite;
             systemData.transparentCullMode = hdLitMasterNode.m_transparentCullMode;
             systemData.zTest = hdLitMasterNode.m_ZTest;
             systemData.supportLodCrossFade = hdLitMasterNode.m_SupportLodCrossFade;
@@ -140,7 +140,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             lightingData.specularOcclusionMode = hdLitMasterNode.m_SpecularOcclusionMode;
             lightingData.overrideBakedGI = hdLitMasterNode.m_overrideBakedGI;
             HDLitData.MaterialType materialType = (HDLitData.MaterialType)hdLitMasterNode.m_MaterialType;
-            lightingData.subsurfaceScattering = materialType == HDLitData.MaterialType.SubsurfaceScattering;
 
             litData.clearCoat = UpgradeCoatMask(hdLitMasterNode);
             litData.energyConservingSpecular = hdLitMasterNode.m_EnergyConservingSpecular;
