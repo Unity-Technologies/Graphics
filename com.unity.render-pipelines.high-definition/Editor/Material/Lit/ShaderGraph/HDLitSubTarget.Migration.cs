@@ -275,7 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Distortion
             bool hasDistortion = (systemData.surfaceType == SurfaceType.Transparent && builtinData.distortion);
-            if(hasDistortion)
+            if (hasDistortion)
             {
                 blockMap.Add(HDBlockFields.SurfaceDescription.Distortion, HDLitMasterNode1.DistortionSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.DistortionBlur, HDLitMasterNode1.DistortionBlurSlotId);

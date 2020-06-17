@@ -4,6 +4,7 @@ project:
 test_platforms:
   - Standalone
   - playmode
+  - playmode_XR
   - editmode
 platforms:
   - name: Win
@@ -25,3 +26,4 @@ all:
         - Standalone
         - editmode
         - playmode
+        - playmode_XR

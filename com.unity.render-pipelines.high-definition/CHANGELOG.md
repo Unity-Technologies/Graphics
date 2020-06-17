@@ -148,6 +148,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support to combine RTSSS and RTGI (1248733).
 - Added IES Profile support for Point, Spot and Rectangular-Area lights
 - Added support for multiple mapping modes in AxF.
+- Add support of lightlayers on indirect lighting controller
+- Added compute shader stripping.
+- Added Cull Mode option for opaque materials and ShaderGraphs. 
 - Added scene view exposure override.
 
 ### Fixed
@@ -680,6 +683,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Appropriately constraint blend distance of reflection probe while editing with the inspector (case 1248931)
 - Fixed AxF handling of roughness for Blinn-Phong type materials
 - Fixed AxF UI errors when surface type is switched to transparent
+- Fixed a serialization issue, preventing quality level parameters to undo/redo and update scene view on change.
+- Fixed an exception occuring when a camera doesn't have an HDAdditionalCameraData (1254383).
+- Fixed ray tracing with XR single-pass.
+- Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
