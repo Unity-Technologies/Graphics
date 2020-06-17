@@ -8,6 +8,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 #if UNITY_EDITOR
 using UnityEditorInternal;
+using UnityEditor.Rendering;
 #endif
 
 #if ENABLE_VIRTUALTEXTURES
@@ -1308,8 +1309,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness.value;
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart.value;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
@@ -2814,6 +2815,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderTargetIdentifier postProcessDest = HDUtils.PostProcessIsFinalPass(hdCamera) ? target.id : m_IntermediateAfterPostProcessBuffer;
             RenderPostProcess(cullingResults, hdCamera, postProcessDest, renderContext, cmd);
+
+            // If requested, compute histogram of the very final image
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            {
+                m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+            }
 
             PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
 
@@ -4343,8 +4350,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrIterLimit = volumeSettings.rayMaxIterations;
             cb._SsrReflectsSky = volumeSettings.reflectSky.value ? 1 : 0;
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
-            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart.value;
-            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
+            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart;
+            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness;
             float roughnessFadeLength = cb._SsrRoughnessFadeEnd - roughnessFadeStart;
             cb._SsrRoughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (cb._SsrRoughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
             cb._SsrRoughnessFadeRcpLength = (roughnessFadeLength != 0) ? (1.0f / roughnessFadeLength) : 0;
@@ -4908,7 +4915,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool drawTonemapCurve = tonemappingMode != TonemappingMode.None &&
                                         parameters.debugDisplaySettings.data.lightingDebugSettings.showTonemapCurveAlongHistogramView;
 
-                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, 0, 0));
+                bool centerAroundMiddleGrey = parameters.debugDisplaySettings.data.lightingDebugSettings.centerHistogramAroundMiddleGrey;
+                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(drawTonemapCurve ? 1.0f : 0.0f, (int)tonemappingMode, centerAroundMiddleGrey ? 1 : 0, 0));
                 if (drawTonemapCurve)
                 {
                     if (tonemappingMode == TonemappingMode.Custom)
@@ -4929,6 +4937,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 passIndex = 2;
             }
+            if (parameters.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            {
+                bool finalImageRGBHisto = parameters.debugDisplaySettings.data.lightingDebugSettings.displayFinalImageHistogramAsRGB;
+
+                parameters.debugExposureMaterial.SetVector(HDShaderIDs._ExposureDebugParams, new Vector4(0, 0, 0, finalImageRGBHisto ? 1 : 0));
+
+                parameters.debugExposureMaterial.SetBuffer(HDShaderIDs._FullImageHistogram, histogramBuffer);
+                passIndex = 3;
+            }
+
 
             HDUtils.DrawFullScreen(cmd, parameters.debugExposureMaterial, output, null, passIndex);
         }
@@ -4988,7 +5006,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                         m_PostProcessSystem.GetLutSize(),
                                         proceduralParams1,
                                         proceduralParams2,
-                                        m_PostProcessSystem.GetHistogramBuffer(), cmd);
+                                        debugParams.debugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer(), cmd);
                 }
 
                 // First resolve color picker
