@@ -18,9 +18,22 @@ namespace UnityEditor.ShaderGraph.Serialization
 
         public void OnBeforeSerialize()
         {
-            if (MultiJsonInternal.isSerializing && m_Value != null && MultiJsonInternal.serializedSet.Add(m_Id))
+            if (MultiJsonInternal.isSerializing && m_Value != null)
             {
-                MultiJsonInternal.serializationQueue.Add(m_Value);
+                if (MultiJsonInternal.serializedSet.TryGetValue(m_Id, out JsonObject existingJsonObject))
+                {
+                    // ID has already been found by serialization, double check it is actually the same value (same reference)
+                    if (m_Value != existingJsonObject)
+                    {
+                        Debug.LogError("Serialization found a duplicate objectID that points to a different value (" + m_Id + ") Type: " + m_Value.GetType() + ".  Please file a bug for this!");
+                    }
+                }
+                else
+                {
+                    // new ID encountered -- add it's value to the serialization queue
+                    MultiJsonInternal.serializedSet.Add(m_Id, m_Value);
+                    MultiJsonInternal.serializationQueue.Add(m_Value);
+                }
             }
         }
 
