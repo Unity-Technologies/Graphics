@@ -151,6 +151,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add support of lightlayers on indirect lighting controller
 - Added compute shader stripping.
 - Added Cull Mode option for opaque materials and ShaderGraphs. 
+- Added scene view exposure override.
+- Added support for exposure curve remapping for min/max limits.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)

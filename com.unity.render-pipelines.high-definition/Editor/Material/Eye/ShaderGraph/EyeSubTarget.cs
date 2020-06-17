@@ -18,7 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
-        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/";
+        static string[] passTemplateMaterialDirectories = new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
+
+        protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
