@@ -43,6 +43,13 @@ VFXBlackboardRow.hovered #pill #selection-border
     bottom: 1px;
 }
 
+
+#vfx-field.unused #pill
+{
+    opacity:0.5;
+}
+
+
 .blackboard .output > .mainContainer > #sectionHeader
 {
     background-color:#393939;

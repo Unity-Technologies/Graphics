@@ -51,17 +51,16 @@ namespace  UnityEditor.VFX.UI
         public void SelfChange()
         {
             if (controller.isOutput)
-            {
                 icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/output dot.png");
-            }
             else if (controller.exposed)
-            {
                 icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/exposed dot.png");
-            }
             else
-            {
                 icon = null;
-            }
+
+            if( (!controller.isOutput && !controller.model.outputSlots.Any(t=>t.HasLink(true))) || (controller.isOutput && !controller.model.inputSlots.Any(t => t.HasLink(true))))
+                AddToClassList("unused");
+            else
+                RemoveFromClassList("unused");
         }
 
         void OnMouseHover(EventBase evt)
