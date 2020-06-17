@@ -172,7 +172,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrReflections, IsDXRReflectionsCorrect, FixDXRReflections),
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
-                        new Entry(InclusiveScope.DXR, Style.dxrShaderConfig, IsDXRShaderConfigCorrect, FixDXRShaderConfig),
                         new Entry(InclusiveScope.DXR, Style.dxrScene, IsDXRDefaultSceneCorrect, FixDXRDefaultScene),
                     };
                 return m_Entries;
@@ -633,42 +632,6 @@ namespace UnityEditor.Rendering.HighDefinition
             HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources
                 = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
             ResourceReloader.ReloadAllNullIn(HDRenderPipeline.defaultAsset.renderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
-        }
-        
-        bool IsDXRShaderConfigCorrect()
-        {
-            if (!lastPackageConfigInstalledCheck)
-                return false;
-            
-            bool found = false;
-            using (StreamReader streamReader = new StreamReader("LocalPackages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"))
-            {
-                while (!streamReader.EndOfStream && !found)
-                    found = streamReader.ReadLine().Contains("#define SHADEROPTIONS_RAYTRACING (1)");
-            }
-            return found;
-        }
-        void FixDXRShaderConfig(bool fromAsyncUnused)
-        {
-            Debug.Log("Fixing DXRShaderConfig");
-            if (!lastPackageConfigInstalledCheck)
-            {
-                InstallLocalConfigurationPackage(() => FixDXRShaderConfig(false));
-            }
-            else
-            {
-                // Then we want to make sure that the shader config value is set to 1
-                string[] lines = System.IO.File.ReadAllLines("LocalPackages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl");
-                for (int lineIdx = 0; lineIdx < lines.Length; ++lineIdx)
-                {
-                    if (lines[lineIdx].Contains("SHADEROPTIONS_RAYTRACING"))
-                    {
-                        lines[lineIdx] = "#define SHADEROPTIONS_RAYTRACING (1)";
-                        break;
-                    }
-                }
-                File.WriteAllLines("LocalPackages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl", lines);
-            }
         }
 
         bool IsDXRScreenSpaceShadowCorrect()

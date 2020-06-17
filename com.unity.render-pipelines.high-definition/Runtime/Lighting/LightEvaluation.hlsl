@@ -421,7 +421,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
                                     LightData light, BuiltinData builtinData, float3 N, float3 L, float4 distances)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    SHADOW_TYPE shadow  = 1.0;
+    float shadow        = 1.0;
     float shadowMask    = 1.0;
     float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
@@ -431,7 +431,7 @@ SHADOW_TYPE EvaluateShadow_Punctual(LightLoopContext lightLoopContext, PositionI
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
@@ -476,7 +476,7 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
                                      LightData light, BuiltinData builtinData, float3 N, float3 L, float dist)
 {
 #ifndef LIGHT_EVALUATION_NO_SHADOWS
-    SHADOW_TYPE shadow  = 1.0;
+    float shadow        = 1.0;
     float shadowMask    = 1.0;
     float NdotL         = dot(N, L); // Disable contact shadow and shadow mask when facing away from light (i.e transmission)
 
@@ -486,7 +486,7 @@ SHADOW_TYPE EvaluateShadow_RectArea( LightLoopContext lightLoopContext, Position
     shadow = shadowMask = (light.shadowMaskSelector.x >= 0.0 && NdotL > 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, light.shadowMaskSelector) : 1.0;
 #endif
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT) && (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
     {
         shadow = GetScreenSpaceShadow(posInput, light.screenSpaceShadowIndex);
