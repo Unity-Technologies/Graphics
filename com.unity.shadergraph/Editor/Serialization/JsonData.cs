@@ -25,7 +25,17 @@ namespace UnityEditor.ShaderGraph.Serialization
                     // ID has already been found by serialization, double check it is actually the same value (same reference)
                     if (m_Value != existingJsonObject)
                     {
-                        Debug.LogError("Serialization found a duplicate objectID that points to a different value (" + m_Id + ") Type: " + m_Value.GetType() + ".  Please file a bug for this!");
+                        Type existType = existingJsonObject.GetType();
+                        Type valueType = m_Value.GetType();
+
+                        Debug.LogError(
+                            "Encountered two different objects with the same objectID, this may cause unexpected behavior. " +
+                            "This should never occur, please report it as a bug! " +
+                            "In the meantime, you can likely work around this issue by finding one of the duplicate objects and recreating or copy-pasting it. " +
+                            "The object will be in one of the subgraphs used by this graph, usually a subgraph that has been copied from another subgraph. " +
+                            "The first object is of type '" + existType + "'. " +
+                            "The second object is of type '" + valueType + "'. " +
+                            "Both objects have the objectID '" + m_Id + "', which will show up in the text of the subgraph files containing these objects.");
                     }
                 }
                 else
