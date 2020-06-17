@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [10.0.0] - 2019-06-10
 ### Added
 - Added the option to strip Terrain hole Shader variants.
 - Added support for additional Directional Lights. The amount of additional Directional Lights is limited by the maximum Per-object Lights in the Render Pipeline Asset.
@@ -26,7 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a OnCameraCleanup() function to the ScriptableRenderPass API, that gets called by the renderer after rendering each camera
 - Added Default Material Type options to the 2D Renderer Data Asset property settings.
 - Added additional steps to the 2D Renderer setup page for quality and platform settings.
+- Added support for clear coat material feature in the Lit shader.
 - Added option to disable XR autotests on test settings.
+- Added option to enable/disable Adaptive Performance when it's package is available.
+- Added support for 3DsMax's 2021 Simplified Physical Material from FBX files in the Model Importer.
+- Added support for DXT5nm-style normal maps on Android, iOS and tvOS
 
 ### Changed
 
@@ -57,8 +61,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Mesh GPU Instancing option is now hidden from the particles system renderer as this feature is not supported by URP.
 - The 2D Renderer now supports camera stacking.
 - 2D shaders now use half-precision floats whenever precise results are not necessary.
+- Removed the ETC1_EXTERNAL_ALPHA variant from Shader Graph Sprite shaders.
+- Eliminated GC allocations caused by the 2D Renderer.
 
 ### Fixed
+- Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project 
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
 - Fixed an issue where Unity rendered fullscreen quads with the pink error shader when you enabled the Stop NaN post-processing pass.
@@ -187,7 +194,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SceneView Draw Modes not being properly updated after opening new scene view panels or changing the editor layout.
 - Fixed GLES shaders compilation failing on Windows platform (not a mobile platform) due to uniform count limit.
 - Fixed an issue that caused the inverse view and projection matrix to output wrong values in some platforms. [case 1243990](https://issuetracker.unity3d.com/issues/urp-8-dot-1-breaks-unity-matrix-i-vp)
+- Fixed an issue where the Render Scale setting of the pipeline asset didn't properly change the resolution when using the 2D Renderer. [case 1241537](https://issuetracker.unity3d.com/issues/render-scale-is-not-applied-to-the-rendered-image-when-2d-renderer-is-used-and-hdr-option-is-disabled)
+- Fixed an issue where 2D lights didn't respect the Camera's Culling Mask. [case 1239136](https://issuetracker.unity3d.com/issues/urp-2d-2d-lights-are-ignored-by-camera-culling-mask)
+- Fixed an issue where Stencil settings wasn't serialized properly in sub object [case 1241218](https://issuetracker.unity3d.com/issues/stencil-overrides-in-urp-7-dot-3-1-render-objects-does-not-save-or-apply)
 - Fixed an issue with not being able to remove Light Mode Tags [case 1240895](https://issuetracker.unity3d.com/issues/urp-unable-to-remove-added-lightmode-tags-of-filters-property-in-render-object)
+- Fixed an issue where preset button could still be used, when it is not supposed to. [case 1246261](https://issuetracker.unity3d.com/issues/urp-reset-functionality-does-not-work-for-renderobject-preset-asset)
+- Fixed issue with Model Importer materials using the Legacy standard shader instead of URP's Lit shader when import happens at Editor startup.
+- Fixed an issue where only unique names of cameras could be added to the camera stack.
+- Fixed issue that caused shaders to fail to compile in OpenGL 4.1 or below.
+- Optimized shader compilation times by compiling different variant sets for vertex and fragment shaders.
 
 ## [7.1.1] - 2019-09-05
 ### Upgrade Guide

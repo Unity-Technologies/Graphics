@@ -6,6 +6,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Global = 0,
         XR = 1,
         PBRSky = 2,
+        RayTracing = 3,
+        RayTracingLightLoop = 4,
     }
 
     // We need to keep the number of different constant buffers low.
@@ -144,6 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
         public Vector4 _AreaShadowAtlasSize;
+        public Vector4 _CachedShadowAtlasSize;
+        public Vector4 _CachedAreaShadowAtlasSize;
 
         [HLSLArray(s_MaxEnv2DLight, typeof(Matrix4x4))]
         public fixed float _Env2DCaptureVP[s_MaxEnv2DLight * 4 * 4];
@@ -231,7 +235,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public Vector4 _CoarseStencilBufferSize;
 
-        public int      _RaytracedIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
+        public int      _UseIndirectDiffuse; // Uniform variables that defines if we should be using the raytraced indirect diffuse
         public int      _UseRayTracedReflections;
         public int      _RaytracingFrameIndex;  // Index of the current frame [0, 7]
         public uint     _EnableRecursiveRayTracing;
@@ -242,11 +246,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
 
         public int      _ProbeVolumeLeakMitigationMode;
-        public float    _ProbeVolumeNormalBiasWS;
         public float    _ProbeVolumeBilateralFilterWeightMin;
         public float    _ProbeVolumeBilateralFilterWeight;
+        public float    _Pad8;
 
         [HLSLArray(7, typeof(Vector4))]
         public fixed float _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7 * 4]; // 3 bands of SH, packed for storing global ambient probe lighting as fallback to probe volumes.
+
+        public int      _TransparentCameraOnlyMotionVectors;
+        public float    _Pad9;
+        public float    _Pad10;
+        public float    _Pad11;
     }
 }

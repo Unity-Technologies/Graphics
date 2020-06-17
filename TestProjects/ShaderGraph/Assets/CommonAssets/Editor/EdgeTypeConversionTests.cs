@@ -110,26 +110,39 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 var outputNode = edge.outputSlot.node;
                 var outputSlot = outputNode.GetOutputSlots<MaterialSlot>().First(s => s.id == edge.outputSlot.slotId);
 
-                RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
+                var redirNode = RedirectNodeData.Create(m_Graph, outputSlot.valueType, Vector2.zero, edge.inputSlot, edge.outputSlot, null);
 
                 m_Graph.ValidateGraph();
+                CompileNodeShader(m_CFNode, GenerationMode.Preview, m_CFNode.name);
+                CompileNodeShader(null, GenerationMode.ForReals, "Master Stack Shader");
 
                 // Verify all errors are expected
                 foreach (var message in m_Graph.messageManager.GetNodeMessages())
                 {
-                    if (message.Key.Equals(m_CFNode.objectId) && message.Value.Exists(msg =>
-                        msg.severity == ShaderCompilerMessageSeverity.Error))
+                    if (message.Value.Exists(msg => msg.severity == ShaderCompilerMessageSeverity.Error))
                     {
                         Assert.Fail(message.Value.FirstOrDefault().message);
                     }
                 }
 
                 var redirectedValue = m_CFNode.GetSlotValue(slot.id, GenerationMode.ForReals);
+                var previewValue = m_CFNode.GetSlotValue(slot.id, GenerationMode.Preview);
 
-                Assert.AreEqual(originalValue, redirectedValue, $"Value of slot {slot.displayName} changed with redirect node");
+                Assert.AreEqual(originalValue, redirectedValue, $"Value of slot {slot.displayName} changed in final shader with redirect node");
+                Assert.AreEqual(originalValue, previewValue, $"Value of slot {slot.displayName} changed in preview shader with redirect node");
 
+                m_Graph.RemoveNode(redirNode);
                 m_Graph.ClearErrorsForNode(m_CFNode);
             }
+        }
+
+        void CompileNodeShader(AbstractMaterialNode node, GenerationMode mode, string nodeName)
+        {
+            var generator = new Generator(m_Graph, node, mode, nodeName);
+            var shader = ShaderUtil.CreateShaderAsset(generator.generatedShader, true);
+            shader.hideFlags = HideFlags.HideAndDontSave;
+            var mat = new Material(shader) {hideFlags = HideFlags.HideAndDontSave};
+            ShaderUtil.CompilePass(mat, 0, true);
         }
     }
 }

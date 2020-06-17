@@ -20,6 +20,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Texture.texture = value; }
         }
 
+        public override bool isDefaultValue => texture == null;
+
         public Texture3DInputMaterialSlot()
         {}
 
