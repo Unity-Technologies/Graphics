@@ -224,6 +224,10 @@ Shader "Universal Render Pipeline/Lit"
             #pragma fragment LitGBufferPassFragment
             //#pragma enable_d3d11_debug_symbols
 
+            //--------------------------------------
+            // Metal 2
+            #pragma multi_compile _ METAL2_ENABLED
+
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"
             ENDHLSL

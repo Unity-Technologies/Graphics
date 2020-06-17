@@ -125,10 +125,8 @@ Varyings LitGBufferPassVertex(Attributes input)
     return output;
 }
 
-
-
 // Used in Standard (Physically Based) shader
-FragmentOutput LitGBufferPassFragment(Varyings input)
+GBUFFER_PASS_OUTPUT_TYPE LitGBufferPassFragment(Varyings input)
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -159,7 +157,10 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
 
     color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, specularHighlightsOff); // TODO move this to a separate full-screen single gbuffer pass?
 
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
+    return CONVERT_GBUFFER(
+        BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color),
+        input.positionCS.z
+    );
 }
 
 #endif
