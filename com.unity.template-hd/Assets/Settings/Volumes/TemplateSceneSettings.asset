@@ -491,22 +491,22 @@ MonoBehaviour:
     max: 4
   cascadeShadowSplit0:
     m_OverrideState: 1
-    m_Value: 0.02
+    m_Value: 0.049000002
   cascadeShadowSplit1:
     m_OverrideState: 1
-    m_Value: 0.08
+    m_Value: 0.085
   cascadeShadowSplit2:
     m_OverrideState: 1
-    m_Value: 0.32
+    m_Value: 0.152
   cascadeShadowBorder0:
     m_OverrideState: 1
-    m_Value: 0.1
+    m_Value: 0.2
   cascadeShadowBorder1:
     m_OverrideState: 1
     m_Value: 0.2
   cascadeShadowBorder2:
     m_OverrideState: 1
-    m_Value: 0.1
+    m_Value: 0.15
   cascadeShadowBorder3:
     m_OverrideState: 0
     m_Value: 0

@@ -17,6 +17,9 @@ MonoBehaviour:
   quality:
     m_OverrideState: 0
     m_Value: 1
+  enabled:
+    m_OverrideState: 0
+    m_Value: 1
   rayTracing:
     m_OverrideState: 0
     m_Value: 0
@@ -197,6 +200,16 @@ MonoBehaviour:
     m_Value: 0.75
     min: 0
     max: 1
+  screenResolutionPercentage:
+    m_OverrideState: 0
+    m_Value: 12.5
+    min: 6.25
+    max: 100
+  volumeSliceCount:
+    m_OverrideState: 0
+    m_Value: 64
+    min: 1
+    max: 1024
   filter:
     m_OverrideState: 0
     m_Value: 0
@@ -303,26 +316,34 @@ MonoBehaviour:
     m_Value: 1
   length:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.5
     min: 0
     max: 1
   opacity:
     m_OverrideState: 1
-    m_Value: 0.8
+    m_Value: 0.5
     min: 0
     max: 1
   distanceScaleFactor:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: 0.5
     min: 0
     max: 1
   maxDistance:
     m_OverrideState: 1
-    m_Value: 12
+    m_Value: 8
+    min: 0
+  minDistance:
+    m_OverrideState: 1
+    m_Value: 0
     min: 0
   fadeDistance:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 5
+    min: 0
+  fadeInDistance:
+    m_OverrideState: 1
+    m_Value: 0
     min: 0
   m_SampleCount:
     m_OverrideState: 1

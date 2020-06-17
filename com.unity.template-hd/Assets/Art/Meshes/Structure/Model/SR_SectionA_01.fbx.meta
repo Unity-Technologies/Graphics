@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 3f472ae8331b8a04e9b662d0e1dc7954
 ModelImporter:
-  serializedVersion: 20100
+  serializedVersion: 20101
   internalIDToNameTable: []
   externalObjects:
   - first:
@@ -108,6 +108,7 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
@@ -123,8 +124,8 @@ ModelImporter:
     secondaryUVAngleDistortion: 1
     secondaryUVAreaDistortion: 1
     secondaryUVHardAngle: 60
-    secondaryUVMarginMethod: 0
-    secondaryUVMinLightmapResolution: 40
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 32
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 16
     useFileScale: 1
