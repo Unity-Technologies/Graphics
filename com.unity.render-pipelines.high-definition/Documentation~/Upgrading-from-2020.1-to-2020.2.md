@@ -4,26 +4,93 @@ In the High Definition Render Pipeline (HDRP), some features work differently be
 
 ## Constant Buffer API
 
-From Unity 2020.2, HDRP is using a new constant buffer API that allow to setup uniform used during the Frame and sent to the shader in a single transfer instead of multiple one. The consequence is that it is no longer possible to setup any of the values declare in ShaderVariablesGlobal.cs individualy with cmd.SetVectorXXX() or related function. It is now required to update the value of ShaderVariablesGlobal to be able to update the values use in the shaders.
+From Unity 2020.2, HDRP uses a new constant buffer API that allows it to set up uniforms during the frame and send them to the shader in a single transfer instead of multiple transfers. To do this, the global variables that were declared individually are now all within the `ShaderVariablesGlobal ` struct. The consequence of this is that its no longer possible to setup any of the global values individually using `CommandBuffer.SetVectorXXX()` or its related functions. Instead, to change a global variable, you need to update the struct in its entirety.
 
-## FrameSettings
+Currently, the only publicly accessible variables in the `ShaderVariablesGlobal` struct are camera related and only available within [Custom Passes](Custom-Pass.md) via the following functions:
 
-From Unity 2020.2, "MSAA Within Forward" Camera Frame Setting is enabled by default when new Render Pipeline asset is created.
+* `RenderFromCamera()`
+* `RenderDepthFromCamera()`
+* `RenderNormalFromCamera()`
+* `RenderTangentFromCamera()`
+
+
+## Frame Settings
+
+From Unity 2020.2, if you create a new [HDRP Asset](HDRP-Asset.md), the **MSAA Within Forward** Frame Setting is enabled by default.
 
 ## Lighting
 
-From Unity 2020.2, when the Sky component affected to the volume profile used for Static Lighting Sky in Environment settings of the Lighting panel is disabled. It now don't affect the bake lighting. Previously the Sky was still affecting the bake lighting even if disabled.
+From Unity 2020.2, if you disable the sky override used as the **Static Lighting Sky** in the **Lighting** window, the sky no longer affects the baked lighting. Previously, the sky affected the baked lighting even when it was disabled.
+
+From Unity 2020.2, HDRP has removed the Cubemap Array for Point [Light](Light-Component.md) cookies and now uses octahedral projection with a regular 2D-Cookie atlas. This is to allow for a single path for light cookies and IES, but it may produce visual artifacts when using a low-resolution cube-cookie. For example, projecting pixel art data.
+
+As the **Cubemap cookie atlas no longer exists**, it is possible that HDRP does not have enough space on the current 2D atlas for the cookies. If this is the case, HDRP displays an error in the Console window. To fix this, increase the size of the 2D cookie atlas. To do this:
+Select your [HDRP Asset](HDRP-Asset.md).
+In the Inspector, go to Lighting > Cookies.
+In the 2D Atlas Size drop-down, select a larger cookie resolution.
 
 ## Shadows
 
-From Unity 2020.2, it is not necessary to change the [HDRP Config package](HDRP-Config-Package.html) in order to set the [Shadows filtering quality](HDRP-Asset.html#FilteringQualities) for Deferred rendering. Instead the filtering quality can be simply set on the [HDRP Asset](HDRP-Asset.html#FilteringQualities) similarly to what was previously setting only the quality for Forward. Note that if previously the Shadow filtering quality wasn't setup on medium on the HDRP Asset you will experience a change of shadow quality as now it will be taken into account.
+From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
 
-Starting from 2020.2, HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP.md).
+HDRP now stores OnEnable and OnDemand shadows in a separate atlas and more API is available to handle them. For more information, see [Shadows in HDRP](Shadows-in-HDRP.md).
 
-From Unity 2020.2, the shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
+The shader function `SampleShadow_PCSS` now requires you to pass in an additional float2 parameter which contains the shadow atlas resolution in x and the inverse of the atlas resolution in y.
+
+## Shader config file
+
+From Unity 2020.2, due to the change of shadow map, the enum HDShadowFilteringQuality have been moved to HDShadowManager.cs and the variables ShaderConfig.s_DeferredShadowFiltering as well as the option ShaderOptions.DeferredShadowFiltering have been removed from the code as they have no impact anymore.
+
 
 ## Shader code
 
-A new structure is use to output the information of the LightLoop. LightLoop struct is use instead of the pair (float3 diffuseLighting, float3 specularLighting). This is to allow to export more information from the LightLoop in the future without breaking the API. The function LightLoop() - For rasterization and raytracing - PostEvaluateBSDF(), ApplyDebug() and PostEvaluateBSDFDebugDisplay now pass this structure instead of the Pair. The function LightLoop() will initialize this structure to zero. To upgrade existing shader, replace the declaration "float3 diffuseLighting; float3 specularLighting;" by "LightLoopOutput lightLoopOutput;" before call of LightLoop  and repalce the argument pair "out float3 diffuseLighting, out float3 specularLighting" by "out LightLoopOutput lightLoopOutput" in all the function mention.
+From Unity 2020.2, HDRP uses a new structure to output information from the LightLoop. It now uses a custom LightLoop struct instead of the `float3 diffuseLighting`, `float3 specularLighting` pair. This is to allow HDRP to export more information from the LightLoop in the future without breaking the API.
 
-The prototype of the function ModifyBakedDiffuseLighting() in the various material have change from "void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)" to "void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)". There is a new ModifyBakedDiffuseLighting using the former prototype added in the file BuiltinUtilities.hlsl which will call the new function prototype with the correct arguments. The purpose of this change it to prepare for future lighting features. To update code, in addition of the prototype update it is required to remove those line "BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData); PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);" as it is now perform by the common code from BuiltinUtilities.hlsl.
+The following functions now pass this structure instead of the pair:
+
+* LightLoop(), for both rasterization and raytracing.
+* PostEvaluateBSDF()
+* ApplyDebug()
+* PostEvaluateBSDFDebugDisplay()
+
+To upgrade an existing shader, for all the above functions:
+
+1. Replace the declaration `float3 diffuseLighting; float3 specularLighting;` with `LightLoopOutput lightLoopOutput;` before the LightLoop call.
+2. Replace the argument pair `out float3 diffuseLighting, out float3 specularLighting` with `out LightLoopOutput lightLoopOutput`.
+
+
+
+The prototype for the function `ModifyBakedDiffuseLighting()` in the various materials has changed from:
+`void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)`
+to:
+ `void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, inout BuiltinData builtinData)`
+
+There is also a new definition for `ModifyBakedDiffuseLighting()` that uses the former prototype definition and calls the new function prototype with the correct arguments. The purpose of this change it to prepare for future lighting features. To update your custom shaders, in addition of the prototype update, you must remove the following lines:
+```
+BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+
+PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+```
+
+## Custom pass API
+
+The signature of the Execute function has changed to simplify the parameters, now it only takes a CustomPassContext as its input:
+`void Execute(CustomPassContext ctx)`
+
+The CustomPassContext contains all the parameters of the old Execute function, but also all the available Render Textures as well as a MaterialPropertyBlock unique to the custom pass instance.
+
+This context allows you to use the new [CustomPassUtils]( ../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html) class which contains functions to speed up the development of your custom passes.
+
+For information on custom pass utilities, see the [custom pass manual](Custom-Pass-API-User-Manual.md) or the [CustomPassUtils API documentation](../api/UnityEngine.Rendering.HighDefinition.CustomPassUtils.html).
+
+To upgrade your custom pass, replace the original execute function prototype with the new one. To do this, replace:
+
+```
+protected override void Execute(ScriptableRenderContext renderContext, CommandBuffer cmd, HDCamera hdCamera, CullingResults cullingResult) { ... }
+```
+
+With:
+
+```
+protected override void Execute(CustomPassContext ctx) { ... }
+```

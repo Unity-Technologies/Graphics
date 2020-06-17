@@ -1,67 +1,310 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEditor.ShaderGraph;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph;
 using UnityEditor.Experimental.Rendering.Universal;
+using UnityEditor.Graphing;
+using UnityEditor.UIElements;
+using UnityEditor.ShaderGraph.Serialization;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalTarget : Target
+    public enum MaterialType
     {
-        const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
-        List<SubTarget> m_SubTargets;
-        SubTarget m_ActiveSubTarget;
+        Lit,
+        Unlit,
+        SpriteLit,
+        SpriteUnlit,
+    }
 
+    public enum WorkflowMode
+    {
+        Specular,
+        Metallic,
+    }
+
+    enum SurfaceType
+    {
+        Opaque,
+        Transparent,
+    }
+
+    enum AlphaMode
+    {
+        Alpha,
+        Premultiply,
+        Additive,
+        Multiply,
+    }
+
+    sealed class UniversalTarget : Target, ILegacyTarget
+    {
+        // Constants
+        const string kAssetGuid = "8c72f47fdde33b14a9340e325ce56f4d";
+        public const string kPipelineTag = "UniversalPipeline";
+
+        // SubTarget
+        List<SubTarget> m_SubTargets;
+        List<string> m_SubTargetNames;
+        int activeSubTargetIndex => m_SubTargets.IndexOf(m_ActiveSubTarget);
+
+        // View
+        PopupField<string> m_SubTargetField;
+        TextField m_CustomGUIField;
+
+        [SerializeField]
+        JsonData<SubTarget> m_ActiveSubTarget;
+
+        [SerializeField]
+        SurfaceType m_SurfaceType = SurfaceType.Opaque;
+
+        [SerializeField]
+        AlphaMode m_AlphaMode = AlphaMode.Alpha;
+
+        [SerializeField]
+        bool m_TwoSided = false;
+
+        [SerializeField]
+        bool m_AlphaClip = false;
+
+        [SerializeField]
+        string m_CustomEditorGUI;
+        
         public UniversalTarget()
         {
             displayName = "Universal";
-            m_SubTargets = TargetUtils.GetSubTargetsOfType<UniversalTarget>();
+            m_SubTargets = TargetUtils.GetSubTargets(this);
+            m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
         }
 
-        public const string kPipelineTag = "UniversalPipeline";
+        public string renderType
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{RenderType.Transparent}";
+                else
+                    return $"{RenderType.Opaque}";
+            }
+        }
+
+        public string renderQueue
+        {
+            get
+            {
+                if(surfaceType == SurfaceType.Transparent)
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}";
+                else if(alphaClip)
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.AlphaTest}";
+                else
+                    return $"{UnityEditor.ShaderGraph.RenderQueue.Geometry}";
+            }
+        }
+
+        public SubTarget activeSubTarget
+        {
+            get => m_ActiveSubTarget;
+            set => m_ActiveSubTarget = value;
+        }
+        
+        public SurfaceType surfaceType
+        {
+            get => m_SurfaceType;
+            set => m_SurfaceType = value;
+        }
+
+        public AlphaMode alphaMode
+        {
+            get => m_AlphaMode;
+            set => m_AlphaMode = value;
+        }
+
+        public bool twoSided
+        {
+            get => m_TwoSided;
+            set => m_TwoSided = value;
+        }
+
+        public bool alphaClip
+        {
+            get => m_AlphaClip;
+            set => m_AlphaClip = value;
+        }
+
+        public string customEditorGUI
+        {
+            get => m_CustomEditorGUI;
+            set => m_CustomEditorGUI = value;
+        }
+
+        public override bool IsActive()
+        {
+            bool isUniversalRenderPipeline = GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset;
+            return isUniversalRenderPipeline && activeSubTarget.IsActive();
+        }
 
         public override void Setup(ref TargetSetupContext context)
         {
-            // Currently we infer the active SubTarget based on the MasterNode type
-            void SetActiveSubTargetIndex(IMasterNode masterNode)
-            {
-                Type activeSubTargetType;
-                if(!s_SubTargetMap.TryGetValue(masterNode.GetType(), out activeSubTargetType))
-                    return;
-
-                m_ActiveSubTarget = m_SubTargets.FirstOrDefault(x => x.GetType() == activeSubTargetType);
-            }
-
             // Setup the Target
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
 
             // Setup the active SubTarget
-            SetActiveSubTargetIndex(context.masterNode);
-            m_ActiveSubTarget.Setup(ref context);
+            TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            m_ActiveSubTarget.value.target = this;
+            m_ActiveSubTarget.value.Setup(ref context);
+
+            // Override EditorGUI
+            if(!string.IsNullOrEmpty(m_CustomEditorGUI))
+            {
+                context.SetDefaultShaderGUI(m_CustomEditorGUI);
+            }
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            // Currently we infer the validity based on SubTarget mapping
-            return s_SubTargetMap.TryGetValue(masterNode.GetType(), out _);
+            var descs = context.blocks.Select(x => x.descriptor);
+            // Core fields
+            context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
+                                                            descs.Contains(BlockFields.VertexDescription.Normal) ||
+                                                            descs.Contains(BlockFields.VertexDescription.Tangent));
+            context.AddField(Fields.GraphPixel);
+            context.AddField(Fields.AlphaClip,              alphaClip);
+            context.AddField(Fields.DoubleSided,            twoSided);
+
+            // SubTarget fields
+            m_ActiveSubTarget.value.GetFields(ref context);
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline is UniversalRenderPipelineAsset;
+            // Core blocks
+            context.AddBlock(BlockFields.VertexDescription.Position);
+            context.AddBlock(BlockFields.VertexDescription.Normal);
+            context.AddBlock(BlockFields.VertexDescription.Tangent);
+            context.AddBlock(BlockFields.SurfaceDescription.BaseColor);
+
+            // SubTarget blocks
+            m_ActiveSubTarget.value.GetActiveBlocks(ref context);
         }
 
-        // Currently we need to map SubTarget type to IMasterNode type
-        // We do this here to avoid bleeding this into the SubTarget API
-        static Dictionary<Type, Type> s_SubTargetMap = new Dictionary<Type, Type>()
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            { typeof(PBRMasterNode), typeof(UniversalLitSubTarget) },
-            { typeof(UnlitMasterNode), typeof(UniversalUnlitSubTarget) },
-            { typeof(SpriteLitMasterNode), typeof(UniversalSpriteLitSubTarget) },
-            { typeof(SpriteUnlitMasterNode), typeof(UniversalSpriteUnlitSubTarget) },
-        };
+            // Core properties
+            m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
+            context.AddProperty("Material", m_SubTargetField, (evt) =>
+            {
+                if (Equals(activeSubTargetIndex, m_SubTargetField.index))
+                    return;
+
+                registerUndo("Change Material");
+                m_ActiveSubTarget = m_SubTargets[m_SubTargetField.index];
+                onChange();
+            });
+
+            // SubTarget properties
+            m_ActiveSubTarget.value.GetPropertiesGUI(ref context, onChange, registerUndo);
+
+            // Custom Editor GUI
+            // Requires FocusOutEvent
+            m_CustomGUIField = new TextField("") { value = customEditorGUI };
+            m_CustomGUIField.RegisterCallback<FocusOutEvent>(s =>
+            {
+                if (Equals(customEditorGUI, m_CustomGUIField.value))
+                    return;
+
+                registerUndo("Change Custom Editor GUI");
+                customEditorGUI = m_CustomGUIField.value;
+                onChange();
+            });
+            context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+        }
+
+        public bool TrySetActiveSubTarget(Type subTargetType)
+        {
+            if(!subTargetType.IsSubclassOf(typeof(SubTarget)))
+                return false;
+            
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(subTarget.GetType().Equals(subTargetType))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            void UpgradeAlphaClip()
+            {
+                var clipThresholdId = 8;
+                var node = masterNode as AbstractMaterialNode;
+                var clipThresholdSlot = node.FindSlot<Vector1MaterialSlot>(clipThresholdId);
+                if(clipThresholdSlot == null)
+                    return;
+
+                clipThresholdSlot.owner = node;
+                if(clipThresholdSlot.isConnected || clipThresholdSlot.value > 0.0f)
+                {
+                    m_AlphaClip = true;
+                }
+            }
+
+            // Upgrade Target
+            switch(masterNode)
+            {
+                case PBRMasterNode1 pbrMasterNode:
+                    m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
+                    m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
+                    m_TwoSided = pbrMasterNode.m_TwoSided;
+                    UpgradeAlphaClip();
+                    m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case UnlitMasterNode1 unlitMasterNode:
+                    m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
+                    m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
+                    m_TwoSided = unlitMasterNode.m_TwoSided;
+                    UpgradeAlphaClip();
+                    m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case SpriteLitMasterNode1 spriteLitMasterNode:
+                    m_CustomEditorGUI = spriteLitMasterNode.m_OverrideEnabled ? spriteLitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+                case SpriteUnlitMasterNode1 spriteUnlitMasterNode:
+                    m_CustomEditorGUI = spriteUnlitMasterNode.m_OverrideEnabled ? spriteUnlitMasterNode.m_ShaderGUIOverride : "";
+                    break;
+            }
+
+            // Upgrade SubTarget
+            foreach(var subTarget in m_SubTargets)
+            {
+                if(!(subTarget is ILegacyTarget legacySubTarget))
+                    continue;
+                
+                if(legacySubTarget.TryUpgradeFromMasterNode(masterNode, out blockMap))
+                {
+                    m_ActiveSubTarget = subTarget;
+                    return true;
+                }
+            }
+
+            blockMap = null;
+            return false;
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
+        {
+            return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
+        }
     }
 
 #region Passes
@@ -77,11 +320,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
-            vertexPorts = CorePortMasks.Vertex,
-            pixelPorts = CorePortMasks.FragmentAlphaOnly,
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
             // Fields
             structs = CoreStructCollections.Default,
@@ -102,11 +345,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // Template
             passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-            sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
             // Port Mask
-            vertexPorts = CorePortMasks.Vertex,
-            pixelPorts = CorePortMasks.FragmentAlphaOnly,
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
 
             // Fields
             structs = CoreStructCollections.Default,
@@ -122,19 +365,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 #endregion
 
 #region PortMasks
-    class CorePortMasks
+    class CoreBlockMasks
     {
-        public static int[] Vertex = new int[]
+        public static BlockFieldDescriptor[] Vertex = new BlockFieldDescriptor[]
         {
-            PBRMasterNode.PositionSlotId,
-            PBRMasterNode.VertNormalSlotId,
-            PBRMasterNode.VertTangentSlotId,
+            BlockFields.VertexDescription.Position,
+            BlockFields.VertexDescription.Normal,
+            BlockFields.VertexDescription.Tangent,
         };
 
-        public static int[] FragmentAlphaOnly = new int[]
+        public static BlockFieldDescriptor[] FragmentAlphaOnly = new BlockFieldDescriptor[]
         {
-            PBRMasterNode.AlphaSlotId,
-            PBRMasterNode.AlphaThresholdSlotId,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
+        };
+
+        public static BlockFieldDescriptor[] FragmentColorAlpha = new BlockFieldDescriptor[]
+        {
+            BlockFields.SurfaceDescription.BaseColor,
+            BlockFields.SurfaceDescription.Alpha,
+            BlockFields.SurfaceDescription.AlphaClipThreshold,
         };
     }
 #endregion
@@ -393,6 +643,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
 #endregion
 
+#region Defines
+        static class CoreDefines
+        {
+            public static DefineCollection UseLegacySpriteBlocks = new DefineCollection
+            {
+                { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
+            };
+        }
+#endregion
+
 #region KeywordDescriptors
     static class CoreKeywordDescriptors
     {
@@ -527,6 +787,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
         };
+
+        public static KeywordDescriptor UseLegacySpriteBlocks = new KeywordDescriptor()
+        {
+            displayName = "UseLegacySpriteBlocks",
+            referenceName = "USELEGACYSPRITEBLOCKS",
+            type = KeywordType.Boolean,
+        };
+    }
+#endregion
+
+#region FieldDescriptors
+    static class CoreFields
+    {
+        public static FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS"); 
     }
 #endregion
 }

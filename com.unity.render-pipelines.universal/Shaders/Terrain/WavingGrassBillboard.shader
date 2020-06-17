@@ -29,14 +29,14 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
 
             // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
 
@@ -124,7 +124,7 @@ Shader "Hidden/TerrainEngine/Details/UniversalPipeline/BillboardWavingDoublePass
             // -------------------------------------
             // Material Keywords
             #define _ALPHATEST_ON
-            #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
+            #pragma shader_feature_local_fragment _GLOSSINESS_FROM_BASE_ALPHA
 
             //--------------------------------------
             // GPU Instancing

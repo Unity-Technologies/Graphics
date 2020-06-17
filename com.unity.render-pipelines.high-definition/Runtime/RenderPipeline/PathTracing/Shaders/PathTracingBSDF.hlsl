@@ -4,8 +4,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
-#define MIN_GGX_ROUGHNESS 0.001
-#define MAX_GGX_ROUGHNESS 0.999
+#define MIN_GGX_ROUGHNESS 0.00001
+#define MAX_GGX_ROUGHNESS 0.99999
 
 // Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
 // http://jcgt.org/published/0007/04/01/paper.pdf

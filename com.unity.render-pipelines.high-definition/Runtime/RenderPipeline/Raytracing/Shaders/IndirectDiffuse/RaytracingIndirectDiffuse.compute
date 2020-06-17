@@ -1,6 +1,5 @@
 #pragma kernel RaytracingIndirectDiffuseHalfRes
 #pragma kernel RaytracingIndirectDiffuseFullRes
-#pragma kernel IndirectDiffuseAccumulation
 #pragma kernel IndirectDiffuseIntegrationUpscaleHalfRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleHalfRes HALF_RESOLUTION
 #pragma kernel IndirectDiffuseIntegrationUpscaleFullRes INDIRECT_DIFFUSE_INTEGRATION_UPSCALE=IndirectDiffuseIntegrationUpscaleFullRes
 
@@ -238,23 +237,5 @@ void INDIRECT_DIFFUSE_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchTh
     {
         _UpscaledIndirectDiffuseTextureRW[COORD_TEXTURE2D_X(targetCoord)] = float4(resultSum.xyz / resultSum.w, 1.0);
     }
-#endif
-}
-
-// Gbuffer textures to accumulate the indirect diffuse
-TEXTURE2D_X(_GBufferTexture0);
-RW_TEXTURE2D_X(float4, _GBufferTexture3);
-
-[numthreads(RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE, 1)]
-void IndirectDiffuseAccumulation(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
-{
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-
-#if RAYTRACING_ENABLED
-    // Fetch the current pixel coordinate
-    uint2 currentPixelCoordinate = groupId * RAYTRACING_INDIRECT_DIFFUSE_TILE_SIZE + groupThreadId;
-
-    // Add the indirect diffuse to the buffer (while pre-multiplying by the base color)
-    _GBufferTexture3[COORD_TEXTURE2D_X(currentPixelCoordinate)] += LOAD_TEXTURE2D_X(_IndirectDiffuseTexture, currentPixelCoordinate) * LOAD_TEXTURE2D_X(_GBufferTexture0, currentPixelCoordinate) * _IndirectLightingMultiplier.x;
 #endif
 }

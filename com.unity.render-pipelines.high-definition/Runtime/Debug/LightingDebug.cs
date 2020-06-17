@@ -328,8 +328,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 displayCookieAtlas = false;
         /// <summary>Display the light cookies cubemap array.</summary>
         public bool                 displayCookieCubeArray = false;
-        /// <summary>Index of the light cookie cubemap to display.</summary>
-        public uint                 cookieCubeArraySliceIndex = 0;
+        /// <summary>Index of the light cubemap to display.</summary>
+        public uint                 cubeArraySliceIndex = 0;
         /// <summary>Mip level of the cookie cubemap display.</summary>
         public uint                 cookieAtlasMipLevel = 0;
         /// <summary>Clear cookie atlas each frame.</summary>

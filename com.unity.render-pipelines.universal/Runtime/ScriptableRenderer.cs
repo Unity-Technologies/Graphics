@@ -75,12 +75,12 @@ namespace UnityEngine.Rendering.Universal
             // for now using cmd.SetViewProjecionMatrices
             //SetViewAndProjectionMatrices(cmd, viewMatrix, cameraData.GetDeviceProjectionMatrix(), setInverseMatrices);
             cmd.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
-            
+
             if (setInverseMatrices)
             {
                 Matrix4x4 inverseViewMatrix = Matrix4x4.Inverse(viewMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.cameraToWorldMatrix, inverseViewMatrix);
-                
+
                 Matrix4x4 viewAndProjectionMatrix = cameraData.GetGPUProjectionMatrix() * viewMatrix;
                 Matrix4x4 inverseViewProjection = Matrix4x4.Inverse(viewAndProjectionMatrix);
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
@@ -879,7 +879,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get(k_ReleaseResourcesTag);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].OnCameraCleanup(cmd);
+                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
             // Happens when rendering the last camera in the camera stack.
             if (resolveFinalTarget)
@@ -914,7 +914,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_VR_MODULE
             if (!stereo)
                 return;
-            
+
             bool msaaSampleCountHasChanged = false;
             int currentQualitySettingsSampleCount = QualitySettings.antiAliasing;
             if (currentQualitySettingsSampleCount != msaaSamples &&
@@ -931,7 +931,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 QualitySettings.antiAliasing = msaaSamples;
                 XR.XRDevice.UpdateEyeTextureMSAASetting();
-            }  
+            }
 #endif
         }
     }

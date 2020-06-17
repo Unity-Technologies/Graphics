@@ -42,11 +42,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     public struct RenderGraphExecuteParams
     {
         ///<summary>Rendering width.</summary>
-        public int         renderingWidth;
+        public int          renderingWidth;
         ///<summary>Rendering height.</summary>
-        public int         renderingHeight;
+        public int          renderingHeight;
         ///<summary>Number of MSAA samples.</summary>
-        public MSAASamples msaaSamples;
+        public MSAASamples  msaaSamples;
+        ///<summary>Index of the current frame being rendered.</summary>
+        public int          currentFrameIndex;
     }
 
     class RenderGraphDebugParams
@@ -362,8 +364,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_Logger.Initialize();
 
-                // Update RTHandleSystem with size for this rendering pass.
-                m_Resources.SetRTHandleReferenceSize(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples);
+                m_Resources.BeginRender(parameters.renderingWidth, parameters.renderingHeight, parameters.msaaSamples, parameters.currentFrameIndex);
 
                 LogFrameInformation(parameters.renderingWidth, parameters.renderingHeight);
 
@@ -372,9 +373,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
             catch (Exception e)
             {
-                m_ExecutionExceptionWasRaised = true;
                 Debug.LogError("Render Graph Execution error");
-                Debug.LogException(e);
+                if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
+                    Debug.LogException(e);
+                m_ExecutionExceptionWasRaised = true;
             }
             finally
             {
@@ -836,6 +838,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     m_ExecutionExceptionWasRaised = true;
                     Debug.LogError($"Render Graph Execution error at pass {passInfo.pass.name} ({passIndex})");
                     Debug.LogException(e);
+                    throw;
                 }
             }
         }

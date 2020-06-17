@@ -79,36 +79,33 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Particle Keywords
-            #pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature _FLIPBOOKBLENDING_ON
-            #pragma shader_feature _SOFTPARTICLES_ON
-            #pragma shader_feature _FADING_ON
-            #pragma shader_feature _DISTORTION_ON
+            #pragma shader_feature_local_fragment _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local _SOFTPARTICLES_ON
+            #pragma shader_feature_local _FADING_ON
+            #pragma shader_feature_local _DISTORTION_ON
 
             // -------------------------------------
             // Universal Pipeline keywords
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
-            #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
-            #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
             #pragma multi_compile _SHADER_QUALITY_LOW _SHADER_QUALITY_MEDIUM _SHADER_QUALITY_HIGH
 
             // -------------------------------------
@@ -146,25 +143,22 @@ Shader "Universal Render Pipeline/Particles/Lit"
             }
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
-            #pragma shader_feature _NORMALMAP
-            #pragma shader_feature _EMISSION
-            #pragma shader_feature _METALLICSPECGLOSSMAP
-            #pragma shader_feature _RECEIVE_SHADOWS_OFF
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _EMISSION
+            #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
+            #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Particle Keywords
             //#pragma shader_feature _ _ALPHAPREMULTIPLY_ON _ALPHAMODULATE_ON
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
-            #pragma shader_feature _FLIPBOOKBLENDING_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ _COLOROVERLAY_ON _COLORCOLOR_ON _COLORADDSUBDIFF_ON
+            #pragma shader_feature_local _FLIPBOOKBLENDING_ON
             //#pragma shader_feature _SOFTPARTICLES_ON
             //#pragma shader_feature _FADING_ON
             //#pragma shader_feature _DISTORTION_ON
@@ -195,14 +189,12 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/UnlitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Universal2D.hlsl"
