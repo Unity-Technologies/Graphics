@@ -1309,8 +1309,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRayTracingCB._RayCountEnabled = m_RayCountManager.RayCountIsEnabled();
             m_ShaderVariablesRayTracingCB._RaytracingCameraNearPlane = hdCamera.camera.nearClipPlane;
             m_ShaderVariablesRayTracingCB._RaytracingPixelSpreadAngle = GetPixelSpreadAngle(hdCamera.camera.fieldOfView, hdCamera.actualWidth, hdCamera.actualHeight);
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness.value;
-            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart.value;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness;
+            m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart;
 
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
@@ -4359,8 +4359,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._SsrIterLimit = volumeSettings.rayMaxIterations;
             cb._SsrReflectsSky = volumeSettings.reflectSky.value ? 1 : 0;
             cb._SsrStencilBit = (int)StencilUsage.TraceReflectionRay;
-            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart.value;
-            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness.value;
+            float roughnessFadeStart = 1 - volumeSettings.smoothnessFadeStart;
+            cb._SsrRoughnessFadeEnd = 1 - volumeSettings.minSmoothness;
             float roughnessFadeLength = cb._SsrRoughnessFadeEnd - roughnessFadeStart;
             cb._SsrRoughnessFadeEndTimesRcpLength = (roughnessFadeLength != 0) ? (cb._SsrRoughnessFadeEnd * (1.0f / roughnessFadeLength)) : 1;
             cb._SsrRoughnessFadeRcpLength = (roughnessFadeLength != 0) ? (1.0f / roughnessFadeLength) : 0;

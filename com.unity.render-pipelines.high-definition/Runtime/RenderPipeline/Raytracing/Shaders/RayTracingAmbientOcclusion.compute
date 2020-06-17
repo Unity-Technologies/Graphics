@@ -13,7 +13,7 @@
 // Tile size of this compute
 #define RAYTRACING_AMBIENT_OCCLUSION_TILE_SIZE 8
 
-float4  _RaytracingAOIntensity;
+float  _RaytracingAOIntensity;
 RW_TEXTURE2D_X(float, _AmbientOcclusionTextureRW);
 
 [numthreads(RAYTRACING_AMBIENT_OCCLUSION_TILE_SIZE, RAYTRACING_AMBIENT_OCCLUSION_TILE_SIZE, 1)]
