@@ -1,15 +1,15 @@
-# Using the Compositor
-To open the Compositor window in the Unity Editor, select **Window > Render Pipeline > HD Render Pipeline Compositor** from the menu. From this window, you can control the Compositor configuration. The first time you open the Compositor window, it automatically uses a default *"pass-through"* composition profile that forwards the output of the main [Camera](HDRP-Camera.md) to the final composed frame. You can edit this profile or you can load another one from disk. For information on the properties in the Compositor window, see [Compositor window](Compositor-User-Options.md).
+# Using the Graphics Compositor
+To open the Graphics Compositor window in the Unity Editor, select **Window > Render Pipeline > Graphics Compositor** from the menu. From this window, you can control the Compositor configuration. The first time you open the Compositor window, it automatically uses a default *"pass-through"* composition profile that forwards the output of the main [Camera](HDRP-Camera.md) to the final composed frame. You can edit this profile or you can load another one from disk. For information on the properties in the Compositor window, see [Compositor window](Compositor-User-Options.md).
 
 
 ## Layer Types
-The HDRP Compositor tool typically handles two types of layers: 
+The Graphics Compositor tool typically handles two types of layers: 
 - **Composition Layers**: Which you define in the [Composition Graph](#composition-graph). The Composition Graph defines the number of layers and how to combine them but does not define each layer's content.
 - **Sub-layers**: Which you define in the Compositor window, in the [Render Schedule](#render-schedule) section. You use stack Sub-layers to define the content of a Composition Layer.
 
 
 ## Composition Graph
-To specify the output image, the Compositor uses a graph of compositing operations. Specifically, the Compositor uses the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html) with an [Unlit Master Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Unlit-Master-Node.html) as its target. To specify the output image, the Compositor uses the value you connect to the **Color** port. You do not need to connect any other ports on the Master Node.
+To specify the output image, the Graphics Compositor uses a graph of compositing operations. Specifically, the Compositor uses the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html) with an [Unlit Master Node](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest/index.html?subfolder=/manual/Unlit-Master-Node.html) as its target. To specify the output image, the Compositor uses the value you connect to the **Color** port. You do not need to connect any other ports on the Master Node.
 
 **Note**: When the output of the composition is to a render target, the Material you create from the Master Node must be double-sided.
 
