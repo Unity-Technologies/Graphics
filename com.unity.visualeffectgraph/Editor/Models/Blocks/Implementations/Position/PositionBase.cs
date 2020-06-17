@@ -8,11 +8,11 @@ namespace UnityEditor.VFX.Block
     {
         public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
         {
-            var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add, AttributeCompositionMode.Blend };
+            var compositions = new[] { AttributeCompositionMode.Overwrite };
 
             foreach (var composition in compositions)
             {
-                yield return new[] { new KeyValuePair<string, object>("composition", composition) };
+                yield return new[] { new KeyValuePair<string, object>("compositionPosition", composition) };
             }
         }
     }
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting, Tooltip("Controls whether particles are spawned randomly, or can be controlled by a deterministic input.")]
         public SpawnMode spawnMode;
 
-        public override string name => VFXBlockUtility.GetNameString(compositionPosition) + " Position : {0}";
+        public override string name => VFXBlockUtility.GetNameString(compositionPosition) + " Position (Shape: {0})";
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
@@ -123,6 +123,9 @@ namespace UnityEditor.VFX.Block
             {
                 if (!supportsVolumeSpawning)
                     yield return "positionMode";
+
+                if (!needDirectionWrite)
+                    yield return "compositionDirection";
 
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;

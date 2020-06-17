@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position", experimental = true)]
+    [VFXInfo(category = "Position", experimental = true, variantProvider = typeof(PositionBaseProvider))]
     class PositionMesh : PositionBase
     {
 

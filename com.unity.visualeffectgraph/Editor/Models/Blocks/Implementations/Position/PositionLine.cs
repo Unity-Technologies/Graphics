@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionLine : PositionBase
     {
         public override string name { get { return string.Format(base.name, "Line"); } }
@@ -29,16 +29,18 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        protected override bool needDirectionWrite => false;
-
         public override string source
         {
             get
             {
+                string outSource;
                 if (spawnMode == SpawnMode.Custom)
-                    return string.Format(composePositionFormatString, "lerp(line_start, line_end, LineSequencer)");
+                    outSource = string.Format(composePositionFormatString, "lerp(line_start, line_end, LineSequencer)");
                 else
-                    return string.Format(composePositionFormatString, "lerp(line_start, line_end, RAND)");
+                    outSource = string.Format(composePositionFormatString, "lerp(line_start, line_end, RAND)");
+                outSource += "\n";
+                outSource += string.Format(composeDirectionFormatString, "normalize(line_end - line_start)");
+                return outSource;
             }
         }
     }

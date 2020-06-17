@@ -5,10 +5,10 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Position")]
+    [VFXInfo(category = "Position", variantProvider = typeof(PositionBaseProvider))]
     class PositionAABox : PositionBase
     {
-        public override string name { get { return string.Format(base.name, "Axis-Aligned Box"); ; } }
+        public override string name { get { return string.Format(base.name, "AABox"); ; } }
 
         public class InputProperties
         {
@@ -86,6 +86,7 @@ namespace UnityEditor.VFX.Block
                 else if (positionMode == PositionMode.Surface)
                 {
                     outSource = @"
+Box_size = abs(Box_size);
 float areaXY = max(Box_size.x * Box_size.y, VFX_EPSILON);
 float areaXZ = max(Box_size.x * Box_size.z, VFX_EPSILON);
 float areaYZ = max(Box_size.y * Box_size.z, VFX_EPSILON);
@@ -108,6 +109,7 @@ float3 nPos = cube;
                 else
                 {
                     outSource = @"
+Box_size = abs(Box_size);
 float face = RAND * cumulativeVolumes.z;
 float flip = (RAND >= 0.5f) ? 1.0f : -1.0f;
 float3 cube = float3(RAND2 * 2.0f - 1.0f, -RAND);
