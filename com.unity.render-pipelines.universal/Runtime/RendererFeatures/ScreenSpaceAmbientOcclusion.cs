@@ -36,7 +36,6 @@ namespace UnityEngine.Rendering.Universal
     {
         // Serialized Fields
         [SerializeField, HideInInspector] private Shader m_Shader = null;
-        [SerializeField, HideInInspector] private Texture2D m_BlueNoise = null;
         [SerializeField] private ScreenSpaceAmbientOcclusionSettings m_Settings = new ScreenSpaceAmbientOcclusionSettings();
 
         // Private Fields
@@ -106,7 +105,6 @@ namespace UnityEngine.Rendering.Universal
 
             m_Material = CoreUtils.CreateEngineMaterial(m_Shader);
             m_SSAOPass.material = m_Material;
-            m_SSAOPass.blueNoiseTexture = m_BlueNoise;
             return m_Material != null;
         }
 
@@ -116,7 +114,6 @@ namespace UnityEngine.Rendering.Universal
             // Public Variables
             internal string profilerTag;
             internal Material material;
-            internal Texture2D blueNoiseTexture;
 
             // Private Variables
             private Vector4 m_offsetIncrement = Vector4.zero;
@@ -129,9 +126,6 @@ namespace UnityEngine.Rendering.Universal
 
             // Constants
             private const int k_KawaseBlurShaderPassID = 3;
-            private const int k_HorizontalShaderPassID = 4;
-            private const int k_VerticalShaderPassID = 5;
-            private const int k_FinalBlurShaderPassID = 6;
             private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
             private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
 
@@ -272,7 +266,6 @@ namespace UnityEngine.Rendering.Universal
 
                     // Execute the Blur Passes
                     int SSAOTexID = ExecuteKawaseBlur(cmd);
-                    //int SSAOTexID = ExecuteGaussianBlur(cmd);
 
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, SSAOTexID);
@@ -298,16 +291,7 @@ namespace UnityEngine.Rendering.Universal
 
             private void ExecuteSSAO(CommandBuffer cmd, int occlusionPass)
             {
-                material.SetTexture(s_BlueNoiseID, blueNoiseTexture);
                 Render(cmd, m_SSAOTexture1Target, occlusionPass);
-            }
-
-            private int ExecuteGaussianBlur(CommandBuffer cmd)
-            {
-                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_HorizontalShaderPassID);
-                Render(cmd, s_SSAOTexture2ID, s_SSAOTexture1ID, k_VerticalShaderPassID);
-                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture3ID, k_FinalBlurShaderPassID);
-                return s_SSAOTexture3ID;
             }
 
             private int ExecuteKawaseBlur(CommandBuffer cmd)
@@ -316,11 +300,13 @@ namespace UnityEngine.Rendering.Universal
                 RenderTargetIdentifier curTarget = m_SSAOTexture2Target;
                 int lastTargetID = s_SSAOTexture1ID;
                 int curTargetID = s_SSAOTexture2ID;
-                Vector4 offset = 1.5f * m_offsetIncrement;
+
+                Vector4 startOffset = 1.5f * m_offsetIncrement;
+                Vector4 offset = startOffset;
                 int numOfPasses = m_CurrentSettings.BlurPasses;
                 cmd.SetGlobalFloat(s_SSAOLastKawaseID, 0.0f);
                 cmd.SetGlobalVector(s_BlurOffsetID, m_offsetIncrement);
-                for (int i = 0; i < numOfPasses; i++)
+                for (int i = 0; i < numOfPasses - 1; i++)
                 {
                     cmd.SetGlobalVector(s_BlurOffsetID, offset);
                     Render(cmd, lastTargetID, curTarget, k_KawaseBlurShaderPassID);
@@ -331,6 +317,7 @@ namespace UnityEngine.Rendering.Universal
                     CoreUtils.Swap(ref curTargetID, ref lastTargetID);
                 }
 
+                cmd.SetGlobalVector(s_BlurOffsetID, startOffset);
                 cmd.SetGlobalFloat(s_SSAOLastKawaseID, 1.0f);
                 Render(cmd, lastTargetID, m_SSAOTexture3Target, k_KawaseBlurShaderPassID);
 

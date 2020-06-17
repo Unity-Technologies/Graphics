@@ -95,14 +95,29 @@ float2 GetScreenSpacePosition(float2 uv)
     return uv * SCREEN_PARAMS.xy * DOWNSAMPLE;
 }
 
+// Trigonometric function utility
+float2 CosSin(float theta)
+{
+    float sn, cs;
+    sincos(theta, sn, cs);
+    return float2(cs, sn);
+}
+
+// Pseudo random number generator with 2D coordinates
+float UVRandom(float u, float v)
+{
+    float f = dot(float2(12.9898, 78.233), float2(u, v));
+    return frac(43758.5453 * sin(f));
+}
+
 // Sample point picker
 float3 PickSamplePoint(float2 uv, float randAddon, int index)
 {
     float2 positionSS = GetScreenSpacePosition(uv);
-    float nX = InterleavedGradientNoise(positionSS + randAddon, index);// + _Time.x * 100.0);
-    float nY = InterleavedGradientNoise(positionSS - randAddon, index);// + _Time.y * 100.0);
-    float2 noise = float2(nX, nY);
-    return SAMPLE_BLUE_NOISE(positionSS * _BlueNoiseTexture_TexelSize.xy + noise);
+    float gn = InterleavedGradientNoise(positionSS, index);
+    float u = frac(UVRandom(0.0, index + randAddon) + gn) * 2.0 - 1.0;
+    float theta = (UVRandom(1.0, index + randAddon) + gn) * TWO_PI;
+    return float3(CosSin(theta) * sqrt(1.0 - u * u), u);
 }
 
 float RawToLinearDepth(float rawDepth)
@@ -252,6 +267,7 @@ float4 SSAO(Varyings input) : SV_Target
     float randAddon = uv.x * 1e-10;
 
     float rcpSampleCount = rcp(SAMPLE_COUNT);
+    rcpSampleCount = lerp(rcpSampleCount, 1.0, saturate(depth_o));
     float ao = 0.0;
     for (int s = 0; s < int(SAMPLE_COUNT); s++)
     {
@@ -261,8 +277,10 @@ float4 SSAO(Varyings input) : SV_Target
         #endif
 
         // Sample point
-        float3 v_s1 = PickSamplePoint(uv.xy, randAddon + s, s);
-        v_s1 *= sqrt((s + 1.0) * rcpSampleCount) * RADIUS;
+        float3 v_s1 = PickSamplePoint(uv, randAddon, s);
+
+        // Make it distributed between [0, _Radius]
+        v_s1 *= sqrt((s + 1.0) * rcpSampleCount ) * RADIUS;
 
         v_s1 = faceforward(v_s1, -norm_o, v_s1);
         float3 vpos_s1 = vpos_o + v_s1;
@@ -299,147 +317,6 @@ float4 SSAO(Varyings input) : SV_Target
 
     return PackAONormal(ao, norm_o);
     return float4(1.0 - ao, packedDepth);
-}
-
-
-// Geometry-aware separable bilateral filter
-float4 FragBlur(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
-
-    #if defined(BLUR_HORIZONTAL)
-        // Horizontal pass: Always use 2 texels interval to match to
-        // the dither pattern.
-        float2 delta = float2(_BaseMap_TexelSize.x, 0.0);
-    #else
-        // Vertical pass: Apply _Downsample to match to the dither
-        // pattern in the original occlusion buffer.
-        float2 delta = float2(0.0, _BaseMap_TexelSize.y * rcp(DOWNSAMPLE));
-    #endif
-
-    #if defined(BLUR_HIGH_QUALITY)
-        // High quality 7-tap Gaussian with adaptive sampling
-        float4 p0  = SAMPLE_BASEMAP(uv.xy                         );
-        float4 p1a = SAMPLE_BASEMAP(uv.xy - (delta               ));
-        float4 p1b = SAMPLE_BASEMAP(uv.xy + (delta               ));
-        float4 p2a = SAMPLE_BASEMAP(uv.xy - (delta * 2.0         ));
-        float4 p2b = SAMPLE_BASEMAP(uv.xy + (delta * 2.0         ));
-        float4 p3a = SAMPLE_BASEMAP(uv.xy - (delta * 3.2307692308));
-        float4 p3b = SAMPLE_BASEMAP(uv.xy + (delta * 3.2307692308));
-
-        #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            float3x3 camProj = (float3x3)unity_CameraProjection;
-            float2 p11_22 = float2(camProj._11, camProj._22);
-            float2 p13_31 = float2(camProj._13, camProj._23);
-
-            // Get the depth, normal and view position for this fragment
-            float depth_o;
-            float3 n0;
-            float3 vpos_o;
-            SampleDepthNormalView(uv, p11_22, p13_31, depth_o, n0, vpos_o);
-        #else
-            float3 n0 = GetPackedNormal(p0);
-        #endif
-
-        float w0 = 0.37004405286;
-        float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.31718061674;
-        float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.31718061674;
-        float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.19823788546;
-        float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.19823788546;
-        float w3a = CompareNormal(n0, GetPackedNormal(p3a)) * 0.11453744493;
-        float w3b = CompareNormal(n0, GetPackedNormal(p3b)) * 0.11453744493;
-
-        float s;
-        s  = GetPackedAO(p0)  * w0;
-        s += GetPackedAO(p1a) * w1a;
-        s += GetPackedAO(p1b) * w1b;
-        s += GetPackedAO(p2a) * w2a;
-        s += GetPackedAO(p2b) * w2b;
-        s += GetPackedAO(p3a) * w3a;
-        s += GetPackedAO(p3b) * w3b;
-
-        s *= rcp(w0 + w1a + w1b + w2a + w2b + w3a + w3b);
-    #else
-        // Faster 5-tap Gaussian with linear sampling
-        float4 p0  = SAMPLE_BASEMAP(uv.xy                         );
-        float4 p1a = SAMPLE_BASEMAP(uv.xy - (delta * 1.3846153846));
-        float4 p1b = SAMPLE_BASEMAP(uv.xy + (delta * 1.3846153846));
-        float4 p2a = SAMPLE_BASEMAP(uv.xy - (delta * 3.2307692308));
-        float4 p2b = SAMPLE_BASEMAP(uv.xy + (delta * 3.2307692308));
-
-        #if defined(BLUR_SAMPLE_CENTER_NORMAL)
-            float3x3 camProj = (float3x3)unity_CameraProjection;
-            float2 p11_22 = float2(camProj._11, camProj._22);
-            float2 p13_31 = float2(camProj._13, camProj._23);
-
-            // Get the depth, normal and view position for this fragment
-            float depth_o;
-            float3 n0;
-            float3 vpos_o;
-            SampleDepthNormalView(uv, p11_22, p13_31, depth_o, n0, vpos_o);
-       #else
-           float3 n0 = GetPackedNormal(p0);
-       #endif
-
-        float w0 = 0.2270270270;
-        float w1a = CompareNormal(n0, GetPackedNormal(p1a)) * 0.3162162162;
-        float w1b = CompareNormal(n0, GetPackedNormal(p1b)) * 0.3162162162;
-        float w2a = CompareNormal(n0, GetPackedNormal(p2a)) * 0.0702702703;
-        float w2b = CompareNormal(n0, GetPackedNormal(p2b)) * 0.0702702703;
-
-        float s;
-        s  = GetPackedAO(p0)  * w0;
-        s += GetPackedAO(p1a) * w1a;
-        s += GetPackedAO(p1b) * w1b;
-        s += GetPackedAO(p2a) * w2a;
-        s += GetPackedAO(p2b) * w2b;
-
-        s *= rcp(w0 + w1a + w1b + w2a + w2b);
-    #endif
-
-    return PackAONormal(s, n0);
-}
-
-
-// Geometry-aware bilateral filter (single pass/small kernel)
-float BlurSmall(TEXTURE2D_X_PARAM(tex, samp), float2 uv, float2 delta)
-{
-    float4 p0 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv                             ));
-    float4 p1 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x, -delta.y)));
-    float4 p2 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x, -delta.y)));
-    float4 p3 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2(-delta.x,  delta.y)));
-    float4 p4 = SAMPLE_TEXTURE2D_X(tex, samp, UnityStereoTransformScreenSpaceTex(uv + float2( delta.x,  delta.y)));
-
-    float3 n0 = GetPackedNormal(p0);
-
-    float w0 = 1.0;
-    float w1 = CompareNormal(n0, GetPackedNormal(p1));
-    float w2 = CompareNormal(n0, GetPackedNormal(p2));
-    float w3 = CompareNormal(n0, GetPackedNormal(p3));
-    float w4 = CompareNormal(n0, GetPackedNormal(p4));
-
-    float s;
-    s  = GetPackedAO(p0) * w0;
-    s += GetPackedAO(p1) * w1;
-    s += GetPackedAO(p2) * w2;
-    s += GetPackedAO(p3) * w3;
-    s += GetPackedAO(p4) * w4;
-
-    return s *= rcp(w0 + w1 + w2 + w3 + w4);
-}
-
-// Final composition shader
-float4 FragComposition(Varyings input) : SV_Target
-{
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-    float2 uv = input.uv;
-
-    float2 delta = _BaseMap_TexelSize.xy * rcp(DOWNSAMPLE);
-    float ao = BlurSmall(TEXTURE2D_X_ARGS(_BaseMap, sampler_BaseMap), uv, delta);
-
-    ao = EncodeAO(ao);
-    return 1.0 - ao;
 }
 
 float _LastKawasePass;

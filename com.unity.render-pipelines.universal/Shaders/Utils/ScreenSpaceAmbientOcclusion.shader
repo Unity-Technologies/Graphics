@@ -117,51 +117,5 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
             ENDHLSL
         }
-
-        // 4 - Separable blur (horizontal pass) with G-Buffer
-        Pass
-        {
-            Name "Horizontal Blur"
-
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragBlur
-                #define SOURCE_GBUFFER
-                #define BLUR_HORIZONTAL
-                //#define BLUR_SAMPLE_CENTER_NORMAL
-                #define SOURCE_DEPTH_NORMALS
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-
-            ENDHLSL
-        }
-
-        // 5 - Separable blur (vertical pass)
-        Pass
-        {
-            Name "Vertical Blur"
-
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragBlur
-                #define BLUR_VERTICAL
-                //#define BLUR_SAMPLE_CENTER_NORMAL
-                #define SOURCE_DEPTH_NORMALS
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-
-            ENDHLSL
-        }
-
-        // 6 - Final composition
-        Pass
-        {
-            Name "Final Composition"
-
-            HLSLPROGRAM
-                #pragma vertex VertDefault
-                #pragma fragment FragComposition
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SSAO.hlsl"
-
-            ENDHLSL
-        }
     }
 }
