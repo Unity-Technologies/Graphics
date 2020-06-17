@@ -49,7 +49,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
             cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
-            ConfigureTarget(normalHandle.Identifier(), depthHandle.Identifier());
+            ConfigureTarget(
+                new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                );
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -68,10 +71,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 ref CameraData cameraData = ref renderingData.cameraData;
                 Camera camera = cameraData.camera;
-                if (renderingData.cameraData.xr.enabled)
-                {
-                    context.StartMultiEye(camera);
-                }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref m_FilteringSettings);
 

@@ -9,7 +9,7 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
-TEXTURE2D_X(_BlueNoiseTexture);
+TEXTURE2D(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);

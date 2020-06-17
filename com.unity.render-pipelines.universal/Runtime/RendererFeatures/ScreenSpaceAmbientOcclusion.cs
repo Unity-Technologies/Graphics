@@ -304,9 +304,9 @@ namespace UnityEngine.Rendering.Universal
 
             private int ExecuteGaussianBlur(CommandBuffer cmd)
             {
-                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_HorizontalShaderPassID);
-                Render(cmd, s_SSAOTexture2ID, s_SSAOTexture1ID, k_VerticalShaderPassID);
-                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture3ID, k_FinalBlurShaderPassID);
+                Render(cmd, s_SSAOTexture1ID, m_SSAOTexture2Target, k_HorizontalShaderPassID);
+                Render(cmd, s_SSAOTexture2ID, m_SSAOTexture1Target, k_VerticalShaderPassID);
+                Render(cmd, s_SSAOTexture1ID, m_SSAOTexture3Target, k_FinalBlurShaderPassID);
                 return s_SSAOTexture3ID;
             }
 
