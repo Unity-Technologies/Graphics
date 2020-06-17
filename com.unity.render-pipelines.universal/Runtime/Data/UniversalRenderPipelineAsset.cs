@@ -847,5 +847,32 @@ namespace UnityEngine.Rendering.Universal
             if (index == -1) index = m_DefaultRendererIndex;
             return index < m_RendererDataList.Length ? m_RendererDataList[index] != null : false;
         }
+
+        /// <summary>
+        /// Check the list of Renderers against all Graphics APIs the player is built with.
+        /// </summary>
+        /// <returns></returns>
+        internal bool ValidateRendererGraphicsAPIs(out string unsupportedGraphicsApisMessage)
+        {
+            unsupportedGraphicsApisMessage = null;
+
+#if UNITY_EDITOR
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+
+            for (int i = 0; i < m_Renderers.Length; i++)
+            {
+                GraphicsDeviceType[] unsupportedAPIs = m_Renderers[i].unsupportedGraphicsDeviceTypes;
+
+                for (int apiIndex = 0; apiIndex < unsupportedAPIs.Length; apiIndex++)
+                {
+                    if (Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
+                        unsupportedGraphicsApisMessage += String.Format("{0} at index {1} does not support {2}.\n", m_Renderers[i], i, unsupportedAPIs[apiIndex]);
+                }
+            }
+#endif
+
+            return unsupportedGraphicsApisMessage == null;
+        }
     }
 }
