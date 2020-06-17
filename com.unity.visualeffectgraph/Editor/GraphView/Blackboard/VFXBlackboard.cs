@@ -57,6 +57,7 @@ namespace  UnityEditor.VFX.UI
         VFXView m_View;
 
         Button m_AddButton;
+        Button m_MenuButton;
 
         public VFXBlackboard(VFXView view)
         {
@@ -68,7 +69,7 @@ namespace  UnityEditor.VFX.UI
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
-            m_DefaultCategory = new VFXBlackboardCategory() { title = "parameters"};
+            m_DefaultCategory = new VFXBlackboardCategory() { title = "parameters" };
             Add(m_DefaultCategory);
             m_DefaultCategory.headerVisible = false;
 
@@ -84,7 +85,21 @@ namespace  UnityEditor.VFX.UI
 
             m_AddButton = this.Q<Button>(name: "addButton");
 
+            m_MenuButton = new Button() { name = "menuButton" };
+
+            var menuButtonIcon = new Image() { name = "menuButtonIcon" };
+
+            menuButtonIcon.image = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/menudots.png");
+
+            m_MenuButton.Add(menuButtonIcon);
+            m_AddButton.parent.Add(m_MenuButton);
+            m_MenuButton.PlaceInFront(m_AddButton);
+
+            //m_MenuButton.AddManipulator(new DownClickable(() => ShowOptionsButton()));
+            m_MenuButton.clicked += ShowOptionsButton;
+
             m_DragIndicator = new VisualElement();
+
 
             m_DragIndicator.name = "dragIndicator";
             m_DragIndicator.style.position = PositionType.Absolute;
@@ -112,6 +127,29 @@ namespace  UnityEditor.VFX.UI
                 s_LayoutManual.SetValue(this, false);
 
             m_AddButton.SetEnabled(false);
+        }
+
+
+        void ShowOptionsButton()
+        {
+            var menu = new GenericMenu();
+
+            menu.AddItem(EditorGUIUtility.TrTempContent("Clear Unused Properties"),false,OnClearUnusedParameters);
+
+            menu.DropDown(m_MenuButton.worldBound);
+        }
+
+        void OnClearUnusedParameters()
+        {
+            var unusedParameters = controller.graph.children.OfType<VFXParameter>().Where(t =>
+            (!t.isOutput&&!t.outputSlots.Any(t => t.HasLink(true))) ||
+            (t.isOutput && !t.inputSlots.Any(t => t.HasLink(true)))
+            ).ToList();
+
+            foreach(var parameter in unusedParameters)
+            {
+                controller.graph.RemoveChild(parameter);
+            }
         }
 
         Label m_PathLabel;
