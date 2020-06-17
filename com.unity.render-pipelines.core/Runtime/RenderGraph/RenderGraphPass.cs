@@ -26,9 +26,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public int              colorBufferMaxIndex { get; protected set; } = -1;
         public int              refCount { get; protected set; }
 
-        public List<int>[] resourceReadLists = new List<int>[(int)RenderGraphResourceType.Count];
-        public List<int>[] resourceWriteLists = new List<int>[(int)RenderGraphResourceType.Count];
-        public List<int>[] transientResourceList = new List<int>[(int)RenderGraphResourceType.Count];
+        public List<ResourceHandle>[] resourceReadLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
+        public List<ResourceHandle>[] resourceWriteLists = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
+        public List<ResourceHandle>[] transientResourceList = new List<ResourceHandle>[(int)RenderGraphResourceType.Count];
 
         public List<RendererListHandle>     usedRendererListList = new List<RendererListHandle>();
 
@@ -36,9 +36,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
-                resourceReadLists[i] = new List<int>();
-                resourceWriteLists[i] = new List<int>();
-                transientResourceList[i] = new List<int>();
+                resourceReadLists[i] = new List<ResourceHandle>();
+                resourceWriteLists[i] = new List<ResourceHandle>();
+                transientResourceList[i] = new List<ResourceHandle>();
             }
         }
 
@@ -68,19 +68,19 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        public void AddResourceWrite(RenderGraphResourceType type, int index)
+        public void AddResourceWrite(in ResourceHandle res)
         {
-            resourceWriteLists[(int)type].Add(index);
+            resourceWriteLists[res.iType].Add(res);
         }
 
-        public void AddResourceRead(RenderGraphResourceType type, int index)
+        public void AddResourceRead(in ResourceHandle res)
         {
-            resourceReadLists[(int)type].Add(index);
+            resourceReadLists[res.iType].Add(res);
         }
 
-        public void AddTransientResource(RenderGraphResourceType type, int index)
+        public void AddTransientResource(in ResourceHandle res)
         {
-            transientResourceList[(int)type].Add(index);
+            transientResourceList[res.iType].Add(res);
         }
 
         public void UseRendererList(RendererListHandle rendererList)
@@ -103,16 +103,16 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             Debug.Assert(index < RenderGraph.kMaxMRTCount && index >= 0);
             colorBufferMaxIndex = Math.Max(colorBufferMaxIndex, index);
             colorBuffers[index] = resource;
-            AddResourceWrite(RenderGraphResourceType.Texture, resource);
+            AddResourceWrite(resource.handle);
         }
 
         public void SetDepthBuffer(TextureHandle resource, DepthAccess flags)
         {
             depthBuffer = resource;
             if ((flags & DepthAccess.Read) != 0)
-                AddResourceRead(RenderGraphResourceType.Texture, resource);
+                AddResourceRead(resource.handle);
             if ((flags & DepthAccess.Write) != 0)
-                AddResourceWrite(RenderGraphResourceType.Texture, resource);
+                AddResourceWrite(resource.handle);
         }
     }
 

@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     abstract class RenderGraphResourcePool<Type> where Type : class
     {
         // Dictionary tracks resources by hash and stores resources with same hash in a List (list instead of a stack because we need to be able to remove stale allocations).
-        Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
+       protected  Dictionary<int, List<(Type resource, int frameIndex)>> m_ResourcePool = new Dictionary<int, List<(Type resource, int frameIndex)>>();
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         // Diagnostic only
@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<(int, Type)> m_FrameAllocatedResources = new List<(int, Type)>();
 #endif
 
-        static int s_CurrentFrameIndex;
+        protected static int s_CurrentFrameIndex;
 
         // Release the GPU resource itself
         abstract protected void ReleaseInternalResource(Type res);
@@ -46,25 +46,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return false;
         }
 
-        public void PurgeUnusedResources(int currentFrameIndex)
-        {
-            // Update the frame index for the lambda. Static because we don't want to capture.
-            s_CurrentFrameIndex = currentFrameIndex;
-
-            foreach (var kvp in m_ResourcePool)
-            {
-                var list = kvp.Value;
-                list.RemoveAll(obj =>
-                {
-                    if (obj.frameIndex < s_CurrentFrameIndex)
-                    {
-                        ReleaseInternalResource(obj.resource);
-                        return true;
-                    }
-                    return false;
-                });
-            }
-        }
+        abstract public void PurgeUnusedResources(int currentFrameIndex);
 
         public void Cleanup()
         {
@@ -150,6 +132,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             return "Texture";
         }
+
+        // Another C# nicety.
+        // We need to re-implement the whole thing every time because:
+        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
+        // - We can't use a virtual release function because it will capture this in the lambda for RemoveAll generating GCAlloc in the process.
+        override public void PurgeUnusedResources(int currentFrameIndex)
+        {
+            // Update the frame index for the lambda. Static because we don't want to capture.
+            s_CurrentFrameIndex = currentFrameIndex;
+
+            foreach (var kvp in m_ResourcePool)
+            {
+                var list = kvp.Value;
+                list.RemoveAll(obj =>
+                {
+                    if (obj.frameIndex < s_CurrentFrameIndex)
+                    {
+                        obj.resource.Release();
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
     }
 
     class ComputeBufferPool : RenderGraphResourcePool<ComputeBuffer>
@@ -169,5 +175,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return "ComputeBuffer";
         }
 
+        // Another C# nicety.
+        // We need to re-implement the whole thing every time because:
+        // - obj.resource.Release is Type specific so it cannot be called on a generic (and there's no shared interface for resources like RTHandle, ComputeBuffers etc)
+        // - We can't use a virtual release function because it will capture this in the lambda for RemoveAll generating GCAlloc in the process.
+        override public void PurgeUnusedResources(int currentFrameIndex)
+        {
+            // Update the frame index for the lambda. Static because we don't want to capture.
+            s_CurrentFrameIndex = currentFrameIndex;
+
+            foreach (var kvp in m_ResourcePool)
+            {
+                var list = kvp.Value;
+                list.RemoveAll(obj =>
+                {
+                    if (obj.frameIndex < s_CurrentFrameIndex)
+                    {
+                        obj.resource.Release();
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
     }
 }

@@ -11,8 +11,28 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         Count
     }
 
+    // Can't have a default constructor with handle = -1 hence the ugly IsValid implementation (where m_IsValid will be false by default).
+    internal struct ResourceHandle
+    {
+        bool m_IsValid;
+
+        public int handle { get; private set; }
+        public RenderGraphResourceType type { get; private set; }
+        public int iType { get { return (int)type; } }
+
+        internal ResourceHandle(int value, RenderGraphResourceType type)
+        {
+            handle = value;
+            this.type = type;
+            m_IsValid = true;
+        }
+
+        public static implicit operator int(ResourceHandle handle) => handle.handle;
+        public bool IsValid() => m_IsValid;
+    }
+
     // BEHOLD C# COPY PASTA
-    // Struct can't be inherited and can't have default member values
+    // Struct can't be inherited and can't have default member values or constructor
     // Hence the copy paste and the ugly IsValid implementation.
 
     /// <summary>
@@ -21,29 +41,41 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     [DebuggerDisplay("Texture ({handle})")]
     public struct TextureHandle
     {
-        bool m_IsValid;
-        internal int handle { get; private set; }
-        internal TextureHandle(int handle) { this.handle = handle; m_IsValid = true; }
-        /// <summary>
-        /// Conversion to int.
-        /// </summary>
-        /// <param name="handle">Texture handle to convert.</param>
-        /// <returns>The integer representation of the handle.</returns>
-        public static implicit operator int(TextureHandle handle) { return handle.handle; }
+        internal ResourceHandle handle;
+
+        internal TextureHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.Texture); }
+
         /// <summary>
         /// Return true if the handle is valid.
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
-        public bool IsValid() => m_IsValid;
+        public bool IsValid() => handle.IsValid();
+
+        ///// <summary>
+        ///// GetHashCode override.
+        ///// </summary>
+        ///// <returns></returns>
+        //public override int GetHashCode()
+        //{
+        //    return (handle << 2) ^ (m_IsValid ? 333 : 444);
+        //}
+    }
+
+    /// <summary>
+    /// Compute Buffer resource handle.
+    /// </summary>
+    [DebuggerDisplay("ComputeBuffer ({handle})")]
+    public struct ComputeBufferHandle
+    {
+        internal ResourceHandle handle;
+
+        internal ComputeBufferHandle(int handle) { this.handle = new ResourceHandle(handle, RenderGraphResourceType.ComputeBuffer); }
 
         /// <summary>
-        /// GetHashCode override.
+        /// Return true if the handle is valid.
         /// </summary>
-        /// <returns></returns>
-        public override int GetHashCode()
-        {
-            return (handle << 2) ^ (m_IsValid ? 333 : 444);
-        }
+        /// <returns>True if the handle is valid.</returns>
+        public bool IsValid() => handle.IsValid();
     }
 
     /// <summary>
@@ -61,28 +93,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <param name="handle">Renderer List handle to convert.</param>
         /// <returns>The integer representation of the handle.</returns>
         public static implicit operator int(RendererListHandle handle) { return handle.handle; }
-        /// <summary>
-        /// Return true if the handle is valid.
-        /// </summary>
-        /// <returns>True if the handle is valid.</returns>
-        public bool IsValid() => m_IsValid;
-    }
 
-    /// <summary>
-    /// Compute Buffer resource handle.
-    /// </summary>
-    [DebuggerDisplay("ComputeBuffer ({handle})")]
-    public struct ComputeBufferHandle
-    {
-        bool m_IsValid;
-        internal int handle { get; private set; }
-        internal ComputeBufferHandle(int handle) { this.handle = handle; m_IsValid = true; }
-        /// <summary>
-        /// Conversion to int.
-        /// </summary>
-        /// <param name="handle">Compute Buffer handle to convert.</param>
-        /// <returns>The integer representation of the handle.</returns>
-        public static implicit operator int(ComputeBufferHandle handle) { return handle.handle; }
         /// <summary>
         /// Return true if the handle is valid.
         /// </summary>

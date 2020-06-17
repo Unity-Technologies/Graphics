@@ -112,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            return GetTextureResource(handle).resource;
+            return GetTextureResource(handle.handle).resource;
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             if (!handle.IsValid())
                 return null;
 
-            return GetComputeBufferResource(handle).resource;
+            return GetComputeBufferResource(handle.handle).resource;
         }
         #endregion
 
@@ -184,36 +184,34 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal RTHandleProperties GetRTHandleProperties() { return m_RTHandleSystem.rtHandleProperties; }
 
-        internal string GetResourceName(RenderGraphResourceType type, int index)
+        void CheckHandleValidity(in ResourceHandle res)
         {
-            var resources = m_Resources[(int)type];
-            if (index < 0 || index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
-            return m_Resources[(int)type][index].GetName();
+            var resources = m_Resources[res.iType];
+            if (res.handle >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.handle}");
         }
 
-        internal bool IsResourceImported(RenderGraphResourceType type, int index)
+        internal string GetResourceName(in ResourceHandle res)
         {
-            var resources = m_Resources[(int)type];
-            if (index < 0 || index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
-            return m_Resources[(int)type][index].imported;
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.handle].GetName();
         }
 
-        internal int GetResourceTransientIndex(RenderGraphResourceType type, int index)
+        internal bool IsResourceImported(in ResourceHandle res)
         {
-            var resources = m_Resources[(int)type];
-            if (index < 0 || index >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {type} with an invalid resource index {index}");
-            return m_Resources[(int)type][index].transientPassIndex;
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.handle].imported;
+        }
+
+        internal int GetResourceTransientIndex(in ResourceHandle res)
+        {
+            CheckHandleValidity(res);
+            return m_Resources[res.iType][res.handle].transientPassIndex;
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph
         internal TextureHandle ImportTexture(RTHandle rt, int shaderProperty = 0)
         {
-            if (rt == null)
-                throw new InvalidOperationException("Importing a null RTHandle is not allowed.");
-
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.Texture], out TextureResource texResource);
             texResource.resource = rt;
             texResource.imported = true;
@@ -265,14 +263,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources[(int)RenderGraphResourceType.Texture].size;
         }
 
-        TextureResource GetTextureResource(int index)
+        TextureResource GetTextureResource(in ResourceHandle handle)
         {
-            return m_Resources[(int)RenderGraphResourceType.Texture][index] as TextureResource;
+            return m_Resources[(int)RenderGraphResourceType.Texture][handle] as TextureResource;
         }
 
-        internal TextureDesc GetTextureResourceDesc(int index)
+        internal TextureDesc GetTextureResourceDesc(in ResourceHandle handle)
         {
-            return (m_Resources[(int)RenderGraphResourceType.Texture][index] as TextureResource).desc;
+            return (m_Resources[(int)RenderGraphResourceType.Texture][handle] as TextureResource).desc;
         }
 
         internal RendererListHandle CreateRendererList(in RendererListDesc desc)
@@ -285,9 +283,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal ComputeBufferHandle ImportComputeBuffer(ComputeBuffer computeBuffer)
         {
-            if (computeBuffer == null)
-                throw new InvalidOperationException("Importing a null ComputeBuffer is not allowed.");
-
             int newHandle = AddNewResource(m_Resources[(int)RenderGraphResourceType.ComputeBuffer], out ComputeBufferResource bufferResource);
             bufferResource.resource = computeBuffer;
             bufferResource.imported = true;
@@ -306,9 +301,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return new ComputeBufferHandle(newHandle);
         }
 
-        internal ComputeBufferDesc GetComputeBufferResourceDesc(ComputeBufferHandle index)
+        internal ComputeBufferDesc GetComputeBufferResourceDesc(in ResourceHandle handle)
         {
-            return (m_Resources[(int)RenderGraphResourceType.ComputeBuffer][index] as ComputeBufferResource).desc;
+            return (m_Resources[(int)RenderGraphResourceType.ComputeBuffer][handle] as ComputeBufferResource).desc;
         }
 
         internal int GetComputeBufferResourceCount()
@@ -316,14 +311,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             return m_Resources[(int)RenderGraphResourceType.ComputeBuffer].size;
         }
 
-        ComputeBufferResource GetComputeBufferResource(int index)
+        ComputeBufferResource GetComputeBufferResource(in ResourceHandle handle)
         {
-            return m_Resources[(int)RenderGraphResourceType.ComputeBuffer][index] as ComputeBufferResource;
+            return m_Resources[(int)RenderGraphResourceType.ComputeBuffer][handle] as ComputeBufferResource;
         }
 
         internal void CreateAndClearTexture(RenderGraphContext rgContext, int index)
         {
-            var resource = GetTextureResource(index);
+            var resource = m_Resources[(int)RenderGraphResourceType.Texture][index] as TextureResource;
+
             if (!resource.imported)
             {
                 var desc = resource.desc;
@@ -389,7 +385,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void CreateComputeBuffer(RenderGraphContext rgContext, int index)
         {
-            var resource = GetComputeBufferResource(index);
+            var resource = m_Resources[(int)RenderGraphResourceType.ComputeBuffer][index] as ComputeBufferResource;
             if (!resource.imported)
             {
                 var desc = resource.desc;
@@ -411,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void SetGlobalTextures(RenderGraphContext rgContext, List<int> textures, bool bindDummyTexture)
+        void SetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures, bool bindDummyTexture)
         {
             foreach (var resource in textures)
             {
@@ -427,24 +423,25 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         }
 
 
-        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<int> textures)
+        internal void PreRenderPassSetGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, false);
         }
 
-        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<int> textures)
+        internal void PostRenderPassUnbindGlobalTextures(RenderGraphContext rgContext, List<ResourceHandle> textures)
         {
             SetGlobalTextures(rgContext, textures, true);
         }
 
-        internal void ReleaseTexture(RenderGraphContext rgContext, int handle)
+        internal void ReleaseTexture(RenderGraphContext rgContext, int index)
         {
-            var resource = GetTextureResource(handle);
-            if (resource.resource == null)
-                throw new InvalidOperationException($"Tried to release a texture ({resource.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+            var resource = m_Resources[(int)RenderGraphResourceType.Texture][index] as TextureResource;
 
             if (!resource.imported)
             {
+                if (resource.resource == null)
+                    throw new InvalidOperationException($"Tried to release a texture ({resource.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+
                 if (m_RenderGraphDebug.clearRenderTargetsAtRelease)
                 {
                     using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
@@ -452,7 +449,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
                         // Not ideal to do new TextureHandle here but GetTexture is a public API and we rather have it take an explicit TextureHandle parameters.
                         // Everywhere else internally int is better because it allows us to share more code.
-                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(handle)), clearFlag, Color.magenta);
+                        CoreUtils.SetRenderTarget(rgContext.cmd, GetTexture(new TextureHandle(index)), clearFlag, Color.magenta);
                     }
                 }
 
@@ -465,14 +462,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        internal void ReleaseComputeBuffer(RenderGraphContext rgContext, int handle)
+        internal void ReleaseComputeBuffer(RenderGraphContext rgContext, int index)
         {
-            var resource = GetComputeBufferResource(handle);
-            if (resource.resource == null)
-                throw new InvalidOperationException($"Tried to release a compute buffer ({resource.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+            var resource = m_Resources[(int)RenderGraphResourceType.ComputeBuffer][index] as ComputeBufferResource;
 
             if (!resource.imported)
             {
+                if (resource.resource == null)
+                    throw new InvalidOperationException($"Tried to release a compute buffer ({resource.desc.name}) that was never created. Check that there is at least one pass writing to it first.");
+
                 LogComputeBufferRelease(resource.resource);
                 m_ComputeBufferPool.ReleaseResource(resource.cachedHash, resource.resource, m_CurrentFrameIndex);
                 m_ComputeBufferPool.UnregisterFrameAllocation(resource.cachedHash, resource.resource);

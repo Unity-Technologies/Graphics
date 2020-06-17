@@ -120,24 +120,24 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         [DebuggerDisplay("RenderPass: {pass.name} (Index:{pass.index} Async:{enableAsyncCompute})")]
         internal struct CompiledPassInfo
         {
-            public RenderGraphPass      pass;
-            public List<int>[]          resourceCreateList;
-            public List<int>[]          resourceReleaseList;
-            public int                  refCount;
-            public bool                 pruned;
-            public bool                 hasSideEffect;
-            public int                  syncToPassIndex; // Index of the pass that needs to be waited for.
-            public int                  syncFromPassIndex; // Smaller pass index that waits for this pass.
-            public bool                 needGraphicsFence;
-            public GraphicsFence        fence;
+            public RenderGraphPass  pass;
+            public List<int>[]      resourceCreateList;
+            public List<int>[]      resourceReleaseList;
+            public int              refCount;
+            public bool             pruned;
+            public bool             hasSideEffect;
+            public int              syncToPassIndex; // Index of the pass that needs to be waited for.
+            public int              syncFromPassIndex; // Smaller pass index that waits for this pass.
+            public bool             needGraphicsFence;
+            public GraphicsFence    fence;
 
-            public bool                 enableAsyncCompute { get { return pass.enableAsyncCompute; } }
-            public bool                 allowPassPruning { get { return pass.allowPassPruning; } }
+            public bool             enableAsyncCompute { get { return pass.enableAsyncCompute; } }
+            public bool             allowPassPruning { get { return pass.allowPassPruning; } }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             // This members are only here to ease debugging.
-            public List<string>[]       debugResourceReads;
-            public List<string>[]       debugResourceWrites;
+            public List<string>[]   debugResourceReads;
+            public List<string>[]   debugResourceWrites;
 #endif
 
             public void Reset(RenderGraphPass pass)
@@ -312,7 +312,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>A new TextureHandle.</returns>
         public TextureHandle CreateTexture(TextureHandle texture, int shaderProperty = 0)
         {
-            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture), shaderProperty);
+            return m_Resources.CreateTexture(m_Resources.GetTextureResourceDesc(texture.handle), shaderProperty);
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>The input texture descriptor.</returns>
         public TextureDesc GetTextureDesc(TextureHandle texture)
         {
-            return m_Resources.GetTextureResourceDesc(texture);
+            return m_Resources.GetTextureResourceDesc(texture.handle);
         }
 
         /// <summary>
@@ -361,9 +361,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="computeBuffer">Compute Buffer from which the descriptor should be used.</param>
         /// <returns>A new ComputeBufferHandle.</returns>
-        public ComputeBufferHandle CreateComputeBuffer(ComputeBufferHandle computeBuffer)
+        public ComputeBufferHandle CreateComputeBuffer(in ComputeBufferHandle computeBuffer)
         {
-            return m_Resources.CreateComputeBuffer(m_Resources.GetComputeBufferResourceDesc(computeBuffer));
+            return m_Resources.CreateComputeBuffer(m_Resources.GetComputeBufferResourceDesc(computeBuffer.handle));
         }
 
         /// <summary>
@@ -371,9 +371,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <param name="computeBuffer">Compute Buffer resource from which the descriptor is requested.</param>
         /// <returns>The input compute buffer descriptor.</returns>
-        public ComputeBufferDesc GetComputeBufferDesc(ComputeBufferHandle computeBuffer)
+        public ComputeBufferDesc GetComputeBufferDesc(in ComputeBufferHandle computeBuffer)
         {
-            return m_Resources.GetComputeBufferResourceDesc(computeBuffer);
+            return m_Resources.GetComputeBufferResourceDesc(computeBuffer.handle);
         }
 
         /// <summary>
@@ -485,30 +485,30 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
                     var resourceRead = passInfo.pass.resourceReadLists[type];
-                    foreach (int resourceIndex in resourceRead)
+                    foreach (var resource in resourceRead)
                     {
-                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resourceIndex];
+                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
                         info.consumers.Add(passIndex);
                         info.refCount++;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceReads[type].Add(m_Resources.GetResourceName((RenderGraphResourceType)type, resourceIndex));
+                        passInfo.debugResourceReads[type].Add(m_Resources.GetResourceName(resource));
 #endif
                     }
 
                     var resourceWrite = passInfo.pass.resourceWriteLists[type];
-                    foreach (int resourceIndex in resourceWrite)
+                    foreach (var resource in resourceWrite)
                     {
-                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resourceIndex];
+                        ref CompiledResourceInfo info = ref m_CompiledResourcesInfos[type][resource];
                         info.producers.Add(passIndex);
                         passInfo.refCount++;
 
                         // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
-                        if (m_Resources.IsResourceImported((RenderGraphResourceType)type, resourceIndex))
+                        if (m_Resources.IsResourceImported(resource))
                             passInfo.hasSideEffect = true;
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
-                        passInfo.debugResourceWrites[type].Add(m_Resources.GetResourceName((RenderGraphResourceType)type, resourceIndex));
+                        passInfo.debugResourceWrites[type].Add(m_Resources.GetResourceName(resource));
 #endif
                     }
 

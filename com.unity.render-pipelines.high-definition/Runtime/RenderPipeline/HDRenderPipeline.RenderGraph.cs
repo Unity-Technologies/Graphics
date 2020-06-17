@@ -688,14 +688,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         TextureHandle RenderTransparency(   RenderGraph     renderGraph,
-                                                        HDCamera                    hdCamera,
+                                            HDCamera        hdCamera,
                                             TextureHandle   colorBuffer,
                                             TextureHandle   depthStencilBuffer,
                                             TextureHandle   motionVectorsBuffer,
                                             TextureHandle   currentColorPyramid,
                                             TextureHandle   depthPyramid,
-                                                        ShadowResult                shadowResult,
-                                                        CullingResults              cullingResults)
+                                            ShadowResult    shadowResult,
+                                            CullingResults  cullingResults)
         {
             RenderTransparentDepthPrepass(renderGraph, hdCamera, depthStencilBuffer, cullingResults);
 
