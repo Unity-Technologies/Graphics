@@ -400,6 +400,13 @@ namespace  UnityEditor.VFX.UI
             newParam.SetSettingValue("m_Exposed", true);
         }
 
+        void OnAddOutputParameter(object parameter)
+        {
+            var selectedCategory = m_View.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
+            VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            newParam.isOutput = true;
+        }
+
         void OnAddItem(Blackboard bb)
         {
             GenericMenu menu = new GenericMenu();
@@ -512,6 +519,24 @@ namespace  UnityEditor.VFX.UI
             return row;
         }
 
+        void OnAddOutputParameterMenu()
+        {
+            GenericMenu menu = new GenericMenu();
+
+            foreach (var parameter in VFXLibrary.GetParameters())
+            {
+                VFXParameter model = parameter.model as VFXParameter;
+
+                var type = model.type;
+                if (type == typeof(GPUEvent))
+                    continue;
+
+                menu.AddItem(EditorGUIUtility.TextContent(type.UserFriendlyName()), false, OnAddOutputParameter, parameter);
+            }
+
+            menu.ShowAsContext();
+        }
+
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
@@ -530,6 +555,15 @@ namespace  UnityEditor.VFX.UI
                 m_OutputCategory.headerVisible = true;
                 m_OutputCategory.expanded = PlayerPrefs.GetInt("VFX.blackboard.outputexpanded", 0) != 0;
                 Add(m_OutputCategory);
+
+                var addOutputButton = new Button() { name = "addOutputButton", text = "+" };
+                addOutputButton.clicked += OnAddOutputParameterMenu;
+                var sectionHeader = m_OutputCategory.Q("sectionHeader");
+                var spacer = new VisualElement();
+                spacer.style.flexGrow = 1;
+                sectionHeader.Add(spacer);
+                sectionHeader.Add(addOutputButton);
+
                 m_OutputCategory.AddToClassList("output");
             }
             else if (!(controller.model.subgraph is VisualEffectSubgraphOperator) && m_OutputCategory != null)

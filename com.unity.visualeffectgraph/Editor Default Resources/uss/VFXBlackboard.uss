@@ -56,6 +56,8 @@ VFXBlackboardRow.hovered #pill #selection-border
 .blackboard .output > .mainContainer > #sectionHeader > #sectionTitleLabel
 {
     color:#C1C1C1;
+    align-items:stretch;
+    align-self:center;
 }
 
 
@@ -169,6 +171,27 @@ VFXBlackboardCategory > .mainContainer > #sectionHeader
 }
 
 .blackboard > .mainContainer > #content > #header > #menuButton:hover:active {
+    background-color: #747474;
+    /* theme-button-background-color */
+    border-color: #222222;
+    /* -theme-app-toolbar-button-border-color */
+}
+
+#addOutputButton {
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    background-image: none;
+    font-size: 20px;
+}
+
+#addOutputButton:hover {
+    background-color: #676767;
+    /* theme-button-background-color */
+    border-color: #222222;
+    /* -theme-app-toolbar-button-border-color */
+}
+
+#addOutputButton:hover:active {
     background-color: #747474;
     /* theme-button-background-color */
     border-color: #222222;
