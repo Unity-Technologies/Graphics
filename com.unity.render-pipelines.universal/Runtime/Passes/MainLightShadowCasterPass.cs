@@ -230,7 +230,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
             }
 
-            if (softShadows)
+            // Inside shader soft shadows are controlled through global keyword.
+            // If any additional light has soft shadows it will force soft shadows on main light too.
+            // TODO: make this conditional once we will support soft shadows per light inside shader.
+            // if (softShadows)
             {
                 if (m_SupportsBoxFilterForShadows)
                 {
