@@ -82,16 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     { HDShaderPasses.GenerateTransparentDepthPostpass(supportLighting) },
                 };
 
-                if (supportLighting)
-                {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
-                }
-                else
-                {
-                    passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
-                }
+                passes.Add(HDShaderPasses.GenerateTransparentDepthPrepass(supportLighting));
 
                 if (supportForward)
                 {
