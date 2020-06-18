@@ -8,7 +8,6 @@
 #pragma kernel KMain
 
 #pragma multi_compile _ ENABLE_ALPHA
-#pragma multi_compile _ HALF_RES
 
 CBUFFER_START(cb0)
 float4 _Params;
@@ -36,10 +35,12 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
     #define RING_COLOR totalColor
     #define RING_MAXCOC maxCoC
     #define RING_HITS totalHits
+    #define RING_ALPHA totalAlpha
 #else
     #define RING_COLOR ringColor
     #define RING_MAXCOC ringMaxCoC
     #define RING_HITS ringHits
+    #define RING_ALPHA ringAlpha
 #endif
 
 #define GROUP_RES  8u
@@ -127,6 +128,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxCoC[NUM_BUCKETS];
     float prevRingWeight[NUM_BUCKETS];
     float totalHits[NUM_BUCKETS];
+#ifdef ENABLE_ALPHA
+    float totalAlpha[NUM_BUCKETS];
+#endif
 
     // Initialize color/weights and everything else to zero (for all buckets)
     for (int i = 0; i < NUM_BUCKETS; ++i)
@@ -135,6 +139,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         maxCoC[i] = 0.0f;
         prevRingWeight[i] = 0.0f;
         totalHits[i] = 0.0f;
+#ifdef ENABLE_ALPHA
+        totalAlpha[i] = 0.0f;
+#endif
     }
 
     // Record the central sample
@@ -144,6 +151,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         totalColor[bucketIndex].w = weight;
         maxCoC[bucketIndex] = centerCoc;
         prevRingWeight[bucketIndex] = weight;
+#ifdef ENABLE_ALPHA
+        totalAlpha[bucketIndex] = centerColor.w;
+#endif
     }
 
     float numRings = _Params.x;
@@ -179,12 +189,18 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float4 ringColor[NUM_BUCKETS];
         float ringMaxCoC[NUM_BUCKETS];
         float ringHits[NUM_BUCKETS];
+#ifdef ENABLE_ALPHA
+        float4 ringAlpha[NUM_BUCKETS];
+#endif
 
         for (int i = 0; i < NUM_BUCKETS; ++i)
         {
             ringColor[i] = 0.0f;
             ringMaxCoC[i] = 0.0f;
             ringHits[i] = 0.0f;
+#ifdef ENABLE_ALPHA
+            ringAlpha[i] = 0.0f;
+#endif
         }
 #endif
 
@@ -194,7 +210,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
 
             int sampleBucket = 0;
-            float3 sampleColor = LOAD_TEXTURE2D_X(_InputTexture, sampleTC).rgb;
+            CTYPE sampleColor = LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
             float sampleCoC = GetCoCRadius(sampleTC, sampleBucket);
 
 #ifdef COC_FAR_CLAMPING
@@ -205,16 +221,22 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             if (sampleCoC > radius)
             {
                 float weight = GetSampleWeight(sampleCoC);
-                RING_COLOR[sampleBucket].xyz += sampleColor * weight;
+                RING_COLOR[sampleBucket].xyz += sampleColor.xyz * weight;
                 RING_COLOR[sampleBucket].w += weight;
                 RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], sampleCoC);
                 RING_HITS[sampleBucket] += 1.0;
+#ifdef ENABLE_ALPHA
+                RING_ALPHA[sampleBucket] = sampleColor.w * weight;
+#endif
             }
 #ifdef UNIFORM_WEIGHTS
             else
             {
                 RING_COLOR[sampleBucket].xyz += RING_COLOR[sampleBucket].xyz / RING_COLOR[sampleBucket].w;
                 RING_COLOR[sampleBucket].w += 1.0f;
+#ifdef ENABLE_ALPHA
+                RING_ALPHA[sampleBucket] += RING_ALPHA[sampleBucket] / RING_COLOR[sampleBucket].w;
+#endif
             }
 #endif
         }
@@ -225,6 +247,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             totalColor[0] += RING_COLOR[0];
             maxCoC[0] = max(maxCoC[0], RING_MAXCOC[0]);
             totalHits[0] += RING_HITS[0];
+#ifdef ENABLE_ALPHA
+            totalAlpha[0] += RING_ALPHA[0];
+#endif
         }
 
         // In-focus bucket
@@ -232,6 +257,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             totalColor[1] += RING_COLOR[1];
             maxCoC[1] = max(maxCoC[1], RING_MAXCOC[1]);
             totalHits[1] += RING_HITS[1];
+#ifdef ENABLE_ALPHA
+            totalAlpha[1] += RING_ALPHA[1];
+#endif
         }
 
         // Near bucket
@@ -249,22 +277,32 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
             float blendFactor = 1.0 - alpha * occlusion;
             totalColor[2] = blendFactor * totalColor[2] + RING_COLOR[2];
             prevRingWeight[2] = ringColor[2].w;
+#ifdef ENABLE_ALPHA
+            totalAlpha[2] += blendFactor * totalAlpha[2] + RING_ALPHA[2];
+#endif
         }
 #endif
     }
 
     // Now compute the final color by combining the near, far and in-focus buckets with proper blending
-#ifndef UNIFORM_WEIGHTS 
+
     // Far range
     float3 outColor = totalColor[0].xyz;
     float  totalW = totalColor[0].w;
+#ifdef ENABLE_ALPHA
+    float outAlpha = totalAlpha[0];
+#endif
 
+#ifndef UNIFORM_WEIGHTS 
     // In focus range
     {
         // TODO: we might need to re-investigate the normaziation here, there is banding
         float alpha = saturate(totalColor[1].w * rcp(GetNumSamples(maxCoC[1])) * rcp(GetSampleWeight(maxCoC[1])));
         outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[1].xyz;
         totalW = (1.0 - alpha) * totalW + totalColor[1].w;
+#ifdef ENABLE_ALPHA
+        outAlpha = (1.0 - alpha) * outAlpha + outAlpha[j];
+#endif
     }
     if (totalW > 0) outColor.xyz /= totalW;
 
@@ -272,12 +310,14 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float alpha = saturate(3 * totalHits[2] * rcp(GetNumSamples(maxCoC[2])));
     float3 srcColor = totalColor[2].w > 0 ? totalColor[2].xyz / totalColor[2].w : 0.0f;
     outColor.xyz = (1.0 - alpha) * outColor.xyz + alpha * srcColor;
+#ifdef ENABLE_ALPHA
+    float srcAlpha = totalColor[2].w > 0 ? totalAlpha[2] / totalColor[2].w : 0.0f;
+    outAlpha = (1.0 - alpha) * outAlpha + alpha * srcAlpha;
+
+#endif
 #else
 
-    // back to front alpha blending of the bucket
-    float3 outColor = totalColor[0].xyz;
-    float  totalW = totalColor[0].w;
-
+    // back to front alpha blending of the other buckets
     for (int j = 1; j < NUM_BUCKETS; ++j)
     {
         // TODO: we might need to re-investigate the normaziation here, there is banding
@@ -285,14 +325,16 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[j].xyz;
         totalW = (1.0 - alpha) * totalW + totalColor[j].w;
+#ifdef ENABLE_ALPHA
+        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
+#endif
     }
-    outColor.xyz /= totalW;
+    outColor.xyz = outColor.xyz * rcp(totalW);
 #endif
 
 #ifdef ENABLE_ALPHA
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(1, 0, 0, 1);
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(totalW));
 #else
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float3(centerCoc, 0, 0);
     _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor.xyz;
 #endif
 
