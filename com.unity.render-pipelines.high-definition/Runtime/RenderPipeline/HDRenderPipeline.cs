@@ -991,7 +991,7 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes.InitializeNonRenderGraphResources();
 
             // Reset resolution dependent buffers. Tile, Coarse stencil etc...
-            m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 0;
+            m_MaxCameraWidth = m_MaxCameraHeight = m_MaxViewCount = 1;
         }
 
         void CleanupNonRenderGraphResources()
