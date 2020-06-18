@@ -15,7 +15,9 @@ namespace UnityEditor.Rendering.HighDefinition
         bool ISceneTemplatePipeline.IsValidTemplateForInstantiation(SceneTemplateAsset sceneTemplateAsset)
         {
             var hdrpAsset = HDRenderPipeline.defaultAsset;
-            return hdrpAsset != null;
+            if (hdrpAsset == null)
+                return false;
+            return !hdrpAsset.currentPlatformRenderPipelineSettings.supportRayTracing;
         }
     }
 }
