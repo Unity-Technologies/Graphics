@@ -28,7 +28,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define RING_DENSITY 8.0
 #define UNIFORM_WEIGHTS
 #define CHECKER_BOARDING
-#define CENTER_DENSITY
+//#define CENTER_DENSITY
 //#define OCTAWEB_SORTING
 
 // DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
@@ -101,7 +101,7 @@ float2 PointInCircle(float angle)
 
 float GetNumSamples(float radius)
 {
-    //TODO CENTER_DENSITY
+    //TODO
     float numRings = _Params.x;
     float maxRadius = _Params.y;
 
@@ -150,6 +150,9 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxRadius = _Params.y;  
     float dR = maxRadius * rcp(numRings);
     float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
+    // Note: gradient noise seems to give worse results than s
+    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, 0);
+    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 9);
 
     // Iterate over the octaweb pattern and gather the DoF samples
     for (float ring = 1; ring <= numRings; ring += 1.0)
@@ -160,13 +163,17 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         // make the samples more dense at the center
         scaledRad = lerp(0.5 * dR, dR, ring * rcp(numRings));
 #endif
-        float radius = ring * scaledRad;
 
-#ifdef CHECKER_BOARDING
-        radius += stratum * scaledRad / 2.0f;
-#endif
         float dAng = 2.0f * PI / (ring * RING_DENSITY);
-        float ringOffset = dAng * 0.5 * fmod(ring, 2.0f);
+
+        // for high sample counts, checkerboarding looks better
+#ifdef CHECKER_BOARDING
+        float radius = ring * scaledRad + stratum * scaledRad;
+        float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
+#else
+        float radius = ring * scaledRad + noise2 * scaledRad;
+        float ringOffset = noise * dAng;
+#endif
 
 #ifdef OCTAWEB_SORTING
         float4 ringColor[NUM_BUCKETS];
