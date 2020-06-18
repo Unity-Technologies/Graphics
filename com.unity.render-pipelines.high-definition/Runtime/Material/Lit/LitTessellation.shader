@@ -6,8 +6,8 @@ Shader "HDRP/LitTessellation"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor("BaseColor", Color) = (1,1,1,1)
-        _BaseColorMap("BaseColorMap", 2D) = "white" {}
+        [MainColor] _BaseColor("BaseColor", Color) = (1,1,1,1)
+        [MainTexture] _BaseColorMap("BaseColorMap", 2D) = "white" {}
         [HideInInspector] _BaseColorMap_MipInfo("_BaseColorMap_MipInfo", Vector) = (0, 0, 0, 0)
 
         _Metallic("_Metallic", Range(0.0, 1.0)) = 0
@@ -158,6 +158,7 @@ Shader "HDRP/LitTessellation"
         [HideInInspector] _CullMode("__cullmode", Float) = 2.0
         [HideInInspector] _CullModeForward("__cullmodeForward", Float) = 2.0 // This mode is dedicated to Forward to correctly handle backface then front face rendering thin transparent
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
+        [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
@@ -664,6 +665,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
@@ -730,6 +732,7 @@ Shader "HDRP/LitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile SCREEN_SPACE_SHADOWS_OFF SCREEN_SPACE_SHADOWS_ON
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 

@@ -102,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 //        lightCluster.EvaluateClusterDebugView(cmd, hdCamera);
                 //    }
 
+                // TODO: check code, everything have change
                 //    bool validIndirectDiffuse = ValidIndirectDiffuseState(hdCamera);
                 //    if (validIndirectDiffuse)
                 //    {

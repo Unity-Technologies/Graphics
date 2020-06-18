@@ -390,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     // Now based on the mask, we need to blend the subsurface and the diffuse lighting
 
-                    bool validSSGI = ValidIndirectDiffuseState(hdCamera);
+                    bool validSSGI = GetIndirectDiffuseMode(hdCamera) != IndirectDiffuseMode.Off;
                     int m_CombineSubSurfaceKernel = rayTracingSubSurfaceCS.FindKernel(validSSGI ? "BlendSubSurfaceDataWithGI" : "BlendSubSurfaceData");
                     cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._SubSurfaceLightingBuffer, intermediateBuffer0);
                     cmd.SetComputeTextureParam(rayTracingSubSurfaceCS, m_CombineSubSurfaceKernel, HDShaderIDs._DiffuseLightingTextureRW, diffuseBufferRT);
