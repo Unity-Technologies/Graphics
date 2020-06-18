@@ -19,9 +19,9 @@ namespace UnityEngine.Rendering.HighDefinition
             NeighborhoodBlending = 2
         }
 
-        GraphicsFormat m_ColorFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-        const GraphicsFormat k_CoCFormat = GraphicsFormat.R16_SFloat;
-        const GraphicsFormat k_ExposureFormat = GraphicsFormat.R32G32_SFloat;
+        GraphicsFormat m_ColorFormat            = GraphicsFormat.B10G11R11_UFloatPack32;
+        const GraphicsFormat k_CoCFormat        = GraphicsFormat.R16_SFloat;
+        const GraphicsFormat k_ExposureFormat   = GraphicsFormat.R32G32_SFloat;
 
         readonly RenderPipelineResources m_Resources;
         Material m_FinalPassMaterial;
@@ -307,10 +307,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandles.Release(m_AlphaTexture);
             RTHandles.Release(m_InternalLogLut);
 
-            m_TempTexture1024 = null;
-            m_TempTexture32 = null;
-            m_AlphaTexture = null;
-            m_InternalLogLut = null;
+            m_TempTexture1024   = null;
+            m_TempTexture32     = null;
+            m_AlphaTexture      = null;
+            m_InternalLogLut    = null;
         }
 
 
@@ -348,41 +348,41 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prefetch all the volume components we need to save some cycles as most of these will
             // be needed in multiple places
             var stack = camera.volumeStack;
-            m_Exposure = stack.GetComponent<Exposure>();
-            m_DepthOfField = stack.GetComponent<DepthOfField>();
-            m_MotionBlur = stack.GetComponent<MotionBlur>();
-            m_PaniniProjection = stack.GetComponent<PaniniProjection>();
-            m_Bloom = stack.GetComponent<Bloom>();
-            m_ChromaticAberration = stack.GetComponent<ChromaticAberration>();
-            m_LensDistortion = stack.GetComponent<LensDistortion>();
-            m_Vignette = stack.GetComponent<Vignette>();
-            m_Tonemapping = stack.GetComponent<Tonemapping>();
-            m_WhiteBalance = stack.GetComponent<WhiteBalance>();
-            m_ColorAdjustments = stack.GetComponent<ColorAdjustments>();
-            m_ChannelMixer = stack.GetComponent<ChannelMixer>();
-            m_SplitToning = stack.GetComponent<SplitToning>();
-            m_LiftGammaGain = stack.GetComponent<LiftGammaGain>();
+            m_Exposure                  = stack.GetComponent<Exposure>();
+            m_DepthOfField              = stack.GetComponent<DepthOfField>();
+            m_MotionBlur                = stack.GetComponent<MotionBlur>();
+            m_PaniniProjection          = stack.GetComponent<PaniniProjection>();
+            m_Bloom                     = stack.GetComponent<Bloom>();
+            m_ChromaticAberration       = stack.GetComponent<ChromaticAberration>();
+            m_LensDistortion            = stack.GetComponent<LensDistortion>();
+            m_Vignette                  = stack.GetComponent<Vignette>();
+            m_Tonemapping               = stack.GetComponent<Tonemapping>();
+            m_WhiteBalance              = stack.GetComponent<WhiteBalance>();
+            m_ColorAdjustments          = stack.GetComponent<ColorAdjustments>();
+            m_ChannelMixer              = stack.GetComponent<ChannelMixer>();
+            m_SplitToning               = stack.GetComponent<SplitToning>();
+            m_LiftGammaGain             = stack.GetComponent<LiftGammaGain>();
             m_ShadowsMidtonesHighlights = stack.GetComponent<ShadowsMidtonesHighlights>();
-            m_Curves = stack.GetComponent<ColorCurves>();
-            m_FilmGrain = stack.GetComponent<FilmGrain>();
+            m_Curves                    = stack.GetComponent<ColorCurves>();
+            m_FilmGrain                 = stack.GetComponent<FilmGrain>();
 
             // Prefetch frame settings - these aren't free to pull so we want to do it only once
             // per frame
             var frameSettings = camera.frameSettings;
-            m_ExposureControlFS = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
-            m_StopNaNFS = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
-            m_DepthOfFieldFS = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
-            m_MotionBlurFS = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
-            m_PaniniProjectionFS = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
-            m_BloomFS = frameSettings.IsEnabled(FrameSettingsField.Bloom);
+            m_ExposureControlFS     = frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+            m_StopNaNFS             = frameSettings.IsEnabled(FrameSettingsField.StopNaN);
+            m_DepthOfFieldFS        = frameSettings.IsEnabled(FrameSettingsField.DepthOfField);
+            m_MotionBlurFS          = frameSettings.IsEnabled(FrameSettingsField.MotionBlur);
+            m_PaniniProjectionFS    = frameSettings.IsEnabled(FrameSettingsField.PaniniProjection);
+            m_BloomFS               = frameSettings.IsEnabled(FrameSettingsField.Bloom);
             m_ChromaticAberrationFS = frameSettings.IsEnabled(FrameSettingsField.ChromaticAberration);
-            m_LensDistortionFS = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
-            m_VignetteFS = frameSettings.IsEnabled(FrameSettingsField.Vignette);
-            m_ColorGradingFS = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
-            m_TonemappingFS = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
-            m_FilmGrainFS = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
-            m_DitheringFS = frameSettings.IsEnabled(FrameSettingsField.Dithering);
-            m_AntialiasingFS = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
+            m_LensDistortionFS      = frameSettings.IsEnabled(FrameSettingsField.LensDistortion);
+            m_VignetteFS            = frameSettings.IsEnabled(FrameSettingsField.Vignette);
+            m_ColorGradingFS        = frameSettings.IsEnabled(FrameSettingsField.ColorGrading);
+            m_TonemappingFS         = frameSettings.IsEnabled(FrameSettingsField.Tonemapping);
+            m_FilmGrainFS           = frameSettings.IsEnabled(FrameSettingsField.FilmGrain);
+            m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
+            m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
@@ -758,32 +758,32 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct UberPostParameters
         {
-            public ComputeShader uberPostCS;
-            public int uberPostKernel;
-            public bool outputColorLog;
-            public int width;
-            public int height;
-            public int viewCount;
+            public ComputeShader    uberPostCS;
+            public int              uberPostKernel;
+            public bool             outputColorLog;
+            public int              width;
+            public int              height;
+            public int              viewCount;
 
-            public Vector4 logLutSettings;
+            public Vector4          logLutSettings;
 
-            public Vector4 lensDistortionParams1;
-            public Vector4 lensDistortionParams2;
+            public Vector4          lensDistortionParams1;
+            public Vector4          lensDistortionParams2;
 
-            public Texture spectralLut;
-            public Vector4 chromaticAberrationParameters;
+            public Texture          spectralLut;
+            public Vector4          chromaticAberrationParameters;
 
-            public Vector4 vignetteParams1;
-            public Vector4 vignetteParams2;
-            public Vector4 vignetteColor;
-            public Texture vignetteMask;
+            public Vector4          vignetteParams1;
+            public Vector4          vignetteParams2;
+            public Vector4          vignetteColor;
+            public Texture          vignetteMask;
 
-            public Texture bloomDirtTexture;
-            public Vector4 bloomParams;
-            public Vector4 bloomTint;
-            public Vector4 bloomBicubicParams;
-            public Vector4 bloomDirtTileOffset;
-            public Vector4 bloomThreshold;
+            public Texture          bloomDirtTexture;
+            public Vector4          bloomParams;
+            public Vector4          bloomTint;
+            public Vector4          bloomBicubicParams;
+            public Vector4          bloomDirtTileOffset;
+            public Vector4          bloomThreshold;
         }
 
         UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
