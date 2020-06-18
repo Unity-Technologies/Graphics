@@ -126,6 +126,7 @@ The **Lighting** panel has tools that you can use to visualize various component
 | **- Debug Mode**                      | Use the drop-down to select a debug mode. See [Exposure](Override-Exposure.md) documentation for more information. |
 | - **Show Tonemap curve**              | Enable the checkbox to overlay the tonemap curve to the histogram debug view.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
 | **- Center Around Exposure**          | Enable the checkbox to overlay the center the histogram around the current exposure value.<br/>This property only appears when you select **HistogramView** from **Debug Mode**. |
+| **- Display RGB Histogram**           | Enable the checkbox to display the Final Image Histogram as an RGB histogram instead of just luminance.<br />This property only appears when you select **FinalImageHistogramView** from **Debug Mode**. |
 | **- Debug Lens Attenuation**          | Sets the imperfection factor that the lens HDRP uses for exposure calculations. The higher the value, the less the lens disperses light. |
 | **- Debug Exposure Compensation**     | Set an additional exposure compensation for debug purposes.  |
 

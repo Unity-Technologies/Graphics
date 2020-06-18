@@ -169,3 +169,9 @@ By default, the values on the x-axis are fixed, however, you can also make the h
 The Metering Weighted debug view displays the scene alongside a picture of what the scene looks like after HDRP weights it with the metering mask. This is particularly useful to set up the procedural metering masks or determine the right texture mask.
 
 ![](Images/Override-Exposure6.png)
+
+#### Final Image Histogram
+
+The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values. 
+This view can display both luminance histogram or RGB channels represented separately. 
+
