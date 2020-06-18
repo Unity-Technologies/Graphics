@@ -104,6 +104,15 @@ namespace UnityEngine.Rendering.Universal
             float cameraWidth = (float)pixelRect.width;
             float cameraHeight = (float)pixelRect.height;
 
+            // Use eye texture's width and height as screen params when XR is enabled
+            if(cameraData.xr.enabled)
+            {
+                scaledCameraWidth = (float)cameraData.cameraTargetDescriptor.width;
+                scaledCameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+                cameraWidth = (float)cameraData.cameraTargetDescriptor.width;
+                cameraHeight = (float)cameraData.cameraTargetDescriptor.height;
+            }
+
             float near = camera.nearClipPlane;
             float far = camera.farClipPlane;
             float invNear = Mathf.Approximately(near, 0.0f) ? 0.0f : 1.0f / near;

@@ -9,11 +9,9 @@
 
 // Textures & Samplers
 TEXTURE2D_X(_BaseMap);
-TEXTURE2D_X(_BlueNoiseTexture);
 TEXTURE2D_X(_ScreenSpaceOcclusionTexture);
 
 SAMPLER(sampler_BaseMap);
-SAMPLER(sampler_BlueNoiseTexture);
 SAMPLER(sampler_ScreenSpaceOcclusionTexture);
 
 // Params
@@ -21,7 +19,6 @@ float4 _BlurOffset;
 float4 _SSAOParams;
 float4 _BaseMap_TexelSize;
 float4 _CameraDepthTexture_TexelSize;
-float4 _BlueNoiseTexture_TexelSize;
 
 // SSAO Settings
 #define DOWNSAMPLE _SSAOParams.x
@@ -39,7 +36,6 @@ float4 _BlueNoiseTexture_TexelSize;
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
 #define SAMPLE_BASEMAP_R(uv) SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
-#define SAMPLE_BLUE_NOISE(uv) normalize(SAMPLE_TEXTURE2D_X(_BlueNoiseTexture, sampler_BlueNoiseTexture, UnityStereoTransformScreenSpaceTex(uv)) * 2.0 - 1.0);
 
 
 // Constants
