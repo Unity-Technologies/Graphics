@@ -118,21 +118,18 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
                     ushort index = (ushort)(triangles[i] + startingIndex);
 
-                    if (isOpaque)
+                    if (!isOpaque)
                         colorTriangles.Add(index);
-                    //else
-                    //    depthTriangles.Add(index);
+                    else
+                        depthTriangles.Add(index);
                 }
 
                 Vector3 v3Pivot = new Vector3(pivot.x, pivot.y);
-                if (isOpaque)
-                {
-                    for (int i = 0; i < vertices.Length; i++)
-                        allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
+                for (int i = 0; i < vertices.Length; i++)
+                    allVertices.Add(vertices[i] / pixelsPerUnit - v3Pivot);
 
-                    for (int i = 0; i < uvs.Length; i++)
-                        allUVs.Add(uvs[i]);
-                }
+                for (int i = 0; i < uvs.Length; i++)
+                    allUVs.Add(uvs[i]);
             });
 
 
@@ -145,12 +142,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
             sprite.SetVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0, nativeUVs);
             sprite.SetIndices(nativeIndices);
 
-            //int meshCount = sprite.GetSubmeshCount();
-            //if (meshCount == 1)
-            //    sprite.AddSubmesh();
+            int meshCount = sprite.GetSubmeshCount();
+            if (meshCount == 1)
+                sprite.AddSubmesh();
 
             sprite.ModifySubmesh(0, allVertices.Count, 0, colorTriangles.Count, 0);
-            //sprite.ModifySubmesh(0, allVertices.Count, colorTriangles.Count, depthTriangles.Count, 1);
+            sprite.ModifySubmesh(0, allVertices.Count, colorTriangles.Count, depthTriangles.Count, 1);
 
             nativeVertices.Dispose();
             nativeUVs.Dispose();
@@ -161,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         void OnPostprocessSprites(Texture2D texture, Sprite[] sprites)
         {
             TextureImporter textureImporter = (TextureImporter)assetImporter;
+
             float width = (float)texture.width / (float)textureImporter.spritePixelsPerUnit;
             float height = (float)texture.height / (float)textureImporter.spritePixelsPerUnit;
 
