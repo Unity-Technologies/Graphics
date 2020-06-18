@@ -118,10 +118,10 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                 {
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
                     {
-                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex);
+                        shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
                     }
                     else
 #endif
@@ -190,7 +190,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
             if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
             {
                 context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
