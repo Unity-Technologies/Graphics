@@ -637,7 +637,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._WorldSpaceCameraPos_Internal = mainViewConstants.worldSpaceCameraPos;
             cb._PrevCamPosRWS_Internal = mainViewConstants.prevWorldSpaceCameraPos;
             cb._ScreenSize = screenSize;
-            cb._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
             cb._RTHandleScaleHistory = m_HistoryRTSystem.rtHandleProperties.rtHandleScale;
             cb._ZBufferParams = zBufferParams;
             cb._ProjectionParams = projectionParams;

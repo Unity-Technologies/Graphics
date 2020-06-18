@@ -1247,6 +1247,12 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateShaderVariablesGlobalProbeVolumes(ref m_ShaderVariablesGlobalCB, hdCamera);
             m_AmbientOcclusionSystem.UpdateShaderVariableGlobalCB(ref m_ShaderVariablesGlobalCB, hdCamera);
 
+            // RTHandleScale
+            if (m_EnableRenderGraph)
+                m_ShaderVariablesGlobalCB._RTHandleScale = m_RenderGraph.rtHandleProperties.rtHandleScale;
+            else
+                m_ShaderVariablesGlobalCB._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
+
             // Misc
             MicroShadowing microShadowingSettings = hdCamera.volumeStack.GetComponent<MicroShadowing>();
             m_ShaderVariablesGlobalCB._MicroShadowOpacity = microShadowingSettings.enable.value ? microShadowingSettings.opacity.value : 0.0f;
