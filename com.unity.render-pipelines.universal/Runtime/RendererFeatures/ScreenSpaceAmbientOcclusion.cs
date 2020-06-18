@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
                 if (numOfPasses > 1)
                 {
                     cmd.SetGlobalFloat(s_SSAOLastKawaseID, 0.0f);
-                    Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_KawaseBlurShaderPassID);
+                    Render(cmd, s_SSAOTexture1ID, m_SSAOTexture2Target, k_KawaseBlurShaderPassID);
                     offset += m_offsetIncrement;
 
                     RenderTargetIdentifier lastTarget = m_SSAOTexture2Target;
@@ -336,7 +336,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 cmd.SetGlobalFloat(s_SSAOLastKawaseID, 1.0f);
-                Render(cmd, s_SSAOTexture1ID, s_SSAOTexture2ID, k_KawaseBlurShaderPassID);
+                Render(cmd, s_SSAOTexture1ID, m_SSAOTexture2Target, k_KawaseBlurShaderPassID);
                 return s_SSAOTexture2ID;
             }
 
