@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
             lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
             lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, msaa);
 
-            var prepassOutput = RenderPrepass(m_RenderGraph, lightingBuffers.sssBuffer, cullingResults, hdCamera);
+            var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, cullingResults, hdCamera);
 
             // Need this during debug render at the end outside of the main loop scope.
             // Once render graph move is implemented, we can probably remove the branch and this.
@@ -823,6 +823,48 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.DrawRendererList(context.renderContext, context.cmd, context.resources.GetRendererList(data.rendererList));
                     });
+            }
+        }
+
+        class PreRenderSkyPassData
+        {
+            public Light sunLight;
+            public HDCamera hdCamera;
+            public TextureHandle colorBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle normalBuffer;
+            public DebugDisplaySettings debugDisplaySettings;
+            public SkyManager skyManager;
+            public int frameCount;
+        }
+
+        void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
+        {
+            if (m_CurrentDebugDisplaySettings.DebugHideSky(hdCamera))
+            {
+                return;
+            }
+
+            using (var builder = renderGraph.AddRenderPass<PreRenderSkyPassData>("Pre Render Sky", out var passData))
+            {
+                passData.sunLight = GetCurrentSunLight();
+                passData.hdCamera = hdCamera;
+                passData.colorBuffer = builder.WriteTexture(colorBuffer);
+                passData.depthStencilBuffer = builder.WriteTexture(depthStencilBuffer);
+                passData.normalBuffer = builder.WriteTexture(normalbuffer);
+                passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
+                passData.skyManager = m_SkyManager;
+                passData.frameCount = m_FrameCount;
+
+                builder.SetRenderFunc(
+                (PreRenderSkyPassData data, RenderGraphContext context) =>
+                {
+                    var depthBuffer = context.resources.GetTexture(data.depthStencilBuffer);
+                    var destination = context.resources.GetTexture(data.colorBuffer);
+                    var normalBuffer= context.resources.GetTexture(data.normalBuffer);
+
+                    data.skyManager.PreRenderSky(data.hdCamera, data.sunLight, destination, normalBuffer, depthBuffer, data.debugDisplaySettings, data.frameCount, context.cmd);
+                });
             }
         }
 

@@ -100,7 +100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc, HDShaderIDs._CameraMotionVectorsTexture);
         }
 
-        PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
+        PrepassOutput RenderPrepass(RenderGraph renderGraph, TextureHandle colorbuffer, TextureHandle sssBuffer, CullingResults cullingResults, HDCamera hdCamera)
         {
             m_IsDepthBufferCopyValid = false;
 
@@ -149,8 +149,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     RenderCameraMotionVectors(renderGraph, hdCamera, result.depthPyramidTexture, result.motionVectorsBuffer);
                 }
 
-                // TODO RENDERGRAPH
-                //PreRenderSky(hdCamera, cmd);
+                PreRenderSky(renderGraph, hdCamera, colorbuffer, result.depthBuffer, result.normalBuffer);
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
