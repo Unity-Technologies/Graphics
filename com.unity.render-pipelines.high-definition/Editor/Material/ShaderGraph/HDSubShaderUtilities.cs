@@ -109,7 +109,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void AddBlendingStatesShaderProperties(
             PropertyCollector collector, SurfaceType surface, BlendMode blend, int sortingPriority,
-            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode, CompareFunction zTest,
+            bool alphaToMask, bool transparentZWrite, TransparentCullMode transparentCullMode,
+            OpaqueCullMode opaqueCullMode, CompareFunction zTest,
             bool backThenFrontRendering, bool fogOnTransparent)
         {
             collector.AddFloatProperty("_SurfaceType", (int)surface);
@@ -133,6 +134,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 value = (int)transparentCullMode,
                 enumNames = {"Front", "Back"},
                 enumValues = {(int)TransparentCullMode.Front, (int)TransparentCullMode.Back},
+                hidden = true,
+            });
+            collector.AddShaderProperty(new Vector1ShaderProperty{
+                overrideReferenceName = kOpaqueCullMode,
+                floatType = FloatType.Enum,
+                value = (int)opaqueCullMode,
+                enumType = EnumType.CSharpEnum,
+                cSharpEnumType = typeof(OpaqueCullMode),
                 hidden = true,
             });
 
