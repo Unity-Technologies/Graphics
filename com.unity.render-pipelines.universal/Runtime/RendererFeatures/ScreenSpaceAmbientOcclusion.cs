@@ -258,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
                     // scaleBias.w = unused
                     float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                     Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(s_ScaleBiasId, new Vector4(-1, 0.0f, 1.0f, 1.0f));
+                    cmd.SetGlobalVector(s_ScaleBiasId, scaleBias);
 
                     // Execute the SSAO
                     ExecuteSSAO(cmd, (int) m_CurrentSettings.Source);
