@@ -130,16 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                //                if (stopNaNs)
-                //                {
-                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.StopNaNs)))
-                //                    {
-                //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
-                //                        DoStopNaNs(cmd, camera, source, destination);
-                //                        PoolSource(ref source, destination);
-                //                    }
-                //                }
-                //            }
 
             }
 

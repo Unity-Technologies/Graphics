@@ -404,7 +404,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
-                        DoFixedExposure(cmd, camera);
+                        RTHandle prevExposure;
+                        GrabExposureHistoryTextures(camera, out prevExposure, out _);
+                        DoFixedExposure(PrepareExposureParameters(camera), cmd, prevExposure);
                     }
                 }
 
@@ -1024,6 +1026,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     parameters.exposureReductionKernel = parameters.exposureCS.FindKernel("KFixedExposure");
                     parameters.exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
+#if UNITY_EDITOR
+                    if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
+                    {
+                        parameters.exposureParams = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
+                    }
+#endif
                 }
                 else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
                 {
@@ -1194,38 +1202,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DebugImageHistogramBuffer;
         }
 
-        // TODO_FCC: MISSING!!
-        void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
+        void DoFixedExposure(in ExposureParameter parameters, CommandBuffer cmd, RTHandle prevExposure)
         {
-            var cs = m_Resources.shaders.exposureCS;
+            var cs = parameters.exposureCS;
+            int kernel = parameters.exposureReductionKernel;
 
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
-
-            GrabExposureHistoryTextures(camera, out var prevExposure, out _);
-
-            int kernel = 0;
-
-            if (m_Exposure.mode.value == ExposureMode.Fixed
-                #if UNITY_EDITOR
-                || (HDAdditionalSceneViewSettings.sceneExposureOverriden && camera.camera.cameraType == CameraType.SceneView)
-                #endif
-                )
-            {
-                kernel = cs.FindKernel("KFixedExposure");
-                var exposureParam = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f);
-                #if UNITY_EDITOR
-                if (HDAdditionalSceneViewSettings.sceneExposureOverriden)
-                {
-                    exposureParam = new Vector4(0.0f, HDAdditionalSceneViewSettings.sceneExposure, 0f, 0f);
-                }
-                #endif
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParam);
-            }
-            else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
-            {
-                kernel = cs.FindKernel("KManualCameraExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
-            }
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, parameters.exposureParams);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, parameters.exposureParams2);
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
