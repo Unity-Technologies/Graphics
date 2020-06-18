@@ -37,6 +37,18 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("m_SphereInfluenceNormalFade")]
         float m_SphereBlendNormalDistance;
 
+        // Convex
+        [SerializeField]
+        Vector4[] m_ConvexPlanes = GetDefaultPlanes();
+        [SerializeField]
+        Vector3 m_ConvexSize = Vector3.one * 10;
+        [SerializeField]
+        bool m_IsInfinite = false;
+#if UNITY_EDITOR
+        [SerializeField]
+        internal int selected = -1;
+#endif
+
         // Public API
         /// <summary>Shape of this InfluenceVolume.</summary>
         public InfluenceShape shape { get => m_Shape; set => m_Shape = value; }
@@ -95,6 +107,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public float sphereBlendNormalDistance { get => m_SphereBlendNormalDistance; set => m_SphereBlendNormalDistance = value; }
 
+
+        /// <summary>The list of planes of the proxy if it as a shape Convex</summary>
+        public Vector4[] convexPlanes { get => m_ConvexPlanes; set => m_ConvexPlanes = value; }
+        /// <summary>Size of the InfluenceVolume in Convex Mode.</summary>
+        public Vector3 convexSize { get => m_ConvexSize; set => m_ConvexSize = value; }
+        /// <summary>Size of the InfluenceVolume in Convex Mode.</summary>
+        public bool isInfinite { get => m_IsInfinite; set => m_IsInfinite = value; }
+
         /// <summary>Compute a hash of the influence properties.</summary>
         /// <returns></returns>
         public Hash128 ComputeHash()
@@ -124,6 +144,11 @@ namespace UnityEngine.Rendering.HighDefinition
             HashUtilities.AppendHash(ref h2, ref h);
             HashUtilities.ComputeHash128(ref m_SphereRadius, ref h2);
             HashUtilities.AppendHash(ref h2, ref h);
+            for (int i = 0; i < m_ConvexPlanes.Length; i++)
+            {
+                HashUtilities.ComputeHash128(ref m_ConvexPlanes[i], ref h2);
+                HashUtilities.AppendHash(ref h2, ref h);
+            }
             return h;
         }
 
@@ -139,6 +164,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     var radius = Mathf.Max(boxSize.x, Mathf.Max(boxSize.y, boxSize.z));
                     return new BoundingSphere(position, radius);
                 }
+                case InfluenceShape.Convex:
+                {
+                    var radius = Mathf.Max(convexSize.x, Mathf.Max(convexSize.y, convexSize.z));
+                    return new BoundingSphere(position, radius);
+                }
             }
         }
 
@@ -150,14 +180,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 case InfluenceShape.Sphere:
                     return new Bounds(position, Vector3.one * sphereRadius);
                 case InfluenceShape.Box:
-                {
                     return new Bounds(position, boxSize);
-                }
+                case InfluenceShape.Convex:
+                    return new Bounds(position, convexSize);
             }
         }
 
         internal Matrix4x4 GetInfluenceToWorld(Transform transform)
              => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+
+        internal EnvShapeType envShape
+        {
+            get
+            {
+                switch (shape)
+                {
+                    default:
+                    case InfluenceShape.Box:
+                        return EnvShapeType.Box;
+                    case InfluenceShape.Sphere:
+                        return EnvShapeType.Sphere;
+                    case InfluenceShape.Convex:
+                        return EnvShapeType.Convex;
+                }
+            }
+        }
 
         internal void CopyTo(InfluenceVolume data)
         {
@@ -175,6 +222,9 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_SphereRadius = m_SphereRadius;
             data.m_SphereBlendDistance = m_SphereBlendDistance;
             data.m_SphereBlendNormalDistance = m_SphereBlendNormalDistance;
+            data.m_ConvexPlanes = m_ConvexPlanes;
+            data.m_ConvexSize = m_ConvexSize;
+            data.m_IsInfinite = m_IsInfinite;
 
 #if UNITY_EDITOR
             data.m_EditorAdvancedModeBlendDistancePositive = m_EditorAdvancedModeBlendDistancePositive;
@@ -189,15 +239,26 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
+        internal static Vector4[] GetDefaultPlanes()
+        {
+            return new Vector4[] {
+                new Vector4(1,0,0,5), new Vector4(-1,0,0,5),
+                new Vector4(0,1,0,5), new Vector4(0,-1,0,5),
+                new Vector4(0,0,1,5), new Vector4(0,0,-1,5),
+            };
+        }
+
         Vector3 GetExtents(InfluenceShape shape)
+        {
+            switch (shape)
             {
-                switch (shape)
-                {
-                    default:
-                    case InfluenceShape.Box:
-                        return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
-                    case InfluenceShape.Sphere:
-                        return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
+                default:
+                case InfluenceShape.Box:
+                    return Vector3.Max(Vector3.one * 0.0001f, boxSize * 0.5f);
+                case InfluenceShape.Sphere:
+                    return Mathf.Max(0.0001f, sphereRadius) * Vector3.one;
+                case InfluenceShape.Convex:
+                    return Vector3.Max(Vector3.one * 0.0001f, convexSize * 0.5f);
             }
         }
 
@@ -240,6 +301,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, -sphereRadius * 2, 0)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, +sphereRadius * 2)));
                     GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(0, 0, -sphereRadius * 2)));
+                    break;
+                case InfluenceShape.Convex:
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, -convexSize.y, -convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, -convexSize.y, +convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, +convexSize.y, -convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(+convexSize.x, +convexSize.y, +convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-convexSize.x, -convexSize.y, -convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-convexSize.x, -convexSize.y, +convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-convexSize.x, +convexSize.y, -convexSize.z)));
+                    GrowFOVToInclude(ref fov, influenceToWorld.MultiplyPoint(new Vector3(-convexSize.x, +convexSize.y, +convexSize.z)));
                     break;
             }
 

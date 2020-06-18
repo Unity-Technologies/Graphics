@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditorInternal;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -25,6 +26,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     break;
                 case InfluenceShape.Sphere:
                     Drawer_SectionShapeSphere(serialized, owner, provider.drawOffset, provider.drawNormal);
+                    break;
+                case InfluenceShape.Convex:
+                    Drawer_SectionShapeConvex(serialized, owner);
                     break;
             }
         }
@@ -253,6 +257,98 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.NormalBlend, owner, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
                 EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        static void Drawer_SectionShapeConvex(SerializedInfluenceVolume serialized, Editor owner)
+        {
+            var planes = serialized.convexPlanes;
+            int selected = serialized.selected.intValue;
+
+            if (planes.hasMultipleDifferentValues)
+                return;
+
+            bool changed = false;
+
+            EditorGUILayout.BeginHorizontal();
+            using (new EditorGUI.DisabledScope(selected == -1))
+            {
+                var planeProp = selected == -1 ? null : planes.GetArrayElementAtIndex(selected);
+                EditorGUI.BeginChangeCheck();
+                Vector4 plane = EditorGUILayout.Vector4Field(lastPlaneContent, planeProp == null ? Vector4.zero : planeProp.vector4Value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    changed = true;
+                    planeProp.vector4Value = plane;
+                }
+            }
+            HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.InfluenceShape, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.BaseShapePlanes, owner, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            EditorGUILayout.EndHorizontal();
+
+            if (serialized.isInfinite.boolValue)
+                EditorGUILayout.HelpBox(infiniteVolumeHelpBoxText, MessageType.Warning);
+
+            EditorGUILayout.HelpBox(shiftToSnapHelpBoxText, MessageType.Info);
+
+            EditorGUILayout.Space();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
+
+            if (GUILayout.Button(addPlaneContent))
+            {
+                int idx = planes.arraySize;
+                planes.InsertArrayElementAtIndex(idx);
+                planes.GetArrayElementAtIndex(idx).vector4Value = new Vector4(1, 0, 0, 0.0f);
+                serialized.selected.intValue = idx;
+                changed = true;
+            }
+
+            EditorGUI.BeginDisabledGroup(selected == -1);
+            if (GUILayout.Button(deleteLastContent))
+            {
+                planes.DeleteArrayElementAtIndex(selected);
+                serialized.selected.intValue = -1;
+                changed = true;
+            }
+            EditorGUI.EndDisabledGroup();
+
+            GUILayout.EndVertical();
+            GUILayout.BeginVertical();
+
+            if (GUILayout.Button(cleanShapeContent))
+            {
+                bool isInfinite;
+                Vector3 extents;
+                ConvexVolume.RemoveUselessPlanes(planes, out extents, out isInfinite);
+                serialized.convexSize.vector3Value = extents;
+                serialized.isInfinite.boolValue = isInfinite;
+                serialized.selected.intValue = -1;
+            }
+
+            EditorGUI.BeginDisabledGroup(selected == -1);
+            if (GUILayout.Button(duplicateLastContent))
+            {
+                int idx = planes.arraySize;
+                Vector4 plane = planes.GetArrayElementAtIndex(selected).vector4Value;
+                planes.InsertArrayElementAtIndex(idx);
+                planes.GetArrayElementAtIndex(idx).vector4Value = plane;
+                serialized.selected.intValue = idx;
+                changed = true;
+            }
+            EditorGUI.EndDisabledGroup();
+
+            GUILayout.EndVertical();
+            GUILayout.EndHorizontal();
+
+            if (changed)
+            {
+                s_ConvexVolume.SetPlanes(serialized.convexPlanes);
+                bool isInfinite;
+                serialized.convexSize.vector3Value = s_ConvexVolume.GetExtents(out isInfinite);
+                serialized.isInfinite.boolValue = isInfinite;
+                GUI.changed = true;
             }
         }
     }

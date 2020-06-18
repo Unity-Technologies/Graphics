@@ -1831,7 +1831,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
-            var proxyExtents = probe.proxyExtents;
             Vector4 atlasScaleOffset = Vector4.zero;
 
             // 31 bits index, 1 bit cache type
@@ -1916,13 +1915,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
                         capturePosition = cameraPositionSettings.position;
 
-                        if (probe.proxyVolume != null && probe.proxyVolume.proxyVolume.shape == ProxyShape.Convex)
-                        {
-                            int startOffset = m_lightList.proxyPlanes.Count;
-                            FillConvexProxyPlanes(probe.proxyVolume.proxyVolume.planes);
-                            proxyExtents = new Vector3(startOffset, m_lightList.proxyPlanes.Count, 0);
-                        }
-
                         break;
                     }
             }
@@ -1932,27 +1924,33 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InfluenceVolume influence = probe.influenceVolume;
             envLightData.lightLayers = hdCamera.frameSettings.IsEnabled(FrameSettingsField.LightLayers) ? probe.lightLayersAsUInt : uint.MaxValue;
-            envLightData.influenceShapeType = probe.envShapeType;
+            envLightData.influenceShapeType = influence.envShape;
             envLightData.weight = processedProbe.weight;
             envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity.value;
             envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
-            envLightData.influenceExtents = influence.extents;
-            switch (influence.shape)
+            switch (influence.envShape)
             {
-                case InfluenceShape.Box:
+                case EnvShapeType.Box:
                     envLightData.blendNormalDistancePositive = influence.boxBlendNormalDistancePositive;
                     envLightData.blendNormalDistanceNegative = influence.boxBlendNormalDistanceNegative;
                     envLightData.blendDistancePositive = influence.boxBlendDistancePositive;
                     envLightData.blendDistanceNegative = influence.boxBlendDistanceNegative;
                     envLightData.boxSideFadePositive = influence.boxSideFadePositive;
                     envLightData.boxSideFadeNegative = influence.boxSideFadeNegative;
+                    envLightData.influenceExtents = influence.extents;
                     break;
-                case InfluenceShape.Sphere:
+                case EnvShapeType.Sphere:
                     envLightData.blendNormalDistancePositive.x = influence.sphereBlendNormalDistance;
                     envLightData.blendDistancePositive.x = influence.sphereBlendDistance;
+                    envLightData.influenceExtents = influence.extents;
+                    break;
+                case EnvShapeType.Convex:
+                    int startOffset = m_lightList.proxyPlanes.Count;
+                    FillConvexProxyPlanes(influence.convexPlanes);
+                    envLightData.influenceExtents = new Vector3(startOffset, m_lightList.proxyPlanes.Count, 0);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("Unknown InfluenceShape");
+                    throw new ArgumentOutOfRangeException("Unknown EnvShapeType");
             }
 
             envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
@@ -1966,7 +1964,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Proxy data
             var proxyToWorld = probe.proxyToWorld;
             envLightData.minProjectionDistance = probe.isProjectionInfinite ? 65504f : 0;
-            envLightData.proxyExtents = proxyExtents;
+            envLightData.proxyExtents = probe.proxyExtents;
             envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
             envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;

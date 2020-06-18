@@ -210,7 +210,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
-        // Convex: extents.x = first plane index in _ProxyPlaneDatas, extents.y = last plane
+        // Convex: extents = shape bounding box
         public Vector3 proxyExtents;
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
@@ -227,6 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 influenceUp;
         public Vector3 influenceRight;
 
+        // For a convex shape: x = first plane index in _ProxyPlaneDatas, y = last plane
         public Vector3 influenceExtents;
         public float unused00;
 

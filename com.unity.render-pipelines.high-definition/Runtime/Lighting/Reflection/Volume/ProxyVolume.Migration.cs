@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
         enum Version
         {
             Initial,
-            InfiniteProjectionInShape,
-            ConvexProxyShape,
+            InfiniteProjectionInShape
         }
 
         static readonly MigrationDescription<Version, ProxyVolume> k_Migration = MigrationDescription.New(
@@ -19,13 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (p.shape == ProxyShape.Sphere && p.m_ObsoleteSphereInfiniteProjection
                     || p.shape == ProxyShape.Box && p.m_ObsoleteBoxInfiniteProjection)
 #pragma warning restore CS0618
-                {
-                    p.shape = ProxyShape.Infinite;
-                }
-            }),
-            MigrationStep.New(Version.ConvexProxyShape, (ProxyVolume p) =>
-            {
-                if (p.shape == ProxyShape.Convex)
                 {
                     p.shape = ProxyShape.Infinite;
                 }

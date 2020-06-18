@@ -82,9 +82,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        protected virtual void Draw(TSerialized serialized, Editor owner)
+        protected virtual void DrawToolbar(TSerialized serialized, Editor owner)
         {
             HDProbeUI.Drawer<TProvider>.DrawToolbars(serialized, owner);
+        }
+
+        protected virtual void Draw(TSerialized serialized, Editor owner)
+        {
+            DrawToolbar(serialized, owner);
 
             HDProbeUI.Drawer<TProvider>.DrawPrimarySettings(serialized, owner);
 

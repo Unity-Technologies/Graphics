@@ -17,6 +17,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 case EditBaseShape:
                     InfluenceVolumeUI.DrawHandles_EditBase(serialized.probeSettings.influence, owner, probe.transform);
                     break;
+                case EditBaseShapePlanes:
+                    InfluenceVolumeUI.DrawHandles_EditBasePlanes(serialized.probeSettings.influence, owner, probe.transform);
+                    break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawHandles_EditInfluence(serialized.probeSettings.influence, owner, probe.transform);
                     break;

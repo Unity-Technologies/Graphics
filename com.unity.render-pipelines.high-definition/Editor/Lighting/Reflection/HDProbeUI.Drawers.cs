@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             MirrorPosition = 1 << 4,
             MirrorRotation = 1 << 5,
             ShowChromeGizmo = 1 << 6, //not really an edit mode. Should be move later to contextual tool overlay
+            BaseShapePlanes = 1 << 7,
         }
 
         internal interface IProbeUISettingsProvider
@@ -42,6 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const EditMode.SceneViewEditMode EditCapturePosition = (EditMode.SceneViewEditMode)103;
         const EditMode.SceneViewEditMode EditMirrorPosition = (EditMode.SceneViewEditMode)104;
         const EditMode.SceneViewEditMode EditMirrorRotation = (EditMode.SceneViewEditMode)105;
+        const EditMode.SceneViewEditMode EditBaseShapePlanes = (EditMode.SceneViewEditMode)106;
         //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
         //by legacy reflection probe and have its own mecanism that we don't want
 
@@ -52,7 +54,8 @@ namespace UnityEditor.Rendering.HighDefinition
             { ToolBar.NormalBlend, EditInfluenceNormalShape },
             { ToolBar.CapturePosition, EditCapturePosition },
             { ToolBar.MirrorPosition, EditMirrorPosition },
-            { ToolBar.MirrorRotation, EditMirrorRotation }
+            { ToolBar.MirrorRotation, EditMirrorRotation },
+            { ToolBar.BaseShapePlanes, EditBaseShapePlanes },
         };
 
         // Probe Setting Mode cache
@@ -239,9 +242,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static void DrawProjectionSettings(SerializedHDProbe serialized, Editor owner)
             {
+                var influenceShape = serialized.probeSettings.influence.shape;
+                bool influenceIsConvex = influenceShape.GetEnumValue<InfluenceShape>() == InfluenceShape.Convex;
+                if (influenceIsConvex)
+                    serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume.boolValue = true;
+
+                EditorGUI.BeginDisabledGroup(influenceIsConvex);
+
                 EditorGUILayout.PropertyField(serialized.proxyVolume, k_ProxyVolumeContent);
 
-                if (serialized.target.proxyVolume == null)
+                if (serialized.target.proxyVolume == null || influenceIsConvex)
                 {
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(serialized.probeSettings.proxyUseInfluenceVolumeAsProxyVolume);
@@ -249,15 +259,15 @@ namespace UnityEditor.Rendering.HighDefinition
                         serialized.Apply();
                 }
 
-                if (serialized.proxyVolume.objectReferenceValue != null)
+                EditorGUI.EndDisabledGroup();
+
+                if (serialized.proxyVolume.objectReferenceValue != null && !influenceIsConvex)
                 {
                     var proxy = (ReflectionProxyVolumeComponent)serialized.proxyVolume.objectReferenceValue;
-                    var proxyShape = proxy.proxyVolume.shape;
-                    var influenceShape = serialized.probeSettings.influence.shape;
-                    if ((proxyShape == ProxyShape.Convex && influenceShape.GetEnumValue<InfluenceShape>() != InfluenceShape.Box) ||
-                        (proxyShape <= ProxyShape.Sphere && proxyShape != influenceShape.GetEnumValue<ProxyShape>()))
+                    if (proxy.proxyVolume.shape != influenceShape.GetEnumValue<ProxyShape>()
+                        && proxy.proxyVolume.shape != ProxyShape.Infinite)
                         EditorGUILayout.HelpBox(
-                            k_ProxyInfluenceShapeMismatchHelpBoxText[(int)proxyShape],
+                            k_ProxyInfluenceShapeMismatchHelpBoxText,
                             MessageType.Error,
                             true
                             );
@@ -419,18 +429,16 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void Drawer_DifferentShapeError(SerializedHDProbe serialized, Editor owner)
         {
             var proxy = serialized.proxyVolume.objectReferenceValue as ReflectionProxyVolumeComponent;
-            if (proxy != null)
-            {
-                var proxyShape = proxy.proxyVolume.shape;
-                var influenceShape = serialized.probeSettings.influence.shape;
-                if ((proxyShape == ProxyShape.Convex && influenceShape.GetEnumValue<InfluenceShape>() != InfluenceShape.Box) ||
-                    (proxyShape <= ProxyShape.Sphere && proxyShape != influenceShape.GetEnumValue<ProxyShape>()))
-                    EditorGUILayout.HelpBox(
-                        k_ProxyInfluenceShapeMismatchHelpBoxText[(int)proxyShape],
-                        MessageType.Error,
-                        true
-                        );
-            }
+            var influenceShape = serialized.probeSettings.influence.shape;
+            if (proxy != null
+                && proxy.proxyVolume.shape != influenceShape.GetEnumValue<ProxyShape>()
+                && influenceShape.GetEnumValue<InfluenceShape>() != InfluenceShape.Convex
+                && proxy.proxyVolume.shape != ProxyShape.Infinite)
+                EditorGUILayout.HelpBox(
+                    k_ProxyInfluenceShapeMismatchHelpBoxText,
+                    MessageType.Error,
+                    true
+                    );
         }
 
         static internal void Drawer_ToolBarButton(

@@ -60,6 +60,15 @@ namespace UnityEditor.Rendering.HighDefinition
             var addSO = new SerializedObject(additionalData);
             return new SerializedHDReflectionProbe(so, addSO);
         }
+
+        protected override void DrawToolbar(SerializedHDReflectionProbe serialized, Editor owner)
+        {
+            HDProbe probe = ((ReflectionProbe)target).GetComponent<HDAdditionalReflectionData>() as HDProbe;
+            if (probe.influenceVolume.shape == InfluenceShape.Convex)
+                HDProbeUI.Drawer<HDConvexProbeSettingsProvider>.DrawToolbars(serialized, owner);
+            else
+                base.DrawToolbar(serialized, owner);
+        }
     }
 
     struct HDProbeSettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
@@ -116,6 +125,63 @@ namespace UnityEditor.Rendering.HighDefinition
             { KeyCode.Alpha2, HDProbeUI.ToolBar.Blend },
             { KeyCode.Alpha3, HDProbeUI.ToolBar.NormalBlend },
             { KeyCode.Alpha4, HDProbeUI.ToolBar.CapturePosition }
+        };
+        Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => k_ToolbarShortCutKey;
+    }
+
+    struct HDConvexProbeSettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+    {
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => false;
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.proxyCapturePositionProxySpace,
+            camera = new CameraSettingsOverride
+            {
+                camera = (CameraSettingsFields)(-1) & ~(
+                    CameraSettingsFields.frustumFieldOfView
+                    | CameraSettingsFields.frustumAspect
+                    | CameraSettingsFields.flipYMode
+                    | CameraSettingsFields.cullingInvertFaceCulling
+                    | CameraSettingsFields.frustumMode
+                    | CameraSettingsFields.frustumProjectionMatrix
+                )
+            }
+        };
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.lightingRangeCompression
+        };
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings => new ProbeSettingsOverride
+        {
+            probe = ProbeSettingsFields.lightingLightLayer
+                | ProbeSettingsFields.lightingMultiplier
+                | ProbeSettingsFields.lightingWeight
+                | ProbeSettingsFields.lightingFadeDistance,
+            camera = new CameraSettingsOverride
+            {
+                camera = CameraSettingsFields.none
+            }
+        };
+
+        Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Cubemap);
+        static readonly HDProbeUI.ToolBar[] k_ToolBars =
+        {
+            HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.BaseShapePlanes,
+            HDProbeUI.ToolBar.CapturePosition,
+            HDProbeUI.ToolBar.ShowChromeGizmo
+        };
+        HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_ToolBars;
+
+        static Dictionary<KeyCode, HDProbeUI.ToolBar> k_ToolbarShortCutKey = new Dictionary<KeyCode, HDProbeUI.ToolBar>
+        {
+            { KeyCode.Alpha1, HDProbeUI.ToolBar.InfluenceShape },
+            { KeyCode.Alpha2, HDProbeUI.ToolBar.BaseShapePlanes },
+            { KeyCode.Alpha4, HDProbeUI.ToolBar.CapturePosition },
         };
         Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => k_ToolbarShortCutKey;
     }

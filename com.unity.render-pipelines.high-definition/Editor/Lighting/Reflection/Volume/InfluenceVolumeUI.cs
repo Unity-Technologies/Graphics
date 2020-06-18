@@ -12,6 +12,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static HierarchicalSphere s_SphereInfluenceHandle;
         static HierarchicalSphere s_SphereInfluenceNormalHandle;
 
+        static ConvexVolume s_ConvexVolume;
+
         static InfluenceVolumeUI()
         {
             Color[] shapeHandlesColor = new[]
@@ -45,6 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
             s_SphereInfluenceNormalHandle = new HierarchicalSphere(
                 k_GizmoThemeColorInfluenceNormal,
                 parent: s_SphereBaseHandle);
+
+            s_ConvexVolume = new ConvexVolume(k_GizmoThemeColorBase, k_GizmoThemeColorInfluence);
         }
     }
 }

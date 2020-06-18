@@ -36,6 +36,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         }
                         break;
                     }
+                case InfluenceShape.Convex:
+                    DrawConvexHandle(serialized, owner, transform, s_ConvexVolume, true);
+                    break;
+            }
+        }
+
+        public static void DrawHandles_EditBasePlanes(SerializedInfluenceVolume serialized, Editor owner, Transform transform)
+        {
+            switch ((InfluenceShape)serialized.shape.intValue)
+            {
+                case InfluenceShape.Convex:
+                    DrawConvexHandle(serialized, owner, transform, s_ConvexVolume, false);
+                    break;
             }
         }
 
@@ -210,6 +223,47 @@ namespace UnityEditor.Rendering.HighDefinition
                 sphere.DrawHandle();
                 if (EditorGUI.EndChangeCheck())
                     radius.floatValue = Mathf.Clamp(serialized.sphereRadius.floatValue - sphere.radius, 0, serialized.sphereRadius.floatValue);
+            }
+        }
+
+        static void DrawConvexHandle(SerializedInfluenceVolume serialized, Editor owner, Transform transform, ConvexVolume volume, bool translationHandle)
+        {
+            if (Event.current.keyCode == KeyCode.Backspace && s_ConvexVolume.selected != -1)
+            {
+                serialized.convexPlanes.DeleteArrayElementAtIndex(s_ConvexVolume.selected);
+                serialized.selected.intValue = -1;
+
+                s_ConvexVolume.SetPlanes(serialized.convexPlanes);
+                bool isInfinite;
+                serialized.convexSize.vector3Value = s_ConvexVolume.GetExtents(out isInfinite);
+                serialized.isInfinite.boolValue = isInfinite;
+
+                GUI.changed = true;
+                Event.current.Use();
+                return;
+            }
+
+            s_ConvexVolume.center = Quaternion.Inverse(transform.rotation) * transform.position;
+            s_ConvexVolume.SetPlanes(serialized.convexPlanes);
+            s_ConvexVolume.selected = serialized.selected.intValue;
+
+            EditorGUI.BeginChangeCheck();
+            using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, transform.rotation, Vector3.one)))
+            {
+                s_ConvexVolume.DrawHull(true);
+                if (translationHandle)
+                    s_ConvexVolume.DrawTranslationHandle();
+                else
+                    s_ConvexVolume.DrawRotationHandle();
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                bool isInfinite;
+                Vector4 newValue = s_ConvexVolume.GetPlane(s_ConvexVolume.selected);
+                serialized.convexPlanes.GetArrayElementAtIndex(s_ConvexVolume.selected).vector4Value = newValue;
+                serialized.convexSize.vector3Value = s_ConvexVolume.GetExtents(out isInfinite);
+                serialized.isInfinite.boolValue = isInfinite;
+                serialized.selected.intValue = s_ConvexVolume.selected;
             }
         }
     }

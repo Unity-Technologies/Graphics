@@ -45,7 +45,7 @@ float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 position
 {
     float projectionDistance = FLT_MAX;
 
-    for (int i = (int)lightData.proxyExtents.x; i < (int)lightData.proxyExtents.y; i++)
+    for (int i = (int)lightData.influenceExtents.x; i < (int)lightData.influenceExtents.y; i++)
     {
         float4 plane = _ProxyPlaneDatas[i];
         float angle = dot(dirPS, plane.xyz);
@@ -53,7 +53,27 @@ float IntersectConvexProxy(EnvLightData lightData, float3 dirPS, float3 position
             projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
     }
 
-    // No need to handle minProjectionDistance because influence volume can't have a convex shape, only the reflection proxies
+    // Does not handle minProjectionDistance because a convex influence volume cannot have a proxy
+    return projectionDistance;
+}
+
+float IntersectConvexProxyInfluenceWeight(EnvLightData lightData, float3 dirPS, float3 positionPS, float3 positionIS, inout float weight)
+{
+    float projectionDistance = FLT_MAX;
+
+    for (int i = (int)lightData.influenceExtents.x; i < (int)lightData.influenceExtents.y; i++)
+    {
+        float4 plane = _ProxyPlaneDatas[i];
+        float angle = dot(dirPS, plane.xyz);
+        weight *= dot(positionPS, plane.xyz) < plane.w ? 1.0f : 0.0f;
+        if (angle > 0)
+            projectionDistance = min(projectionDistance, (plane.w - dot(positionPS, plane.xyz)) / angle);
+    }
+
+    // Make sure the point is inside the shape bounding box (for infinite volumes)
+    weight *= (all(positionIS > -lightData.proxyExtents) && all(positionIS < lightData.proxyExtents));
+
+    // Does not handle minProjectionDistance because a convex influence volume cannot have a proxy
     return projectionDistance;
 }
 

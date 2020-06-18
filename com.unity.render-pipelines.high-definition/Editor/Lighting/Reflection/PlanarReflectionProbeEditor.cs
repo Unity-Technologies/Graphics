@@ -312,15 +312,21 @@ namespace UnityEditor.Rendering.HighDefinition
             s_ExposureLow = EditorGUIUtility.IconContent("SceneViewLighting");
             s_PreLabel = "preLabel";
         }
+
+        protected override void DrawToolbar(SerializedPlanarReflectionProbe serialized, Editor owner)
+        {
+            //Debug.Log(typeof(target));
+            //HDProbe probe = ((PlanarReflectionProbe)target).GetComponent<HDAdditionalReflectionData>() as HDProbe;
+            //if (probe.influenceVolume.shape == InfluenceShape.Convex)
+            //    HDProbeUI.Drawer<ConvexPlanarReflectionProbeUISettingsProvider>.DrawToolbars(serialized, owner);
+            //else
+                base.DrawToolbar(serialized, owner);
+        }
     }
 
     struct PlanarReflectionProbeUISettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
     {
-        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => false;
-        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => false;
-        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => false;
-
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings => new ProbeSettingsOverride
+        public static ProbeSettingsOverride newDisplayedCaptureSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.frustumFieldOfViewMode
                 | ProbeSettingsFields.frustumAutomaticScale
@@ -340,7 +346,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         };
 
-        public ProbeSettingsOverride displayedAdvancedCaptureSettings => new ProbeSettingsOverride
+        public static ProbeSettingsOverride newDisplayedAdvancedCaptureSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.proxyMirrorPositionProxySpace
                 | ProbeSettingsFields.proxyMirrorRotationProxySpace
@@ -348,7 +354,7 @@ namespace UnityEditor.Rendering.HighDefinition
             camera = new CameraSettingsOverride()
         };
 
-        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings => new ProbeSettingsOverride
+        public static ProbeSettingsOverride newDisplayedCustomSettings => new ProbeSettingsOverride
         {
             probe = ProbeSettingsFields.lightingLightLayer
                 | ProbeSettingsFields.lightingMultiplier
@@ -359,6 +365,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 camera = CameraSettingsFields.none
             }
         };
+
+
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => false;
+
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedCaptureSettings;
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedAdvancedCaptureSettings;
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedCustomSettings;
+
 
         Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
         static readonly HDProbeUI.ToolBar[] k_Toolbars =
@@ -373,6 +395,42 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             { KeyCode.Alpha1, HDProbeUI.ToolBar.InfluenceShape },
             { KeyCode.Alpha2, HDProbeUI.ToolBar.Blend },
+            { KeyCode.Alpha3, HDProbeUI.ToolBar.MirrorPosition },
+            { KeyCode.Alpha4, HDProbeUI.ToolBar.MirrorRotation }
+        };
+        Dictionary<KeyCode, HDProbeUI.ToolBar> HDProbeUI.IProbeUISettingsProvider.shortcuts => k_ToolbarShortCutKey;
+    }
+
+    struct ConvexPlanarReflectionProbeUISettingsProvider : HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
+    {
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawOffset => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawNormal => false;
+        bool InfluenceVolumeUI.IInfluenceUISettingsProvider.drawFace => false;
+
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCaptureSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedCaptureSettings;
+
+        public ProbeSettingsOverride displayedAdvancedCaptureSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedAdvancedCaptureSettings;
+
+        ProbeSettingsOverride HDProbeUI.IProbeUISettingsProvider.displayedCustomSettings =>
+            PlanarReflectionProbeUISettingsProvider.newDisplayedCustomSettings;
+
+
+        Type HDProbeUI.IProbeUISettingsProvider.customTextureType => typeof(Texture2D);
+        static readonly HDProbeUI.ToolBar[] k_Toolbars =
+        {
+            HDProbeUI.ToolBar.InfluenceShape | HDProbeUI.ToolBar.BaseShapePlanes,
+            HDProbeUI.ToolBar.MirrorPosition | HDProbeUI.ToolBar.MirrorRotation,
+            HDProbeUI.ToolBar.ShowChromeGizmo
+        };
+        HDProbeUI.ToolBar[] HDProbeUI.IProbeUISettingsProvider.toolbars => k_Toolbars;
+
+        static Dictionary<KeyCode, HDProbeUI.ToolBar> k_ToolbarShortCutKey = new Dictionary<KeyCode, HDProbeUI.ToolBar>
+        {
+            { KeyCode.Alpha1, HDProbeUI.ToolBar.InfluenceShape },
+            { KeyCode.Alpha2, HDProbeUI.ToolBar.BaseShapePlanes },
             { KeyCode.Alpha3, HDProbeUI.ToolBar.MirrorPosition },
             { KeyCode.Alpha4, HDProbeUI.ToolBar.MirrorRotation }
         };

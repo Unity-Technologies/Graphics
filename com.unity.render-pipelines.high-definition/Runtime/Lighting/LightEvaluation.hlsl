@@ -520,11 +520,9 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     }
     else if (influenceShapeType == ENVSHAPETYPE_CONVEX)
     {
-        projectionDistance = IntersectConvexProxy(light, dirPS, positionPS);
+        projectionDistance = IntersectConvexProxyInfluenceWeight(light, dirPS, positionPS, positionIS, weight);
 
         R = (positionWS + projectionDistance * R) - light.capturePositionRWS;
-
-        weight = InfluenceBoxWeight(light, normalWS, positionWS, positionIS, dirIS);
     }
 
     // Smooth weighting
