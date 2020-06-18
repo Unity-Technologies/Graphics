@@ -4,7 +4,10 @@ using System.Linq;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+
+#if ENABLE_VIRTUALTEXTURES
 using UnityEngine.Rendering.VirtualTexturing;
+#endif
 
 namespace UnityEditor.Rendering.HighDefinition
 {
