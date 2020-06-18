@@ -365,6 +365,11 @@ namespace UnityEngine.Rendering.HighDefinition
             };
         }
 
+        /// <summary>
+        /// Create the depth texture used as target for a realtime planar reflection probe.
+        /// </summary>
+        /// <param name="planarSize">The size of the texture</param>
+        /// <returns>The texture used as planar reflection probe target</returns>
         public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
         {
             return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)

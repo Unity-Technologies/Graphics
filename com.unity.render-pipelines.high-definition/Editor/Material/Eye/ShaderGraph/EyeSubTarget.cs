@@ -10,6 +10,7 @@ using UnityEditor.ShaderGraph.Legacy;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph.Legacy;
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 using static UnityEditor.Rendering.HighDefinition.HDShaderUtils;
+using static UnityEditor.Rendering.HighDefinition.HDFields;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -17,12 +18,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public EyeSubTarget() => displayName = "Eye";
 
-        protected override string templatePath => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/EyePass.template";
+        static string[] passTemplateMaterialDirectories = new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Eye/ShaderGraph/",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
+
+        protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string customInspector => "Rendering.HighDefinition.EyeGUI";
         protected override string subTargetAssetGuid => "864e4e09d6293cf4d98457f740bb3301";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Eye;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Eye/Eye.hlsl";
-        protected override FieldDescriptor subShaderField => HDFields.SubShader.Eye;
+        protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Eye SubShader", "");
 
         protected override bool supportRaytracing => false;
         protected override bool requireSplitLighting => eyeData.subsurfaceScattering;
@@ -41,15 +48,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_EyeData = value;
         }
 
+        public static FieldDescriptor Eye =                     new FieldDescriptor(kMaterial, "Eye", "_MATERIAL_FEATURE_EYE 1");
+        public static FieldDescriptor EyeCinematic =            new FieldDescriptor(kMaterial, "EyeCinematic", "_MATERIAL_FEATURE_EYE_CINEMATIC 1");
+
         public override void GetFields(ref TargetFieldContext context)
         {
             base.GetFields(ref context);
 
             // Eye specific properties
-            context.AddField(HDFields.Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
-            context.AddField(HDFields.EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
-            context.AddField(HDFields.SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
-            context.AddField(HDFields.DoAlphaTest,                          systemData.alphaTest && context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold));
+            context.AddField(Eye,                                  eyeData.materialType == EyeData.MaterialType.Eye);
+            context.AddField(EyeCinematic,                         eyeData.materialType == EyeData.MaterialType.EyeCinematic);
+            context.AddField(SubsurfaceScattering,                 eyeData.subsurfaceScattering && systemData.surfaceType != SurfaceType.Transparent);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)

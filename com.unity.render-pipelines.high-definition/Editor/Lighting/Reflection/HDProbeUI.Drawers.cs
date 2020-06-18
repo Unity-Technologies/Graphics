@@ -236,7 +236,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static void DrawInfluenceSettings(SerializedHDProbe serialized, Editor owner)
             {
-                var provider = new TProvider();
                 InfluenceVolumeUI.Draw<TProvider>(serialized.probeSettings.influence, owner);
             }
 

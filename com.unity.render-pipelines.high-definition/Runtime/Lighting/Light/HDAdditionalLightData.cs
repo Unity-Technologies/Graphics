@@ -1586,6 +1586,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal MeshRenderer emissiveMeshRenderer { get; private set; }
 
 #if UNITY_EDITOR
+        bool m_NeedsPrefabInstanceCheck = false;
         bool needRefreshPrefabInstanceEmissiveMeshes = false;
 #endif
         bool needRefreshEmissiveMeshesFromTimeLineUpdate = false;
@@ -2292,6 +2293,14 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
 #if UNITY_EDITOR
+
+            // If modification are due to change on prefab asset that are non overridden on this prefab instance
+            if (m_NeedsPrefabInstanceCheck && PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
+            {
+                needRefreshPrefabInstanceEmissiveMeshes = true;
+            }
+            m_NeedsPrefabInstanceCheck = false;
+
             // Update the list of overlapping lights for the LightOverlap scene view mode
             if (IsOverlapping())
                 s_overlappingHDLights.Add(this);
@@ -2499,13 +2508,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RefreshCachedShadow();
 
 #if UNITY_EDITOR
-            // If modification are due to change on prefab asset that are non overridden on this prefab instance
-            if (PrefabUtility.IsPartOfPrefabInstance(this) && ((PrefabUtility.GetCorrespondingObjectFromOriginalSource(this) as HDAdditionalLightData)?.needRefreshPrefabInstanceEmissiveMeshes ?? false))
-            {
-                // As we cannot Create/Destroy in OnValidate, delay call to next Update
-                // To do this, wo set the same flag on prefab instances
-                needRefreshPrefabInstanceEmissiveMeshes = true;
-            }
+            // If modification are due to change on prefab asset, we want to have prefab instances to self-update, but we cannot check in OnValidate if this is part of
+            // prefab instance. So we delay the check on next update (and before teh LateUpdate logic)
+            m_NeedsPrefabInstanceCheck = true;
 #endif
         }
 
