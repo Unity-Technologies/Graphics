@@ -149,10 +149,17 @@ Pass
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..
         #ifdef _ALPHATEST_ON
-            $DoAlphaTest:         GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThreshold);
-            $DoAlphaTestPrepass:  GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPrepass);
-            $DoAlphaTestPostpass: GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdDepthPostpass);
-            $DoAlphaTestShadow:   GENERIC_ALPHA_TEST(surfaceDescription.Alpha, surfaceDescription.AlphaClipThresholdShadow);
+            float alphaCutoff = surfaceDescription.AlphaClipThreshold;
+            $DoAlphaTestPrepass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPrepass;
+            $DoAlphaTestPostpass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
+
+            #if SHADERPASS == SHADERPASS_SHADOWS
+                float alphaTestShadow = alphaCutoff;
+                $DoAlphaTestShadow: alphaTestShadow = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
+                GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaTestShadow);
+            #else
+                GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
+            #endif
         #endif
 
         #if !defined(SHADER_STAGE_RAY_TRACING) && _DEPTHOFFSET_ON
@@ -184,10 +191,8 @@ Pass
 
         #ifdef _ALPHATEST_ON
             // Used for sharpening by alpha to mask
-            $DoAlphaTest:         builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThreshold;
-            $DoAlphaTestPrepass:  builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPrepass;
-            $DoAlphaTestPostpass: builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdDepthPostpass;
-            $DoAlphaTestShadow:   builtinData.alphaClipTreshold = surfaceDescription.AlphaClipThresholdShadow;
+            builtinData.alphaClipTreshold = alphaCutoff;
+            $DoAlphaTestShadow: builtinData.alphaClipTreshold = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
         #endif
 
         // override sampleBakedGI - not used by Unlit

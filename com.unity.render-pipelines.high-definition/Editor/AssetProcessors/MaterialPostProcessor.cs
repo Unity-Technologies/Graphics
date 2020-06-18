@@ -193,6 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition
              ZWriteForTransparent,
              RenderQueueUpgrade,
              ShaderGraphStack,
+             MoreMaterialSurfaceOptionFromShaderGraph,
         };
 
         #region Migrations
@@ -388,6 +389,32 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                         
                 }
+            }
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
+        static void MoreMaterialSurfaceOptionFromShaderGraph(Material material, HDShaderUtils.ShaderID id)
+        {
+            if (material.shader.IsShaderGraph())
+            {
+                // Synchronize properties we exposed from SG to the material
+                ResetFloatProperty(kReceivesSSR);
+                ResetFloatProperty(kReceivesSSRTransparent);
+                ResetFloatProperty(kEnableDecals);
+                ResetFloatProperty(kEnableBlendModePreserveSpecularLighting);
+                ResetFloatProperty(kTransparentWritingMotionVec);
+                ResetFloatProperty(kAddPrecomputedVelocity);
+                ResetFloatProperty(kDepthOffsetEnable);
+            }
+
+            void ResetFloatProperty(string propName)
+            {
+                int propIndex = material.shader.FindPropertyIndex(propName);
+                if (propIndex == -1)
+                    return;
+                float defaultValue = material.shader.GetPropertyDefaultFloatValue(propIndex);
+                material.SetFloat(propName, defaultValue);
             }
 
             HDShaderUtils.ResetMaterialKeywords(material);

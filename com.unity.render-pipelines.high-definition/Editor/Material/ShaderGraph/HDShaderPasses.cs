@@ -499,6 +499,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 {
                     BlockFields.SurfaceDescription.Alpha,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPrepass,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
+                    HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow,
                     HDBlockFields.SurfaceDescription.DepthOffset,
                     BlockFields.SurfaceDescription.NormalTS,
                     BlockFields.SurfaceDescription.NormalWS,
@@ -518,6 +521,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             DefineCollection GenerateDefines()
             {
                 var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
+
+                defines.Add( CoreKeywordDescriptors.DepthPrepassCutoff,0);
 
                 if (supportLighting)
                     defines.Add( new DefineCollection{ { CoreKeywordDescriptors.WriteNormalBuffer, 0 } });
@@ -607,15 +612,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     BlockFields.SurfaceDescription.Alpha,
                     HDBlockFields.SurfaceDescription.AlphaClipThresholdDepthPostpass,
                     HDBlockFields.SurfaceDescription.DepthOffset,
+                    BlockFields.SurfaceDescription.AlphaClipThreshold,
                 },
 
                 // Collections
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.ShaderGraphRaytracingHigh,
+                defines = GenerateDefines(),
                 keywords = CoreKeywords.HDBase,
                 includes = GenerateIncludes(),
             };
+
+            DefineCollection GenerateDefines()
+            {
+                var defines = new DefineCollection{ CoreDefines.ShaderGraphRaytracingHigh };
+                defines.Add(CoreKeywordDescriptors.DepthPostpassCutoff, 0);
+                return defines;
+            }
 
             IncludeCollection GenerateIncludes()
             {

@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string subTargetAssetGuid => "74f1a4749bab90d429ac01d094be0aeb"; // FabricSubTarget.cs
-        protected override string customInspector => "Rendering.HighDefinition.FabricGUI";
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Fabric;
         protected override string subShaderInclude => "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Fabric/Fabric.hlsl";
         protected override string raytracingInclude => CoreIncludes.kFabricRaytracing;

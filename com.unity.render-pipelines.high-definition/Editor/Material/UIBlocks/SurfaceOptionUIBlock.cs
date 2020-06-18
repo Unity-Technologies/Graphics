@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEditor.ShaderGraph;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
@@ -402,7 +403,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if ((m_Features & Features.AlphaCutoffThreshold) != 0)
                 {
-                    if (useShadowThreshold != null)
+                    // For shadergraphs we show this slider only if the feature is enabled in the shader settings.
+                    bool showUseShadowThreshold = useShadowThreshold != null;
+                    var shader = materials[0].shader;
+                    if (showUseShadowThreshold && shader.IsShaderGraph())
+                        showUseShadowThreshold = shader.GetPropertyDefaultFloatValue(shader.FindPropertyIndex(kUseShadowThreshold)) > 0.0f;
+
+                    if (showUseShadowThreshold)
                         materialEditor.ShaderProperty(useShadowThreshold, Styles.useShadowThresholdText);
 
                     if (alphaCutoffShadow != null && useShadowThreshold != null && useShadowThreshold.floatValue == 1.0f && (m_Features & Features.AlphaCutoffShadowThreshold) != 0)
@@ -423,6 +430,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
                 if (surfaceTypeValue == SurfaceType.Transparent)
                 {
+                    // TODO: check if passes exists
                     if (transparentDepthPrepassEnable != null && transparentDepthPrepassEnable.floatValue == 1.0f)
                     {
                         if (alphaCutoffPrepass != null)
@@ -512,15 +520,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
 
-                if (transparentBackfaceEnable != null)
+                bool shaderHasBackThenFrontPass = materials[0].FindPass(HDShaderPassNames.s_TransparentBackfaceStr) != -1;
+                if (shaderHasBackThenFrontPass && transparentBackfaceEnable != null)
                     materialEditor.ShaderProperty(transparentBackfaceEnable, Styles.transparentBackfaceEnableText);
 
                 if ((m_Features & Features.ShowPrePassAndPostPass) != 0)
                 {
-                    if (transparentDepthPrepassEnable != null)
+                    bool shaderHasDepthPrePass = materials[0].FindPass(HDShaderPassNames.s_TransparentDepthPrepassStr) != -1;
+                    if (shaderHasDepthPrePass && transparentDepthPrepassEnable != null)
                         materialEditor.ShaderProperty(transparentDepthPrepassEnable, Styles.transparentDepthPrepassEnableText);
 
-                    if (transparentDepthPostpassEnable != null)
+                    bool shaderHasDepthPostPass = materials[0].FindPass(HDShaderPassNames.s_TransparentDepthPostpassStr) != -1;
+                    if (shaderHasDepthPostPass && transparentDepthPostpassEnable != null)
                         materialEditor.ShaderProperty(transparentDepthPostpassEnable, Styles.transparentDepthPostpassEnableText);
                 }
 

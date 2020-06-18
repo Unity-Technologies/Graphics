@@ -28,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
 
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
-        protected override string customInspector => "Rendering.HighDefinition.StackLitGUI";
+        protected override string customInspector => "Rendering.HighDefinition.LightingShaderGraphGUI";
         protected override string subTargetAssetGuid => "5f7ba34a143e67647b202a662748dae3"; // StackLitSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_StackLit;
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "StackLit SubShader", "");

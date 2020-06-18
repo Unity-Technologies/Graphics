@@ -873,7 +873,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { CoreKeywordDescriptors.ShadowsShadowmask },
             { CoreKeywordDescriptors.Shadow },
             { CoreKeywordDescriptors.Decals },
-            { CoreKeywordDescriptors.LightList, new FieldCondition(Fields.SurfaceOpaque, true) },
+            { CoreKeywordDescriptors.LightList },
         };
 
         public static KeywordCollection RaytracingIndirect = new KeywordCollection
@@ -925,7 +925,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static DefineCollection Forward = new DefineCollection
         {
             { CoreKeywordDescriptors.HasLightloop, 1 },
-            { CoreKeywordDescriptors.LightList, 1, new FieldCondition(Fields.SurfaceTransparent, true) },
             { RayTracingNode.GetRayTracingKeyword(), 0, new FieldCondition(Fields.SurfaceTransparent, true) },
         };
     }
@@ -1354,6 +1353,24 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
+        };
+
+        public static KeywordDescriptor DepthPrepassCutoff = new KeywordDescriptor()
+        {
+            displayName = "Depth Prepass Cutoff",
+            referenceName = "CUTOFF_TRANSPARENT_DEPTH_PREPASS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor DepthPostpassCutoff = new KeywordDescriptor()
+        {
+            displayName = "Depth Postpass Cutoff",
+            referenceName = "CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.Predefined,
+            scope = KeywordScope.Global,
         };
     }
 #endregion
