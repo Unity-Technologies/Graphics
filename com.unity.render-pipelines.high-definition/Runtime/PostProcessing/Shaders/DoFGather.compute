@@ -87,11 +87,10 @@ float GetCoCMaxRadius(int2 positionSS)
 #ifndef ADAPTIVE_RADIUS
     return _Params.y;
 #else
-    // We only have up to 4 mip levels now, we need more!!!
-    int lod = min(4, _Params.z);
-    int scale = 1 << lod;
-    float CoCRadius = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, positionSS / scale, lod).x;
-    return abs(CoCRadius);
+    // We only have up to 6 mip levels 
+    int lod = min(6, _Params.z);
+    float maxOverlapingCoC = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, positionSS >> lod, lod).x;
+    return abs(maxOverlapingCoC);
 #endif
 }
 

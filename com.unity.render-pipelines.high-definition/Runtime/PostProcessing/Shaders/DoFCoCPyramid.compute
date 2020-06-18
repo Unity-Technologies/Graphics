@@ -11,8 +11,10 @@ RW_TEXTURE2D_X(float, _OutputMip1);
 RW_TEXTURE2D_X(float, _OutputMip2);
 RW_TEXTURE2D_X(float, _OutputMip3);
 RW_TEXTURE2D_X(float, _OutputMip4);
+RW_TEXTURE2D_X(float, _OutputMip5);
+RW_TEXTURE2D_X(float, _OutputMip6);
 
-#define GROUP_SIZE 8
+#define GROUP_SIZE 32
 
 groupshared float gs_cache[GROUP_SIZE * GROUP_SIZE];
 
@@ -26,7 +28,7 @@ float LoadPixel(uint index)
     return gs_cache[index];
 }
 
-// Generate four mips in one pass
+// Generate six mips in one pass
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
 {
@@ -48,11 +50,11 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     GroupMemoryBarrierWithGroupSync();
 
     // Second mip - checks that X and Y are even
-    if ((groupIndex & 0x9) == 0)
+    if ((groupIndex & 0x21) == 0)
     {
         color = max(color, LoadPixel(groupIndex + 1u));
-        color = max(color, LoadPixel(groupIndex + 8u));
-        color = max(color, LoadPixel(groupIndex + 9u));
+        color = max(color, LoadPixel(groupIndex + GROUP_SIZE));
+        color = max(color, LoadPixel(groupIndex + GROUP_SIZE + 1u));
 
         StorePixel(groupIndex, color);
 
@@ -62,25 +64,48 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     GroupMemoryBarrierWithGroupSync();
 
     // Third mip - checks that X and Y are multiples of four
-    if ((groupIndex & 0x1b) == 0)
+    if ((groupIndex & 0x63) == 0)
     {
         color = max(color, LoadPixel(groupIndex + 2u));
-        color = max(color, LoadPixel(groupIndex + 16u));
-        color = max(color, LoadPixel(groupIndex + 18u));
+        color = max(color, LoadPixel(groupIndex + 2u * GROUP_SIZE));
+        color = max(color, LoadPixel(groupIndex + 2u * GROUP_SIZE + 2u));
         StorePixel(groupIndex, color);
 
         _OutputMip3[COORD_TEXTURE2D_X(dispatchThreadId.xy / 4u)] = color;
     }
 
     GroupMemoryBarrierWithGroupSync();
+    
+    // Fourth mip - checks that X and Y are multiples of 8
+    if ((groupIndex & 0xE7) == 0)
+    {
+        color = max(color, LoadPixel(groupIndex + 4u));
+        color = max(color, LoadPixel(groupIndex + 4u * GROUP_SIZE));
+        color = max(color, LoadPixel(groupIndex + 4u * GROUP_SIZE + 4u));
+        StorePixel(groupIndex, color);
+
+        _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Fifth mip - checks that X and Y are multiples of 16
+    if ((groupIndex & 0x1EF) == 0)
+    {
+        color = max(color, LoadPixel(groupIndex + 8u));
+        color = max(color, LoadPixel(groupIndex + 8u * GROUP_SIZE));
+        color = max(color, LoadPixel(groupIndex + 8u * GROUP_SIZE + 8u));
+
+        _OutputMip5[COORD_TEXTURE2D_X(dispatchThreadId.xy / 16u)] = color;
+    }
 
     // Last mip - only one thread
     if (groupIndex == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 4u));
-        color = max(color, LoadPixel(groupIndex + 32u));
-        color = max(color, LoadPixel(groupIndex + 36u));
+        color = max(color, LoadPixel(groupIndex + 16u));
+        color = max(color, LoadPixel(groupIndex + 16u * GROUP_SIZE));
+        color = max(color, LoadPixel(groupIndex + 16u * GROUP_SIZE + 16u));
 
-        _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
+        _OutputMip6[COORD_TEXTURE2D_X(dispatchThreadId.xy / 32u)] = color;
     }
 }
