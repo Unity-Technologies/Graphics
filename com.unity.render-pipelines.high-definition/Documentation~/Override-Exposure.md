@@ -175,3 +175,4 @@ The Metering Weighted debug view displays the scene alongside a picture of what 
 The final image histogram debug view displays the scene alongside an overlay representing the histogram of the image after all post-processing (tonemapping and gamma correction included) is applied. This histogram has 256 bins to map to 8-bit image values. 
 This view can display both luminance histogram or RGB channels represented separately. 
 
+![](Images/Override-Exposure7.png)
