@@ -110,7 +110,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // Do edge detection...
             int4 rect = new int4(0, 0, width, height);
 
-            int alphaCutMax = isOpaque ? 255 : 254;
+            //int alphaCutMax = isOpaque ? 255 : 254; // Will cut out the opaque part
+            int alphaCutMax = 255;
             TileAllocations tile = new TileAllocations(rect, alphaCutMin, 255);
 
             OutlineSearch outlineSearch = new OutlineSearch();

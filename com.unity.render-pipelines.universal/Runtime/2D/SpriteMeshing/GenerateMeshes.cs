@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         contourData.m_UseReverseWinding = IsReversed(isOutsideContour, isOpaque);
                         allContourData.Add(contourId, contourData); // add a new contourData
 
-                    Contour newContour = new Contour(shapeLib.m_Shapes[shapeIndex], contourData, isOutsideContour);
+                        Contour newContour = new Contour(shapeLib.m_Shapes[shapeIndex], contourData, isOutsideContour);
                         shapeLib.m_Shapes[shapeIndex].m_Contours.Add(newContour);
                         contourData.m_Contours.Add(newContour);
 
@@ -149,10 +149,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     VertexReducer vertexReducer = new VertexReducer();
                     vertexReducer.Initialize(shapeLibrary, dataKV.Value.m_Vertices.ToArray(), dataKV.Value.m_UseReverseWinding, out contourArea);
 
-                    if (contourArea < minimumArea)
+                    if (contourArea < minimumArea && dataKV.Value.m_Contours[0].m_Shape.m_IsOpaque)  // dataKV.Value.m_Contours.Count > 1 used if we want to revert back to opaque cutout option
                     {
-                        if (dataKV.Value.m_Contours.Count > 1)
-                            contourDataRemovalList.Add(dataKV.Key);
+                        contourDataRemovalList.Add(dataKV.Key);
                     }
                     else
                     {
