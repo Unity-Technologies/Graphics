@@ -223,8 +223,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public int              numTilesX;
             public int              numTilesY;
             public int              numTilesZ;
-            public ComputeBuffer    coarseStencilBuffer;
-
         }
 
         struct SubsurfaceScatteringResources
@@ -258,7 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
             parameters.numTilesY = ((int)hdCamera.screenSize.y + 15) / 16;
             parameters.numTilesZ = hdCamera.viewCount;
-            parameters.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
             parameters.sampleBudget = hdCamera.frameSettings.sssResolvedSampleBudget;
 
             return parameters;
@@ -418,7 +415,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     resources.depthStencilBuffer = depthStencilBufferRT;
                     resources.depthTexture = depthTextureRT;
                     resources.cameraFilteringBuffer = m_SSSCameraFilteringBuffer;
-                    resources.coarseStencilBuffer = parameters.coarseStencilBuffer;
+                    resources.coarseStencilBuffer = m_SharedRTManager.GetCoarseStencilBuffer();
                     resources.sssBuffer = m_SSSColor;
 
                     // For Jimenez we always need an extra buffer, for Disney it depends on platform

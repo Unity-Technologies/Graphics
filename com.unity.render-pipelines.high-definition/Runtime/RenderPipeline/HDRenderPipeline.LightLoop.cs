@@ -368,17 +368,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle hitPointsTexture;
             public TextureHandle lightingTexture;
             public TextureHandle clearCoatMask;
+            public ComputeBufferHandle coarseStencilBuffer;
             //public TextureHandle debugTexture;
         }
 
-        TextureHandle RenderSSR(    RenderGraph     renderGraph,
-                                    HDCamera        hdCamera,
-                                    TextureHandle   normalBuffer,
-                                    TextureHandle   motionVectorsBuffer,
-                                    TextureHandle   depthBuffer,
-                                    TextureHandle   depthPyramid,
-                                    TextureHandle   stencilBuffer,
-                                    TextureHandle   clearCoatMask)
+        TextureHandle RenderSSR(    RenderGraph         renderGraph,
+                                    HDCamera            hdCamera,
+                                    in PrepassOutput    prepassOutput,
+                                    TextureHandle       clearCoatMask)
         {
             var ssrBlackTexture = renderGraph.ImportTexture(TextureXR.GetBlackTexture(), HDShaderIDs._SsrLightingTexture);
 
@@ -405,14 +402,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     var colorPyramid = renderGraph.ImportTexture(hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain));
 
                     passData.parameters = PrepareSSRParameters(hdCamera, m_DepthBufferMipChainInfo, true);
-                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.depthPyramid = builder.ReadTexture(depthPyramid);
+                    passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
+                    passData.depthPyramid = builder.ReadTexture(prepassOutput.depthPyramidTexture);
                     passData.colorPyramid = builder.ReadTexture(colorPyramid);
-                    passData.stencilBuffer = builder.ReadTexture(stencilBuffer);
+                    passData.stencilBuffer = builder.ReadTexture(prepassOutput.stencilBuffer);
                     passData.clearCoatMask = builder.ReadTexture(clearCoatMask);
+                    passData.coarseStencilBuffer = builder.ReadComputeBuffer(prepassOutput.coarseStencilBuffer);
 
-                    builder.ReadTexture(normalBuffer);
-                    builder.ReadTexture(motionVectorsBuffer);
+                    // TODO RENDERGRAPH: pass and bind properly those texture (once auto setglobal is gone)
+                    builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
+                    builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
@@ -435,6 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     res.GetTexture(data.clearCoatMask),
                                     res.GetTexture(data.colorPyramid),
                                     res.GetTexture(data.lightingTexture),
+                                    res.GetComputeBuffer(data.coarseStencilBuffer),
                                     context.cmd, context.renderContext);
                     });
 

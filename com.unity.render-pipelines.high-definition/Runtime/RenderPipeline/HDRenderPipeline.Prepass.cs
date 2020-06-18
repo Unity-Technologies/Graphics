@@ -53,28 +53,29 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Buffers that may be output by the prepass.
             // They will be MSAA depending on the frame settings
-            public TextureHandle    depthBuffer;
-            public TextureHandle    depthAsColor;
-            public TextureHandle    normalBuffer;
-            public TextureHandle    motionVectorsBuffer;
+            public TextureHandle        depthBuffer;
+            public TextureHandle        depthAsColor;
+            public TextureHandle        normalBuffer;
+            public TextureHandle        motionVectorsBuffer;
 
             // GBuffer output. Will also contain a reference to the normal buffer (as it is shared between deferred and forward objects)
-            public GBufferOutput    gbuffer;
+            public GBufferOutput        gbuffer;
 
-            public DBufferOutput    dbuffer;
+            public DBufferOutput        dbuffer;
 
             // Additional buffers only for MSAA
-            public TextureHandle    depthValuesMSAA;
+            public TextureHandle        depthValuesMSAA;
 
             // Resolved buffers for MSAA. When MSAA is off, they will be the same reference as the buffers above.
-            public TextureHandle    resolvedDepthBuffer;
-            public TextureHandle    resolvedNormalBuffer;
-            public TextureHandle    resolvedMotionVectorsBuffer;
+            public TextureHandle        resolvedDepthBuffer;
+            public TextureHandle        resolvedNormalBuffer;
+            public TextureHandle        resolvedMotionVectorsBuffer;
 
             // Copy of the resolved depth buffer with mip chain
-            public TextureHandle    depthPyramidTexture;
+            public TextureHandle        depthPyramidTexture;
 
-            public TextureHandle    stencilBuffer;
+            public TextureHandle        stencilBuffer;
+            public ComputeBufferHandle  coarseStencilBuffer;
         }
 
         TextureHandle CreateDepthBuffer(RenderGraph renderGraph, bool msaa)
@@ -529,7 +530,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 passData.parameters = PrepareBuildCoarseStencilParameters(hdCamera);
                 passData.inputDepth = output.depthBuffer;
-                passData.coarseStencilBuffer = builder.WriteComputeBuffer(renderGraph.ImportComputeBuffer(m_SharedRTManager.GetCoarseStencilBuffer()));
+                passData.coarseStencilBuffer = builder.WriteComputeBuffer(
+                    renderGraph.CreateComputeBuffer(new ComputeBufferDesc(HDUtils.DivRoundUp(m_MaxCameraWidth, 8) * HDUtils.DivRoundUp(m_MaxCameraHeight, 8) * m_MaxViewCount, sizeof(uint)) { name = "CoarseStencilBuffer" }));
                 if (passData.parameters.resolveIsNecessary)
                     passData.resolvedStencil = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8G8_UInt, enableRandomWrite = true, name = "StencilBufferResolved" }));
                 builder.SetRenderFunc(
@@ -552,6 +554,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     output.stencilBuffer = output.depthBuffer;
                 }
+                output.coarseStencilBuffer = passData.coarseStencilBuffer;
             }
         }
 

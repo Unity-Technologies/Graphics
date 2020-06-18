@@ -77,11 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var clearCoatMask = hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred ? prepassOutput.gbuffer.mrt[2] : m_RenderGraph.defaultResources.blackTextureXR;
                 lightingBuffers.ssrLightingBuffer = RenderSSR(m_RenderGraph,
                                                               hdCamera,
-                                                              prepassOutput.resolvedNormalBuffer,
-                                                              prepassOutput.resolvedMotionVectorsBuffer,
-                                                              prepassOutput.depthBuffer,
-                                                              prepassOutput.depthPyramidTexture,
-                                                              prepassOutput.stencilBuffer,
+                                                              prepassOutput,
                                                               clearCoatMask);
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
