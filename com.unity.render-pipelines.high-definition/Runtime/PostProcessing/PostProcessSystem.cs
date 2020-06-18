@@ -587,7 +587,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
                             DoDepthOfField(cmd, camera, source, destination, taaEnabled);
-                            //DoPhysicallyBasedDepthOfField(cmd, camera, source, destination, taaEnabled);
                             PoolSource(ref source, destination);
                         }
                     }
