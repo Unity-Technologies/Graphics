@@ -100,6 +100,7 @@
   * [Physical Light Units and Intensities](Physical-Light-Units)
 * Camera
   * [HD Camera](HDRP-Camera)
+  * [Scene View Camera](Scene-View-Camera.md)
   * [Dynamic Resolution](Dynamic-Resolution)
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
