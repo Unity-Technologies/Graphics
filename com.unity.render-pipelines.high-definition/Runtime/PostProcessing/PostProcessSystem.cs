@@ -2018,14 +2018,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     kernel = cs.FindKernel("KMainCoCPhysical");
 
-                    // Note: Both focalLength and sensor size are in mm
-                    float scaleFactor = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;  // CoC will be measured in screen pixels
+                    // The sensor scale is used to convert the CoC size from mm to screen pixels
+                    float sensorScale;
+                    if( camera.camera.gateFit == Camera.GateFitMode.Horizontal )
+                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;  
+                    else
+                        sensorScale = (0.5f / camera.camera.sensorSize.y) * camera.camera.pixelHeight;
 
                     // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
+                    // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
+                    // We don't convert them to meters because the multiplication factors cancel-out
                     float F = camera.camera.focalLength / 1000f;
                     float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
                     float P = m_DepthOfField.focusDistance.value;
-                    float maxFarCoC = scaleFactor * (A * F) / Mathf.Max((P - F), 1e-6f);
+                    float maxFarCoC = sensorScale * (A * F) / Mathf.Max((P - F), 1e-6f);
 
                     // Scale and Bias factors for directly computing CoC size from post-rasterization depth with a single mad
                     float cocBias = maxFarCoC * (1f - P / camera.camera.farClipPlane);
