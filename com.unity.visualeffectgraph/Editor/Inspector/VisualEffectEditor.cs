@@ -353,6 +353,15 @@ namespace UnityEditor.VFX
                                 changed = true;
                             }
                         }
+                        else if (parameter.enumValues != null && parameter.enumValues.Count > 0)
+                        {
+                            int newIndex = EditorGUI.Popup(rect, nameContent, (int)0, parameter.enumValues.ToArray());
+                            if (GUI.changed)
+                            {
+                                valueProperty.intValue = newIndex;
+                                changed = true;
+                            }
+                        }
                         else
                         {
                             int value = EditorGUI.IntField(rect, nameContent, 0);
