@@ -736,8 +736,12 @@ namespace UnityEditor.VFX.UI
                             p.valueFilter = parameter.valueFilter;
                             if (parameter.valueFilter == VFXValueFilter.Range)
                             {
-                                p.min = parameter.min;
-                                p.max = parameter.max;
+                                p.min = parameter.min.Get();
+                                p.max = parameter.max.Get();
+                            }
+                            else if( parameter.valueFilter == VFXValueFilter.Enum)
+                            {
+                                p.enumValues = parameter.enumValue.ToList();
                             }
                             p.SetSettingValue("m_Exposed", parameter.exposed);
                             if (viewController.model.visualEffectObject is VisualEffectSubgraphOperator)

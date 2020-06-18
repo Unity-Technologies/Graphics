@@ -256,6 +256,7 @@ namespace UnityEditor.VFX.UI
                     valueFilter = p.valueFilter,
                     min = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.min) : null,
                     max = p.valueFilter == VFXValueFilter.Range ? new VFXSerializableObject(p.model.type, p.model.max) : null,
+                    enumValue = p.valueFilter == VFXValueFilter.Enum ? p.model.enumValues.ToArray() : null,
                     tooltip = p.model.tooltip,
                     nodes = c.Select((u, i) => CopyParameterNode(cpt - 1, i, u, parameterIndices[Array.IndexOf(parameters, u)])).ToArray()
                 };

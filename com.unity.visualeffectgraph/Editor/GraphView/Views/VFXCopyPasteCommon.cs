@@ -136,6 +136,7 @@ namespace UnityEditor.VFX.UI
             public VFXValueFilter valueFilter;
             public VFXSerializableObject min;
             public VFXSerializableObject max;
+            public string[] enumValue;
             public string tooltip;
             public bool isOutput;
             public ParameterNode[] nodes;
