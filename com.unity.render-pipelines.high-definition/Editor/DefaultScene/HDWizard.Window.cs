@@ -152,9 +152,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
                 error: "There is an issue with the DXR resources! Or your hardware and/or OS cannot be used for DXR! (unfixable in second case)");
-            public static readonly ConfigStyle dxrShaderConfig = new ConfigStyle(
-                label: "DXR shader config",
-                error: "There is an issue with the DXR shader config!");
             public static readonly ConfigStyle dxrScene = new ConfigStyle(
                 label: "Default DXR scene prefab",
                 error: "Default DXR scene prefab must be set to create HD templated scene!");
