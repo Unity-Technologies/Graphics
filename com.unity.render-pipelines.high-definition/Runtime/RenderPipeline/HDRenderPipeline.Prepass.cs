@@ -156,20 +156,45 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderDBuffer(renderGraph, hdCamera, ref result, cullingResults);
 
+                // TODO RENDERGRAPH
+                //// When evaluating probe volumes in material pass, we build a custom probe volume light list.
+                //// When evaluating probe volumes in light loop, probe volumes are folded into the standard light loop data.
+                //if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ProbeVolume) && ShaderConfig.s_ProbeVolumesEvaluationMode == ProbeVolumesEvaluationModes.MaterialPass)
+                //{
+                //    if (hdCamera.frameSettings.BuildLightListRunsAsync())
+                //    {
+                //        buildProbeVolumeLightListTask.EndWithPostWork(cmd, hdCamera, Callback);
+
+                //        void Callback(CommandBuffer c, HDCamera cam)
+                //        {
+                //            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                //            var globalParams = hdrp.PrepareLightLoopGlobalParameters(cam, m_ProbeVolumeClusterData);
+                //            PushProbeVolumeLightListGlobalParams(globalParams, c);
+                //        }
+                //    }
+                //    else
+                //    {
+                //        BuildGPULightListProbeVolumesCommon(hdCamera, cmd);
+                //        var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+                //        var globalParams = hdrp.PrepareLightLoopGlobalParameters(hdCamera, m_ProbeVolumeClusterData);
+                //        PushProbeVolumeLightListGlobalParams(globalParams, cmd);
+                //    }
+                //}
+
                 RenderGBuffer(renderGraph, sssBuffer, ref result, cullingResults, hdCamera);
 
                 DecalNormalPatch(renderGraph, hdCamera, ref result);
 
                 // TODO RENDERGRAPH
                 //// After Depth and Normals/roughness including decals
-                //RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal);
+                //bool depthBufferModified = RenderCustomPass(renderContext, cmd, hdCamera, customPassCullingResults, CustomPassInjectionPoint.AfterOpaqueDepthAndNormal, aovRequest, aovCustomPassBuffers);
+
+                //// If the depth was already copied in RenderDBuffer, we force the copy again because the custom pass modified the depth.
+                //if (depthBufferModified)
+                //    m_IsDepthBufferCopyValid = false;
 
                 // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                 GenerateDepthPyramid(renderGraph, hdCamera, ref result);
-
-                // TODO RENDERGRAPH
-                //// Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
-                //SendGeometryGraphicsBuffers(cmd, hdCamera);
 
                 if (shouldRenderMotionVectorAfterGBuffer)
                 {
@@ -368,7 +393,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // TODO RENDERGRAPH: For now we just bind globally for GBuffer/Forward passes.
-        // We need to find a nice way to invalid this kind of buffers when they should not be used anymore (after the last read).
+        // We need to find a nice way to invalidate this kind of buffers when they should not be used anymore (after the last read).
         static void BindDBufferGlobalData(in DBufferOutput dBufferOutput, in RenderGraphContext ctx)
         {
             for (int i = 0; i < dBufferOutput.dBufferCount; ++i)
