@@ -27,8 +27,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define RING_DENSITY 8.0
 #define UNIFORM_WEIGHTS
 //#define ADAPTIVE_RADIUS
-//#define GRADIENT_NOISE
-//#define CENTER_DENSITY
+#define GRADIENT_NOISE
 //#define OCTAWEB_SORTING
 
 // DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
@@ -315,7 +314,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[1].xyz;
         totalW = (1.0 - alpha) * totalW + totalColor[1].w;
 #ifdef ENABLE_ALPHA
-        outAlpha = (1.0 - alpha) * outAlpha + outAlpha[j];
+        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[1];
 #endif
     }
     if (totalW > 0) outColor.xyz /= totalW;
