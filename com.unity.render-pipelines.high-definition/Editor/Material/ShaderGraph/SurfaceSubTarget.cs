@@ -220,9 +220,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             bool isShadowPass               = context.pass.lightMode == "ShadowCaster";
             bool isTransparentDepthPrepass  = context.pass.lightMode == "TransparentDepthPrepass";
             bool isTransparentDepthPostpass = context.pass.lightMode == "TransparentDepthPostpass";
-            context.AddField(HDFields.DoAlphaTest, systemData.alphaTest && (context.pass.validPixelBlocks.Contains(BlockFields.SurfaceDescription.AlphaClipThreshold) &&
-                                                                                !(isShadowPass && builtinData.alphaTestShadow && context.pass.validPixelBlocks.Contains(HDBlockFields.SurfaceDescription.AlphaClipThresholdShadow))
-                                                                                ));
                 
             // Shadow use the specific alpha test only if user have ask to override it
             context.AddField(HDFields.DoAlphaTestShadow,    systemData.alphaTest && builtinData.alphaTestShadow && isShadowPass &&

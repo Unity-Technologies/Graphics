@@ -48,7 +48,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor SpecularOcclusionCustom = new FieldDescriptor(string.Empty, "SpecularOcclusionCustom", "_SPECULAR_OCCLUSION_CUSTOM 1");
 
         // Misc
-        public static FieldDescriptor DoAlphaTest =             new FieldDescriptor(string.Empty, "DoAlphaTest", "_DO_ALPHA_TEST 1");
         public static FieldDescriptor DoAlphaTestShadow =       new FieldDescriptor(string.Empty, "DoAlphaTestShadow", "_DO_ALPHA_TEST_SHADOW 1");
         public static FieldDescriptor DoAlphaTestPrepass =      new FieldDescriptor(string.Empty, "DoAlphaTestPrepass", "_DO_ALPHA_TEST_PREPASS 1");
         public static FieldDescriptor DoAlphaTestPostpass =     new FieldDescriptor(string.Empty, "DoAlphaTestPostpass", "_DO_ALPHA_TEST_POSTPASS 1");

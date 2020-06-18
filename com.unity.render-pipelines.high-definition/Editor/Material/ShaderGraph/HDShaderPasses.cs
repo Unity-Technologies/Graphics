@@ -514,7 +514,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = GenerateRenderState(),
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = GenerateDefines(),
-                keywords = CoreKeywords.HDBase,
+                keywords = GenerateKeywords(),
                 includes = GenerateIncludes(),
             };
 
@@ -522,12 +522,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var defines = new DefineCollection{ { RayTracingNode.GetRayTracingKeyword(), 0 } };
 
-                defines.Add( CoreKeywordDescriptors.DepthPrepassCutoff,0);
-
-                if (supportLighting)
-                    defines.Add( new DefineCollection{ { CoreKeywordDescriptors.WriteNormalBuffer, 0 } });
+                defines.Add(CoreKeywordDescriptors.DepthPrepassCutoff, 0);
 
                 return defines;
+            }
+
+            KeywordCollection GenerateKeywords()
+            {
+                KeywordCollection keywords = new KeywordCollection { CoreKeywords.HDBase };
+
+                if (supportLighting)
+                    keywords.Add(CoreKeywordDescriptors.WriteNormalBuffer);
+                
+                return keywords;
             }
 
             RenderStateCollection GenerateRenderState()
