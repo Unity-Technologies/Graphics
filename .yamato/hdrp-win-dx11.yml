@@ -49,7 +49,7 @@ HDRP_Win_DX11_playmode_RenderGraph_trunk:
     name: HDRP on Win_DX11_playmode_RenderGraph on version trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -180,7 +180,7 @@ HDRP_Win_DX11_playmode_RenderGraph_fast-trunk:
     name: HDRP on Win_DX11_playmode_RenderGraph on version fast-trunk
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:
@@ -313,7 +313,7 @@ HDRP_Win_DX11_playmode_RenderGraph_CUSTOM-REVISION:
     name: HDRP on Win_DX11_playmode_RenderGraph on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
-        image: graphics-foundation/win10-dxr:latest
+        image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
         model: rtx2080
     variables:

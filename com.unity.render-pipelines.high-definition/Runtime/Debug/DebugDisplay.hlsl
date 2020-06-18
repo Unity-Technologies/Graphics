@@ -13,7 +13,7 @@
 
 
 // Local shader variables
-static DirectionalShadowType g_DebugShadowAttenuation = 0;
+static SHADOW_TYPE g_DebugShadowAttenuation = 0;
 
 StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 

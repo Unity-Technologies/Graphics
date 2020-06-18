@@ -41,6 +41,7 @@ The shader function `SampleShadow_PCSS` now requires you to pass in an additiona
 
 From Unity 2020.2, due to the change of shadow map, the enum HDShadowFilteringQuality have been moved to HDShadowManager.cs and the variables ShaderConfig.s_DeferredShadowFiltering as well as the option ShaderOptions.DeferredShadowFiltering have been removed from the code as they have no impact anymore.
 
+From Unity 2020.2, a new option is available name ColoredShadow. It allow to control if the shadow will be chromatic or monochrome. ColoredShadow have a performance cost. ColoredShadow are the default and currently only work with Raytrace shadow.
 
 ## Shader code
 
@@ -71,6 +72,9 @@ BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceDat
 
 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 ```
+
+
+From Unity 2020.2, a new rectangular area shadow have been introduce EvaluateShadow_RectArea and the function GetAreaLightAttenuation() have been rename to GetRectAreaShadowAttenuation(). Also the type DirectionalShadowType have been renamed SHADOW_TYPE.
 
 ## Custom pass API
 
