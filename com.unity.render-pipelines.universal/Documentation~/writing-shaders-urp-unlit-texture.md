@@ -13,7 +13,9 @@ Use the ShaderLab code from section [URP unlit shader with color input](writing-
     }
     ```
 
-    This declaration adds the `_BaseMap` property with the label __Base Map__ to the Material. 
+    When you declare a texture property in the Properties block, Unity adds the `_BaseMap` property with the label __Base Map__ to the Material, and adds the Tiling and the Offset controls.
+
+    !["Texture property with Tiling and Offset controls"](Images/shader-examples/unlit-shader-tutorial-texture-property-in-inspector.png)
     
     The `_BaseMap` property name is a reserved name. When you declare a property with this name, Unity uses this property as the [main texture](https://docs.unity3d.com/ScriptReference/Material-mainTexture.html) of the Material. 
 
@@ -32,7 +34,7 @@ Use the ShaderLab code from section [URP unlit shader with color input](writing-
 
     The TEXTURE2D and the SAMPLER macros are defined in one of the files referenced in `Core.hlsl`.
 
-4. When you declare a texture property in the Properties block, Unity adds the Tiling and Offset controls to that property in the Inspector. For tiling and offset to work, it's necessary to declare the texture property with the `_ST` suffix in the 'CBUFFER' block. The `_ST` suffix is necessary because some macros (for example, `TRANSFORM_TEX`) use it.
+4. For tiling and offset to work, it's necessary to declare the texture property with the `_ST` suffix in the 'CBUFFER' block. The `_ST` suffix is necessary because some macros (for example, `TRANSFORM_TEX`) use it.
 
     > __NOTE__: To ensure that the shader is SRP Batcher compatible, declare all Material properties inside a single `CBUFFER` block with the name `UnityPerMaterial`.
     
