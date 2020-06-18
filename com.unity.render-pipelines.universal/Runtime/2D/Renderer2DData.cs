@@ -170,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         internal override Material GetDefaultMaterial(DefaultMaterialType materialType)
         {
-            if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle)
+            if (materialType == DefaultMaterialType.Sprite || materialType == DefaultMaterialType.Particle || materialType == DefaultMaterialType.SpriteDepth) // SpriteDepth needs to supply a depth material
             {
                 if (m_DefaultMaterialType == Renderer2DDefaultMaterialType.Lit)
                     return m_DefaultLitMaterial;

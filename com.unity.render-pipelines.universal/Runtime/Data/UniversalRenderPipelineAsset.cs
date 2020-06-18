@@ -65,7 +65,8 @@ namespace UnityEngine.Rendering.Universal
         Particle,
         Terrain,
         Sprite,
-        UnityBuiltinDefault
+        UnityBuiltinDefault,
+        SpriteDepth
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum LightRenderingMode
@@ -671,6 +672,11 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public override Material default2DMaterial
+        {
+            get { return GetMaterial(DefaultMaterialType.Sprite); }
+        }
+
+        public override Material default2DDepthMaterial
         {
             get { return GetMaterial(DefaultMaterialType.Sprite); }
         }
