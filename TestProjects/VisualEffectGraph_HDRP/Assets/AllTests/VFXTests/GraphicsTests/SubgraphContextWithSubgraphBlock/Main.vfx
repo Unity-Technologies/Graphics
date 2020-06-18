@@ -44,6 +44,7 @@ MonoBehaviour:
   m_ParameterInfo: []
   m_ImportDependencies: []
   m_GraphVersion: 4
+  m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies:
   - {fileID: 8926484042661614526, guid: 85505056b3b904345af630605a432503, type: 3}

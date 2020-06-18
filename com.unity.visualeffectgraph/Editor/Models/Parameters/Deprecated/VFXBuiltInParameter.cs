@@ -6,21 +6,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    class BuiltInVariant : VariantProvider
-    {
-        protected override sealed Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "m_expressionOp", VFXBuiltInExpression.All.Cast<object>().ToArray() }
-                };
-            }
-        }
-    }
-
-    [VFXInfo(category = "BuiltIn", variantProvider = typeof(BuiltInVariant))]
+    // DEPRECATED
     class VFXBuiltInParameter : VFXOperator
     {
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.None)]
@@ -61,6 +47,21 @@ namespace UnityEditor.VFX
             if (expression == null)
                 return new VFXExpression[] {};
             return new VFXExpression[] { expression };
+        }
+
+        public override void Sanitize(int version)
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace BuiltInParameter by new BuiltInParameter implementation for " + m_expressionOp.ToString());
+
+            var entry = VFXDynamicBuiltInParameter.s_BuiltInInfo.First(o => o.Value.expression.operation == m_expressionOp);
+            VFXDynamicBuiltInParameter.BuiltInFlag newBuiltIn = entry.Key;
+
+            var newBuiltinParameter = CreateInstance<VFXDynamicBuiltInParameter>();
+            newBuiltinParameter.SetSettingValue("m_BuiltInParameters", newBuiltIn);
+            VFXSlot.CopyLinksAndValue(newBuiltinParameter.GetOutputSlot(0), GetOutputSlot(0), true);
+            ReplaceModel(newBuiltinParameter, this);
+
+            base.Sanitize(version);
         }
     }
 }
