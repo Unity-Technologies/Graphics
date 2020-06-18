@@ -153,9 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // TODO RENDERGRAPH
                 //m_PostProcessSystem.DoUserAfterOpaqueAndSky(cmd, hdCamera, m_CameraColorBuffer);
 
-                // TODO RENDERGRAPH
                 // No need for old stencil values here since from transparent on different features are tagged
-                //ClearStencilBuffer(hdCamera, cmd);
+                ClearStencilBuffer(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer);
 
                 colorBuffer = RenderTransparency(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.motionVectorsBuffer, currentColorPyramid, prepassOutput.depthPyramidTexture, gpuLightListOutput, shadowResult, cullingResults);
 
@@ -823,6 +822,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.DrawRendererList(context.renderContext, context.cmd, context.resources.GetRendererList(data.rendererList));
                     });
+            }
+        }
+
+        class ClearStencilPassData
+        {
+            public Material clearStencilMaterial;
+            public TextureHandle colorBuffer;
+            public TextureHandle depthBuffer;
+        }
+
+        void ClearStencilBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<ClearStencilPassData>("Clear Stencil Buffer", out var passData))
+            {
+                passData.clearStencilMaterial = m_ClearStencilBufferMaterial;
+                passData.colorBuffer = builder.ReadTexture(colorBuffer);
+                passData.depthBuffer = builder.WriteTexture(depthBuffer);
+
+                builder.SetRenderFunc(
+                (ClearStencilPassData data, RenderGraphContext ctx) =>
+                {
+                    data.clearStencilMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.HDRPReservedBits);
+                    HDUtils.DrawFullScreen(ctx.cmd, data.clearStencilMaterial, ctx.resources.GetTexture(data.colorBuffer), ctx.resources.GetTexture(data.depthBuffer));
+                });
             }
         }
 
