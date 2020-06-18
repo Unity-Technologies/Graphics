@@ -28,6 +28,11 @@ float LoadPixel(uint index)
     return gs_cache[index];
 }
 
+float MaxOp(float a, float b)
+{
+    return abs(a) > abs(b) ? a : b;
+}
+
 // Generate six mips in one pass
 [numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
 void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupIndex : SV_GroupIndex)
@@ -38,9 +43,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
 
     // First mip
     float color = _InputTexture[COORD_TEXTURE2D_X(ul)];
-    color = max(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))]);
-    color = max(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))]);
-    color = max(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))]);
+    color = MaxOp(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 0u))]);
+    color = MaxOp(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(0u, 1u))]);
+    color = MaxOp(color, _InputTexture[COORD_TEXTURE2D_X(ul + uint2(1u, 1u))]);
 
     // TODO: also compute and pack the min value
     StorePixel(groupIndex, color);
@@ -52,9 +57,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     // Second mip - checks that X and Y are even
     if ((groupIndex & 0x21) == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 1u));
-        color = max(color, LoadPixel(groupIndex + GROUP_SIZE));
-        color = max(color, LoadPixel(groupIndex + GROUP_SIZE + 1u));
+        color = MaxOp(color, LoadPixel(groupIndex + 1u));
+        color = MaxOp(color, LoadPixel(groupIndex + GROUP_SIZE));
+        color = MaxOp(color, LoadPixel(groupIndex + GROUP_SIZE + 1u));
 
         StorePixel(groupIndex, color);
 
@@ -66,9 +71,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     // Third mip - checks that X and Y are multiples of four
     if ((groupIndex & 0x63) == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 2u));
-        color = max(color, LoadPixel(groupIndex + 2u * GROUP_SIZE));
-        color = max(color, LoadPixel(groupIndex + 2u * GROUP_SIZE + 2u));
+        color = MaxOp(color, LoadPixel(groupIndex + 2u));
+        color = MaxOp(color, LoadPixel(groupIndex + 2u * GROUP_SIZE));
+        color = MaxOp(color, LoadPixel(groupIndex + 2u * GROUP_SIZE + 2u));
         StorePixel(groupIndex, color);
 
         _OutputMip3[COORD_TEXTURE2D_X(dispatchThreadId.xy / 4u)] = color;
@@ -79,9 +84,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     // Fourth mip - checks that X and Y are multiples of 8
     if ((groupIndex & 0xE7) == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 4u));
-        color = max(color, LoadPixel(groupIndex + 4u * GROUP_SIZE));
-        color = max(color, LoadPixel(groupIndex + 4u * GROUP_SIZE + 4u));
+        color = MaxOp(color, LoadPixel(groupIndex + 4u));
+        color = MaxOp(color, LoadPixel(groupIndex + 4u * GROUP_SIZE));
+        color = MaxOp(color, LoadPixel(groupIndex + 4u * GROUP_SIZE + 4u));
         StorePixel(groupIndex, color);
 
         _OutputMip4[COORD_TEXTURE2D_X(dispatchThreadId.xy / 8u)] = color;
@@ -92,9 +97,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     // Fifth mip - checks that X and Y are multiples of 16
     if ((groupIndex & 0x1EF) == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 8u));
-        color = max(color, LoadPixel(groupIndex + 8u * GROUP_SIZE));
-        color = max(color, LoadPixel(groupIndex + 8u * GROUP_SIZE + 8u));
+        color = MaxOp(color, LoadPixel(groupIndex + 8u));
+        color = MaxOp(color, LoadPixel(groupIndex + 8u * GROUP_SIZE));
+        color = MaxOp(color, LoadPixel(groupIndex + 8u * GROUP_SIZE + 8u));
 
         _OutputMip5[COORD_TEXTURE2D_X(dispatchThreadId.xy / 16u)] = color;
     }
@@ -102,9 +107,9 @@ void KMainCoCPyramid(uint3 dispatchThreadId : SV_DispatchThreadID, uint groupInd
     // Last mip - only one thread
     if (groupIndex == 0)
     {
-        color = max(color, LoadPixel(groupIndex + 16u));
-        color = max(color, LoadPixel(groupIndex + 16u * GROUP_SIZE));
-        color = max(color, LoadPixel(groupIndex + 16u * GROUP_SIZE + 16u));
+        color = MaxOp(color, LoadPixel(groupIndex + 16u));
+        color = MaxOp(color, LoadPixel(groupIndex + 16u * GROUP_SIZE));
+        color = MaxOp(color, LoadPixel(groupIndex + 16u * GROUP_SIZE + 16u));
 
         _OutputMip6[COORD_TEXTURE2D_X(dispatchThreadId.xy / 32u)] = color;
     }
