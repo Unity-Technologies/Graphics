@@ -3,7 +3,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-CBUFFER_START(UnityPerMaterialFoo)
+CBUFFER_START(UnityPerMaterial)
 float4 _SoftParticleFadeParams;
 float4 _CameraFadeParams;
 float4 _BaseMap_ST;
@@ -82,6 +82,7 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     albedo.rgb = Distortion(albedo, normalTS, _DistortionStrengthScaled, _DistortionBlend, projectedPosition);
 #endif
 
+    outSurfaceData = (SurfaceData)0;
     outSurfaceData.albedo = albedo.rgb;
     outSurfaceData.specular = half3(0.0h, 0.0h, 0.0h);
     outSurfaceData.normalTS = normalTS;

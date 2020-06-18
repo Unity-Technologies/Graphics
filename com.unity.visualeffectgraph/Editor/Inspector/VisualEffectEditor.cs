@@ -216,8 +216,9 @@ namespace UnityEditor.VFX
                         valueProperty.vector4Value = new Vector4(c.r, c.g, c.b, c.a);
                 }
                 else if (parameter.realType == typeof(Gradient).Name)
+
                 {
-                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true);
+                    Gradient newGradient = EditorGUI.GradientField(rect, nameContent, valueProperty.gradientValue, true,ColorSpace.Linear);
 
                     if (GUI.changed)
                         valueProperty.gradientValue = newGradient;
@@ -644,6 +645,8 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(m_ReseedOnPlay, Contents.reseedOnPlay);
         }
 
+        static readonly GUIContent exampleGUIContent = new GUIContent("Aq");
+
         void InitialEventField(VisualEffectResource resource)
         {
             if (m_InitialEventName == null)
@@ -652,7 +655,7 @@ namespace UnityEditor.VFX
             bool changed = false;
             using (new GUILayout.HorizontalScope())
             {
-                var rect = EditorGUILayout.GetControlRect(false, overrideWidth);
+                var rect = EditorGUILayout.GetControlRect(false, GUI.skin.textField.CalcHeight(exampleGUIContent, 10000));
                 var toggleRect = rect;
                 toggleRect.yMin += 2.0f;
                 toggleRect.width = overrideWidth;

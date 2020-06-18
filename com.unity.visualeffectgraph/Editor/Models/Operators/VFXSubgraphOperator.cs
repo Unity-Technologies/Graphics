@@ -60,7 +60,7 @@ namespace UnityEditor.VFX
             return models.OfType<VFXParameter>().Where(t => predicate(t)).OrderBy(t => t.order);
         }
     }
-    [VFXInfo(category = "Subgraph Operator")]
+    [VFXInfo]
     class VFXSubgraphOperator : VFXOperator
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -206,6 +206,14 @@ namespace UnityEditor.VFX
                 return;
 
             m_Subgraph.GetResource().GetOrCreateGraph().CollectDependencies(objs, false);
+        }
+
+        public override void CheckGraphBeforeImport()
+        {
+            base.CheckGraphBeforeImport();
+            // If the graph is reimported it can be because one of its depedency such as the subgraphs, has been changed.
+
+            ResyncSlots(true);
         }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

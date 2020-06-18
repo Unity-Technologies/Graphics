@@ -34,11 +34,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
+        const int k_HistogramBins          = 128;   // Important! If this changes, need to change HistogramExposure.compute
         readonly Color[] m_ExposureCurveColorArray = new Color[k_ExposureCurvePrecision];
         readonly int[] m_ExposureVariants = new int[4];
 
         Texture2D m_ExposureCurveTexture;
         RTHandle m_EmptyExposureTexture; // RGHalf
+        RTHandle m_DebugExposureData;
+        ComputeBuffer m_HistogramBuffer;
+        readonly int[] m_EmptyHistogram = new int[k_HistogramBins];
 
         // Depth of field data
         ComputeBuffer m_BokehNearKernel;
@@ -61,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Color grading data
         readonly int m_LutSize;
+        readonly GraphicsFormat m_LutFormat;
         RTHandle m_InternalLogLut; // ARGBHalf
         readonly HableCurve m_HableCurve;
 
@@ -99,6 +104,9 @@ namespace UnityEngine.Rendering.HighDefinition
         bool m_DitheringFS;
         bool m_AntialiasingFS;
 
+        // Debug Exposure compensation (Drive by debug menu) to add to all exposure processed value
+        float m_DebugExposureCompensation;
+
         // Physical camera ref
         HDPhysicalCamera m_PhysicalCamera;
         static readonly HDPhysicalCamera m_DefaultPhysicalCamera = new HDPhysicalCamera();
@@ -123,12 +131,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_MotionBlurSupportsScattering;
 
+        bool m_NonRenderGraphResourcesAvailable;
+
         // Max guard band size is assumed to be 8 pixels
         const int k_RTGuardBandSize = 4;
 
         readonly System.Random m_Random;
 
         HDRenderPipeline m_HDInstance;
+
+        void FillEmptyExposureTexture()
+        {
+            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
+            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
+            tex.Apply();
+            Graphics.Blit(tex, m_EmptyExposureTexture);
+            CoreUtils.Destroy(tex);
+        }
 
         public PostProcessSystem(HDRenderPipelineAsset hdAsset, RenderPipelineResources defaultResources)
         {
@@ -143,36 +162,14 @@ namespace UnityEngine.Rendering.HighDefinition
             m_UseSafePath = SystemInfo.graphicsDeviceVendor
                 .ToLowerInvariant().Contains("intel");
 
-            // Project-wise LUT size for all grading operations - meaning that internal LUTs and
+            // Project-wide LUT size for all grading operations - meaning that internal LUTs and
             // user-provided LUTs will have to be this size
-            var settings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
-            m_LutSize = settings.lutSize;
-            var lutFormat = (GraphicsFormat)settings.lutFormat;
+            var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+            m_LutSize = postProcessSettings.lutSize;
+            m_LutFormat = (GraphicsFormat)postProcessSettings.lutFormat;
 
             // Grading specific
             m_HableCurve = new HableCurve();
-            m_InternalLogLut = RTHandles.Alloc(
-                name: "Color Grading Log Lut",
-                dimension: TextureDimension.Tex3D,
-                width: m_LutSize,
-                height: m_LutSize,
-                slices: m_LutSize,
-                depthBufferBits: DepthBits.None,
-                colorFormat: lutFormat,
-                filterMode: FilterMode.Bilinear,
-                wrapMode: TextureWrapMode.Clamp,
-                anisoLevel: 0,
-                useMipMap: false,
-                enableRandomWrite: true
-            );
-
-            // Setup a default exposure textures and clear it to neutral values so that the exposure
-            // multiplier is 1 and thus has no effect
-            // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
-            // neutral exposure texture isn't 0
-            m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                enableRandomWrite: true, name: "Empty EV100 Exposure"
-            );
 
             m_MotionBlurSupportsScattering = SystemInfo.IsFormatSupported(GraphicsFormat.R32_UInt, FormatUsage.LoadStore) && SystemInfo.IsFormatSupported(GraphicsFormat.R16_UInt, FormatUsage.LoadStore);
             // TODO: Remove this line when atomic bug in HLSLcc is fixed.
@@ -180,18 +177,99 @@ namespace UnityEngine.Rendering.HighDefinition
             // TODO: Write a version that uses structured buffer instead of texture to do atomic as Metal doesn't support atomics on textures.
             m_MotionBlurSupportsScattering = m_MotionBlurSupportsScattering && (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal);
 
-            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
-            tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
-            tex.Apply();
-            Graphics.Blit(tex, m_EmptyExposureTexture);
-            CoreUtils.Destroy(tex);
-
             // Initialize our target pool to ease RT management
             m_Pool = new TargetPool();
 
             // Use a custom RNG, we don't want to mess with the Unity one that the users might be
             // relying on (breaks determinism in their code)
             m_Random = new System.Random();
+
+            m_ColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
+            m_KeepAlpha = false;
+
+            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
+            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
+
+            if (m_EnableAlpha == false)
+            {
+                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
+            }
+
+            // Setup a default exposure textures and clear it to neutral values so that the exposure
+            // multiplier is 1 and thus has no effect
+            // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
+            // neutral exposure texture isn't 0
+            m_EmptyExposureTexture = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                enableRandomWrite: true, name: "Empty EV100 Exposure");
+
+            m_DebugExposureData = RTHandles.Alloc(1, 1, colorFormat: k_ExposureFormat,
+                enableRandomWrite: true, name: "Debug Exposure Info"
+            );
+
+
+            FillEmptyExposureTexture();
+
+            // Call after initializing m_LutSize and m_KeepAlpha as it's needed for render target allocation.
+            InitializeNonRenderGraphResources(hdAsset);
+        }
+
+        public void Cleanup()
+        {
+            CleanupNonRenderGraphResources();
+
+            RTHandles.Release(m_EmptyExposureTexture);
+            m_EmptyExposureTexture = null;
+
+            CoreUtils.Destroy(m_ExposureCurveTexture);
+            CoreUtils.Destroy(m_InternalSpectralLut);
+            CoreUtils.Destroy(m_FinalPassMaterial);
+            CoreUtils.Destroy(m_ClearBlackMaterial);
+            CoreUtils.Destroy(m_SMAAMaterial);
+            CoreUtils.Destroy(m_TemporalAAMaterial);
+            CoreUtils.SafeRelease(m_BokehNearKernel);
+            CoreUtils.SafeRelease(m_BokehFarKernel);
+            CoreUtils.SafeRelease(m_BokehIndirectCmd);
+            CoreUtils.SafeRelease(m_NearBokehTileList);
+            CoreUtils.SafeRelease(m_FarBokehTileList);
+            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
+            CoreUtils.SafeRelease(m_HistogramBuffer);
+            RTHandles.Release(m_DebugExposureData);
+
+            m_ExposureCurveTexture      = null;
+            m_InternalSpectralLut       = null;
+            m_FinalPassMaterial         = null;
+            m_ClearBlackMaterial        = null;
+            m_SMAAMaterial              = null;
+            m_TemporalAAMaterial        = null;
+            m_BokehNearKernel           = null;
+            m_BokehFarKernel            = null;
+            m_BokehIndirectCmd          = null;
+            m_NearBokehTileList         = null;
+            m_FarBokehTileList          = null;
+            m_HistogramBuffer           = null;
+            m_DebugExposureData         = null;
+
+        }
+
+        public void InitializeNonRenderGraphResources(HDRenderPipelineAsset hdAsset)
+        {
+            m_NonRenderGraphResourcesAvailable = true;
+
+            m_InternalLogLut = RTHandles.Alloc(
+                name: "Color Grading Log Lut",
+                dimension: TextureDimension.Tex3D,
+                width: m_LutSize,
+                height: m_LutSize,
+                slices: m_LutSize,
+                depthBufferBits: DepthBits.None,
+                colorFormat: m_LutFormat,
+                filterMode: FilterMode.Bilinear,
+                wrapMode: TextureWrapMode.Clamp,
+                anisoLevel: 0,
+                useMipMap: false,
+                enableRandomWrite: true
+            );
 
             // Misc targets
             m_TempTexture1024 = RTHandles.Alloc(
@@ -204,18 +282,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Average Luminance Temp 32"
             );
 
-            m_ColorFormat = (GraphicsFormat)hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.bufferFormat;
-            m_KeepAlpha = false;
-
-            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings.supportsAlpha;
-
-            if (m_EnableAlpha == false)
-            {
-                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
-            }
-
             if (m_KeepAlpha)
             {
                 m_AlphaTexture = RTHandles.Alloc(
@@ -225,40 +291,43 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void Cleanup()
+        public void CleanupNonRenderGraphResources()
         {
+            m_NonRenderGraphResourcesAvailable = false;
+
             m_Pool.Cleanup();
 
-            RTHandles.Release(m_EmptyExposureTexture);
             RTHandles.Release(m_TempTexture1024);
             RTHandles.Release(m_TempTexture32);
             RTHandles.Release(m_AlphaTexture);
-            CoreUtils.Destroy(m_ExposureCurveTexture);
-            CoreUtils.Destroy(m_InternalSpectralLut);
             RTHandles.Release(m_InternalLogLut);
-            CoreUtils.Destroy(m_FinalPassMaterial);
-            CoreUtils.Destroy(m_ClearBlackMaterial);
-            CoreUtils.SafeRelease(m_BokehNearKernel);
-            CoreUtils.SafeRelease(m_BokehFarKernel);
-            CoreUtils.SafeRelease(m_BokehIndirectCmd);
-            CoreUtils.SafeRelease(m_NearBokehTileList);
-            CoreUtils.SafeRelease(m_FarBokehTileList);
-            CoreUtils.SafeRelease(m_ContrastAdaptiveSharpen);
 
-            m_EmptyExposureTexture      = null;
-            m_TempTexture1024           = null;
-            m_TempTexture32             = null;
-            m_AlphaTexture              = null;
-            m_ExposureCurveTexture      = null;
-            m_InternalSpectralLut       = null;
-            m_InternalLogLut            = null;
-            m_FinalPassMaterial         = null;
-            m_ClearBlackMaterial        = null;
-            m_BokehNearKernel           = null;
-            m_BokehFarKernel            = null;
-            m_BokehIndirectCmd          = null;
-            m_NearBokehTileList         = null;
-            m_FarBokehTileList          = null;
+            m_TempTexture1024       = null;
+            m_TempTexture32         = null;
+            m_AlphaTexture          = null;
+            m_InternalLogLut        = null;
+        }
+
+
+        // In some cases, the internal buffer of render textures might be invalid.
+        // Usually when using these textures with API such as SetRenderTarget, they are recreated internally.
+        // This is not the case when these textures are used exclusively with Compute Shaders. So to make sure they work in this case, we recreate them here.
+        void CheckRenderTexturesValidity()
+        {
+            if (!m_EmptyExposureTexture.rt.IsCreated())
+                FillEmptyExposureTexture();
+
+            if (!m_NonRenderGraphResourcesAvailable)
+                return;
+
+            HDUtils.CheckRTCreated(m_DebugExposureData.rt);
+            HDUtils.CheckRTCreated(m_InternalLogLut.rt);
+            HDUtils.CheckRTCreated(m_TempTexture1024.rt);
+            HDUtils.CheckRTCreated(m_TempTexture32.rt);
+            if (m_KeepAlpha)
+            {
+                HDUtils.CheckRTCreated(m_AlphaTexture.rt);
+            }
         }
 
         public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
@@ -310,6 +379,10 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DitheringFS           = frameSettings.IsEnabled(FrameSettingsField.Dithering);
             m_AntialiasingFS        = frameSettings.IsEnabled(FrameSettingsField.Antialiasing);
 
+            m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
+
+            CheckRenderTexturesValidity();
+
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
             {
@@ -318,7 +391,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                if (IsExposureFixed())
+                // Fix exposure is store in Exposure Textures at the beginning of the frame as there is no need for color buffer
+                // Dynamic exposure (Auto, curve) is store in Exposure Textures at the end of the frame (as it rely on color buffer)
+                // Texture current and previous are swapped at the beginning of the frame.
+                bool isFixedExposure = IsExposureFixed();
+                if (isFixedExposure)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
@@ -326,7 +403,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, GetExposureTexture(camera));
+                // Note: GetExposureTexture(camera) must be call AFTER the call of DoFixedExposure to be correctly taken into account
+                // When we use Dynamic Exposure and we reset history we can't use pre-exposure (as there is no information)
+                // For this reasons we put neutral value at the beginning of the frame in Exposure textures and
+                // apply processed exposure from color buffer at the end of the Frame, only for a single frame.
+                // After that we re-use the pre-exposure system
+                RTHandle currentExposureTexture = (camera.resetPostProcessingHistory && !isFixedExposure) ? m_EmptyExposureTexture : GetExposureTexture(camera);
+
+                cmd.SetGlobalTexture(HDShaderIDs._ExposureTexture, currentExposureTexture);
                 cmd.SetGlobalTexture(HDShaderIDs._PrevExposureTexture, GetPreviousExposureTexture(camera));
             }
         }
@@ -359,7 +443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AlphaCopy)))
                     {
-                        DoCopyAlpha(cmd, camera, colorBuffer);
+                        DoCopyAlpha(PrepareCopyAlphaParameters(camera), colorBuffer, m_AlphaTexture, cmd);
                     }
                 }
                 var source = colorBuffer;
@@ -409,7 +493,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DynamicExposure)))
                     {
-                        DoDynamicExposure(cmd, camera, source);
+                        if (m_Exposure.mode.value == ExposureMode.AutomaticHistogram)
+                        {
+                            DoHistogramBasedExposure(cmd, camera, source);
+                        }
+                        else
+                        {
+                            DoDynamicExposure(cmd, camera, source);
+                        }
 
                         // On reset history we need to apply dynamic exposure immediately to avoid
                         // white or black screen flashes when the current exposure isn't anywhere
@@ -431,14 +522,23 @@ namespace UnityEngine.Rendering.HighDefinition
                             cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
 
                             PoolSource(ref source, destination);
+                        }
                     }
-                }
                 }
 
                 if (m_PostProcessEnabled)
                 {
                     // Temporal anti-aliasing goes first
                     bool taaEnabled = false;
+
+                    if (camera.frameSettings.IsEnabled(FrameSettingsField.CustomPostProcess))
+                    {
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.CustomPostProcessBeforeTAA)))
+                        {
+                            foreach (var typeString in HDRenderPipeline.defaultAsset.beforeTAACustomPostProcesses)
+                                RenderCustomPostProcess(cmd, camera, ref source, colorBuffer, Type.GetType(typeString));
+                        }
+                    }
 
                     if (m_AntialiasingFS)
                     {
@@ -473,9 +573,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    // If Path tracing is enabled, then DoF is computed in the path tracer by sampling the lens aperure (when using the physical camera mode)
+                    bool isDoFPathTraced = (camera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
+                         camera.volumeStack.GetComponent<PathTracing>().enable.value &&
+                         camera.camera.cameraType != CameraType.Preview &&
+                         m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera);
+
                     // Depth of Field is done right after TAA as it's easier to just re-project the CoC
                     // map rather than having to deal with all the implications of doing it before TAA
-                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS)
+                    if (m_DepthOfField.IsActive() && !isSceneView && m_DepthOfFieldFS && !isDoFPathTraced)
                     {
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
@@ -514,16 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Combined post-processing stack - always runs if postfx is enabled
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UberPost)))
                     {
-                        // Feature flags are passed to all effects and it's their responsibility to check
-                        // if they are used or not so they can set default values if needed
-                        var cs = m_Resources.shaders.uberPostCS;
-                        cs.shaderKeywords = null;
-                        var featureFlags = GetUberFeatureFlags(isSceneView);
-                        int kernel = cs.FindKernel("Uber");
-                        if(m_EnableAlpha)
-                        {
-                            cs.EnableKeyword("ENABLE_ALPHA");
-                        }
+                        UberPostParameters uberPostParams = PrepareUberPostParameters(camera, isSceneView);
 
                         // Generate the bloom texture
                         bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
@@ -532,35 +629,28 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.Bloom)))
                             {
-                                DoBloom(cmd, camera, source, cs, kernel);
+                                DoBloom(cmd, camera, source, uberPostParams.uberPostCS, uberPostParams.uberPostKernel);
                             }
                         }
                         else
                         {
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                            cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomParams, Vector4.zero);
+                            cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
+                            cmd.SetComputeTextureParam(uberPostParams.uberPostCS, uberPostParams.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
+                            cmd.SetComputeVectorParam(uberPostParams.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
                         }
 
                         // Build the color grading lut
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
                         {
-                            DoColorGrading(cmd, cs, kernel);
+                            var parameters = PrepareColorGradingParameters();
+                            DoColorGrading(parameters, m_InternalLogLut, cmd);
                         }
-
-                        // Setup the rest of the effects
-                        DoLensDistortion(cmd, cs, kernel, featureFlags);
-                        DoChromaticAberration(cmd, cs, kernel, featureFlags);
-                        DoVignette(cmd, cs, kernel, featureFlags);
 
                         // Run
                         var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
 
-                        bool outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
-                        cmd.SetComputeVectorParam(cs, "_DebugFlags", new Vector4(outputColorLog ? 1 : 0, 0, 0, 0));
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-                        cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+                        DoUberPostProcess(uberPostParams, source, destination, m_InternalLogLut, cmd);
+
                         m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.ColorLog);
 
                         // Cleanup
@@ -641,6 +731,94 @@ namespace UnityEngine.Rendering.HighDefinition
             camera.resetPostProcessingHistory = false;
         }
 
+        struct UberPostParameters
+        {
+            public ComputeShader    uberPostCS;
+            public int              uberPostKernel;
+            public bool             outputColorLog;
+            public int              width;
+            public int              height;
+            public int              viewCount;
+
+            public Vector4          logLutSettings;
+
+            public Vector4          lensDistortionParams1;
+            public Vector4          lensDistortionParams2;
+
+            public Texture          spectralLut;
+            public Vector4          chromaticAberrationParameters;
+
+            public Vector4          vignetteParams1;
+            public Vector4          vignetteParams2;
+            public Vector4          vignetteColor;
+            public Texture          vignetteMask;
+        }
+
+        UberPostParameters PrepareUberPostParameters(HDCamera hdCamera, bool isSceneView)
+        {
+            var parameters = new UberPostParameters();
+
+            // Feature flags are passed to all effects and it's their responsibility to check
+            // if they are used or not so they can set default values if needed
+            parameters.uberPostCS = m_Resources.shaders.uberPostCS;
+            parameters.uberPostCS.shaderKeywords = null;
+            var featureFlags = GetUberFeatureFlags(isSceneView);
+            parameters.uberPostKernel = parameters.uberPostCS.FindKernel("Uber");
+            if (m_EnableAlpha)
+            {
+                parameters.uberPostCS.EnableKeyword("ENABLE_ALPHA");
+            }
+
+            parameters.outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
+            parameters.width = hdCamera.actualWidth;
+            parameters.height = hdCamera.actualHeight;
+            parameters.viewCount = hdCamera.viewCount;
+
+            // Color grading
+            // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
+            // we can't use 0 as the default neutral value which would be confusing to users
+            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
+            parameters.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
+
+            // Setup the rest of the effects
+            PrepareLensDistortionParameters(ref parameters, featureFlags);
+            PrepareChromaticAberrationParameters(ref parameters, featureFlags);
+            PrepareVignetteParameters(ref parameters, featureFlags);
+
+            return parameters;
+        }
+
+        static void DoUberPostProcess(  in UberPostParameters   parameters,
+                                        RTHandle                source,
+                                        RTHandle                destination,
+                                        RTHandle                logLut,
+                                        CommandBuffer           cmd)
+        {
+            // Color grading
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._LogLut3D, logLut);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._LogLut3D_Params, parameters.logLutSettings);
+
+            // Lens distortion
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._DistortionParams1, parameters.lensDistortionParams1);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._DistortionParams2, parameters.lensDistortionParams2);
+
+            // Chromatic aberration
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._ChromaSpectralLut, parameters.spectralLut);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._ChromaParams, parameters.chromaticAberrationParameters);
+
+            // Vignette
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteParams1, parameters.vignetteParams1);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteParams2, parameters.vignetteParams2);
+            cmd.SetComputeVectorParam(parameters.uberPostCS, HDShaderIDs._VignetteColor, parameters.vignetteColor);
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._VignetteMask, parameters.vignetteMask);
+
+            // Dispatch uber post
+            cmd.SetComputeVectorParam(parameters.uberPostCS, "_DebugFlags", new Vector4(parameters.outputColorLog ? 1 : 0, 0, 0, 0));
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(parameters.uberPostCS, parameters.uberPostKernel, HDShaderIDs._OutputTexture, destination);
+            cmd.DispatchCompute(parameters.uberPostCS, parameters.uberPostKernel, (parameters.width + 7) / 8, (parameters.height + 7) / 8, parameters.viewCount);
+        }
+
         // Grabs all active feature flags
         UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
         {
@@ -687,13 +865,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Copy Alpha
 
-        void DoCopyAlpha(CommandBuffer cmd, HDCamera camera, RTHandle source)
+        DoCopyAlphaParameters PrepareCopyAlphaParameters(HDCamera hdCamera)
         {
-            var cs = m_Resources.shaders.copyAlphaCS;
-            int kernel = cs.FindKernel("KMain");
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_AlphaTexture);
-            cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            var parameters = new DoCopyAlphaParameters();
+            parameters.hdCamera = hdCamera;
+            parameters.copyAlphaCS = m_Resources.shaders.copyAlphaCS;
+            parameters.copyAlphaKernel = parameters.copyAlphaCS.FindKernel("KMain");
+
+            return parameters;
+        }
+
+        struct DoCopyAlphaParameters
+        {
+            public ComputeShader    copyAlphaCS;
+            public int              copyAlphaKernel;
+            public HDCamera         hdCamera;
+        }
+
+        static void DoCopyAlpha(in DoCopyAlphaParameters parameters, RTHandle source, RTHandle outputAlphaTexture, CommandBuffer cmd)
+        {
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._InputTexture, source);
+            cmd.SetComputeTextureParam(parameters.copyAlphaCS, parameters.copyAlphaKernel, HDShaderIDs._OutputTexture, outputAlphaTexture);
+            cmd.DispatchCompute(parameters.copyAlphaCS, parameters.copyAlphaKernel, (parameters.hdCamera.actualWidth + 7) / 8, (parameters.hdCamera.actualHeight + 7) / 8, parameters.hdCamera.viewCount);
         }
 
         #endregion
@@ -720,9 +913,67 @@ namespace UnityEngine.Rendering.HighDefinition
             return rt ?? m_EmptyExposureTexture;
         }
 
+        internal RTHandle GetExposureDebugData()
+        {
+            return m_DebugExposureData;
+        }
+
+        internal HableCurve GetCustomToneMapCurve()
+        {
+            return m_HableCurve;
+        }
+
+        internal int GetLutSize()
+        {
+            return m_LutSize;
+        }
+
+        internal ComputeBuffer GetHistogramBuffer()
+        {
+            return m_HistogramBuffer;
+        }
+
+        internal void ComputeProceduralMeteringParams(HDCamera camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2)
+        {
+            Vector2 proceduralCenter = m_Exposure.proceduralCenter.value;
+            if (camera.exposureTarget != null && m_Exposure.centerAroundExposureTarget.value)
+            {
+                var transform = camera.exposureTarget.transform;
+                // Transform in screen space
+                Vector3 targetLocation = transform.position;
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    targetLocation -= camera.camera.transform.position;
+                }
+                var ndcLoc = camera.mainViewConstants.viewProjMatrix * (targetLocation);
+                ndcLoc.x /= ndcLoc.w;
+                ndcLoc.y /= ndcLoc.w;
+
+                Vector2 targetUV = new Vector2(ndcLoc.x, ndcLoc.y) * 0.5f + new Vector2(0.5f, 0.5f);
+                targetUV.y = 1.0f - targetUV.y;
+
+                proceduralCenter += targetUV;
+            }
+
+            proceduralCenter.x = Mathf.Clamp01(proceduralCenter.x);
+            proceduralCenter.y = Mathf.Clamp01(proceduralCenter.y);
+
+            proceduralCenter.x *= camera.actualWidth;
+            proceduralCenter.y *= camera.actualHeight;
+
+            float screenDiagonal = 0.5f * (camera.actualHeight + camera.actualWidth);
+
+            proceduralParams1 = new Vector4(proceduralCenter.x, proceduralCenter.y,
+                m_Exposure.proceduralRadii.value.x * screenDiagonal,
+                m_Exposure.proceduralRadii.value.y * screenDiagonal);
+
+            proceduralParams2 = new Vector4(1.0f / m_Exposure.proceduralSoftness.value, LightUtils.ConvertEvToLuminance(m_Exposure.maskMinIntensity.value), LightUtils.ConvertEvToLuminance(m_Exposure.maskMaxIntensity.value), 0.0f);
+        }
         void DoFixedExposure(CommandBuffer cmd, HDCamera camera)
         {
             var cs = m_Resources.shaders.exposureCS;
+
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
 
             GrabExposureHistoryTextures(camera, out var prevExposure, out _);
 
@@ -731,12 +982,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Exposure.mode.value == ExposureMode.Fixed)
             {
                 kernel = cs.FindKernel("KFixedExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.fixedExposure.value, 0f, 0f, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.fixedExposure.value, 0f, 0f));
             }
             else if (m_Exposure.mode == ExposureMode.UsePhysicalCamera)
             {
                 kernel = cs.FindKernel("KManualCameraExposure");
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso));
             }
 
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
@@ -749,7 +1000,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // r: multiplier, g: EV100
                 return rtHandleSystem.Alloc(1, 1, colorFormat: k_ExposureFormat,
-                    enableRandomWrite: true, name: $"Exposure Texture ({id}) {frameIndex}"
+                    enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
                 );
             }
 
@@ -798,12 +1049,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ExposureCurveTexture.Apply();
         }
 
-        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        void DynamicExposureSetup(CommandBuffer cmd, HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure)
         {
-            var cs = m_Resources.shaders.exposureCS;
-            int kernel;
-
-            GrabExposureHistoryTextures(camera, out var prevExposure, out var nextExposure);
+            GrabExposureHistoryTextures(camera, out prevExposure, out nextExposure);
 
             // Setup variants
             var adaptationMode = m_Exposure.adaptationMode.value;
@@ -813,15 +1061,23 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (camera.resetPostProcessingHistory)
             {
-                kernel = cs.FindKernel("KReset");
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
-                cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+                // For Dynamic Exposure, we need to undo the pre-exposure from the color buffer to calculate the correct one
+                // When we reset history we must setup neutral value
+                prevExposure = m_EmptyExposureTexture; // Use neutral texture
             }
 
             m_ExposureVariants[0] = 1; // (int)exposureSettings.luminanceSource.value;
             m_ExposureVariants[1] = (int)m_Exposure.meteringMode.value;
             m_ExposureVariants[2] = (int)adaptationMode;
             m_ExposureVariants[3] = 0;
+        }
+
+        void DoDynamicExposure(CommandBuffer cmd, HDCamera camera, RTHandle colorBuffer)
+        {
+            var cs = m_Resources.shaders.exposureCS;
+            int kernel;
+
+            DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
 
             var sourceTex = colorBuffer;
 
@@ -829,6 +1085,21 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTex);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+
+            if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, m_Exposure.weightTextureMask.value);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
+            }
+
+            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
+
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, m_TempTexture1024);
             cmd.DispatchCompute(cs, kernel, 1024 / 8, 1024 / 8, 1);
 
@@ -843,14 +1114,16 @@ namespace UnityEngine.Rendering.HighDefinition
             // Reduction: 2nd pass (32 -> 1) + evaluate exposure
             if (m_Exposure.mode.value == ExposureMode.Automatic)
             {
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
                 m_ExposureVariants[3] = 1;
             }
             else if (m_Exposure.mode.value == ExposureMode.CurveMapping)
             {
                 PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value, min, max, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, min, max, 0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+
                 m_ExposureVariants[3] = 2;
             }
 
@@ -859,6 +1132,80 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, m_TempTexture32);
             cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+        }
+
+        void DoHistogramBasedExposure(CommandBuffer cmd, HDCamera camera, RTHandle sourceTexture)
+        {
+            var cs = m_Resources.shaders.histogramExposureCS;
+            cs.shaderKeywords = null;
+            int kernel;
+
+            DynamicExposureSetup(cmd, camera, out var prevExposure, out var nextExposure);
+            // Parameters
+            Vector2 histogramFraction = m_Exposure.histogramPercentages.value / 100.0f;
+            float evRange = m_Exposure.limitMax.value - m_Exposure.limitMin.value;
+            float histScale = 1.0f / Mathf.Max(1e-5f, evRange);
+            float histBias = -m_Exposure.limitMin.value * histScale;
+            Vector4 histogramParams = new Vector4(histScale, histBias, histogramFraction.x, histogramFraction.y);
+
+            ComputeProceduralMeteringParams(camera, out Vector4 proceduralParams1, out Vector4 proceduralParams2);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams, proceduralParams1);
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ProceduralMaskParams2, proceduralParams2);
+
+            ValidateComputeBuffer(ref m_HistogramBuffer, k_HistogramBins, sizeof(uint));
+            m_HistogramBuffer.SetData(m_EmptyHistogram);    // Clear the histogram
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._HistogramExposureParams, histogramParams);
+
+            // Generate histogram.
+            kernel = cs.FindKernel("KHistogramGen");
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._SourceTexture, sourceTexture);
+            if (m_Exposure.meteringMode == MeteringMode.MaskWeighted && m_Exposure.weightTextureMask.value != null)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, m_Exposure.weightTextureMask.value);
+            }
+            else
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureWeightMask, Texture2D.whiteTexture);
+            }
+
+            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
+
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
+
+            int threadGroupSizeX = 16;
+            int threadGroupSizeY = 8;
+            int dispatchSizeX = HDUtils.DivRoundUp(camera.actualWidth / 2, threadGroupSizeX);
+            int dispatchSizeY = HDUtils.DivRoundUp(camera.actualHeight / 2, threadGroupSizeY);
+            int totalPixels = camera.actualWidth * camera.actualHeight;
+            cmd.DispatchCompute(cs, kernel, dispatchSizeX, dispatchSizeY, 1);
+
+            // Now read the histogram
+            kernel = cs.FindKernel("KHistogramReduce");
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_Exposure.limitMin.value, m_Exposure.limitMax.value, 0f));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(0.0f, 0.0f, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._AdaptationParams, new Vector4(m_Exposure.adaptationSpeedLightToDark.value, m_Exposure.adaptationSpeedDarkToLight.value, 0f, 0f));
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._HistogramBuffer, m_HistogramBuffer);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PreviousExposureTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, nextExposure);
+
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureCurveTexture, m_ExposureCurveTexture);
+            m_ExposureVariants[3] = 0;
+            if (m_Exposure.histogramUseCurveRemapping.value)
+            {
+                PrepareExposureCurveData(m_Exposure.curveMap.value, out float min, out float max);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, new Vector4(min, max, ColorUtils.lensImperfectionExposureScale, ColorUtils.s_LightMeterCalibrationConstant));
+                m_ExposureVariants[3] = 2;
+            }
+            cmd.SetComputeIntParams(cs, HDShaderIDs._Variants, m_ExposureVariants);
+
+            if (m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.HistogramView)
+            {
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ExposureDebugTexture, m_DebugExposureData);
+                cs.EnableKeyword("OUTPUT_DEBUG_DATA");
+            }
+
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 
@@ -921,7 +1268,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
             m_TAAPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
-            m_TAAPropertyBlock.SetVector(HDShaderIDs._RTHandleScaleHistory, camera.historyRTHandleProperties.rtHandleScale);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, prevHistory);
             m_TAAPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLen);
@@ -930,15 +1276,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float minAntiflicker = 0.0f;
             float maxAntiflicker = 3.5f;
-            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection); 
+            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
 
-            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, 0.0f);
+            // The anti flicker becomes much more aggressive on higher values
+            float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
+
+            var taaParameters = new Vector4(camera.taaHistorySharpening, Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
             Vector2 historySize = new Vector2(prevHistory.referenceSize.x * prevHistory.scaleFactor.x,
                                               prevHistory.referenceSize.y * prevHistory.scaleFactor.y);
             var rtScaleForHistory = camera.historyRTHandleProperties.rtHandleScale;
             var taaHistorySize = new Vector4(historySize.x, historySize.y, 1.0f / historySize.x, 1.0f / historySize.y);
 
-            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point. 
+            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
             float crossWeights = Mathf.Exp(-2.29f * 2);
             float plusWeights = Mathf.Exp(-2.29f);
             float centerWeight = 1;
@@ -959,7 +1308,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetRenderTarget(cmd, destination, depthBuffer);
             cmd.SetRandomWriteTarget(1, nextHistory);
             cmd.SetRandomWriteTarget(2, nextMVLen);
-            cmd.SetGlobalVector(HDShaderIDs._RTHandleScale, destination.rtHandleProperties.rtHandleScale); // <- above blits might have changed the scale
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.DrawProcedural(Matrix4x4.identity, m_TemporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, m_TAAPropertyBlock);
             cmd.ClearRandomWriteTargets();
@@ -972,7 +1320,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: m_ColorFormat,
-                    enableRandomWrite: true, useDynamicScale: true, name: "TAA History"
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} TAA History"
                 );
             }
 
@@ -988,7 +1336,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, dimension: TextureXR.dimension,
                     filterMode: FilterMode.Bilinear, colorFormat: GraphicsFormat.R16_SFloat,
-                    enableRandomWrite: true, useDynamicScale: true, name: "Velocity magnitude"
+                    enableRandomWrite: true, useDynamicScale: true, name: $"{id} Velocity magnitude"
                 );
             }
 
@@ -1614,7 +1962,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return rtHandleSystem.Alloc(
                     Vector2.one, TextureXR.slices, DepthBits.None, GraphicsFormat.R16_SFloat,
-                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: "CoC History"
+                    dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, name: $"{id} CoC History"
                 );
             }
 
@@ -1793,7 +2141,11 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
             {
                 cs = m_Resources.shaders.motionBlurCS;
+                cs.shaderKeywords = null;
+
+                CoreUtils.SetKeyword(cs, "ENABLE_ALPHA", m_EnableAlpha);
                 kernel = cs.FindKernel("MotionBlurCS");
+
                 cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, tileTargetSize);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, preppedMotionVec);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
@@ -2116,44 +2468,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Lens Distortion
 
-        void DoLensDistortion(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareLensDistortionParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.LensDistortion) != UberPostFeatureFlags.LensDistortion)
                 return;
 
-            cs.EnableKeyword("LENS_DISTORTION");
+            parameters.uberPostCS.EnableKeyword("LENS_DISTORTION");
 
             float amount = 1.6f * Mathf.Max(Mathf.Abs(m_LensDistortion.intensity.value * 100f), 1f);
             float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
             float sigma = 2f * Mathf.Tan(theta * 0.5f);
             var center = m_LensDistortion.center.value * 2f - Vector2.one;
-            var p1 = new Vector4(
+            parameters.lensDistortionParams1 = new Vector4(
                 center.x,
                 center.y,
                 Mathf.Max(m_LensDistortion.xMultiplier.value, 1e-4f),
                 Mathf.Max(m_LensDistortion.yMultiplier.value, 1e-4f)
             );
-            var p2 = new Vector4(
+            parameters.lensDistortionParams2 = new Vector4(
                 m_LensDistortion.intensity.value >= 0f ? theta : 1f / theta,
                 sigma,
                 1f / m_LensDistortion.scale.value,
                 m_LensDistortion.intensity.value * 100f
             );
-
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DistortionParams1, p1);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DistortionParams2, p2);
         }
 
         #endregion
 
         #region Chromatic Aberration
 
-        void DoChromaticAberration(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareChromaticAberrationParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.ChromaticAberration) != UberPostFeatureFlags.ChromaticAberration)
                 return;
 
-            cs.EnableKeyword("CHROMATIC_ABERRATION");
+            parameters.uberPostCS.EnableKeyword("CHROMATIC_ABERRATION");
 
             var spectralLut = m_ChromaticAberration.spectralLut.value;
 
@@ -2184,38 +2533,37 @@ namespace UnityEngine.Rendering.HighDefinition
                 spectralLut = m_InternalSpectralLut;
             }
 
-            var settings = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._ChromaSpectralLut, spectralLut);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._ChromaParams, settings);
+            parameters.spectralLut = spectralLut;
+            parameters.chromaticAberrationParameters = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
         }
 
         #endregion
 
         #region Vignette
 
-        void DoVignette(CommandBuffer cmd, ComputeShader cs, int kernel, UberPostFeatureFlags flags)
+        void PrepareVignetteParameters(ref UberPostParameters parameters, UberPostFeatureFlags flags)
         {
             if ((flags & UberPostFeatureFlags.Vignette) != UberPostFeatureFlags.Vignette)
                 return;
 
-            cs.EnableKeyword("VIGNETTE");
+            parameters.uberPostCS.EnableKeyword("VIGNETTE");
 
             if (m_Vignette.mode.value == VignetteMode.Procedural)
             {
                 float roundness = (1f - m_Vignette.roundness.value) * 6f + m_Vignette.roundness.value;
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams1, new Vector4(m_Vignette.center.value.x, m_Vignette.center.value.y, 0f, 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams2, new Vector4(m_Vignette.intensity.value * 3f, m_Vignette.smoothness.value * 5f, roundness, m_Vignette.rounded.value ? 1f : 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteColor, m_Vignette.color.value);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VignetteMask, Texture2D.blackTexture);
+                parameters.vignetteParams1 = new Vector4(m_Vignette.center.value.x, m_Vignette.center.value.y, 0f, 0f);
+                parameters.vignetteParams2 = new Vector4(m_Vignette.intensity.value * 3f, m_Vignette.smoothness.value * 5f, roundness, m_Vignette.rounded.value ? 1f : 0f);
+                parameters.vignetteColor = m_Vignette.color.value;
+                parameters.vignetteMask = Texture2D.blackTexture;
             }
             else // Masked
             {
                 var color = m_Vignette.color.value;
                 color.a = Mathf.Clamp01(m_Vignette.opacity.value);
 
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteParams1, new Vector4(0f, 0f, 1f, 0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._VignetteColor, color);
-                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._VignetteMask, m_Vignette.mask.value);
+                parameters.vignetteParams1 = new Vector4(0f, 0f, 1f, 0f);
+                parameters.vignetteColor = color;
+                parameters.vignetteMask = m_Vignette.mask.value;
             }
         }
 
@@ -2223,119 +2571,179 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Color Grading
 
-        // TODO: User lut support
-        void DoColorGrading(CommandBuffer cmd, ComputeShader cs, int kernel)
+        struct ColorGradingParameters
         {
-            // Prepare data
-            var lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
-            var hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
-            var channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value   / 100f, m_ChannelMixer.redOutGreenIn.value   / 100f, m_ChannelMixer.redOutBlueIn.value   / 100f, 0f);
-            var channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
-            var channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value  / 100f, m_ChannelMixer.blueOutGreenIn.value  / 100f, m_ChannelMixer.blueOutBlueIn.value  / 100f, 0f);
+            public ComputeShader builderCS;
+            public int builderKernel;
 
-            ComputeShadowsMidtonesHighlights(out var shadows, out var midtones, out var highlights, out var shadowsHighlightsLimits);
-            ComputeLiftGammaGain(out var lift, out var gamma, out var gain);
-            ComputeSplitToning(out var splitShadows, out var splitHighlights);
+            public int lutSize;
+
+            public Vector4 colorFilter;
+            public Vector3 lmsColorBalance;
+            public Vector4 hueSatCon;
+            public Vector4 channelMixerR;
+            public Vector4 channelMixerG;
+            public Vector4 channelMixerB;
+            public Vector4 shadows;
+            public Vector4 midtones;
+            public Vector4 highlights;
+            public Vector4 shadowsHighlightsLimits;
+            public Vector4 lift;
+            public Vector4 gamma;
+            public Vector4 gain;
+            public Vector4 splitShadows;
+            public Vector4 splitHighlights;
+
+            public ColorCurves curves;
+            public HableCurve hableCurve;
+
+            public Vector4 miscParams;
+
+            public Texture externalLuT;
+            public float lutContribution;
+
+            public TonemappingMode tonemappingMode;
+        }
+
+        ColorGradingParameters PrepareColorGradingParameters()
+        {
+            var parameters = new ColorGradingParameters();
+
+            parameters.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
+
+            parameters.builderCS = m_Resources.shaders.lutBuilder3DCS;
+            parameters.builderKernel = parameters.builderCS.FindKernel("KBuild");
 
             // Setup lut builder compute & grab the kernel we need
-            var tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
-            var builderCS = m_Resources.shaders.lutBuilder3DCS;
-            builderCS.shaderKeywords = null;
+            parameters.builderCS.shaderKeywords = null;
 
             if (m_Tonemapping.IsActive())
             {
-                switch (tonemappingMode)
+                switch (parameters.tonemappingMode)
                 {
-                    case TonemappingMode.Neutral: builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
-                    case TonemappingMode.ACES: builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
-                    case TonemappingMode.Custom: builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
-                    case TonemappingMode.External: builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
+                    case TonemappingMode.Neutral: parameters.builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
+                    case TonemappingMode.ACES: parameters.builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
+                    case TonemappingMode.Custom: parameters.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
+                    case TonemappingMode.External: parameters.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
                 }
             }
             else
             {
-                builderCS.EnableKeyword("TONEMAPPING_NONE");
+                parameters.builderCS.EnableKeyword("TONEMAPPING_NONE");
             }
 
-            int builderKernel = builderCS.FindKernel("KBuild");
+            parameters.lutSize = m_LutSize;
+
+            //parameters.colorFilter;
+            parameters.lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
+            parameters.hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
+            parameters.channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
+            parameters.channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
+            parameters.channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
+
+            ComputeShadowsMidtonesHighlights(out parameters.shadows, out parameters.midtones, out parameters.highlights, out parameters.shadowsHighlightsLimits);
+            ComputeLiftGammaGain(out parameters.lift, out parameters.gamma, out parameters.gain);
+            ComputeSplitToning(out parameters.splitShadows, out parameters.splitHighlights);
+
+            // Be careful, if m_Curves is modified between preparing the render pass and executing it, result will be wrong.
+            // However this should be fine for now as all updates should happen outisde rendering.
+            parameters.curves = m_Curves;
+
+            if (parameters.tonemappingMode == TonemappingMode.Custom)
+            {
+                parameters.hableCurve = m_HableCurve;
+                parameters.hableCurve.Init(
+                        m_Tonemapping.toeStrength.value,
+                        m_Tonemapping.toeLength.value,
+                        m_Tonemapping.shoulderStrength.value,
+                        m_Tonemapping.shoulderLength.value,
+                        m_Tonemapping.shoulderAngle.value,
+                        m_Tonemapping.gamma.value
+                    );
+            }
+            else if (parameters.tonemappingMode == TonemappingMode.External)
+            {
+                parameters.externalLuT = m_Tonemapping.lutTexture.value;
+                parameters.lutContribution = m_Tonemapping.lutContribution.value;
+            }
+
+            parameters.colorFilter = m_ColorAdjustments.colorFilter.value.linear;
+            parameters.miscParams = new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f);
+
+            return parameters;
+        }
+
+        // TODO: User lut support
+        static void DoColorGrading( in ColorGradingParameters   parameters,
+                                    RTHandle                    internalLogLuT,
+                                    CommandBuffer               cmd)
+        {
+            var builderCS = parameters.builderCS;
+            var builderKernel = parameters.builderKernel;
 
             // Fill-in constant buffers & textures
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, m_InternalLogLut);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(m_LutSize, 1f / (m_LutSize - 1f), 0f, 0f));
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, lmsColorBalance);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, m_ColorAdjustments.colorFilter.value.linear);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, channelMixerR);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerGreen, channelMixerG);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerBlue, channelMixerB);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._HueSatCon, hueSatCon);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Lift, lift);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gamma, gamma);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gain, gain);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Shadows, shadows);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Midtones, midtones);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Highlights, highlights);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShaHiLimits, shadowsHighlightsLimits);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, splitShadows);
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, splitHighlights);
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, internalLogLuT);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(parameters.lutSize, 1f / (parameters.lutSize - 1f), 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, parameters.lmsColorBalance);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, parameters.colorFilter);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, parameters.channelMixerR);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerGreen, parameters.channelMixerG);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerBlue, parameters.channelMixerB);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._HueSatCon, parameters.hueSatCon);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Lift, parameters.lift);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gamma, parameters.gamma);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gain, parameters.gain);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Shadows, parameters.shadows);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Midtones, parameters.midtones);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Highlights, parameters.highlights);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShaHiLimits, parameters.shadowsHighlightsLimits);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, parameters.splitShadows);
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, parameters.splitHighlights);
 
             // YRGB
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, m_Curves.master.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, m_Curves.red.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, m_Curves.green.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, m_Curves.blue.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, parameters.curves.master.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, parameters.curves.red.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, parameters.curves.green.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, parameters.curves.blue.value.GetTexture());
 
             // Secondary curves
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, m_Curves.hueVsHue.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, m_Curves.hueVsSat.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, m_Curves.lumVsSat.value.GetTexture());
-            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, m_Curves.satVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, parameters.curves.hueVsHue.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, parameters.curves.hueVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, parameters.curves.lumVsSat.value.GetTexture());
+            cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, parameters.curves.satVsSat.value.GetTexture());
 
             // Artist-driven tonemap curve
-            if (tonemappingMode == TonemappingMode.Custom)
+            if (parameters.tonemappingMode == TonemappingMode.Custom)
             {
-                m_HableCurve.Init(
-                    m_Tonemapping.toeStrength.value,
-                    m_Tonemapping.toeLength.value,
-                    m_Tonemapping.shoulderStrength.value,
-                    m_Tonemapping.shoulderLength.value,
-                    m_Tonemapping.shoulderAngle.value,
-                    m_Tonemapping.gamma.value
-                );
-
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._CustomToneCurve, m_HableCurve.uniforms.curve);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentA, m_HableCurve.uniforms.toeSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentB, m_HableCurve.uniforms.toeSegmentB);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentA, m_HableCurve.uniforms.midSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentB, m_HableCurve.uniforms.midSegmentB);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentA, m_HableCurve.uniforms.shoSegmentA);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentB, m_HableCurve.uniforms.shoSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._CustomToneCurve, parameters.hableCurve.uniforms.curve);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentA, parameters.hableCurve.uniforms.toeSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentB, parameters.hableCurve.uniforms.toeSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentA, parameters.hableCurve.uniforms.midSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentB, parameters.hableCurve.uniforms.midSegmentB);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentA, parameters.hableCurve.uniforms.shoSegmentA);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentB, parameters.hableCurve.uniforms.shoSegmentB);
             }
-            else if (tonemappingMode == TonemappingMode.External)
+            else if (parameters.tonemappingMode == TonemappingMode.External)
             {
-                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, m_Tonemapping.lutTexture.value);
-                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / m_LutSize, m_LutSize - 1f, m_Tonemapping.lutContribution.value, 0f));
+                cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, parameters.externalLuT);
+                cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / parameters.lutSize, parameters.lutSize - 1f, parameters.lutContribution, 0f));
             }
 
             // Misc parameters
-            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f));
+            cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, parameters.miscParams);
 
             // Generate the lut
             // See the note about Metal & Intel in LutBuilder3D.compute
-            builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            // GetKernelThreadGroupSizes  is currently broken on some binary versions. 
+            //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+            uint threadX = 4;
+            uint threadY = 4;
+            uint threadZ = 4;
             cmd.DispatchCompute(builderCS, builderKernel,
-                (int)((m_LutSize + threadX - 1u) / threadX),
-                (int)((m_LutSize + threadY - 1u) / threadY),
-                (int)((m_LutSize + threadZ - 1u) / threadZ)
+                (int)((parameters.lutSize + threadX - 1u) / threadX),
+                (int)((parameters.lutSize + threadY - 1u) / threadY),
+                (int)((parameters.lutSize + threadZ - 1u) / threadZ)
             );
-
-            // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
-            // we can't use 0 as the default neutral value which would be confusing to users
-            float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
-
-            // Setup the uber shader
-            var logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._LogLut3D, m_InternalLogLut);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._LogLut3D_Params, logLutSettings);
         }
 
         // Returns color balance coefficients in the LMS space
@@ -2828,7 +3236,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var hashCode = ComputeHashCode(scaleFactor.x, scaleFactor.y, (int)format, mipmap);
 
                 if (m_Targets.TryGetValue(hashCode, out var stack) && stack.Count > 0)
-                    return stack.Pop();
+                {
+                    var tex = stack.Pop();
+                    HDUtils.CheckRTCreated(tex.rt);
+                    return tex;
+                }
 
                 var rt = RTHandles.Alloc(
                     scaleFactor, TextureXR.slices, DepthBits.None, colorFormat: format, dimension: TextureXR.dimension,

@@ -43,8 +43,10 @@ namespace UnityEditor.Rendering.HighDefinition
             Editor m_CachedDefaultVolumeProfileEditor;
             Editor m_CachedLookDevVolumeProfileEditor;
             ReorderableList m_BeforeTransparentCustomPostProcesses;
+            ReorderableList m_BeforeTAACustomPostProcesses;
             ReorderableList m_BeforePostProcessCustomPostProcesses;
             ReorderableList m_AfterPostProcessCustomPostProcesses;
+            int m_CurrentVolumeProfileInstanceID;
 
             public void OnGUI(string searchContext)
             {
@@ -74,6 +76,13 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 m_ScrollViewPosition = Vector2.zero;
                 InitializeCustomPostProcessesLists();
+
+                var editorResources = HDRenderPipeline.defaultAsset.renderPipelineEditorResources;
+                if (!EditorUtility.IsPersistent(editorResources))
+                {
+                    var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+                    HDRenderPipeline.defaultAsset.renderPipelineEditorResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
+                }
             }
 
             void InitializeCustomPostProcessesLists()
@@ -95,6 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 InitList(ref m_BeforeTransparentCustomPostProcesses, hdrpAsset.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
+                InitList(ref m_BeforeTAACustomPostProcesses, hdrpAsset.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
                 InitList(ref m_BeforePostProcessCustomPostProcesses, hdrpAsset.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
                 InitList(ref m_AfterPostProcessCustomPostProcesses, hdrpAsset.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
 
@@ -149,6 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     return;
 
                 m_BeforeTransparentCustomPostProcesses.DoLayoutList();
+                m_BeforeTAACustomPostProcesses.DoLayoutList();
                 m_BeforePostProcessCustomPostProcesses.DoLayoutList();
                 m_AfterPostProcessCustomPostProcesses.DoLayoutList();
             }
@@ -207,6 +218,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 EditorGUILayout.EndHorizontal();
 
+                // The state of the profile can change without the asset reference changing so in this case we need to reset the editor.
+                if (m_CurrentVolumeProfileInstanceID != asset.GetInstanceID() && m_CachedDefaultVolumeProfileEditor != null)
+                {
+                    m_CurrentVolumeProfileInstanceID = asset.GetInstanceID();
+                    m_CachedDefaultVolumeProfileEditor = null;
+                }
+
                 Editor.CreateCachedEditor(asset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedDefaultVolumeProfileEditor);
                 EditorGUIUtility.labelWidth -= 18;
                 bool oldEnabled = GUI.enabled;
@@ -230,13 +248,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     hdrpAsset.defaultLookDevProfile = newLookDevAsset;
                     EditorUtility.SetDirty(hdrpAsset);
                 }
-                
+
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
                 {
                     DefaultVolumeProfileCreator.CreateAndAssign(DefaultVolumeProfileCreator.Kind.LookDev);
                 }
                 EditorGUILayout.EndHorizontal();
-                
+
                 Editor.CreateCachedEditor(lookDevAsset, Type.GetType("UnityEditor.Rendering.VolumeProfileEditor"), ref m_CachedLookDevVolumeProfileEditor);
                 EditorGUIUtility.labelWidth -= 18;
                 oldEnabled = GUI.enabled;
@@ -311,7 +329,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             return defaultName;
         }
-        
+
         public static void CreateAndAssign(Kind kind)
         {
             var assetCreator = ScriptableObject.CreateInstance<DefaultVolumeProfileCreator>();

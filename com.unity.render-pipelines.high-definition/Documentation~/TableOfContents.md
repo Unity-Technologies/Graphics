@@ -3,6 +3,7 @@
   * [Features List](HDRP-Features)
   * [Comparison with the Built-in Render Pipeline](Feature-Comparison)
 * Getting started
+  * [System Requirements](System-Requirements.md)
   * [Getting Started with HDRP](Getting-started-with-HDRP)
   * [Upgrading to HDRP](Upgrading-To-HDRP)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard)
@@ -15,6 +16,7 @@
   * [2019.1 to 2019.2](Upgrading-from-2019.1-to-2019.2)
   * [2019.2 to 2019.3](Upgrading-from-2019.2-to-2019.3)
   * [2019.3 to 2020.1](Upgrading-from-2019.3-to-2020.1)
+  * [2020.1 to 2020.2](Upgrading-from-2020.1-to-2020.2)
 * Volume Framework
   * [Volumes](Volumes)
   * [Volume Profiles](Volume-Profile)
@@ -63,12 +65,14 @@
     * [Layered Lit Shader](Layered-Lit-Shader)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader)
     * [Lit Shader](Lit-Shader)
+    * [Terrain Lit Shader](Terrain-Lit-Shader.md)
     * [Unlit Shader](Unlit-Shader)
   * Shader Graph Master Nodes
     * [Customizing Materials Using Master Nodes](Customizing-HDRP-materials-with-Shader-Graph)
     * [Decal](Master-Node-Decal)
     * [Fabric](Master-Node-Fabric)
     * [Hair](Master-Node-Hair)
+    * [Lit](Master-Node-Lit)
     * [Unlit](Master-Node-Unlit)
   * Shader Graph Nodes
     * [Emission](SGNode-Emission)
@@ -100,6 +104,8 @@
   * [Motion Vectors](Motion-Vectors)
   * [Anti-Aliasing](Anti-Aliasing)
   * [Alpha Output](Alpha-Output)
+  * [Arbitrary Output Variables](AOVs)
+  * [Multiframe Rendering and Accumulation](Accumulation)
 * Post-processing
   * [Post-processing in HDRP](Post-Processing-Main)
   * [Effect Execution Order](Post-Processing-Execution-Order)
@@ -140,9 +146,10 @@
 * Components
   * [Decal Projector](Decal-Projector)
 * Tools
-  * Look Dev
-    * [Look Dev Window](Look-Dev)
-    * [Environment Library](Look-Dev-Environment-Library)
+  * [Look Dev](Look-Dev)
+  * [Compositor](Compositor-Main)
+    * [User Guide](Compositor-User-Guide)
+    * [User Options](Compositor-User-Options)
 * Debugging
   * [MatCap](MatCap)
   * [Render Pipeline Debug Window](Render-Pipeline-Debug-Window)
@@ -155,5 +162,6 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process)
   * [Creating a Custom Render Pass](Custom-Pass)
+  * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
 * [HDRP Glossary](Glossary)
 * [Known Issues and How To Fix Them](Known-Issues)

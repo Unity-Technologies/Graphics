@@ -5,6 +5,8 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -17,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            // TODO: We need to perform compute shader stripping as soon as it is possible. Most egregious case would be the shadow filtering quality for Deferred.compute
+
             // Strip every useless shadow configs
             var shadowInitParams = hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
 
@@ -137,6 +141,7 @@ namespace UnityEditor.Rendering.HighDefinition
         // Track list of materials asking for specific preprocessor step
         List<BaseShaderPreprocessor> shaderProcessorsList;
 
+        internal static event System.Action<Shader, ShaderSnippetData, int, double> shaderPreprocessed;
 
         uint m_TotalVariantsInputCount;
         uint m_TotalVariantsOutputCount;
@@ -229,6 +234,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && ShaderBuildPreprocessor.hdrpAssets.Any(hdrpAsset => hdrpAsset.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
+            Stopwatch shaderStripingWatch = new Stopwatch();
+            shaderStripingWatch.Start();
+
             using (new ExportShaderStrip(exportLog, "Temp/shader-strip.json", shader, snippet, inputData, this))
             {
 
@@ -296,6 +304,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+
+            shaderStripingWatch.Stop();
+            shaderPreprocessed?.Invoke(shader, snippet, inputData.Count, shaderStripingWatch.Elapsed.TotalMilliseconds);
         }
     }
 
@@ -399,8 +410,17 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Prompt a warning if we find 0 HDRP Assets.
             if (_hdrpAssets.Count == 0)
-                if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
-                throw new UnityEditor.Build.BuildFailedException("Build canceled");
+            {
+                if (!Application.isBatchMode)
+                {
+                    if (EditorUtility.DisplayDialog("HDRP Asset missing", "No HDRP Asset has been set in the Graphic Settings, and no potential used in the build HDRP Asset has been found. If you want to continue compiling, this might lead to VERY long compilation time.", "Ok", "Cancel"))
+                        throw new UnityEditor.Build.BuildFailedException("Build canceled");
+                }
+                else
+                {
+                    Debug.LogWarning("There is no HDRP Asset provided in GraphicsSettings. Build time can be extremely long without it.");
+                }
+            }
 
             /*
             Debug.Log(string.Format("{0} HDRP assets in build:{1}",

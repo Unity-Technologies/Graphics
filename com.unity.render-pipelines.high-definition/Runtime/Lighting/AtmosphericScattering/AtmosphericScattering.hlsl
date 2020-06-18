@@ -14,6 +14,8 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
 #endif
 
+TEXTURE3D(_VBufferLighting);
+
 float3 ExpLerp(float3 A, float3 B, float t, float x, float y)
 {
     // Remap t: (exp(10 k t) - 1) / (exp(10 k) - 1) = exp(x t) y - y.
@@ -255,7 +257,10 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
 
 #ifdef DEBUG_DISPLAY
     // Don't sample atmospheric scattering when lighting debug more are enabled so fog is not visible
-    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    if (_DebugLightingMode >= DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING && _DebugLightingMode <= DEBUGLIGHTINGMODE_EMISSIVE_LIGHTING)
+        return;
+
+    if (_DebugShadowMapMode == SHADOWMAPDEBUGMODE_SINGLE_SHADOW || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER || _DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
         return;
 #endif
 
@@ -273,14 +278,14 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         if (_EnableVolumetricFog != 0)
         {
             float4 value = SampleVBuffer(TEXTURE3D_ARGS(_VBufferLighting, s_linear_clamp_sampler),
-                posInput.positionNDC,
-                fogFragDist,
-                _VBufferViewportSize,
-                _VBufferSharedUvScaleAndLimit.xy,
-                _VBufferSharedUvScaleAndLimit.zw,
-                _VBufferDistanceEncodingParams,
-                _VBufferDistanceDecodingParams,
-                true, false);
+                                         posInput.positionNDC,
+                                         fogFragDist,
+                                         _VBufferViewportSize,
+                                         _VBufferLightingViewportScale.xyz,
+                                         _VBufferLightingViewportLimit.xyz,
+                                         _VBufferDistanceEncodingParams,
+                                         _VBufferDistanceDecodingParams,
+                                         true, true, false);
 
             // TODO: add some slowly animated noise (dither?) to the reconstructed value.
             // TODO: re-enable tone mapping after implementing pre-exposure.
@@ -305,7 +310,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
             // integral is wrong, as it means that shadow rays are not volumetrically shadowed.
             // This will result in fog looking overly bright.
 
-            float3 volAlbedo = _HeightFogBaseScattering / _HeightFogBaseExtinction;
+            float3 volAlbedo = _HeightFogBaseScattering.xyz / _HeightFogBaseExtinction;
             float  odFallback = OpticalDepthHeightFog(_HeightFogBaseExtinction, _HeightFogBaseHeight,
                 _HeightFogExponents, cosZenith, startHeight, distDelta);
             float  trFallback = TransmittanceFromOpticalDepth(odFallback);
@@ -328,7 +333,7 @@ void EvaluateAtmosphericScattering(PositionInputs posInput, float3 V, out float3
         // Convert it to distance along the ray. Doesn't work with tilt shift, etc.
         float tFrag = posInput.linearDepth * rcp(dot(-V, GetViewForwardDir1(UNITY_MATRIX_V)));
 
-        EvaluatePbrAtmosphere(_WorldSpaceCameraPos, V, tFrag, false, skyColor, skyOpacity);
+        EvaluatePbrAtmosphere(_WorldSpaceCameraPos.xyz, V, tFrag, false, skyColor, skyOpacity);
         skyColor *= _IntensityMultiplier * GetCurrentExposureMultiplier();
 
         // Rendering of fog and atmospheric scattering cannot really be decoupled.

@@ -59,6 +59,9 @@
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
+#define INDIRECT_DIFFUSE_FLAG_OFF (0)
+#define SCREEN_SPACE_INDIRECT_DIFFUSE_FLAG (1)
+#define RAY_TRACED_INDIRECT_DIFFUSE_FLAG (2)
 
 // Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
 // PackingRules = Exact
@@ -89,6 +92,27 @@ struct LightVolumeData
     float3 boxInvRange;
     float unused2;
 };
+
+// Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesLightList
+// PackingRules = Exact
+CBUFFER_START(ShaderVariablesLightList)
+    float4x4 g_mInvScrProjectionArr[2];
+    float4x4 g_mScrProjectionArr[2];
+    float4x4 g_mInvProjectionArr[2];
+    float4x4 g_mProjectionArr[2];
+    float4 g_screenSize;
+    int2 g_viDimensions;
+    int g_iNrVisibLights;
+    uint g_isOrthographic;
+    uint g_BaseFeatureFlags;
+    int g_iNumSamplesMSAA;
+    uint _EnvLightIndexShift;
+    uint _DecalIndexShift;
+    uint _DensityVolumeIndexShift;
+    uint _ProbeVolumeIndexShift;
+    uint _Pad0_SVLL;
+    uint _Pad1_SVLL;
+CBUFFER_END
 
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound

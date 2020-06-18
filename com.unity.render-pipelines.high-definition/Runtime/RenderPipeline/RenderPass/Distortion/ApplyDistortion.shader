@@ -94,8 +94,8 @@ Shader "Hidden/HDRP/ApplyDistortion"
 
             // Get source pixel for distortion
             float2 distordedUV = float2(input.positionCS.xy + distortion * _FetchBias) * _Size.zw;
-            float mip = (_ColorPyramidScale.z - 1) * clamp(distortionBlur, 0.0, 1.0);
-            float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, distordedUV * _ColorPyramidScale.xy, mip);
+            float mip = (_ColorPyramidLodCount - 1) * clamp(distortionBlur, 0.0, 1.0);
+            float4 sampled = SAMPLE_TEXTURE2D_X_LOD(_ColorPyramidTexture, s_trilinear_clamp_sampler, distordedUV * _RTHandleScaleHistory.xy, mip);
 
             return sampled;
         }
@@ -110,7 +110,7 @@ Shader "Hidden/HDRP/ApplyDistortion"
             Stencil
             {
                 WriteMask [_StencilMask]
-                ReadMask [_StencilMask] 
+                ReadMask [_StencilMask]
                 Ref  [_StencilRef]
                 Comp Equal
                 Pass Zero   // We can clear the bit since we won't need anymore.

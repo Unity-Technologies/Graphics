@@ -28,15 +28,6 @@
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
 
-uniform int g_iNrVisibLights;
-uniform uint2 g_viDimensions;
-uniform float4x4 g_mInvScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform float4x4 g_mScrProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform uint g_isOrthographic;
-uniform int _EnvLightIndexShift;
-uniform int _DecalIndexShift;
-uniform int _ProbeVolumeIndexShift;
-uniform uint g_BaseFeatureFlags;
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);

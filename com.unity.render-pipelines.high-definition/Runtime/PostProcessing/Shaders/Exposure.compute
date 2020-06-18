@@ -1,7 +1,4 @@
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/PhysicalCamera.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/ExposureCommon.hlsl"
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
@@ -11,86 +8,11 @@
 #pragma kernel KReduction
 #pragma kernel KReset
 
-TEXTURE2D(_ExposureCurveTexture);
-TEXTURE2D(_PreviousExposureTexture);
 TEXTURE2D(_InputTexture);
-TEXTURE2D_X(_SourceTexture);
 
-RW_TEXTURE2D(float2, _OutputTexture);
-
-SAMPLER(sampler_LinearClamp);
-
-CBUFFER_START(cb)
-    float4 _ExposureParams;
-    float4 _AdaptationParams;
-    uint4 _Variants;
-CBUFFER_END
-
-#define ParamEV100                  _ExposureParams.x
-#define ParamExposureCompensation   _ExposureParams.x
-#define ParamAperture               _ExposureParams.y
-#define ParamShutterSpeed           _ExposureParams.z
-#define ParamISO                    _ExposureParams.w
-#define ParamSpeedLightToDark       _AdaptationParams.x
-#define ParamSpeedDarkToLight       _AdaptationParams.y
-#define ParamExposureLimitMin       _ExposureParams.y
-#define ParamExposureLimitMax       _ExposureParams.z
-#define ParamCurveMin               _ExposureParams.y
-#define ParamCurveMax               _ExposureParams.z
-#define ParamSourceBuffer           _Variants.x
-#define ParamMeteringMode           _Variants.y
-#define ParamAdaptationMode         _Variants.z
-#define ParamEvaluateMode           _Variants.w
-
-float WeightSample(uint2 pixel)
-{
-    UNITY_BRANCH
-    switch (ParamMeteringMode)
-    {
-        case 1u:
-        {
-            // Spot metering
-            const float kRadius = 0.075 * 1024.0;
-            const float2 kCenter = (512.0).xx;
-            float d = length(kCenter - pixel) - kRadius;
-            return 1.0 - saturate(d);
-        }
-        case 2u:
-        {
-            // Center-weighted
-            const float2 kCenter = (512.0).xx;
-            return 1.0 - saturate(pow(length(kCenter - pixel) / 512.0, 1.0));
-        }
-        default:
-        {
-            // Global average
-            return 1.0;
-        }
-    }
-}
-
-float GetPreviousExposureEV100()
-{
-    return _PreviousExposureTexture[uint2(0u, 0u)].y;
-}
-
-float AdaptExposure(float exposure)
-{
-    UNITY_BRANCH
-    switch (ParamAdaptationMode)
-    {
-        case 1u:
-        {
-            // Progressive
-            return ComputeLuminanceAdaptation(GetPreviousExposureEV100(), exposure, ParamSpeedDarkToLight, ParamSpeedLightToDark, unity_DeltaTime.x);
-        }
-        default:
-        {
-            // Fixed
-            return exposure;
-        }
-    }
-}
+#define PREPASS_TEX_SIZE 1024.0
+#define PREPASS_TEX_HALF_SIZE 512.0
+//#pragma enable_d3d11_debug_symbols
 
 //
 // Fixed exposure
@@ -99,7 +21,9 @@ float AdaptExposure(float exposure)
 [numthreads(1,1,1)]
 void KFixedExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ParamEV100), ParamEV100);
+    float ev100 = ParamEV100;
+    ev100 -= ParamExposureCompensation;
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -111,7 +35,7 @@ void KManualCameraExposure(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     float ev100 = ComputeEV100(ParamAperture, ParamShutterSpeed, ParamISO);
     ev100 -= ParamExposureCompensation;
-    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100), ev100);
+    _OutputTexture[dispatchThreadId] = float2(ConvertEV100ToExposure(ev100, LensImperfectionExposureScale), ev100);
 }
 
 //
@@ -124,31 +48,13 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
     // For XR, interleave single-pass views in a checkerboard pattern
     UNITY_XR_ASSIGN_VIEW_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), 1.0 / 1024.0, uint2(8u, 8u));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), rcp(PREPASS_TEX_SIZE), uint2(8u, 8u));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
-    float luma;
+    float luma = SampleLuminance(uv);
 
-    UNITY_BRANCH
-    switch (ParamSourceBuffer)
-    {
-        case 1u:
-        {
-            // Color buffer
-            float prevExposure = ConvertEV100ToExposure(GetPreviousExposureEV100());
-            float3 color = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, sampler_LinearClamp, uv, 0.0).xyz;
-            luma = Luminance(color / prevExposure);
-            break;
-        }
-        default:
-        {
-            // Lighting buffer
-            luma = 1.0;
-            break;
-        }
-    }
+    float weight = WeightSample(dispatchThreadId, PREPASS_TEX_SIZE.xx, luma);
 
-    float weight = WeightSample(dispatchThreadId);
-    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4));
+    float logLuma = ComputeEV100FromAvgLuminance(max(luma, 1e-4), MeterCalibrationConstant);
     _OutputTexture[posInputs.positionSS] = float2(logLuma, weight);
 }
 
@@ -215,16 +121,15 @@ void KReduction(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThread
                 // Automatic
                 float exposure = AdaptExposure(avgLuminance - ParamExposureCompensation);
                 exposure = clamp(exposure, ParamExposureLimitMin, ParamExposureLimitMax);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             case 2u:
             {
                 // Curve remapping
-                float remap = saturate((avgLuminance - ParamCurveMin) / (ParamCurveMax - ParamCurveMin));
-                float exposure = SAMPLE_TEXTURE2D_LOD(_ExposureCurveTexture, sampler_LinearClamp, float2(remap, 0.0), 0.0).x;
+                float exposure = CurveRemap(avgLuminance);
                 exposure = AdaptExposure(exposure - ParamExposureCompensation);
-                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure), exposure);
+                _OutputTexture[groupId.xy] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
                 break;
             }
             default:

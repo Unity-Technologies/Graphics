@@ -102,17 +102,26 @@ namespace UnityEditor.ShaderGraph
 
     class NewGraphAction : EndNameEditAction
     {
-        AbstractMaterialNode m_Node;
-        public AbstractMaterialNode node
+        Target[] m_Targets;
+        public Target[] targets
         {
-            get { return m_Node; }
-            set { m_Node = value; }
+            get => m_Targets;
+            set => m_Targets = value;
+        }
+
+        BlockFieldDescriptor[] m_Blocks;
+        public BlockFieldDescriptor[] blocks
+        {
+            get => m_Blocks;
+            set => m_Blocks = value;
         }
 
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             var graph = new GraphData();
-            graph.AddNode(node);
+            graph.AddContexts();
+            graph.InitializeOutputs(m_Targets, m_Blocks);
+            
             graph.path = "Shader Graphs";
             FileUtilities.WriteShaderGraphToDisk(pathName, graph);
             AssetDatabase.Refresh();
@@ -142,41 +151,40 @@ namespace UnityEditor.ShaderGraph
             return newText.ToString();
         }
 
-        public static void CreateNewGraph(AbstractMaterialNode node)
+        public static void CreateNewGraph()
         {
             var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
-            graphItem.node = node;
+            graphItem.targets = null;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
         }
 
-        public static Type GetOutputNodeType(string path)
+        public static void CreateNewGraphWithOutputs(Target[] targets, BlockFieldDescriptor[] blockDescriptors)
         {
-            ShaderGraphMetadata metadata = null;
+            var graphItem = ScriptableObject.CreateInstance<NewGraphAction>();
+            graphItem.targets = targets;
+            graphItem.blocks = blockDescriptors;
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
+                string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+        }
+
+        public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject
+        {
+            obj = null;
+            if(!shader.IsShaderGraph())
+                return false;
+
+            var path = AssetDatabase.GetAssetPath(shader);
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
             {
-                if (asset is ShaderGraphMetadata metadataAsset)
+                if (asset is T metadataAsset)
                 {
-                    metadata = metadataAsset;
-                    break;
+                    obj = metadataAsset;
+                    return true;
                 }
             }
 
-            if (metadata == null)
-            {
-                return null;
-            }
-
-            var outputNodeTypeName = metadata.outputNodeTypeName;
-            foreach (var type in TypeCache.GetTypesDerivedFrom<IMasterNode>())
-            {
-                if (type.FullName == outputNodeTypeName)
-                {
-                    return type;
-                }
-            }
-
-            return null;
+            return false;
         }
 
         public static bool IsShaderGraph(this Shader shader)
@@ -186,19 +194,19 @@ namespace UnityEditor.ShaderGraph
             return importer is ShaderGraphImporter;
         }
 
-        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<Guid, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
+        static void Visit(List<AbstractMaterialNode> outputList, Dictionary<string, AbstractMaterialNode> unmarkedNodes, AbstractMaterialNode node)
         {
-            if (!unmarkedNodes.ContainsKey(node.guid))
+            if (!unmarkedNodes.ContainsKey(node.objectId))
                 return;
-            foreach (var slot in node.GetInputSlots<ISlot>())
+            foreach (var slot in node.GetInputSlots<MaterialSlot>())
             {
                 foreach (var edge in node.owner.GetEdges(slot.slotReference))
                 {
-                    var inputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var inputNode = edge.outputSlot.node;
                     Visit(outputList, unmarkedNodes, inputNode);
                 }
             }
-            unmarkedNodes.Remove(node.guid);
+            unmarkedNodes.Remove(node.objectId);
             outputList.Add(node);
         }
 
@@ -249,6 +257,8 @@ namespace UnityEditor.ShaderGraph
         /// </returns>
         internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
+            //.shader files are not cool with " in the middle of a property name (eg.  Vector1_81B203C2("fo"o"o", Float) = 0)
+            name = name.Replace("\"", "_");
             if (!existingNames.Contains(name))
                 return name;
 
@@ -350,23 +360,48 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static string CurrentPipelinePreferredShaderGUI(IMasterNode masterNode)
+        //
+        //  Find all nodes of the given type downstream from the given node
+        //  Returns a unique list. So even if a node can be reached through different paths it will be present only once.
+        //
+        public static List<NodeType> FindDownStreamNodesOfType<NodeType>(AbstractMaterialNode node) where NodeType : AbstractMaterialNode
         {
-            foreach (var target in (masterNode as AbstractMaterialNode).owner.validTargets)
-            {
-                if (target.IsPipelineCompatible(GraphicsSettings.currentRenderPipeline))
-                {
-                    var context = new TargetSetupContext();
-                    context.SetMasterNode(masterNode);
-                    target.Setup(ref context);
+            // Should never be called without a node
+            Debug.Assert(node != null);
 
-                    var defaultShaderGUI = context.defaultShaderGUI;
-                    if (!string.IsNullOrEmpty(defaultShaderGUI))
-                        return defaultShaderGUI;
+            HashSet<AbstractMaterialNode> visitedNodes = new HashSet<AbstractMaterialNode>();
+            List<NodeType> vtNodes = new List<NodeType>();
+            Queue<AbstractMaterialNode> nodeStack = new Queue<AbstractMaterialNode>();
+            nodeStack.Enqueue(node);
+            visitedNodes.Add(node);
+
+            while (nodeStack.Count > 0)
+            {
+                AbstractMaterialNode visit = nodeStack.Dequeue();
+
+                // Flood fill through all the nodes
+                foreach (var slot in visit.GetInputSlots<MaterialSlot>())
+                {
+                    foreach (var edge in visit.owner.GetEdges(slot.slotReference))
+                    {
+                        var inputNode = edge.outputSlot.node;
+                        if (!visitedNodes.Contains(inputNode))
+                        {
+                            nodeStack.Enqueue(inputNode);
+                            visitedNodes.Add(inputNode);
+                        }
+                    }
+                }
+
+                // Extract vt node
+                if (visit is NodeType)
+                {
+                    NodeType vtNode = visit as NodeType;
+                    vtNodes.Add(vtNode);
                 }
             }
 
-            return null;
+            return vtNodes;
         }
     }
 }

@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SsrTracing,
         SsrReprojection,
         PrepareForTransparentSsr,
+        SsgiPass,
         ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
@@ -76,6 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderWireFrame,
         PushToColorPicker,
         ResolveMSAAColor,
+        ResolveMSAAMotionVector,
         ResolveMSAADepth,
         ConvolveReflectionProbe,
         ConvolvePlanarReflectionProbe,
@@ -117,10 +119,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Profile sampler for prepare light for GPU
         PrepareLightsForGPU,
-        PushLightDataGlobalParameters,
 
         // Profile sampler for shadow
-        PushShadowGlobalParameters,
         RenderShadowMaps,
         RenderMomentShadowMaps,
         RenderPunctualShadowMaps,
@@ -185,6 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
         FXAA,
         SMAA,
         FinalPost,
+        CustomPostProcessBeforeTAA,
         CustomPostProcessBeforePP,
         CustomPostProcessAfterPP,
         CustomPostProcessAfterOpaqueAndSky,
@@ -193,5 +194,9 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumeDebug,
         BuildGPULightListProbeVolumes,
         PushProbeVolumeLightListGlobalParameters,
+
+#if ENABLE_VIRTUALTEXTURES
+        VTFeedbackClear,
+#endif
     }
 }

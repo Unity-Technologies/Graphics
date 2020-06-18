@@ -1,4 +1,8 @@
-﻿using UnityEngine.Rendering;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -10,28 +14,34 @@ namespace UnityEditor.ShaderGraph
             isHidden = true;
         }
 
+        public override bool IsActive() => false;
+
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7464b9fcde08e5645a16b9b8ae1e573c")); // PreviewTarget
             context.AddSubShader(SubShaders.Preview);
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            return false;
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline != null;
         }
-        
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => true;
+
         static class SubShaders
         {
             public static SubShaderDescriptor Preview = new SubShaderDescriptor()
             {
-                renderQueueOverride = "Geometry",
-                renderTypeOverride = "Opaque",
+                renderQueue = "Geometry",
+                renderType = "Opaque",
                 generatesPreview = true,
                 passes = new PassCollection { Passes.Preview },
             };
@@ -72,6 +82,7 @@ namespace UnityEditor.ShaderGraph
                     // Pre-graph
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl", IncludeLocation.Pregraph },
+                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph },       // TODO: put this on a conditional
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", IncludeLocation.Pregraph },

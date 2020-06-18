@@ -195,7 +195,7 @@ namespace UnityEditor.VFX
     {
         public override VFXDataType type { get { return hasStrip ? VFXDataType.ParticleStrip : VFXDataType.Particle; } }
 
-        protected enum DataType
+        internal enum DataType
         {
             Particle,
             ParticleStrip
@@ -215,6 +215,14 @@ namespace UnityEditor.VFX
         protected override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
+
+            if (setting.name == "capacity" && capacity == 0)
+                capacity = 1;
+            else if (setting.name == "stripCapacity" && stripCapacity == 0)
+                stripCapacity = 1;
+            else if (setting.name == "particlePerStripCount" && particlePerStripCount == 0)
+                particlePerStripCount = 1;
+
             if (hasStrip)
             {
                 if (setting.name == "dataType") // strip has just been set
@@ -741,8 +749,11 @@ namespace UnityEditor.VFX
                 }
 
                 uniformMappings.Clear();
+                
                 foreach (var uniform in contextData.uniformMapper.uniforms)
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
+                foreach (var buffer in contextData.uniformMapper.buffers)
+                    uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(buffer), expressionGraph.GetFlattenedIndex(buffer)));
                 foreach (var texture in contextData.uniformMapper.textures)
                 {
                     // TODO At the moment issue all names sharing the same texture as different texture slots. This is not optimized as it required more texture binding than necessary

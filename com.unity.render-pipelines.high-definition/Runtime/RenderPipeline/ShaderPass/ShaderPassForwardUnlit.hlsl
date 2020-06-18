@@ -24,7 +24,12 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
 #endif // TESSELLATION_ON
 
-float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
+void Frag(PackedVaryingsToPS packedInput,
+    out float4 outResult : SV_Target0
+#ifdef UNITY_VIRTUAL_TEXTURING
+    ,out float4 outVTFeedback : SV_Target1
+#endif
+)
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
@@ -58,12 +63,12 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     // The index stored in this buffer could either be
     //   - a gBufferIndex (always stored in _DebugViewMaterialArray[1] as only one supported)
     //   - a property index which is different for each kind of material even if reflecting the same thing (see MaterialSharedProperty)
-    int bufferSize = int(_DebugViewMaterialArray[0]);
+    int bufferSize = _DebugViewMaterialArray[0].x;
     // Loop through the whole buffer
     // Works because GetSurfaceDataDebug will do nothing if the index is not a known one
     for (int index = 1; index <= bufferSize; index++)
     {
-        int indexMaterialProperty = int(_DebugViewMaterialArray[index]);
+        int indexMaterialProperty = _DebugViewMaterialArray[index].x;
         if (indexMaterialProperty != 0)
         {
             float3 result = float3(1.0, 0.0, 1.0);
@@ -74,7 +79,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
             GetBuiltinDataDebug(indexMaterialProperty, builtinData, posInput, result, needLinearToSRGB);
             GetSurfaceDataDebug(indexMaterialProperty, surfaceData, result, needLinearToSRGB);
             GetBSDFDataDebug(indexMaterialProperty, bsdfData, result, needLinearToSRGB);
-            
+
             // TEMP!
             // For now, the final blit in the backbuffer performs an sRGB write
             // So in the meantime we apply the inverse transform to linear data to compensate.
@@ -92,6 +97,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     }
 
 #endif
-    
-    return outColor;
+
+    outResult = outColor;
+
+#ifdef UNITY_VIRTUAL_TEXTURING
+    outVTFeedback = builtinData.vtPackedFeedback;
+#endif
 }

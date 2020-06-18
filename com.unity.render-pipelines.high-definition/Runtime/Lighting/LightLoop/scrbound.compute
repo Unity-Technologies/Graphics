@@ -13,12 +13,6 @@
 
 #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-uniform int g_isOrthographic;
-uniform int g_iNrVisibLights;
-
-uniform float4x4 g_mInvProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-uniform float4x4 g_mProjectionArr[SHADEROPTIONS_XR_MAX_VIEWS];
-
 StructuredBuffer<SFiniteLightBound> g_data : register( t0 );
 
 #define NR_THREADS          64
