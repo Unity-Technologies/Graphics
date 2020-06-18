@@ -27,6 +27,19 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputAlpha;
         }
 
+        class GuardBandPassData
+        {
+            public ClearWithGuardBandsParameters parameters;
+            public TextureHandle source;
+        }
+
+        class StopNaNPassData
+        {
+            public StopNaNParameters parameters;
+            public TextureHandle source;
+            public TextureHandle destination;
+        }
+
         public void Render( RenderGraph     renderGraph,
                             HDCamera        hdCamera,
                             BlueNoise       blueNoise,
@@ -63,6 +76,71 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     alphaTexture = passData.outputAlpha;
                 }
+            }
+
+            if (m_PostProcessEnabled)
+            {
+                // Guard bands (also known as "horrible hack") to avoid bleeding previous RTHandle
+                // content into smaller viewports with some effects like Bloom that rely on bilinear
+                // filtering and can't use clamp sampler and the likes
+                // Note: some platforms can't clear a partial render target so we directly draw black triangles
+                using (var builder = renderGraph.AddRenderPass<GuardBandPassData>("Guard Band Clear", out var passData, ProfilingSampler.Get(HDProfileId.GuardBandClear)))
+                {
+                    passData.source = builder.ReadTexture(source);
+                    passData.parameters = PrepareClearWithGuardBandsParameters(hdCamera);
+
+                    builder.SetRenderFunc(
+                    (GuardBandPassData data, RenderGraphContext ctx) =>
+                    {
+                        ClearWithGuardBands(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source));
+                    });
+
+                    source = passData.source;
+                }
+
+                // Optional NaN killer before post-processing kicks in
+                bool stopNaNs = hdCamera.stopNaNs && m_StopNaNFS;
+
+#if UNITY_EDITOR
+                if (isSceneView)
+                    stopNaNs = HDAdditionalSceneViewSettings.sceneViewStopNaNs;
+#endif
+                if (stopNaNs)
+                {
+                    using (var builder = renderGraph.AddRenderPass<StopNaNPassData>("Stop NaNs", out var passData, ProfilingSampler.Get(HDProfileId.StopNaNs)))
+                    {
+                        passData.source = builder.ReadTexture(source);
+                        passData.parameters = PrepareStopNaNParameters(hdCamera);
+                        TextureHandle dest = renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                        {
+                            name = "Stop NaNs Destination",
+                            colorFormat = m_ColorFormat,
+                            useMipMap = false,
+                            enableRandomWrite = true
+                        });
+                        passData.destination = builder.WriteTexture(dest); ;
+
+                        builder.SetRenderFunc(
+                        (StopNaNPassData data, RenderGraphContext ctx) =>
+                        {
+                            DoStopNaNs(data.parameters, ctx.cmd, ctx.resources.GetTexture(data.source), ctx.resources.GetTexture(data.destination));
+                        });
+
+                        source = passData.destination;
+                    }
+                }
+
+                //                if (stopNaNs)
+                //                {
+                //                    using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.StopNaNs)))
+                //                    {
+                //                        var destination = m_Pool.Get(Vector2.one, m_ColorFormat);
+                //                        DoStopNaNs(cmd, camera, source, destination);
+                //                        PoolSource(ref source, destination);
+                //                    }
+                //                }
+                //            }
+
             }
 
             // TODO RENDERGRAPH: Implement
@@ -290,10 +368,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
-                        // Temp until bloom is implemented.
-                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
-                        ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
-                        ctx.cmd.SetComputeVectorParam(data.parameters.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
+                        //// Temp until bloom is implemented.
+                        //ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomTexture, TextureXR.GetBlackTexture());
+                        //ctx.cmd.SetComputeTextureParam(data.parameters.uberPostCS, data.parameters.uberPostKernel, HDShaderIDs._BloomDirtTexture, Texture2D.blackTexture);
+                        //ctx.cmd.SetComputeVectorParam(data.parameters.uberPostCS, HDShaderIDs._BloomParams, Vector4.zero);
 
 
                         DoUberPostProcess(  data.parameters,
