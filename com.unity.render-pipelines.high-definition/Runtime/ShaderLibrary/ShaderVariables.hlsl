@@ -30,9 +30,11 @@
 #if SHADEROPTIONS_COLORED_SHADOW
 #define SHADOW_TYPE real3
 #define SHADOW_TYPE_SWIZZLE xyz
+#define SHADOW_TYPE_REPLICATE xxx
 #else
 #define SHADOW_TYPE real
 #define SHADOW_TYPE_SWIZZLE x
+#define SHADOW_TYPE_REPLICATE x
 #endif
 
 #if defined(SHADER_STAGE_RAY_TRACING)
