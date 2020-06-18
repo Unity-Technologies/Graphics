@@ -67,9 +67,9 @@ all:
       test_platforms:
         - Standalone
         - editmode
-        - playmode
+        # - playmode
     - platform: Linux
       api: Vulkan
       test_platforms:
         - editmode
-        - playmode        
+        # - playmode        

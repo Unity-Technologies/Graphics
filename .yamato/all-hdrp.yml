@@ -24,11 +24,7 @@ All_HDRP_2019.3:
          rerun: on-new-revision
       -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_2019.3
          rerun: on-new-revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_2019.3
-         rerun: on-new-revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_2019.3
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_2019.3
          rerun: on-new-revision
 All_HDRP_fast-2019.3:
     name: All HDRP CI - fast-2019.3
@@ -51,11 +47,7 @@ All_HDRP_fast-2019.3:
          rerun: on-new-revision
       -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_fast-2019.3
          rerun: on-new-revision
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_fast-2019.3
-         rerun: on-new-revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_fast-2019.3
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_fast-2019.3
          rerun: on-new-revision
 All_HDRP_CUSTOM-REVISION:
     name: All HDRP CI - CUSTOM-REVISION
@@ -78,11 +70,7 @@ All_HDRP_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_editmode_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_playmode_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_playmode_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
