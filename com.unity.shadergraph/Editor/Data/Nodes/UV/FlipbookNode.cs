@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertX == value.isOn)
                     return;
                 m_InvertX = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertY == value.isOn)
                     return;
                 m_InvertY = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
