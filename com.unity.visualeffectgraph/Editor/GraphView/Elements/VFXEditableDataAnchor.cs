@@ -107,14 +107,19 @@ namespace UnityEditor.VFX.UI
         void BuildProperty()
         {
             Profiler.BeginSample("VFXNodeUI.BuildProperty");
+
+            float effectiveWidth = -1;
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
+                effectiveWidth = m_PropertyRM.effectiveLabelWidth;
             }
             m_PropertyRM = PropertyRM.Create(controller, VFXNodeUI.DefaultLabelWidth);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
+                if (effectiveWidth >= 0)
+                    m_PropertyRM.SetLabelWidth(effectiveWidth);
             }
             Profiler.EndSample();
         }

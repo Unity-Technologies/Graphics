@@ -168,6 +168,13 @@ namespace UnityEditor.VFX.UI
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
+        public override float GetPreferredControlWidth()
+        {
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+                return 120;
+
+            return base.GetPreferredControlWidth() ;
+        }
         protected VFXEnumValuePopup m_EnumPopup;
 
         public override INotifyValueChanged<long> CreateField()
@@ -200,7 +207,7 @@ namespace UnityEditor.VFX.UI
             {
                 string[] enumValues = m_Provider.attributes.FindEnum();
 
-                return enumValues == m_EnumPopup.enumValues;
+                return Enumerable.SequenceEqual(enumValues, m_EnumPopup.enumValues);
             }
             return true;
         }
