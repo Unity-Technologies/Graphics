@@ -62,7 +62,16 @@ float3 DecodeSH( float l0, float3 l1 )
 
 float3 EvaluateAmbientProbe(float3 normalWS)
 {
-    return float3( 1.00, 0.75, 0.3 );
+    real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+
+    return SampleSH9(SHCoefficients, normalWS);
 }
 
 float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes)
