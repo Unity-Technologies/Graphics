@@ -67,12 +67,12 @@ all:
       test_platforms:
         - Standalone
         - editmode
-        - playmode
+        # - playmode
     - platform: Linux
       api: Vulkan
       test_platforms:
         - editmode
-        - playmode        
+        # - playmode        
     - project: HDRP_DXR
       platform: Win
       api: DX12
