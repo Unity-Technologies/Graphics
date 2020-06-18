@@ -243,6 +243,7 @@ namespace UnityEditor.ShaderGraph.Serialization
 
             public override void ValidateNode()
             {
+                base.ValidateNode();
                 isValid = false;
                 SetOverrideActiveState(ActiveState.ExplicitInactive, false);
                 owner.AddValidationError(objectId, "This node type could not be found. No function will be generated in the shader.", ShaderCompilerMessageSeverity.Warning);
