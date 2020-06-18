@@ -126,7 +126,7 @@ Varyings LitGBufferPassVertex(Attributes input)
 }
 
 // Used in Standard (Physically Based) shader
-GBUFFER_PASS_OUTPUT_TYPE LitGBufferPassFragment(Varyings input)
+GBUFFER_PASS_OUTPUT_TYPE LitGBufferPassFragment(Varyings input) GBUFFER_PASS_OUTPUT_SEMANTICS
 {
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

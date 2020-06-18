@@ -304,6 +304,9 @@ namespace UnityEngine.Rendering.Universal
         [Obsolete("This method is obsolete. Please use OnCameraCleanup()", false)]
         public virtual void FrameCleanup(CommandBuffer cmd) => OnCameraCleanup(cmd);
 
+        public virtual void ConfigureTileParameters(ScriptableRenderContext context)
+        {} 
+
         #endregion
     }
 }

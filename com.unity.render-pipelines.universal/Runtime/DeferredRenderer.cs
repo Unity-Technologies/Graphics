@@ -35,6 +35,8 @@ namespace UnityEngine.Rendering.Universal
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
 
+        DeferredUberPass m_DeferredUberPass;
+
 #if UNITY_EDITOR
         SceneViewDepthCopyPass m_SceneViewDepthCopyPass;
 #endif
@@ -65,6 +67,8 @@ namespace UnityEngine.Rendering.Universal
         Material m_TileDeferredMaterial;
         Material m_StencilDeferredMaterial;
 
+        bool m_EnableSinglePassDeferred;
+
         public DeferredRenderer(DeferredRendererData data) : base(data)
         {
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -88,6 +92,7 @@ namespace UnityEngine.Rendering.Universal
             m_DeferredLights.accurateGbufferNormals = data.accurateGbufferNormals;
             //m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
             m_DeferredLights.tiledDeferredShading = false;
+            m_EnableSinglePassDeferred = data.enableSinglePassDeferred && PlatformSupportSinglePassDeferred();
 
             m_PreferDepthPrepass = data.preferDepthPrepass;
 
@@ -119,6 +124,7 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_DeferredUberPass = new DeferredUberPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DeferredLights);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
@@ -165,6 +171,14 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            // m_EnableSinglePassDeferred = true;
+
+            if(m_EnableSinglePassDeferred)  // fast path
+            {
+                SetupSinglePassDeferred(context, ref renderingData);
+                return;
+            }
+
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
@@ -378,6 +392,16 @@ namespace UnityEngine.Rendering.Universal
 #endif
         }
 
+        public void SetupSinglePassDeferred(ScriptableRenderContext context, ref RenderingData renderingData)
+        {
+            Camera camera = renderingData.cameraData.camera;
+            ref CameraData cameraData = ref renderingData.cameraData;
+            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+
+            m_DeferredUberPass.Setup(ref renderingData, RenderTargetHandle.CameraTarget, RenderTargetHandle.CameraTarget);
+            EnqueuePass(m_DeferredUberPass);
+        }
+
         /// <inheritdoc />
         public override void SetupLights(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -487,6 +511,19 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        bool PlatformSupportSinglePassDeferred()
+        {
+#if UNITY_EDITOR || !UNITY_IOS
+            return false;
+#else
+            if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal)
+            {
+                return false;
+            }
+            return SystemInfo.hasA11Features;
+#endif
         }
     }
 }

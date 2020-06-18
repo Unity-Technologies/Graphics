@@ -67,6 +67,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_PreferDepthPrepass = false;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
+        [SerializeField] bool m_EnableSinglePassDeferred = false;
 
         protected override ScriptableRenderer Create()
         {
@@ -160,6 +161,16 @@ namespace UnityEngine.Rendering.Universal
             }
         }
         */
+
+        public bool enableSinglePassDeferred
+        {
+            get => m_EnableSinglePassDeferred;
+            set
+            {
+                SetDirty();
+                m_EnableSinglePassDeferred = value;
+            }
+        }
 
         protected override void OnEnable()
         {

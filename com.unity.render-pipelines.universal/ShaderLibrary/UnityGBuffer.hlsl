@@ -34,24 +34,26 @@ struct imageblock_FragmentOutput_t
     float __RasterOrderGroup_0__Depth;
 };
 
-RWStructuredBuffer<imageblock_FragmentOutput_t> imageblock_fragmentOutput;
+RWStructuredBuffer<imageblock_FragmentOutput_t> OUT_imageblock_fragmentOutput;
 
 half4 GbufferToImageBlock(FragmentOutput output, float depth)
 {
-    imageblock_fragmentOutput.__RasterOrderGroup_0__GBuffer0 = output.GBuffer0;
-    imageblock_fragmentOutput.__RasterOrderGroup_0__GBuffer1 = output.GBuffer1;
-    imageblock_fragmentOutput.__RasterOrderGroup_0__GBuffer2 = output.GBuffer2;
-    imageblock_fragmentOutput.__RasterOrderGroup_0__Depth = depth;
+    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer0 = output.GBuffer0;
+    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer1 = output.GBuffer1;
+    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer2 = output.GBuffer2;
+    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth = depth + 0.0;
     return output.GBuffer3;
 }
 
 #define GBUFFER_PASS_OUTPUT_TYPE half4
 #define CONVERT_GBUFFER(GBUFFER, DEPTH) GbufferToImageBlock(GBUFFER, DEPTH)
+#define GBUFFER_PASS_OUTPUT_SEMANTICS :SV_Target0
 
 #else
 
 #define GBUFFER_PASS_OUTPUT_TYPE FragmentOutput
 #define CONVERT_GBUFFER(GBUFFER, DEPTH) GBUFFER
+#define GBUFFER_PASS_OUTPUT_SEMANTICS
 
 #endif  // METAL2_ENABLED
 
@@ -140,13 +142,7 @@ SurfaceData SurfaceDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer
     return surfaceData;
 }
 
-// This will encode SurfaceData into GBuffer
-#if METAL2_ENABLED
-imageblock_FragmentOutput_t
-#else
-FragmentOutput
-#endif
-BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
+FragmentOutput BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3 globalIllumination)
 {
 #if _GBUFFER_NORMALS_OCT
     float2 octNormalWS = PackNormalOctQuadEncode(inputData.normalWS); // values between [-1, +1], must use fp32 on Nintendo Switch.
@@ -173,15 +169,11 @@ BRDFDataToGbuffer(BRDFData brdfData, InputData inputData, half smoothness, half3
     specular = 0.0.xxx;
 #endif
 
-#if METAL2_ENABLED
-    
-#else
     FragmentOutput output;
     output.GBuffer0 = half4(brdfData.diffuse.rgb, PackMaterialFlags(materialFlags)); // diffuse         diffuse         diffuse         materialFlags   (sRGB rendertarget)
     output.GBuffer1 = half4(specular, brdfData.reflectivity);                        // specular        specular        specular        reflectivity    (sRGB rendertarget)
     output.GBuffer2 = half4(packedNormalWS, packedSmoothness);                       // encoded-normal  encoded-normal  encoded-normal  smoothness
     output.GBuffer3 = half4(globalIllumination, 0);                                  // GI              GI              GI              [not_available] (lighting buffer)
-#endif
 
     return output;
 }

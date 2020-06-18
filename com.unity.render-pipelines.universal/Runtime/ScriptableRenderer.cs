@@ -554,6 +554,8 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             bool firstTimeStereo = false;
 
+            renderPass.ConfigureTileParameters(context);
+
             CommandBuffer cmd = CommandBufferPool.Get(k_SetRenderTarget);
             renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
             renderPass.eyeIndex = eyeIndex;

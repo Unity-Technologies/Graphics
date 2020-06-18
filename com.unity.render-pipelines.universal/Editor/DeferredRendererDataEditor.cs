@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent preferDepthPrepassLabel = EditorGUIUtility.TrTextContent("Prefer Depth Prepass", "Some platform configurations may still enable depth-prepass even when this checkbox is disabled.");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "normals in G-buffer use octaedron encoding/decoding (expensive)");
             public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
+            public static readonly GUIContent enableSinglePassDeferredLabel = EditorGUIUtility.TrTextContent("Enable Single Pass Deferred", "Enables Single Pass Deferred on supported platforms.");
         }
 
         SerializedProperty m_OpaqueLayerMask;
@@ -30,6 +31,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_PreferDepthPrepass;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
+        SerializedProperty m_EnableSinglePassDeferred;
 
         private void OnEnable()
         {
@@ -43,6 +45,7 @@ namespace UnityEditor.Rendering.Universal
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
+            m_EnableSinglePassDeferred = serializedObject.FindProperty("m_EnableSinglePassDeferred");
         }
 
         public override void OnInspectorGUI()
@@ -56,6 +59,7 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_PreferDepthPrepass, Styles.preferDepthPrepassLabel, true);
             EditorGUILayout.PropertyField(m_AccurateGbufferNormals, Styles.accurateGbufferNormalsLabel, true);
             //EditorGUILayout.PropertyField(m_TiledDeferredShading, Styles.tiledDeferredShadingLabel, true);
+            EditorGUILayout.PropertyField(m_EnableSinglePassDeferred, Styles.enableSinglePassDeferredLabel, true);
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
 
