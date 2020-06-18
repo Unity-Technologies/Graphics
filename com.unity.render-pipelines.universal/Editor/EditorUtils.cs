@@ -163,8 +163,9 @@ namespace UnityEditor.Rendering.Universal
                         }
                         else if (unit == Unit.Percent)
                         {
-                            var posPerc = Mathf.Clamp(vec3value[i], 0.01f, distance);
-                            unitValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 1, null);
+                            var posPerc = Mathf.Clamp(vec3value[i], 0.01f, distance) * 100f;
+                            var percValue = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), (float)Math.Round(posPerc, 2), 0f, 100, null);
+                            unitValue = percValue / 100f;
                         }
 
                         if (EditorGUI.EndChangeCheck())
