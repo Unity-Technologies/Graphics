@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Need this during debug render at the end outside of the main loop scope.
             // Once render graph move is implemented, we can probably remove the branch and this.
             ShadowResult shadowResult = new ShadowResult();
+            BuildGPULightListOutput gpuLightListOutput = new BuildGPULightListOutput();
 
             if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
@@ -66,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                var gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, m_MaxLightsOnScreen, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+                gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, m_MaxLightsOnScreen, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
                 lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.motionVectorsBuffer, m_FrameCount);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
@@ -232,6 +233,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                                 prepassOutput.depthPyramidTexture,
                                                 m_DebugFullScreenTexture,
                                                 colorPickerTexture,
+                                                gpuLightListOutput,
                                                 shadowResult,
                                                 cullingResults);
 

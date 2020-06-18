@@ -4087,15 +4087,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct LightLoopDebugOverlayParameters
         {
-            public Material                 debugViewTilesMaterial;
-            public TileAndClusterData       tileAndClusterData;
-            public HDShadowManager          shadowManager;
-            public int                      debugSelectedLightShadowIndex;
-            public int                      debugSelectedLightShadowCount;
-            public Material                 debugShadowMapMaterial;
-            public Material                 debugBlitMaterial;
-            public LightCookieManager       cookieManager;
-            public PlanarReflectionProbeCache planarProbeCache;
+            public Material                     debugViewTilesMaterial;
+            public HDShadowManager              shadowManager;
+            public int                          debugSelectedLightShadowIndex;
+            public int                          debugSelectedLightShadowCount;
+            public Material                     debugShadowMapMaterial;
+            public Material                     debugBlitMaterial;
+            public LightCookieManager           cookieManager;
+            public PlanarReflectionProbeCache   planarProbeCache;
         }
 
         LightLoopDebugOverlayParameters PrepareLightLoopDebugOverlayParameters()
@@ -4103,7 +4102,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var parameters = new LightLoopDebugOverlayParameters();
 
             parameters.debugViewTilesMaterial = m_DebugViewTilesMaterial;
-            parameters.tileAndClusterData = m_TileAndClusterData;
             parameters.shadowManager = m_ShadowManager;
             parameters.debugSelectedLightShadowIndex = m_DebugSelectedLightShadowIndex;
             parameters.debugSelectedLightShadowCount = m_DebugSelectedLightShadowCount;
@@ -4115,7 +4113,16 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void RenderLightLoopDebugOverlay(in DebugParameters debugParameters, CommandBuffer cmd, ref float x, ref float y, float overlaySize, RTHandle depthTexture)
+        static void RenderLightLoopDebugOverlay(in DebugParameters  debugParameters,
+                                                CommandBuffer       cmd,
+                                                ref float           x,
+                                                ref float           y,
+                                                float               overlaySize,
+                                                ComputeBuffer       tileBuffer,
+                                                ComputeBuffer       lightListBuffer,
+                                                ComputeBuffer       perVoxelLightListBuffer,
+                                                ComputeBuffer       dispatchIndirectBuffer,
+                                                RTHandle            depthTexture)
         {
             var hdCamera = debugParameters.hdCamera;
             var parameters = debugParameters.lightingOverlayParameters;
@@ -4141,8 +4148,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                             parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                             parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
-                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, parameters.tileAndClusterData.tileList);
-                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, parameters.tileAndClusterData.dispatchIndirectBuffer);
+                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, tileBuffer);
+                            parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, dispatchIndirectBuffer);
                             parameters.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
                             parameters.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
                             parameters.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
@@ -4162,7 +4169,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         parameters.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
                         parameters.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
-                        parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? parameters.tileAndClusterData.perVoxelLightLists : parameters.tileAndClusterData.lightList);
+                        parameters.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? perVoxelLightListBuffer : lightListBuffer);
                         parameters.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, depthTexture);
                         parameters.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                         parameters.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
