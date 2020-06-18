@@ -121,11 +121,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static uint s_ScreenSpaceColorShadowFlag = 0x100;
         public static uint s_InvalidScreenSpaceShadow = 0xff;
         public static uint s_ScreenSpaceShadowIndexMask = 0xff;
-
-        // Indirect diffuse flags
-        public static int k_IndirectDiffuseFlagOff = 0x00;
-        public static int k_ScreenSpaceIndirectDiffuseFlag = 0x01;
-        public static int k_RayTracedIndirectDiffuseFlag = 0x02;
     }
 
     [GenerateHLSL]
@@ -947,6 +942,23 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (var p in shadowKeywords)
                 Shader.DisableKeyword(p);
             Shader.EnableKeyword(shadowKeywords[(int)shadowParams.shadowFilteringQuality]);
+
+            // Setup screen space shadow map usage.
+            // Screen space shadow map are currently only used with Raytracing and are a global keyword.
+            // either we support it and then use the variant that allow to enable/disable them, or we don't
+            // and use the variant that have them disabled.
+            // So this mean that even if we disable screen space shadow in frame settings, the version
+            // of the shader for the variant SCREEN_SPACE_SHADOWS is used, but a dynamic branch disable it.
+            if (shadowParams.supportScreenSpaceShadows)
+            {
+                Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_ON");
+                Shader.DisableKeyword("SCREEN_SPACE_SHADOWS_OFF");
+            }
+            else
+            {
+                Shader.DisableKeyword("SCREEN_SPACE_SHADOWS_ON");
+                Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
+            }
 
             InitShadowSystem(asset, defaultResources);
 

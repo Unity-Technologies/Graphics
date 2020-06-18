@@ -66,6 +66,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        OpaqueCullMode m_OpaqueCullMode = OpaqueCullMode.Back;
+        public OpaqueCullMode opaqueCullMode
+        {
+            get => m_OpaqueCullMode;
+            set => m_OpaqueCullMode = value;
+        }
+
+        [SerializeField]
         int m_SortPriority;
         public int sortPriority
         {

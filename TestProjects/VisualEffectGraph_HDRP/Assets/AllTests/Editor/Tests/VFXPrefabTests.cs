@@ -402,6 +402,61 @@ namespace UnityEditor.VFX.Test
                 Assert.IsEmpty(overrides);
             }
         }
+
+        [SerializeField] private GameObject m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable;
+        private static readonly string m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = "mlkj";
+
+        [UnityTest]
+        public IEnumerator CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable_Root()
+        {
+            //Cover case 1230230 : VFX parameters are not set when the gameobject is immediately deactivated and is not selected in the Hierarchy
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var parametersUintDesc = VFXLibrary.GetParameters().Where(o => o.model.type == typeof(uint)).First();
+
+            var parameter = parametersUintDesc.CreateInstance();
+            parameter.SetSettingValue("m_ExposedName", m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable);
+            parameter.SetSettingValue("m_Exposed", true);
+            parameter.value = 123u;
+            graph.AddChild(parameter);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            var mainObject = new GameObject("CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable", typeof(VisualEffect));
+            mainObject.GetComponent<VisualEffect>().visualEffectAsset = graph.visualEffectResource.asset;
+
+            GameObject newGameObject, prefabInstanceObject;
+            MakeTemporaryPrebab(mainObject, out newGameObject, out prefabInstanceObject);
+            GameObject.DestroyImmediate(mainObject);
+
+            m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = prefabInstanceObject;
+
+            yield return new EnterPlayMode();
+
+            var exposedExpectedValue = 43000u;
+            var exposedName = m_Exposed_name_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable;
+
+            var r = GameObject.Instantiate(m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable, Vector3.zero, Quaternion.identity);
+            var vfx = r.GetComponent<VisualEffect>();
+            Assert.IsTrue(vfx.HasUInt(exposedName));
+            Assert.AreNotEqual(exposedExpectedValue, vfx.GetUInt(exposedName));
+            vfx.SetUInt(exposedName, exposedExpectedValue);
+            r.SetActive(false);
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            Assert.AreEqual(exposedExpectedValue, vfx.GetUInt(exposedName));
+            r.SetActive(true);
+            Assert.AreEqual(exposedExpectedValue, vfx.GetUInt(exposedName));
+
+            for (int i = 0; i < 4; ++i)
+                yield return null;
+
+            Assert.AreEqual(exposedExpectedValue, vfx.GetUInt(exposedName));
+
+            yield return new ExitPlayMode();
+
+            m_Prefab_CreatePrefab_And_Disable_Root_Then_Modify_Exposed_Finally_Renable = null;
+        }
     }
 }
 #endif

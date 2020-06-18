@@ -26,13 +26,13 @@
 
 #define UNITY_LIGHTMODEL_AMBIENT (glstate_lightmodel_ambient * 2)
 
-// This only defines the ray tracing macro on the platforms that support ray tracing this should be dx12
-#if (SHADEROPTIONS_RAYTRACING && (defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12)) && !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL))
-#define RAYTRACING_ENABLED (1)
-#define DirectionalShadowType float3
+// Define the type for shadow (either colored shadow or monochrome shadow)
+#if SHADEROPTIONS_COLORED_SHADOW
+#define SHADOW_TYPE real3
+#define SHADOW_TYPE_SWIZZLE xyz
 #else
-#define RAYTRACING_ENABLED (0)
-#define DirectionalShadowType float
+#define SHADOW_TYPE real
+#define SHADOW_TYPE_SWIZZLE x
 #endif
 
 #if defined(SHADER_STAGE_RAY_TRACING)
