@@ -18,7 +18,7 @@ This Operator accepts input values of various types. For the list of types this 
 
 ## Operator configuration
 
-To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types these properties support, see [Available types](#available-types).
+To view the Operator's configuration, click the **cog** icon in the Operator's header. Use the drop-down to select the type for the **X** port. For the list of types this property supports, see [Available types](#available-types).
 
 
 

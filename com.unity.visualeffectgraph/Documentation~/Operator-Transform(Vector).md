@@ -11,6 +11,6 @@ The **Transform (Vector)** Operator applies a transformation to a Vector to offs
 | **Transform** | Transform | The Transform this Operator applies to the Vector. |
 | **Vector**    | Vector    | The Vector this Operator transforms.               |
 
-| **Output** | **Type** | **Description**                       |
-| ---------- | -------- | ------------------------------------- |
-| **vec**    | Vector   | The result of the transformed Vector. |
+| **Output** | **Type** | **Description**         |
+| ---------- | -------- | ----------------------- |
+| **vec**    | Vector   | The transformed Vector. |
