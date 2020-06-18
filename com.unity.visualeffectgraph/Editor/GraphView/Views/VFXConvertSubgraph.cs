@@ -473,9 +473,8 @@ namespace UnityEditor.VFX.UI
                     if (linkedParameter != null)
                     {
                         newTargetParamController.exposedName = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName;
-                        if (newSourceInputs[i].sourceNode is VFXParameterNodeController paramController)
                         {
-                            VFXParameter originalParameter = linkedParameter.parentController.model;
+                            VFXParameter originalParameter = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.model;
 
                             newTargetParameter.valueFilter = originalParameter.valueFilter;
                             if (originalParameter.valueFilter == VFXValueFilter.Range)
@@ -543,7 +542,7 @@ namespace UnityEditor.VFX.UI
                         ctx.RecreateCopy();
                         ctx.ResyncSlots(true);
                     }
-
+                    m_SourceNodeController.model.Invalidate(VFXModel.InvalidationCause.kSettingChanged); // call to resync slots
                     m_SourceNodeController.ApplyChanges();
                     //Link all the outputs to the matching input of the subgraph
                     foreach (var output in outputs)
