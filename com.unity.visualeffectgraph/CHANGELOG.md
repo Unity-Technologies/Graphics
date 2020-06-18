@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - More efficient update modes inspector
 - Ability to read attribute in spawn context through graph
 - Added Degrees / Radians conversion subgraphs in samples
+- Added save button to save only the current visual effect graph.
 
 ### Fixed
 - Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
