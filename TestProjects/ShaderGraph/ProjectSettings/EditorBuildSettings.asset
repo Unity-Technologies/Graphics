@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/Scenes/UVNodes.unity
     guid: 6efc74ac9f48a3243a990cf89991972c
   - enabled: 1
+    path: Assets/Scenes/FlipbookNode.unity
+    guid: 0e9118933c86cf04c800347e43cd7e31
+  - enabled: 1
     path: Assets/Scenes/TransformNode.unity
     guid: 1dc3dc627ca4fff4ba184eb8f939406b
   - enabled: 1
