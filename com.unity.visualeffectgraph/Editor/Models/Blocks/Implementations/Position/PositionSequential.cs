@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.Block
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Specifies what operation to perform on TargetPosition. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         public AttributeCompositionMode compositionTargetPosition = AttributeCompositionMode.Add;               
 
-        public override string name { get { return string.Format("{0} Position : Sequential ({1})",VFXBlockUtility.GetNameString(compositionPosition), shape); } }
+        public override string name { get { return string.Format("{0} Position (Sequential : {1})",VFXBlockUtility.GetNameString(compositionPosition), shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.InitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.Particle; } }
 
