@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Intensity multipler of the clouds.</summary>
         [Tooltip("Sets the intensity multiplier for the clouds.")]
         public MinFloatParameter        intensityMultiplier = new MinFloatParameter(1.0f, 0.0f);
+        /// <summary>Rotation of the clouds.</summary>
+        [Tooltip("Sets the rotation of the clouds.")]
+        public ClampedFloatParameter    rotation            = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
         /// <summary>Enable to have cloud distortion.</summary>
         [Tooltip("Enable or disable cloud distortion.")]
@@ -61,7 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lastTime = Time.time;
 
                 float rot = -Mathf.Deg2Rad*scrollDirection.value;
-                return new Vector4(upperHemisphereOnly.value ? 1.0f : 0.0f, scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
+                float upper = upperHemisphereOnly.value ? 1.0f : -1.0f;
+                return new Vector4(upper * (rotation.value / 360.0f + 1), scrollFactor, Mathf.Cos(rot), Mathf.Sin(rot));
         }
 
         /// <summary>Sets keywords and parameters on a sky material to render the cloud layer.</summary>
@@ -115,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + upperHemisphereOnly.value.GetHashCode();
                 hash = hash * 23 + tint.value.GetHashCode();
                 hash = hash * 23 + intensityMultiplier.value.GetHashCode();
+                hash = hash * 23 + rotation.value.GetHashCode();
                 hash = hash * 23 + enableDistortion.value.GetHashCode();
                 hash = hash * 23 + procedural.value.GetHashCode();
                 hash = hash * 23 + scrollDirection.value.GetHashCode();
@@ -126,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + upperHemisphereOnly.overrideState.GetHashCode();
                 hash = hash * 23 + tint.overrideState.GetHashCode();
                 hash = hash * 23 + intensityMultiplier.overrideState.GetHashCode();
+                hash = hash * 23 + rotation.overrideState.GetHashCode();
                 hash = hash * 23 + enableDistortion.overrideState.GetHashCode();
                 hash = hash * 23 + procedural.overrideState.GetHashCode();
                 hash = hash * 23 + scrollDirection.overrideState.GetHashCode();
@@ -137,6 +143,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 hash = hash * 23 + upperHemisphereOnly.GetHashCode();
                 hash = hash * 23 + tint.GetHashCode();
                 hash = hash * 23 + intensityMultiplier.GetHashCode();
+                hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + enableDistortion.GetHashCode();
                 hash = hash * 23 + procedural.GetHashCode();
                 hash = hash * 23 + scrollDirection.GetHashCode();

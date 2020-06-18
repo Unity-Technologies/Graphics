@@ -7,10 +7,11 @@ SAMPLER(sampler_CloudMap);
 TEXTURE2D(_CloudFlowmap);
 SAMPLER(sampler_CloudFlowmap);
 
-float4 _CloudParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
+float4 _CloudParam; // x upper hemisphere only / rotation, y scroll factor, zw scroll direction (cosPhi and sinPhi)
 float4 _CloudParam2; // xyz tint, w intensity
 
-#define _CloudUpperHemisphere   _CloudParam.x
+#define _CloudUpperHemisphere   _CloudParam.x > 0
+#define _CloudRotation          abs(_CloudParam.x)
 #define _CloudScrollFactor      _CloudParam.y
 #define _CloudScrollDirection   _CloudParam.zw
 #define _CloudTint              _CloudParam2.xyz
@@ -20,7 +21,9 @@ float4 _CloudParam2; // xyz tint, w intensity
 
 float3 sampleCloud(float3 dir, float3 sky)
 {
-    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, GetLatLongCoords(dir, _CloudUpperHemisphere), 0);
+    float2 coords = GetLatLongCoords(dir, _CloudUpperHemisphere);
+    coords.x = frac(coords.x + _CloudRotation);
+    float4 cloudLayerColor = SAMPLE_TEXTURE2D_LOD(_CloudMap, sampler_CloudMap, coords, 0);
     return lerp(sky, sky + cloudLayerColor.rgb * _CloudTint * _CloudIntensity, cloudLayerColor.a);
 }
 

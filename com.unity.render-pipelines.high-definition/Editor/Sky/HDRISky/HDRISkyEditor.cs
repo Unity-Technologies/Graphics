@@ -126,9 +126,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
                 return false;
             var tex = map.value.objectReferenceValue;
-            if (tex.GetType() == typeof(RenderTexture))
-                return (tex as RenderTexture).dimension != TextureDimension.Tex2D;
-            return tex.GetType() != typeof(Texture2D);
+            if (!tex.GetType().IsSubclassOf(typeof(Texture)))
+                return true;
+            return (tex as Texture).dimension != TextureDimension.Tex2D;
         }
 
         public override void OnInspectorGUI()

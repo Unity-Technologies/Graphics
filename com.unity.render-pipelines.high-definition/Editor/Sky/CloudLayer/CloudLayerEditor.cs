@@ -15,6 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_UpperHemisphereOnly;
         SerializedDataParameter m_Tint;
         SerializedDataParameter m_IntensityMultiplier;
+        SerializedDataParameter m_Rotation;
 
         SerializedDataParameter m_EnableDistortion;
         SerializedDataParameter m_Procedural;
@@ -33,8 +34,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CloudMap                  = Unpack(o.Find(x => x.cloudMap));
             m_UpperHemisphereOnly       = Unpack(o.Find(x => x.upperHemisphereOnly));
-            m_Tint = Unpack(o.Find(x => x.tint));
-            m_IntensityMultiplier = Unpack(o.Find(x => x.intensityMultiplier));
+            m_Tint                      = Unpack(o.Find(x => x.tint));
+            m_IntensityMultiplier       = Unpack(o.Find(x => x.intensityMultiplier));
+            m_Rotation                  = Unpack(o.Find(x => x.rotation));
 
             m_EnableDistortion          = Unpack(o.Find(x => x.enableDistortion));
             m_Procedural                = Unpack(o.Find(x => x.procedural));
@@ -48,9 +50,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!map.overrideState.boolValue || map.value.objectReferenceValue == null)
                 return false;
             var tex = map.value.objectReferenceValue;
-            if (tex.GetType() == typeof(RenderTexture))
-                return (tex as RenderTexture).dimension != TextureDimension.Tex2D;
-            return tex.GetType() != typeof(Texture2D);
+            if (!tex.GetType().IsSubclassOf(typeof(Texture)))
+                return true;
+            return (tex as Texture).dimension != TextureDimension.Tex2D;
         }
 
         public override void OnInspectorGUI()
@@ -64,6 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_Tint);
             PropertyField(m_IntensityMultiplier);
+            PropertyField(m_Rotation);
 
             PropertyField(m_EnableDistortion);
             if (m_EnableDistortion.value.boolValue)

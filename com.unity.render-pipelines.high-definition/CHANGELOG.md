@@ -155,6 +155,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for exposure curve remapping for min/max limits.
 - Added presets for ray traced reflections.
 - Added final image histogram debug view (both luminance and RGB).
+- Added an example texture and rotation to the Cloud Layer volume override.
 
 ### Fixed
 - Fix when rescale probe all direction below zero (1219246)

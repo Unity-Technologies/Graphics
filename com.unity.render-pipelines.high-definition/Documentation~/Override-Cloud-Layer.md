@@ -17,7 +17,6 @@ After you add a **Cloud Layer** override, you must enable it in the override its
 
 The Cloud Map is a 2D texture in LatLong layout (sometimes called Cylindrical or Equirectangular) that contains cloud color in the RGB channel and cloud coverage in the alpha channel.
 If **Upper Hemisphere Only** is checked, the map is interpreted as being the upper half of a LatLong texture.
-In that case, it is recommended to set the **Wrap Mode** to **Clamp** in the texture import settings to avoid artifacts above the horizon.
 
 <a name="CustomizingFlowmap"></a>
 
@@ -37,6 +36,7 @@ Only the red and green channel are used and they represent respectively horizont
 | **Upper Hemisphere Only**     | Check the box to display the cloud layer above the horizon only. |
 | **Tint**                      | Specifies a color that HDRP uses to tint the Cloud Layer. |
 | **Intensity Multiplier**      | Set the multiplier by which HDRP multiplies the Cloud Layer color.<br />Note: If the **Cloud Layer** is applied on top of a **Physically Based Sky**, the multiplier may need to be quite big. |
+| **Rotation**                  | Use the slider to set the angle to rotate the Cloud Layer, in degrees. |
 | **Enable Distortion**         | Enable or disable cloud motion using UV distortion. |
 | - **Distortion Mode**         | Use the drop-down to select the method that HDRP uses to calculate the cloud distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds with a user provided flowmap. |
 | -- **Flowmap**                | Assign a flowmap, in LatLong layout, that HDRP uses to distort UVs when rendering the clouds. Refer to the section [Customizing the Flowmap](#CustomizingFlowmap) for more details.<br />This property only appears when you select **Flowmap** from the **Distortion Mode** drop-down. |
