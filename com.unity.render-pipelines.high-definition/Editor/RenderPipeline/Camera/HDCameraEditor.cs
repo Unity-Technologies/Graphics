@@ -7,7 +7,7 @@ using System.Linq;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(HDCameraData))]
-    class HDCameraDataEditor : CameraEditor.IExtensionEditor
+    class HDCameraDataEditor : CameraEditor.ExtensionEditor
     {
         SerializedHDCamera m_SerializedCamera;
 
@@ -15,9 +15,10 @@ namespace UnityEditor.Rendering.HighDefinition
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
 
-        void CameraEditor.IExtensionEditor.Init(SerializedProperty serializedAdditionalData, CameraEditor.Settings settings)
+        public override void OnEnable()
         {
-            m_SerializedCamera = new SerializedHDCamera(serializedAdditionalData);
+            base.OnEnable();
+            m_SerializedCamera = new SerializedHDCamera(m_SerializedExtension);
 
             m_PreviewCamera = EditorUtility.CreateGameObjectWithHideFlags("Preview Camera", HideFlags.HideAndDontSave, typeof(Camera)).GetComponent<Camera>();
             m_PreviewCamera.enabled = false;
@@ -27,7 +28,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
         }
 
-        void CameraEditor.IExtensionEditor.OnInspectorGUI()
+        public override void OnInspectorGUI()
         {
             m_SerializedCamera.Update();
 
