@@ -16,7 +16,7 @@ For information on the IES profile importer, see the [IES importer documentation
 
 ## IES profile providers
 
-There are many providers you can use to source IES profiles. Many real-world manufacturers of lights provide IES profiles to match the physical lights they produce. Also, lighting artists have produced IES profiles to help physically photometric data distribution.
+There are many providers you can use to source IES profiles. Real-world light manufacturers provide IES profiles to match the physical lights they produce. Also, some lighting artists create and share IES profiles.
 
 **Real-world manufacturers**
 
@@ -28,6 +28,6 @@ There are many providers you can use to source IES profiles. Many real-world man
 - [Lamp](https://www.lamp.es/en/products_1791?pd-type=indoor)
 - [Osram](https://www.osram.com/cb/)
 
-**Artist created**
+**Artist sources**
 
 - [Renderman](https://renderman.pixar.com/ies-profiles)
