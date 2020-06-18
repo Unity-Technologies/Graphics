@@ -471,7 +471,24 @@ namespace UnityEditor.VFX.UI
 
                     var linkedParameter = outputs.FirstOrDefault(t => t.sourceNode is VFXParameterNodeController);
                     if (linkedParameter != null)
+                    {
                         newTargetParamController.exposedName = (linkedParameter.sourceNode as VFXParameterNodeController).parentController.exposedName;
+                        if (newSourceInputs[i].sourceNode is VFXParameterNodeController paramController)
+                        {
+                            VFXParameter originalParameter = linkedParameter.parentController.model;
+
+                            newTargetParameter.valueFilter = originalParameter.valueFilter;
+                            if (originalParameter.valueFilter == VFXValueFilter.Range)
+                            {
+                                newTargetParameter.min = originalParameter.min;
+                                newTargetParameter.max = originalParameter.max;
+                            }
+                            else if (originalParameter.valueFilter == VFXValueFilter.Enum)
+                            {
+                                newTargetParameter.enumValues = originalParameter.enumValues.ToList();
+                            }
+                        }
+                    }
                     else
                         newTargetParamController.exposedName = newSourceInputs[i].name;
 
