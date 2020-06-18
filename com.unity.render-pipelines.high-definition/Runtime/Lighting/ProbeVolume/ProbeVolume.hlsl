@@ -74,6 +74,8 @@ float3 EvaluateAmbientProbe(float3 normalWS)
     return SampleSH9(SHCoefficients, normalWS);
 }
 
+#define APV_USE_BASE_OFFSET
+
 float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVResources apvRes)
 {
     APVConstants apvConst = LoadAPVConstants( apvRes.index );
@@ -83,7 +85,11 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
            posRS -= apvConst.centerRS;
 
     // check bounds
+#ifdef APV_USE_BASE_OFFSET
+    if( any( abs( posRS.xz ) > (apvConst.indexDim.xz / 2) ) )
+#else
     if( any( abs( posRS ) > (apvConst.indexDim / 2) ) )
+#endif
     {
         return EvaluateAmbientProbe( normalWS );
     }
@@ -91,9 +97,17 @@ float3 EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in APVRe
     // convert to index
     int3 index = apvConst.centerIS + floor( posRS );
          index = index % apvConst.indexDim;
+#ifdef APV_USE_BASE_OFFSET
+    // get the y-offset
+    int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
+    if( yoffset == -1 || posRS.y < yoffset || posRS.y >= apvConst.indexDim.y )
+        return EvaluateAmbientProbe( normalWS );
+    index.y = posRS.y - yoffset;
+#endif
     // resolve the index
-    int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y)  + index.y * apvConst.indexDim.x + index.x;
-    uint packed_pool_idx = apvRes.index[kAPVConstantsSize + flattened_index];
+    int  base_offset = kAPVConstantsSize + apvConst.indexDim.x * apvConst.indexDim.z;
+    int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y)  + index.x * apvConst.indexDim.y + index.y;
+    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
 
     // no valid brick loaded for this index, fallback to ambient probe
     if( packed_pool_idx == 0xffffffff )
