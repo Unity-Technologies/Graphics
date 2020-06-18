@@ -713,7 +713,7 @@ Shader "Hidden/HDRP/DebugExposure"
             int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
             int labelLocationY = 0.0f;
             uint2 unormCoord = input.positionCS.xy;
-            [unroll]
+
             for (int i = 0; i <= labelCount; ++i)
             {
                 float t = rcp(labelCount) * i;
@@ -722,9 +722,9 @@ Shader "Hidden/HDRP/DebugExposure"
                 labelLoc.x += 2;
                 DrawInteger(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, labelLoc, outputColor.rgb);
             }
-            float remappedX = (uv.x - binLocMin) / (binLocMax - binLocMin);
+            float remappedX = (((float)unormCoord.x / _ScreenSize.x) - binLocMin) / (binLocMax - binLocMin);
             // Draw bins	
-            uint bin = remappedX * 255;
+            uint bin = saturate(remappedX) * 255;
             float4 val = _FullImageHistogram[bin];
             val /= float4(maxValue, maxValue, maxValue, maxLuma);
             val *= 0.95*(histFrameHeight - heightLabelBar);
