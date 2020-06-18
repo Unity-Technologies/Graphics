@@ -288,9 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Physicaly based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCycleOfConfusion.compute")]
             public ComputeShader dofCycleOfConfusion;
-
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
             public ComputeShader dofGatherCS;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]
+            public ComputeShader DoFCoCPyramidCS;
 
             [Reload("Runtime/PostProcessing/Shaders/ContrastAdaptiveSharpen.compute")]
             public ComputeShader contrastAdaptiveSharpenCS;

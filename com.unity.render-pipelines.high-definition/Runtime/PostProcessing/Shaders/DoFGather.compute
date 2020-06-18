@@ -26,7 +26,8 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define CENTER_DENSITY
 #define RING_DENSITY 8.0
 #define UNIFORM_WEIGHTS
-#define CHECKER_BOARDING
+//#define ADAPTIVE_RADIUS
+//#define GRADIENT_NOISE
 //#define CENTER_DENSITY
 //#define OCTAWEB_SORTING
 
@@ -81,6 +82,19 @@ float GetCoCRadius(int2 positionSS, out int bucketIndex)
     return abs(CoCRadius);
 }
 
+float GetCoCMaxRadius(int2 positionSS)
+{
+#ifndef ADAPTIVE_RADIUS
+    return _Params.y;
+#else
+    // We only have up to 4 mip levels now, we need more!!!
+    int lod = min(4, _Params.z);
+    int scale = 1 << lod;
+    float CoCRadius = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, positionSS / scale, lod).x;
+    return abs(CoCRadius);
+#endif
+}
+
 float GetSampleWeight(float cocRadius)
 {
 #ifdef UNIFORM_WEIGHTS
@@ -102,7 +116,7 @@ float2 PointInCircle(float angle)
 
 float GetNumSamples(float radius)
 {
-    //TODO
+    //TODO: needs to take into account the density push towards the center (when enabled) 
     float numRings = _Params.x;
     float maxRadius = _Params.y;
 
@@ -157,7 +171,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
 
     float numRings = _Params.x;
-    float maxRadius = _Params.y;  
+    float maxRadius = GetCoCMaxRadius(posInputs.positionSS); 
+
     float dR = maxRadius * rcp(numRings);
     float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
     // Note: gradient noise seems to give worse results than s
@@ -177,7 +192,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
         float dAng = 2.0f * PI / (ring * RING_DENSITY);
 
         // for high sample counts, checkerboarding looks better
-#ifdef CHECKER_BOARDING
+#ifndef GRADIENT_NOISE
         float radius = ring * scaledRad + stratum * scaledRad;
         float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
 #else

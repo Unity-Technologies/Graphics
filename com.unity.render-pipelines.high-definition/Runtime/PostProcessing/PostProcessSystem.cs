@@ -2001,7 +2001,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int targetWidth = Mathf.RoundToInt(camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(camera.actualHeight * scale);
 
-            var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat);
+            var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
 
             // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
             float maxRadius = Mathf.Max(m_DepthOfField.farMaxBlur, m_DepthOfField.nearMaxBlur);
@@ -2048,14 +2048,33 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
             }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
+            {
+                // To have an adaptive gather radius, we need estimates for the the min and max CoC that intersect a pixel.
+                cs = m_Resources.shaders.DoFCoCPyramidCS;
+                cs.shaderKeywords = null;
+
+                kernel = cs.FindKernel("KMainCoCPyramid");
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, fullresCoC, 1);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, fullresCoC, 2);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, fullresCoC, 3);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, fullresCoC, 4);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 cs = m_Resources.shaders.dofGatherCS;
                 cs.shaderKeywords = null;
+                if (m_EnableAlpha)
+                    cs.EnableKeyword("ENABLE_ALPHA");
 
                 kernel = cs.FindKernel("KMain");
                 float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, 0.0f, 0.0f));
+                float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
