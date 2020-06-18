@@ -98,6 +98,9 @@
   * [Shadowmasks](Lighting-Mode-Shadowmask)
   * [Volumetric Lighting](Volumetric-Lighting)
   * [Physical Light Units and Intensities](Physical-Light-Units)
+  * IES
+    * [IES Profile](IES-Profile.md)
+    * [IES Importer](IES-Importer.md)
 * Camera
   * [HD Camera](HDRP-Camera)
   * [Dynamic Resolution](Dynamic-Resolution)
