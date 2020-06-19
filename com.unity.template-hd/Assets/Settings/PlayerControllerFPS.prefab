@@ -208,7 +208,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 738646681595172696}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd4c1247d0c8e674a99e9dde71b691c2, type: 3}
+  m_Script: {fileID: 11500000, guid: 4eb578550bc4f824e97f0a72eac1f3a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   mouseSensitivity: 100
@@ -274,7 +274,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 738646681744756154}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 658994565ac7b8e4f96240655b281ec9, type: 3}
+  m_Script: {fileID: 11500000, guid: 87f6dfceb3e39a947a312f7eeaa2a113, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 738646681744756155}
@@ -285,7 +285,7 @@ MonoBehaviour:
   groundDistance: 0.4
   groundMask:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 0
 --- !u!1 &738646681763345175
 GameObject:
   m_ObjectHideFlags: 0
