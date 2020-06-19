@@ -218,6 +218,11 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle postProcessDest = RenderPostProcess(m_RenderGraph, colorBuffer, prepassOutput.depthBuffer, backBuffer, cullingResults, hdCamera);
 
             // TODO RENDERGRAPH
+            //// If requested, compute histogram of the very final image
+            //if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView)
+            //{
+            //    m_PostProcessSystem.GenerateDebugImageHistogram(cmd, hdCamera, m_IntermediateAfterPostProcessBuffer);
+            //}
             //PushFullScreenExposureDebugTexture(cmd, m_IntermediateAfterPostProcessBuffer);
 
             // TODO RENDERGRAPH
@@ -275,11 +280,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Send all the color graphics buffer to client systems if required.
             SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
-            SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, target.id);
+            SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, backBuffer);
 
-            // TODO RENDERGRAPH
-            //if (camera.cameraType == CameraType.SceneView)
-            //    RenderWireOverlay(cmd, camera, renderContext);
+            RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
@@ -334,15 +337,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class SetFinalTargetPassData
         {
-            public bool                     copyDepth;
-            public Material                 copyDepthMaterial;
-            public RenderTargetIdentifier   finalTarget;
-            public Rect                     finalViewport;
-            public TextureHandle            depthBuffer;
-            public bool                     flipY;
+            public bool             copyDepth;
+            public Material         copyDepthMaterial;
+            public TextureHandle    finalTarget;
+            public Rect             finalViewport;
+            public TextureHandle    depthBuffer;
+            public bool             flipY;
         }
 
-        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, RenderTargetIdentifier finalTarget)
+        void SetFinalTarget(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle finalTarget)
         {
             using (var builder = renderGraph.AddRenderPass<SetFinalTargetPassData>("Set Final Target", out var passData))
             {
@@ -358,7 +361,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.copyDepth = passData.copyDepth || hdCamera.isMainGameView; // Specific case of Debug.DrawLine and Debug.Ray
 #endif
                 passData.copyDepthMaterial = m_CopyDepth;
-                passData.finalTarget = finalTarget;
+                passData.finalTarget = builder.WriteTexture(finalTarget);
                 passData.finalViewport = hdCamera.finalViewport;
                 passData.depthBuffer = builder.ReadTexture(depthBuffer);
                 passData.flipY = hdCamera.isMainGameView;
@@ -367,7 +370,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (SetFinalTargetPassData data, RenderGraphContext ctx) =>
                 {
                     // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
-                    ctx.cmd.SetRenderTarget(data.finalTarget);
+                    ctx.cmd.SetRenderTarget(ctx.resources.GetTexture(data.finalTarget));
                     ctx.cmd.SetViewport(data.finalViewport);
 
                     if (data.copyDepth)
@@ -1287,6 +1290,33 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
                         ctx.cmd.Clear();
                         ctx.renderContext.DrawGizmos(data.camera, data.gizmoSubset);
+                    });
+                }
+            }
+#endif
+        }
+
+        class RenderWireOverlayPassData
+        {
+            public HDCamera hdCamera;
+        }
+
+        void RenderWireOverlay(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer)
+        {
+#if UNITY_EDITOR
+            if (hdCamera.camera.cameraType == CameraType.SceneView)
+            {
+                using (var builder = renderGraph.AddRenderPass<RenderWireOverlayPassData>("Wire Overlay", out var passData))
+                {
+                    builder.WriteTexture(colorBuffer);
+                    passData.hdCamera = hdCamera;
+
+                    builder.SetRenderFunc(
+                    (RenderWireOverlayPassData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.renderContext.ExecuteCommandBuffer(ctx.cmd);
+                        ctx.cmd.Clear();
+                        ctx.renderContext.DrawWireOverlay(data.hdCamera.camera);
                     });
                 }
             }
