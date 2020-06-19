@@ -198,7 +198,7 @@ MonoBehaviour:
     sssCustomSampleBudget: 20
     materialQuality: 0
   m_RenderPipelineSettings:
-    supportShadowMask: 1
+    supportShadowMask: 0
     supportSSR: 1
     supportSSRTransparent: 0
     supportSSAO: 1
@@ -229,7 +229,7 @@ MonoBehaviour:
     supportDecals: 1
     msaaSampleCount: 1
     supportMotionVectors: 1
-    supportRuntimeDebugDisplay: 1
+    supportRuntimeDebugDisplay: 0
     supportDitheringCrossFade: 1
     supportTerrainHole: 0
     supportProbeVolume: 0
