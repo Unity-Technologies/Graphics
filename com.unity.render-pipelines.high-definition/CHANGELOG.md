@@ -692,6 +692,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 - Fixed a bug related to denoising ray traced reflections.
 - Fixed nullref in the layered lit material inspector.
+- Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
 - Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
 
 ### Changed
