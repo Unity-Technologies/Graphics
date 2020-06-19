@@ -17,15 +17,12 @@ You also have a button allow you to creates a local instance of the [High Defini
 | **Property**                               | **Description**                                              |
 | ------------------------------------------ | ------------------------------------------------------------ |
 | **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#PopulatingFolder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
-| **Default Scene Prefab**                   | Set the default Prefab that Unity instantiates in a new Scene when you select **File > New Scene**. To instantly create a Scene Asset with this template, go to **Assets > Create** and click **HD Template Scene**. |
-| **Default DXR Scene Prefab**               | Set the default Prefab that Unity instantiates in a new Scene that uses ray tracing. |
 | **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.html) in the **LocalPackage** folder of your HDRP Project. |
 
 ### Populating the default resources folder
 
 When you click **Populate/Reset**, HDRP generates the following Assets:
 
-- **DefaultSceneRoot**: The Prefab that Unity instantiates in each new HDRP template Scene.
 - **DefautRenderingSettings**: The default [Volume Profile](Volume-Profile.html) that the template Scene uses to render visual elements like shadows, fog, and the sky.
 - **DefautPostprocessingSettings**: The default [Volume Profile](Volume-Profile.html) that the template Scene uses for post-processing effects.
 - **HDRenderPipellineAsset**: The [HDRP Asset](HDRP-Asset.html) that Unity uses to configure HDRP settings for the Unity Project.
@@ -58,7 +55,6 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.html#GeneralProperties) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.html#GeneralProperties)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.html) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **Default Scene Prefab**         | Checks to make sure you have assigned something to **Default Scene Prefab** in this wizard.<br />Press the **Fix** button to open a pop-up that allows you to either assign a Prefab or create and assign a new one. |
 | **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings** .<br />Press the **Fix** button to open a pop-up that allows you to either assign a Profile or create and assign a new one. |
 
 <a name="VRTab"></a>
@@ -94,7 +90,6 @@ Note that every **Fix** will be deactivated if your Hardware or OS do not suppor
 | **DXR Activated**                | Checks to make sure **DXR Activated** is enabled in the current [HDRP Asset](HDRP-Asset.html). <br />Press the **Fix** button to enable **DXR Activated**. |
 | **DXR Resources**               | Checks to make sure that your HDRP Asset references an **HD Render Pipeline RayTracing Resources**  Asset. <br />Press the **Fix** button to reload the raytracing resources for the HDRP Asset. |
 | **DXR Shader Config** | Checks to make sure that the **ShaderConfig.cs.hlsl**, in the **High Definition RP Config** package referenced in your Project, has **SHADEROPTIONS_RAYTRACING** set to **1**. <br />Press the **Fix** button to create a local copy of the **High Definition RP Config** package and, in the **ShaderConfig.cs.hlsl**, set **SHADEROPTIONS_RAYTRACING** to **1**. |
-| **Default DXR Scene Prefab** | Checks to make sure you have assigned something to **Default DXR Scene Prefab** in this wizard.<br />Press the **Fix** button to open a pop-up that allows you to either assign a Prefab or create and assign a new one. |
 
 ## Project Migration Quick-links
 

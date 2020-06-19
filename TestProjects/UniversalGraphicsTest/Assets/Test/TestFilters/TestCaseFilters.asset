@@ -274,6 +274,13 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
+  - FilteredScene: {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 2
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: OSX Standalone MSAA backbuffer has incorrect aspect ratio/fov
   - FilteredScene: {fileID: 102900000, guid: 069f595c511c463418479db2f730eec1, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -281,3 +288,106 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing on OSX
+  - FilteredScene: {fileID: 102900000, guid: 7f2ec65906a47474383300df9c0aad69, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      007)'
+  - FilteredScene: {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      008)'
+  - FilteredScene: {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      024)'
+  - FilteredScene: {fileID: 102900000, guid: a770620fcd2f84f248d06edf3744b2c0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      025)'
+  - FilteredScene: {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      026)'
+  - FilteredScene: {fileID: 102900000, guid: 2d287b701f8e1bf429c14805ac505eb9, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      031)'
+  - FilteredScene: {fileID: 102900000, guid: 375d3d0d24cdfe14aa69d3d595acb1c3, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      032)'
+  - FilteredScene: {fileID: 102900000, guid: ff592545ad5dd744893d54a73f85b2cc, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      033)'
+  - FilteredScene: {fileID: 102900000, guid: e346f8573410f414ea2a8a4740526c88, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      034)'
+  - FilteredScene: {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      038)'
+  - FilteredScene: {fileID: 102900000, guid: bb1de3ccb0b7a7a439e79e00f33a78f8, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      103)'
+  - FilteredScene: {fileID: 102900000, guid: 25cb76fbf82e5924f817e3466acb803a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None
+    StereoModes: 0
+    Reason: 'iOS tracked  regression: Lit shader fails has an error on iOS (scene
+      104)'
+  - FilteredScene: {fileID: 102900000, guid: 83adeebeb3ba74a13816f2b8636588aa, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 9
+    GraphicsDevice: 16
+    XrSdk: None 
+    StereoModes: 0
+    Reason: iOS tracked regression (scene 111 - 1256906)
