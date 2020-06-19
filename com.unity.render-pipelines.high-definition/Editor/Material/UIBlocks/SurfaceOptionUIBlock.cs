@@ -545,7 +545,7 @@ namespace UnityEditor.Rendering.HighDefinition
             else // SurfaceType.Opaque
             {
                 EditorGUI.indentLevel++;
-                if (doubleSidedEnable.floatValue == 0)
+                if (doubleSidedEnable != null && doubleSidedEnable.floatValue == 0 && opaqueCullMode != null)
                     materialEditor.ShaderProperty(opaqueCullMode, Styles.opaqueCullModeText);
                 EditorGUI.indentLevel--;
                 if (HDRenderQueue.k_RenderQueue_AfterPostProcessOpaque.Contains(renderQueue))
