@@ -783,6 +783,23 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Allocate a RTHandle from a regular RenderTexture.
+        /// </summary>
+        /// <param name="texture">Input texture</param>
+        /// <returns>A new RTHandle referencing the input texture.</returns>
+        public RTHandle Alloc(RenderTexture texture)
+        {
+            var rth = new RTHandle(this);
+            rth.SetRenderTexture(texture);
+            rth.m_EnableMSAA = false;
+            rth.m_EnableRandomWrite = false;
+            rth.useScaling = false;
+            rth.m_EnableHWDynamicScale = false;
+            rth.m_Name = "";
+            return rth;
+        }
+
+        /// <summary>
         /// Allocate a RTHandle from a regular Texture.
         /// </summary>
         /// <param name="texture">Input texture</param>
