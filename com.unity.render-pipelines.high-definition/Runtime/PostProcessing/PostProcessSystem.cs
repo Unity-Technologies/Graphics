@@ -2215,6 +2215,105 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        #region Depth Of Field (Physically based)
+        void DoPhysicallyBasedDepthOfField(CommandBuffer cmd, HDCamera camera, RTHandle source, RTHandle destination, bool taaEnabled)
+        {
+            float scale = 1f / (float)m_DepthOfField.resolution;
+            int targetWidth = Mathf.RoundToInt(camera.actualWidth * scale);
+            int targetHeight = Mathf.RoundToInt(camera.actualHeight * scale);
+
+            var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
+
+            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
+            float maxRadius = Mathf.Max(m_DepthOfField.farMaxBlur, m_DepthOfField.nearMaxBlur);
+            float cocLimit = Mathf.Clamp(2 * maxRadius, 1, 32);
+
+            ComputeShader cs;
+            int kernel;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCoC)))
+            {
+                cs = m_Resources.shaders.dofCircleOfConfusion;
+                cs.shaderKeywords = null;
+
+                if(m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera)
+                {
+                    kernel = cs.FindKernel("KMainCoCPhysical");
+
+                    // The sensor scale is used to convert the CoC size from mm to screen pixels
+                    float sensorScale;
+                    if( camera.camera.gateFit == Camera.GateFitMode.Horizontal )
+                        sensorScale = (0.5f / camera.camera.sensorSize.x) * camera.camera.pixelWidth;  
+                    else
+                        sensorScale = (0.5f / camera.camera.sensorSize.y) * camera.camera.pixelHeight;
+
+                    // "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
+                    // Note: Focus distance is in meters, but focalLength and sensor size are in mm.
+                    // We don't convert them to meters because the multiplication factors cancel-out
+                    float F = camera.camera.focalLength / 1000f;
+                    float A = camera.camera.focalLength / m_PhysicalCamera.aperture;
+                    float P = m_DepthOfField.focusDistance.value;
+                    float maxFarCoC = sensorScale * (A * F) / Mathf.Max((P - F), 1e-6f);
+
+                    // Scale and Bias factors for directly computing CoC size from post-rasterization depth with a single mad
+                    float cocBias = maxFarCoC * (1f - P / camera.camera.farClipPlane);
+                    float cocScale = maxFarCoC * P * (camera.camera.farClipPlane - camera.camera.nearClipPlane) / (camera.camera.farClipPlane * camera.camera.nearClipPlane);
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit, 0.0f, cocScale, cocBias));
+                }
+                else
+                {
+                    kernel = cs.FindKernel("KMainCoCManual");
+
+                    float nearEnd = m_DepthOfField.nearFocusEnd.value;
+                    float nearStart = Mathf.Min(m_DepthOfField.nearFocusStart.value, nearEnd - 1e-5f);
+                    float farStart = Mathf.Max(m_DepthOfField.farFocusStart.value, nearEnd);
+                    float farEnd = Mathf.Max(m_DepthOfField.farFocusEnd.value, farStart + 1e-5f);
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(nearStart, nearEnd, farStart, farEnd));
+                }
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, fullresCoC);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldPyramid)))
+            {
+                // To have an adaptive gather radius, we need estimates for the the min and max CoC that intersect a pixel.
+                cs = m_Resources.shaders.DoFCoCPyramidCS;
+                cs.shaderKeywords = null;
+
+                kernel = cs.FindKernel("KMainCoCPyramid");
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip1, fullresCoC, 1);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip2, fullresCoC, 2);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip3, fullresCoC, 3);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip4, fullresCoC, 4);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip5, fullresCoC, 5);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputMip6, fullresCoC, 6);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 31) / 32, (camera.actualHeight + 31) / 32, camera.viewCount);
+            }
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
+            {
+                cs = m_Resources.shaders.dofGatherCS;
+                cs.shaderKeywords = null;
+                if (m_EnableAlpha)
+                    cs.EnableKeyword("ENABLE_ALPHA");
+
+                kernel = cs.FindKernel("KMain");
+                float sampleCount = Mathf.Max(m_DepthOfField.nearSampleCount, m_DepthOfField.farSampleCount);
+                float mipLevel = Mathf.Ceil(Mathf.Log(cocLimit, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, mipLevel, 0.0f));
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.DispatchCompute(cs, kernel, (camera.actualWidth + 7) / 8, (camera.actualHeight + 7) / 8, camera.viewCount);
+            }
+
+            m_Pool.Recycle(fullresCoC);
+        }
+        #endregion
+
         #region Motion Blur
 
         struct MotionBlurParameters
