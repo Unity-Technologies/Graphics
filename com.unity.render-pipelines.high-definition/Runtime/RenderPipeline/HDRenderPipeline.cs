@@ -2737,7 +2737,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderSky(hdCamera, cmd);
 
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
-                SendGeometryGraphicsBuffers(cmd, hdCamera);
+                SendGeometryGraphicsBuffers(PrepareSendGeometryBuffersParameters(hdCamera, m_SharedRTManager.GetDepthBufferMipChainInfo()), m_SharedRTManager.GetNormalBuffer(), m_SharedRTManager.GetDepthTexture(), cmd);
 
                 m_PostProcessSystem.DoUserAfterOpaqueAndSky(cmd, hdCamera, m_CameraColorBuffer);
 
@@ -5305,16 +5305,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void SendGeometryGraphicsBuffers(CommandBuffer cmd, HDCamera hdCamera)
+        struct SendGeometryGraphcisBuffersParameters
         {
-            bool needNormalBuffer = false;
-            Texture normalBuffer = null;
-            bool needDepthBuffer = false;
-            Texture depthBuffer = null;
-            Texture depthBuffer1 = null;
+            public HDCamera hdCamera;
+            public bool needNormalBuffer;
+            public bool needDepthBuffer;
+            public VFXCameraBufferTypes neededVFXBuffers;
+            public HDUtils.PackedMipChainInfo packedMipChainInfo;
+        }
+
+        SendGeometryGraphcisBuffersParameters PrepareSendGeometryBuffersParameters(HDCamera hdCamera, in HDUtils.PackedMipChainInfo packedMipInfo)
+        {
+            SendGeometryGraphcisBuffersParameters parameters = new SendGeometryGraphcisBuffersParameters();
+
+            parameters.hdCamera = hdCamera;
+            parameters.needNormalBuffer = false;
+            parameters.needDepthBuffer = false;
+            parameters.packedMipChainInfo = packedMipInfo;
 
             HDAdditionalCameraData acd = null;
-            hdCamera.camera.TryGetComponent<HDAdditionalCameraData>(out acd);
+            hdCamera.camera.TryGetComponent(out acd);
 
             HDAdditionalCameraData.BufferAccessType externalAccess = new HDAdditionalCameraData.BufferAccessType();
             if (acd != null)
@@ -5322,21 +5332,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Figure out which client systems need which buffers
             // Only VFX systems for now
-            VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
-            needNormalBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
-            needDepthBuffer |= ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
+            parameters.neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);
+            parameters.needNormalBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Normal) != 0);
+            parameters.needDepthBuffer |= ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0 || (externalAccess & HDAdditionalCameraData.BufferAccessType.Depth) != 0);
+
             if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && GetRayTracingState() || ValidIndirectDiffuseState(hdCamera))
             {
-                needNormalBuffer = true;
-                needDepthBuffer = true;
+                parameters.needNormalBuffer = true;
+                parameters.needDepthBuffer = true;
             }
+
+            return parameters;
+        }
+
+        static void SendGeometryGraphicsBuffers(in SendGeometryGraphcisBuffersParameters parameters,
+                                                RTHandle mainNormalBuffer,
+                                                RTHandle mainDepthBuffer,
+                                                CommandBuffer cmd)
+        {
+            var hdCamera = parameters.hdCamera;
+
+            Texture normalBuffer = null;
+            Texture depthBuffer = null;
+            Texture depthBuffer1 = null;
 
             // Here if needed for this particular camera, we allocate history buffers.
             // Only one is needed here because the main buffer used for rendering is separate.
             // Ideally, we should double buffer the main rendering buffer but since we don't know in advance if history is going to be needed, it would be a big waste of memory.
-            if (needNormalBuffer)
+            if (parameters.needNormalBuffer)
             {
-                RTHandle mainNormalBuffer = m_SharedRTManager.GetNormalBuffer();
                 RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
                     return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainNormalBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainNormalBuffer.rt.enableRandomWrite, name: $"{id}_Normal History Buffer"
@@ -5349,9 +5373,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.CopyTexture(mainNormalBuffer, i, 0, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight, normalBuffer, i, 0, 0, 0);
             }
 
-            if (needDepthBuffer)
+            if (parameters.needDepthBuffer)
             {
-                RTHandle mainDepthBuffer = m_SharedRTManager.GetDepthTexture();
                 RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
                     return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"{id}_Depth History Buffer"
@@ -5367,26 +5390,26 @@ namespace UnityEngine.Rendering.HighDefinition
                     return rtHandleSystem.Alloc(Vector2.one * 0.5f, TextureXR.slices, colorFormat: mainDepthBuffer.rt.graphicsFormat, dimension: TextureXR.dimension, enableRandomWrite: mainDepthBuffer.rt.enableRandomWrite, name: $"Depth History Buffer Mip 1"
                     );
                 }
-                var mipchainInfo = m_SharedRTManager.GetDepthBufferMipChainInfo();
+
                 depthBuffer1 = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth1) ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.Depth1, Allocator1, 1);
                 for (int i = 0; i < hdCamera.viewCount; i++)
-                    cmd.CopyTexture(mainDepthBuffer, i, 0, mipchainInfo.mipLevelOffsets[1].x, mipchainInfo.mipLevelOffsets[1].y, hdCamera.actualWidth / 2, hdCamera.actualHeight / 2, depthBuffer1, i, 0, 0, 0);
+                    cmd.CopyTexture(mainDepthBuffer, i, 0, parameters.packedMipChainInfo.mipLevelOffsets[1].x, parameters.packedMipChainInfo.mipLevelOffsets[1].y, hdCamera.actualWidth / 2, hdCamera.actualHeight / 2, depthBuffer1, i, 0, 0, 0);
             }
 
             // Send buffers to client.
             // For now, only VFX systems
-            if ((neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0)
+            if ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Depth) != 0)
             {
                 VFXManager.SetCameraBuffer(hdCamera.camera, VFXCameraBufferTypes.Depth, depthBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
             }
 
-            if ((neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0)
+            if ((parameters.neededVFXBuffers & VFXCameraBufferTypes.Normal) != 0)
             {
                 VFXManager.SetCameraBuffer(hdCamera.camera, VFXCameraBufferTypes.Normal, normalBuffer, 0, 0, hdCamera.actualWidth, hdCamera.actualHeight);
             }
         }
 
-        void SendColorGraphicsBuffer(CommandBuffer cmd, HDCamera hdCamera)
+        static void SendColorGraphicsBuffer(CommandBuffer cmd, HDCamera hdCamera)
         {
             // Figure out which client systems need which buffers
             VFXCameraBufferTypes neededVFXBuffers = VFXManager.IsCameraBufferNeeded(hdCamera.camera);

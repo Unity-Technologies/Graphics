@@ -160,9 +160,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 RenderSky(m_RenderGraph, hdCamera, colorBuffer, volumetricLighting, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture);
 
-                // TODO RENDERGRAPH
                 // Send all the geometry graphics buffer to client systems if required (must be done after the pyramid and before the transparent depth pre-pass)
-                //SendGeometryGraphicsBuffers(cmd, hdCamera);
+                SendGeometryGraphicsBuffers(m_RenderGraph, prepassOutput.normalBuffer, prepassOutput.depthPyramidTexture, hdCamera);
 
                 // TODO RENDERGRAPH
                 //m_PostProcessSystem.DoUserAfterOpaqueAndSky(cmd, hdCamera, m_CameraColorBuffer);
@@ -272,9 +271,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // XR mirror view and blit do device
             EndCameraXR(m_RenderGraph, hdCamera);
 
-            // TODO RENDERGRAPH
             // Send all the color graphics buffer to client systems if required.
-            //SendColorGraphicsBuffer(cmd, hdCamera);
+            SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
             SetFinalTarget(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, target.id);
 
@@ -850,6 +848,52 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        class SendGeometryBuffersPassData
+        {
+            public SendGeometryGraphcisBuffersParameters parameters;
+            public TextureHandle normalBuffer;
+            public TextureHandle depthBuffer;
+        }
+
+        void SendGeometryGraphicsBuffers(RenderGraph renderGraph, TextureHandle normalBuffer, TextureHandle depthBuffer, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<SendGeometryBuffersPassData>("Send Geometry Buffers", out var passData))
+            {
+                builder.AllowPassPruning(false);
+
+                passData.parameters = PrepareSendGeometryBuffersParameters(hdCamera, m_DepthBufferMipChainInfo);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.depthBuffer = builder.ReadTexture(depthBuffer);
+
+                builder.SetRenderFunc(
+                (SendGeometryBuffersPassData data, RenderGraphContext ctx) =>
+                {
+                    SendGeometryGraphicsBuffers(data.parameters, ctx.resources.GetTexture(data.normalBuffer), ctx.resources.GetTexture(data.depthBuffer), ctx.cmd);
+                });
+            }
+        }
+
+        class SendColorGraphicsBufferPassData
+        {
+            public HDCamera hdCamera;
+        }
+
+        void SendColorGraphicsBuffer(RenderGraph renderGraph, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<SendColorGraphicsBufferPassData>("Send Color Buffers", out var passData))
+            {
+                builder.AllowPassPruning(false);
+
+                passData.hdCamera = hdCamera;
+
+                builder.SetRenderFunc(
+                (SendColorGraphicsBufferPassData data, RenderGraphContext ctx) =>
+                {
+                    SendColorGraphicsBuffer(ctx.cmd, data.hdCamera);
+                });
+            }
+        }
+
         class ClearStencilPassData
         {
             public Material clearStencilMaterial;
@@ -859,7 +903,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ClearStencilBuffer(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer)
         {
-            using (var builder = renderGraph.AddRenderPass<ClearStencilPassData>("Clear Stencil Buffer", out var passData))
+            using (var builder = renderGraph.AddRenderPass<ClearStencilPassData>("Clear Stencil Buffer", out var passData, ProfilingSampler.Get(HDProfileId.ClearStencil)))
             {
                 passData.clearStencilMaterial = m_ClearStencilBufferMaterial;
                 passData.colorBuffer = builder.ReadTexture(colorBuffer);
