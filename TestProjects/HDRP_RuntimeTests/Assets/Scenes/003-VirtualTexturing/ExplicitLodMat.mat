@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 3
+  version: 4
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -34,10 +34,16 @@ Material:
   - MOTIONVECTORS
   - TransparentBackface
   - RayTracingPrepass
+  - TransparentDepthPrepass
+  - TransparentDepthPostpass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
     - Layer1:
+        m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2DLOD_70f2bf17e2a1464ca267f0ccfbe702f7_Texture_1:
         m_Texture: {fileID: 2800000, guid: 526f56bddea1ec94abca08e368cb7006, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -69,6 +75,7 @@ Material:
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
+    - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 1
@@ -88,6 +95,8 @@ Material:
     - _SurfaceType: 0
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
+    - _TransparentDepthPostpassEnable: 0
+    - _TransparentDepthPrepassEnable: 0
     - _TransparentSortPriority: 0
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
