@@ -23,10 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
 #pragma warning restore 414
 
         [SerializeField]
-        GameObject m_DefaultScenePrefabSaved;
-        [SerializeField]
-        GameObject m_DefaultDXRScenePrefabSaved;
-        [SerializeField]
         string m_ProjectSettingFolderPath = "HDRPDefaultResources";
         [SerializeField]
         bool m_WizardPopupAtStart = true;
@@ -42,26 +38,6 @@ namespace UnityEditor.Rendering.HighDefinition
         int m_LastMaterialVersion = k_NeverProcessedMaterialVersion;
 
         internal const int k_NeverProcessedMaterialVersion = -1;
-
-        public static GameObject defaultScenePrefab
-        {
-            get => instance.m_DefaultScenePrefabSaved;
-            set
-            {
-                instance.m_DefaultScenePrefabSaved = value;
-                Save();
-            }
-        }
-
-        public static GameObject defaultDXRScenePrefab
-        {
-            get => instance.m_DefaultDXRScenePrefabSaved;
-            set
-            {
-                instance.m_DefaultDXRScenePrefabSaved = value;
-                Save();
-            }
-        }
 
         public static string projectSettingsFolderPath
         {

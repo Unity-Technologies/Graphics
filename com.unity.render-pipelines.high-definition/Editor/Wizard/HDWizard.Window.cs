@@ -189,8 +189,6 @@ namespace UnityEditor.Rendering.HighDefinition
         VisualElement m_InstallConfigPackageHelpbox = null;
         VisualElement m_InstallConfigPackageButton = null;
         Label m_InstallConfigPackageHelpboxLabel;
-        ObjectField m_DefaultScene;
-        ObjectField m_DefaultDXRScene;
 
         [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
         static void OpenWindow()
@@ -276,8 +274,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             container.Add(CreateTitle(Style.defaultSettingsTitle));
             container.Add(CreateFolderData());
-            container.Add(m_DefaultScene = CreateDefaultScene());
-            container.Add(m_DefaultDXRScene = CreateDXRDefaultScene());
 
             container.Add(CreateTitle(Style.configurationTitle));
             container.Add(CreateTabbedBox(
@@ -374,38 +370,6 @@ namespace UnityEditor.Rendering.HighDefinition
             row.Add(repopulate);
 
             return row;
-        }
-
-        ObjectField CreateDefaultScene()
-        {
-            var newScene = new ObjectField(Style.newSceneLabel)
-            {
-                tooltip = Style.newSceneTooltip,
-                name = "NewScene",
-                objectType = typeof(GameObject),
-                value = HDProjectSettings.defaultScenePrefab
-            };
-            newScene.Q<Label>().AddToClassList("normal");
-            newScene.RegisterValueChangedCallback(evt
-                => HDProjectSettings.defaultScenePrefab = evt.newValue as GameObject);
-
-            return newScene;
-        }
-
-        ObjectField CreateDXRDefaultScene()
-        {
-            var newDXRScene = new ObjectField(Style.newDXRSceneLabel)
-            {
-                tooltip = Style.newSceneTooltip,
-                name = "NewDXRScene",
-                objectType = typeof(GameObject),
-                value = HDProjectSettings.defaultDXRScenePrefab
-            };
-            newDXRScene.Q<Label>().AddToClassList("normal");
-            newDXRScene.RegisterValueChangedCallback(evt
-                => HDProjectSettings.defaultDXRScenePrefab = evt.newValue as GameObject);
-
-            return newDXRScene;
         }
 
         VisualElement CreateTabbedBox((string label, string tooltip)[] tabs, out VisualElement innerBox)

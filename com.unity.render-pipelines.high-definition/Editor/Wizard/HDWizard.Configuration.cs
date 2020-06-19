@@ -156,7 +156,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetEditorResources, IsHdrpAssetEditorResourcesCorrect, FixHdrpAssetEditorResources),
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetDiffusionProfile, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile),
-                        new Entry(InclusiveScope.HDRP, Style.hdrpScene, IsDefaultSceneCorrect, FixDefaultScene),
                         new Entry(InclusiveScope.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned),
 
                         new Entry(InclusiveScope.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
@@ -172,7 +171,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.DXR, Style.dxrReflections, IsDXRReflectionsCorrect, FixDXRReflections),
                         new Entry(InclusiveScope.DXR, Style.dxrActivated, IsDXRActivationCorrect, FixDXRActivation),
                         new Entry(InclusiveScope.DXR, Style.dxrResources, IsDXRAssetCorrect, FixDXRAsset),
-                        new Entry(InclusiveScope.DXR, Style.dxrScene, IsDXRDefaultSceneCorrect, FixDXRDefaultScene),
                     };
                 return m_Entries;
             }
@@ -452,16 +450,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.SetDirty(hdrpAsset);
         }
 
-        bool IsDefaultSceneCorrect()
-            => HDProjectSettings.defaultScenePrefab != null;
-        void FixDefaultScene(bool fromAsync)
-        {
-            if (ObjectSelector.opened)
-                return;
-            CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultScenePrefab = scene, forDXR: false);
-            m_DefaultScene.SetValueWithoutNotify(HDProjectSettings.defaultScenePrefab);
-        }
-
         bool IsDefaultVolumeProfileAssigned()
         {
             if (!IsHdrpAssetUsedCorrect())
@@ -681,16 +669,6 @@ namespace UnityEditor.Rendering.HighDefinition
             var propertySupportRayTracing = serializedObject.FindProperty("m_RenderPipelineSettings.supportRayTracing");
             propertySupportRayTracing.boolValue = true;
             serializedObject.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        bool IsDXRDefaultSceneCorrect()
-            => HDProjectSettings.defaultDXRScenePrefab != null;
-        void FixDXRDefaultScene(bool fromAsync)
-        {
-            if (ObjectSelector.opened)
-                return;
-            CreateOrLoadDefaultScene(fromAsync ? () => m_Fixer.Stop() : (Action)null, scene => HDProjectSettings.defaultDXRScenePrefab = scene, forDXR: true);
-            m_DefaultDXRScene.SetValueWithoutNotify(HDProjectSettings.defaultDXRScenePrefab);
         }
 
         #endregion
