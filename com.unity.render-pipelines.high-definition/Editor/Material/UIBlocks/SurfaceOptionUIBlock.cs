@@ -747,7 +747,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(supportDecals, Styles.supportDecalsText);
             }
 
-            if (receivesSSR != null)
+            if (receivesSSR != null && receivesSSRTransparent != null)
             {
                 // Based on the surface type, display the right recieveSSR option
                 if (surfaceTypeValue == SurfaceType.Transparent)
