@@ -838,6 +838,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Only use one texture for ray traced reflection upscaling.
 - Adjust the upscale radius based on the roughness value.
 - DXR: Changed the way the filter size is decided for directional, point and spot shadows.
+- Changed the default exposure mode to "Automatic (Histogram)", along with "Limit Min" to -4 and "Limit Max" to 16.
+- Replaced the default scene system with the builtin Scene Template feature.
 
 ## [7.1.1] - 2019-09-05
 
