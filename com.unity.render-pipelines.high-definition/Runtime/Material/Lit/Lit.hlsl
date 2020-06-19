@@ -28,12 +28,6 @@
 // #define LIT_DISPLAY_REFERENCE_IBL
 #endif
 
-#ifndef SKIP_RASTERIZED_SHADOWS
-#define RASTERIZED_AREA_LIGHT_SHADOWS 1
-#else
-#define RASTERIZED_AREA_LIGHT_SHADOWS 0
-#endif
-
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
@@ -79,8 +73,6 @@ TEXTURE2D_X(_ShadowMaskTexture); // Alias for shadow mask, so we don't need to k
 #endif
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE) || defined(_REFRACTION_THIN))
-
-#define SUPPORTS_RAYTRACED_AREA_SHADOWS (RAYTRACING_ENABLED && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING))
 
 // It is safe to include this file after the G-Buffer macros above.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialGBufferMacros.hlsl"
@@ -1532,7 +1524,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     if (dot(lightData.forward, unL) < FLT_EPS)
     {
-
         // Rotate the light direction into the light space.
         float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
         unL = mul(unL, transpose(lightToWorld));
@@ -1671,6 +1662,13 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 lighting.specular += preLightData.coatIblF * ltcValue;
             }
 
+            // Raytracing shadow algorithm require to evaluate lighting without shadow, so it defined SKIP_RASTERIZED_AREA_SHADOWS
+            // This is only present in Lit Material as it is the only one using the improved shadow algorithm.
+        #ifndef SKIP_RASTERIZED_AREA_SHADOWS
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+        #endif
+
             // Save ALU by applying 'lightData.color' only once.
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
@@ -1685,44 +1683,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             }
         #endif
         }
-
     }
-
-    float  shadow = 1.0;
-    float  shadowMask = 1.0;
-#ifdef SHADOWS_SHADOWMASK
-    // shadowMaskSelector.x is -1 if there is no shadow mask
-    // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
-#endif
-
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
-    {
-        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
-    }
-    else
-#endif // ENABLE_RAYTRACING
-    if (lightData.shadowIndex != -1)
-    {
-#if RASTERIZED_AREA_LIGHT_SHADOWS
-            // lightData.positionRWS now contains the Light vector.
-            shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
-#ifdef SHADOWS_SHADOWMASK
-            // See comment for punctual light shadow mask
-            shadow = lightData.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
-#endif
-            shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
-
-#endif
-    }
-
-#if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
-    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-    lighting.diffuse *= shadowColor;
-    lighting.specular *= shadowColor;
-#endif
-
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
 
