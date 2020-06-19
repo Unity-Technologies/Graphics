@@ -31,14 +31,11 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(PackingRules.Exact)]
     public enum ShaderOptions
     {
+        ColoredShadow = 1, // Allow to defined if colored shadow are supported in shaders or not
         CameraRelativeRendering = 1, // Rendering sets the origin of the world to the position of the primary (scene view) camera
         PreExposition = 1,
         PrecomputedAtmosphericAttenuation = 0, // Precomputes atmospheric attenuation for the directional light on the CPU, which makes it independent from the fragment's position, which is faster but wrong
-#if ENABLE_RAYTRACING
-        Raytracing = 1,
-#else
-        Raytracing = 0,
-#endif
+
 #if ENABLE_VR
         XrMaxViews = 2, // Used for single-pass rendering (with fast path in vertex shader code when forced to 2)
 #else

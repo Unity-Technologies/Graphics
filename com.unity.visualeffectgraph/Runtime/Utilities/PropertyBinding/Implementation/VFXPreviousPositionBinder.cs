@@ -14,12 +14,12 @@ namespace UnityEngine.VFX.Utility
         protected override void OnEnable()
         {
             base.OnEnable();
-            oldPosition = Target.position;
+            oldPosition = Target != null ? Target.position : Vector3.zero;
         }
 
         public override bool IsValid(VisualEffect component)
         {
-            return component.HasVector3(m_Property);
+            return Target != null && component.HasVector3(m_Property);
         }
 
         public override void UpdateBinding(VisualEffect component)

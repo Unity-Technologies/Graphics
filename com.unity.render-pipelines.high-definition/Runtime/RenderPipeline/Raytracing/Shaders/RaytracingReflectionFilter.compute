@@ -47,9 +47,6 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     uint2 sourceCoord = targetCoord;
     #endif
 
-    // Compute the index of the noise texture to use
-    int noiseIndex = (int)(clamp((int)(_ScramblingTexture[sourceCoord].y * 32.0f), 0, 31));
-
     // Compute the subpixel index that matches this full screen pixel.
     int localIndex = (targetCoord.x & 1) + (targetCoord.y & 1) * 2;
 
@@ -89,11 +86,13 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
     float4 resultSum = float4(0.0 ,0.0, 0.0, 0.0);
     uint sampleCount = 0;
 
-    float radiusSq = _SpatialFilterRadius * _SpatialFilterRadius;
+    // We want to avoid overblur for smoothsurfaces, so the upscale radius is lerped between the minimal value and the maximal value
+    const int upscaleRadius = lerp(2, _SpatialFilterRadius, normalData.perceptualRoughness);
+    const float radiusSq = upscaleRadius * upscaleRadius;
 
-    for(int y = -_SpatialFilterRadius; y < _SpatialFilterRadius; ++y)
+    for(int y = -upscaleRadius; y < upscaleRadius; ++y)
     {
-        for(int x = -_SpatialFilterRadius; x < _SpatialFilterRadius; ++x)
+        for(int x = -upscaleRadius; x < upscaleRadius; ++x)
         {
             float radiusDistanceSq = (y*y + x*x);
             if(radiusDistanceSq > radiusSq) continue;
@@ -131,7 +130,7 @@ void REFLECTION_INTEGRATION_UPSCALE(uint3 dispatchThreadId : SV_DispatchThreadID
             if(sampleDepth == 0.0f) continue;
 
             // Compute the target pixel that it will impact
-            float sample = _BlueNoiseTexture[int3(relativeHRShift, noiseIndex)].x;
+            float sample = _BlueNoiseTexture[int3(relativeHRShift, 0)].x;
             int index = clamp(floor(sample * 4.0f), 0, 3);
 
             if (index != localIndex) continue;
