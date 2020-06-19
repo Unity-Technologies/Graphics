@@ -820,12 +820,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
             if ((ambientMode == SkyAmbientMode.Static || forceStaticUpdate) && hdCamera.camera.cameraType != CameraType.Preview)
             {
-                if (staticLightingSky != null)
-                {
-                    m_StaticLightingSky.skySettings = staticLightingSky.skySettings;
-                    UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
-                    m_StaticSkyUpdateRequired = false;
-                }
+                m_StaticLightingSky.skySettings = staticLightingSky != null ? staticLightingSky.skySettings : null;
+                UpdateEnvironment(hdCamera, renderContext, m_StaticLightingSky, sunLight, m_StaticSkyUpdateRequired, true, true, SkyAmbientMode.Static, frameIndex, cmd);
+                m_StaticSkyUpdateRequired = false;
             }
 
             m_UpdateRequired = false;
