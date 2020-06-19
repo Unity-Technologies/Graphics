@@ -383,20 +383,19 @@ namespace UnityEditor.VFX.UI
 
             // End Toolbar
 
-            m_NoAssetLabel = new Label("Please Open An Asset") { name = "no-asset"};
+            m_NoAssetLabel = new Label("\n\n\nTo begin creating Visual Effects, create a new Visual Effect Graph Asset.\n(or double-click an existing Visual Effect Graph in the project view)") { name = "no-asset"};
             m_NoAssetLabel.style.position = PositionType.Absolute;
-            m_NoAssetLabel.style.left = 0f;
-            m_NoAssetLabel.style.right = new StyleLength(0f);
-            m_NoAssetLabel.style.top = new StyleLength(0f);
-            m_NoAssetLabel.style.bottom = new StyleLength(0f);
+            m_NoAssetLabel.style.left = new StyleLength(40f);
+            m_NoAssetLabel.style.right = new StyleLength(40f);
+            m_NoAssetLabel.style.top = new StyleLength(40f);
+            m_NoAssetLabel.style.bottom = new StyleLength(140f);
             m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
-            m_NoAssetLabel.style.fontSize = new StyleLength(72f);
+            m_NoAssetLabel.style.fontSize = new StyleLength(12f);
             m_NoAssetLabel.style.color = Color.white * 0.75f;
-
             Add(m_NoAssetLabel);
 
 
-            var createButton = new Button() { text = "Create Graph" };
+            var createButton = new Button() { text = "Create new Visual Effect Graph" };
             m_NoAssetLabel.Add(createButton);
             createButton.clicked += OnCreateAsset;
 
@@ -1104,7 +1103,8 @@ namespace UnityEditor.VFX.UI
 
             if (context != null)
             {
-                context.OnCreateBlock(point);
+                if(context.canHaveBlocks)
+                    context.OnCreateBlock(point);
             }
             else
             {
