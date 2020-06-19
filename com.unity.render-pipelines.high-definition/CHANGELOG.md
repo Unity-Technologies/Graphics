@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix an issue in reading the gbuffer for ray traced subsurface scattering (case 1248358).
 - Fixed an issue where editing the Look Dev default profile would not reflect directly in the Look Dev window.
 - Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
+- Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
 
 ### Changed
 - Shadowmask and realtime reflection probe property are hide in Quality settings
