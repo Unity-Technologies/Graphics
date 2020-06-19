@@ -37,6 +37,7 @@ The version number for this package has increased due to a version update of a r
 - The 2D Renderer now supports camera stacking.
 
 ### Fixed
+- Fixed an issue with the editor where pausing during play mode causes the Scene View to be greyed out [case 1241239](https://issuetracker.unity3d.com/issues/urp-scene-window-is-rendered-gray-and-game-window-is-rendered-black-when-using-xr-plugin-management-and-universal-rp-7-dot-3-1)
 - Fixed an issue with shadows not appearing on terrains when no cascades are selected [case 1226530](https://issuetracker.unity3d.com/issues/urp-no-shadows-on-terrain-when-cascades-is-set-to-no-cascades-in-render-pipeline-asset-settings).
 - Fixed an issue that caused the anti-aliasing value in QualitySettings change without user interaction. [case 1195272](https://issuetracker.unity3d.com/issues/lwrp-the-anti-alias-quality-settings-value-is-changing-without-user-interaction).
 - Fixed a shader issue that caused the Color in Sprite Shape to work improperly.
