@@ -16,18 +16,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     {
         bool m_IsValid;
 
-        public int handle { get; private set; }
+        public int index { get; private set; }
         public RenderGraphResourceType type { get; private set; }
         public int iType { get { return (int)type; } }
 
         internal ResourceHandle(int value, RenderGraphResourceType type)
         {
-            handle = value;
+            index = value;
             this.type = type;
             m_IsValid = true;
         }
 
-        public static implicit operator int(ResourceHandle handle) => handle.handle;
+        public static implicit operator int(ResourceHandle handle) => handle.index;
         public bool IsValid() => m_IsValid;
     }
 
@@ -50,15 +50,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         /// <returns>True if the handle is valid.</returns>
         public bool IsValid() => handle.IsValid();
-
-        ///// <summary>
-        ///// GetHashCode override.
-        ///// </summary>
-        ///// <returns></returns>
-        //public override int GetHashCode()
-        //{
-        //    return (handle << 2) ^ (m_IsValid ? 333 : 444);
-        //}
     }
 
     /// <summary>

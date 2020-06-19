@@ -187,26 +187,26 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         void CheckHandleValidity(in ResourceHandle res)
         {
             var resources = m_Resources[res.iType];
-            if (res.handle >= resources.size)
-                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.handle}");
+            if (res.index >= resources.size)
+                throw new ArgumentException($"Trying to access resource of type {res.type} with an invalid resource index {res.index}");
         }
 
         internal string GetResourceName(in ResourceHandle res)
         {
             CheckHandleValidity(res);
-            return m_Resources[res.iType][res.handle].GetName();
+            return m_Resources[res.iType][res.index].GetName();
         }
 
         internal bool IsResourceImported(in ResourceHandle res)
         {
             CheckHandleValidity(res);
-            return m_Resources[res.iType][res.handle].imported;
+            return m_Resources[res.iType][res.index].imported;
         }
 
         internal int GetResourceTransientIndex(in ResourceHandle res)
         {
             CheckHandleValidity(res);
-            return m_Resources[res.iType][res.handle].transientPassIndex;
+            return m_Resources[res.iType][res.index].transientPassIndex;
         }
 
         // Texture Creation/Import APIs are internal because creation should only go through RenderGraph

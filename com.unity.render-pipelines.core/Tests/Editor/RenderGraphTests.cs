@@ -284,8 +284,8 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(4, compiledPasses.size);
-            Assert.Contains(texture.handle, compiledPasses[0].resourceCreateList[(int)RenderGraphResourceType.Texture]);
-            Assert.Contains(texture.handle, compiledPasses[3].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture.handle.index, compiledPasses[0].resourceCreateList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture.handle.index, compiledPasses[3].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
         }
 
         [Test]
@@ -326,8 +326,8 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(1, compiledPasses.size);
-            Assert.Contains(texture.handle, compiledPasses[0].resourceCreateList[(int)RenderGraphResourceType.Texture]);
-            Assert.Contains(texture.handle, compiledPasses[0].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture.handle.index, compiledPasses[0].resourceCreateList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture.handle.index, compiledPasses[0].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
         }
 
         // Texture that should be released during an async pass should have their release delayed until the first pass that syncs with the compute pipe.
@@ -396,8 +396,8 @@ namespace UnityEngine.Rendering.Tests
 
             var compiledPasses = m_RenderGraph.GetCompiledPassInfos();
             Assert.AreEqual(6, compiledPasses.size);
-            Assert.Contains(texture0.handle, compiledPasses[4].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
-            Assert.Contains(texture2.handle, compiledPasses[4].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture0.handle.index, compiledPasses[4].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
+            Assert.Contains(texture2.handle.index, compiledPasses[4].resourceReleaseList[(int)RenderGraphResourceType.Texture]);
         }
 
         [Test]
