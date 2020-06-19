@@ -691,6 +691,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ray tracing with XR single-pass.
 - Fixed warning in HDAdditionalLightData OnValidate (cases 1250864, 1244578)
 - Fixed a bug related to denoising ray traced reflections.
+- Fixed nullref in the layered lit material inspector.
 
 ### Changed
 - Improve MIP selection for decals on Transparents
@@ -840,6 +841,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - DXR: Changed the way the filter size is decided for directional, point and spot shadows.
 - Changed the default exposure mode to "Automatic (Histogram)", along with "Limit Min" to -4 and "Limit Max" to 16.
 - Replaced the default scene system with the builtin Scene Template feature.
+- Changed extensions of shader CAS include files.
 
 ## [7.1.1] - 2019-09-05
 

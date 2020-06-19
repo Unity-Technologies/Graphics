@@ -677,6 +677,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _OutputMip2                     = Shader.PropertyToID("_OutputMip2");
         public static readonly int _OutputMip3                     = Shader.PropertyToID("_OutputMip3");
         public static readonly int _OutputMip4                     = Shader.PropertyToID("_OutputMip4");
+        public static readonly int _OutputMip5                     = Shader.PropertyToID("_OutputMip5");
+        public static readonly int _OutputMip6                     = Shader.PropertyToID("_OutputMip6");
         public static readonly int _IndirectBuffer                 = Shader.PropertyToID("_IndirectBuffer");
         public static readonly int _InputNearCoCTexture            = Shader.PropertyToID("_InputNearCoCTexture");
         public static readonly int _NearTileList                   = Shader.PropertyToID("_NearTileList");
