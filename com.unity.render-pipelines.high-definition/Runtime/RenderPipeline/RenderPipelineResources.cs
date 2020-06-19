@@ -288,8 +288,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader temporalAntialiasingPS;
 
             // Physicaly based DoF
-            [Reload("Runtime/PostProcessing/Shaders/DoFCycleOfConfusion.compute")]
-            public ComputeShader dofCycleOfConfusion;
+            [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
+            public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]
             public ComputeShader dofGatherCS;
             [Reload("Runtime/PostProcessing/Shaders/DoFCoCPyramid.compute")]

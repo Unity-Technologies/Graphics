@@ -2233,7 +2233,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCoC)))
             {
-                cs = m_Resources.shaders.dofCycleOfConfusion;
+                cs = m_Resources.shaders.dofCircleOfConfusion;
                 cs.shaderKeywords = null;
 
                 if(m_DepthOfField.focusMode == DepthOfFieldMode.UsePhysicalCamera)
