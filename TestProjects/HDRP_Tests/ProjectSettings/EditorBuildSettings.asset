@@ -159,6 +159,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1801_MaterialQuality.unity
     guid: 57b95311ba922d74c9d1c5168e7ade4d
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1802_Depth_Pre_Post.unity
+    guid: 02013ee53ba4f3040aa4e23a5466458e
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1900_AlphaTest_SG_a.unity
     guid: c566b460a3674184da6c102196a1a888
   - enabled: 1
