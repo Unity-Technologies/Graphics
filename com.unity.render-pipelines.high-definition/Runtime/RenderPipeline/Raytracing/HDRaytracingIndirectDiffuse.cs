@@ -15,14 +15,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        bool RayTracedIndirectDiffuseState(HDCamera hdCamera)
-        {
-            var settings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
-            return ValidIndirectDiffuseState(hdCamera)
-                    && settings.rayTracing.value
-                    && hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing);
-        }
-
         RTHandle IndirectDiffuseHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension,
@@ -32,10 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
         
         void RenderRayTracedIndirectDiffuse(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, int frameCount)
         {
-            // If we are not supposed to evaluate the ray traced indirect diffuse term, quit right away
-            if (!RayTracedIndirectDiffuseState(hdCamera))
-                return;
-
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
 
             // Based on what the asset supports, follow the volume or force the right mode.

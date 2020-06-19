@@ -18,7 +18,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HairSubTarget() => displayName = "Hair";
 
-        protected override string templateMaterialDirectory => $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/";
+        static string[] passTemplateMaterialDirectories = new string[]
+        {
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Hair/ShaderGraph/",
+            $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
+        };
+
+        protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override string customInspector => "Rendering.HighDefinition.HairGUI";
         protected override string subTargetAssetGuid => "7e681cc79dd8e6c46ba1e8412d519e26"; // HairSubTarget.cs
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Hair;

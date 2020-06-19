@@ -86,9 +86,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // Filtering for reflections
         [Reload("Runtime/RenderPipelineResources/Texture/ReflectionKernelMapping.png")]
         public Texture2D reflectionFilterMapping;
-        [Reload("Runtime/RenderPipelineResources/Texture/ShadowKernelMapping.asset")]
-        public Texture3D shadowFilterMapping;
-        
 
 #if UNITY_EDITOR
         [UnityEditor.CustomEditor(typeof(HDRenderPipelineRayTracingResources))]

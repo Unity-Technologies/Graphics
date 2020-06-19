@@ -360,11 +360,13 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 resource.cachedHash = hashCode;
 
+#if UNITY_2020_2_OR_NEWER
                 var fastMemDesc = resource.desc.fastMemoryDesc;
                 if(fastMemDesc.inFastMemory)
                 {
                     resource.resource.SwitchToFastMemory(rgContext.cmd, fastMemDesc.residencyFraction, fastMemDesc.flags);
                 }
+#endif
 
                 if (resource.desc.clearBuffer || m_RenderGraphDebug.clearRenderTargetsAtCreation)
                 {
