@@ -793,6 +793,45 @@ namespace UnityEngine.Rendering.Universal.Internal
             ++m_EyeIndex;
         }
 
+        public void ExecuteDeferredPass(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd) { 
+
+            // NOTE: Because we're not rendering upside down, we have to use the
+            // correct _ScreenToWorld matrix ...
+
+            // if we're sampling from a texture, then we have to take into account uv start
+            // because we're reading from imageblock, we have no such issue ..
+
+            Matrix4x4 proj;
+            Matrix4x4 view;
+
+            proj = renderingData.cameraData.camera.projectionMatrix;
+            view = renderingData.cameraData.camera.worldToCameraMatrix;
+
+            //Matrix4x4 gpuProj = GL.GetGPUProjectionMatrix(proj, false); // This function not work for orthographic projection, so make we our own!
+            Matrix4x4 gpuProj = new Matrix4x4(
+                new Vector4(1.0f, 0.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, -1.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, (SystemInfo.usesReversedZBuffer ? -1.0f : 1.0f) * 0.5f, 0.0f),
+                new Vector4(0.0f, 0.0f, 0.5f, 1.0f)
+            ) * proj;
+            
+
+            // xy coordinates in range [-1; 1] go to pixel coordinates.
+            Matrix4x4 toScreen = new Matrix4x4(
+                new Vector4(0.5f * m_RenderWidth, 0.0f, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.5f * m_RenderHeight, 0.0f, 0.0f),
+                new Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+                new Vector4(0.5f * m_RenderWidth, 0.5f * m_RenderHeight, 0.0f, 1.0f)
+            );
+
+            Matrix4x4 clipToWorld = Matrix4x4.Inverse(toScreen * gpuProj * view);
+            cmd.SetGlobalMatrix(ShaderConstants._ScreenToWorld, clipToWorld);
+
+            RenderStencilLights(context, cmd, ref renderingData);
+            RenderFog(context, cmd, ref renderingData);
+            ++m_EyeIndex;
+        }
+
         void SortLights(ref NativeArray<DeferredTiler.PrePunctualLight> prePunctualLights)
         {
             DeferredTiler.PrePunctualLight[] array = prePunctualLights.ToArray(); // TODO Use NativeArrayExtensions and avoid dynamic memory allocation.

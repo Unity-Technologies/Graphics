@@ -20,16 +20,22 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_DepthAttachment;
         DeferredLights m_DeferredLights;
 
+        ComputeShader m_GBufferInitCS;
+
         ShaderTagId[] m_ShaderTagIds = { 
             new ShaderTagId("UniversalGBuffer"),
         };
 
-        public DeferredUberPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, DeferredLights deferredLights)
+        const int tileWidth = 16;
+        const int tileHeight = 16;
+
+        public DeferredUberPass(RenderPassEvent evt, RenderQueueRange renderQueueRange, LayerMask layerMask, DeferredLights deferredLights, ComputeShader GBufferInitCS)
         {
             base.renderPassEvent = evt;
             m_FilteringSettings = new FilteringSettings(renderQueueRange, layerMask);
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
             m_DeferredLights = deferredLights;
+            m_GBufferInitCS = GBufferInitCS;
         }
 
         public void Setup(ref RenderingData renderingData, RenderTargetHandle colorAttachment, RenderTargetHandle depthAttachment)
@@ -47,8 +53,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             // It seems that half will be converted to float on metal platform
             // TODO: figure out why
-            int tileWidth = 16;
-            int tileHeight = 16;
             int threadGroupMemoryLength = 0;
             int imageBlockSampleLength = 40;
             context.SetTileParams(tileWidth, tileHeight, threadGroupMemoryLength, imageBlockSampleLength);
@@ -69,9 +73,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetViewProjectionMatrices(renderingData.cameraData.camera.worldToCameraMatrix, renderingData.cameraData.camera.projectionMatrix);
                 // Note: a special case might be required if(renderingData.cameraData.isStereoEnabled) - see reference in ScreenSpaceShadowResolvePass.Execute
 
+                cmd.DispatchComputePerTile(m_GBufferInitCS, 0, tileWidth, tileHeight, 1);
+
                 context.ExecuteCommandBuffer(cmd); // send the cmd to the scriptableRenderContext - this should be done *before* calling scriptableRenderContext.DrawRenderers
                 cmd.Clear();
-
+                
                 DrawingSettings drawingSettings = CreateDrawingSettings(
                     m_ShaderTagIds[(int)(SubPassType.GBufferPass)], 
                     ref renderingData, 
@@ -86,6 +92,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings/*, ref m_RenderStateBlock*/);
+
+                m_DeferredLights.ExecuteDeferredPass(context, ref renderingData, cmd);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

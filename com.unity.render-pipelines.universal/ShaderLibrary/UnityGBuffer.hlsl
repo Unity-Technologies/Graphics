@@ -34,15 +34,26 @@ struct imageblock_FragmentOutput_t
     float __RasterOrderGroup_0__Depth;
 };
 
-RWStructuredBuffer<imageblock_FragmentOutput_t> OUT_imageblock_fragmentOutput;
+RWStructuredBuffer<imageblock_FragmentOutput_t> INOUT_imageblock_fragmentOutput;
 
 half4 GbufferToImageBlock(FragmentOutput output, float depth)
 {
-    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer0 = output.GBuffer0;
-    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer1 = output.GBuffer1;
-    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer2 = output.GBuffer2;
-    OUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth = depth + 0.0;
+    if (depth <= INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth)
+    {
+        INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer0 = output.GBuffer0;
+        INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer1 = output.GBuffer1;
+        INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer2 = output.GBuffer2;
+        INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth = depth;
+    }
     return output.GBuffer3;
+}
+
+void LoadGBufferFromImageBlock(out float d, out half4 gbuffer0, out half4 gbuffer1, out half4 gbuffer2)
+{
+    d = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__Depth;
+    gbuffer0 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer0;
+    gbuffer1 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer1;
+    gbuffer2 = INOUT_imageblock_fragmentOutput[0].__RasterOrderGroup_0__GBuffer2;
 }
 
 #define GBUFFER_PASS_OUTPUT_TYPE half4

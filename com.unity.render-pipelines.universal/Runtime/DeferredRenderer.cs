@@ -87,12 +87,13 @@ namespace UnityEngine.Rendering.Universal
             m_DefaultStencilState.SetFailOperation(stencilData.failOperation);
             m_DefaultStencilState.SetZFailOperation(stencilData.zFailOperation);
 
+            m_EnableSinglePassDeferred = data.enableSinglePassDeferred && PlatformSupportSinglePassDeferred();
+
             m_ForwardLights = new ForwardLights();
             m_DeferredLights = new DeferredLights(m_TileDepthInfoMaterial, m_TileDeferredMaterial, m_StencilDeferredMaterial);
             m_DeferredLights.accurateGbufferNormals = data.accurateGbufferNormals;
             //m_DeferredLights.tiledDeferredShading = data.tiledDeferredShading;
             m_DeferredLights.tiledDeferredShading = false;
-            m_EnableSinglePassDeferred = data.enableSinglePassDeferred && PlatformSupportSinglePassDeferred();
 
             m_PreferDepthPrepass = data.preferDepthPrepass;
 
@@ -124,7 +125,8 @@ namespace UnityEngine.Rendering.Universal
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
-            m_DeferredUberPass = new DeferredUberPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, data.opaqueLayerMask, m_DeferredLights);
+            m_DeferredUberPass = new DeferredUberPass(RenderPassEvent.BeforeRenderingOpaques, RenderQueueRange.opaque, 
+                data.opaqueLayerMask, m_DeferredLights, data.shaders.GBufferInitCS);
 
 #if UNITY_EDITOR
             m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);

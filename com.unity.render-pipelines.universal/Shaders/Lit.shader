@@ -217,16 +217,16 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             //--------------------------------------
+            // Metal 2
+            #pragma multi_compile_fragment _ METAL2_ENABLED
+            
+            //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
 
             #pragma vertex LitGBufferPassVertex
             #pragma fragment LitGBufferPassFragment
             //#pragma enable_d3d11_debug_symbols
-
-            //--------------------------------------
-            // Metal 2
-            #pragma multi_compile _ METAL2_ENABLED
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitGBufferPass.hlsl"

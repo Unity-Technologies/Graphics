@@ -1,0 +1,24 @@
+#pragma kernel computeMain
+#pragma metal_compute_shader
+
+#include <metal_stdlib>
+using namespace metal;
+
+struct FragmentOutput_t
+{
+    half4 GBuffer0 [[raster_order_group(0)]];
+    half4 GBuffer1 [[raster_order_group(0)]];
+    half4 GBuffer2 [[raster_order_group(0)]];
+    float Depth    [[raster_order_group(0)]];
+};
+
+kernel void computeMain(
+    imageblock<FragmentOutput_t, imageblock_layout_explicit> GBufferData, 
+    ushort2 tid [[thread_position_in_threadgroup]])
+{
+    threadgroup_imageblock FragmentOutput_t *pixelData = GBufferData.data(tid);
+    pixelData->GBuffer0 = 0.0;
+    pixelData->GBuffer1 = 0.0;
+    pixelData->GBuffer2 = 0.0;
+    pixelData->Depth = 1.0;
+}
