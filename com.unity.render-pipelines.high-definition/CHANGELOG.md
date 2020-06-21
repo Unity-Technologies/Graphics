@@ -695,6 +695,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where manipulating the color wheels in a volume component would reset the cursor every time.
 - Fixed an issue where static sky lighting would not be updated for a new scene until it's reloaded at least once.
 - Fixed culling for decals when used in prefabs and edited in context.
+- Force to rebake probe with missing baked texture. (1253367)
 
 ### Changed
 - Improve MIP selection for decals on Transparents
