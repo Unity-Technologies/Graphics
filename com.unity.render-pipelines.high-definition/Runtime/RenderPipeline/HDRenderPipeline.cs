@@ -1843,9 +1843,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             break;
                         case ProbeSettings.ProbeType.PlanarProbe:
                             int desiredPlanarProbeSize = (int)visibleProbe.resolution;
-                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize)
+                            GraphicsFormat planarFormat = (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+                            if (visibleProbe.realtimeTextureRTH == null || visibleProbe.realtimeTextureRTH.rt.width != desiredPlanarProbeSize || visibleProbe.realtimeTextureRTH.rt.graphicsFormat != planarFormat)
                             {
-                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize));
+                                visibleProbe.SetTexture(ProbeSettings.Mode.Realtime, HDRenderUtilities.CreatePlanarProbeRenderTarget(desiredPlanarProbeSize, planarFormat));
                             }
                             if (visibleProbe.realtimeDepthTextureRTH == null || visibleProbe.realtimeDepthTextureRTH.rt.width != desiredPlanarProbeSize)
                             {

@@ -158,8 +158,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public CubeReflectionResolution reflectionCubemapSize;
         /// <summary>Enable reflection probe cache compression.</summary>
         public bool reflectionCacheCompressed;
-        /// <summary>Enable planar probe cache compression.</summary>
-        public bool planarReflectionCacheCompressed;
 
         /// <summary>Resolution of the sky reflection cubemap.</summary>
         public SkyResolution skyReflectionSize;

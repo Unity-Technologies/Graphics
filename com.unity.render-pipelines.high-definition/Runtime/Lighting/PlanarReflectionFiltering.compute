@@ -56,7 +56,7 @@ CBUFFER_START(ShaderVariablesPlanarReflectionFiltering)
 CBUFFER_END
 
 // Output buffer of our filtering code
-RW_TEXTURE2D(float4, _FilteredPlanarReflectionBuffer);
+RW_TEXTURE2D(float3, _FilteredPlanarReflectionBuffer);
 
 // These angles have been experimentally computed to match the result of reflection probes. Initially this was a table dependent on angle and roughness, but given that every planar has a 
 // finite number of LODs and those LODS have fixed roughness and the angle changes the result, but not that much. I changed it to a per LOD LUT
@@ -88,7 +88,7 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     if (!IntersectRayPlane(_CaptureCameraPositon, rayDirection, _ReflectionPlanePosition, _ReflectionPlaneNormal, t))
     { 
         // If there is no plane intersection, there is nothing to filter (means that is a position that cannot be reflected)
-        _FilteredPlanarReflectionBuffer[currentCoord] = float4(0.0, 0.0, 0.0, 1.0);
+        _FilteredPlanarReflectionBuffer[currentCoord] = float3(0.0, 0.0, 0.0);
         return;
     }
 
@@ -123,11 +123,11 @@ void FilterPlanarReflection(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 
     const float3 integrationColor = SAMPLE_TEXTURE2D_LOD(_ReflectionColorMipChain, s_trilinear_clamp_sampler, sampleCoords, clamp(miplevel + _SourceMipIndex + mipBias, 0, _MaxMipLevels)).xyz; 
 
     // Write the output ray data
-    _FilteredPlanarReflectionBuffer[currentCoord] = float4(integrationColor, 1.0);
+    _FilteredPlanarReflectionBuffer[currentCoord] = integrationColor;
 }
 
 // Half resolution output texture for our mip chain build.
-RW_TEXTURE2D(float4, _HalfResReflectionBuffer);
+RW_TEXTURE2D(float3, _HalfResReflectionBuffer);
 RW_TEXTURE2D(float, _HalfResDepthBuffer);
 
 [numthreads(PLANAR_REFLECTION_TILE_SIZE, PLANAR_REFLECTION_TILE_SIZE, 1)]
@@ -155,7 +155,7 @@ void DownScale(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId
         }
     }
     // Normalize and output
-    _HalfResReflectionBuffer[currentCoord] = float4(averageColor / sumW, 1.0);
+    _HalfResReflectionBuffer[currentCoord] = averageColor / sumW;
 
     // We average the 4 depths and move on
     _HalfResDepthBuffer[currentCoord] = (LOAD_TEXTURE2D_LOD(_DepthTextureMipChain, currentCoord * 2, _SourceMipIndex).x 
