@@ -49,6 +49,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_WriteNormalBuffer;
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
+
         protected ShadowKeywords m_ShadowKeywords;
 
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
@@ -75,6 +78,9 @@ namespace UnityEditor.Rendering.HighDefinition
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
+            m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+            m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+
             m_ShadowKeywords = new ShadowKeywords();
         }
 

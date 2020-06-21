@@ -872,6 +872,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { Lightmaps },
             { CoreKeywordDescriptors.ShadowsShadowmask },
             { CoreKeywordDescriptors.Shadow },
+            { CoreKeywordDescriptors.ScreenSpaceShadow },
             { CoreKeywordDescriptors.Decals },
             { CoreKeywordDescriptors.LightList },
         };
@@ -1104,6 +1105,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ScreenSpaceShadow = new KeywordDescriptor()
+        {
+            displayName = "ScreenSpaceShadow",
+            referenceName = "SCREEN_SPACE_SHADOWS",
+            type = KeywordType.Enum,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "OFF" },
+                new KeywordEntry() { displayName = "On", referenceName = "ON" },
+            }
         };
 
         public static KeywordDescriptor LightLayers = new KeywordDescriptor()

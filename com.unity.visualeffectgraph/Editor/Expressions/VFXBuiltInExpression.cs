@@ -11,9 +11,20 @@ namespace UnityEditor.VFX
         public static readonly VFXExpression FrameIndex = new VFXBuiltInExpression(VFXExpressionOperation.FrameIndex);
         public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOperation.TotalTime);
         public static readonly VFXExpression DeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.DeltaTime);
+        public static readonly VFXExpression UnscaledDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.UnscaledDeltaTime);
         public static readonly VFXExpression SystemSeed = new VFXBuiltInExpression(VFXExpressionOperation.SystemSeed);
         public static readonly VFXExpression LocalToWorld = new VFXBuiltInExpression(VFXExpressionOperation.LocalToWorld);
         public static readonly VFXExpression WorldToLocal = new VFXBuiltInExpression(VFXExpressionOperation.WorldToLocal);
+        public static readonly VFXExpression GameDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.GameDeltaTime);
+        public static readonly VFXExpression GameUnscaledDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.GameUnscaledDeltaTime);
+        public static readonly VFXExpression GameSmoothDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.GameSmoothDeltaTime);
+        public static readonly VFXExpression GameTotalTime = new VFXBuiltInExpression(VFXExpressionOperation.GameTotalTime);
+        public static readonly VFXExpression GameUnscaledTotalTime = new VFXBuiltInExpression(VFXExpressionOperation.GameUnscaledTotalTime);
+        public static readonly VFXExpression GameTotalTimeSinceSceneLoad = new VFXBuiltInExpression(VFXExpressionOperation.GameTotalTimeSinceSceneLoad);
+        public static readonly VFXExpression GameTimeScale = new VFXBuiltInExpression(VFXExpressionOperation.GameTimeScale);
+        public static readonly VFXExpression PlayRate = new VFXBuiltInExpression(VFXExpressionOperation.PlayRate);
+        public static readonly VFXExpression ManagerMaxDeltaTime = new VFXBuiltInExpression(VFXExpressionOperation.ManagerMaxDeltaTime);
+        public static readonly VFXExpression ManagerFixedTimeStep = new VFXBuiltInExpression(VFXExpressionOperation.ManagerFixedTimeStep);
 
         private static readonly VFXExpression[] AllExpressions = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXExpression>(typeof(VFXBuiltInExpression));
         public static readonly VFXExpressionOperation[] All = AllExpressions.Select(e => e.operation).ToArray();
