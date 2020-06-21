@@ -23,9 +23,9 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, out Dec
 
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = _BaseColor;
-    surfaceData.emissive = _EmissiveColor * fadeFactor;
+    surfaceData.emissive = _EmissiveColor.rgb * fadeFactor;
 #ifdef _EMISSIVEMAP
-    surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords);
+    surfaceData.emissive *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, texCoords).rgb;
 #endif
 
     // Inverse pre-expose using _EmissiveExposureWeight weight

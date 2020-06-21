@@ -509,10 +509,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alphaCutoff = _AlphaCutoff;
 
     #if SHADERPASS == SHADERPASS_SHADOWS 
-        GENERIC_ALPHA_TEST(alpha, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-    #else
-        GENERIC_ALPHA_TEST(alpha, alphaCutoff);
+        alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
     #endif
+
+    GENERIC_ALPHA_TEST(alpha, alphaCutoff);
 #endif
 
     surfaceData.ambientOcclusion = 1.0;

@@ -226,10 +226,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #endif
 
     #if SHADERPASS == SHADERPASS_SHADOWS
-        GENERIC_ALPHA_TEST(alphaValue, _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff);
-    #else
-        GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
+        alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : alphaCutoff;
     #endif
+
+    GENERIC_ALPHA_TEST(alphaValue, alphaCutoff);
 #endif
 
     // We perform the conversion to world of the normalTS outside of the GetSurfaceData

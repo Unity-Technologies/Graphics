@@ -154,12 +154,10 @@ Pass
             $DoAlphaTestPostpass: alphaCutoff = surfaceDescription.AlphaClipThresholdDepthPostpass;
 
             #if SHADERPASS == SHADERPASS_SHADOWS
-                float alphaTestShadow = alphaCutoff;
-                $DoAlphaTestShadow: alphaTestShadow = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
-                GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaTestShadow);
-            #else
-                GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
+                alphaCutoff = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
             #endif
+
+            GENERIC_ALPHA_TEST(surfaceDescription.Alpha, alphaCutoff);
         #endif
 
         #if !defined(SHADER_STAGE_RAY_TRACING) && _DEPTHOFFSET_ON
@@ -190,9 +188,8 @@ Pass
         #endif // SHADER_UNLIT
 
         #ifdef _ALPHATEST_ON
-            // Used for sharpening by alpha to mask
+            // Used for sharpening by alpha to mask - Alpha to covertage is only used with depth only and forward pass (no shadow pass, no transparent pass)
             builtinData.alphaClipTreshold = alphaCutoff;
-            $DoAlphaTestShadow: builtinData.alphaClipTreshold = _UseShadowThreshold ? surfaceDescription.AlphaClipThresholdShadow : alphaCutoff;
         #endif
 
         // override sampleBakedGI - not used by Unlit
