@@ -60,15 +60,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 // m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips: true);
                 // m_TempRenderTexture.Create();
 
-                RenderTextureFormat textureFormat = m_ProbeFormat == GraphicsFormat.R16G16B16A16_SFloat ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.RGB111110Float;
-
-                m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 0, textureFormat);
+                m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 0, m_ProbeFormat);
                 m_ConvolutionTargetTexture.hideFlags = HideFlags.HideAndDontSave;
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Tex2D;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
                 m_ConvolutionTargetTexture.filterMode = FilterMode.Point;
-                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, textureFormat, "PlanarReflectionConvolution", mips: true);
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 0, m_ProbeFormat, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.enableRandomWrite = true;
                 m_ConvolutionTargetTexture.Create();
 
