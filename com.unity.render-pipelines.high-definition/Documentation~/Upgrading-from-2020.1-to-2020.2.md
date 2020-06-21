@@ -29,6 +29,8 @@ Select your [HDRP Asset](HDRP-Asset.md).
 In the Inspector, go to Lighting > Cookies.
 In the 2D Atlas Size drop-down, select a larger cookie resolution.
 
+From Unity 2020.2, the texture format of the color buffer selected in HDRP asset is apply to planar reflection probe. Previously planar reflection probe where always using float16 rendertarget.
+
 ## Shadows
 
 From Unity 2020.2, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#FilteringQualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#FilteringQualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
