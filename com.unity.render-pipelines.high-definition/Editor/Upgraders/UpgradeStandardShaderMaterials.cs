@@ -24,26 +24,26 @@ namespace UnityEditor.Rendering.HighDefinition
             return upgraders;
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Project Materials to High Definition Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials")]
         internal static void UpgradeMaterialsProject()
         {
             MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Selected Materials to High Definition Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials")]
         internal static void UpgradeMaterialsSelection()
         {
             MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
 		
-		[MenuItem("Edit/Render Pipeline/Upgrade Scene Terrains to High Definition Terrains", priority = CoreUtils.editMenuPriority2)]
+		[MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
 		static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
         {			
 			var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
 			var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
             var terrainArray = UnityEngine.GameObject.FindObjectsOfType<Terrain>();
 
-			if(terrainArray.Length == 0)
+			if (terrainArray.Length == 0)
 			{
 				Debug.LogWarning("No terrains were found in the scene.");
 				return;
@@ -57,24 +57,5 @@ namespace UnityEditor.Rendering.HighDefinition
 				}
 			}
 		}
-		
-
-        [MenuItem("Edit/Render Pipeline/Multiply Unity Builtin Directional Light Intensity to match High Definition", priority = CoreUtils.editMenuPriority2)]
-        internal static void UpgradeLights()
-        {
-            Light[] lights = Light.GetLights(LightType.Directional, 0);
-            foreach (var l in lights)
-            {
-                Undo.RecordObject(l, "Light intensity x PI");
-                l.intensity *= Mathf.PI;
-            }
-        }
-
-        [MenuItem("Edit/Render Pipeline/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.editMenuPriority2)]
-        internal static void UpgradeMaterials()
-        {
-            // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
-            MaterialReimporter.ReimportAllMaterials();
-        }
     }
 }

@@ -1,6 +1,9 @@
 #ifndef __BUILTINGIUTILITIES_HLSL__
 #define __BUILTINGIUTILITIES_HLSL__
 
+// Include the IndirectDiffuseMode enum
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/ScreenSpaceGlobalIllumination.cs.hlsl"
+
 #ifdef SHADERPASS
 #if ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) && (SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD)) || \
      ((SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP) && (SHADERPASS == SHADERPASS_DEFERRED_LIGHTING || SHADERPASS == SHADERPASS_FORWARD))
@@ -83,14 +86,8 @@ void EvaluateLightProbeBuiltin(float3 positionRWS, float3 normalWS, float3 backN
     }
     else
     {
-#if RAYTRACING_ENABLED
-        if (unity_ProbeVolumeParams.w == 1.0)
-            SampleProbeVolumeSH9(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
-        else
-#endif
-            SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
-                unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
+        SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, backNormalWS, GetProbeVolumeWorldToObject(),
+            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz, bakeDiffuseLighting, backBakeDiffuseLighting);
     }
 }
 
@@ -105,15 +102,24 @@ void SampleBakedGI(
     out float3 bakeDiffuseLighting,
     out float3 backBakeDiffuseLighting)
 {
+    bakeDiffuseLighting = float3(0, 0, 0);
+    backBakeDiffuseLighting = float3(0, 0, 0);
+
+    // Check if we are RTGI in which case we don't want to read GI at all (We rely fully on the raytrace effect)
+    // The check need to be here to work with both regular shader and shader graph
+    // Note: with Probe volume it will prevent to add the UNINITIALIZED_GI tag and
+    // the ProbeVolume will not be evaluate in the lightloop which is the desired behavior
+#if !defined(_SURFACE_TYPE_TRANSPARENT)
+    if (_IndirectDiffuseMode == INDIRECTDIFFUSEMODE_RAYTRACE)
+        return ;
+#endif
+
     float3 positionRWS = posInputs.positionWS;
 
 #define SAMPLE_LIGHTMAP (defined(LIGHTMAP_ON) || defined(DYNAMICLIGHTMAP_ON))
 #define SAMPLE_PROBEVOLUME (SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_MATERIAL_PASS) \
     && (!SAMPLE_LIGHTMAP || SHADEROPTIONS_PROBE_VOLUMES_ADDITIVE_BLENDING)
 #define SAMPLE_PROBEVOLUME_BUILTIN (!SAMPLE_LIGHTMAP && !SAMPLE_PROBEVOLUME)
-
-    bakeDiffuseLighting = float3(0, 0, 0);
-    backBakeDiffuseLighting = float3(0, 0, 0);
 
 #if SAMPLE_LIGHTMAP
     EvaluateLightmap(positionRWS, normalWS, backNormalWS, uvStaticLightmap, uvDynamicLightmap, bakeDiffuseLighting, backBakeDiffuseLighting);
